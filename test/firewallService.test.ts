@@ -67,8 +67,6 @@ suite('Firewall Service Tests', () => {
 		firewallService = TypeMoq.Mock.ofType(FirewallService, TypeMoq.MockBehavior.Loose);
 	});
 
-
-
 	test('Handle Firewall Rule test', async () => {
 		let handleResult = await firewallService.object.handleFirewallRule(12345, 'firewall error!');
 		assert.isNotNull(handleResult, 'Handle Firewall Rule request is sent successfully');
@@ -104,9 +102,15 @@ suite('Firewall Service Tests', () => {
 			token: '',
 			expiresOn: 0
 		};
-		accountService.setup(v => v.refreshToken(mockAccount)).returns(() => Promise.resolve(mockToken));
+		accountService.setup(v => v.refreshToken(mockAccount, mockTenants[0].id)).returns(() => Promise.resolve(mockToken));
 		accountService.object.setAccount(mockAccount);
-		let result = await firewallService.object.createFirewallRule(server, startIpAddress, endIpAddress);
+		let result = await firewallService.object.createFirewallRule({
+			firewallRuleName: 'Test Rule',
+			startIpAddress: startIpAddress,
+			endIpAddress: endIpAddress,
+			serverName: server,
+			securityTokenMappings: accountService.object.createSecurityTokenMapping(mockAccount, mockTenants[0].id)
+		});
 		assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');
 	});
 });

@@ -18,19 +18,7 @@ export class FirewallService {
 		private accountService: AccountService
 	) { }
 
-	private async asCreateFirewallRuleParams(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<ICreateFirewallRuleParams> {
-		let params: ICreateFirewallRuleParams = {
-			account: this.accountService.account,
-			serverName: serverName,
-			startIpAddress: startIpAddress,
-			endIpAddress: endIpAddress ? endIpAddress : startIpAddress,
-			securityTokenMappings: await this.accountService.createSecurityTokenMapping()
-		};
-		return params;
-	}
-
-	public async createFirewallRule(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<ICreateFirewallRuleResponse> {
-		let params = await this.asCreateFirewallRuleParams(serverName, startIpAddress, endIpAddress);
+	public async createFirewallRule(params: ICreateFirewallRuleParams): Promise<ICreateFirewallRuleResponse> {
 		let result = await this.accountService.client.sendResourceRequest(CreateFirewallRuleRequest.type, params);
 		return result;
 	}

@@ -139,6 +139,16 @@ export class ObjectExplorerService {
 						async updatedProfile => {
 							self.reconnectProfile(self._currentNode, updatedProfile);
 						});
+				} else if (ObjectExplorerUtils.isFirewallError(result.errorNumber)) {
+					// handle session failure because of firewall issue
+					let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule
+						(Constants.errorFirewallRule, result.errorMessage);
+					if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
+						const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+						const profile = <IConnectionProfile>self._currentNode.connectionInfo;
+						self.updateNode(self._currentNode);
+						self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+					}
 				} else if (self._currentNode.connectionInfo.authenticationType === Constants.azureMfa
 					&& self.needsAccountRefresh(result, self._currentNode.connectionInfo.user)) {
 					let profile = self._currentNode.connectionInfo;
@@ -152,17 +162,6 @@ export class ObjectExplorerService {
 				}
 				const promise = self._sessionIdToPromiseMap.get(result.sessionId);
 
-				// handle session failure because of firewall issue
-				if (ObjectExplorerUtils.isFirewallError(result.errorMessage)) {
-					let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule
-						(Constants.errorFirewallRule, result.errorMessage);
-					if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
-						const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-						const profile = <IConnectionProfile>self._currentNode.connectionInfo;
-						self.updateNode(self._currentNode);
-						self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
-					}
-				}
 				if (promise) {
 					return promise.resolve(undefined);
 				}
@@ -232,7 +231,7 @@ export class ObjectExplorerService {
 					TelemetryActions.ExpandNode,
 					{
 						nodeType: parentNode.nodeType,
-						isErrored : (!!result.errorMessage).toString()
+						isErrored: (!!result.errorMessage).toString()
 					},
 					{
 						nodeCount: result?.nodes.length ?? 0
