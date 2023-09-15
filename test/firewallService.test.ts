@@ -76,12 +76,12 @@ suite('Firewall Service Tests', () => {
 		let server = 'test_server';
 		let startIpAddress = '1.2.3.1';
 		let endIpAddress = '1.2.3.255';
-		let mockTenants: ITenant = {
+		let mockTenant: ITenant = {
 			id: '1',
 			displayName: undefined
 		};
 		let properties: IAzureAccountProperties = {
-			tenants: [mockTenants],
+			tenants: [mockTenant],
 			azureAuthType: AzureAuthType.AuthCodeGrant,
 			isMsAccount: false,
 			owningTenant: {
@@ -102,7 +102,7 @@ suite('Firewall Service Tests', () => {
 			token: '',
 			expiresOn: 0
 		};
-		accountService.setup(v => v.refreshToken(mockAccount, mockTenants[0].id)).returns(() => Promise.resolve(mockToken));
+		accountService.setup(v => v.refreshToken(mockAccount, mockTenant.id)).returns(() => Promise.resolve(mockToken));
 		accountService.object.setAccount(mockAccount);
 		let result = await firewallService.object.createFirewallRule({
 			account: mockAccount,
@@ -110,7 +110,7 @@ suite('Firewall Service Tests', () => {
 			startIpAddress: startIpAddress,
 			endIpAddress: endIpAddress,
 			serverName: server,
-			securityTokenMappings: accountService.object.createSecurityTokenMapping(mockAccount, mockTenants[0].id)
+			securityTokenMappings: accountService.object.createSecurityTokenMapping(mockAccount, mockTenant.id)
 		});
 		assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');
 	});
