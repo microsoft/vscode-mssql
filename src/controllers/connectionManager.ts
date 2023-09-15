@@ -525,6 +525,10 @@ export default class ConnectionManager {
 				LocalizedConstants.cancel
 			]);
 		if (selection === LocalizedConstants.enableTrustServerCertificate) {
+			if (profile.connectionString) {
+				// Append connection string with encryption options
+				profile.connectionString = profile.connectionString.concat('; Encrypt=true; Trust Server Certificate=true;');
+			}
 			profile.encrypt = EncryptOptions.Mandatory;
 			profile.trustServerCertificate = true;
 			await reconnectAction(profile);
