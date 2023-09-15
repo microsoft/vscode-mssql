@@ -1062,5 +1062,9 @@ export default class ConnectionManager {
 			this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
 		}
 	}
-}
 
+	public onClearTokenCache(): void {
+		this.azureController.clearTokenCache();
+		this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+	}
+}

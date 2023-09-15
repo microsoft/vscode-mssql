@@ -26,6 +26,9 @@ export class FileEncryptionHelper {
 		this._binaryEncoding = 'base64';
 	}
 
+	private ivCredId = `${this._fileName}-iv`;
+	private keyCredId = `${this._fileName}-key`;
+
 	private _algorithm: string;
 	private _bufferEncoding: BufferEncoding;
 	private _binaryEncoding: crypto.BinaryToTextEncoding;
@@ -33,19 +36,15 @@ export class FileEncryptionHelper {
 	private _keyBuffer: Buffer | undefined;
 
 	public async init(): Promise<void> {
-
-		const ivCredId = `${this._fileName}-iv`;
-		const keyCredId = `${this._fileName}-key`;
-
-		const iv = await this.readEncryptionKey(ivCredId);
-		const key = await this.readEncryptionKey(keyCredId);
+		const iv = await this.readEncryptionKey(this.ivCredId);
+		const key = await this.readEncryptionKey(this.keyCredId);
 
 		if (!iv || !key) {
 			this._ivBuffer = crypto.randomBytes(16);
 			this._keyBuffer = crypto.randomBytes(32);
 
-			if (!await this.saveEncryptionKey(ivCredId, this._ivBuffer.toString(this._bufferEncoding))
-				|| !await this.saveEncryptionKey(keyCredId, this._keyBuffer.toString(this._bufferEncoding))) {
+			if (!await this.saveEncryptionKey(this.ivCredId, this._ivBuffer.toString(this._bufferEncoding))
+				|| !await this.saveEncryptionKey(this.keyCredId, this._keyBuffer.toString(this._bufferEncoding))) {
 				this._logger.error(`Encryption keys could not be saved in credential store, this will cause access token persistence issues.`);
 				await this.showCredSaveErrorOnWindows();
 			}
@@ -72,13 +71,25 @@ export class FileEncryptionHelper {
 		return cipherText;
 	}
 
-	fileOpener = async (content: string): Promise<string> => {
-		if (!this._keyBuffer || !this._ivBuffer) {
-			await this.init();
+	fileOpener = async (content: string, resetOnError?: boolean): Promise<string> => {
+		try {
+			if (!this._keyBuffer || !this._ivBuffer) {
+				await this.init();
+			}
+			let plaintext = content;
+			const decipherIv = crypto.createDecipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
+			return `${decipherIv.update(plaintext, this._binaryEncoding, 'utf8')}${decipherIv.final('utf8')}`;
+		} catch (ex) {
+			this._logger.error(`FileEncryptionHelper: Error occurred when decrypting data, IV/KEY will be reset: ${ex}`);
+			if (resetOnError) {
+				// Reset IV/Keys if crypto cannot encrypt/decrypt data.
+				// This could be a possible case of corruption of expected iv/key combination
+				await this.clearEncryptionKeys();
+				await this.init();
+			}
+			// Throw error so cache file can be reset to empty.
+			throw new Error(`Decryption failed with error: ${ex}`);
 		}
-		let encryptedText = content;
-		const decipherIv = crypto.createDecipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
-		return `${decipherIv.update(encryptedText, this._binaryEncoding, 'utf8')}${decipherIv.final('utf8')}`;
 	}
 
 	/**
@@ -116,6 +127,17 @@ export class FileEncryptionHelper {
 			throw ex;
 		}
 		return status;
+	}
+
+	public async clearEncryptionKeys(): Promise<void> {
+		await this.deleteEncryptionKey(this.ivCredId);
+		await this.deleteEncryptionKey(this.keyCredId);
+		this._ivBuffer = undefined;
+		this._keyBuffer = undefined;
+	}
+
+	protected async deleteEncryptionKey(credentialId: string): Promise<boolean> {
+		return (await this._credentialStore.deleteCredential(credentialId));
 	}
 
 	private async showCredSaveErrorOnWindows(): Promise<void> {

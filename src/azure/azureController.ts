@@ -70,6 +70,8 @@ export abstract class AzureController {
 
 	public abstract removeAccount(account: IAccount): Promise<void>;
 
+	public abstract clearTokenCache(): void;
+
 	public abstract handleAuthMapping(): void;
 
 	public isSqlAuthProviderEnabled(): boolean {

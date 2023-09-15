@@ -65,6 +65,14 @@ export class MsalAzureController extends AzureController {
 		azureAuth.loadTokenCache();
 	}
 
+	public async clearTokenCache(): Promise<void> {
+		this.clientApplication.clearCache();
+		await this._cachePluginProvider.unlinkMsalCache();
+
+		// Delete Encryption Keys
+		await this._cachePluginProvider.clearCacheEncryptionKeys();
+	}
+
 	/**
 	 * Clears old cache file that is no longer needed on system.
 	 */

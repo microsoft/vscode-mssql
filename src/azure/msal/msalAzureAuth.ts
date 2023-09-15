@@ -310,23 +310,6 @@ export abstract class MsalAzureAuth {
 			throw new Error('Tenant did not have display name or id');
 		}
 
-		const getTenantConfigurationSet = (): Set<string> => {
-			const configuration = vscode.workspace.getConfiguration(Constants.azureTenantConfigSection);
-			let values: string[] = configuration.get('filter') ?? [];
-			return new Set<string>(values);
-		};
-
-		// The user wants to ignore this tenant.
-		if (getTenantConfigurationSet().has(tenant.id)) {
-			this.logger.info(`Tenant ${tenant.id} found in the ignore list, authentication will not be attempted.`);
-			return false;
-		}
-
-		const updateTenantConfigurationSet = async (set: Set<string>): Promise<void> => {
-			const configuration = vscode.workspace.getConfiguration('azure.tenant.config');
-			await configuration.update('filter', Array.from(set), vscode.ConfigurationTarget.Global);
-		};
-
 		interface IConsentMessageItem extends vscode.MessageItem {
 			booleanResult: boolean;
 			action?: (tenantId: string) => Promise<void>;
@@ -343,20 +326,8 @@ export abstract class MsalAzureAuth {
 			booleanResult: false
 		};
 
-		const dontAskAgainItem: IConsentMessageItem = {
-			title: LocalizedConstants.azureConsentDialogIgnore,
-			booleanResult: false,
-			action: async (tenantId: string) => {
-				let set = getTenantConfigurationSet();
-				set.add(tenantId);
-				await updateTenantConfigurationSet(set);
-			}
-
-		};
-		const messageBody = (tenant.id === Constants.organizationTenant.id)
-			? Utils.formatString(LocalizedConstants.azureConsentDialogBody, tenant.displayName, tenant.id, settings.id)
-			: Utils.formatString(LocalizedConstants.azureConsentDialogBodyAccount, settings.id);
-		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem, dontAskAgainItem);
+		const messageBody = Utils.formatString(LocalizedConstants.azureConsentDialogBodyAccount, settings.id);
+		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem);
 
 		if (result?.action) {
 			await result.action(tenant.id);
@@ -459,9 +430,6 @@ export abstract class MsalAzureAuth {
 
 	protected toBase64UrlEncoding(base64string: string): string {
 		return base64string.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_'); // Need to use base64url encoding
-	}
-	public async deleteAllCache(): Promise<void> {
-		this.clientApplication.clearCache();
 	}
 
 	public async clearCredentials(account: IAccount): Promise<void> {
