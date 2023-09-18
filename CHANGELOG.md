@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.21.0
+* Release date: September 20, 2023
+* Release status: GA
+### What's new in 1.21.0
+* Enabled connection pooling by default and added command support to clear pooled connections - https://github.com/microsoft/vscode-mssql/pull/17786
+* Added setting to configure `maxCharsToStore` to allow reading large data strings - https://github.com/microsoft/vscode-mssql/issues/1052
+* Bug Fixes
+  - Fixed status bar to show correct 'Encryption' option for connection - https://github.com/microsoft/vscode-mssql/issues/17671
+
 ## Version 1.20.1
 * Release date: August 7, 2023
 * Release status: GA
