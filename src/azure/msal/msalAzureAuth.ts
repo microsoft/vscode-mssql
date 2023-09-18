@@ -287,7 +287,7 @@ export abstract class MsalAzureAuth {
 		return 'error' in body && body.error;
 	}
 
-	private async makeGetRequest<T>(url: string, token: string): Promise<AxiosResponse<T>> {
+	private async makeGetRequest<T>(uri: string, token: string): Promise<AxiosResponse<T>> {
 		const config: AxiosRequestConfig = {
 			headers: {
 				'Content-Type': 'application/json',
@@ -296,8 +296,8 @@ export abstract class MsalAzureAuth {
 			validateStatus: () => true // Never throw
 		};
 
-		const response: AxiosResponse = await axios.get<T>(url, config);
-		this.logger.piiSanitized('GET request ', [{ name: 'response', objOrArray: response.data?.value as ITenantResponse[] ?? response.data as GetTenantsResponseData }], [], url,);
+		const response: AxiosResponse = await axios.get<T>(uri, config);
+		this.logger.piiSanitized('GET request ', [{ name: 'response', objOrArray: response.data?.value as ITenantResponse[] ?? response.data as GetTenantsResponseData }], [], uri);
 		return response;
 	}
 
