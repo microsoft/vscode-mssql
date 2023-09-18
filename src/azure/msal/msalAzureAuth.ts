@@ -22,7 +22,7 @@ import { ErrorResponseBody } from '@azure/arm-subscriptions';
 
 export type GetTenantsResponseData = {
 	value: ITenantResponse[];
-}
+};
 export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
 
 // tslint:disable:no-null-keyword
