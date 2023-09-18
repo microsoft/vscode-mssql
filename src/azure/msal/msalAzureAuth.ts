@@ -17,6 +17,13 @@ import { AzureAuthError } from '../azureAuthError';
 import * as Constants from '../constants';
 import * as azureUtils from '../utils';
 import { HttpClient } from './httpClient';
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
+import { ErrorResponseBody } from '@azure/arm-subscriptions';
+
+export type GetTenantsResponseData = {
+	value: ITenantResponse[];
+}
+export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
 
 // tslint:disable:no-null-keyword
 export abstract class MsalAzureAuth {
@@ -241,14 +248,9 @@ export abstract class MsalAzureAuth {
 		try {
 			this.logger.verbose('Fetching tenants with uri {0}', tenantUri);
 			let tenantList: string[] = [];
-			const tenantResponse = await this.httpClient.sendGetRequestAsync<any>(tenantUri, {
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`
-				}
-			});
-			const data = tenantResponse.body;
-			if (data.error) {
+			const tenantResponse = await this.makeGetRequest<GetTenantsResponseData>(tenantUri, token);
+			const data = tenantResponse.data;
+			if (this.isErrorResponseBodyWithError(data)) {
 				this.logger.error(`Error fetching tenants :${data.error.code} - ${data.error.message}`);
 				throw new Error(`${data.error.code} - ${data.error.message}`);
 			}
@@ -279,6 +281,24 @@ export abstract class MsalAzureAuth {
 			this.logger.error(`Error fetching tenants :${ex}`);
 			throw ex;
 		}
+	}
+
+	private isErrorResponseBodyWithError(body: any): body is ErrorResponseBodyWithError {
+		return 'error' in body && body.error;
+	}
+
+	private async makeGetRequest<T>(url: string, token: string): Promise<AxiosResponse<T>> {
+		const config: AxiosRequestConfig = {
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			},
+			validateStatus: () => true // Never throw
+		};
+
+		const response: AxiosResponse = await axios.get<T>(url, config);
+		this.logger.piiSanitized('GET request ', [{ name: 'response', objOrArray: response.data?.value as ITenantResponse[] ?? response.data as GetTenantsResponseData }], [], url,);
+		return response;
 	}
 
 	//#region interaction handling
