@@ -147,7 +147,7 @@ export function getConnectionDisplayString(creds: IConnectionInfo): string {
 	text = appendIfNotEmpty(text, user);
 
 	// Limit the maximum length of displayed text
-	if (text.length > Constants.maxDisplayedStatusTextLength) {
+	if (text && text.length > Constants.maxDisplayedStatusTextLength) {
 		text = text.substr(0, Constants.maxDisplayedStatusTextLength);
 		text += ' \u2026'; // Ellipsis character (...)
 	}
