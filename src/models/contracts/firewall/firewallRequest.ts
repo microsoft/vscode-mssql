@@ -23,6 +23,7 @@ export interface ICreateFirewallRuleParams {
 	serverName: string;
 	startIpAddress: string;
 	endIpAddress: string;
+	firewallRuleName: string;
 	securityTokenMappings: {};
 }
 

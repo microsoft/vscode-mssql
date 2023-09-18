@@ -451,27 +451,21 @@ export default class ConnectionManager {
 			// Check if the error is an expired password
 			if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
 				// TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired,
-					result.errorNumber, result.errorMessage));
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
-			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) {
+				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) { // check if it's an SSL failed error
 				this._failedUriToSSLMap.set(fileUri, result.errorMessage);
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
-			} else if (result.errorNumber !== Constants.errorLoginFailed) {
-				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
-				// check whether it's a firewall rule error
+			} else if (result.errorNumber === Constants.errorFirewallRule) { // check whether it's a firewall rule error
 				let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
 				if (firewallResult.result && firewallResult.ipAddress) {
-					this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+					this.failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+				} else {
+					Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 				}
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
 			} else {
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
+				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 			}
+			connection.errorNumber = result.errorNumber;
+			connection.errorMessage = result.errorMessage;
 		} else {
 			const platformInfo = await PlatformInformation.getCurrent();
 			if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {

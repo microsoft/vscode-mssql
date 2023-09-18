@@ -115,6 +115,17 @@ export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+/**
+ * Azure Firewall rule name convention is specified here:
+ * https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.Firewall.Name/
+ * When naming Azure resources, resource names must meet service requirements. The requirements for Firewall names are:
+ * - Between 1 and 80 characters long.
+ * - Alphanumerics, underscores, periods, and hyphens.
+ * - Start with alphanumeric.
+ * - End alphanumeric or underscore.
+ * - Firewall names must be unique within a resource group (we can't do string validation for this, so this is ignored)
+ */
+export const ruleNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$/;
 export const configAzureAccount = 'azureAccount';
 export const azureAccountProviderCredentials = 'azureAccountProviderCredentials';
 export const msalCacheFileName = 'accessTokenCache';
@@ -164,7 +175,6 @@ export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
 export const scriptSelectText = 'SELECT TOP (1000) * FROM ';
 export const tenantDisplayName = 'Microsoft';
-export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 

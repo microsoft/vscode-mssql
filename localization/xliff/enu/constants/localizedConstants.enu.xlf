@@ -93,10 +93,13 @@
             <source xml:lang="en">Database name</source>
         </trans-unit>
         <trans-unit id="startIpAddressPrompt">
-            <source xml:lang="en">Start IP</source>
+            <source xml:lang="en">Start IP Address</source>
         </trans-unit>
         <trans-unit id="endIpAddressPrompt">
-            <source xml:lang="en">End IP</source>
+            <source xml:lang="en">End IP Address</source>
+        </trans-unit>
+        <trans-unit id="firewallRuleNamePrompt">
+            <source xml:lang="en">Firewall rule name</source>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -351,7 +354,7 @@
             <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-            <source xml:lang="en">Account signed In. Create new firewall rule? </source>
+            <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleAdded">
             <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -387,7 +390,10 @@
             <source xml:lang="en">Run Query History</source>
         </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
-            <source xml:lang="en">Invalid IP Address </source>
+            <source xml:lang="en">Invalid IP Address</source>
+        </trans-unit>
+        <trans-unit id="msgInvalidRuleName">
+            <source xml:lang="en">Invalid Firewall rule name</source>
         </trans-unit>
         <trans-unit id="msgNoQueriesAvailable">
             <source xml:lang="en">No Queries Available</source>
