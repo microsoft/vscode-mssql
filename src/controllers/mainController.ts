@@ -159,7 +159,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 			this.registerCommand(Constants.cmdAadAddAccount);
 			this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
-
+			this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
+			this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
 			this.initializeObjectExplorer();
 
 			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
@@ -1320,5 +1321,9 @@ export default class MainController implements vscode.Disposable {
 
 	public addAadAccount(): void {
 		this.connectionManager.addAccount();
+	}
+
+	public onClearAzureTokenCache(): void {
+		this.connectionManager.onClearTokenCache();
 	}
 }

@@ -561,6 +561,11 @@
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.clearAzureAccountTokenCache",
+        "title": "%mssql.clearAzureAccountTokenCache%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [

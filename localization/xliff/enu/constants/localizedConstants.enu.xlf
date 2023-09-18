@@ -204,7 +204,10 @@
             <source xml:lang="en">An error occurred while removing user account: {0}</source>
         </trans-unit>
         <trans-unit id="noAzureAccountForRemoval">
-            <source xml:land="en">No Azure Account can be found for removal.</source>
+            <source xml:lang="en">No Azure Account can be found for removal.</source>
+        </trans-unit>
+        <trans-unit id="clearedAzureTokenCache">
+            <source xml:lang="en">Azure token cache cleared successfully.</source>
         </trans-unit>
         <trans-unit id="cannotConnect">
             <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>

@@ -104,6 +104,9 @@
         <trans-unit id="mssql.removeAadAccount">
             <source xml:lang="en">Remove Azure Account</source>
         </trans-unit>
+        <trans-unit id="mssql.clearAzureAccountTokenCache">
+            <source xml:lang="en">Clear Azure acccount token cache</source>
+        </trans-unit>
         <trans-unit id="mssql.rebuildIntelliSenseCache">
             <source xml:lang="en">Refresh IntelliSense Cache</source>
         </trans-unit>

@@ -33,6 +33,7 @@
 "mssql.copyObjectName":"Copy Object Name",
 "mssql.addAadAccount":"Add Azure Account",
 "mssql.removeAadAccount":"Remove Azure Account",
+"mssql.clearAzureAccountTokenCache":"Clear Azure acccount token cache",
 "mssql.rebuildIntelliSenseCache":"Refresh IntelliSense Cache",
 "mssql.logDebugInfo":"[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
 "mssql.maxRecentConnections":"The maximum number of recently used connections to store in the connection list.",

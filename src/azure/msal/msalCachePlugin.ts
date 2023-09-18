@@ -34,6 +34,17 @@ export class MsalCachePluginProvider {
 		return this._msalFilePath + '.lockfile';
 	}
 
+	/**
+	 * Deletes Msal access token cache file
+	 */
+	public async unlinkMsalCache(): Promise<void> {
+		await fsPromises.unlink(this._msalFilePath);
+	}
+
+	public async clearCacheEncryptionKeys(): Promise<void> {
+		await this._fileEncryptionHelper.clearEncryptionKeys();
+	}
+
 	public getCachePlugin(): ICachePlugin {
 		const lockFilePath = this.getLockfilePath();
 		const beforeCacheAccess = async (cacheContext: TokenCacheContext): Promise<void> => {
@@ -47,7 +58,7 @@ export class MsalCachePluginProvider {
 					// Handle deserialization error in cache file in case file gets corrupted.
 					// Clearing cache here will ensure account is marked stale so re-authentication can be triggered.
 					this._logger.verbose(`MsalCachePlugin: Error occurred when trying to read cache file, file contents will be cleared: ${e.message}`);
-					await fsPromises.writeFile(this._msalFilePath, '', { encoding: 'utf8' });
+					await fsPromises.unlink(this._msalFilePath);
 				}
 				this._logger.verbose(`MsalCachePlugin: Token read from cache successfully.`);
 			} catch (e) {
@@ -56,7 +67,7 @@ export class MsalCachePluginProvider {
 					this._logger.verbose(`MsalCachePlugin: Cache file not found on disk: ${e.code}`);
 				} else {
 					this._logger.error(`MsalCachePlugin: Failed to read from cache file, file contents will be cleared : ${e}`);
-					await fsPromises.writeFile(this._msalFilePath, '', { encoding: 'utf8' });
+					await fsPromises.unlink(this._msalFilePath);
 				}
 			} finally {
 				lockFile.unlockSync(lockFilePath);
