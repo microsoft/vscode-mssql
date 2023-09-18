@@ -571,7 +571,7 @@ export class ConnectionUI {
 		}
 	}
 
-	private async promptForFirewallRuleCreation(startIpAddress: string, server: string): Promise<ICreateFirewallRuleParams> {
+	private async promptForFirewallRuleCreation(startIpAddress: string, server: string): Promise<ICreateFirewallRuleParams | undefined> {
 		function padTo2Digits(num: number): string {
 			return num.toString().padStart(2, '0');
 		}
@@ -667,21 +667,22 @@ export class ConnectionUI {
 		];
 
 		// Prompt and return the value if the user confirmed
-		return this._prompter.prompt(questions).then(async (answers: { [questionId: string]: string }) => {
-			if (answers) {
-				let result: ICreateFirewallRuleParams = {
-					account: accountAnswer,
-					startIpAddress: answers[LocalizedConstants.startIpAddressPrompt] ?
-						answers[LocalizedConstants.startIpAddressPrompt] : startIpAddress,
-					endIpAddress: answers[LocalizedConstants.endIpAddressPrompt] ?
-						answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress,
-					firewallRuleName: firewallRuleNameAnswer,
-					serverName: server,
-					securityTokenMappings: await this.connectionManager.accountService.createSecurityTokenMapping(accountAnswer, tenantIdAnswer)
-				};
-				return result;
-			}
-		});
+		let answers = await this._prompter.prompt(questions);
+		if (answers) {
+			let result: ICreateFirewallRuleParams = {
+				account: accountAnswer,
+				startIpAddress: answers[LocalizedConstants.startIpAddressPrompt] ?
+					answers[LocalizedConstants.startIpAddressPrompt] as string : startIpAddress,
+				endIpAddress: answers[LocalizedConstants.endIpAddressPrompt] ?
+					answers[LocalizedConstants.endIpAddressPrompt] as string : startIpAddress,
+				firewallRuleName: firewallRuleNameAnswer,
+				serverName: server,
+				securityTokenMappings: await this.connectionManager.accountService.createSecurityTokenMapping(accountAnswer, tenantIdAnswer)
+			};
+			return result;
+		} else {
+			return undefined;
+		}
 	}
 
 	private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
