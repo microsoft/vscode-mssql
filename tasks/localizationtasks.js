@@ -208,7 +208,18 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 
 	// Make the new file create on root.
 	// the original directory path was 'vscode-mssql\localization\xliff\<lang>'
-	file.dirname = file.dirname.replace(language, '').replace('localization', '').replace('xliff', '');
+	file.dirname = replaceLastString(file.dirname, `\\${language}`);
+	file.dirname = replaceLastString(file.dirname, '\\xliff');
+	file.dirname = replaceLastString(file.dirname, '\\localization');
+}
+
+function replaceLastString(stringInput, stringToTrim) {
+	const index = stringInput.lastIndexOf(stringToTrim);
+    if (index < 0) {
+        return stringInput;
+    }
+
+    return stringInput.substr(0, index) + stringInput.substr(index + stringToTrim.length);
 }
 
 // Generates a package.nls.json file from localizedPackage.json.enu.xlf by using the
