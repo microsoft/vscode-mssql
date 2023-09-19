@@ -208,9 +208,9 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 
 	// Make the new file create on root.
 	// the original directory path was 'vscode-mssql\localization\xliff\<lang>'
-	file.dirname = replaceLastString(file.dirname, `\\${language}`);
-	file.dirname = replaceLastString(file.dirname, '\\xliff');
-	file.dirname = replaceLastString(file.dirname, '\\localization');
+	file.dirname = replaceLastString(file.dirname, `${language}`);
+	file.dirname = replaceLastString(file.dirname, 'xliff');
+	file.dirname = replaceLastString(file.dirname, 'localization');
 }
 
 function replaceLastString(stringInput, stringToTrim) {
