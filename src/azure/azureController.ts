@@ -121,7 +121,7 @@ export abstract class AzureController {
 	 * Returns Azure sessions with subscriptions, tenant and token for each given account
 	 */
 	public async getAccountSessions(account: IAccount): Promise<IAzureAccountSession[]> {
-		let sessions: IAzureAccountSession[] = [];
+		const sessions: IAzureAccountSession[] = [];
 		const tenants = <ITenant[]>account.properties.tenants;
 		for (const tenant of tenants) {
 			const tenantId = tenant.id;
