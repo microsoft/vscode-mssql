@@ -123,12 +123,16 @@
         <target state="translated">Nombre de base de datos</target>
       </trans-unit>
       <trans-unit id="startIpAddressPrompt">
-        <source xml:lang="en">Start IP</source>
-        <target state="translated">IP inicial</target>
+        <source xml:lang="en">Start IP Address</source>
+        <target state="translated">Dirección IP inicial</target>
       </trans-unit>
       <trans-unit id="endIpAddressPrompt">
-        <source xml:lang="en">End IP</source>
-        <target state="translated">IP final</target>
+        <source xml:lang="en">End IP Address</source>
+        <target state="translated">Dirección IP final</target>
+      </trans-unit>
+      <trans-unit id="firewallRuleNamePrompt">
+        <source xml:lang="en">Firewall rule name</source>
+        <target state="translated">Nombre de la regla de firewall</target>
       </trans-unit>
       <trans-unit id="databasePlaceholder">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -271,8 +275,12 @@
         <target state="translated">Error al quitar la cuenta de usuario: {0}</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <source xml:lang="en">No Azure Account can be found for removal.</source>
         <target state="translated">No se encuentra ninguna cuenta de Azure para su eliminación.</target>
+      </trans-unit>
+      <trans-unit id="clearedAzureTokenCache">
+        <source xml:lang="en">Azure token cache cleared successfully.</source>
+        <target state="translated">La caché de tokens de Azure se ha borrado correctamente.</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -463,8 +471,8 @@
         <target state="translated">La dirección IP del cliente no tiene acceso al servidor. Agregue una cuenta de Azure y cree una regla de firewall para habilitar el acceso.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-        <source xml:lang="en">Account signed In. Create new firewall rule? </source>
-        <target state="translated">Se ha iniciado sesión con la cuenta. ¿Quiere crear una regla de firewall? </target>
+        <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
+        <target state="translated">La dirección IP del cliente ''{0}'' no tiene acceso al servidor ''{1}'' al que está intentando conectarse. ¿Desea crear una nueva regla de firewall?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleAdded">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -511,8 +519,12 @@
         <target state="translated">Ejecutar historial de consultas</target>
       </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
-        <source xml:lang="en">Invalid IP Address </source>
-        <target state="translated">Dirección IP no válida </target>
+        <source xml:lang="en">Invalid IP Address</source>
+        <target state="translated">Dirección IP no válida</target>
+      </trans-unit>
+      <trans-unit id="msgInvalidRuleName">
+        <source xml:lang="en">Invalid Firewall rule name</source>
+        <target state="translated">Nombre de regla de firewall no válida.</target>
       </trans-unit>
       <trans-unit id="msgNoQueriesAvailable">
         <source xml:lang="en">No Queries Available</source>

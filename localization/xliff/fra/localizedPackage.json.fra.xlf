@@ -138,6 +138,10 @@
         <source xml:lang="en">Remove Azure Account</source>
         <target state="translated">Supprimer le compte Azure</target>
       </trans-unit>
+      <trans-unit id="mssql.clearAzureAccountTokenCache">
+        <source xml:lang="en">Clear Azure acccount token cache</source>
+        <target state="translated">Effacer le cache de jetons de compte Azure</target>
+      </trans-unit>
       <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
         <target state="translated">Actualiser le cache IntelliSense</target>

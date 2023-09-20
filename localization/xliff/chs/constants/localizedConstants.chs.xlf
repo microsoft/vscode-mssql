@@ -123,12 +123,16 @@
         <target state="translated">数据库名称</target>
       </trans-unit>
       <trans-unit id="startIpAddressPrompt">
-        <source xml:lang="en">Start IP</source>
-        <target state="translated">开始 IP</target>
+        <source xml:lang="en">Start IP Address</source>
+        <target state="new">Start IP Address</target>
       </trans-unit>
       <trans-unit id="endIpAddressPrompt">
-        <source xml:lang="en">End IP</source>
-        <target state="translated">结束 IP</target>
+        <source xml:lang="en">End IP Address</source>
+        <target state="new">End IP Address</target>
+      </trans-unit>
+      <trans-unit id="firewallRuleNamePrompt">
+        <source xml:lang="en">Firewall rule name</source>
+        <target state="translated">防火墙规则名称</target>
       </trans-unit>
       <trans-unit id="databasePlaceholder">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -271,8 +275,12 @@
         <target state="translated">删除用户帐户时出错: {0}</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <source xml:lang="en">No Azure Account can be found for removal.</source>
         <target state="translated">找不到要删除的 Azure 帐户。</target>
+      </trans-unit>
+      <trans-unit id="clearedAzureTokenCache">
+        <source xml:lang="en">Azure token cache cleared successfully.</source>
+        <target state="new">Azure token cache cleared successfully.</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -463,8 +471,8 @@
         <target state="translated">你的客户端 IP 地址没有访问服务器所需的权限。请添加 Azure 帐户，然后新建防火墙规则来启用访问权限。</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-        <source xml:lang="en">Account signed In. Create new firewall rule? </source>
-        <target state="translated">已登录帐户。是否新建防火墙规则? </target>
+        <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
+        <target state="new">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleAdded">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -511,8 +519,12 @@
         <target state="translated">运行“查询历史记录”</target>
       </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
-        <source xml:lang="en">Invalid IP Address </source>
-        <target state="translated">IP 地址无效 </target>
+        <source xml:lang="en">Invalid IP Address</source>
+        <target state="new">Invalid IP Address</target>
+      </trans-unit>
+      <trans-unit id="msgInvalidRuleName">
+        <source xml:lang="en">Invalid Firewall rule name</source>
+        <target state="new">Invalid Firewall rule name</target>
       </trans-unit>
       <trans-unit id="msgNoQueriesAvailable">
         <source xml:lang="en">No Queries Available</source>
