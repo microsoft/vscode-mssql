@@ -121,9 +121,10 @@ export abstract class AzureController {
 	 * Returns Azure sessions with subscriptions, tenant and token for each given account
 	 */
 	public async getAccountSessions(account: IAccount): Promise<IAzureAccountSession[]> {
-		let sessions: IAzureAccountSession[] = [];
+		const sessions: IAzureAccountSession[] = [];
 		const tenants = <ITenant[]>account.properties.tenants;
-		for (const tenantId of tenants.map(t => t.id)) {
+		for (const tenant of tenants) {
+			const tenantId = tenant.id;
 			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
 			const subClient = this._subscriptionClientFactory(token!);
 			const newSubPages = await subClient.subscriptions.list();
@@ -135,7 +136,7 @@ export abstract class AzureController {
 					token: token
 				};
 			});
-			sessions = sessions.concat(array);
+			sessions.push(...array);
 		}
 
 		return sessions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
