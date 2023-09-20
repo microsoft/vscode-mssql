@@ -424,6 +424,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";clearedAzureTokenCache" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure token cache cleared successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La cache dei token di Azure è stata cancellata.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";columnWidthInvalidNumberError" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid column width]]></Val>
@@ -604,18 +613,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Avviso: ADAL è stato deprecato e sarà rimosso nella prossima versione. In alternativa, usare MSAL.]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";disconnectConfirmationMsg" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
@@ -726,10 +723,13 @@
       </Item>
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[End IP]]></Val>
+          <Val><![CDATA[End IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IP finale]]></Val>
+            <Val><![CDATA[Indirizzo IP finale]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[End IP]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -783,6 +783,15 @@
           <Val><![CDATA[JSON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[JSON]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";firewallRuleNamePrompt" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nome regola del firewall]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1242,9 +1251,21 @@
       </Item>
       <Item ItemId=";msgInvalidIpAddress" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Invalid IP Address ]]></Val>
+          <Val><![CDATA[Invalid IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Indirizzo IP non valido ]]></Val>
+            <Val><![CDATA[Indirizzo IP non valido]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Invalid IP Address ]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgInvalidRuleName" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nome regola firewall non valido]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1425,10 +1446,13 @@
       </Item>
       <Item ItemId=";msgPromptRetryFirewallRuleSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
+          <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'accesso all'account è stato eseguito. Creare la nuova regola del firewall? ]]></Val>
+            <Val><![CDATA[L'indirizzo IP client '{0}' non ha accesso al server '{1}' a cui l'utente sta tentando di connettersi. Creare una nuova regola del firewall?]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1875,10 +1899,13 @@
       </Item>
       <Item ItemId=";startIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start IP]]></Val>
+          <Val><![CDATA[Start IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IP iniziale]]></Val>
+            <Val><![CDATA[Indirizzo IP iniziale]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Start IP]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
