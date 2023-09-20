@@ -37,7 +37,7 @@ export class SimpleWebServer {
 	}
 
 	private bumpLastUsed(): void {
-		this.lastUsed = new Date().getTime();
+		this.lastUsed = Date.now();
 	}
 
 	public async shutdown(): Promise<void> {
@@ -99,7 +99,7 @@ export class SimpleWebServer {
 
 	private autoShutoff(): void {
 		this.shutoffInterval = setInterval(() => {
-			const time = new Date().getTime();
+			const time = Date.now();
 
 			if (time - this.lastUsed > this.autoShutoffTimer) {
 				console.log('Shutting off webserver...');

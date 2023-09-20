@@ -176,7 +176,7 @@ export abstract class AzureController {
 		if (!expiresOn) {
 			return true;
 		}
-		const currentTime = new Date().getTime() / 1000;
+		const currentTime = Date.now() / 1000;
 		const maxTolerance = 2 * 60; // two minutes
 		return (expiresOn - currentTime < maxTolerance);
 	}
