@@ -140,7 +140,7 @@
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
         <source xml:lang="en">Clear Azure acccount token cache</source>
-        <target state="new">Clear Azure acccount token cache</target>
+        <target state="translated">Azure アカウント トークン キャッシュをクリアする</target>
       </trans-unit>
       <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
