@@ -427,6 +427,9 @@
       <Item ItemId=";clearedAzureTokenCache" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure token cache cleared successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 토큰 캐시를 지웠습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -721,8 +724,8 @@
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[끝 IP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[끝 IP 주소]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[End IP]]></Val>
@@ -1249,8 +1252,8 @@
       <Item ItemId=";msgInvalidIpAddress" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[잘못된 IP 주소 ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[잘못된 IP 주소]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Invalid IP Address ]]></Val>
@@ -1261,6 +1264,9 @@
       <Item ItemId=";msgInvalidRuleName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[잘못된 방화벽 규칙 이름]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1441,8 +1447,8 @@
       <Item ItemId=";msgPromptRetryFirewallRuleSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[계정에 로그인했습니다. 새 방화벽 규칙을 만드시겠습니까? ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA['{0}' 클라이언트 IP 주소에서 연결하려는 '{1}' 서버에 액세스할 수 없습니다. 새 방화벽 규칙을 만드시겠습니까?]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
@@ -1894,8 +1900,8 @@
       <Item ItemId=";startIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[시작 IP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시작 IP 주소]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Start IP]]></Val>

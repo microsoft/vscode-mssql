@@ -427,6 +427,9 @@
       <Item ItemId=";clearedAzureTokenCache" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure token cache cleared successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure トークン キャッシュが正常にクリアされました。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -721,8 +724,8 @@
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[終了 IP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[終了 IP アドレス]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[End IP]]></Val>
@@ -1249,8 +1252,8 @@
       <Item ItemId=";msgInvalidIpAddress" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[IP アドレスが無効です ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[IP アドレスが無効です]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Invalid IP Address ]]></Val>
@@ -1261,6 +1264,9 @@
       <Item ItemId=";msgInvalidRuleName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ファイアウォール規則名が無効です]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1441,8 +1447,8 @@
       <Item ItemId=";msgPromptRetryFirewallRuleSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[アカウントがサインインしました。新しいファイアウォール規則を作成しますか? ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[お使いのクライアント IP アドレス '{0}' では、接続しようとしているサーバー '{1}' にアクセスできません。新しいファイアウォール規則を作成しますか?]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
@@ -1894,8 +1900,8 @@
       <Item ItemId=";startIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[開始 IP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[開始 IP アドレス]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Start IP]]></Val>

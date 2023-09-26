@@ -427,6 +427,9 @@
       <Item ItemId=";clearedAzureTokenCache" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure token cache cleared successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已成功清除 Azure 令牌缓存。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -721,8 +724,8 @@
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[结束 IP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[结束 IP 地址]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[End IP]]></Val>
@@ -1249,8 +1252,8 @@
       <Item ItemId=";msgInvalidIpAddress" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[IP 地址无效 ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[IP 地址无效]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Invalid IP Address ]]></Val>
@@ -1261,6 +1264,9 @@
       <Item ItemId=";msgInvalidRuleName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[防火墙规则名称无效]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1441,8 +1447,8 @@
       <Item ItemId=";msgPromptRetryFirewallRuleSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[已登录帐户。是否新建防火墙规则? ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[客户端 IP 地址“{0}”无权访问你尝试连接到的服务器“{1}”。是否要创建新的防火墙规则?]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
@@ -1894,8 +1900,8 @@
       <Item ItemId=";startIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start IP Address]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[开始 IP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[起始 IP 地址]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Start IP]]></Val>
