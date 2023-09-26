@@ -124,11 +124,11 @@
       </trans-unit>
       <trans-unit id="startIpAddressPrompt">
         <source xml:lang="en">Start IP Address</source>
-        <target state="new">Start IP Address</target>
+        <target state="translated">시작 IP 주소</target>
       </trans-unit>
       <trans-unit id="endIpAddressPrompt">
         <source xml:lang="en">End IP Address</source>
-        <target state="new">End IP Address</target>
+        <target state="translated">끝 IP 주소</target>
       </trans-unit>
       <trans-unit id="firewallRuleNamePrompt">
         <source xml:lang="en">Firewall rule name</source>
@@ -280,7 +280,7 @@
       </trans-unit>
       <trans-unit id="clearedAzureTokenCache">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
-        <target state="new">Azure token cache cleared successfully.</target>
+        <target state="translated">Azure 토큰 캐시를 지웠습니다.</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -472,7 +472,7 @@
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
         <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
-        <target state="new">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</target>
+        <target state="translated">'{0}' 클라이언트 IP 주소에서 연결하려는 '{1}' 서버에 액세스할 수 없습니다. 새 방화벽 규칙을 만드시겠습니까?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleAdded">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -520,11 +520,11 @@
       </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
         <source xml:lang="en">Invalid IP Address</source>
-        <target state="new">Invalid IP Address</target>
+        <target state="translated">잘못된 IP 주소</target>
       </trans-unit>
       <trans-unit id="msgInvalidRuleName">
         <source xml:lang="en">Invalid Firewall rule name</source>
-        <target state="new">Invalid Firewall rule name</target>
+        <target state="translated">잘못된 방화벽 규칙 이름</target>
       </trans-unit>
       <trans-unit id="msgNoQueriesAvailable">
         <source xml:lang="en">No Queries Available</source>
