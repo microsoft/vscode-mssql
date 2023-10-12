@@ -124,6 +124,11 @@ export interface IAzureAccountProperties {
  * Represents settings for an AAD account provider
  */
 export interface IProviderSettings {
+	configKey: string;
+	metadata: IProviderMetadata;
+}
+
+export interface IProviderMetadata {
 	scopes: string[];
 	displayName: string;
 	id: string;

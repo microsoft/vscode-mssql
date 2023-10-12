@@ -916,6 +916,21 @@
           ],
           "deprecationMessage": "Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL (default option) instead."
         },
+        "mssql.enablePublicCloud": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.azure.enablePublicCloudDescription%"
+        },
+        "mssql.enableUsGovCloud": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.azure.enableUsGovCloudDescription%"
+        },
+        "mssql.enableChinaCloud": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.azure.enableChinaCloudDescription%"
+        },
         "mssql.enableSqlAuthenticationProvider": {
           "type": "boolean",
           "description": "%mssql.enableSqlAuthenticationProvider%",
