@@ -4864,9 +4864,9 @@ slash@^1.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
   integrity sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU=
 
-"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.43":
-  version "2.3.43"
-  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/877ada4c52320a851bb9f7b54eed10831423c144"
+"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.46":
+  version "2.3.46"
+  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/7768663102f64e22fe5dfd9afa4a368c85a28778"
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
