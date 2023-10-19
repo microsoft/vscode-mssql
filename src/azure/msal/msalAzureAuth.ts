@@ -37,7 +37,6 @@ export abstract class MsalAzureAuth {
 		protected readonly logger: Logger
 	) {
 		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com/';
-		// Use localhost for MSAL instead of this.providerSettings.redirectUri (kept as-is for ADAL only);
 		this.redirectUri = 'http://localhost';
 		this.clientId = this.providerSettings.clientId;
 		this.scopes = [...this.providerSettings.scopes];
@@ -104,7 +103,18 @@ export abstract class MsalAzureAuth {
 	 * @returns The authentication result, including the access token
 	 */
 	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | null> {
-		let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(account.key.id);
+		let accountInfo: AccountInfo | null;
+		try {
+			accountInfo = await this.getAccountFromMsalCache(account.key.id);
+		} catch (e) {
+			this.logger.error('Error: Could not fetch account from MSAL cache, re-authentication needed.');
+			// build refresh token request
+			const tenant: ITenant = {
+				id: tenantId,
+				displayName: ''
+			};
+			return this.handleInteractionRequired(tenant, settings, false);
+		}
 		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
 		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
 
@@ -220,6 +230,9 @@ export abstract class MsalAzureAuth {
 		} else {
 			account = await cache.getAccountByLocalId(accountId);
 		}
+		if (!account) {
+			throw new Error('Error: Could not find account from MSAL Cache.');
+		}
 		return account;
 	}
 
@@ -269,13 +282,21 @@ export abstract class MsalAzureAuth {
 	}
 
 	//#region interaction handling
-	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource): Promise<AuthenticationResult | null> {
-		const shouldOpen = await this.askUserForInteraction(tenant, settings);
-		if (shouldOpen) {
+	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource, promptUser: boolean = true): Promise<AuthenticationResult | null> {
+		let shouldOpen: boolean;
+		if (promptUser) {
+			shouldOpen = await this.askUserForInteraction(tenant, settings);
+			if (shouldOpen) {
+				const result = await this.login(tenant);
+				result?.authComplete?.resolve();
+				return result?.response;
+			}
+		} else {
 			const result = await this.login(tenant);
 			result?.authComplete?.resolve();
 			return result?.response;
 		}
+
 		return null;
 	}
 
@@ -288,23 +309,6 @@ export abstract class MsalAzureAuth {
 		if (!tenant.displayName && !tenant.id) {
 			throw new Error('Tenant did not have display name or id');
 		}
-
-		const getTenantConfigurationSet = (): Set<string> => {
-			const configuration = vscode.workspace.getConfiguration(Constants.azureTenantConfigSection);
-			let values: string[] = configuration.get('filter') ?? [];
-			return new Set<string>(values);
-		};
-
-		// The user wants to ignore this tenant.
-		if (getTenantConfigurationSet().has(tenant.id)) {
-			this.logger.info(`Tenant ${tenant.id} found in the ignore list, authentication will not be attempted.`);
-			return false;
-		}
-
-		const updateTenantConfigurationSet = async (set: Set<string>): Promise<void> => {
-			const configuration = vscode.workspace.getConfiguration('azure.tenant.config');
-			await configuration.update('filter', Array.from(set), vscode.ConfigurationTarget.Global);
-		};
 
 		interface IConsentMessageItem extends vscode.MessageItem {
 			booleanResult: boolean;
@@ -322,20 +326,8 @@ export abstract class MsalAzureAuth {
 			booleanResult: false
 		};
 
-		const dontAskAgainItem: IConsentMessageItem = {
-			title: LocalizedConstants.azureConsentDialogIgnore,
-			booleanResult: false,
-			action: async (tenantId: string) => {
-				let set = getTenantConfigurationSet();
-				set.add(tenantId);
-				await updateTenantConfigurationSet(set);
-			}
-
-		};
-		const messageBody = (tenant.id === Constants.organizationTenant.id)
-			? Utils.formatString(LocalizedConstants.azureConsentDialogBody, tenant.displayName, tenant.id, settings.id)
-			: Utils.formatString(LocalizedConstants.azureConsentDialogBodyAccount, settings.id);
-		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem, dontAskAgainItem);
+		const messageBody = Utils.formatString(LocalizedConstants.azureConsentDialogBodyAccount, settings.id);
+		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem);
 
 		if (result?.action) {
 			await result.action(tenant.id);
@@ -438,9 +430,6 @@ export abstract class MsalAzureAuth {
 
 	protected toBase64UrlEncoding(base64string: string): string {
 		return base64string.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_'); // Need to use base64url encoding
-	}
-	public async deleteAllCache(): Promise<void> {
-		this.clientApplication.clearCache();
 	}
 
 	public async clearCredentials(account: IAccount): Promise<void> {

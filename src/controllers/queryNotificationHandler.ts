@@ -29,11 +29,11 @@ export class QueryNotificationHandler {
 
 	static get instance(): QueryNotificationHandler {
 		if (QueryNotificationHandler._instance) {
-			return this._instance;
+			return QueryNotificationHandler._instance;
 		} else {
-			this._instance = new QueryNotificationHandler();
-			this._instance.initialize();
-			return this._instance;
+			QueryNotificationHandler._instance = new QueryNotificationHandler();
+			QueryNotificationHandler._instance.initialize();
+			return QueryNotificationHandler._instance;
 		}
 	}
 

@@ -123,12 +123,16 @@
         <target state="translated">Nome del database</target>
       </trans-unit>
       <trans-unit id="startIpAddressPrompt">
-        <source xml:lang="en">Start IP</source>
-        <target state="translated">IP iniziale</target>
+        <source xml:lang="en">Start IP Address</source>
+        <target state="translated">Indirizzo IP iniziale</target>
       </trans-unit>
       <trans-unit id="endIpAddressPrompt">
-        <source xml:lang="en">End IP</source>
-        <target state="translated">IP finale</target>
+        <source xml:lang="en">End IP Address</source>
+        <target state="translated">Indirizzo IP finale</target>
+      </trans-unit>
+      <trans-unit id="firewallRuleNamePrompt">
+        <source xml:lang="en">Firewall rule name</source>
+        <target state="translated">Nome regola del firewall</target>
       </trans-unit>
       <trans-unit id="databasePlaceholder">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -271,8 +275,12 @@
         <target state="translated">Errore durante la rimozione dell'account utente: {0}</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <source xml:lang="en">No Azure Account can be found for removal.</source>
         <target state="translated">Non è stato trovato alcun account Azure per la rimozione.</target>
+      </trans-unit>
+      <trans-unit id="clearedAzureTokenCache">
+        <source xml:lang="en">Azure token cache cleared successfully.</source>
+        <target state="translated">La cache dei token di Azure è stata cancellata.</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -463,8 +471,8 @@
         <target state="translated">L'indirizzo IP client non ha accesso al server. Aggiungere un account Azure e creare una nuova regola del firewall per consentire l'accesso.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-        <source xml:lang="en">Account signed In. Create new firewall rule? </source>
-        <target state="translated">L'accesso all'account è stato eseguito. Creare la nuova regola del firewall? </target>
+        <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
+        <target state="translated">L'indirizzo IP client '{0}' non ha accesso al server '{1}' a cui l'utente sta tentando di connettersi. Creare una nuova regola del firewall?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleAdded">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -511,8 +519,12 @@
         <target state="translated">Eseguire la cronologia delle query</target>
       </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
-        <source xml:lang="en">Invalid IP Address </source>
-        <target state="translated">Indirizzo IP non valido </target>
+        <source xml:lang="en">Invalid IP Address</source>
+        <target state="translated">Indirizzo IP non valido</target>
+      </trans-unit>
+      <trans-unit id="msgInvalidRuleName">
+        <source xml:lang="en">Invalid Firewall rule name</source>
+        <target state="translated">Nome regola firewall non valido</target>
       </trans-unit>
       <trans-unit id="msgNoQueriesAvailable">
         <source xml:lang="en">No Queries Available</source>
@@ -866,17 +878,17 @@
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">La libreria di autenticazione è stata modificata. Ricarica Visual Studio Code.</target>
       </trans-unit>
+      <trans-unit id="reloadPromptGeneric">
+        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target state="translated">Questa impostazione richiede il riavvio di Visual Studio Code. Ricaricare Visual Studio Code.</target>
+      </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Ricarica Visual Studio Code</target>
       </trans-unit>
-      <trans-unit id="deprecatedMessage">
-        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="new">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</target>
-      </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>
-        <target state="new">Switch to MSAL</target>
+        <target state="translated">Passa a MSAL</target>
       </trans-unit>
       <trans-unit id="dismiss">
         <source xml:lang="en">Dismiss</source>

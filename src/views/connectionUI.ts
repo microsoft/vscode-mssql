@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IAccount, IConnectionInfo } from 'vscode-mssql';
+import { IAccount, IConnectionInfo, ITenant } from 'vscode-mssql';
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import * as constants from '../constants/constants';
@@ -14,7 +14,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { ConnectionStore } from '../models/connectionStore';
-import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
+import { ICreateFirewallRuleParams } from '../models/contracts/firewall/firewallRequest';
 import { CredentialsQuickPickItemType, IConnectionCredentialsQuickPickItem, IConnectionProfile } from '../models/interfaces';
 import * as Utils from '../models/utils';
 import { Timer } from '../models/utils';
@@ -571,7 +571,36 @@ export class ConnectionUI {
 		}
 	}
 
-	private async promptForIpAddress(startIpAddress: string): Promise<IFirewallIpAddressRange> {
+	private async promptForFirewallRuleCreation(startIpAddress: string, server: string): Promise<ICreateFirewallRuleParams | undefined> {
+		function padTo2Digits(num: number): string {
+			return num.toString().padStart(2, '0');
+		}
+
+		// format as "YYYY-MM-DD_hh-mm-ss" (default Azure rulename format)
+		function formatDate(date: Date): string {
+			return (
+				[
+					date.getFullYear(),
+					padTo2Digits(date.getMonth() + 1),
+					padTo2Digits(date.getDate())
+				].join('-') +
+				'_' +
+				[
+					padTo2Digits(date.getHours()),
+					padTo2Digits(date.getMinutes()),
+					padTo2Digits(date.getSeconds())
+				].join('-')
+			);
+		}
+
+		let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(this._accountStore);
+		let tenantChoices: INameValueChoice[] = [];
+		let defaultFirewallRuleName = `ClientIPAddress_${formatDate(new Date())}`;
+
+		let accountAnswer: IAccount;
+		let tenantIdAnswer: string;
+		let firewallRuleNameAnswer: string;
+
 		let questions: IQuestion[] = [
 			{
 				type: QuestionTypes.input,
@@ -597,31 +626,74 @@ export class ConnectionUI {
 					}
 				},
 				default: startIpAddress
+			},
+			{
+				type: QuestionTypes.input,
+				name: LocalizedConstants.firewallRuleNamePrompt,
+				message: LocalizedConstants.firewallRuleNamePrompt,
+				placeHolder: defaultFirewallRuleName,
+				validate: (value: string) => {
+					if (!value.match(constants.ruleNameRegex)) {
+						return LocalizedConstants.msgInvalidRuleName;
+					}
+					firewallRuleNameAnswer = value;
+				},
+				default: defaultFirewallRuleName
+			}, ,
+			{
+				type: QuestionTypes.expand,
+				name: LocalizedConstants.aad,
+				message: LocalizedConstants.azureChooseAccount,
+				choices: azureAccountChoices,
+				onAnswered: async (value: IAccount) => {
+					accountAnswer = value;
+					let account = value;
+					tenantChoices.push(...account?.properties?.tenants!.map(t => ({ name: t.displayName, value: t })));
+					if (tenantChoices.length === 1) {
+						tenantIdAnswer = tenantChoices[0].value.id;
+					}
+				}
+			},
+			{
+				type: QuestionTypes.expand,
+				name: LocalizedConstants.tenant,
+				message: LocalizedConstants.azureChooseTenant,
+				choices: tenantChoices,
+				shouldPrompt: () => tenantChoices.length > 1,
+				onAnswered: (value: ITenant) => {
+					tenantIdAnswer = value.id;
+				}
 			}
 		];
 
 		// Prompt and return the value if the user confirmed
-		return this._prompter.prompt(questions).then((answers: { [questionId: string]: string }) => {
-			if (answers) {
-				let result: IFirewallIpAddressRange = {
-					startIpAddress: answers[LocalizedConstants.startIpAddressPrompt] ?
-						answers[LocalizedConstants.startIpAddressPrompt] : startIpAddress,
-					endIpAddress: answers[LocalizedConstants.endIpAddressPrompt] ?
-						answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress
-				};
-				return result;
-			}
-		});
+		let answers = await this._prompter.prompt(questions);
+		if (answers) {
+			let result: ICreateFirewallRuleParams = {
+				account: accountAnswer,
+				startIpAddress: answers[LocalizedConstants.startIpAddressPrompt] ?
+					answers[LocalizedConstants.startIpAddressPrompt] as string : startIpAddress,
+				endIpAddress: answers[LocalizedConstants.endIpAddressPrompt] ?
+					answers[LocalizedConstants.endIpAddressPrompt] as string : startIpAddress,
+				firewallRuleName: firewallRuleNameAnswer,
+				serverName: server,
+				securityTokenMappings: await this.connectionManager.accountService.createSecurityTokenMapping(accountAnswer, tenantIdAnswer)
+			};
+			return result;
+		} else {
+			return undefined;
+		}
 	}
 
 	private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
-		let result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
+		let result = await this._vscodeWrapper.showInformationMessage(
+			Utils.formatString(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, ipAddress, serverName),
 			LocalizedConstants.createFirewallRuleLabel);
 		if (result === LocalizedConstants.createFirewallRuleLabel) {
 			const firewallService = this.connectionManager.firewallService;
-			let ipRange = await this.promptForIpAddress(ipAddress);
-			if (ipRange) {
-				let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
+			let params = await this.promptForFirewallRuleCreation(ipAddress, serverName);
+			if (params) {
+				let firewallResult = await firewallService.createFirewallRule(params);
 				if (firewallResult.result) {
 					this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
 					return true;
@@ -729,3 +801,4 @@ export class ConnectionUI {
 		});
 	}
 }
+

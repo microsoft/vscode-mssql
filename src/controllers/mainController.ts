@@ -134,9 +134,11 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdRunQuery);
 			this._event.on(Constants.cmdRunQuery, () => { this.onRunQuery(); });
 			this.registerCommand(Constants.cmdManageConnectionProfiles);
-			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
-			this.registerCommand(Constants.cmdRunCurrentStatement);
 			this._event.on(Constants.cmdManageConnectionProfiles, async () => { await this.onManageProfiles(); });
+			this.registerCommand(Constants.cmdClearPooledConnections);
+			this._event.on(Constants.cmdClearPooledConnections, async () => { await this.onClearPooledConnections(); });
+			this.registerCommand(Constants.cmdRunCurrentStatement);
+			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
 			this.registerCommand(Constants.cmdChooseDatabase);
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
@@ -157,7 +159,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 			this.registerCommand(Constants.cmdAadAddAccount);
 			this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
-
+			this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
+			this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
 			this.initializeObjectExplorer();
 
 			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
@@ -701,6 +704,16 @@ export default class MainController implements vscode.Disposable {
 	public async onManageProfiles(): Promise<void> {
 		if (this.canRunCommand()) {
 			await this._connectionMgr.onManageProfiles();
+			return;
+		}
+	}
+
+	/**
+	 * Clears all pooled connections not in active use.
+	 */
+	public async onClearPooledConnections(): Promise<void> {
+		if (this.canRunCommand()) {
+			await this._connectionMgr.onClearPooledConnections();
 			return;
 		}
 	}
@@ -1268,12 +1281,13 @@ export default class MainController implements vscode.Disposable {
 			}
 
 			// Prompt to reload VS Code when below settings are updated.
-			if (e.affectsConfiguration(Constants.mssqlAzureAuthLibrary)
-				|| e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
-				if ((vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.azureAuthLibrary) === 'ADAL')) {
-					void vscode.window.showInformationMessage(LocalizedConstants.deprecatedMessage);
-				}
-				await this.displayReloadMessage();
+			if (e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+			}
+
+			// Prompt to reload VS Code when below settings are updated.
+			if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
 		}
 	}
@@ -1291,8 +1305,8 @@ export default class MainController implements vscode.Disposable {
 	 * return true if button clicked
 	 * return false if button not clicked
 	 */
-	private async displayReloadMessage(): Promise<boolean> {
-		const result = await vscode.window.showInformationMessage(LocalizedConstants.reloadPrompt, LocalizedConstants.reloadChoice);
+	private async displayReloadMessage(reloadPrompt: string): Promise<boolean> {
+		const result = await vscode.window.showInformationMessage(reloadPrompt, LocalizedConstants.reloadChoice);
 		if (result === LocalizedConstants.reloadChoice) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
 			return true;
@@ -1307,5 +1321,9 @@ export default class MainController implements vscode.Disposable {
 
 	public addAadAccount(): void {
 		this.connectionManager.addAccount();
+	}
+
+	public onClearAzureTokenCache(): void {
+		this.connectionManager.onClearTokenCache();
 	}
 }

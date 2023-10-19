@@ -50,6 +50,7 @@ function createWorkspaceConfiguration(items: { [key: string]: any }, workspaceIt
 			};
 		},
 		update(section: string, value: any, global?: boolean): Thenable<void> {
+			// tslint:disable-next-line no-invalid-this Test currently expects the object to contain the property values, so allowing this until further investigation can be done
 			this[section] = value;
 
 			global = global === undefined ? true : global;

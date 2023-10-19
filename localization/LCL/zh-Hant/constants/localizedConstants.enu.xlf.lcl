@@ -424,6 +424,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";clearedAzureTokenCache" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure token cache cleared successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已成功清除 Azure 權杖快取。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";columnWidthInvalidNumberError" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid column width]]></Val>
@@ -604,18 +613,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[警告: ADAL 已被取代，並排定在未來的版本中移除。請改用 MSAL。]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";disconnectConfirmationMsg" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
@@ -726,10 +723,13 @@
       </Item>
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[End IP]]></Val>
+          <Val><![CDATA[End IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[結束 IP]]></Val>
+            <Val><![CDATA[結束 IP 位址]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[End IP]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -783,6 +783,15 @@
           <Val><![CDATA[JSON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[JSON]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";firewallRuleNamePrompt" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[防火牆規則名稱]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1242,9 +1251,21 @@
       </Item>
       <Item ItemId=";msgInvalidIpAddress" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Invalid IP Address ]]></Val>
+          <Val><![CDATA[Invalid IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無效的 IP 位址 ]]></Val>
+            <Val><![CDATA[無效的 IP 位址]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Invalid IP Address ]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgInvalidRuleName" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[防火牆規則名稱無效]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1425,10 +1446,13 @@
       </Item>
       <Item ItemId=";msgPromptRetryFirewallRuleSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
+          <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已登入帳戶。要建立新的防火牆規則嗎?]]></Val>
+            <Val><![CDATA[您的用戶端 IP 位址 '{0}' 無法存取您嘗試連接的伺服器 '{1}'。是否要建立新防火牆規則?]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1747,6 +1771,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";reloadPromptGeneric" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此設定需要重新啟動 Visual Studio Code，請重新載入 Visual Studio Code。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";restoreLabel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Restore]]></Val>
@@ -1866,10 +1899,13 @@
       </Item>
       <Item ItemId=";startIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start IP]]></Val>
+          <Val><![CDATA[Start IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[起始 IP]]></Val>
+            <Val><![CDATA[起始 IP 位址]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Start IP]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1894,6 +1930,9 @@
       <Item ItemId=";switchToMsal" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to MSAL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[切換到 MSAL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

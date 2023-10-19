@@ -16,7 +16,7 @@ import { IAzureAccountSession } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { AuthLibrary, AzureAuthType, IAADResource, IAccount, IProviderSettings, ITenant, IToken } from '../models/contracts/azure';
+import { AzureAuthType, IAADResource, IAccount, IProviderSettings, ITenant, IToken } from '../models/contracts/azure';
 import { Logger, LogLevel } from '../models/logger';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { AccountStore } from './accountStore';
@@ -24,7 +24,6 @@ import { ICredentialStore } from '../credentialstore/icredentialstore';
 
 export abstract class AzureController {
 	protected _providerSettings: IProviderSettings;
-	protected _authLibrary: AuthLibrary;
 	protected _vscodeWrapper: VscodeWrapper;
 	protected _credentialStoreInitialized = false;
 	protected logger: Logger;
@@ -45,7 +44,6 @@ export abstract class AzureController {
 		let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
 		this.logger = new Logger(text => _channel.append(text), logLevel, pii);
 
-		this._authLibrary = azureUtils.getAzureAuthLibraryConfig();
 		this._providerSettings = providerSettings;
 		vscode.workspace.onDidChangeConfiguration((changeEvent) => {
 			const impactsProvider = changeEvent.affectsConfiguration(AzureConstants.accountsAzureAuthSection);
@@ -72,10 +70,12 @@ export abstract class AzureController {
 
 	public abstract removeAccount(account: IAccount): Promise<void>;
 
+	public abstract clearTokenCache(): void;
+
 	public abstract handleAuthMapping(): void;
 
 	public isSqlAuthProviderEnabled(): boolean {
-		return this._authLibrary === AuthLibrary.MSAL && this._isSqlAuthProviderEnabled;
+		return this._isSqlAuthProviderEnabled;
 	}
 
 	public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
@@ -92,7 +92,7 @@ export abstract class AzureController {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
 			throw new Error(LocalizedConstants.msgAccountNotFound);
 		}
-		if (this._authLibrary === AuthLibrary.MSAL && !this._isSqlAuthProviderEnabled) {
+		if (!this._isSqlAuthProviderEnabled) {
 			this.logger.verbose(`Account found, refreshing access token for tenant ${profile.tenantId}`);
 			let azureAccountToken = await this.refreshAccessToken(account, accountStore, profile.tenantId, settings);
 			if (!azureAccountToken) {
@@ -121,9 +121,10 @@ export abstract class AzureController {
 	 * Returns Azure sessions with subscriptions, tenant and token for each given account
 	 */
 	public async getAccountSessions(account: IAccount): Promise<IAzureAccountSession[]> {
-		let sessions: IAzureAccountSession[] = [];
+		const sessions: IAzureAccountSession[] = [];
 		const tenants = <ITenant[]>account.properties.tenants;
-		for (const tenantId of tenants.map(t => t.id)) {
+		for (const tenant of tenants) {
+			const tenantId = tenant.id;
 			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
 			const subClient = this._subscriptionClientFactory(token!);
 			const newSubPages = await subClient.subscriptions.list();
@@ -135,7 +136,7 @@ export abstract class AzureController {
 					token: token
 				};
 			});
-			sessions = sessions.concat(array);
+			sessions.push(...array);
 		}
 
 		return sessions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
@@ -164,7 +165,7 @@ export abstract class AzureController {
 	 * @param token expiry
 	 */
 	public static isTokenInValid(token: string, expiresOn?: number): boolean {
-		return (!token || this.isTokenExpired(expiresOn));
+		return (!token || AzureController.isTokenExpired(expiresOn));
 	}
 
 	/**

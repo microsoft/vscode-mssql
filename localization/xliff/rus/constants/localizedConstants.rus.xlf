@@ -123,12 +123,16 @@
         <target state="translated">Имя базы данных</target>
       </trans-unit>
       <trans-unit id="startIpAddressPrompt">
-        <source xml:lang="en">Start IP</source>
+        <source xml:lang="en">Start IP Address</source>
         <target state="translated">Начальный IP-адрес</target>
       </trans-unit>
       <trans-unit id="endIpAddressPrompt">
-        <source xml:lang="en">End IP</source>
+        <source xml:lang="en">End IP Address</source>
         <target state="translated">Конечный IP-адрес</target>
+      </trans-unit>
+      <trans-unit id="firewallRuleNamePrompt">
+        <source xml:lang="en">Firewall rule name</source>
+        <target state="translated">Имя правила брандмауэра</target>
       </trans-unit>
       <trans-unit id="databasePlaceholder">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -271,8 +275,12 @@
         <target state="translated">При удалении учетной записи пользователя произошла ошибка: {0}.</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <source xml:lang="en">No Azure Account can be found for removal.</source>
         <target state="translated">Не удается найти учетную запись Azure для удаления.</target>
+      </trans-unit>
+      <trans-unit id="clearedAzureTokenCache">
+        <source xml:lang="en">Azure token cache cleared successfully.</source>
+        <target state="translated">Кэш маркеров Azure очищен.</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -463,8 +471,8 @@
         <target state="translated">У IP-адреса вашего клиента нет доступа к этому серверу. Добавьте учетную запись Azure, а затем создайте новое правило брандмауэра, чтобы предоставить доступ.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-        <source xml:lang="en">Account signed In. Create new firewall rule? </source>
-        <target state="translated">Выполнен вход в учетную запись. Создать новое правило брандмауэра? </target>
+        <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
+        <target state="translated">У клиентского IP-адреса "{0}" нет доступа к серверу "{1}", к которому вы пытаетесь подключиться. Создать правило брандмауэра?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleAdded">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -511,8 +519,12 @@
         <target state="translated">Запустить журнал запросов</target>
       </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
-        <source xml:lang="en">Invalid IP Address </source>
-        <target state="translated">Недопустимый IP-адрес </target>
+        <source xml:lang="en">Invalid IP Address</source>
+        <target state="translated">Недопустимый IP-адрес</target>
+      </trans-unit>
+      <trans-unit id="msgInvalidRuleName">
+        <source xml:lang="en">Invalid Firewall rule name</source>
+        <target state="translated">Недопустимое имя правила брандмауэра</target>
       </trans-unit>
       <trans-unit id="msgNoQueriesAvailable">
         <source xml:lang="en">No Queries Available</source>
@@ -866,13 +878,13 @@
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">Библиотека проверки подлинности изменена. Перезагрузите Visual Studio Code.</target>
       </trans-unit>
+      <trans-unit id="reloadPromptGeneric">
+        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target state="translated">Этот параметр требует перезапуска Visual Studio Code. Перезагрузите Visual Studio Code.</target>
+      </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Перезагрузить Visual Studio Code</target>
-      </trans-unit>
-      <trans-unit id="deprecatedMessage">
-        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="translated">Предупреждение. ADAL не рекомендуется и будет удален в следующем выпуске. Вместо этого используйте MSAL.</target>
       </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>

@@ -1,12 +1,12 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.20.0",
+  "version": "1.22.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
   "license": "SEE LICENSE IN LICENSE.txt",
-  "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
+  "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
   "icon": "images/sqlserver.png",
   "galleryBanner": {
     "color": "#2F2F2F",
@@ -97,7 +97,7 @@
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
-    "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.43",
+    "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.46",
     "systemjs": "0.19.40",
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
@@ -115,7 +115,6 @@
     "@azure/arm-subscriptions": "^5.0.0",
     "@azure/msal-common": "^11.0.0",
     "@azure/msal-node": "^1.16.0",
-    "@microsoft/ads-adal-library": "1.0.17",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
     "http-proxy-agent": "5.0.0",
     "https-proxy-agent": "5.0.0",
@@ -408,6 +407,11 @@
         "category": "MS SQL"
       },
       {
+        "command": "mssql.clearPooledConnections",
+        "title": "%mssql.clearPooledConnections%",
+        "category": "MS SQL"
+      },
+      {
         "command": "mssql.chooseDatabase",
         "title": "%mssql.chooseDatabase%",
         "category": "MS SQL"
@@ -557,6 +561,11 @@
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.clearAzureAccountTokenCache",
+        "title": "%mssql.clearAzureAccountTokenCache%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -664,6 +673,11 @@
               "encrypt": {
                 "type": "string",
                 "default": "Mandatory",
+                "enum": [
+                  "Mandatory",
+                  "Strict",
+                  "Optional"
+                ],
                 "description": "%mssql.connection.encrypt%"
               },
               "trustServerCertificate": {
@@ -936,6 +950,11 @@
           "description": "%mssql.enableSqlAuthenticationProvider%",
           "default": true
         },
+        "mssql.enableConnectionPooling": {
+          "type": "boolean",
+          "description": "%mssql.enableConnectionPooling%",
+          "default": true
+        },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",
           "description": "%mssql.format.alignColumnDefinitionsInColumns%",
@@ -982,12 +1001,6 @@
           "default": false,
           "scope": "window"
         },
-        "mssql.query.displayBitAsNumber": {
-          "type": "boolean",
-          "default": true,
-          "description": "%mssql.query.displayBitAsNumber%",
-          "scope": "window"
-        },
         "mssql.intelliSense.enableIntelliSense": {
           "type": "boolean",
           "default": true,
@@ -1024,12 +1037,6 @@
           "description": "%mssql.persistQueryResultTabs%",
           "scope": "window"
         },
-        "mssql.queryHistoryLimit": {
-          "type": "number",
-          "default": 20,
-          "description": "%mssql.queryHistoryLimit%",
-          "scope": "window"
-        },
         "mssql.enableQueryHistoryCapture": {
           "type": "boolean",
           "default": true,
@@ -1041,11 +1048,6 @@
           "default": true,
           "description": "%mssql.enableQueryHistoryFeature%",
           "scope": "window"
-        },
-        "mssql.query.maxXmlCharsToStore": {
-          "type": "number",
-          "default": 2097152,
-          "description": "%mssql.query.maxXmlCharsToStore%"
         },
         "mssql.tracingLevel": {
           "type": "string",
@@ -1075,6 +1077,28 @@
           "type": "number",
           "default": 100,
           "description": "%mssql.logFilesRemovalLimit%"
+        },
+        "mssql.query.displayBitAsNumber": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.query.displayBitAsNumber%",
+          "scope": "window"
+        },
+        "mssql.query.maxCharsToStore": {
+          "type": "number",
+          "default": 65535,
+          "description": "%mssql.query.maxCharsToStore%"
+        },
+        "mssql.query.maxXmlCharsToStore": {
+          "type": "number",
+          "default": 2097152,
+          "description": "%mssql.query.maxXmlCharsToStore%"
+        },
+        "mssql.queryHistoryLimit": {
+          "type": "number",
+          "default": 20,
+          "description": "%mssql.queryHistoryLimit%",
+          "scope": "window"
         },
         "mssql.query.rowCount": {
           "type": "number",

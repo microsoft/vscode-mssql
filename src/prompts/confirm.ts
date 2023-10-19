@@ -3,7 +3,7 @@
 
 import Prompt from './prompt';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import EscapeException from '../utils/EscapeException';
+import EscapeException from '../utils/escapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export default class ConfirmPrompt extends Prompt {

@@ -292,7 +292,7 @@ declare module 'vscode-mssql' {
 
 		/**
 		 * Gets or sets a string value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if
-		 * the server has a certificate installed. Accepted values are: Optional, Mandatory (default)
+		 * the server has a certificate installed. Accepted values are: Optional, Mandatory (default) and Strict
 		 */
 		encrypt: string | boolean;
 
@@ -799,11 +799,6 @@ declare module 'vscode-mssql' {
 		 * Version of the account
 		 */
 		accountVersion?: any;
-	}
-
-	export enum AuthLibrary {
-		ADAL = 'ADAL',
-		MSAL = 'MSAL'
 	}
 
 	export enum AzureAuthType {

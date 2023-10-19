@@ -6,7 +6,7 @@
 import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions } from '../models/interfaces';
 import * as Interfaces from './interfaces';
 import * as Utils from './utils';
 
@@ -137,28 +137,17 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  */
 export function getConnectionDisplayString(creds: IConnectionInfo): string {
 	// Update the connection text
-	let text: string;
-	if (creds.connectionString) {
-		// If a connection string is present, try to display the profile name
-		if ((<IConnectionProfile>creds).profileName) {
-			text = (<IConnectionProfile>creds).profileName;
-			text = appendIfNotEmpty(text, creds.connectionString);
-		} else {
-			text = creds.connectionString;
-		}
+	let text: string = creds.server;
+	if (creds.database !== '') {
+		text = appendIfNotEmpty(text, creds.database);
 	} else {
-		text = creds.server;
-		if (creds.database !== '') {
-			text = appendIfNotEmpty(text, creds.database);
-		} else {
-			text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
-		}
-		let user: string = getUserNameOrDomainLogin(creds);
-		text = appendIfNotEmpty(text, user);
+		text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
 	}
+	let user: string = getUserNameOrDomainLogin(creds);
+	text = appendIfNotEmpty(text, user);
 
 	// Limit the maximum length of displayed text
-	if (text.length > Constants.maxDisplayedStatusTextLength) {
+	if (text && text.length > Constants.maxDisplayedStatusTextLength) {
 		text = text.substr(0, Constants.maxDisplayedStatusTextLength);
 		text += ' \u2026'; // Ellipsis character (...)
 	}
@@ -201,15 +190,40 @@ export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: 
  * @returns {string} tooltip
  */
 export function getTooltip(connCreds: IConnectionInfo, serverInfo?: IServerInfo): string {
+
 	let tooltip: string =
 		connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
-			('Server name: ' + connCreds.server + '\r\n' +
-				'Database name: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
-				'Login name: ' + connCreds.user + '\r\n' +
-				'Connection encryption: ' + (connCreds.encrypt ? 'Encrypted' : 'Not encrypted') + '\r\n');
+			('Server: ' + connCreds.server + '\r\n' +
+				'Database: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
+				(connCreds.authenticationType !== Constants.integratedauth ? ('User: ' + connCreds.user + '\r\n') : '') +
+				'Encryption Mode: ' + getEncryptionMode(connCreds.encrypt) + '\r\n');
+
 	if (serverInfo && serverInfo.serverVersion) {
 		tooltip += 'Server version: ' + serverInfo.serverVersion + '\r\n';
 	}
 
 	return tooltip;
+}
+
+export function getEncryptionMode(encryption: string | boolean | undefined): EncryptOptions {
+	let encryptionMode = EncryptOptions.Mandatory;
+	if (encryption !== undefined) {
+		let encrypt = encryption.toString().toLowerCase();
+		switch (encrypt) {
+			case 'true':
+			case EncryptOptions.Mandatory.toLowerCase():
+				encryptionMode = EncryptOptions.Mandatory;
+				break;
+			case 'false':
+			case EncryptOptions.Optional.toLowerCase():
+				encryptionMode = EncryptOptions.Optional;
+				break;
+			case EncryptOptions.Strict.toLowerCase():
+				encryptionMode = EncryptOptions.Strict;
+				break;
+			default:
+				break;
+		}
+	}
+	return encryptionMode;
 }

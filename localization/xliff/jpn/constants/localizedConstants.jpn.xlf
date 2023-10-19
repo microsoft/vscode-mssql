@@ -123,12 +123,16 @@
         <target state="translated">データベース名</target>
       </trans-unit>
       <trans-unit id="startIpAddressPrompt">
-        <source xml:lang="en">Start IP</source>
-        <target state="translated">開始 IP</target>
+        <source xml:lang="en">Start IP Address</source>
+        <target state="translated">開始 IP アドレス</target>
       </trans-unit>
       <trans-unit id="endIpAddressPrompt">
-        <source xml:lang="en">End IP</source>
-        <target state="translated">終了 IP</target>
+        <source xml:lang="en">End IP Address</source>
+        <target state="translated">終了 IP アドレス</target>
+      </trans-unit>
+      <trans-unit id="firewallRuleNamePrompt">
+        <source xml:lang="en">Firewall rule name</source>
+        <target state="translated">ファイアウォール規則名</target>
       </trans-unit>
       <trans-unit id="databasePlaceholder">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -271,8 +275,12 @@
         <target state="translated">ユーザー アカウントの削除中にエラーが発生しました: {0}</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <source xml:lang="en">No Azure Account can be found for removal.</source>
         <target state="translated">削除する Azure アカウントが見つかりません。</target>
+      </trans-unit>
+      <trans-unit id="clearedAzureTokenCache">
+        <source xml:lang="en">Azure token cache cleared successfully.</source>
+        <target state="translated">Azure トークン キャッシュが正常にクリアされました。</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -463,8 +471,8 @@
         <target state="translated">ご使用のクライアント IP アドレスには、サーバーへのアクセス権がありません。Azure アカウントを追加し、アクセスを可能にするための新しいファイアウォール規則を作成してください。</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-        <source xml:lang="en">Account signed In. Create new firewall rule? </source>
-        <target state="translated">アカウントがサインインしました。新しいファイアウォール規則を作成しますか? </target>
+        <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
+        <target state="translated">お使いのクライアント IP アドレス '{0}' では、接続しようとしているサーバー '{1}' にアクセスできません。新しいファイアウォール規則を作成しますか?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleAdded">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
@@ -511,8 +519,12 @@
         <target state="translated">クエリ履歴の実行</target>
       </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
-        <source xml:lang="en">Invalid IP Address </source>
-        <target state="translated">IP アドレスが無効です </target>
+        <source xml:lang="en">Invalid IP Address</source>
+        <target state="translated">IP アドレスが無効です</target>
+      </trans-unit>
+      <trans-unit id="msgInvalidRuleName">
+        <source xml:lang="en">Invalid Firewall rule name</source>
+        <target state="translated">ファイアウォール規則名が無効です</target>
       </trans-unit>
       <trans-unit id="msgNoQueriesAvailable">
         <source xml:lang="en">No Queries Available</source>
@@ -866,13 +878,13 @@
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">認証ライブラリが変更されました。Visual Studio Code を再読み込みしてください。</target>
       </trans-unit>
+      <trans-unit id="reloadPromptGeneric">
+        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target state="translated">この設定をすると、Visual Studio Code を再起動する必要があります。Visual Studio Code を再度読み込んでください。</target>
+      </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Visual Studio Code の再読み込み</target>
-      </trans-unit>
-      <trans-unit id="deprecatedMessage">
-        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="translated">警告: ADAL は非推奨となり、次のリリースで削除される予定です。代わりに MSAL をお使いください。</target>
       </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>

@@ -100,10 +100,9 @@ suite('Object Explorer Utils Tests', () => {
 	});
 
 	test('Test isFirewallError', () => {
-		const testMessage = 'test_error';
-		assert.isNotTrue(ObjectExplorerUtils.isFirewallError(testMessage), 'Error should not be a firewall error');
-		const firewallMessageCheck = Constants.firewallErrorMessage;
-		let testFirewallMessage = `test ${firewallMessageCheck} foo bar`;
-		assert.isTrue(ObjectExplorerUtils.isFirewallError(testFirewallMessage), 'Error should be a firewall error');
+		const loginError = 18456;
+		assert.isNotTrue(ObjectExplorerUtils.isFirewallError(loginError), 'Error should not be a firewall error');
+		const firewallError = Constants.errorFirewallRule;
+		assert.isTrue(ObjectExplorerUtils.isFirewallError(firewallError), 'Error should be a firewall error');
 	});
 });

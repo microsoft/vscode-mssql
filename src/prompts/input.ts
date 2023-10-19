@@ -3,7 +3,7 @@
 
 import { InputBoxOptions } from 'vscode';
 import Prompt from './prompt';
-import EscapeException from '../utils/EscapeException';
+import EscapeException from '../utils/escapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 import * as figures from 'figures';

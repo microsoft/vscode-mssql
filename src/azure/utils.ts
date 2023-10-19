@@ -13,13 +13,12 @@ import * as os from 'os';
 import { parse } from 'url';
 import * as vscode from 'vscode';
 import { getProxyAgentOptions } from '../languageservice/proxy';
-import { AuthLibrary, AzureAuthType, IToken } from '../models/contracts/azure';
+import { AzureAuthType, IToken } from '../models/contracts/azure';
 import * as Constants from './constants';
 import { TokenCredentialWrapper } from './credentialWrapper';
 import { HttpClient } from './msal/httpClient';
 
 const configAzureAD = 'azureActiveDirectory';
-const configAzureAuthLibrary = 'azureAuthenticationLibrary';
 
 const configProxy = 'proxy';
 const configProxyStrictSSL = 'proxyStrictSSL';
@@ -75,21 +74,21 @@ export function getAzureActiveDirectoryConfig(): AzureAuthType {
 	}
 }
 
-export function getAzureAuthLibraryConfig(): AuthLibrary {
-	let config = getConfiguration();
-	if (config) {
-		const val: string | undefined = config.get(configAzureAuthLibrary);
-		if (val) {
-			return AuthLibrary[val];
-		}
-	}
-	return AuthLibrary.MSAL; // default to MSAL
-}
-
 export function getEnableSqlAuthenticationProviderConfig(): boolean {
 	const config = getConfiguration();
 	if (config) {
 		const val: boolean | undefined = config.get(Constants.sqlAuthProviderSection);
+		if (val !== undefined) {
+			return val;
+		}
+	}
+	return true; // default setting
+}
+
+export function getEnableConnectionPoolingConfig(): boolean {
+	const config = getConfiguration();
+	if (config) {
+		const val: boolean | undefined = config.get(Constants.enableConnectionPoolingSection);
 		if (val !== undefined) {
 			return val;
 		}

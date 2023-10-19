@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
-import { AuthLibrary } from '../models/contracts/azure';
 import { DidChangeEncryptionIVKeyParams, EncryptionKeysChangedNotification } from '../models/contracts/connection';
 import { Logger } from '../models/logger';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -17,16 +16,18 @@ import { getEnableSqlAuthenticationProviderConfig } from './utils';
 
 export class FileEncryptionHelper {
 	constructor(
-		private readonly _authLibrary: AuthLibrary,
 		private readonly _credentialStore: ICredentialStore,
 		private readonly _vscodeWrapper: VscodeWrapper,
 		protected readonly _logger: Logger,
 		protected readonly _fileName: string
 	) {
-		this._algorithm = this._authLibrary === AuthLibrary.MSAL ? 'aes-256-cbc' : 'aes-256-gcm';
-		this._bufferEncoding = this._authLibrary === AuthLibrary.MSAL ? 'utf16le' : 'hex';
-		this._binaryEncoding = this._authLibrary === AuthLibrary.MSAL ? 'base64' : 'hex';
+		this._algorithm = 'aes-256-cbc';
+		this._bufferEncoding = 'utf16le';
+		this._binaryEncoding = 'base64';
 	}
+
+	private ivCredId = `${this._fileName}-iv`;
+	private keyCredId = `${this._fileName}-key`;
 
 	private _algorithm: string;
 	private _bufferEncoding: BufferEncoding;
@@ -35,19 +36,15 @@ export class FileEncryptionHelper {
 	private _keyBuffer: Buffer | undefined;
 
 	public async init(): Promise<void> {
-
-		const ivCredId = `${this._fileName}-iv`;
-		const keyCredId = `${this._fileName}-key`;
-
-		const iv = await this.readEncryptionKey(ivCredId);
-		const key = await this.readEncryptionKey(keyCredId);
+		const iv = await this.readEncryptionKey(this.ivCredId);
+		const key = await this.readEncryptionKey(this.keyCredId);
 
 		if (!iv || !key) {
 			this._ivBuffer = crypto.randomBytes(16);
 			this._keyBuffer = crypto.randomBytes(32);
 
-			if (!await this.saveEncryptionKey(ivCredId, this._ivBuffer.toString(this._bufferEncoding))
-				|| !await this.saveEncryptionKey(keyCredId, this._keyBuffer.toString(this._bufferEncoding))) {
+			if (!await this.saveEncryptionKey(this.ivCredId, this._ivBuffer.toString(this._bufferEncoding))
+				|| !await this.saveEncryptionKey(this.keyCredId, this._keyBuffer.toString(this._bufferEncoding))) {
 				this._logger.error(`Encryption keys could not be saved in credential store, this will cause access token persistence issues.`);
 				await this.showCredSaveErrorOnWindows();
 			}
@@ -56,7 +53,7 @@ export class FileEncryptionHelper {
 			this._keyBuffer = Buffer.from(key, this._bufferEncoding);
 		}
 
-		if (this._authLibrary === AuthLibrary.MSAL && getEnableSqlAuthenticationProviderConfig()) {
+		if (getEnableSqlAuthenticationProviderConfig()) {
 			SqlToolsServerClient.instance.sendNotification(EncryptionKeysChangedNotification.type,
 				<DidChangeEncryptionIVKeyParams>{
 					iv: this._ivBuffer.toString(this._bufferEncoding),
@@ -71,27 +68,28 @@ export class FileEncryptionHelper {
 		}
 		const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
 		let cipherText = `${cipherIv.update(content, 'utf8', this._binaryEncoding)}${cipherIv.final(this._binaryEncoding)}`;
-		if (this._authLibrary === AuthLibrary.ADAL) {
-			cipherText += `%${(cipherIv as crypto.CipherGCM).getAuthTag().toString(this._binaryEncoding)}`;
-		}
 		return cipherText;
 	}
 
-	fileOpener = async (content: string): Promise<string> => {
-		if (!this._keyBuffer || !this._ivBuffer) {
-			await this.init();
-		}
-		let encryptedText = content;
-		const decipherIv = crypto.createDecipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
-		if (this._authLibrary === AuthLibrary.ADAL) {
-			const split = content.split('%');
-			if (split.length !== 2) {
-				throw new Error('File didn\'t contain the auth tag.');
+	fileOpener = async (content: string, resetOnError?: boolean): Promise<string> => {
+		try {
+			if (!this._keyBuffer || !this._ivBuffer) {
+				await this.init();
 			}
-			(decipherIv as crypto.DecipherGCM).setAuthTag(Buffer.from(split[1], this._binaryEncoding));
-			encryptedText = split[0];
+			let plaintext = content;
+			const decipherIv = crypto.createDecipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
+			return `${decipherIv.update(plaintext, this._binaryEncoding, 'utf8')}${decipherIv.final('utf8')}`;
+		} catch (ex) {
+			this._logger.error(`FileEncryptionHelper: Error occurred when decrypting data, IV/KEY will be reset: ${ex}`);
+			if (resetOnError) {
+				// Reset IV/Keys if crypto cannot encrypt/decrypt data.
+				// This could be a possible case of corruption of expected iv/key combination
+				await this.clearEncryptionKeys();
+				await this.init();
+			}
+			// Throw error so cache file can be reset to empty.
+			throw new Error(`Decryption failed with error: ${ex}`);
 		}
-		return `${decipherIv.update(encryptedText, this._binaryEncoding, 'utf8')}${decipherIv.final('utf8')}`;
 	}
 
 	/**
@@ -116,7 +114,7 @@ export class FileEncryptionHelper {
 				.then((result) => {
 					status = result;
 					if (result) {
-						this._logger.info(`FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for ${this._authLibrary} persistent cache encryption in system credential store.`);
+						this._logger.info(`FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for persistent cache encryption in system credential store.`);
 					}
 				}, (e => {
 					throw Error(`FileEncryptionHelper: Could not save encryption key: ${prefixedCredentialId}: ${e}`);
@@ -129,6 +127,17 @@ export class FileEncryptionHelper {
 			throw ex;
 		}
 		return status;
+	}
+
+	public async clearEncryptionKeys(): Promise<void> {
+		await this.deleteEncryptionKey(this.ivCredId);
+		await this.deleteEncryptionKey(this.keyCredId);
+		this._ivBuffer = undefined;
+		this._keyBuffer = undefined;
+	}
+
+	protected async deleteEncryptionKey(credentialId: string): Promise<boolean> {
+		return (await this._credentialStore.deleteCredential(credentialId));
 	}
 
 	private async showCredSaveErrorOnWindows(): Promise<void> {

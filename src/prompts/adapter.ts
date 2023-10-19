@@ -4,7 +4,7 @@
 import { OutputChannel } from 'vscode';
 import * as nodeUtil from 'util';
 import PromptFactory from './factory';
-import EscapeException from '../utils/EscapeException';
+import EscapeException from '../utils/escapeException';
 import { IQuestion, IPrompter, IPromptCallback } from './question';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 

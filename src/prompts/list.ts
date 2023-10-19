@@ -2,7 +2,7 @@
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
 import Prompt from './prompt';
-import EscapeException from '../utils/EscapeException';
+import EscapeException from '../utils/escapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export default class ListPrompt extends Prompt {

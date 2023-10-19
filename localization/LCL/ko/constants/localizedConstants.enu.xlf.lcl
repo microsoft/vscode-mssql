@@ -424,6 +424,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";clearedAzureTokenCache" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure token cache cleared successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 토큰 캐시를 지웠습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";columnWidthInvalidNumberError" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid column width]]></Val>
@@ -604,18 +613,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[경고: ADAL은 더 이상 사용되지 않으며 향후 릴리스에서 제거될 예정입니다. 대신 MSAL을 사용하세요.]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";disconnectConfirmationMsg" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
@@ -726,10 +723,13 @@
       </Item>
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[End IP]]></Val>
+          <Val><![CDATA[End IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[끝 IP]]></Val>
+            <Val><![CDATA[끝 IP 주소]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[End IP]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -783,6 +783,15 @@
           <Val><![CDATA[JSON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[JSON]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";firewallRuleNamePrompt" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[방화벽 규칙 이름]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1242,9 +1251,21 @@
       </Item>
       <Item ItemId=";msgInvalidIpAddress" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Invalid IP Address ]]></Val>
+          <Val><![CDATA[Invalid IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[잘못된 IP 주소 ]]></Val>
+            <Val><![CDATA[잘못된 IP 주소]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Invalid IP Address ]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgInvalidRuleName" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid Firewall rule name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[잘못된 방화벽 규칙 이름]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1425,10 +1446,13 @@
       </Item>
       <Item ItemId=";msgPromptRetryFirewallRuleSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
+          <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[계정에 로그인했습니다. 새 방화벽 규칙을 만드시겠습니까? ]]></Val>
+            <Val><![CDATA['{0}' 클라이언트 IP 주소에서 연결하려는 '{1}' 서버에 액세스할 수 없습니다. 새 방화벽 규칙을 만드시겠습니까?]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1747,6 +1771,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";reloadPromptGeneric" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 설정을 사용하려면 Visual Studio Code를 다시 시작해야 합니다. Visual Studio Code를 다시 로드하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";restoreLabel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Restore]]></Val>
@@ -1866,10 +1899,13 @@
       </Item>
       <Item ItemId=";startIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Start IP]]></Val>
+          <Val><![CDATA[Start IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[시작 IP]]></Val>
+            <Val><![CDATA[시작 IP 주소]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Start IP]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1894,6 +1930,9 @@
       <Item ItemId=";switchToMsal" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to MSAL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSAL로 전환]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

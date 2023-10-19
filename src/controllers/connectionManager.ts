@@ -8,11 +8,9 @@ import { NotificationHandler, RequestType } from 'vscode-languageclient';
 import { ConnectionDetails, IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import { AccountService } from '../azure/accountService';
 import { AccountStore } from '../azure/accountStore';
-import { AdalAzureController } from '../azure/adal/adalAzureController';
 import { AzureController } from '../azure/azureController';
 import { MsalAzureController } from '../azure/msal/msalAzureController';
 import providerSettings from '../azure/providerSettings';
-import { getAzureAuthLibraryConfig } from '../azure/utils';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { CredentialStore } from '../credentialstore/credentialstore';
@@ -21,9 +19,9 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { ConnectionStore } from '../models/connectionStore';
-import { AuthLibrary, IAccount } from '../models/contracts/azure';
+import { IAccount } from '../models/contracts/azure';
 import * as ConnectionContracts from '../models/contracts/connection';
-import { ConnectionSummary } from '../models/contracts/connection';
+import { ClearPooledConnectionsRequest, ConnectionSummary } from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
 import { PlatformInformation, Runtime } from '../models/platform';
@@ -135,12 +133,8 @@ export default class ConnectionManager {
 		}
 
 		if (!this.azureController) {
-			const authLibrary = getAzureAuthLibraryConfig();
-			if (authLibrary === AuthLibrary.ADAL) {
-				this.azureController = new AdalAzureController(context, prompter, this._credentialStore);
-			} else {
-				this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
-			}
+			this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
+
 
 			this.azureController.init();
 		}
@@ -457,27 +451,21 @@ export default class ConnectionManager {
 			// Check if the error is an expired password
 			if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
 				// TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired,
-					result.errorNumber, result.errorMessage));
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
-			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) {
+				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) { // check if it's an SSL failed error
 				this._failedUriToSSLMap.set(fileUri, result.errorMessage);
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
-			} else if (result.errorNumber !== Constants.errorLoginFailed) {
-				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
-				// check whether it's a firewall rule error
+			} else if (result.errorNumber === Constants.errorFirewallRule) { // check whether it's a firewall rule error
 				let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
 				if (firewallResult.result && firewallResult.ipAddress) {
-					this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+					this.failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+				} else {
+					Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 				}
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
 			} else {
-				connection.errorNumber = result.errorNumber;
-				connection.errorMessage = result.errorMessage;
+				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 			}
+			connection.errorNumber = result.errorNumber;
+			connection.errorMessage = result.errorMessage;
 		} else {
 			const platformInfo = await PlatformInformation.getCurrent();
 			if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {
@@ -508,7 +496,7 @@ export default class ConnectionManager {
 		sendErrorEvent(
 			TelemetryViews.ConnectionPrompt,
 			TelemetryActions.CreateConnectionResult,
-			new Error (result.errorMessage),
+			new Error(result.errorMessage),
 			false,
 			result.errorNumber?.toString(),
 			undefined,
@@ -531,6 +519,10 @@ export default class ConnectionManager {
 				LocalizedConstants.cancel
 			]);
 		if (selection === LocalizedConstants.enableTrustServerCertificate) {
+			if (profile.connectionString) {
+				// Append connection string with encryption options
+				profile.connectionString = profile.connectionString.concat('; Encrypt=true; Trust Server Certificate=true;');
+			}
 			profile.encrypt = EncryptOptions.Mandatory;
 			profile.trustServerCertificate = true;
 			await reconnectAction(profile);
@@ -589,7 +581,7 @@ export default class ConnectionManager {
 			// deleted if the settings file is manually changed
 			(credentials as IConnectionProfile).savePassword = true;
 		} else {
-			credentials.authenticationType = 'Integrated';
+			credentials.authenticationType = Constants.integratedauth;
 		}
 
 		return credentials;
@@ -937,6 +929,10 @@ export default class ConnectionManager {
 		return this.connectionUI.promptToManageProfiles();
 	}
 
+	public async onClearPooledConnections(): Promise<void> {
+		return await this._client.sendRequest(ClearPooledConnectionsRequest.type, {});
+	}
+
 	public async onCreateProfile(): Promise<boolean> {
 		let self = this;
 		const profile = await self.connectionUI.createAndSaveProfile(self.vscodeWrapper.isEditingSqlFile);
@@ -1064,5 +1060,9 @@ export default class ConnectionManager {
 			this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
 		}
 	}
-}
 
+	public onClearTokenCache(): void {
+		this.azureController.clearTokenCache();
+		this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+	}
+}

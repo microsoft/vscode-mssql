@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Collection of Non-localizable Constants
-export const vscodeAppName = 'code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
@@ -39,6 +38,7 @@ export const cmdPauseQueryHistory = 'mssql.pauseQueryHistoryCapture';
 export const cmdCommandPaletteQueryHistory = 'mssql.commandPaletteQueryHistory';
 export const cmdNewQuery = 'mssql.newQuery';
 export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
+export const cmdClearPooledConnections = 'mssql.clearPooledConnections';
 export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';
 export const cmdAddObjectExplorer = 'mssql.addObjectExplorer';
 export const cmdObjectExplorerNewQuery = 'mssql.objectExplorerNewQuery';
@@ -66,11 +66,11 @@ export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
 export const cmdAadAddAccount = 'mssql.addAadAccount';
+export const cmdClearAzureTokenCache = 'mssql.clearAzureAccountTokenCache';
 export const piiLogging = 'piiLogging';
 export const mssqlPiiLogging = 'mssql.piiLogging';
-export const mssqlAzureAuthLibrary = 'mssql.azureAuthenticationLibrary';
-export const azureAuthLibrary = 'azureAuthenticationLibrary';
 export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
+export const enableConnectionPooling = 'mssql.enableConnectionPooling';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -78,6 +78,7 @@ export const defaultCommandTimeout = 30;
 export const azureDatabase = 'Azure';
 export const azureMfa = 'AzureMFA';
 export const defaultPortNumber = 1433;
+export const integratedauth = 'Integrated';
 export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';
 export const errorPasswordExpired = 18487;
@@ -114,8 +115,18 @@ export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+/**
+ * Azure Firewall rule name convention is specified here:
+ * https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.Firewall.Name/
+ * When naming Azure resources, resource names must meet service requirements. The requirements for Firewall names are:
+ * - Between 1 and 80 characters long.
+ * - Alphanumerics, underscores, periods, and hyphens.
+ * - Start with alphanumeric.
+ * - End alphanumeric or underscore.
+ * - Firewall names must be unique within a resource group (we can't do string validation for this, so this is ignored)
+ */
+export const ruleNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$/;
 export const configAzureAccount = 'azureAccount';
-export const adalCacheFileName = 'azureTokenCache-azure_publicCloud';
 export const azureAccountProviderCredentials = 'azureAccountProviderCredentials';
 export const msalCacheFileName = 'accessTokenCache';
 
@@ -164,7 +175,6 @@ export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
 export const scriptSelectText = 'SELECT TOP (1000) * FROM ';
 export const tenantDisplayName = 'Microsoft';
-export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 
