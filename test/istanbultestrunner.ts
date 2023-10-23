@@ -39,7 +39,7 @@ function mkDirIfExists(dir: string): void {
 
 class CoverageRunner {
 
-	private coverageVar: string = '$$cov_' + new Date().getTime() + '$$';
+	private coverageVar: string = '$$cov_' + Date.now() + '$$';
 	private transformer: any = undefined;
 	private matchFn: any = undefined;
 	private instrumenter: any = undefined;
