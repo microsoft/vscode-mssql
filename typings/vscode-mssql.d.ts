@@ -197,11 +197,11 @@ declare module 'vscode-mssql' {
 		 */
 		Integrated = 'Integrated',
 		/**
-		 * Azure Active Directory - Universal with MFA support
+		 * Microsoft Entra Id - Universal with MFA support
 		 */
 		AzureMFA = 'AzureMFA',
 		/**
-		 * Azure Active Directory - Password
+		 * Microsoft Entra Id - Password
 		 */
 		AzureMFAAndUser = 'AzureMFAAndUser',
 		/**
@@ -1696,15 +1696,15 @@ declare module 'vscode-mssql' {
 				readonly type?: string;
 			}
 
-			/** Azure Active Directory identity configuration for a resource. */
+			/** Microsoft Entra Id identity configuration for a resource. */
 			export interface UserIdentity {
 				/**
-				 * The Azure Active Directory principal id.
+				 * The Microsoft Entra Id principal id.
 				 * NOTE: This property will not be serialized. It can only be populated by the server.
 				 */
 				readonly principalId?: string;
 				/**
-				 * The Azure Active Directory client id.
+				 * The Microsoft Entra Id client id.
 				 * NOTE: This property will not be serialized. It can only be populated by the server.
 				 */
 				readonly clientId?: string;
@@ -1722,21 +1722,21 @@ declare module 'vscode-mssql' {
 			 */
 			export type IdentityType = string;
 
-			/** Azure Active Directory identity configuration for a resource. */
+			/** Microsoft Entra Id identity configuration for a resource. */
 			export interface ResourceIdentity {
 				/** The resource ids of the user assigned identities to use */
 				userAssignedIdentities?: {
 					[propertyName: string]: UserIdentity;
 				};
 				/**
-				 * The Azure Active Directory principal id.
+				 * The Microsoft Entra Id principal id.
 				 * NOTE: This property will not be serialized. It can only be populated by the server.
 				 */
 				readonly principalId?: string;
-				/** The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Azure Active Directory principal for the resource. */
+				/** The identity type. Set this to 'SystemAssigned' in order to automatically create and assign an Microsoft Entra Id principal for the resource. */
 				type?: IdentityType;
 				/**
-				 * The Azure Active Directory tenant id.
+				 * The Microsoft Entra tenant id.
 				 * NOTE: This property will not be serialized. It can only be populated by the server.
 				 */
 				readonly tenantId?: string;
@@ -1754,7 +1754,7 @@ declare module 'vscode-mssql' {
 
 			/** An Azure SQL Database server. */
 			export type Server = TrackedResource & {
-				/** The Azure Active Directory identity of the server. */
+				/** The Microsoft Entra identity of the server. */
 				identity?: ResourceIdentity;
 				/**
 				 * Kind of sql server. This is metadata used for the Azure portal experience.
@@ -1797,7 +1797,7 @@ declare module 'vscode-mssql' {
 				federatedClientId?: string;
 				/** A CMK URI of the key to use for encryption. */
 				keyId?: string;
-				/** The Azure Active Directory identity of the server. */
+				/** The Microsoft Entra identity of the server. */
 				administrators?: ServerExternalAdministrator;
 				/** Whether or not to restrict outbound network access for this server.  Value is optional but if passed in, must be 'Enabled' or 'Disabled' */
 				restrictOutboundNetworkAccess?: ServerNetworkAccessFlag;
@@ -1849,7 +1849,7 @@ declare module 'vscode-mssql' {
 				sid?: string;
 				/** Tenant ID of the administrator. */
 				tenantId?: string;
-				/** Azure Active Directory only Authentication enabled. */
+				/** Microsoft Entra Id only Authentication enabled. */
 				azureADOnlyAuthentication?: boolean;
 			}
 
