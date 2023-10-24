@@ -510,7 +510,7 @@ export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active
 	aud: string;
 	/**
 	 * Identifies the issuer, or 'authorization server' that constructs and
-	 * returns the token. It also identifies the Azure AD tenant for which
+	 * returns the token. It also identifies the Microsoft Entra tenant for which
 	 * the user was authenticated. If the token was issued by the v2.0 endpoint,
 	 * the URI will end in /v2.0. The GUID that indicates that the user is a consumer
 	 * user from a Microsoft account is 9188040d-6c67-4c5b-b112-36a304b66dad.
@@ -528,7 +528,7 @@ export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active
 	 * account not in the same tenant as the issuer - guests, for instance.
 	 * If the claim isn't present, it means that the value of iss can be used instead.
 	 * For personal accounts being used in an organizational context (for instance,
-	 * a personal account invited to an Azure AD tenant), the idp claim may be
+	 * a personal account invited to an Microsoft Entra tenant), the idp claim may be
 	 * 'live.com' or an STS URI containing the Microsoft account tenant
 	 * 9188040d-6c67-4c5b-b112-36a304b66dad.
 	 */
@@ -561,7 +561,7 @@ export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active
 	 */
 	at_hash: string;
 	/**
-	 * An internal claim used by Azure AD to record data for token reuse. Should be ignored.
+	 * An internal claim used by Microsoft Entra to record data for token reuse. Should be ignored.
 	 */
 	aio: string;
 	/**
