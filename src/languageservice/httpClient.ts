@@ -9,7 +9,6 @@ import * as https from 'https';
 import { parse as parseUrl, Url } from 'url';
 import { ILogger } from '../models/interfaces';
 import { IHttpClient, IPackage, IStatusView, PackageError } from './interfaces';
-import { getProxyAgent, isBoolean } from './proxy';
 
 /*
  * Http client class to handle downloading files using http or https urls
@@ -23,12 +22,9 @@ export default class HttpClient implements IHttpClient {
 		urlString: string,
 		pkg: IPackage,
 		logger: ILogger,
-		statusView: IStatusView,
-		proxy?: string,
-		strictSSL?: boolean,
-		authorization?: string): Promise<void> {
+		statusView: IStatusView): Promise<void> {
 		const url = parseUrl(urlString);
-		let options = this.getHttpClientOptions(url, proxy, strictSSL, authorization);
+		let options = this.getHttpClientOptions(url);
 		let clientRequest = url.protocol === 'http:' ? http.request : https.request;
 
 		return new Promise<void>((resolve, reject) => {
@@ -39,7 +35,7 @@ export default class HttpClient implements IHttpClient {
 			let request = clientRequest(options, response => {
 				if (response.statusCode === 301 || response.statusCode === 302) {
 					// Redirect - download from new location
-					return resolve(this.downloadFile(response.headers.location!, pkg, logger, statusView, proxy, strictSSL, authorization));
+					return resolve(this.downloadFile(response.headers.location!, pkg, logger, statusView));
 				}
 
 				if (response.statusCode !== 200) {
@@ -65,26 +61,21 @@ export default class HttpClient implements IHttpClient {
 		});
 	}
 
-	private getHttpClientOptions(url: Url, proxy?: string, strictSSL?: boolean, authorization?: string): any {
-		const agent = getProxyAgent(url, proxy, strictSSL);
-
+	private getHttpClientOptions(url: Url): any {
 		let options: http.RequestOptions = {
 			host: url.hostname,
 			path: url.path,
-			agent: agent
+			agent: undefined
 		};
 
 		if (url.protocol === 'https:') {
 			let httpsOptions: https.RequestOptions = {
 				host: url.hostname,
 				path: url.path,
-				agent: agent,
-				rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true
+				agent: undefined,
+				rejectUnauthorized: true
 			};
 			options = httpsOptions;
-		}
-		if (authorization) {
-			options.headers = Object.assign(options.headers || {}, { 'Proxy-Authorization': authorization });
 		}
 
 		return options;

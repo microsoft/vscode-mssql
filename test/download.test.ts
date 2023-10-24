@@ -119,9 +119,6 @@ suite('ServiceDownloadProvider Tests', () => {
 		config.setup(x => x.getSqlToolsConfigValue('downloadFileNames')).returns(() => fileNamesJson);
 		config.setup(x => x.getSqlToolsServiceDownloadUrl()).returns(() => baseDownloadUrl);
 		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => version);
-		config.setup(x => x.getWorkspaceConfig('http.proxy')).returns(() => <any>'proxy');
-		config.setup(x => x.getWorkspaceConfig('http.proxyStrictSSL', true)).returns(() => <any>true);
-		config.setup(x => x.getWorkspaceConfig('http.proxyAuthorization')).returns(() => '');
 		testStatusView.setup(x => x.installingService());
 		testStatusView.setup(x => x.serviceInstalled());
 		testLogger.setup(x => x.append(TypeMoq.It.isAny()));
@@ -129,8 +126,7 @@ suite('ServiceDownloadProvider Tests', () => {
 
 		testDecompressProvider.setup(x => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
 			.returns(() => { return fixture.decompressResult; });
-		testHttpClient.setup(x => x.downloadFile(downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(),
-			TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+		testHttpClient.setup(x => x.downloadFile(downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
 			.returns(() => { return fixture.downloadResult; });
 		let downloadProvider = new ServiceDownloadProvider(config.object, testLogger.object, testStatusView.object,
 			testHttpClient.object, testDecompressProvider.object);
@@ -149,8 +145,7 @@ suite('ServiceDownloadProvider Tests', () => {
 
 		fixture = await createDownloadProvider(fixture);
 		return fixture.downloadProvider.installSQLToolsService(Runtime.Windows_64).then(_ => {
-			testHttpClient.verify(x => x.downloadFile(fixture.downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(),
-				TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+			testHttpClient.verify(x => x.downloadFile(fixture.downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
 				TypeMoq.Times.once());
 			testDecompressProvider.verify(x => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
 				TypeMoq.Times.once());
@@ -170,8 +165,7 @@ suite('ServiceDownloadProvider Tests', () => {
 
 		fixture = await createDownloadProvider(fixture);
 		return fixture.downloadProvider.installSQLToolsService(Runtime.Windows_64).catch(_ => {
-			testHttpClient.verify(x => x.downloadFile(fixture.downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(),
-				TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+			testHttpClient.verify(x => x.downloadFile(fixture.downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
 				TypeMoq.Times.once());
 			testDecompressProvider.verify(x => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
 				TypeMoq.Times.never());
@@ -190,8 +184,7 @@ suite('ServiceDownloadProvider Tests', () => {
 
 		fixture = await createDownloadProvider(fixture);
 		return fixture.downloadProvider.installSQLToolsService(Runtime.Windows_64).catch(_ => {
-			testHttpClient.verify(x => x.downloadFile(fixture.downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(),
-				TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+			testHttpClient.verify(x => x.downloadFile(fixture.downloadUrl, TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
 				TypeMoq.Times.once());
 			testDecompressProvider.verify(x => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
 				TypeMoq.Times.once());

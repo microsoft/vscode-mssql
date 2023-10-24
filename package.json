@@ -117,8 +117,6 @@
     "@azure/msal-node": "^1.16.0",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
     "axios": "^0.27.2",
-    "http-proxy-agent": "5.0.0",
-    "https-proxy-agent": "5.0.0",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "ejs": "^3.1.7",

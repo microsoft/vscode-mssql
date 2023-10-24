@@ -12,7 +12,6 @@ import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/cont
 import { AccountStore } from '../accountStore';
 import { AzureController } from '../azureController';
 import { getAzureActiveDirectoryConfig, getEnableSqlAuthenticationProviderConfig } from '../utils';
-import { HttpClient } from './httpClient';
 import { MsalAzureAuth } from './msalAzureAuth';
 import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
 import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
@@ -221,8 +220,7 @@ export class MsalAzureController extends AzureController {
 						loggerCallback: this.getLoggerCallback(),
 						logLevel: MsalLogLevel.Trace,
 						piiLoggingEnabled: true
-					},
-					networkClient: new HttpClient()
+					}
 				},
 				cache: {
 					cachePlugin: this._cachePluginProvider?.getCachePlugin()

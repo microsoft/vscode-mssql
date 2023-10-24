@@ -89,10 +89,6 @@ export default class ServiceDownloadProvider {
 	 * Downloads the SQL tools service and decompress it in the install folder.
 	 */
 	public async installSQLToolsService(platform: Runtime): Promise<boolean> {
-		const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
-		const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
-		const authorization = this._config.getWorkspaceConfig('http.proxyAuthorization');
-
 		const fileName = this.getDownloadFileName(platform);
 		const installDirectory = await this.getOrMakeInstallDirectory(platform);
 
@@ -112,7 +108,7 @@ export default class ServiceDownloadProvider {
 		pkg.tmpFile = tmpResult;
 
 		try {
-			await this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView, proxy, strictSSL, authorization);
+			await this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView);
 			this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
 			this._logger.appendLine(' Done!');
 			await this.install(pkg);
@@ -149,6 +145,3 @@ export default class ServiceDownloadProvider {
 		});
 	}
 }
-
-
-

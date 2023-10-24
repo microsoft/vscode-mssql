@@ -15,8 +15,6 @@ import { Logger } from '../../models/logger';
 import * as Utils from '../../models/utils';
 import { AzureAuthError } from '../azureAuthError';
 import * as Constants from '../constants';
-import * as azureUtils from '../utils';
-import { HttpClient } from './httpClient';
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { ErrorResponseBody } from '@azure/arm-subscriptions';
 
@@ -33,7 +31,6 @@ export abstract class MsalAzureAuth {
 	protected readonly scopesString: string;
 	protected readonly clientId: string;
 	protected readonly resources: Resource[];
-	protected readonly httpClient: HttpClient;
 
 	constructor(
 		protected readonly providerSettings: IProviderSettings,
@@ -48,7 +45,6 @@ export abstract class MsalAzureAuth {
 		this.clientId = this.providerSettings.clientId;
 		this.scopes = [...this.providerSettings.scopes];
 		this.scopesString = this.scopes.join(' ');
-		this.httpClient = azureUtils.getProxyEnabledHttpClient();
 	}
 
 	public async startLogin(): Promise<IAccount | IPromptFailedResult> {
