@@ -44,7 +44,7 @@ export class Logger implements ILogger {
 	 * @param stringsToShorten Set of strings to shorten
 	 * @param vals Any other values to add on to the end of the log message
 	 */
-	public piiSantized(msg: any, objsToSanitize: { name: string, objOrArray: any | any[] }[],
+	public piiSanitized(msg: any, objsToSanitize: { name: string, objOrArray: any | any[] }[],
 		stringsToShorten: { name: string, value: string }[], ...vals: any[]): void {
 		if (this.piiLogging) {
 			msg = [

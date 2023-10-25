@@ -48,7 +48,7 @@ export class PackageError extends Error {
 }
 
 export interface IHttpClient {
-	downloadFile(urlString: string, pkg: IPackage, logger: ILogger, statusView: IStatusView, proxy: string, strictSSL: boolean, authorization?: string):
+	downloadFile(urlString: string, pkg: IPackage, logger: ILogger, statusView: IStatusView):
 		Promise<void>;
 }
 
