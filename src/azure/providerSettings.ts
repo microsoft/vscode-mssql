@@ -3,104 +3,105 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IProviderSettings } from '../models/contracts/azure';
+import { AzureResource, IProviderSettings } from '../models/contracts/azure';
 
 const publicAzureSettings: IProviderSettings = {
 	configKey: 'enablePublicCloud',
 	metadata: {
-		displayName: 'publicCloudDisplayName',
+		displayName: 'Azure Public',
 		id: 'azure_publicCloud',
-		clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
-		loginEndpoint: 'https://login.microsoftonline.com/',
-		portalEndpoint: 'https://portal.azure.com',
-		redirectUri: 'https://vscode-redirect.azurewebsites.net/',
-		resources: {
-			windowsManagementResource: {
+		settings: {
+			host: 'https://login.microsoftonline.com/',
+			clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
+			microsoftResource: {
 				id: 'marm',
-				resource: 'MicrosoftResourceManagement',
+				resource: AzureResource.MicrosoftResourceManagement,
 				endpoint: 'https://management.core.windows.net/'
 			},
-			azureManagementResource: {
+			armResource: {
 				id: 'arm',
-				resource: 'AzureResourceManagement',
+				resource: AzureResource.ResourceManagement,
 				endpoint: 'https://management.azure.com/'
 			},
-			databaseResource: {
+			sqlResource: {
 				id: 'sql',
-				resource: 'Sql',
+				resource: AzureResource.Sql,
 				endpoint: 'https://database.windows.net/'
-			}
-		},
-		scopes: [
-			'openid', 'email', 'profile', 'offline_access',
-			'https://management.azure.com/user_impersonation'
-		]
+			},
+			redirectUri: 'http://localhost',
+			scopes: [
+				'openid', 'email', 'profile', 'offline_access',
+				'https://management.azure.com/user_impersonation',
+			],
+			portalEndpoint: 'https://portal.azure.com'
+		}
 	}
 };
 
 const usGovAzureSettings: IProviderSettings = {
 	configKey: 'enableUsGovCloud',
 	metadata: {
-		displayName: 'usGovCloudDisplayName',
+		displayName: 'Azure US Gov',
 		id: 'azure_usGovtCloud',
-		clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
-		loginEndpoint: 'https://login.microsoftonline.us/',
-		portalEndpoint: 'https://portal.azure.us',
-		redirectUri: 'https://vscode-redirect.azurewebsites.net/',
-		resources: {
-			windowsManagementResource: {
+		settings: {
+			clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
+			host: 'https://login.microsoftonline.us/',
+			microsoftResource: {
 				id: 'marm',
-				resource: 'MicrosoftResourceManagement',
+				resource: AzureResource.MicrosoftResourceManagement,
 				endpoint: 'https://management.core.usgovcloudapi.net/'
 			},
-			azureManagementResource: {
+			armResource: {
 				id: 'arm',
-				resource: 'AzureResourceManagement',
+				resource: AzureResource.ResourceManagement,
 				endpoint: 'https://management.usgovcloudapi.net/'
 			},
-			databaseResource: {
+			sqlResource: {
 				id: 'sql',
-				resource: 'Sql',
+				resource: AzureResource.Sql,
 				endpoint: 'https://database.usgovcloudapi.net/'
-			}
-		},
-		scopes: [
-			'openid', 'email', 'profile', 'offline_access',
-			'https://management.usgovcloudapi.net/user_impersonation'
-		]
+			},
+			redirectUri: 'http://localhost',
+			scopes: [
+				'openid', 'email', 'profile', 'offline_access',
+				'https://management.usgovcloudapi.net/user_impersonation'
+			],
+			portalEndpoint: 'https://portal.azure.us'
+		}
 	}
 };
 
 const chinaAzureSettings: IProviderSettings = {
 	configKey: 'enableChinaCloud',
 	metadata: {
-		displayName: 'chinaCloudDisplayName',
+		displayName: 'Azure China',
 		id: 'azure_chinaCloud',
-		clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
-		loginEndpoint: 'https://login.partner.microsoftonline.cn/',
-		portalEndpoint: 'https://portal.azure.cn/',
-		redirectUri: 'https://vscode-redirect.azurewebsites.net/',
-		resources: {
-			windowsManagementResource: {
+		settings: {
+			clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
+			host: 'https://login.partner.microsoftonline.cn/',
+			microsoftResource: {
 				id: 'marm',
-				resource: 'MicrosoftResourceManagement',
+				resource: AzureResource.MicrosoftResourceManagement,
 				endpoint: 'https://management.core.chinacloudapi.cn/'
 			},
-			azureManagementResource: {
+			armResource: {
 				id: 'arm',
-				resource: 'AzureResourceManagement',
+				resource: AzureResource.ResourceManagement,
 				endpoint: 'https://management.chinacloudapi.cn'
 			},
-			databaseResource: {
+			sqlResource: {
 				id: 'sql',
-				resource: 'Sql',
+				resource: AzureResource.Sql,
 				endpoint: 'https://database.chinacloudapi.cn/'
-			}
-		},
-		scopes: [
-			'openid', 'email', 'profile', 'offline_access',
-			'https://management.chinacloudapi.cn/user_impersonation'
-		]
+			},
+			redirectUri: 'https://vscode-redirect.azurewebsites.net/',
+			scopes: [
+				'openid', 'email', 'profile', 'offline_access',
+				'https://management.chinacloudapi.cn/user_impersonation'
+			],
+			portalEndpoint: 'https://portal.azure.cn/',
+		}
+
 	}
 };
 

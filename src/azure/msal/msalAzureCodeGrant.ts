@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, CryptoProvider, PublicClientApplication } from '@azure/msal-node';
-import { ITenant, AzureAuthType, IProviderSettings } from '../../models/contracts/azure';
+import { ITenant, AzureAuthType, IAccountProviderMetadata } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
 import { MsalAzureAuth } from './msalAzureAuth';
@@ -30,12 +30,12 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
 	private cryptoProvider: CryptoProvider;
 
 	constructor(
-		protected readonly providerSettings: IProviderSettings,
+		protected readonly metadata: IAccountProviderMetadata,
 		protected readonly context: vscode.ExtensionContext,
 		protected clientApplication: PublicClientApplication,
 		protected readonly vscodeWrapper: VscodeWrapper,
 		protected readonly logger: Logger) {
-		super(providerSettings, context, clientApplication, AzureAuthType.AuthCodeGrant, vscodeWrapper, logger);
+		super(metadata, context, clientApplication, AzureAuthType.AuthCodeGrant, vscodeWrapper, logger);
 		this.cryptoProvider = new CryptoProvider();
 		this.pkceCodes = {
 			nonce: '',

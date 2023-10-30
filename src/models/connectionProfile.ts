@@ -12,11 +12,11 @@ import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
 import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
-import providerSettings from '../azure/providerSettings';
-import { AzureAuthType, IAccount, ITenant } from './contracts/azure';
+import { AzureAuthType, AzureResource, ITenant } from './contracts/azure';
 import { getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { IAccount } from 'vscode-mssql';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -70,7 +70,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 			// Set default value as there is only 1 option
 			profile.authenticationType = authOptions[0].value;
 		}
-		let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
+		let azureAccountChoices: INameValueChoice[] = await ConnectionProfile.getAccountChoices(accountStore);
 		let accountAnswer: IAccount;
 		azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount' });
 		let tenantChoices: INameValueChoice[] = [];
@@ -103,13 +103,13 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 							profile.tenantId = tenantChoices[0].value.id;
 						}
 						try {
-							profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, providerSettings.resources.databaseResource);
+							profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, AzureResource.Sql);
 						} catch (error) {
 							console.log(`Refreshing tokens failed: ${error}`);
 						}
 					} else {
 						try {
-							profile = await azureController.populateAccountProperties(profile, accountStore, providerSettings.resources.databaseResource);
+							profile = await azureController.populateAccountProperties(profile, accountStore, AzureResource.Sql);
 							if (profile) {
 								vscode.window.showInformationMessage(utils.formatString(LocalizedConstants.accountAddedSuccessfully, profile.email));
 							}
@@ -195,8 +195,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 		return choices;
 	}
 
-	public static getAccountChoices(accountStore: AccountStore): INameValueChoice[] {
-		let accounts = accountStore.getAccounts();
+	public static async getAccountChoices(accountStore: AccountStore): Promise<INameValueChoice[]> {
+		let accounts = await accountStore.getAllAccounts();
 		let choices: Array<INameValueChoice> = [];
 
 		if (accounts.length > 0) {

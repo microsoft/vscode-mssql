@@ -47,16 +47,6 @@ declare module 'vscode-mssql' {
 		readonly sqlProjects: ISqlProjectsService;
 
 		/**
-		 * Service for accessing Azure Account functionality
-		 */
-		readonly azureAccountService: IAzureAccountService;
-
-		/**
-		 * Service for accessing Azure Resources functionality
-		 */
-		readonly azureResourceService: IAzureResourceService;
-
-		/**
 		 * Prompts the user to select an existing connection or create a new one, and then returns the result
 		 * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
 		 */
@@ -811,6 +801,58 @@ declare module 'vscode-mssql' {
 		WorkSchool = 'work_school'
 	}
 
+	export enum AzureResource {
+		/**
+		 * Azure Resource Management (ARM)
+		 */
+		ResourceManagement = 0,
+		/**
+		 * SQL Azure
+		 */
+		Sql = 1,
+		/**
+		 * OSS RDMS
+		 */
+		OssRdbms = 2,
+		/**
+		 * Azure Key Vault
+		 */
+		AzureKeyVault = 3,
+		// 4 (formerly Azure Graph) is no longer used.
+		/**
+		 * Microsoft Resource Management
+		 */
+		MicrosoftResourceManagement = 5,
+		/**
+		 * Azure Dev Ops
+		 */
+		AzureDevOps = 6,
+		/**
+		 * Microsoft Graph
+		 */
+		MsGraph = 7,
+		/**
+		 * Azure Log Analytics
+		 */
+		AzureLogAnalytics = 8,
+		/**
+		 * Azure Storage
+		 */
+		AzureStorage = 9,
+		/**
+		 * Kusto
+		 */
+		AzureKusto = 10,
+		/**
+		 * Power BI
+		 */
+		PowerBi = 11,
+		/**
+		 * Represents custom resource URIs as received from server endpoint.
+		 */
+		Custom = 12
+	}
+
 	/**
 	 * Represents display information for an account.
 	 */
@@ -858,6 +900,10 @@ declare module 'vscode-mssql' {
 		 * Indicates if the account is signed in
 		 */
 		isSignedIn?: boolean;
+		/**
+		 * Specifies if an account should be deleted
+		 */
+		delete?: boolean;
 	}
 
 	export interface IAzureAccountProperties {
@@ -866,7 +912,7 @@ declare module 'vscode-mssql' {
 		 */
 		azureAuthType: AzureAuthType;
 
-		providerSettings: IProviderSettings;
+		providerSettings: IAccountProviderMetadata;
 		/**
 		 * Whether or not the account is a Microsoft account
 		 */
@@ -880,6 +926,105 @@ declare module 'vscode-mssql' {
 		 * A list of tenants (aka directories) that the account belongs to
 		 */
 		tenants: ITenant[];
+	}
+
+	export interface IProviderMetadata {
+		id: string;
+		displayName: string;
+		settings: {} | undefined;
+	}
+
+	export interface IAccountProviderMetadata extends IProviderMetadata {
+		settings: ISettings;
+	}
+
+	export interface ISettings {
+		/**
+			 * Host of the authority
+			 */
+		host: string;
+
+		/**
+		 * Identifier of the client application
+		 */
+		clientId: string;
+
+		/**
+		 * Information that describes the Microsoft resource management resource
+		 */
+		microsoftResource: IAADResource
+
+		/**
+		 * Information that describes the MS graph resource
+		 */
+		msGraphResource?: IAADResource;
+
+		/**
+		 * Information that describes the Azure resource management resource
+		 */
+		armResource: IAADResource;
+
+		/**
+		 * Information that describes the SQL Azure resource
+		 */
+		sqlResource?: IAADResource;
+
+		/**
+		 * Information that describes the OSS RDBMS resource
+		 */
+		ossRdbmsResource?: IAADResource;
+
+		/**
+		 * Information that describes the Azure Key Vault resource
+		 */
+		azureKeyVaultResource?: IAADResource;
+
+		/**
+		 * Information that describes the Azure Dev Ops resource
+		 */
+		azureDevOpsResource?: IAADResource;
+
+		/**
+		 * Information that describes the Azure Kusto resource
+		 */
+		azureKustoResource?: IAADResource;
+
+		/**
+		 * Information that describes the Azure Log Analytics resource
+		 */
+		azureLogAnalyticsResource?: IAADResource;
+
+		/**
+		 * Information that describes the Azure Storage resource
+		 */
+		azureStorageResource?: IAADResource;
+
+		/**
+		 * Information that describes the Power BI resource
+		 */
+		powerBiResource?: IAADResource;
+
+		/**
+		 * A list of tenant IDs to authenticate against. If defined, then these IDs will be used
+		 * instead of querying the tenants endpoint of the armResource
+		 */
+		adTenants?: string[];
+
+		// AuthorizationCodeGrantFlowSettings //////////////////////////////////
+
+		/**
+		 * An optional site ID that brands the interactive aspect of sign in
+		 */
+		siteId?: string;
+
+		/**
+		 * Redirect URI that is used to signify the end of the interactive aspect of sign in
+		 */
+		redirectUri: string;
+
+		scopes: string[]
+
+		portalEndpoint?: string
 	}
 
 	export interface IProviderSettings {
@@ -905,7 +1050,7 @@ declare module 'vscode-mssql' {
 
 	export interface IAADResource {
 		id: string;
-		resource: string;
+		resource: AzureResource;
 		endpoint: string;
 	}
 

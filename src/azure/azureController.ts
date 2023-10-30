@@ -10,22 +10,21 @@ import * as utils from '../models/utils';
 import * as AzureConstants from './constants';
 import * as azureUtils from './utils';
 
-import { Subscription } from '@azure/arm-subscriptions';
 import { promises as fs } from 'fs';
-import { IAzureAccountSession } from 'vscode-mssql';
+import { IAccount, IAzureAccountSession } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { AzureAuthType, IAADResource, IAccount, IProviderSettings, ITenant, IToken } from '../models/contracts/azure';
+import { AzureResource, IAccountProviderMetadata, ITenant, IToken } from '../models/contracts/azure';
 import { Logger, LogLevel } from '../models/logger';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { AccountStore } from './accountStore';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
+import { AccountService } from './accountService';
 
 export abstract class AzureController {
-	protected _providerSettings: IProviderSettings;
+	protected _metadata: IAccountProviderMetadata;
 	protected _vscodeWrapper: VscodeWrapper;
-	protected _credentialStoreInitialized = false;
 	protected logger: Logger;
 	protected _isSqlAuthProviderEnabled: boolean = false;
 
@@ -33,6 +32,7 @@ export abstract class AzureController {
 		protected context: vscode.ExtensionContext,
 		protected prompter: IPrompter,
 		protected _credentialStore: ICredentialStore,
+		protected _accountService: AccountService,
 		protected _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
@@ -44,7 +44,8 @@ export abstract class AzureController {
 		let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
 		this.logger = new Logger(text => _channel.append(text), logLevel, pii);
 
-		this._providerSettings = providerSettings;
+		//TODO: choose correct provider here
+		this._metadata = providerSettings[0].metadata;
 		vscode.workspace.onDidChangeConfiguration((changeEvent) => {
 			const impactsProvider = changeEvent.affectsConfiguration(AzureConstants.accountsAzureAuthSection);
 			if (impactsProvider === true) {
@@ -57,14 +58,12 @@ export abstract class AzureController {
 
 	public abstract loadTokenCache(): Promise<void>;
 
-	public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
+	public abstract login(providerId: string): Promise<IAccount | undefined>;
 
-	public abstract populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile>;
-
-	public abstract getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
+	public abstract populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AzureResource): Promise<ConnectionProfile>;
 
 	public abstract refreshAccessToken(account: IAccount, accountStore: AccountStore,
-		tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
+		tenantId: string | undefined, settings: AzureResource): Promise<IToken | undefined>;
 
 	public abstract isAccountInCache(account: IAccount): Promise<boolean>;
 
@@ -78,15 +77,14 @@ export abstract class AzureController {
 		return this._isSqlAuthProviderEnabled;
 	}
 
-	public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
-		let config = azureUtils.getAzureActiveDirectoryConfig();
-		let account = await this.login(config!);
+	public async addAccount(accountStore: AccountStore, providerId: string): Promise<IAccount | undefined> {
+		let account = await this.login(providerId);
 		await accountStore.addAccount(account!);
 		this.logger.verbose('Account added successfully.');
 		return account;
 	}
 
-	public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: IAADResource): Promise<ConnectionProfile | undefined> {
+	public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: AzureResource): Promise<ConnectionProfile | undefined> {
 		let account = accountStore.getAccount(accountAnswer.key.id);
 		if (!account) {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
@@ -117,30 +115,6 @@ export abstract class AzureController {
 		return profile;
 	}
 
-	/**
-	 * Returns Azure sessions with subscriptions, tenant and token for each given account
-	 */
-	public async getAccountSessions(account: IAccount): Promise<IAzureAccountSession[]> {
-		const sessions: IAzureAccountSession[] = [];
-		const tenants = <ITenant[]>account.properties.tenants;
-		for (const tenant of tenants) {
-			const tenantId = tenant.id;
-			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
-			const subClient = this._subscriptionClientFactory(token!);
-			const newSubPages = await subClient.subscriptions.list();
-			const array = await azureUtils.getAllValues<Subscription, IAzureAccountSession>(newSubPages, (nextSub) => {
-				return {
-					subscription: nextSub,
-					tenantId: tenantId,
-					account: account,
-					token: token
-				};
-			});
-			sessions.push(...array);
-		}
-
-		return sessions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
-	}
 
 	/**
 	 * Verifies if the token still valid, refreshes the token for given account
@@ -151,7 +125,7 @@ export abstract class AzureController {
 		accountStore: AccountStore): Promise<void> {
 		if (session?.account && AzureController.isTokenInValid(session.token!.token, session.token!.expiresOn)) {
 			const token = await this.refreshAccessToken(session.account, accountStore, undefined,
-				providerSettings.resources.azureManagementResource);
+				AzureResource.ResourceManagement);
 			session.token = token!;
 			this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
 		} else {

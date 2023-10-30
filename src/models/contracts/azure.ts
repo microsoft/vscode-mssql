@@ -40,6 +40,58 @@ export enum AccountType {
 	WorkSchool = 'work_school'
 }
 
+export enum AzureResource {
+	/**
+	 * Azure Resource Management (ARM)
+	 */
+	ResourceManagement = 0,
+	/**
+	 * SQL Azure
+	 */
+	Sql = 1,
+	/**
+	 * OSS RDMS
+	 */
+	OssRdbms = 2,
+	/**
+	 * Azure Key Vault
+	 */
+	AzureKeyVault = 3,
+	// 4 (formerly Azure Graph) is no longer used.
+	/**
+	 * Microsoft Resource Management
+	 */
+	MicrosoftResourceManagement = 5,
+	/**
+	 * Azure Dev Ops
+	 */
+	AzureDevOps = 6,
+	/**
+	 * Microsoft Graph
+	 */
+	MsGraph = 7,
+	/**
+	 * Azure Log Analytics
+	 */
+	AzureLogAnalytics = 8,
+	/**
+	 * Azure Storage
+	 */
+	AzureStorage = 9,
+	/**
+	 * Kusto
+	 */
+	AzureKusto = 10,
+	/**
+	 * Power BI
+	 */
+	PowerBi = 11,
+	/**
+	 * Represents custom resource URIs as received from server endpoint.
+	 */
+	Custom = 12
+}
+
 /**
  * Represents display information for an account.
  */
@@ -87,6 +139,10 @@ export interface IAccount {
 	 * Indicates if the account is signed in
 	 */
 	isSignedIn?: boolean;
+	/**
+	 * Specifies if an account should be deleted
+	 */
+	delete?: boolean;
 }
 
 export interface IAzureAccountProperties {
@@ -97,7 +153,7 @@ export interface IAzureAccountProperties {
 	/**
 	 * Provider settings for Azure account.
 	 */
-	providerSettings: IProviderSettings;
+	providerSettings: IAccountProviderMetadata;
 	/**
 	 * Whether or not the account is a Microsoft account
 	 */
@@ -120,33 +176,111 @@ export interface IAzureAccountProperties {
  */
 export interface IProviderSettings {
 	configKey: string;
-	metadata: IProviderMetadata;
+	metadata: IAccountProviderMetadata;
 }
 
 export interface IProviderMetadata {
-	scopes: string[];
-	displayName: string;
 	id: string;
-	clientId: string;
-	loginEndpoint: string;
-	portalEndpoint: string;
-	redirectUri: string;
-	resources: IProviderResources;
+	displayName: string;
+	settings: {} | undefined;
 }
 
-export interface IProviderResources {
-	windowsManagementResource: IAADResource;
-	azureManagementResource: IAADResource;
-	graphResource?: IAADResource;
-	databaseResource?: IAADResource;
+export interface IAccountProviderMetadata extends IProviderMetadata {
+	settings: ISettings;
+}
+
+export interface ISettings {
+	/**
+		 * Host of the authority
+		 */
+	host: string;
+
+	/**
+	 * Identifier of the client application
+	 */
+	clientId: string;
+
+	/**
+	 * Information that describes the Microsoft resource management resource
+	 */
+	microsoftResource: IAADResource
+
+	/**
+	 * Information that describes the MS graph resource
+	 */
+	msGraphResource?: IAADResource;
+
+	/**
+	 * Information that describes the Azure resource management resource
+	 */
+	armResource: IAADResource;
+
+	/**
+	 * Information that describes the SQL Azure resource
+	 */
+	sqlResource?: IAADResource;
+
+	/**
+	 * Information that describes the OSS RDBMS resource
+	 */
 	ossRdbmsResource?: IAADResource;
+
+	/**
+	 * Information that describes the Azure Key Vault resource
+	 */
 	azureKeyVaultResource?: IAADResource;
-	azureDevopsResource?: IAADResource;
+
+	/**
+	 * Information that describes the Azure Dev Ops resource
+	 */
+	azureDevOpsResource?: IAADResource;
+
+	/**
+	 * Information that describes the Azure Kusto resource
+	 */
+	azureKustoResource?: IAADResource;
+
+	/**
+	 * Information that describes the Azure Log Analytics resource
+	 */
+	azureLogAnalyticsResource?: IAADResource;
+
+	/**
+	 * Information that describes the Azure Storage resource
+	 */
+	azureStorageResource?: IAADResource;
+
+	/**
+	 * Information that describes the Power BI resource
+	 */
+	powerBiResource?: IAADResource;
+
+	/**
+	 * A list of tenant IDs to authenticate against. If defined, then these IDs will be used
+	 * instead of querying the tenants endpoint of the armResource
+	 */
+	adTenants?: string[];
+
+	// AuthorizationCodeGrantFlowSettings //////////////////////////////////
+
+	/**
+	 * An optional site ID that brands the interactive aspect of sign in
+	 */
+	siteId?: string;
+
+	/**
+	 * Redirect URI that is used to signify the end of the interactive aspect of sign in
+	 */
+	redirectUri: string;
+
+	scopes: string[]
+
+	portalEndpoint?: string
 }
 
 export interface IAADResource {
 	id: string;
-	resource: string;
+	resource: AzureResource;
 	endpoint: string;
 }
 /**
@@ -215,4 +349,56 @@ export interface ITokenClaims {
 	unique_name: string;
 	uti: string;
 	ver: string;
+}
+
+/**
+	 * Represents a provider of accounts for use with the account management service
+	 */
+export interface IAccountProvider {
+	/**
+	 * Initializes the account provider with the accounts restored from the memento,
+	 * @param storedAccounts Accounts restored from the memento
+	 * @return Account objects after being rehydrated (if necessary)
+	 */
+	initialize(storedAccounts: IAccount[]): Thenable<IAccount[]>;
+
+	/**
+	 * Generates a security token for the provided account and tenant
+	 * @param account The account to generate a security token for
+	 * @param resource The resource to get the token for
+	 * @return Promise to return a security token object
+	 */
+	getAccountSecurityToken(account: IAccount, tenant: string, resource: AzureResource): Thenable<IToken | undefined>;
+
+	/**
+	 * Prompts the user to enter account information.
+	 * Returns an error if the user canceled the operation.
+	 */
+	prompt(): Thenable<IAccount | IPromptFailedResult>;
+
+	/**
+	 * Refreshes a stale account.
+	 * Returns an error if the user canceled the operation.
+	 * Otherwise, returns a new updated account instance.
+	 * @param account - An account.
+	 */
+	refresh(account: IAccount): Thenable<IAccount | IPromptFailedResult>;
+
+	/**
+	 * Clears sensitive information for an account. To be called when account is removed
+	 * @param accountKey - Key that uniquely identifies the account to clear
+	 */
+	clear(accountKey: IAccountKey): Thenable<void>;
+
+	/**
+	 * Called from the account management service when the user has cancelled an auto OAuth
+	 * authorization process. Implementations should use this to cancel any polling process
+	 * and call the end OAuth method.
+	 */
+	autoOAuthCancelled(): Thenable<void>;
+
+	/**
+	 * Clears token cache
+	 */
+	clearTokenCache(): Thenable<void>;
 }

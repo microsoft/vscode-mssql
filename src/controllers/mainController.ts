@@ -8,7 +8,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IConnectionInfo } from 'vscode-mssql';
-import { AzureResourceController } from '../azure/azureResourceController';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -28,8 +27,6 @@ import { Deferred } from '../protocol';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { ScriptingService } from '../scripting/scriptingService';
-import { AzureAccountService } from '../services/azureAccountService';
-import { AzureResourceService } from '../services/azureResourceService';
 import { DacFxService } from '../services/dacFxService';
 import { SqlProjectsService } from '../services/sqlProjectsService';
 import { SchemaCompareService } from '../services/schemaCompareService';
@@ -67,8 +64,6 @@ export default class MainController implements vscode.Disposable {
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
 	public sqlProjectsService: SqlProjectsService;
-	public azureAccountService: AzureAccountService;
-	public azureResourceService: AzureResourceService;
 
 	/**
 	 * The main controller constructor
@@ -189,9 +184,6 @@ export default class MainController implements vscode.Disposable {
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
-			const azureResourceController = new AzureResourceController();
-			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
-			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));

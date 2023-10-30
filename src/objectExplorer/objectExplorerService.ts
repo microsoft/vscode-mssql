@@ -24,10 +24,9 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 import * as Utils from '../models/utils';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
-import providerSettings from '../azure/providerSettings';
-import { IConnectionInfo } from 'vscode-mssql';
+import { IAccount, IConnectionInfo } from 'vscode-mssql';
 import { sendActionEvent } from '../telemetry/telemetry';
-import { IAccount } from '../models/contracts/azure';
+import { AzureResource } from '../models/contracts/azure';
 import * as AzureConstants from '../azure/constants';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
@@ -539,7 +538,7 @@ export class ObjectExplorerService {
 		let azureController = this._connectionManager.azureController;
 		let profile = new ConnectionProfile(connectionCredentials);
 		let azureAccountToken = await azureController.refreshAccessToken(
-			account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);
+			account, this._connectionManager.accountStore, connectionCredentials.tenantId, AzureResource.Sql);
 		if (!azureAccountToken) {
 			this._client.logger.verbose('Access token could not be refreshed for connection profile.');
 			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
@@ -547,7 +546,7 @@ export class ObjectExplorerService {
 				errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
 					if (result === LocalizedConstants.refreshTokenLabel) {
 						let updatedProfile = await azureController.populateAccountProperties(
-							profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+							profile, this._connectionManager.accountStore, AzureResource.Sql);
 						connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
 						connectionCredentials.expiresOn = updatedProfile.expiresOn;
 					} else {

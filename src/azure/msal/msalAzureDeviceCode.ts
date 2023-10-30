@@ -7,19 +7,19 @@ import { AuthenticationResult, DeviceCodeRequest, PublicClientApplication } from
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../../constants/localizedConstants';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
-import { AzureAuthType, IProviderSettings, ITenant } from '../../models/contracts/azure';
+import { AzureAuthType, IAccountProviderMetadata, ITenant } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
 import { MsalAzureAuth } from './msalAzureAuth';
 
 export class MsalAzureDeviceCode extends MsalAzureAuth {
 	constructor(
-		protected readonly providerSettings: IProviderSettings,
+		protected readonly metadata: IAccountProviderMetadata,
 		protected readonly context: vscode.ExtensionContext,
 		protected clientApplication: PublicClientApplication,
 		protected readonly vscodeWrapper: VscodeWrapper,
 		protected readonly logger: Logger) {
-		super(providerSettings, context, clientApplication, AzureAuthType.DeviceCode, vscodeWrapper, logger);
+		super(metadata, context, clientApplication, AzureAuthType.DeviceCode, vscodeWrapper, logger);
 	}
 
 	protected async login(tenant: ITenant): Promise<{ response: AuthenticationResult; authComplete: IDeferred<void, Error>; }> {

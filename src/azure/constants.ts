@@ -41,6 +41,8 @@ export const enableConnectionPoolingSection = 'enableConnectionPooling';
 
 export const mssqlAuthenticationProviderConfig = mssqlSection + '.' + sqlAuthProviderSection;
 
+export const azureCloudsConfig = mssqlSection + '.' + cloudSection;
+
 export const accountsClearTokenCacheCommand = accountsSection + '.' + clearTokenCacheCommand;
 
 export const accountsAzureAuthSection = accountsSection + '.' + azureSection + '.' + authSection;
@@ -48,6 +50,12 @@ export const accountsAzureAuthSection = accountsSection + '.' + azureSection + '
 export const accountsAzureCloudSection = accountsSection + '.' + azureSection + '.' + cloudSection;
 
 export const azureTenantConfigSection = azureSection + '.' + tenantSection + '.' + configSection;
+
+export const enablePublicCloud = 'enablePublicCloud';
+
+export const enableUsGovCloud = 'enableUsGovCloud';
+
+export const enableChinaCloud = 'enableChinaCloud';
 
 export const oldMsalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
 
