@@ -52,8 +52,6 @@ export abstract class AzureController {
 
 	public abstract init(): void;
 
-	// public abstract loadTokenCache(): Promise<void>;
-
 	public abstract login(providerId: string): Promise<IAccount | undefined>;
 
 	public abstract populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AzureResource): Promise<ConnectionProfile>;
