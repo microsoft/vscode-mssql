@@ -2,6 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
+import { AccountInfo } from "@azure/msal-node";
+
 /**
  * Represents a tenant information for an account.
  */
@@ -397,8 +400,5 @@ export interface IAccountProvider {
 	 */
 	autoOAuthCancelled(): Thenable<void>;
 
-	/**
-	 * Clears token cache
-	 */
-	clearTokenCache(): Thenable<void>;
+	checkAccountInCache(account: IAccount): Thenable<AccountInfo>;
 }

@@ -12,14 +12,10 @@ import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
 import * as LocalizedConstants from '../../constants/localizedConstants';
 import { ConnectionProfile } from '../../models/connectionProfile';
-import { IAccountProvider, AzureAuthType, IProviderSettings, IToken, IAccountProviderMetadata, AzureResource, ITenant } from '../../models/contracts/azure';
+import { IAccountProvider, IProviderSettings, IToken, IAccountProviderMetadata, AzureResource, ITenant, IPromptFailedResult } from '../../models/contracts/azure';
 import { AccountStore } from '../accountStore';
 import { AzureController } from '../azureController';
-import { getAzureActiveDirectoryConfig, getEnableSqlAuthenticationProviderConfig } from '../utils';
-import { HttpClient } from './httpClient';
-import { MsalAzureAuth } from './msalAzureAuth';
-import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
-import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
+import { getEnableSqlAuthenticationProviderConfig } from '../utils';
 import { MsalCachePluginProvider } from './msalCachePlugin';
 import { promises as fsPromises } from 'fs';
 import * as path from 'path';
@@ -27,14 +23,11 @@ import * as AzureConstants from '../constants';
 import providerSettings from '../providerSettings';
 import { AzureAccountProvider } from './azureAccountProvider';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
-import { IAccountProviderWithMetadata } from '../accountService';
 import { IAccount, IAzureAccountSession } from 'vscode-mssql';
 
 export class MsalAzureController extends AzureController {
 
-	public _providers: { [id: string]: IAccountProviderWithMetadata } = {};
 	public providerMap = new Map<string, IProviderSettings>();
-	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
 	private _cachePluginProvider: MsalCachePluginProvider;
 	private _accountProviders: { [accountProviderId: string]: IAccountProvider } = {};
 	private _currentConfig: vscode.WorkspaceConfiguration;
@@ -77,17 +70,6 @@ export class MsalAzureController extends AzureController {
 
 	}
 
-	public async loadTokenCache(): Promise<void> {
-		let authType = getAzureActiveDirectoryConfig();
-		if (!this._authMappings.has(authType)) {
-			await this.handleAuthMapping();
-		}
-
-		let azureAuth = await this.getAzureAuthInstance(authType!);
-		await this.clearOldCacheIfExists();
-		azureAuth.loadTokenCache();
-	}
-
 	public async clearTokenCache(): Promise<void> {
 		this.clientApplication.clearCache();
 		await this._cachePluginProvider.unlinkMsalCache();
@@ -119,45 +101,33 @@ export class MsalAzureController extends AzureController {
 	}
 
 	public async isAccountInCache(account: IAccount): Promise<boolean> {
-		let authType = getAzureActiveDirectoryConfig();
-		let azureAuth = await this.getAzureAuthInstance(authType!);
+		let provider = this.fetchProvider(account.key.providerId);
 		await this.clearOldCacheIfExists();
-		let accountInfo = await azureAuth.getAccountFromMsalCache(account.key.id);
+		let accountInfo = provider.checkAccountInCache(account)
 		return accountInfo !== undefined;
-	}
-
-	private async getAzureAuthInstance(authType: AzureAuthType): Promise<MsalAzureAuth | undefined> {
-		if (!this._authMappings.has(authType)) {
-			await this.handleAuthMapping();
-		}
-		return this._authMappings!.get(authType);
 	}
 
 	//TODO: remove this and map to azureAccountProvider?
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: AzureResource): Promise<IToken | undefined> {
-		let newAccount: IAccount;
+		let newAccount: IAccount | IPromptFailedResult;
 		let provider: IAccountProvider;
 		try {
 			provider = this.fetchProvider(account.key.providerId);
-			provider.getAccountSecurityToken(account, AzureConstants.organizationTenant.id, AzureResource.MicrosoftResourceManagement)
-			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-			newAccount = await azureAuth!.refreshAccessToken(account, AzureConstants.organizationTenant.id,
-				AzureResource.MicrosoftResourceManagement);
+			let token = await provider.getAccountSecurityToken(account, AzureConstants.organizationTenant.id, settings)
 
-			if (newAccount!.isStale === true) {
+			if (!token) {
 				return undefined;
 			}
-
-			await accountStore.addAccount(newAccount!);
-			return await provider.getAccountSecurityToken(
-				account, tenantId ?? account.properties.owningTenant.id, settings
-			);
+			return token;
 		} catch (ex) {
 			if (ex instanceof ClientAuthError && ex.errorCode === AzureConstants.noAccountInSilentRequestError) {
 				try {
 					// Account needs re-authentication
-					newAccount = await this.login(account.key.providerId);
+					newAccount = await provider.refresh(account);
+					if (!this.isAccountResult(newAccount)) {
+						return undefined
+					}
 					if (newAccount!.isStale === true) {
 						return undefined;
 					}
@@ -180,6 +150,7 @@ export class MsalAzureController extends AzureController {
 	 */
 	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AzureResource): Promise<ConnectionProfile> {
 		// get provider and run provider.prompt() to get the token
+		// this just needs to fill in the token information in the profile
 		let account = await this.addAccount(accountStore);
 		let provider = this.fetchProvider(account!.key.providerId);
 		profile.user = account!.displayInfo.displayName;
@@ -237,45 +208,8 @@ export class MsalAzureController extends AzureController {
 	}
 
 	public async removeAccount(account: IAccount): Promise<void> {
-		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-		await azureAuth!.clearCredentials(account.key);
-	}
-
-	public async handleAuthMapping(): Promise<void> {
-		if (!this.clientApplication) {
-			let storagePath = await this.findOrMakeStoragePath();
-			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this._vscodeWrapper, this.logger, this._credentialStore);
-			const msalConfiguration: Configuration = {
-				auth: {
-					clientId: this._metadata.settings.clientId,
-					authority: 'https://login.windows.net/common'
-				},
-				system: {
-					loggerOptions: {
-						loggerCallback: this.getLoggerCallback(),
-						logLevel: MsalLogLevel.Trace,
-						piiLoggingEnabled: true
-					},
-					networkClient: new HttpClient()
-				},
-				cache: {
-					cachePlugin: this._cachePluginProvider?.getCachePlugin()
-				}
-			};
-			this.clientApplication = new PublicClientApplication(msalConfiguration);
-		}
-
-		this._authMappings.clear();
-
-		const configuration = getAzureActiveDirectoryConfig();
-
-		if (configuration === AzureAuthType.AuthCodeGrant) {
-			this._authMappings.set(AzureAuthType.AuthCodeGrant, new MsalAzureCodeGrant(
-				this._metadata, this.context, this.clientApplication, this._vscodeWrapper, this.logger));
-		} else if (configuration === AzureAuthType.DeviceCode) {
-			this._authMappings.set(AzureAuthType.DeviceCode, new MsalAzureDeviceCode(
-				this._metadata, this.context, this.clientApplication, this._vscodeWrapper, this.logger));
-		}
+		let provider = this.fetchProvider(account.key.providerId);
+		provider.clear(account.key);
 	}
 
 	private async handleCloudChange() {
@@ -376,6 +310,11 @@ export class MsalAzureController extends AzureController {
 			console.error(`Failed to unregister account provider: ${e}`);
 		}
 	}
+
+	private isAccountResult(result: IAccount | IPromptFailedResult): result is IAccount {
+		return typeof (<IAccount>result).displayInfo === 'object';
+	}
+
 
 	private fetchProvider(providerId: string): IAccountProvider | undefined {
 		return this._accountProviders[providerId];

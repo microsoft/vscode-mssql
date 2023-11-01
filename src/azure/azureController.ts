@@ -11,11 +11,10 @@ import * as AzureConstants from './constants';
 import * as azureUtils from './utils';
 
 import { promises as fs } from 'fs';
-import { IAccount, IAzureAccountSession } from 'vscode-mssql';
-import providerSettings from '../azure/providerSettings';
+import { IAccount } from 'vscode-mssql';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { AzureResource, IAccountProviderMetadata, ITenant, IToken } from '../models/contracts/azure';
+import { AzureResource, ITenant, IToken } from '../models/contracts/azure';
 import { Logger, LogLevel } from '../models/logger';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { AccountStore } from './accountStore';
@@ -23,7 +22,6 @@ import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { AccountService } from './accountService';
 
 export abstract class AzureController {
-	protected _metadata: IAccountProviderMetadata;
 	protected _vscodeWrapper: VscodeWrapper;
 	protected logger: Logger;
 	protected _isSqlAuthProviderEnabled: boolean = false;
@@ -44,19 +42,17 @@ export abstract class AzureController {
 		let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
 		this.logger = new Logger(text => _channel.append(text), logLevel, pii);
 
-		//TODO: choose correct provider here
-		this._metadata = providerSettings[0].metadata;
-		vscode.workspace.onDidChangeConfiguration((changeEvent) => {
-			const impactsProvider = changeEvent.affectsConfiguration(AzureConstants.accountsAzureAuthSection);
-			if (impactsProvider === true) {
-				this.handleAuthMapping();
-			}
-		});
+		// vscode.workspace.onDidChangeConfiguration((changeEvent) => {
+		// 	const impactsProvider = changeEvent.affectsConfiguration(AzureConstants.accountsAzureAuthSection);
+		// 	if (impactsProvider === true) {
+		// 		this.handleAuthMapping();
+		// 	}
+		// });
 	}
 
 	public abstract init(): void;
 
-	public abstract loadTokenCache(): Promise<void>;
+	// public abstract loadTokenCache(): Promise<void>;
 
 	public abstract login(providerId: string): Promise<IAccount | undefined>;
 
@@ -70,8 +66,6 @@ export abstract class AzureController {
 	public abstract removeAccount(account: IAccount): Promise<void>;
 
 	public abstract clearTokenCache(): void;
-
-	public abstract handleAuthMapping(): void;
 
 	public isSqlAuthProviderEnabled(): boolean {
 		return this._isSqlAuthProviderEnabled;
@@ -113,24 +107,6 @@ export abstract class AzureController {
 			this.logger.verbose('Account found and SQL Authentication Provider is enabled, access token will not be refreshed by extension.');
 		}
 		return profile;
-	}
-
-
-	/**
-	 * Verifies if the token still valid, refreshes the token for given account
-	 * @param session
-	 */
-	public async checkAndRefreshToken(
-		session: IAzureAccountSession,
-		accountStore: AccountStore): Promise<void> {
-		if (session?.account && AzureController.isTokenInValid(session.token!.token, session.token!.expiresOn)) {
-			const token = await this.refreshAccessToken(session.account, accountStore, undefined,
-				AzureResource.ResourceManagement);
-			session.token = token!;
-			this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
-		} else {
-			this.logger.verbose(`Access Token not refreshed for account: ${session?.account?.key.id}`);
-		}
 	}
 
 	/**

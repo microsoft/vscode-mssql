@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 
 
-import { PublicClientApplication } from "@azure/msal-node";
+import { AccountInfo, PublicClientApplication } from "@azure/msal-node";
 import { AzureAuthType, AzureResource, IAccountKey, IAccountProvider, IAccountProviderMetadata, IPromptFailedResult } from "../../models/contracts/azure";
 import { IToken, MsalAzureAuth } from './msalAzureAuth';
 import { IDeferred } from '../../models/interfaces';
@@ -47,10 +47,6 @@ export class AzureAccountProvider implements IAccountProvider{
 		});
 
 		this.handleAuthMapping(metadata, context);
-	}
-
-	clearTokenCache(): Thenable<void> {
-		return this.getAuthMethod().deleteAllCache();
 	}
 
 	initialize(storedAccounts: IAccount[]): Thenable<IAccount[]> {
@@ -130,6 +126,11 @@ export class AzureAccountProvider implements IAccountProvider{
 			this.authMappings.set(AzureAuthType.DeviceCode, new MsalAzureDeviceCode(
 				metadata, context, this.clientApplication, this.vscodeWrapper, this.logger));
 		}
+	}
+
+	public async checkAccountInCache(account: IAccount): Promise<AccountInfo> {
+		let azureAuth = this.getAuthMethod(account);
+		return await azureAuth.getAccountFromMsalCache(account.key.id);
 	}
 
 	private getAuthMethod(account?: IAccount): MsalAzureAuth {

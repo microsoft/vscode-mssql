@@ -402,6 +402,8 @@ declare module 'vscode-mssql' {
 		 * Gets or sets the connection string to use for this connection.
 		 */
 		connectionString: string | undefined;
+
+		providerId?: string | undefined;
 	}
 
 	export const enum ExtractTarget {

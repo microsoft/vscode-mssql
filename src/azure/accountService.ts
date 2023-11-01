@@ -23,7 +23,6 @@ export class AccountService {
 		displayName: 'common'
 	};
 
-	//TODO: need to pass in correct provider metadata here
 	constructor(
 		private _client: SqlToolsServiceClient,
 		private _accountStore: AccountStore,

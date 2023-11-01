@@ -6,7 +6,6 @@
 import { RequestType } from 'vscode-languageclient';
 import { IAccount } from 'vscode-mssql';
 
-
 // ------------------------------- < Resource Events > ------------------------------------
 export namespace CreateFirewallRuleRequest {
 	export const type = new RequestType<ICreateFirewallRuleParams, ICreateFirewallRuleResponse, void, void>('resource/createFirewallRule');

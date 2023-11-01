@@ -33,6 +33,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 	public accountStore: AccountStore;
 	public accountId: string;
 	public tenantId: string;
+	public providerId?: string;
 
 	constructor(connectionCredentials?: ConnectionCredentials) {
 		super();
@@ -98,6 +99,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 					if (value !== 'addAccount') {
 						let account = value;
 						profile.accountId = account?.key.id;
+						profile.providerId = account?.key.providerId;
 						tenantChoices.push(...account?.properties?.tenants!.map(t => ({ name: t.displayName, value: t })));
 						if (tenantChoices.length === 1) {
 							profile.tenantId = tenantChoices[0].value.id;
@@ -109,6 +111,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 						}
 					} else {
 						try {
+							//Add Account
 							profile = await azureController.populateAccountProperties(profile, accountStore, AzureResource.Sql);
 							if (profile) {
 								vscode.window.showInformationMessage(utils.formatString(LocalizedConstants.accountAddedSuccessfully, profile.email));
