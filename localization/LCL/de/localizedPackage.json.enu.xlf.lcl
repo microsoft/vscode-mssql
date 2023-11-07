@@ -39,10 +39,13 @@
       </Item>
       <Item ItemId=";mssql.addAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Add Azure Account]]></Val>
+          <Val><![CDATA[Add Microsoft Entra Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure-Konto hinzufügen]]></Val>
+            <Val><![CDATA[Microsoft Entra-Konto hinzufügen]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Add Azure Account]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -69,15 +72,6 @@
           <Val><![CDATA[Prompts users to sign in using their browser.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fordert Benutzer auf, sich mit ihrem Browser anzumelden.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";mssql.azureAuthenticationLibrary" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Die Bibliothek wird für den Azure Active Directory Authentifizierungsfluss verwendet. Starten Sie Visual Studio Code neu, nachdem Sie diese Option geändert haben.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -129,10 +123,13 @@
       </Item>
       <Item ItemId=";mssql.clearAzureAccountTokenCache" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Clear Azure acccount token cache]]></Val>
+          <Val><![CDATA[Clear Microsoft Entra account token cache]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tokencache für Azure-Konto löschen]]></Val>
+            <Val><![CDATA[Microsoft Entra-Kontotokencach löschen]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Clear Azure acccount token cache]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -576,10 +573,13 @@
       </Item>
       <Item ItemId=";mssql.enableSqlAuthenticationProvider" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
+          <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ermöglicht die Verwendung des Sql-Authentifizierungsanbieters für den Authentifizierungsmodus „Active Directory Interactive“, wenn der Benutzer die Authentifizierung „AzureMFA“ auswählt. Dies ermöglicht die serverseitige Ressourcenendpunktintegration beim Abrufen von Zugriffstokens. Diese Option wird nur für die „MSAL“ Azure Authentication Library unterstützt. Bitte starten Sie Visual Studio Code neu, nachdem Sie diese Option geändert haben.]]></Val>
+            <Val><![CDATA[Aktiviert die Verwendung des SQL-Authentifizierungsanbieters für den Authentifizierungsmodus "Microsoft Entra ID interaktiv", wenn der Benutzer die Authentifizierung "AzureMFA" auswählt. Dies ermöglicht die serverseitige Ressourcenendpunktintegration beim Abrufen von Zugriffstoken. Diese Option wird nur für die MSAL-Authentifizierungsbibliothek unterstützt. Bitte starten Sie Visual Studio Code neu, nachdem Sie diese Option geändert haben.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1092,10 +1092,13 @@
       </Item>
       <Item ItemId=";mssql.removeAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Remove Azure Account]]></Val>
+          <Val><![CDATA[Remove Microsoft Entra Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure-Konto entfernen]]></Val>
+            <Val><![CDATA[Microsoft Entra-Konto entfernen]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Remove Azure Account]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
