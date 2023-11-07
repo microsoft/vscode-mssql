@@ -97,8 +97,8 @@
       <Item ItemId=";accountAddedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra account {0} successfully added.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[已成功新增 Azure 帳戶 {0}。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已成功新增 Microsoft Entra 帳戶 {0}。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Azure account {0} successfully added.]]></Val>
@@ -109,8 +109,8 @@
       <Item ItemId=";accountCouldNotBeAdded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Microsoft Entra account could not be added.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[無法新增 Azure 帳戶。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無法新增 Microsoft Entra 帳戶。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[New Azure account could not be added.]]></Val>
@@ -121,8 +121,8 @@
       <Item ItemId=";accountRemovalFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing Microsoft Entra account: {0}]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[移除使用者帳戶時發生錯誤: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[移除 Microsoft Entra 帳戶時發生錯誤: {0}]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[An error occurred while removing user account: {0}]]></Val>
@@ -133,8 +133,8 @@
       <Item ItemId=";accountRemovedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Microsoft Entra account removed successfully.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[已成功移除選取的 Azure 帳戶。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已成功移除選取的 Microsoft Entra 帳戶。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Selected Azure Account removed successfully.]]></Val>
@@ -145,8 +145,8 @@
       <Item ItemId=";authTypeAzureActiveDirectory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Id - Universal w/ MFA Support]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Azure Active Directory - 通用含 MFA 支援]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra ID - 通用 (含 MFA 支援)]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Azure Active Directory - Universal w/ MFA Support]]></Val>
@@ -193,8 +193,8 @@
       <Item ItemId=";azureAddAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add a Microsoft Entra account...]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[新增帳戶...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新增 Microsoft Entra 帳戶...]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Add an Account...]]></Val>
@@ -241,8 +241,8 @@
       <Item ItemId=";azureChooseAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a Microsoft Entra account]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[選擇 Azure Active Directory 帳戶]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選擇 Microsoft Entra 帳戶]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Choose an Azure Active Directory Account]]></Val>
@@ -253,8 +253,8 @@
       <Item ItemId=";azureChooseTenant" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a Microsoft Entra tenant]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[選擇 Azure 租用戶]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選擇 Microsoft Entra 租用戶]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Choose an Azure tenant]]></Val>
@@ -319,8 +319,8 @@
       <Item ItemId=";azureMicrosoftAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Account]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Microsoft 帳戶]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft Entra 帳戶]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Microsoft Account]]></Val>
@@ -1003,8 +1003,8 @@
       <Item ItemId=";msgAzureCredStoreSaveFailedError" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[權杖快取的金鑰無法儲存在認證存放區中，這可能會導致 Azure 存取權杖持續性問題和連線不穩定。SqlTools 可能已達到 Windows 的認證儲存限制，請清除 Windows 認證管理員中以 「Microsoft.SqlTools|」 開始的至少 2 個認證，然後重新載入。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[權杖快取的金鑰無法儲存在認證存放區中，這可能會導致 Microsoft Entra ID 存取權杖持續性問題和連線不穩定。SqlTools 可能已達到 Windows 的認證儲存限制，請清除 Windows 認證管理員中以 "Microsoft.SqlTools|" 開始的至少 2 個認證，然後重新載入。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
@@ -1468,8 +1468,8 @@
       <Item ItemId=";msgPromptRetryFirewallRuleNotSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[您的用戶端 IP 位址無權存取伺服器。請新增 Azure 帳戶並建立新的防火牆規則以便存取。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[您的用戶端 IP 位址無權存取伺服器。請新增 Microsoft Entra 帳戶並建立新的防火牆規則以啟用存取權。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.]]></Val>
@@ -1519,8 +1519,8 @@
       <Item ItemId=";msgRefreshTokenNotNeeded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[不需要重新整理 URI 為 {1} 的連線 {0} Azure 帳戶權杖]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不需要為 URI 為 {1} 的連線 {0} 重新整理 Microsoft Entra 帳戶權杖]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[No need to refresh Azure acccount token for connection {0} with uri {1}]]></Val>
@@ -1657,8 +1657,8 @@
       <Item ItemId=";noAzureAccountForRemoval" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Microsoft Entra account can be found for removal.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[找不到要移除的 Azure 帳戶。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[找不到要移除的 Microsoft Entra 帳戶。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[No Azure Account can be found for removal.]]></Val>
