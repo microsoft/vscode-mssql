@@ -131,16 +131,16 @@
         <target state="translated">Copiar nombre de objeto</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
-        <source xml:lang="en">Add Azure Account</source>
-        <target state="translated">Agregar cuenta de Azure</target>
+        <source xml:lang="en">Add Microsoft Entra Account</source>
+        <target state="translated">Agregar cuenta de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
-        <source xml:lang="en">Remove Azure Account</source>
-        <target state="translated">Quitar cuenta de Azure</target>
+        <source xml:lang="en">Remove Microsoft Entra Account</source>
+        <target state="translated">Quitar cuenta de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
-        <source xml:lang="en">Clear Azure acccount token cache</source>
-        <target state="translated">Borrar caché de tokens de cuenta de Azure</target>
+        <source xml:lang="en">Clear Microsoft Entra account token cache</source>
+        <target state="translated">Borrar caché de tokens de cuenta de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
@@ -290,13 +290,9 @@
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
         <target state="translated">[Opcional] Indica si este perfil tiene una contraseña vacía establecida explícitamente.</target>
       </trans-unit>
-      <trans-unit id="mssql.azureAuthenticationLibrary">
-        <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
-        <target state="translated">Biblioteca usada para el flujo de autenticación de Azure Active Directory. Reinicie Visual Studio Code después de cambiar esta opción.</target>
-      </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
-        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
-        <target state="translated">Habilita el uso del proveedor de autenticación de SQL para el modo de autenticación "Active Directory interactivo" cuando el usuario selecciona la autenticación "AzureMFA". Esto habilita la integración del punto de conexión de recursos del lado servidor al capturar tokens de acceso. Esta opción solo se admite para la biblioteca de autenticación de Azure "MSAL". Reinicie Visual Studio Code después de cambiar esta opción.</target>
+        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">Habilita el uso del proveedor de autenticación de SQL para el modo de autenticación "Microsoft Entra Id Interactive" cuando el usuario selecciona la autenticación "AzureMFA". Esto habilita la integración del punto de conexión de recursos del lado servidor al capturar tokens de acceso. Esta opción solo se admite para la biblioteca de autenticación "MSAL". Reinicie Visual Studio Code después de cambiar esta opción.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
