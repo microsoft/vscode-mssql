@@ -1,5 +1,19 @@
 # Change Log
 
+## Version 1.22.0
+* Release date: November 8, 2023
+* Release status: GA
+### What's new in 1.22.0
+* Azure Active Directory (Azure AD) is renamed to Entra Id - [#17824](https://github.com/microsoft/vscode-mssql/issues/17824)
+* Added command for clearing Azure token cache - [#17807](https://github.com/microsoft/vscode-mssql/issues/17807)
+* Added support for setting Firewall rule name in firewall rule - [#17803](https://github.com/microsoft/vscode-mssql/issues/17803)
+* Removed Azure tenant config filter setting - [#17798](https://github.com/microsoft/vscode-mssql/issues/17798)
+
+* Bug Fixes:
+  - Fixed Firewall Rule creation issues when prompted - [#17607](https://github.com/microsoft/vscode-mssql/issues/17607)
+  - Fixed proxy error 502 when downloading Sql Tools Service - [#17772](https://github.com/microsoft/vscode-mssql/issues/17772)
+  - Fixed an issue where connection profile could not be saved after enabling trust server certificate [#17805](https://github.com/microsoft/vscode-mssql/issues/17805)
+
 ## Version 1.21.0
 * Release date: September 20, 2023
 * Release status: GA
