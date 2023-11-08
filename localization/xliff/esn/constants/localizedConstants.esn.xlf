@@ -155,8 +155,8 @@
         <target state="translated">Inicio de sesión de SQL</target>
       </trans-unit>
       <trans-unit id="authTypeAzureActiveDirectory">
-        <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
-        <target state="translated">Azure Active Directory: universal, compatible con MFA</target>
+        <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
+        <target state="translated">Id. de Microsoft Entra: compatibilidad universal con MFA</target>
       </trans-unit>
       <trans-unit id="azureAuthTypeCodeGrant">
         <source xml:lang="en">Azure Code Grant</source>
@@ -195,8 +195,8 @@
         <target state="translated">Microsoft Corp</target>
       </trans-unit>
       <trans-unit id="azureMicrosoftAccount">
-        <source xml:lang="en">Microsoft Account</source>
-        <target state="translated">Cuenta Microsoft</target>
+        <source xml:lang="en">Microsoft Entra Account</source>
+        <target state="translated">Cuenta de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="azureNoMicrosoftResource">
         <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
@@ -251,32 +251,32 @@
         <target state="translated">Copiar código y abrir página web</target>
       </trans-unit>
       <trans-unit id="azureChooseAccount">
-        <source xml:lang="en">Choose an Azure Active Directory Account</source>
-        <target state="translated">Elegir una cuenta de Azure Active Directory</target>
+        <source xml:lang="en">Choose a Microsoft Entra account</source>
+        <target state="translated">Elegir una cuenta de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="azureAddAccount">
-        <source xml:lang="en">Add an Account...</source>
-        <target state="translated">Agregar una cuenta...</target>
+        <source xml:lang="en">Add a Microsoft Entra account...</source>
+        <target state="translated">Agregar una cuenta de Microsoft Entra...</target>
       </trans-unit>
       <trans-unit id="accountAddedSuccessfully">
-        <source xml:lang="en">Azure account {0} successfully added.</source>
-        <target state="translated">La cuenta de Azure {0} se ha agregado correctamente.</target>
+        <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
+        <target state="translated">La cuenta de Microsoft Entra {0} agregó correctamente.</target>
       </trans-unit>
       <trans-unit id="accountCouldNotBeAdded">
-        <source xml:lang="en">New Azure account could not be added.</source>
-        <target state="translated">No se pudo agregar la nueva cuenta de Azure.</target>
+        <source xml:lang="en">New Microsoft Entra account could not be added.</source>
+        <target state="translated">No se pudo agregar la nueva cuenta de Microsoft Entra.</target>
       </trans-unit>
       <trans-unit id="accountRemovedSuccessfully">
-        <source xml:lang="en">Selected Azure Account removed successfully.</source>
-        <target state="translated">La cuenta de Azure seleccionada se ha quitado correctamente.</target>
+        <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
+        <target state="translated">La cuenta de Microsoft Entra seleccionada se quitó correctamente.</target>
       </trans-unit>
       <trans-unit id="accountRemovalFailed">
-        <source xml:lang="en">An error occurred while removing user account: {0}</source>
-        <target state="translated">Error al quitar la cuenta de usuario: {0}</target>
+        <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
+        <target state="translated">Error al quitar la cuenta de Microsoft Entra: {0}</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:lang="en">No Azure Account can be found for removal.</source>
-        <target state="translated">No se encuentra ninguna cuenta de Azure para su eliminación.</target>
+        <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
+        <target state="translated">No se encuentra ninguna cuenta de Microsoft Entra para su eliminación.</target>
       </trans-unit>
       <trans-unit id="clearedAzureTokenCache">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -287,12 +287,12 @@
         <target state="translated">No se puede conectar debido a que los tokens han expirado. Vuelva a autenticar e inténtelo de nuevo.</target>
       </trans-unit>
       <trans-unit id="aad">
-        <source xml:lang="en">AAD</source>
-        <target state="translated">AAD</target>
+        <source xml:lang="en">Microsoft Entra Id</source>
+        <target state="translated">Id. de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="azureChooseTenant">
-        <source xml:lang="en">Choose an Azure tenant</source>
-        <target state="translated">Elegir un inquilino de Azure</target>
+        <source xml:lang="en">Choose a Microsoft Entra tenant</source>
+        <target state="translated">Elegir un inquilino de Microsoft Entra</target>
       </trans-unit>
       <trans-unit id="tenant">
         <source xml:lang="en">Tenant</source>
@@ -467,8 +467,8 @@
         <target state="translated">El cifrado se ha habilitado en esta conexión, revise la configuración de SSL y certificado para el SQL Server de destino o establezca "Certificado de servidor de confianza" en "true" en el archivo de configuración. Nota: Un certificado autofirmado solo ofrece protección limitada y no es una práctica recomendada para entornos de producción. ¿Desea habilitar "Confiar en el certificado de servidor" en esta conexión y volver a intentarlo?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
-        <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">La dirección IP del cliente no tiene acceso al servidor. Agregue una cuenta de Azure y cree una regla de firewall para habilitar el acceso.</target>
+        <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+        <target state="translated">La dirección IP del cliente no tiene acceso al servidor. Agregue una cuenta de Microsoft Entra y cree una nueva regla de firewall para habilitar el acceso.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
         <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
@@ -571,8 +571,8 @@
         <target state="translated">Error al actualizar el token</target>
       </trans-unit>
       <trans-unit id="msgAzureCredStoreSaveFailedError">
-        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
-        <target state="translated">No se pudieron guardar las claves para la memoria caché de tokens en el almacén de credenciales. Esto puede provocar problemas de persistencia de tokens de acceso de Azure e inestabilidades de conexión. Es probable que SqlTools haya alcanzado el límite de almacenamiento de credenciales en Windows. Borre al menos 2 credenciales que empiecen con "Microsoft.SqlTools|" en el Administrador de credenciales de Windows y vuelva a cargar.</target>
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">Las claves para la caché de tokens no se pudieron guardar en el almacén de credenciales, lo que puede causar problemas de persistencia del token de acceso de Microsoft Entra Id e inestabilidades en la conexión. Es probable que SqlTools haya alcanzado el límite de almacenamiento de credenciales en Windows. Borre al menos 2 credenciales que comiencen con "Microsoft.SqlTools|" en el Administrador de credenciales de Windows y vuelva a cargar.</target>
       </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -583,8 +583,8 @@
         <target state="translated">Se actualizó correctamente el token para la conexión {0} con uri {1}, {2}</target>
       </trans-unit>
       <trans-unit id="msgRefreshTokenNotNeeded">
-        <source xml:lang="en">No need to refresh Azure acccount token for connection {0} with uri {1}</source>
-        <target state="translated">No es necesario actualizar el token de cuenta de Azure para la conexión {0} con uri {1}</target>
+        <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
+        <target state="translated">No es necesario actualizar el token de cuenta de Microsoft Entra para la conexión {0} con el URI {1}</target>
       </trans-unit>
       <trans-unit id="msgConnectedServerInfo">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>

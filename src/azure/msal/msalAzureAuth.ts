@@ -14,9 +14,14 @@ import { Logger } from '../../models/logger';
 import * as Utils from '../../models/utils';
 import { AzureAuthError } from '../azureAuthError';
 import * as Constants from '../constants';
-import * as azureUtils from '../utils';
-import { HttpClient } from './httpClient';
 import { IAccount, IAccountKey } from 'vscode-mssql';
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
+import { ErrorResponseBody } from '@azure/arm-subscriptions';
+
+export type GetTenantsResponseData = {
+	value: ITenantResponse[];
+};
+export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
 
 // tslint:disable:no-null-keyword
 export abstract class MsalAzureAuth {
@@ -26,7 +31,6 @@ export abstract class MsalAzureAuth {
 	protected readonly scopesString: string;
 	protected readonly clientId: string;
 	protected readonly resources: IAADResource[];
-	protected readonly httpClient: HttpClient;
 
 	constructor(
 		protected readonly metadata: IAccountProviderMetadata,
@@ -42,7 +46,6 @@ export abstract class MsalAzureAuth {
 		this.clientId = this.metadata.settings.clientId;
 		this.scopes = [...this.metadata.settings.scopes];
 		this.scopesString = this.scopes.join(' ');
-		this.httpClient = azureUtils.getProxyEnabledHttpClient();
 		this.resources = [
 			this.metadata.settings.armResource
 		];
@@ -247,14 +250,9 @@ export abstract class MsalAzureAuth {
 		try {
 			this.logger.verbose('Fetching tenants with uri {0}', tenantUri);
 			let tenantList: string[] = [];
-			const tenantResponse = await this.httpClient.sendGetRequestAsync<any>(tenantUri, {
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`
-				}
-			});
-			const data = tenantResponse.body;
-			if (data.error) {
+			const tenantResponse = await this.makeGetRequest<GetTenantsResponseData>(tenantUri, token);
+			const data = tenantResponse.data;
+			if (this.isErrorResponseBodyWithError(data)) {
 				this.logger.error(`Error fetching tenants :${data.error.code} - ${data.error.message}`);
 				throw new Error(`${data.error.code} - ${data.error.message}`);
 			}
@@ -285,6 +283,24 @@ export abstract class MsalAzureAuth {
 			this.logger.error(`Error fetching tenants :${ex}`);
 			throw ex;
 		}
+	}
+
+	private isErrorResponseBodyWithError(body: any): body is ErrorResponseBodyWithError {
+		return 'error' in body && body.error;
+	}
+
+	private async makeGetRequest<T>(uri: string, token: string): Promise<AxiosResponse<T>> {
+		const config: AxiosRequestConfig = {
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			},
+			validateStatus: () => true // Never throw
+		};
+
+		const response: AxiosResponse = await axios.get<T>(uri, config);
+		this.logger.piiSanitized('GET request ', [{ name: 'response', objOrArray: response.data?.value as ITenantResponse[] ?? response.data as GetTenantsResponseData }], [], uri);
+		return response;
 	}
 
 	//#region interaction handling
@@ -516,7 +532,7 @@ export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active
 	aud: string;
 	/**
 	 * Identifies the issuer, or 'authorization server' that constructs and
-	 * returns the token. It also identifies the Azure AD tenant for which
+	 * returns the token. It also identifies the Microsoft Entra tenant for which
 	 * the user was authenticated. If the token was issued by the v2.0 endpoint,
 	 * the URI will end in /v2.0. The GUID that indicates that the user is a consumer
 	 * user from a Microsoft account is 9188040d-6c67-4c5b-b112-36a304b66dad.
@@ -534,7 +550,7 @@ export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active
 	 * account not in the same tenant as the issuer - guests, for instance.
 	 * If the claim isn't present, it means that the value of iss can be used instead.
 	 * For personal accounts being used in an organizational context (for instance,
-	 * a personal account invited to an Azure AD tenant), the idp claim may be
+	 * a personal account invited to an Microsoft Entra tenant), the idp claim may be
 	 * 'live.com' or an STS URI containing the Microsoft account tenant
 	 * 9188040d-6c67-4c5b-b112-36a304b66dad.
 	 */
@@ -567,7 +583,7 @@ export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active
 	 */
 	at_hash: string;
 	/**
-	 * An internal claim used by Azure AD to record data for token reuse. Should be ignored.
+	 * An internal claim used by Microsoft Entra to record data for token reuse. Should be ignored.
 	 */
 	aio: string;
 	/**

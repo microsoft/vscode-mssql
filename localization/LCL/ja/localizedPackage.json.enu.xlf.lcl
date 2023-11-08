@@ -39,10 +39,13 @@
       </Item>
       <Item ItemId=";mssql.addAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Add Azure Account]]></Val>
+          <Val><![CDATA[Add Microsoft Entra Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure アカウントを追加する]]></Val>
+            <Val><![CDATA[Microsoft Entra アカウントの追加]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Add Azure Account]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -69,15 +72,6 @@
           <Val><![CDATA[Prompts users to sign in using their browser.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ブラウザーを使用してサインインするようユーザーに求めます。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";mssql.azureAuthenticationLibrary" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure Active Directory 認証フローに使用されるライブラリ。このオプションを変更した後、Visual Studio Code を再起動してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -129,10 +123,13 @@
       </Item>
       <Item ItemId=";mssql.clearAzureAccountTokenCache" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Clear Azure acccount token cache]]></Val>
+          <Val><![CDATA[Clear Microsoft Entra account token cache]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure アカウント トークン キャッシュをクリアする]]></Val>
+            <Val><![CDATA[Microsoft Entra アカウント トークン キャッシュのクリア]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Clear Azure acccount token cache]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -576,10 +573,13 @@
       </Item>
       <Item ItemId=";mssql.enableSqlAuthenticationProvider" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
+          <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ユーザーが 'AzureMFA' 認証を選択したときに、'Active Directory Interactive' 認証モードで SQL 認証プロバイダーを使用できるようにします。これにより、アクセス トークンをフェッチするときに、サーバー側のリソース エンドポイントの統合が可能になります。 このオプションは、'MSAL' Azure 認証ライブラリでのみサポートされています。このオプションを変更した後、Visual Studio Code を再起動してください。]]></Val>
+            <Val><![CDATA[ユーザーが 'AzureMFA' 認証を選択したときに、'Microsoft Entra Id Interactive' 認証モードで Sql 認証プロバイダーを使用できるようにします。これにより、アクセス トークンをフェッチするときに、サーバー側のリソース エンドポイントの統合が可能になります。このオプションは、'MSAL' 認証ライブラリでのみサポートされています。このオプションを変更した後、Visual Studio Code を再起動してください。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1092,10 +1092,13 @@
       </Item>
       <Item ItemId=";mssql.removeAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Remove Azure Account]]></Val>
+          <Val><![CDATA[Remove Microsoft Entra Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure アカウントの削除]]></Val>
+            <Val><![CDATA[Microsoft Entra アカウントの削除]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Remove Azure Account]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

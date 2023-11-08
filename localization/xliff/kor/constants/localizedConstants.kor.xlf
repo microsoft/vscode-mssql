@@ -155,8 +155,8 @@
         <target state="translated">SQL 로그인</target>
       </trans-unit>
       <trans-unit id="authTypeAzureActiveDirectory">
-        <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
-        <target state="translated">Azure Active Directory - MFA가 지원되는 유니버설</target>
+        <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
+        <target state="translated">Microsoft Entra ID - MFA 지원 포함 유니버설</target>
       </trans-unit>
       <trans-unit id="azureAuthTypeCodeGrant">
         <source xml:lang="en">Azure Code Grant</source>
@@ -195,8 +195,8 @@
         <target state="translated">Microsoft Corp</target>
       </trans-unit>
       <trans-unit id="azureMicrosoftAccount">
-        <source xml:lang="en">Microsoft Account</source>
-        <target state="translated">Microsoft 계정</target>
+        <source xml:lang="en">Microsoft Entra Account</source>
+        <target state="translated">Microsoft Entra 계정</target>
       </trans-unit>
       <trans-unit id="azureNoMicrosoftResource">
         <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
@@ -251,32 +251,32 @@
         <target state="translated">코드 복사 및 웹 페이지 열기</target>
       </trans-unit>
       <trans-unit id="azureChooseAccount">
-        <source xml:lang="en">Choose an Azure Active Directory Account</source>
-        <target state="translated">Azure Active Directory 계정 선택</target>
+        <source xml:lang="en">Choose a Microsoft Entra account</source>
+        <target state="translated">Microsoft Entra 계정 선택</target>
       </trans-unit>
       <trans-unit id="azureAddAccount">
-        <source xml:lang="en">Add an Account...</source>
-        <target state="translated">계정 추가...</target>
+        <source xml:lang="en">Add a Microsoft Entra account...</source>
+        <target state="translated">Microsoft Entra 계정 추가...</target>
       </trans-unit>
       <trans-unit id="accountAddedSuccessfully">
-        <source xml:lang="en">Azure account {0} successfully added.</source>
-        <target state="translated">Azure 계정이 {0} 추가되었습니다.</target>
+        <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
+        <target state="translated">Microsoft Entra 계정 {0}이(가) 추가되었습니다.</target>
       </trans-unit>
       <trans-unit id="accountCouldNotBeAdded">
-        <source xml:lang="en">New Azure account could not be added.</source>
-        <target state="translated">새 Azure 계정을 추가할 수 없습니다.</target>
+        <source xml:lang="en">New Microsoft Entra account could not be added.</source>
+        <target state="translated">새 Microsoft Entra 계정을 추가할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="accountRemovedSuccessfully">
-        <source xml:lang="en">Selected Azure Account removed successfully.</source>
-        <target state="translated">선택한 Azure 계정을 제거했습니다.</target>
+        <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
+        <target state="translated">선택한 Microsoft Entra 계정을 제거했습니다.</target>
       </trans-unit>
       <trans-unit id="accountRemovalFailed">
-        <source xml:lang="en">An error occurred while removing user account: {0}</source>
-        <target state="translated">사용자 계정을을 제거하는 중 오류가 발생했습니다. {0}.</target>
+        <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
+        <target state="translated">Microsoft Entra 계정을 제거하는 동안 오류가 발생했습니다. {0}</target>
       </trans-unit>
       <trans-unit id="noAzureAccountForRemoval">
-        <source xml:lang="en">No Azure Account can be found for removal.</source>
-        <target state="translated">제거할 Azure 계정을 찾을 수 없습니다.</target>
+        <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
+        <target state="translated">제거할 Microsoft Entra 계정을 찾을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="clearedAzureTokenCache">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -287,12 +287,12 @@
         <target state="translated">만료된 토큰으로 인해 연결할 수 없습니다. 다시 인증하고 다시 시도하세요.</target>
       </trans-unit>
       <trans-unit id="aad">
-        <source xml:lang="en">AAD</source>
-        <target state="translated">AAD</target>
+        <source xml:lang="en">Microsoft Entra Id</source>
+        <target state="translated">Microsoft Entra ID</target>
       </trans-unit>
       <trans-unit id="azureChooseTenant">
-        <source xml:lang="en">Choose an Azure tenant</source>
-        <target state="translated">Azure 테넌트 선택</target>
+        <source xml:lang="en">Choose a Microsoft Entra tenant</source>
+        <target state="translated">Microsoft Entra 테넌트 선택</target>
       </trans-unit>
       <trans-unit id="tenant">
         <source xml:lang="en">Tenant</source>
@@ -467,8 +467,8 @@
         <target state="translated">이 연결에서 암호화가 사용 설정되었습니다. 대상 SQL Server의 SSL 및 인증서 구성을 검토하거나 설정 파일에서 '서버 인증서 신뢰'를 'true'로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에서는 권장되지 않습니다. 이 연결에서 '서버 인증서 신뢰'를 활성화하고 다시 시도하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
-        <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">클라이언트 IP 주소에서 서버에 액세스할 수 없습니다. Azure 계정을 추가하고 액세스를 허용하는 새 방화벽 규칙을 만드세요.</target>
+        <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+        <target state="translated">클라이언트 IP 주소에서 서버에 액세스할 수 없습니다. Microsoft Entra 계정을 추가하고 액세스를 허용하는 새 방화벽 규칙을 만드세요.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
         <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
@@ -571,8 +571,8 @@
         <target state="translated">토큰을 새로 고치는 동안 오류 발생</target>
       </trans-unit>
       <trans-unit id="msgAzureCredStoreSaveFailedError">
-        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
-        <target state="translated">토큰 캐시에 대한 키를 자격 증명 저장소에 저장할 수 없습니다. 이로 인해 Azure 액세스 토큰 지속성 문제가 발생할 수 있으며 연결이 불안정해질 수 있습니다. SqlTools가 Windows의 자격 증명 저장 한도에 도달한 것 같습니다. Windows 자격 증명 관리자 "Microsoft.SqlTools|"로 시작하는 자격 증명을 2개 이상 지우고 다시 로드하세요.</target>
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">토큰 캐시용 키를 자격 증명 저장소에 저장할 수 없습니다. 이로 인해 Microsoft Entra ID 액세스 토큰 지속성 문제 및 연결이 불안정해질 수 있습니다. SqlTools가 Windows의 자격 증명 저장 한도에 도달했을 가능성이 높습니다. Windows 자격 증명 관리자에서 "Microsoft.SqlTools|"로 시작하는 자격 증명을 2개 이상 지우고 다시 로드하세요.</target>
       </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -583,8 +583,8 @@
         <target state="translated">{1} URI와의 {0} 연결 토큰을 새로 고쳤습니다. {2}</target>
       </trans-unit>
       <trans-unit id="msgRefreshTokenNotNeeded">
-        <source xml:lang="en">No need to refresh Azure acccount token for connection {0} with uri {1}</source>
-        <target state="translated">{1} URI와의 {0} 연결에 대한 Azure 계정 토큰을 새로 고치지 않아도 됩니다.</target>
+        <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
+        <target state="translated">{0} URI와의 {1} 연결에 대한 Microsoft Entra 계정 토큰을 새로 고치지 않아도 됩니다.</target>
       </trans-unit>
       <trans-unit id="msgConnectedServerInfo">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>

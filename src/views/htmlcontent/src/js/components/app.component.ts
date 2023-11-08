@@ -58,7 +58,8 @@ const template = `
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
-            [style.font-size]="resultsFontSize + 'px'">
+            [style.font-size]="resultsFontSize + 'px'"
+			[style.font-family]="resultsFontFamily">
             <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -369,7 +370,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	public complete = false;
 	private uri: string;
 	private hasRunQuery: boolean = false;
-	public resultsFontSize;
+	public resultsFontSize: number;
+	public resultsFontFamily: string;
 	@ViewChild('contextmenu') contextMenu: ContextMenu;
 	@ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
 	@ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -399,6 +401,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			this.config = config;
 			self._messageActive = self.config.messagesDefaultOpen;
 			self.resultsFontSize = self.config.resultsFontSize;
+			self.resultsFontFamily = self.config.resultsFontFamily;
 			this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
 				self.messageShortcut = result;
 			});

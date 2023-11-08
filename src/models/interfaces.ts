@@ -155,6 +155,7 @@ export interface IResultsConfig {
 	shortcuts: { [key: string]: string };
 	messagesDefaultOpen: boolean;
 	resultsFontSize: number;
+	resultsFontFamily: string;
 }
 
 export interface ILogger {

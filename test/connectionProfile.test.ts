@@ -112,8 +112,8 @@ suite('Connection Profile tests', () => {
 			LocalizedConstants.usernamePrompt,   // UserName
 			LocalizedConstants.passwordPrompt,   // Password
 			LocalizedConstants.msgSavePassword,  // Save Password
-			LocalizedConstants.aad,              // Choose AAD Account
-			LocalizedConstants.tenant,           // Choose AAD Tenant
+			LocalizedConstants.aad,              // Choose MEID Account
+			LocalizedConstants.tenant,           // Choose ME Tenant
 			LocalizedConstants.profileNamePrompt // Profile Name
 		];
 

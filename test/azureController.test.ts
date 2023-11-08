@@ -8,7 +8,7 @@ import * as assert from 'assert';
 
 suite('Azure Controller Tests', () => {
 
-	const currentTime = new Date().getTime() / 1000;
+	const currentTime = Date.now() / 1000;
 
 	test('isTokenInValid should return true for undefined token', () => {
 		const actual = AzureController.isTokenInValid(undefined, currentTime);

@@ -326,8 +326,8 @@ export class MsalAzureController extends AzureController {
 					loggerOptions: {
 						loggerCallback: this.getLoggerCallback(),
 						logLevel: MsalLogLevel.Trace,
-						piiLoggingEnabled: true,
-					},
+						piiLoggingEnabled: true
+					}
 				},
 				cache: {
 					cachePlugin: this._cachePluginProvider?.getCachePlugin()

@@ -84,55 +84,73 @@
       </Item>
       <Item ItemId=";aad" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[AAD]]></Val>
+          <Val><![CDATA[Microsoft Entra Id]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[AAD]]></Val>
+            <Val><![CDATA[Microsoft Entra ID]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[AAD]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountAddedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Azure account {0} successfully added.]]></Val>
+          <Val><![CDATA[Microsoft Entra account {0} successfully added.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Conta do Azure {0} adicionada com êxito.]]></Val>
+            <Val><![CDATA[Conta do Microsoft Entra {0} adicionada com sucesso.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Azure account {0} successfully added.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountCouldNotBeAdded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[New Azure account could not be added.]]></Val>
+          <Val><![CDATA[New Microsoft Entra account could not be added.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Não foi possível adicionar a nova conta do Azure.]]></Val>
+            <Val><![CDATA[Não foi possível adicionar a nova conta do Microsoft Entra.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[New Azure account could not be added.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovalFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[An error occurred while removing user account: {0}]]></Val>
+          <Val><![CDATA[An error occurred while removing Microsoft Entra account: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ocorreu um erro ao remover a conta do usuário: {0}]]></Val>
+            <Val><![CDATA[Ocorreu um erro ao remover a conta do Microsoft Entra: {0}]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[An error occurred while removing user account: {0}]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Selected Azure Account removed successfully.]]></Val>
+          <Val><![CDATA[Selected Microsoft Entra account removed successfully.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[A conta do Azure selecionada foi removida com êxito.]]></Val>
+            <Val><![CDATA[Conta Microsoft Entra selecionada removida com sucesso.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Selected Azure Account removed successfully.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";authTypeAzureActiveDirectory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Azure Active Directory - Universal w/ MFA Support]]></Val>
+          <Val><![CDATA[Microsoft Entra Id - Universal w/ MFA Support]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure Active Directory – Universal com Suporte para MFA]]></Val>
+            <Val><![CDATA[Microsoft Entra ID - Universal com suporte para MFA]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Azure Active Directory - Universal w/ MFA Support]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -174,10 +192,13 @@
       </Item>
       <Item ItemId=";azureAddAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Add an Account...]]></Val>
+          <Val><![CDATA[Add a Microsoft Entra account...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Adicionar uma Conta...]]></Val>
+            <Val><![CDATA[Adicionar uma conta do Microsoft Entra...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Add an Account...]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -219,19 +240,25 @@
       </Item>
       <Item ItemId=";azureChooseAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Choose an Azure Active Directory Account]]></Val>
+          <Val><![CDATA[Choose a Microsoft Entra account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Escolha uma Conta do Azure Active Directory]]></Val>
+            <Val><![CDATA[Escolha uma conta Microsoft Entra]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Choose an Azure Active Directory Account]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";azureChooseTenant" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Choose an Azure tenant]]></Val>
+          <Val><![CDATA[Choose a Microsoft Entra tenant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Escolher um locatário do Azure]]></Val>
+            <Val><![CDATA[Escolha um locatário do Microsoft Entra]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Choose an Azure tenant]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -291,10 +318,13 @@
       </Item>
       <Item ItemId=";azureMicrosoftAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Microsoft Account]]></Val>
+          <Val><![CDATA[Microsoft Entra Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Conta Microsoft]]></Val>
+            <Val><![CDATA[Conta do Microsoft Entra]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Microsoft Account]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -972,10 +1002,13 @@
       </Item>
       <Item ItemId=";msgAzureCredStoreSaveFailedError" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
+          <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[As chaves para cache de token não puderam ser salvas no armazenamento de credenciais, isso pode causar problemas de persistência de token de acesso do Azure e instabilidades de conexão. É provável que o SqlTools tenha atingido o limite de armazenamento de credenciais no Windows, limpe pelo menos 2 credenciais que comecem com "Microsoft.SqlTools|" no Gerenciador de Credenciais do Windows e recarregue.]]></Val>
+            <Val><![CDATA[As chaves do cache de tokens não puderam ser salvas no armazenamento de credenciais, o que pode causar problemas de persistência de tokens de acesso ao Microsoft Entra ID e instabilidades de conexão. É provável que o SqlTools tenha atingido o limite de armazenamento de credenciais no Windows. Limpe pelo menos 2 credenciais que comecem com "Microsoft.SqlTools|" no Gerenciador de Credenciais do Windows e recarregue.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1434,12 +1467,12 @@
       </Item>
       <Item ItemId=";msgPromptRetryFirewallRuleNotSignedIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.]]></Val>
+          <Val><![CDATA[Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[O endereço IP do cliente não tem acesso ao servidor. Adicione uma conta do Azure e crie uma regra de firewall para permitir o acesso.]]></Val>
+            <Val><![CDATA[O endereço IP do cliente não tem acesso ao servidor. Adicione uma conta do Microsoft Entra e crie uma nova regra de firewall para permitir o acesso.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.]]></Val>
+            <Val><![CDATA[Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -1485,10 +1518,13 @@
       </Item>
       <Item ItemId=";msgRefreshTokenNotNeeded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[No need to refresh Azure acccount token for connection {0} with uri {1}]]></Val>
+          <Val><![CDATA[No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Não é necessário atualizar o token da conta do Azure para conexão {0} com o URI {1}]]></Val>
+            <Val><![CDATA[Não é necessário atualizar o token da conta do Microsoft Entra para conexão {0} com o URI {1}]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[No need to refresh Azure acccount token for connection {0} with uri {1}]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1620,10 +1656,13 @@
       </Item>
       <Item ItemId=";noAzureAccountForRemoval" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[No Azure Account can be found for removal.]]></Val>
+          <Val><![CDATA[No Microsoft Entra account can be found for removal.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nenhuma conta do Azure pode ser encontrada para remoção.]]></Val>
+            <Val><![CDATA[Nenhuma conta do Microsoft Entra pode ser encontrada para remoção.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[No Azure Account can be found for removal.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
