@@ -307,10 +307,20 @@ export default class MainController implements vscode.Disposable {
 			this.onDidOpenTextDocument(activeTextEditor.document);
 		}
 		await this.sanitizeConnectionProfiles();
-		//TODO: Migrate all current accounts to include providerId, all existing accounts will be under public cloud
+		this.migrateAccounts();
 		Utils.logDebug('activated.');
 		this._initialized = true;
 		return true;
+	}
+
+	public async migrateAccounts(): Promise<void> {
+		let accounts = await this._connectionMgr.accountStore.getAllAccounts();
+		for (let account of accounts) {
+			if (!account.key.providerId) {
+				account.key.providerId = 'azurePublicCloud';
+				this._connectionMgr.accountStore.addAccount(account);
+			}
+		}
 	}
 
 	/**

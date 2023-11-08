@@ -24,10 +24,11 @@ import providerSettings from '../providerSettings';
 import { AzureAccountProvider } from './azureAccountProvider';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
 import { IAccount, IAzureAccountSession } from 'vscode-mssql';
+import { Iterable } from '../iterator';
 
 export class MsalAzureController extends AzureController {
 
-	public providerMap = new Map<string, IProviderSettings>();
+	public providerMap = new Map<string, IAccountProviderMetadata>();
 	private _cachePluginProvider: MsalCachePluginProvider;
 	private _accountProviders: { [accountProviderId: string]: IAccountProvider } = {};
 	private _currentConfig: vscode.WorkspaceConfiguration;
@@ -107,7 +108,7 @@ export class MsalAzureController extends AzureController {
 		return accountInfo !== undefined;
 	}
 
-	//TODO: remove this and map to azureAccountProvider?
+	//TODO:@cssuh remove this and map to azureAccountProvider?
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: AzureResource): Promise<IToken | undefined> {
 		let newAccount: IAccount | IPromptFailedResult;
@@ -149,9 +150,20 @@ export class MsalAzureController extends AzureController {
 	 * Gets the token for given account and updates the connection profile with token information needed for AAD authentication
 	 */
 	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AzureResource): Promise<ConnectionProfile> {
+		let providerId: string;
+		let account: IAccount;
+		if (profile.providerId) {
+			providerId = profile.providerId;
+			account = await this.addAccount(accountStore, providerId);
+		} else {
+			providerId = await this.promptProvider();
+			if (!providerId) {
+				return undefined;
+			}
+			account = await this.addAccount(accountStore, providerId);
+		}
 		// get provider and run provider.prompt() to get the token
 		// this just needs to fill in the token information in the profile
-		let account = await this.addAccount(accountStore);
 		let provider = this.fetchProvider(account!.key.providerId);
 		profile.user = account!.displayInfo.displayName;
 		profile.email = account!.displayInfo.email;
@@ -180,6 +192,36 @@ export class MsalAzureController extends AzureController {
 		}
 		return profile;
 	}
+
+	public async promptProvider(): Promise<string | undefined> {
+		const vals = Iterable.consume(this._accountService.providerMap.values())[0];
+
+		let pickedValue: string | undefined;
+		if (vals.length === 0) {
+			// this.logger.error("You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud");
+		}
+		if (vals.length > 1) {
+			const buttons: vscode.QuickPickItem[] = vals.map(v => {
+				return { label: v.displayName } as vscode.QuickPickItem;
+			});
+
+			await this._vscodeWrapper.showQuickPick(buttons, { placeHolder: "Choose an authentication provider" }).then((picked) => {
+				pickedValue = picked?.label;
+			});
+
+		} else {
+			pickedValue = vals[0].displayName;
+		}
+
+		const v = vals.filter(v => v.displayName === pickedValue)?.[0];
+
+		if (!v) {
+		// this.logger.error("You didn't select any authentication provider. Please try again.");
+		// 	return undefined;
+		}
+		return v.id;
+	}
+
 
 	/**
 	 * Returns Azure sessions with subscriptions, tenant and token for each given account

@@ -810,7 +810,6 @@ export default class ConnectionManager {
 					let account: IAccount;
 					let profile: ConnectionProfile;
 					if (connectionCreds.accountId) {
-						//TODO: need provider information here to fetch account
 						account = this.accountStore.getAccount(connectionCreds.accountId);
 						profile = new ConnectionProfile(connectionCreds);
 					} else {
