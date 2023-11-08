@@ -36,6 +36,7 @@ class ResultsConfig implements Interfaces.IResultsConfig {
 	shortcuts: { [key: string]: string };
 	messagesDefaultOpen: boolean;
 	resultsFontSize: number;
+	resultsFontFamily: string;
 }
 
 export class SqlOutputContentProvider {
