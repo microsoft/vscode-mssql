@@ -31,7 +31,7 @@ const publicAzureSettings: IProviderSettings = {
 			redirectUri: 'http://localhost',
 			scopes: [
 				'openid', 'email', 'profile', 'offline_access',
-				'https://management.azure.com/user_impersonation',
+				'https://management.azure.com/user_impersonation'
 			],
 			portalEndpoint: 'https://portal.azure.com'
 		}
@@ -99,7 +99,7 @@ const chinaAzureSettings: IProviderSettings = {
 				'openid', 'email', 'profile', 'offline_access',
 				'https://management.chinacloudapi.cn/user_impersonation'
 			],
-			portalEndpoint: 'https://portal.azure.cn/',
+			portalEndpoint: 'https://portal.azure.cn/'
 		}
 
 	}

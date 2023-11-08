@@ -6,8 +6,8 @@
 import * as vscode from 'vscode';
 
 
-import { AccountInfo, PublicClientApplication } from "@azure/msal-node";
-import { AzureAuthType, AzureResource, IAccountKey, IAccountProvider, IAccountProviderMetadata, IPromptFailedResult } from "../../models/contracts/azure";
+import { AccountInfo, PublicClientApplication } from '@azure/msal-node';
+import { AzureAuthType, AzureResource, IAccountKey, IAccountProvider, IAccountProviderMetadata, IPromptFailedResult } from '../../models/contracts/azure';
 import { IToken, MsalAzureAuth } from './msalAzureAuth';
 import { IDeferred } from '../../models/interfaces';
 import { getAzureActiveDirectoryConfig } from '../utils';
@@ -19,8 +19,8 @@ import { IAccount } from 'vscode-mssql';
 import * as AzureConstants from '../constants';
 import * as LocalizedConstants from '../../constants/localizedConstants';
 
+export class AzureAccountProvider implements IAccountProvider {
 
-export class AzureAccountProvider implements IAccountProvider{
 	private readonly authMappings = new Map<AzureAuthType, MsalAzureAuth>();
 	private initComplete!: IDeferred<void, Error>;
 	private initCompletePromise: Promise<void> = new Promise<void>((resolve, reject) => this.initComplete = { resolve, reject });
@@ -49,11 +49,7 @@ export class AzureAccountProvider implements IAccountProvider{
 		this.handleAuthMapping(metadata, context);
 	}
 
-	initialize(storedAccounts: IAccount[]): Thenable<IAccount[]> {
-		return this._initialize(storedAccounts);
-	}
-
-	private async _initialize(storedAccounts: IAccount[]): Promise<IAccount[]> {
+	public async initialize(storedAccounts: IAccount[]): Promise<IAccount[]> {
 		const accounts: IAccount[] = [];
 		// Logger.verbose(`Initializing stored accounts ${JSON.stringify(accounts)}`);
 		for (let account of storedAccounts) {
@@ -148,28 +144,17 @@ export class AzureAccountProvider implements IAccountProvider{
 		return this.authMappings.values().next().value;
 	}
 
-	prompt(): Thenable<IAccount | IPromptFailedResult> {
-		return this._prompt();
-	}
-
-	private async _prompt(): Promise<IAccount | IPromptFailedResult> {
+	public async prompt(): Promise<IAccount | IPromptFailedResult> {
 		const authMethod = this.getAuthMethod();
 		return authMethod.startLogin();
 	}
-	refresh(account: IAccount): Thenable<IAccount | IPromptFailedResult> {
-		return this._refresh(account);
-	}
 
-	private async _refresh(account: IAccount): Promise<IAccount | IPromptFailedResult> {
-		await this._clear(account.key);
+	public async refresh(account: IAccount): Promise<IAccount | IPromptFailedResult> {
+		await this.clear(account.key);
 		return this.prompt();
 	}
 
-	async clear(accountKey: IAccountKey): Promise<void> {
-		return this._clear(accountKey);
-	}
-
-	private async _clear(accountKey: IAccountKey): Promise<void> {
+	public async clear(accountKey: IAccountKey): Promise<void> {
 		await this.initCompletePromise;
 		await this.getAuthMethod(undefined)?.clearCredentials(accountKey);
 	}

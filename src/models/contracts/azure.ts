@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AccountInfo } from "@azure/msal-node";
+import { AccountInfo } from '@azure/msal-node';
 
 /**
  * Represents a tenant information for an account.
@@ -194,8 +194,8 @@ export interface IAccountProviderMetadata extends IProviderMetadata {
 
 export interface ISettings {
 	/**
-		 * Host of the authority
-		 */
+	 * Host of the authority
+	 */
 	host: string;
 
 	/**
@@ -206,7 +206,7 @@ export interface ISettings {
 	/**
 	 * Information that describes the Microsoft resource management resource
 	 */
-	microsoftResource: IAADResource
+	microsoftResource: IAADResource;
 
 	/**
 	 * Information that describes the MS graph resource
@@ -276,9 +276,9 @@ export interface ISettings {
 	 */
 	redirectUri: string;
 
-	scopes: string[]
+	scopes: string[];
 
-	portalEndpoint?: string
+	portalEndpoint?: string;
 }
 
 export interface IAADResource {
@@ -355,8 +355,8 @@ export interface ITokenClaims {
 }
 
 /**
-	 * Represents a provider of accounts for use with the account management service
-	 */
+ * Represents a provider of accounts for use with the account management service
+ */
 export interface IAccountProvider {
 	/**
 	 * Initializes the account provider with the accounts restored from the memento,

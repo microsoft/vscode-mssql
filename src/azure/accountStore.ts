@@ -75,8 +75,8 @@ export class AccountStore {
 
 	public async getAccountsByProvider(providerId: string): Promise<IAccount[]> {
 		const accounts = await this.doOperation(async () => {
-			const accounts = await this.readFromMemento();
-			return accounts.filter(account => account.key.providerId === providerId);
+			const accountsMemento = await this.readFromMemento();
+			return accountsMemento.filter(account => account.key.providerId === providerId);
 		});
 		return accounts ?? [];
 	}

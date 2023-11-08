@@ -111,7 +111,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 						}
 					} else {
 						try {
-							//Add Account
+							// Add Account
 							profile = await azureController.populateAccountProperties(profile, accountStore, AzureResource.Sql);
 							if (profile) {
 								vscode.window.showInformationMessage(utils.formatString(LocalizedConstants.accountAddedSuccessfully, profile.email));

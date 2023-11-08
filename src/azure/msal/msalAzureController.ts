@@ -104,18 +104,18 @@ export class MsalAzureController extends AzureController {
 	public async isAccountInCache(account: IAccount): Promise<boolean> {
 		let provider = this.fetchProvider(account.key.providerId);
 		await this.clearOldCacheIfExists();
-		let accountInfo = provider.checkAccountInCache(account)
+		let accountInfo = provider.checkAccountInCache(account);
 		return accountInfo !== undefined;
 	}
 
-	//TODO:@cssuh remove this and map to azureAccountProvider?
+	// TODO:@cssuh remove this and map to azureAccountProvider?
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: AzureResource): Promise<IToken | undefined> {
 		let newAccount: IAccount | IPromptFailedResult;
 		let provider: IAccountProvider;
 		try {
 			provider = this.fetchProvider(account.key.providerId);
-			let token = await provider.getAccountSecurityToken(account, AzureConstants.organizationTenant.id, settings)
+			let token = await provider.getAccountSecurityToken(account, AzureConstants.organizationTenant.id, settings);
 
 			if (!token) {
 				return undefined;
@@ -127,13 +127,13 @@ export class MsalAzureController extends AzureController {
 					// Account needs re-authentication
 					newAccount = await provider.refresh(account);
 					if (!this.isAccountResult(newAccount)) {
-						return undefined
+						return undefined;
 					}
 					if (newAccount!.isStale === true) {
 						return undefined;
 					}
 					await accountStore.addAccount(newAccount!);
-					provider = this.fetchProvider(newAccount!.key.providerId)
+					provider = this.fetchProvider(newAccount!.key.providerId);
 					return await provider.getAccountSecurityToken(
 						account, tenantId ?? account.properties.owningTenant.id, settings
 					);
@@ -201,11 +201,11 @@ export class MsalAzureController extends AzureController {
 			// this.logger.error("You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud");
 		}
 		if (vals.length > 1) {
-			const buttons: vscode.QuickPickItem[] = vals.map(v => {
-				return { label: v.displayName } as vscode.QuickPickItem;
+			const buttons: vscode.QuickPickItem[] = vals.map(val => {
+				return { label: val.displayName } as vscode.QuickPickItem;
 			});
 
-			await this._vscodeWrapper.showQuickPick(buttons, { placeHolder: "Choose an authentication provider" }).then((picked) => {
+			await this._vscodeWrapper.showQuickPick(buttons, { placeHolder: 'Choose an authentication provider' }).then((picked) => {
 				pickedValue = picked?.label;
 			});
 
@@ -213,13 +213,13 @@ export class MsalAzureController extends AzureController {
 			pickedValue = vals[0].displayName;
 		}
 
-		const v = vals.filter(v => v.displayName === pickedValue)?.[0];
+		const provider = vals.filter(v => v.displayName === pickedValue)?.[0];
 
-		if (!v) {
+		if (!provider) {
 		// this.logger.error("You didn't select any authentication provider. Please try again.");
 		// 	return undefined;
 		}
-		return v.id;
+		return provider.id;
 	}
 
 
@@ -254,7 +254,7 @@ export class MsalAzureController extends AzureController {
 		provider.clear(account.key);
 	}
 
-	private async handleCloudChange() {
+	private async handleCloudChange(): Promise<void> {
 		// Grab the stored config and the latest config
 		let newConfig = vscode.workspace.getConfiguration(AzureConstants.azureCloudsConfig);
 		let oldConfig = this._currentConfig;
@@ -306,7 +306,7 @@ export class MsalAzureController extends AzureController {
 	}
 
 	private async registerAccountProvider(provider: IProviderSettings): Promise<void> {
-		const tokenCacheKeyMsal = Constants.msalCacheFileName
+		const tokenCacheKeyMsal = Constants.msalCacheFileName;
 		await this.clearOldCacheIfExists();
 		try {
 			if (!this._credentialStore) {
@@ -332,7 +332,7 @@ export class MsalAzureController extends AzureController {
 				cache: {
 					cachePlugin: this._cachePluginProvider?.getCachePlugin()
 				}
-			}
+			};
 
 			this.clientApplication = new PublicClientApplication(msalConfiguration);
 			let accountProvider = new AzureAccountProvider(provider.metadata as IAccountProviderMetadata,
@@ -346,7 +346,7 @@ export class MsalAzureController extends AzureController {
 
 	private async unregisterAccountProvider(provider: IProviderSettings): Promise<void> {
 		try {
-			this._accountService.unregisterProvider(provider.metadata)
+			this._accountService.unregisterProvider(provider.metadata);
 			delete this._accountProviders[provider.metadata.id];
 		} catch (e) {
 			console.error(`Failed to unregister account provider: ${e}`);
@@ -366,7 +366,7 @@ export class MsalAzureController extends AzureController {
 /**
  * Parameters that go along when a provider's account list changes
  */
-export interface UpdateAccountListEventParams {
+export interface IUpdateAccountListEventParams {
 	/**
 	 * ID of the provider who's account list changes
 	 */

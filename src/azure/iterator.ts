@@ -95,9 +95,9 @@ export namespace Iterable {
 	/**
 	 * Returns an iterable slice of the array, with the same semantics as `array.slice()`.
 	 */
-	export function* slice<T>(arr: ReadonlyArray<T>, from: number, to = arr.length): Iterable<T> {
-		if (from < 0) {
-			from += arr.length;
+	export function* slice<T>(arr: ReadonlyArray<T>, start: number, to = arr.length): Iterable<T> {
+		if (start < 0) {
+			start += arr.length;
 		}
 
 		if (to < 0) {
@@ -106,8 +106,8 @@ export namespace Iterable {
 			to = arr.length;
 		}
 
-		for (; from < to; from++) {
-			yield arr[from];
+		for (; start < to; start++) {
+			yield arr[start];
 		}
 	}
 

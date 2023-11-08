@@ -26,7 +26,7 @@ export class AccountService {
 	constructor(
 		private _client: SqlToolsServiceClient,
 		private _accountStore: AccountStore,
-		private _vscodeWrapper: VscodeWrapper,
+		private _vscodeWrapper: VscodeWrapper
 	) { }
 
 	public get account(): IAccount {
@@ -41,10 +41,6 @@ export class AccountService {
 		return this._client;
 	}
 
-	public registerProvider(providerMetadata: IAccountProviderMetadata, provider: IAccountProvider): Promise<void> {
-		return this._registerProvider(providerMetadata, provider);
-	}
-
 	public unregisterProvider(providerMetadata: IAccountProviderMetadata): void {
 		this.providerMap.delete(providerMetadata.id);
 		const p = this._providers[providerMetadata.id];
@@ -53,7 +49,7 @@ export class AccountService {
 		delete this._providers[providerMetadata.id];
 	}
 
-	private async _registerProvider(providerMetadata: IAccountProviderMetadata, provider: IAccountProvider): Promise<void> {
+	public async registerProvider(providerMetadata: IAccountProviderMetadata, provider: IAccountProvider): Promise<void> {
 		this.providerMap.set(providerMetadata.id, providerMetadata);
 		this._providers[providerMetadata.id] = {
 			metadata: providerMetadata,
@@ -76,7 +72,7 @@ export class AccountService {
 		await Promise.all(writePromises);
 	}
 
-	private fireAccountListUpdate(provider: IAccountProviderWithMetadata, sort: boolean) {
+	private fireAccountListUpdate(provider: IAccountProviderWithMetadata, sort: boolean): void {
 		// Step 1) Get and sort the list
 		if (sort) {
 			provider.accounts.sort((a: IAccount, b: IAccount) => {
@@ -119,7 +115,7 @@ export class AccountService {
 				return { label: v.displayName } as vscode.QuickPickItem;
 			});
 
-			await this._vscodeWrapper.showQuickPick(buttons, { placeHolder: "Choose an authentication provider" }).then((picked) => {
+			await this._vscodeWrapper.showQuickPick(buttons, { placeHolder: 'Choose an authentication provider' }).then((picked) => {
 				pickedValue = picked?.label;
 			});
 
@@ -127,13 +123,13 @@ export class AccountService {
 			pickedValue = vals[0].displayName;
 		}
 
-		const v = vals.filter(v => v.displayName === pickedValue)?.[0];
+		const provider = vals.filter(val => val.displayName === pickedValue)?.[0];
 
-		if (!v) {
+		if (!provider) {
 		// this.logger.error("You didn't select any authentication provider. Please try again.");
 		// 	return undefined;
 		}
-		return v.id;
+		return provider.id;
 	}
 
 
