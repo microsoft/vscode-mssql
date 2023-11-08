@@ -134,6 +134,6 @@ export namespace Iterable {
 			consumed.push(next.value);
 		}
 
-		return [consumed, { [Symbol.iterator]() { return iterator; } }];
+		return [consumed, { [Symbol.iterator](): Iterator<T, any, undefined> { return iterator; } }];
 	}
 }
