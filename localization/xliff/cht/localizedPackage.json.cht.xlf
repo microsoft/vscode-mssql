@@ -131,16 +131,16 @@
         <target state="translated">複製物件名稱</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
-        <source xml:lang="en">Add Azure Account</source>
-        <target state="translated">新增 Azure 帳戶</target>
+        <source xml:lang="en">Add Microsoft Entra Account</source>
+        <target state="translated">新增 Microsoft Entra 帳戶</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
-        <source xml:lang="en">Remove Azure Account</source>
-        <target state="translated">移除 Azure 帳戶</target>
+        <source xml:lang="en">Remove Microsoft Entra Account</source>
+        <target state="translated">移除 Microsoft Entra 帳戶</target>
       </trans-unit>
       <trans-unit id="mssql.clearAzureAccountTokenCache">
-        <source xml:lang="en">Clear Azure acccount token cache</source>
-        <target state="translated">清除 Azure 帳戶權杖快取</target>
+        <source xml:lang="en">Clear Microsoft Entra account token cache</source>
+        <target state="translated">清除 Microsoft Entra 帳戶權杖快取</target>
       </trans-unit>
       <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
@@ -290,13 +290,9 @@
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
         <target state="translated">[選用] 指示此設定檔是否明確地設定了空密碼</target>
       </trans-unit>
-      <trans-unit id="mssql.azureAuthenticationLibrary">
-        <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
-        <target state="translated">用於 Azure Active Directory 驗證流程的程式庫。請在變更此選項後將 Visual Studio Code 重新啟動。</target>
-      </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
-        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
-        <target state="translated">當使用者選取 'AzureMFA' 驗證，則針對 'Active Directory Interactive' 驗證模式啟用使用 SQL 驗證提供者。這會在擷取存取權杖時啟用伺服器端資源端點整合。此選項僅支援 'MSAL' Azure 驗證程式庫。請在變更此選項後重新啟動 Visual Studio Code。</target>
+        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">當使用者選取 'AzureMFA' 驗證，則會針對 [Microsoft Entra ID 互動] 驗證模式啟用使用 SQL 驗證提供者。這會在擷取存取權杖時啟用伺服器端資源端點整合。此選項僅支援 'MSAL' 驗證程式庫。請在變更此選項後重新啟動 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
