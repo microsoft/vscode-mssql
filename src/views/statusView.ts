@@ -27,7 +27,7 @@ class FileStatusBar {
 	public statusLanguageService: vscode.StatusBarItem;
 
 	// Timer used for displaying a progress indicator on queries
-	public progressTimerId: NodeJS.Timer;
+	public progressTimerId: NodeJS.Timeout;
 
 	// Item for SQLCMD Mode
 	public sqlCmdMode: vscode.StatusBarItem;
