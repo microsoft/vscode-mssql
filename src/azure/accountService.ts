@@ -11,6 +11,7 @@ import { AzureResource, IAccountProvider, IAccountProviderMetadata, ITenant, ITo
 import { IAccount } from 'vscode-mssql';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { Iterable } from './iterator';
+import { Logger } from '../models/logger';
 
 export class AccountService {
 
@@ -26,7 +27,8 @@ export class AccountService {
 	constructor(
 		private _client: SqlToolsServiceClient,
 		private _accountStore: AccountStore,
-		private _vscodeWrapper: VscodeWrapper
+		private _vscodeWrapper: VscodeWrapper,
+		private logger: Logger
 	) { }
 
 	public get account(): IAccount {
@@ -65,9 +67,9 @@ export class AccountService {
 
 		const writePromises = updatedAccounts.map(async (account) => {
 			if (account.delete === true) {
-				return this._accountStore.removeAccount(account.key);
+				return await this._accountStore.removeAccount(account.key);
 			}
-			return this._accountStore.addAccount(account);
+			return await this._accountStore.addAccount(account);
 		});
 		await Promise.all(writePromises);
 	}
@@ -108,7 +110,7 @@ export class AccountService {
 
 		let pickedValue: string | undefined;
 		if (vals.length === 0) {
-			// this.logger.error("You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud");
+			this.logger.error("You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud");
 		}
 		if (vals.length > 1) {
 			const buttons: vscode.QuickPickItem[] = vals.map(v => {
@@ -126,8 +128,8 @@ export class AccountService {
 		const provider = vals.filter(val => val.displayName === pickedValue)?.[0];
 
 		if (!provider) {
-		// this.logger.error("You didn't select any authentication provider. Please try again.");
-		// 	return undefined;
+		this.logger.error("You didn't select any authentication provider. Please try again.");
+			return undefined;
 		}
 		return provider.id;
 	}

@@ -131,7 +131,7 @@ export default class ConnectionManager {
 			this._connectionUI = new ConnectionUI(this, context, this._connectionStore, this._accountStore, prompter, this.vscodeWrapper);
 		}
 
-		this._accountService = new AccountService(this.client, this._accountStore, this.vscodeWrapper);
+		this._accountService = new AccountService(this.client, this._accountStore, this.vscodeWrapper, this.client?.logger);
 		if (!this.azureController) {
 			this.azureController = new MsalAzureController(context, prompter, this._credentialStore, this._accountService);
 			this.azureController.init();
@@ -1046,8 +1046,8 @@ export default class ConnectionManager {
 			return prompter.prompt<IAccount>(questions, true).then(async answers => {
 				if (answers?.account) {
 					try {
-						this._accountStore.removeAccount(answers.account.key);
-						this.azureController.removeAccount(answers.account);
+						await this._accountStore.removeAccount(answers.account.key);
+						await this.azureController.removeAccount(answers.account);
 						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
 					} catch (e) {
 						this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.accountRemovalFailed, e.message));

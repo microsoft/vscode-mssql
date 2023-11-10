@@ -41,8 +41,7 @@ export abstract class MsalAzureAuth {
 		protected readonly logger: Logger
 	) {
 		this.loginEndpointUrl = this.metadata.settings.host ?? 'https://login.microsoftonline.com/';
-		// Use localhost for MSAL instead of this.providerSettings.redirectUri (kept as-is for ADAL only);
-		this.redirectUri = 'http://localhost';
+		this.redirectUri = this.metadata.settings.redirectUri ?? 'http://localhost';
 		this.clientId = this.metadata.settings.clientId;
 		this.scopes = [...this.metadata.settings.scopes];
 		this.scopesString = this.scopes.join(' ');

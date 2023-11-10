@@ -94,7 +94,7 @@ const chinaAzureSettings: IProviderSettings = {
 				resource: AzureResource.Sql,
 				endpoint: 'https://database.chinacloudapi.cn/'
 			},
-			redirectUri: 'https://vscode-redirect.azurewebsites.net/',
+			redirectUri: 'http://localhost',
 			scopes: [
 				'openid', 'email', 'profile', 'offline_access',
 				'https://management.chinacloudapi.cn/user_impersonation'

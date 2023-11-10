@@ -918,20 +918,6 @@
           ],
           "scope": "resource"
         },
-        "mssql.azureAuthenticationLibrary": {
-          "type": "string",
-          "description": "%mssql.azureAuthenticationLibrary%",
-          "default": "MSAL",
-          "enum": [
-            "ADAL",
-            "MSAL"
-          ],
-          "enumDescriptions": [
-            "(deprecated) Azure Active Directory Authentication Library",
-            "Microsoft Authentication Library"
-          ],
-          "deprecationMessage": "Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL (default option) instead."
-        },
         "mssql.cloud.enablePublicCloud": {
           "type": "boolean",
           "default": true,

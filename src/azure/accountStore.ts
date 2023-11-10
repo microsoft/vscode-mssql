@@ -89,7 +89,7 @@ export class AccountStore {
 		return accounts ?? [];
 	}
 
-	public cleanupDeprecatedAccounts(): Promise<void> {
+	public async cleanupDeprecatedAccounts(): Promise<void> {
 		return this.readFromMemento()
 			.then(accounts => {
 				// No need to waste cycles
@@ -108,7 +108,7 @@ export class AccountStore {
 						return !this.deprecatedProviders.includes(providerKey);
 					});
 				} catch (ex) {
-					// this.logService.error(ex);
+					this._logger.error(ex);
 					return Promise.resolve();
 				}
 				return this.writeToMemento(accounts);

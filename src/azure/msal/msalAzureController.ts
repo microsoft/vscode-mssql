@@ -293,13 +293,14 @@ export class MsalAzureController extends AzureController {
 				this.activeProviderCount++;
 			}
 		}
-		// if (this.activeProviderCount === 0) {
-		// 	void vscode.window.showWarningMessage(loc.noCloudsEnabled, loc.enablePublicCloud, loc.dismiss).then(async (result) => {
-		// 		if (result === loc.enablePublicCloud) {
-		// 			await vscode.workspace.getConfiguration(Constants.AccountsAzureCloudSection).update(loc.enablePublicCloudCamel, true, vscode.ConfigurationTarget.Global);
-		// 		}
-		// 	});
-		// }
+		if (this.activeProviderCount === 0) {
+
+			void vscode.window.showWarningMessage(LocalizedConstants.noCloudsEnabled, LocalizedConstants.enablePublicCloud, LocalizedConstants.dismiss).then(async (result) => {
+				if (result === LocalizedConstants.enablePublicCloud) {
+					await vscode.workspace.getConfiguration(Constants.mssqlCloud).update(LocalizedConstants.enablePublicCloudCamel, true, vscode.ConfigurationTarget.Global);
+				}
+			});
+		}
 
 		// Process all the changes before continuing
 		await Promise.all(providerChanges);
