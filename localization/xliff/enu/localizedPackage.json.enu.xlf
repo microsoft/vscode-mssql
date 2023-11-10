@@ -126,7 +126,7 @@
             <source xml:lang="en">Should US Government Azure cloud (Fairfax) integration be enabled</source>
         </trans-unit>
         <trans-unit id="mssql.azure.enableChinaCloudDescription">
-            <source xml:lang="en">[Should Azure China integration be enabled</source>
+            <source xml:lang="en">Should Azure China cloud integration be enabled</source>
         </trans-unit>
         <trans-unit id="mssql.connection.server">
             <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>

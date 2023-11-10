@@ -136,7 +136,7 @@ export class AccountService {
 
 
 	public async getToken(account: IAccount, tenantId: string): Promise<IToken> {
-		return await this.findProvider(account.key.providerId).provider.getAccountSecurityToken(account, tenantId, AzureResource.ResourceManagement);
+		return await this.findProvider(account.key.providerId)?.provider.getAccountSecurityToken(account, tenantId, AzureResource.ResourceManagement);
 	}
 
 	public getHomeTenant(account: IAccount): ITenant {
