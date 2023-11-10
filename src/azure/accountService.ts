@@ -110,7 +110,7 @@ export class AccountService {
 
 		let pickedValue: string | undefined;
 		if (vals.length === 0) {
-			this.logger.error("You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud");
+			this.logger.error('You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud');
 		}
 		if (vals.length > 1) {
 			const buttons: vscode.QuickPickItem[] = vals.map(v => {
@@ -128,7 +128,7 @@ export class AccountService {
 		const provider = vals.filter(val => val.displayName === pickedValue)?.[0];
 
 		if (!provider) {
-		this.logger.error("You didn't select any authentication provider. Please try again.");
+			this.logger.error("You didn't select any authentication provider. Please try again.");
 			return undefined;
 		}
 		return provider.id;
