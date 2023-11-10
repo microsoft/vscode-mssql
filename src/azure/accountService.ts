@@ -10,7 +10,7 @@ import { AccountStore } from './accountStore';
 import { AzureResource, IAccountProvider, IAccountProviderMetadata, ITenant, IToken } from '../models/contracts/azure';
 import { IAccount } from 'vscode-mssql';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import { Iterable } from './iterator';
+import { Iterable } from '../utils/iterator';
 import { Logger } from '../models/logger';
 
 export class AccountService {

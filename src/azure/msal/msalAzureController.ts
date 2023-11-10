@@ -24,7 +24,7 @@ import providerSettings from '../providerSettings';
 import { AzureAccountProvider } from './azureAccountProvider';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
 import { IAccount, IAzureAccountSession } from 'vscode-mssql';
-import { Iterable } from '../iterator';
+import { Iterable } from '../../utils/iterator';
 
 export class MsalAzureController extends AzureController {
 
