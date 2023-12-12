@@ -28,13 +28,14 @@ First we'll update the grammar in VS Code, which is done through updating the gr
 ### Azure Data Studio
 
 1. After the PR in this repo is merged, clone the [Azure Data Studio](https://github.com/Microsoft/azuredatastudio) repo
-2. Run the following commands to regenerate the grammar file
+2. cd to `extensions` and run `yarn install`
+3. Run the following commands to regenerate the grammar file
 
 ```powershell
 cd extensions/sql/build
 npm run update-grammar
 ```
 
-3. Send out a PR with the changes, making sure to link to the original PR in this repo where the changes were made
+3. Send out a PR with the changes made to any files that were modified, making sure to link to the original PR in this repo where the changes were made
 
 *Note*: You can test Azure Data Studio locally by building and running it and verifying the colors are correct in a new editor window
