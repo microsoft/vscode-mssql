@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.78.0"
+    "vscode": "^1.83.1"
   },
   "categories": [
     "Programming Languages",
@@ -68,13 +68,13 @@
     "@types/keytar": "^4.4.2",
     "@types/lockfile": "^1.0.2",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^14.17.0",
-    "@types/node-fetch": "^2.6.1",
+    "@types/node": "^18.11.9",
+    "@types/node-fetch": "^2.6.2",
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
     "@types/vscode": "1.78.1",
-    "@vscode/test-electron": "^2.1.5",
+    "@vscode/test-electron": "^2.3.8",
     "@xmldom/xmldom": "0.8.4",
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
@@ -126,7 +126,7 @@
     "getmac": "1.2.1",
     "jquery": "^3.4.1",
     "lockfile": "1.0.4",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.2",
     "opener": "1.4.2",
     "plist": "^3.0.6",
     "pretty-data": "^0.40.0",
@@ -140,6 +140,9 @@
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
+  },
+  "resolutions": {
+    "gulp-typescript/source-map": "0.7.4"
   },
   "capabilities": {
     "untrustedWorkspaces": {
