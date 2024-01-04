@@ -8,9 +8,9 @@ pool:
 
 steps:
   - task: NodeTool@0
-    displayName: "Use Node 14.x"
+    displayName: "Use Node 16.x"
     inputs:
-      versionSpec: 14.X
+      versionSpec: 16.X
 
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install dependencies
