@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.22.1
+* Release date: January, 10, 2024
+* Release status: GA
+### What's new in 1.22.1
+* update STS dependency to address [CVE-2024-0056](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-0056)
+
 ## Version 1.22.0
 * Release date: November 8, 2023
 * Release status: GA
