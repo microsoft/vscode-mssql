@@ -6,7 +6,6 @@
 import * as vscode from 'vscode';
 import { IAccount, IConnectionInfo, ITenant } from 'vscode-mssql';
 import { AccountStore } from '../azure/accountStore';
-import providerSettings from '../azure/providerSettings';
 import * as constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import ConnectionManager from '../controllers/connectionManager';
@@ -21,6 +20,7 @@ import { Timer } from '../models/utils';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { CancelError } from '../utils/utils';
+import { AzureResource } from '../models/contracts/azure';
 
 /**
  * The different tasks for managing connection profiles.
@@ -526,8 +526,7 @@ export class ConnectionUI {
 			let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
 				LocalizedConstants.azureAddAccount);
 			if (selection === LocalizedConstants.azureAddAccount) {
-				profile = await this.connectionManager.azureController.populateAccountProperties(profile, this._accountStore,
-					providerSettings.resources.azureManagementResource);
+				profile = await this.connectionManager.azureController.populateAccountProperties(profile, this._accountStore, AzureResource.ResourceManagement);
 			}
 			let account = this._accountStore.getAccount(profile.accountId);
 			this.connectionManager.accountService.setAccount(account!);
@@ -593,7 +592,7 @@ export class ConnectionUI {
 			);
 		}
 
-		let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(this._accountStore);
+		let azureAccountChoices: INameValueChoice[] = await ConnectionProfile.getAccountChoices(this._accountStore);
 		let tenantChoices: INameValueChoice[] = [];
 		let defaultFirewallRuleName = `ClientIPAddress_${formatDate(new Date())}`;
 
@@ -742,8 +741,8 @@ export class ConnectionUI {
 			});
 	}
 
-	public async addNewAccount(): Promise<IAccount> {
-		return await this.connectionManager.azureController.addAccount(this._accountStore);
+	public async addNewAccount(providerId: string): Promise<IAccount> {
+		return await this.connectionManager.azureController.addAccount(this._accountStore, providerId);
 	}
 
 	// Prompts the user to pick a profile for removal, then removes from the global saved state

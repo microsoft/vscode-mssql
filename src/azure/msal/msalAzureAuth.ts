@@ -3,18 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Resource } from '@azure/arm-resources';
 import { AccountInfo, AuthError, AuthenticationResult, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
 import * as url from 'url';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../../constants/localizedConstants';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
-import { AccountType, AzureAuthType, IAADResource, IAccount, IPromptFailedResult, IProviderSettings, ITenant } from '../../models/contracts/azure';
+import { AccountType, AzureAuthType, AzureResource, IAADResource, IAccountProviderMetadata, IPromptFailedResult, ITenant } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
 import * as Utils from '../../models/utils';
 import { AzureAuthError } from '../azureAuthError';
 import * as Constants from '../constants';
+import { IAccount, IAccountKey } from 'vscode-mssql';
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { ErrorResponseBody } from '@azure/arm-subscriptions';
 
@@ -30,29 +30,38 @@ export abstract class MsalAzureAuth {
 	protected readonly scopes: string[];
 	protected readonly scopesString: string;
 	protected readonly clientId: string;
-	protected readonly resources: Resource[];
+	protected readonly resources: IAADResource[];
 
 	constructor(
-		protected readonly providerSettings: IProviderSettings,
+		protected readonly metadata: IAccountProviderMetadata,
 		protected readonly context: vscode.ExtensionContext,
 		protected clientApplication: PublicClientApplication,
 		protected readonly authType: AzureAuthType,
 		protected readonly vscodeWrapper: VscodeWrapper,
 		protected readonly logger: Logger
 	) {
-		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com/';
-		this.redirectUri = 'http://localhost';
-		this.clientId = this.providerSettings.clientId;
-		this.scopes = [...this.providerSettings.scopes];
+		this.loginEndpointUrl = this.metadata.settings.host ?? 'https://login.microsoftonline.com/';
+		this.redirectUri = this.metadata.settings.redirectUri ?? 'http://localhost';
+		this.clientId = this.metadata.settings.clientId;
+		this.scopes = [...this.metadata.settings.scopes];
 		this.scopesString = this.scopes.join(' ');
+		this.resources = [
+			this.metadata.settings.armResource
+		];
+		if (this.metadata.settings.sqlResource) {
+			this.resources.push(this.metadata.settings.sqlResource);
+		}
+		if (this.metadata.settings.microsoftResource) {
+			this.resources.push(this.metadata.settings.microsoftResource);
+		}
 	}
 
 	public async startLogin(): Promise<IAccount | IPromptFailedResult> {
 		let loginComplete: IDeferred<void, Error> | undefined = undefined;
 		try {
 			this.logger.verbose('Starting login');
-			if (!this.providerSettings.resources.windowsManagementResource) {
-				throw new Error(Utils.formatString(LocalizedConstants.azureNoMicrosoftResource, this.providerSettings.displayName));
+			if (!this.metadata.settings.microsoftResource) {
+				throw new Error(Utils.formatString(LocalizedConstants.azureNoMicrosoftResource, this.metadata.displayName));
 			}
 			const result = await this.login(Constants.organizationTenant);
 			loginComplete = result.authComplete;
@@ -105,7 +114,8 @@ export abstract class MsalAzureAuth {
 	 * @param azureResource
 	 * @returns The authentication result, including the access token
 	 */
-	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | null> {
+	public async getToken(account: IAccount, tenantId: string, settings: AzureResource): Promise<AuthenticationResult | null> {
+		const resource = this.resources.find(s => s.resource === settings);
 		let accountInfo: AccountInfo | null;
 		try {
 			accountInfo = await this.getAccountFromMsalCache(account.key.id);
@@ -116,10 +126,10 @@ export abstract class MsalAzureAuth {
 				id: tenantId,
 				displayName: ''
 			};
-			return this.handleInteractionRequired(tenant, settings, false);
+			return this.handleInteractionRequired(tenant, resource, false);
 		}
 		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
-		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
+		const endpoint = resource.endpoint.endsWith('/') ? resource.endpoint : resource.endpoint + '/';
 
 		if (!account) {
 			this.logger.error('Error: Account not received.');
@@ -131,7 +141,7 @@ export abstract class MsalAzureAuth {
 		}
 
 		let newScope: string[];
-		if (settings.id === this.providerSettings.resources.windowsManagementResource.id) {
+		if (resource.id === this.metadata.settings.microsoftResource.id) {
 			newScope = [`${endpoint}user_impersonation`];
 		} else {
 			newScope = [`${endpoint}.default`];
@@ -159,7 +169,7 @@ export abstract class MsalAzureAuth {
 					id: tenantId,
 					displayName: ''
 				};
-				return this.handleInteractionRequired(tenant, settings);
+				return this.handleInteractionRequired(tenant, resource);
 			} else if (e.name === 'ClientAuthError') {
 				this.logger.verbose('[ClientAuthError] Failed to silently acquire token');
 			}
@@ -181,7 +191,7 @@ export abstract class MsalAzureAuth {
 			|| error.errorMessage.includes(Constants.AADSTS50173);
 	}
 
-	public async refreshAccessToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IAccount | undefined> {
+	public async refreshAccessToken(account: IAccount, tenantId: string, settings: AzureResource): Promise<IAccount | undefined> {
 		if (account) {
 			try {
 				const tokenResult = await this.getToken(account, tenantId, settings);
@@ -214,11 +224,6 @@ export abstract class MsalAzureAuth {
 		}
 	}
 
-	public async loadTokenCache(): Promise<void> {
-		let tokenCache = this.clientApplication.getTokenCache();
-		tokenCache.getAllAccounts();
-	}
-
 	public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | null> {
 		const cache = this.clientApplication.getTokenCache();
 		if (!cache) {
@@ -240,7 +245,7 @@ export abstract class MsalAzureAuth {
 	}
 
 	public async getTenants(token: string): Promise<ITenant[]> {
-		const tenantUri = url.resolve(this.providerSettings.resources.azureManagementResource.endpoint, 'tenants?api-version=2019-11-01');
+		const tenantUri = url.resolve(this.metadata.settings.armResource.endpoint, 'tenants?api-version=2019-11-01');
 		try {
 			this.logger.verbose('Fetching tenants with uri {0}', tenantUri);
 			let tenantList: string[] = [];
@@ -407,7 +412,7 @@ export abstract class MsalAzureAuth {
 
 		const account: IAccount = {
 			key: {
-				providerId: this.providerSettings.id,
+				providerId: this.metadata.id,
 				id: key,
 				accountVersion: Constants.accountVersion
 			},
@@ -421,7 +426,7 @@ export abstract class MsalAzureAuth {
 				name
 			},
 			properties: {
-				providerSettings: this.providerSettings,
+				providerSettings: this.metadata,
 				isMsAccount: accountIssuer === Constants.AccountIssuer.Msft,
 				owningTenant: owningTenant,
 				tenants,
@@ -448,10 +453,10 @@ export abstract class MsalAzureAuth {
 		return base64string.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_'); // Need to use base64url encoding
 	}
 
-	public async clearCredentials(account: IAccount): Promise<void> {
+	public async clearCredentials(accountKey: IAccountKey): Promise<void> {
 		try {
 			const tokenCache = this.clientApplication.getTokenCache();
-			let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(account.key.id);
+			let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(accountKey.id);
 			await tokenCache.removeAccount(accountInfo!);
 		} catch (ex) {
 			// We need not prompt user for error if token could not be removed from cache.
@@ -467,21 +472,21 @@ export abstract class MsalAzureAuth {
 
 //#region models
 
-export interface IAccountKey {
+export interface IAccountKeyId {
 	/**
 	 * Account Key - uniquely identifies an account
 	 */
 	key: string;
 }
 
-export interface IAccessToken extends IAccountKey {
+export interface IAccessToken extends IAccountKeyId {
 	/**
 	 * Access Token
 	 */
 	token: string;
 }
 
-export interface IRefreshToken extends IAccountKey {
+export interface IRefreshToken extends IAccountKeyId {
 	/**
 	 * Refresh Token
 	 */
@@ -499,7 +504,7 @@ export interface IMultiTenantTokenResponse {
 	[tenantId: string]: IToken | undefined;
 }
 
-export interface IToken extends IAccountKey {
+export interface IToken extends IAccountKeyId {
 	/**
 	 * Access token
 	 */

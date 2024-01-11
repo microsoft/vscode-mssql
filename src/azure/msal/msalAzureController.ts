@@ -3,27 +3,38 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from 'vscode';
+import * as azureUtils from '../utils';
+
+import { Subscription } from '@azure/arm-subscriptions';
 import { ClientAuthError, ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
 import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
 import * as LocalizedConstants from '../../constants/localizedConstants';
 import { ConnectionProfile } from '../../models/connectionProfile';
-import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/contracts/azure';
+import { IAccountProvider, IProviderSettings, IToken, IAccountProviderMetadata, AzureResource, ITenant, IPromptFailedResult } from '../../models/contracts/azure';
 import { AccountStore } from '../accountStore';
 import { AzureController } from '../azureController';
-import { getAzureActiveDirectoryConfig, getEnableSqlAuthenticationProviderConfig } from '../utils';
-import { MsalAzureAuth } from './msalAzureAuth';
-import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
-import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
+import { getEnableSqlAuthenticationProviderConfig } from '../utils';
 import { MsalCachePluginProvider } from './msalCachePlugin';
 import { promises as fsPromises } from 'fs';
 import * as path from 'path';
 import * as AzureConstants from '../constants';
+import providerSettings from '../providerSettings';
+import { AzureAccountProvider } from './azureAccountProvider';
+import { ICredentialStore } from '../../credentialstore/icredentialstore';
+import { IAccount, IAzureAccountSession } from 'vscode-mssql';
+import { Iterable } from '../../utils/iterator';
 
 export class MsalAzureController extends AzureController {
-	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
-	private _cachePluginProvider: MsalCachePluginProvider | undefined = undefined;
+
+	public providerMap = new Map<string, IAccountProviderMetadata>();
+	private _cachePluginProvider: MsalCachePluginProvider;
+	private _accountProviders: { [accountProviderId: string]: IAccountProvider } = {};
+	private _currentConfig: vscode.WorkspaceConfiguration;
+	protected _credentialStore: ICredentialStore;
 	protected clientApplication: PublicClientApplication;
+	public activeProviderCount: number = 0;
 
 	private getLoggerCallback(): ILoggerCallback {
 		return (level: number, message: string, containsPii: boolean) => {
@@ -51,17 +62,13 @@ export class MsalAzureController extends AzureController {
 		if (getEnableSqlAuthenticationProviderConfig()) {
 			this._isSqlAuthProviderEnabled = true;
 		}
-	}
+		this.handleCloudChange();
+		vscode.workspace.onDidChangeConfiguration((changeEvent) => {
+			if (changeEvent.affectsConfiguration(AzureConstants.azureCloudsConfig)) {
+				this.handleCloudChange();
+			}
+		});
 
-	public async loadTokenCache(): Promise<void> {
-		let authType = getAzureActiveDirectoryConfig();
-		if (!this._authMappings.has(authType)) {
-			await this.handleAuthMapping();
-		}
-
-		let azureAuth = await this.getAzureAuthInstance(authType!);
-		await this.clearOldCacheIfExists();
-		azureAuth.loadTokenCache();
 	}
 
 	public async clearTokenCache(): Promise<void> {
@@ -88,83 +95,46 @@ export class MsalAzureController extends AzureController {
 		}
 	}
 
-	public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
-		let azureAuth = await this.getAzureAuthInstance(authType);
-		let response = await azureAuth!.startLogin();
+	public async login(providerId: string): Promise<IAccount | undefined> {
+		let provider = this.fetchProvider(providerId);
+		let response = await provider.prompt();
 		return response ? response as IAccount : undefined;
 	}
 
 	public async isAccountInCache(account: IAccount): Promise<boolean> {
-		let authType = getAzureActiveDirectoryConfig();
-		let azureAuth = await this.getAzureAuthInstance(authType!);
+		let provider = this.fetchProvider(account.key.providerId);
 		await this.clearOldCacheIfExists();
-		let accountInfo = await azureAuth.getAccountFromMsalCache(account.key.id);
+		let accountInfo = provider.checkAccountInCache(account);
 		return accountInfo !== undefined;
 	}
 
-	private async getAzureAuthInstance(authType: AzureAuthType): Promise<MsalAzureAuth | undefined> {
-		if (!this._authMappings.has(authType)) {
-			await this.handleAuthMapping();
-		}
-		return this._authMappings!.get(authType);
-	}
-
-	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
-		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-		if (azureAuth) {
-			this.logger.piiSanitized(`Getting account security token for ${JSON.stringify(account?.key)} (tenant ${tenantId}). Auth Method = ${AzureAuthType[account?.properties.azureAuthType]}`, [], []);
-			tenantId = tenantId || account.properties.owningTenant.id;
-			let result = await azureAuth.getToken(account, tenantId, settings);
-			if (!result || !result.account || !result.account.idTokenClaims) {
-				this.logger.error(`MSAL: getToken call failed`);
-				throw Error('Failed to get token');
-			} else {
-				const token: IToken = {
-					key: result.account.homeAccountId,
-					token: result.accessToken,
-					tokenType: result.tokenType,
-					expiresOn: result.account.idTokenClaims.exp
-				};
-				return token;
-			}
-		} else {
-			if (account) {
-				account.isStale = true;
-				this.logger.error(`_getAccountSecurityToken: Authentication method not found for account ${account.displayInfo.displayName}`);
-				throw Error(LocalizedConstants.msgAuthTypeNotFound);
-			} else {
-				this.logger.error(`_getAccountSecurityToken: Authentication method not found as account not available.`);
-				throw Error(LocalizedConstants.msgAccountNotFound);
-			}
-		}
-	}
-
+	// TODO:@cssuh remove this and map to azureAccountProvider?
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
-		settings: IAADResource): Promise<IToken | undefined> {
-		let newAccount: IAccount;
+		settings: AzureResource): Promise<IToken | undefined> {
+		let newAccount: IAccount | IPromptFailedResult;
+		let provider: IAccountProvider;
 		try {
-			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-			newAccount = await azureAuth!.refreshAccessToken(account, AzureConstants.organizationTenant.id,
-				this._providerSettings.resources.windowsManagementResource);
+			provider = this.fetchProvider(account.key.providerId);
+			let token = await provider.getAccountSecurityToken(account, AzureConstants.organizationTenant.id, settings);
 
-			if (newAccount!.isStale === true) {
+			if (!token) {
 				return undefined;
 			}
-
-			await accountStore.addAccount(newAccount!);
-			return await this.getAccountSecurityToken(
-				account, tenantId ?? account.properties.owningTenant.id, settings
-			);
+			return token;
 		} catch (ex) {
 			if (ex instanceof ClientAuthError && ex.errorCode === AzureConstants.noAccountInSilentRequestError) {
 				try {
 					// Account needs re-authentication
-					newAccount = await this.login(account.properties.azureAuthType);
+					newAccount = await provider.refresh(account);
+					if (!this.isAccountResult(newAccount)) {
+						return undefined;
+					}
 					if (newAccount!.isStale === true) {
 						return undefined;
 					}
 					await accountStore.addAccount(newAccount!);
-					return await this.getAccountSecurityToken(
+					provider = this.fetchProvider(newAccount!.key.providerId);
+					return await provider.getAccountSecurityToken(
 						account, tenantId ?? account.properties.owningTenant.id, settings
 					);
 				} catch (ex) {
@@ -179,8 +149,22 @@ export class MsalAzureController extends AzureController {
 	/**
 	 * Gets the token for given account and updates the connection profile with token information needed for AAD authentication
 	 */
-	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile> {
-		let account = await this.addAccount(accountStore);
+	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AzureResource): Promise<ConnectionProfile> {
+		let providerId: string;
+		let account: IAccount;
+		if (profile.providerId) {
+			providerId = profile.providerId;
+			account = await this.addAccount(accountStore, providerId);
+		} else {
+			providerId = await this.promptProvider();
+			if (!providerId) {
+				return undefined;
+			}
+			account = await this.addAccount(accountStore, providerId);
+		}
+		// get provider and run provider.prompt() to get the token
+		// this just needs to fill in the token information in the profile
+		let provider = this.fetchProvider(account!.key.providerId);
 		profile.user = account!.displayInfo.displayName;
 		profile.email = account!.displayInfo.email;
 		profile.accountId = account!.key.id;
@@ -191,7 +175,7 @@ export class MsalAzureController extends AzureController {
 				await this.promptForTenantChoice(account!, profile);
 			}
 
-			const token = await this.getAccountSecurityToken(
+			const token = await provider.getAccountSecurityToken(
 				account!, profile.tenantId, settings
 			);
 
@@ -209,18 +193,134 @@ export class MsalAzureController extends AzureController {
 		return profile;
 	}
 
-	public async removeAccount(account: IAccount): Promise<void> {
-		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-		await azureAuth!.clearCredentials(account);
+	public async promptProvider(): Promise<string | undefined> {
+		const vals = Iterable.consume(this._accountService.providerMap.values())[0];
+
+		let pickedValue: string | undefined;
+		if (vals.length === 0) {
+			// this.logger.error("You have no clouds enabled. Go to Settings -> Search Azure Account Configuration -> Enable at least one cloud");
+		}
+		if (vals.length > 1) {
+			const buttons: vscode.QuickPickItem[] = vals.map(val => {
+				return { label: val.displayName } as vscode.QuickPickItem;
+			});
+
+			await this._vscodeWrapper.showQuickPick(buttons, { placeHolder: 'Choose an authentication provider' }).then((picked) => {
+				pickedValue = picked?.label;
+			});
+
+		} else {
+			pickedValue = vals[0].displayName;
+		}
+
+		const provider = vals.filter(v => v.displayName === pickedValue)?.[0];
+
+		if (!provider) {
+		// this.logger.error("You didn't select any authentication provider. Please try again.");
+		// 	return undefined;
+		}
+		return provider.id;
 	}
 
-	public async handleAuthMapping(): Promise<void> {
-		if (!this.clientApplication) {
+
+	/**
+	 * Returns Azure sessions with subscriptions, tenant and token for each given account
+	 */
+	public async getAccountSessions(account: IAccount): Promise<IAzureAccountSession[]> {
+		let provider = this.fetchProvider(account.key.providerId);
+		const sessions: IAzureAccountSession[] = [];
+		const tenants = <ITenant[]>account.properties.tenants;
+		for (const tenant of tenants) {
+			const tenantId = tenant.id;
+			const token = await provider.getAccountSecurityToken(account, tenantId, AzureResource.ResourceManagement);
+			const subClient = this._subscriptionClientFactory(token!);
+			const newSubPages = await subClient.subscriptions.list();
+			const array = await azureUtils.getAllValues<Subscription, IAzureAccountSession>(newSubPages, (nextSub) => {
+				return {
+					subscription: nextSub,
+					tenantId: tenantId,
+					account: account,
+					token: token
+				};
+			});
+			sessions.push(...array);
+		}
+
+		return sessions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
+	}
+
+	public async removeAccount(account: IAccount): Promise<void> {
+		let provider = this.fetchProvider(account.key.providerId);
+		provider.clear(account.key);
+	}
+
+	private async handleCloudChange(): Promise<void> {
+		// Grab the stored config and the latest config
+		let newConfig = vscode.workspace.getConfiguration(AzureConstants.azureCloudsConfig);
+		let oldConfig = this._currentConfig;
+		this._currentConfig = newConfig;
+
+		// Determine what providers need to be changed
+		let providerChanges: Promise<void>[] = [];
+		for (let provider of providerSettings) {
+			// If the old config doesn't exist, then assume everything was disabled
+			// There will always be a new config value
+			let oldConfigValue = oldConfig
+				? oldConfig.get<boolean>(provider.configKey)
+				: false;
+			let newConfigValue = newConfig.get<boolean>(provider.configKey);
+
+			// Case 1: Provider config has not changed - do nothing
+			if (oldConfigValue === newConfigValue) {
+				continue;
+			}
+
+			// Case 2: Provider was enabled and is now disabled - unregister provider
+			if (oldConfigValue && !newConfigValue) {
+				providerChanges.push(this.unregisterAccountProvider(provider));
+				this.activeProviderCount--;
+			}
+
+			// Case 3: Provider was disabled and is now enabled - register provider
+			if (!oldConfigValue && newConfigValue) {
+				providerChanges.push(this.registerAccountProvider(provider));
+				this.activeProviderCount++;
+			}
+
+			// Case 4: Provider was added from JSON - register provider
+			if (provider.configKey !== AzureConstants.enablePublicCloud && provider.configKey !== AzureConstants.enableUsGovCloud && provider.configKey !== AzureConstants.enableChinaCloud) {
+				providerChanges.push(this.registerAccountProvider(provider));
+				this.activeProviderCount++;
+			}
+		}
+		if (this.activeProviderCount === 0) {
+
+			void vscode.window.showWarningMessage(LocalizedConstants.noCloudsEnabled, LocalizedConstants.enablePublicCloud, LocalizedConstants.dismiss).then(async (result) => {
+				if (result === LocalizedConstants.enablePublicCloud) {
+					await vscode.workspace.getConfiguration(Constants.mssqlCloud).update(LocalizedConstants.enablePublicCloudCamel, true, vscode.ConfigurationTarget.Global);
+				}
+			});
+		}
+
+		// Process all the changes before continuing
+		await Promise.all(providerChanges);
+	}
+
+	private async registerAccountProvider(provider: IProviderSettings): Promise<void> {
+		const tokenCacheKeyMsal = Constants.msalCacheFileName;
+		await this.clearOldCacheIfExists();
+		try {
+			if (!this._credentialStore) {
+				throw new Error('Credential store not registered');
+			}
+
 			let storagePath = await this.findOrMakeStoragePath();
-			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this._vscodeWrapper, this.logger, this._credentialStore);
+			// MSAL Cache Plugin
+			this._cachePluginProvider = new MsalCachePluginProvider(tokenCacheKeyMsal, storagePath, this._vscodeWrapper, this.logger, this._credentialStore );
+
 			const msalConfiguration: Configuration = {
 				auth: {
-					clientId: this._providerSettings.clientId,
+					clientId: provider.metadata.settings.clientId,
 					authority: 'https://login.windows.net/common'
 				},
 				system: {
@@ -234,19 +334,47 @@ export class MsalAzureController extends AzureController {
 					cachePlugin: this._cachePluginProvider?.getCachePlugin()
 				}
 			};
+
 			this.clientApplication = new PublicClientApplication(msalConfiguration);
-		}
-
-		this._authMappings.clear();
-
-		const configuration = getAzureActiveDirectoryConfig();
-
-		if (configuration === AzureAuthType.AuthCodeGrant) {
-			this._authMappings.set(AzureAuthType.AuthCodeGrant, new MsalAzureCodeGrant(
-				this._providerSettings, this.context, this.clientApplication, this._vscodeWrapper, this.logger));
-		} else if (configuration === AzureAuthType.DeviceCode) {
-			this._authMappings.set(AzureAuthType.DeviceCode, new MsalAzureDeviceCode(
-				this._providerSettings, this.context, this.clientApplication, this._vscodeWrapper, this.logger));
+			let accountProvider = new AzureAccountProvider(provider.metadata as IAccountProviderMetadata,
+				this.context, this.clientApplication, this._vscodeWrapper, this.logger);
+			this._accountProviders[provider.metadata.id] = accountProvider;
+			this._accountService.registerProvider(provider.metadata, accountProvider);
+		} catch (e) {
+			console.error(`Failed to register account provider: ${e}`);
 		}
 	}
+
+	private async unregisterAccountProvider(provider: IProviderSettings): Promise<void> {
+		try {
+			this._accountService.unregisterProvider(provider.metadata);
+			delete this._accountProviders[provider.metadata.id];
+		} catch (e) {
+			console.error(`Failed to unregister account provider: ${e}`);
+		}
+	}
+
+	private isAccountResult(result: IAccount | IPromptFailedResult): result is IAccount {
+		return typeof (<IAccount>result).displayInfo === 'object';
+	}
+
+
+	private fetchProvider(providerId: string): IAccountProvider | undefined {
+		return this._accountProviders[providerId];
+	}
+}
+
+/**
+ * Parameters that go along when a provider's account list changes
+ */
+export interface IUpdateAccountListEventParams {
+	/**
+	 * ID of the provider who's account list changes
+	 */
+	providerId: string;
+
+	/**
+	 * Updated list of accounts, sorted appropriately
+	 */
+	accountList: IAccount[];
 }

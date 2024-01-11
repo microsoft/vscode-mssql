@@ -5,12 +5,11 @@
 
 import * as vscode from 'vscode';
 import { NotificationHandler, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails, IConnectionInfo, IServerInfo } from 'vscode-mssql';
+import { ConnectionDetails, IAccount, IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import { AccountService } from '../azure/accountService';
 import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { MsalAzureController } from '../azure/msal/msalAzureController';
-import providerSettings from '../azure/providerSettings';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { CredentialStore } from '../credentialstore/credentialstore';
@@ -19,7 +18,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { ConnectionStore } from '../models/connectionStore';
-import { IAccount } from '../models/contracts/azure';
+import { AzureResource } from '../models/contracts/azure';
 import * as ConnectionContracts from '../models/contracts/connection';
 import { ClearPooledConnectionsRequest, ConnectionSummary } from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
@@ -93,7 +92,7 @@ export default class ConnectionManager {
 	private _failedUriToSSLMap: Map<string, string>;
 	private _accountService: AccountService;
 	private _firewallService: FirewallService;
-	public azureController: AzureController;
+	public azureController: MsalAzureController;
 
 	constructor(context: vscode.ExtensionContext,
 		statusView: StatusView,
@@ -132,15 +131,13 @@ export default class ConnectionManager {
 			this._connectionUI = new ConnectionUI(this, context, this._connectionStore, this._accountStore, prompter, this.vscodeWrapper);
 		}
 
+		this._accountService = new AccountService(this.client, this._accountStore, this.vscodeWrapper, this.client?.logger);
 		if (!this.azureController) {
-			this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
-
-
+			this.azureController = new MsalAzureController(context, prompter, this._credentialStore, this._accountService);
 			this.azureController.init();
 		}
 
 		// Initiate the firewall service
-		this._accountService = new AccountService(this.client, this._accountStore, this.azureController);
 		this._firewallService = new FirewallService(this._accountService);
 		this._failedUriToFirewallIpMap = new Map<string, string>();
 		this._failedUriToSSLMap = new Map<string, string>();
@@ -825,13 +822,13 @@ export default class ConnectionManager {
 						profile.user = account.displayInfo.displayName;
 						profile.email = account.displayInfo.email;
 						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
-							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
+							this.accountStore, profile.tenantId, AzureResource.Sql);
 						if (!azureAccountToken) {
 							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 							let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
 							if (refreshResult === LocalizedConstants.refreshTokenLabel) {
 								await this.azureController.populateAccountProperties(
-									profile, this.accountStore, providerSettings.resources.databaseResource!);
+									profile, this.accountStore, AzureResource.Sql);
 
 							} else {
 								throw new Error(LocalizedConstants.cannotConnect);
@@ -1022,7 +1019,8 @@ export default class ConnectionManager {
 	}
 
 	public async addAccount(): Promise<void> {
-		let account = await this.connectionUI.addNewAccount();
+		let providerId = await this.accountService.promptProvider();
+		let account = await this.connectionUI.addNewAccount(providerId);
 		if (account) {
 			this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.accountAddedSuccessfully, account.displayInfo.displayName));
 		} else {
@@ -1033,7 +1031,7 @@ export default class ConnectionManager {
 	public async removeAccount(prompter: IPrompter): Promise<void> {
 		// list options for accounts to remove
 		let questions: IQuestion[] = [];
-		let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
+		let azureAccountChoices = await ConnectionProfile.getAccountChoices(this._accountStore);
 
 		if (azureAccountChoices.length > 0) {
 			questions.push(
@@ -1048,8 +1046,8 @@ export default class ConnectionManager {
 			return prompter.prompt<IAccount>(questions, true).then(async answers => {
 				if (answers?.account) {
 					try {
-						this._accountStore.removeAccount(answers.account.key.id);
-						this.azureController.removeAccount(answers.account);
+						await this._accountStore.removeAccount(answers.account.key);
+						await this.azureController.removeAccount(answers.account);
 						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
 					} catch (e) {
 						this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.accountRemovalFailed, e.message));

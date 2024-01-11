@@ -38,6 +38,16 @@
         <trans-unit id="msgConnectionError">
             <source xml:lang="en">Error {0}: {1}</source>
         </trans-unit>
+        <trans-unit id="noCloudsEnabled">
+            <source xml:lang="en">No clouds are enabled, please enable a cloud to continue.</source>
+        </trans-unit>
+        <trans-unit id="enablePublicCloud">
+            <source xml:lang="en">Enable Public Cloud</source>
+        </trans-unit>
+        <trans-unit id="enablePublicCloudCamel">
+            <source xml:lang="en">enablePublicCloud</source>
+        </trans-unit>
+
         <trans-unit id="msgConnectionError2">
             <source xml:lang="en">Failed to connect: {0}</source>
         </trans-unit>
