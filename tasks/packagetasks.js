@@ -69,6 +69,9 @@ gulp.task('package:offline', () => {
 	packages.push({ rid: 'rhel.7.2-x64', runtime: Runtime.RHEL_7 });
 	packages.push({ rid: 'ubuntu.14.04-x64', runtime: Runtime.Ubuntu_14 });
 	packages.push({ rid: 'ubuntu.16.04-x64', runtime: Runtime.Ubuntu_16 });
+	packages.push({ rid: 'ubuntu.18.04-x64', runtime: Runtime.Ubuntu_18 });
+	packages.push({ rid: 'ubuntu.20.04-x64', runtime: Runtime.Ubuntu_20 });
+	packages.push({ rid: 'ubuntu.22.04-x64', runtime: Runtime.Ubuntu_22 });
 	packages.push({ rid: 'linux-arm64', runtime: Runtime.Linux_ARM64 });
 	var promise = Promise.resolve();
 	cleanServiceInstallFolder().then(() => {

@@ -26,6 +26,9 @@ export enum Runtime {
 	RHEL_7 = 'RHEL_7',
 	Ubuntu_14 = 'Ubuntu_14',
 	Ubuntu_16 = 'Ubuntu_16',
+	Ubuntu_18 = 'Ubuntu_18',
+	Ubuntu_20 = 'Ubuntu_20',
+	Ubuntu_22 = 'Ubuntu_22',
 	Linux_ARM64 = 'Linux_ARM64'
 }
 
@@ -54,6 +57,12 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
 			return 'Ubuntu14';
 		case Runtime.Ubuntu_16:
 			return 'Ubuntu16';
+		case Runtime.Ubuntu_18:
+			return 'Ubuntu18';
+		case Runtime.Ubuntu_20:
+			return 'Ubuntu20';
+		case Runtime.Ubuntu_22:
+			return 'Ubuntu22';
 		case Runtime.Linux_ARM64:
 			return 'Linux';
 		default:
@@ -355,8 +364,13 @@ export class PlatformInformation {
 					return Runtime.Ubuntu_14;
 				} else if (distributionVersion.startsWith('16')) {
 					return Runtime.Ubuntu_16;
+				} else if (distributionVersion.startsWith('18')) {
+					return Runtime.Ubuntu_18;
+				} else if (distributionVersion.startsWith('20')) {
+					return Runtime.Ubuntu_20;
+				} else if (distributionVersion.startsWith('22')) {
+					return Runtime.Ubuntu_22;
 				}
-
 				break;
 			case 'elementary':
 			case 'elementary OS':
@@ -396,11 +410,13 @@ export class PlatformInformation {
 					return Runtime.Ubuntu_16;
 				}
 				break;
+			case 'neon':
+				return Runtime.Ubuntu_16
 			default:
-				return Runtime.Ubuntu_16;
+				return Runtime.Ubuntu_22;
 		}
 
-		return Runtime.Ubuntu_16;
+		return Runtime.Ubuntu_22;
 	}
 }
 
