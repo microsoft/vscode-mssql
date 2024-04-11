@@ -101,14 +101,7 @@ Currently this extension supports the following operating systems:
 
 * Windows (x64 | x86 | arm64)
 * macOS (x64 | arm64)
-* Ubuntu 14.04 / Linux Mint 17 / Linux Mint 18 / Elementary OS 0.3
-* Ubuntu 16.04 / Elementary OS 0.4
-* Debian 8.2
-* CentOS 7.1 / Oracle Linux 7
-* Red Hat Enterprise Linux (RHEL)
-* Fedora 23
-* OpenSUSE 13.2
-* Linux arm64
+* Linux (x64 | arm64)
 
 ## Offline Installation
 The extension will download and install a required SqlToolsService package during activation. For machines with no Internet access, you can still use the extension by choosing the
