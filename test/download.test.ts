@@ -46,7 +46,7 @@ suite('ServiceDownloadProvider Tests', () => {
 		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
 		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
 			testHttpClient.object, testDecompressProvider.object);
-		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_64);
 		assert.equal(expected, actual);
 	});
 
@@ -58,7 +58,7 @@ suite('ServiceDownloadProvider Tests', () => {
 		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
 		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
 			testHttpClient.object, testDecompressProvider.object);
-		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_64);
 		assert.equal(expected, actual);
 	});
 
@@ -70,7 +70,7 @@ suite('ServiceDownloadProvider Tests', () => {
 		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
 		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
 			testHttpClient.object, testDecompressProvider.object);
-		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_64);
 		assert.equal(expected, actual);
 	});
 
@@ -82,7 +82,7 @@ suite('ServiceDownloadProvider Tests', () => {
 		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
 		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
 			testHttpClient.object, testDecompressProvider.object);
-		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_64);
 		assert.equal(expected, actual);
 	});
 

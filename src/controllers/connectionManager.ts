@@ -475,7 +475,7 @@ export default class ConnectionManager {
 				if (action && action === LocalizedConstants.macOpenSslHelpButton) {
 					await vscode.env.openExternal(vscode.Uri.parse(Constants.integratedAuthHelpLink));
 				}
-			} else if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
+			} else if (platformInfo.runtimeId === Runtime.OSX_64 &&
 				result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
 				const action = await this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgConnectionError2,
 					LocalizedConstants.macOpenSslErrorMessage), LocalizedConstants.macOpenSslHelpButton);
