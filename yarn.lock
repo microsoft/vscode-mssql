@@ -251,9 +251,9 @@
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@types/azdata@^1.44.0":
-  version "1.44.0"
-  resolved "https://registry.yarnpkg.com/@types/azdata/-/azdata-1.44.0.tgz#c6bb4baacd1b0f74b46742bffd61ae40e922989d"
-  integrity sha512-AbZnAUybkG+Vqk96PNMcv8ypzN9zqsk1k85v2Gyl5xwUrLkEgGmHnrnK6p70PM3OFaABCYU+t/4fMnnK1JY1YA==
+  version "1.46.6"
+  resolved "https://registry.yarnpkg.com/@types/azdata/-/azdata-1.46.6.tgz#7403bfabc59b2b7fa48bef9cc1e86848f41afdc8"
+  integrity sha512-lOvRgMxrYuia+8l3EB+j5IaeGLHubmNf3RgGu9OmAxGAyXayjhZLoNAEjqNnVy/MmA35lwAXDpv2PDbNpCCnDA==
   dependencies:
     "@types/vscode" "*"
 
@@ -345,15 +345,10 @@
   resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.8.3.tgz#d3cb512dd3dde32b2bbba4be0ca68bd3dad4a1f5"
   integrity sha512-DP70788BXjp9+CKArXOUlNkZaXa+rHonDpbqH3/74ez16dLL5z2/bMT37etbln5J+H9M07NbRUyduDIoTM2tnw==
 
-"@types/vscode@*":
+"@types/vscode@*", "@types/vscode@1.78.1":
   version "1.78.1"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.78.1.tgz#027dba038c9e4c3f8e83570e1494aab679030485"
   integrity sha512-wEA+54axejHu7DhcUfnFBan1IqFD1gBDxAFz8LoX06NbNDMRJv/T6OGthOs52yZccasKfN588EyffHWABkR0fg==
-
-"@types/vscode@1.88.0":
-  version "1.88.0"
-  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.88.0.tgz#2dc690237f7ef049942508c8609b6b9f5216b4d3"
-  integrity sha512-rWY+Bs6j/f1lvr8jqZTyp5arRMfovdxolcqGi+//+cPDOh8SBvzXH90e7BiSXct5HJ9HGW6jATchbRTpTJpEkw==
 
 "@ungap/promise-all-settled@1.1.2":
   version "1.1.2"
