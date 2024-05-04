@@ -251,9 +251,9 @@
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@types/azdata@^1.44.0":
-  version "1.44.0"
-  resolved "https://registry.yarnpkg.com/@types/azdata/-/azdata-1.44.0.tgz#c6bb4baacd1b0f74b46742bffd61ae40e922989d"
-  integrity sha512-AbZnAUybkG+Vqk96PNMcv8ypzN9zqsk1k85v2Gyl5xwUrLkEgGmHnrnK6p70PM3OFaABCYU+t/4fMnnK1JY1YA==
+  version "1.46.6"
+  resolved "https://registry.yarnpkg.com/@types/azdata/-/azdata-1.46.6.tgz#7403bfabc59b2b7fa48bef9cc1e86848f41afdc8"
+  integrity sha512-lOvRgMxrYuia+8l3EB+j5IaeGLHubmNf3RgGu9OmAxGAyXayjhZLoNAEjqNnVy/MmA35lwAXDpv2PDbNpCCnDA==
   dependencies:
     "@types/vscode" "*"
 
@@ -360,10 +360,10 @@
   resolved "https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.6.1.tgz#f8d1f7145baf932b75077c48107edff48501fc14"
   integrity sha512-Y4Oc8yGURGVF4WhCZcu+EVy+MAIeQDLDVeDlLn59H0C1w+7xr8dL2ZtDBioy+Hog1Edrd6zOwr3Na7xe1iC/UA==
 
-"@vscode/test-electron@^2.3.8":
-  version "2.3.8"
-  resolved "https://registry.yarnpkg.com/@vscode/test-electron/-/test-electron-2.3.8.tgz#06a7c50b38cfac0ede833905e088d55c61cd12d3"
-  integrity sha512-b4aZZsBKtMGdDljAsOPObnAi7+VWIaYl3ylCz1jTs+oV6BZ4TNHcVNC3xUn0azPeszBmwSBDQYfFESIaUQnrOg==
+"@vscode/test-electron@^2.3.9":
+  version "2.3.9"
+  resolved "https://registry.yarnpkg.com/@vscode/test-electron/-/test-electron-2.3.9.tgz#f61181392634b408411e4302aef6e1cd2dd41474"
+  integrity sha512-z3eiChaCQXMqBnk2aHHSEkobmC2VRalFQN0ApOAtydL172zXGxTwGrRtviT5HnUB+Q+G3vtEYFtuQkYqBzYgMA==
   dependencies:
     http-proxy-agent "^4.0.1"
     https-proxy-agent "^5.0.0"

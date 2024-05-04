@@ -274,3 +274,5 @@ gulp.task('watch-tests', function () {
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests')));
 
 gulp.task('lint', gulp.series('ext:lint'));
+
+gulp.task('cover', gulp.series('remap-coverage', 'cover:combine-json'));
