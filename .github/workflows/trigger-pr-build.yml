@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 'Print triggering branch name'
-    run: echo "GITHUB_REF_NAME IS $GITHUB_REF_NAME"
+      run: echo "GITHUB_REF_NAME IS $GITHUB_REF_NAME"
 
     - uses: Azure/pipelines@v1.2
       with:
