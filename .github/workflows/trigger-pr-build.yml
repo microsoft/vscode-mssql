@@ -11,7 +11,7 @@ jobs:
     - name: 'Print triggering branch name'
     run: echo "GITHUB_REF_NAME IS $GITHUB_REF_NAME"
 
-        - uses: Azure/pipelines@v1.2
+    - uses: Azure/pipelines@v1.2
       with:
         azure-devops-project-url: 'https://dev.azure.com/msdata/SQLToolsAndLibraries'
         azure-pipeline-name: 'VSCode MSSQL - Buddy' # name of the Azure pipeline to be triggered
