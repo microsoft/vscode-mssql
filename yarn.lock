@@ -2028,6 +2028,11 @@ fast-levenshtein@~2.0.6:
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
   integrity sha1-PYpcZog6FqMMqGQ+hR8Zuqd5eRc=
 
+fast-string-truncated-width@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fast-string-truncated-width/-/fast-string-truncated-width-1.1.0.tgz#ebc811d7b1d8c86eed50f412fffcbe31fe5ee17f"
+  integrity sha512-FfsFREOllHpnSl6cxpLi6wvqd9UebrZPxWlOJCCcWoOJzy02xyjPbafF9tyg2Usnf3GLmRr5Q6s7n+GO+6VB5A==
+
 figures@^1.4.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/figures/-/figures-1.7.0.tgz#cbe1e3affcf1cd44b80cadfed28dc793a9701d2e"
