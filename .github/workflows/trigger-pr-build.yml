@@ -16,4 +16,4 @@ jobs:
         azure-devops-project-url: 'https://dev.azure.com/msdata/SQLToolsAndLibraries'
         azure-pipeline-name: 'VSCode MSSQL - Buddy' # name of the Azure pipeline to be triggered
         azure-devops-token: '${{ secrets.VSCODE_MSSQL_PR_TRIGGER_TOKEN }}'
-        azure-pipeline-variables: '{"githubBranch": "${{ github.ref_name }}"}' # pass branch name to pipeline
+        azure-pipeline-variables: '{"githubBranch": "${{ github.ref_name }}", "fromGithub": "true"}' # pass branch name to pipeline
