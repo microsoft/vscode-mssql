@@ -1,6 +1,8 @@
 import type { LogLevel } from './logger.constants';
 import type { LogScope } from './logger.scope';
 
+type RequireSome<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: T[P] };
+
 const enum OrderedLevel {
 	Off = 0,
 	Error = 1,

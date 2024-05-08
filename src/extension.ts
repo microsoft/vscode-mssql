@@ -17,6 +17,7 @@ import SqlToolsServerClient from './languageservice/serviceclient';
 import { ConnectionProfile } from './models/connectionProfile';
 import { FirewallRuleError } from './languageservice/interfaces';
 import { RequestType } from 'vscode-languageclient';
+import { Container } from './container';
 
 let controller: MainController = undefined;
 
@@ -31,6 +32,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 	if (applyLocalization) {
 		LocalizedConstants.loadLocalizedConstants(vscode.env.language);
 	}
+
+	const mssqlVersion: string = context.extension.packageJSON.version;
+	const container = Container.create(context, mssqlVersion);
 
 	// Exposed for testing purposes
 	vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);

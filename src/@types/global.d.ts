@@ -1,5 +1,7 @@
 export {};
 
+/*
+
 declare global {
 	export type PartialDeep<T> = T extends Record<string, unknown> ? { [K in keyof T]?: PartialDeep<T[K]> } : T;
 	export type Optional<T, K extends keyof T> = Omit<T, K> & { [P in K]?: T[P] };
@@ -39,3 +41,5 @@ declare global {
 
 	export type UnwrapCustomEvent<T> = T extends CustomEvent<infer U> ? U : never;
 }
+
+*/

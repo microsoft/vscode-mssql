@@ -2,6 +2,8 @@ import type { CancellationToken, Disposable } from 'vscode';
 
 export type PromiseOrValue<T> = Promise<T> | T;
 
+type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+
 export function any<T>(...promises: Promise<T>[]): Promise<T> {
 	return new Promise<T>((resolve, reject) => {
 		let settled = false;

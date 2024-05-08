@@ -378,6 +378,11 @@
     },
     "commands": [
       {
+				"command": "gitlens.showWelcomePage",
+				"title": "Welcome",
+				"category": "MS SQL GL"
+			},
+      {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
         "category": "MS SQL",

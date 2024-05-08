@@ -1,9 +1,9 @@
-import type {
-	WidthOptions as StringWidthOptions,
-	TruncationOptions as StringWidthTruncationOptions,
-	Result as TruncatedStringWidthResult,
-} from 'fast-string-truncated-width';
-import getTruncatedStringWidth from 'fast-string-truncated-width';
+// import type {
+// 	WidthOptions as StringWidthOptions,
+// 	TruncationOptions as StringWidthTruncationOptions,
+// 	Result as TruncatedStringWidthResult,
+// } from 'fast-string-truncated-width';
+// import getTruncatedStringWidth from 'fast-string-truncated-width';
 import { hrtime } from '../env/node/hrtime';
 import { CharCode } from '../constants';
 
@@ -214,40 +214,40 @@ export function* getLines(data: string | string[], char: string = '\n'): Iterabl
 	}
 }
 
-const defaultTruncationOptions: StringWidthTruncationOptions = {
-	ellipsisWidth: 0,
-	limit: 2 ** 30 - 1, // Max number that can be stored in V8's smis (small integers)
-};
+// const defaultTruncationOptions: StringWidthTruncationOptions = {
+// 	ellipsisWidth: 0,
+// 	limit: 2 ** 30 - 1, // Max number that can be stored in V8's smis (small integers)
+// };
 
-const defaultWidthOptions: StringWidthOptions = {
-	ansiWidth: 0,
-	controlWidth: 0,
-	ambiguousWidth: 1,
-	emojiWidth: 2,
-	fullWidthWidth: 2,
-	regularWidth: 1,
-	wideWidth: 2,
-};
+// const defaultWidthOptions: StringWidthOptions = {
+// 	ansiWidth: 0,
+// 	controlWidth: 0,
+// 	ambiguousWidth: 1,
+// 	emojiWidth: 2,
+// 	fullWidthWidth: 2,
+// 	regularWidth: 1,
+// 	wideWidth: 2,
+// };
 
-export function getTruncatedWidth(s: string, limit: number, ellipsisWidth: number): TruncatedStringWidthResult {
-	if (s == null || s.length === 0) {
-		return {
-			truncated: false,
-			ellipsed: false,
-			width: 0,
-			index: 0,
-		};
-	}
+// export function getTruncatedWidth(s: string, limit: number, ellipsisWidth: number): TruncatedStringWidthResult {
+// 	if (s == null || s.length === 0) {
+// 		return {
+// 			truncated: false,
+// 			ellipsed: false,
+// 			width: 0,
+// 			index: 0,
+// 		};
+// 	}
 
-	return getTruncatedStringWidth(s, { limit: limit, ellipsisWidth: ellipsisWidth ?? 0 }, defaultWidthOptions);
-}
+// 	return getTruncatedStringWidth(s, { limit: limit, ellipsisWidth: ellipsisWidth ?? 0 }, defaultWidthOptions);
+// }
 
-export function getWidth(s: string): number {
-	if (s == null || s.length === 0) return 0;
+// export function getWidth(s: string): number {
+// 	if (s == null || s.length === 0) return 0;
 
-	const result = getTruncatedStringWidth(s, defaultTruncationOptions, defaultWidthOptions);
-	return result.width;
-}
+// 	const result = getTruncatedStringWidth(s, defaultTruncationOptions, defaultWidthOptions);
+// 	return result.width;
+// }
 
 const superscripts = ['\u00B9', '\u00B2', '\u00B3', '\u2074', '\u2075', '\u2076', '\u2077', '\u2078', '\u2079'];
 
@@ -550,59 +550,59 @@ export function splitSingle(s: string, splitter: string) {
 	return rest != null ? [start, rest] : [start];
 }
 
-export function truncate(s: string, truncateTo: number, ellipsis: string = '\u2026', width?: number) {
-	if (!s) return s;
-	if (truncateTo <= 1) return ellipsis;
+// export function truncate(s: string, truncateTo: number, ellipsis: string = '\u2026', width?: number) {
+// 	if (!s) return s;
+// 	if (truncateTo <= 1) return ellipsis;
 
-	width = width ?? getWidth(s);
-	if (width <= truncateTo) return s;
-	if (width === s.length) return `${s.substring(0, truncateTo - 1)}${ellipsis}`;
+// 	width = width ?? getWidth(s);
+// 	if (width <= truncateTo) return s;
+// 	if (width === s.length) return `${s.substring(0, truncateTo - 1)}${ellipsis}`;
 
-	// Skip ahead to start as far as we can by assuming all the double-width characters won't be truncated
-	let chars = Math.floor(truncateTo / (width / s.length));
-	let count = getWidth(s.substring(0, chars));
-	while (count < truncateTo) {
-		count += getWidth(s[chars++]);
-	}
+// 	// Skip ahead to start as far as we can by assuming all the double-width characters won't be truncated
+// 	let chars = Math.floor(truncateTo / (width / s.length));
+// 	let count = getWidth(s.substring(0, chars));
+// 	while (count < truncateTo) {
+// 		count += getWidth(s[chars++]);
+// 	}
 
-	if (count >= truncateTo) {
-		chars--;
-	}
+// 	if (count >= truncateTo) {
+// 		chars--;
+// 	}
 
-	return `${s.substring(0, chars)}${ellipsis}`;
-}
+// 	return `${s.substring(0, chars)}${ellipsis}`;
+// }
 
-export function truncateLeft(s: string, truncateTo: number, ellipsis: string = '\u2026', width?: number) {
-	if (!s) return s;
-	if (truncateTo <= 1) return ellipsis;
+// export function truncateLeft(s: string, truncateTo: number, ellipsis: string = '\u2026', width?: number) {
+// 	if (!s) return s;
+// 	if (truncateTo <= 1) return ellipsis;
 
-	width = width ?? getWidth(s);
-	if (width <= truncateTo) return s;
-	if (width === s.length) return `${ellipsis}${s.substring(width - truncateTo)}`;
+// 	width = width ?? getWidth(s);
+// 	if (width <= truncateTo) return s;
+// 	if (width === s.length) return `${ellipsis}${s.substring(width - truncateTo)}`;
 
-	// Skip ahead to start as far as we can by assuming all the double-width characters won't be truncated
-	let chars = Math.floor(truncateTo / (width / s.length));
-	let count = getWidth(s.substring(0, chars));
-	while (count < truncateTo) {
-		count += getWidth(s[chars++]);
-	}
+// 	// Skip ahead to start as far as we can by assuming all the double-width characters won't be truncated
+// 	let chars = Math.floor(truncateTo / (width / s.length));
+// 	let count = getWidth(s.substring(0, chars));
+// 	while (count < truncateTo) {
+// 		count += getWidth(s[chars++]);
+// 	}
 
-	if (count >= truncateTo) {
-		chars--;
-	}
+// 	if (count >= truncateTo) {
+// 		chars--;
+// 	}
 
-	return `${ellipsis}${s.substring(s.length - chars)}`;
-}
+// 	return `${ellipsis}${s.substring(s.length - chars)}`;
+// }
 
-export function truncateMiddle(s: string, truncateTo: number, ellipsis: string = '\u2026') {
-	if (!s) return s;
-	if (truncateTo <= 1) return ellipsis;
+// export function truncateMiddle(s: string, truncateTo: number, ellipsis: string = '\u2026') {
+// 	if (!s) return s;
+// 	if (truncateTo <= 1) return ellipsis;
 
-	const width = getWidth(s);
-	if (width <= truncateTo) return s;
+// 	const width = getWidth(s);
+// 	if (width <= truncateTo) return s;
 
-	return `${s.slice(0, Math.floor(truncateTo / 2) - 1)}${ellipsis}${s.slice(width - Math.ceil(truncateTo / 2))}`;
-}
+// 	return `${s.slice(0, Math.floor(truncateTo / 2) - 1)}${ellipsis}${s.slice(width - Math.ceil(truncateTo / 2))}`;
+// }
 
 // Below adapted from https://github.com/pieroxy/lz-string
 

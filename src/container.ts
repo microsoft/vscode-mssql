@@ -1,5 +1,5 @@
-// import type { ConfigurationChangeEvent, Disposable, Event, ExtensionContext } from 'vscode';
-import type { ExtensionContext } from 'vscode';
+import type { Disposable, ExtensionContext } from 'vscode';
+import { WebviewsController } from './webviews/webviewsController';
 // import { EventEmitter, ExtensionMode } from 'vscode';
 // import { getSupportedGitProviders, getSupportedRepositoryPathMappingProvider } from '@env/providers';
 // import type { AIProviderService } from './ai/aiProviderService';
@@ -95,42 +95,42 @@ import type { ExtensionContext } from 'vscode';
 // import { registerSettingsWebviewCommands, registerSettingsWebviewPanel } from './webviews/settings/registration';
 // import type { WebviewViewProxy } from './webviews/webviewsController';
 // import { WebviewsController } from './webviews/webviewsController';
-// import { registerWelcomeWebviewPanel } from './webviews/welcome/registration';
+import { registerWelcomeWebviewPanel } from './webviews/connection/registration';
 
 export type Environment = 'dev' | 'staging' | 'production';
 
 export class Container {
-	// static #instance: Container | undefined;
-	// static #proxy = new Proxy<Container>({} as Container, {
-	// 	get: function (target, prop) {
-	// 		// In case anyone has cached this instance
-	// 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-	// 		if (Container.#instance != null) return (Container.#instance as any)[prop];
+	static #instance: Container | undefined;
+	static #proxy = new Proxy<Container>({} as Container, {
+		get: function (target, prop) {
+			// In case anyone has cached this instance
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			if (Container.#instance != null) return (Container.#instance as any)[prop];
 
-	// 		// Allow access to config before we are initialized
-	// 		if (prop === 'config') return configuration.getAll();
+			// Allow access to config before we are initialized
+			// if (prop === 'config') return configuration.getAll();
 
-	// 		// debugger;
-	// 		throw new Error('Container is not initialized');
-	// 	},
-	// });
+			// debugger;
+			throw new Error('Container is not initialized');
+		},
+	});
 
-	// static create(
-	// 	context: ExtensionContext,
-	// 	storage: Storage,
-	// 	prerelease: boolean,
-	// 	version: string,
-	// 	previousVersion: string | undefined,
-	// ) {
-	// 	if (Container.#instance != null) throw new Error('Container is already initialized');
+	static create(
+		context: ExtensionContext,
+		// storage: Storage,
+		// prerelease: boolean,
+		version: string,
+		// previousVersion: string | undefined,
+	) {
+		if (Container.#instance != null) throw new Error('Container is already initialized');
 
-	// 	Container.#instance = new Container(context, storage, prerelease, version, previousVersion);
-	// 	return Container.#instance;
-	// }
+		Container.#instance = new Container(context, version); // storage, prerelease, version, previousVersion);
+		return Container.#instance;
+	}
 
-	// static get instance(): Container {
-	// 	return Container.#instance ?? Container.#proxy;
-	// }
+	static get instance(): Container {
+		return Container.#instance ?? Container.#proxy;
+	}
 
 	// private _onReady: EventEmitter<void> = new EventEmitter<void>();
 	// get onReady(): Event<void> {
@@ -189,9 +189,9 @@ export class Container {
 	// };
 
 	// private readonly _connection: ServerConnection;
-	// private _disposables: Disposable[];
+	private _disposables: Disposable[];
 	// private _terminalLinks: GitTerminalLinkProvider | undefined;
-	// private _webviews: WebviewsController;
+	private _webviews: WebviewsController;
 	// private _focusIndicator: FocusIndicator | undefined;
 
 	private constructor(
@@ -200,7 +200,6 @@ export class Container {
 	) {
 		this._context = context;
 		this._version = version;
-	}
 
 	// private constructor(
 	// 	context: ExtensionContext,
@@ -214,6 +213,7 @@ export class Container {
 	// 	this._version = version;
 	// 	this.ensureModeApplied();
 
+		this._disposables = [];
 	// 	this._disposables = [
 	// 		(this._storage = storage),
 	// 		(this._telemetry = new TelemetryService(this)),
@@ -250,7 +250,7 @@ export class Container {
 	// 	this._disposables.push((this._statusBarController = new StatusBarController(this)));
 	// 	this._disposables.push((this._codeLensController = new GitCodeLensController(this)));
 
-	// 	this._disposables.push((this._webviews = new WebviewsController(this)));
+		this._disposables.push((this._webviews = new WebviewsController(this)));
 
 	// 	const graphPanels = registerGraphWebviewPanel(this._webviews);
 	// 	this._disposables.push(graphPanels);
@@ -273,7 +273,7 @@ export class Container {
 	// 	this._disposables.push(settingsPanels);
 	// 	this._disposables.push(registerSettingsWebviewCommands(settingsPanels));
 
-	// 	this._disposables.push(registerWelcomeWebviewPanel(this._webviews));
+		this._disposables.push(registerWelcomeWebviewPanel(this._webviews));
 
 	// 	this._disposables.push(new ViewFileDecorationProvider());
 
@@ -332,7 +332,7 @@ export class Container {
 	// 	});
 
 	// 	scheduleAddMissingCurrentWorkspaceRepos(this);
-	// }
+	}
 
 	// deactivate() {
 	// 	this._deactivating = true;

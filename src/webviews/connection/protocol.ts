@@ -7,8 +7,8 @@ export const scope: IpcScope = 'welcome';
 export interface State extends WebviewState {
 	version: string;
 	config: {
-		// codeLens: Config['codeLens']['enabled'];
-		// currentLine: Config['currentLine']['enabled'];
+		codeLens: boolean
+		currentLine: boolean
 	};
 	repoFeaturesBlocked?: boolean;
 	isTrialOrPaid: boolean;
