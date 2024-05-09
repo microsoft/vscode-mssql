@@ -69,7 +69,7 @@ steps:
 
   - task: gulp@1
     displayName: Package (offline)
-    condition: eq(parameters.packageOffline, 'true')
+    condition: eq( ${{ parameters.packageOffline }}, 'true')
     inputs:
       targets: package:offline
       gulpFile: ${{ parameters.gulpfile }}
