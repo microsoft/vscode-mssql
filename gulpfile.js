@@ -112,6 +112,13 @@ gulp.task('ext:copy-images', (done) => {
 		.pipe(gulp.dest('out/src/views/htmlcontent/src/images'));
 });
 
+// Copy WebView HTML
+gulp.task('ext:copy-wv-html', (done) => {
+	return gulp.src([
+		config.paths.project.root + '/src/webviews/apps/**/*.html'])
+		.pipe(gulp.dest('out/src/webviews/apps'));
+});
+
 // Clean angular slickgrid library
 gulp.task('ext:clean-library-ts-files', function () {
 	del(config.paths.project.root + '/node_modules/angular2-slickgrid/**/*.ts');
@@ -229,7 +236,9 @@ gulp.task('ext:copy-js', () => {
 });
 
 // Copy the files which aren't used in compilation
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
+gulp.task('ext:copy', gulp.series(
+	'ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config',
+	'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images', 'ext:copy-wv-html'));
 
 gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package.nls', 'ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 

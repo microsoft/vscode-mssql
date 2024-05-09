@@ -467,7 +467,8 @@ export class WebviewController<
 	private _webRootUri: Uri | undefined;
 	getWebRootUri() {
 		if (this._webRootUri == null) {
-			this._webRootUri = Uri.joinPath(this.getRootUri(), 'dist', 'webviews');
+			// this._webRootUri = Uri.joinPath(this.getRootUri(), 'dist', 'webviews');
+			this._webRootUri = Uri.joinPath(this.getRootUri(), 'out', 'src', 'webviews');
 		}
 		return this._webRootUri;
 	}

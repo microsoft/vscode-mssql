@@ -321,7 +321,11 @@ export const enum Commands {
 	ShowTagsView = 'gitlens.showTagsView',
 	ShowTimelinePage = 'gitlens.showTimelinePage',
 	ShowTimelineView = 'gitlens.showTimelineView',
-	ShowWelcomePage = 'gitlens.showWelcomePage',
+
+	ShowWelcomePage = 'mssql.showWelcomePage',
+	ShowConnectionManager = 'mssql.showConnectionManager',
+
+
 	ShowWorktreesView = 'gitlens.showWorktreesView',
 	ShowWorkspacesView = 'gitlens.showWorkspacesView',
 	StashApply = 'gitlens.stashApply',
@@ -503,8 +507,8 @@ export type TreeViewTypes =
 	| 'worktrees';
 export type TreeViewIds<T extends TreeViewTypes = TreeViewTypes> = `gitlens.views.${T}`;
 
-export type WebviewTypes = 'focus' | 'graph' | 'patchDetails' | 'settings' | 'timeline' | 'welcome';
-export type WebviewIds = `gitlens.${WebviewTypes}`;
+export type WebviewTypes = 'focus' | 'graph' | 'patchDetails' | 'settings' | 'connection' | 'welcome';
+export type WebviewIds = `mssql.${WebviewTypes}`;
 
 export type WebviewViewTypes =
 	| 'account'

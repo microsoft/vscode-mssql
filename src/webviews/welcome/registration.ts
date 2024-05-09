@@ -3,15 +3,15 @@ import { Commands } from '../../constants';
 import type { WebviewsController } from '../webviewsController';
 import type { State } from './protocol';
 
-export function registerConnectionWebviewPanel(controller: WebviewsController) {
+export function registerWelcomeWebviewPanel(controller: WebviewsController) {
 	return controller.registerWebviewPanel<State>(
-		{ id: Commands.ShowConnectionManager },
+		{ id: Commands.ShowWelcomePage },
 		{
-			id: 'mssql.connection',
-			fileName: 'apps/connection/connection.html',
+			id: 'mssql.welcome',
+			fileName: 'apps/welcome/welcome.html',
 			iconPath: 'images/sqlserver.png',
-			title: 'SQL Server Connection Manager',
-			contextKeyPrefix: `mssql:webview:connection`,
+			title: 'Welcome to MSSQL for VS Code',
+			contextKeyPrefix: `mssql:webview:welcome`,
 			// trackingFeature: 'welcomeWebview',
 			plusFeature: false,
 			column: ViewColumn.Active,
@@ -21,10 +21,10 @@ export function registerConnectionWebviewPanel(controller: WebviewsController) {
 			},
 		},
 		async (container, host) => {
-			const { ConnectionWebviewProvider } = await import(
-				/* webpackChunkName: "webview-welcome" */ './connectionWebview'
+			const { WelcomeWebviewProvider } = await import(
+				/* webpackChunkName: "webview-welcome" */ './welcomeWebview'
 			);
-			return new ConnectionWebviewProvider(container, host);
+			return new WelcomeWebviewProvider(container, host);
 		},
 	);
 }

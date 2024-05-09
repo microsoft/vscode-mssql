@@ -15,7 +15,7 @@ const emptyDisposable = Object.freeze({
 	},
 });
 
-export class ConnectionWebviewProvider implements WebviewProvider<State> {
+export class WelcomeWebviewProvider implements WebviewProvider<State> {
 	private readonly _disposable: Disposable;
 
 	constructor(
@@ -88,6 +88,7 @@ export class ConnectionWebviewProvider implements WebviewProvider<State> {
 	}
 
 	private updateConfiguration(params: UpdateConfigurationParams) {
+		//void configuration.updateEffective(`${params.type}.enabled`, params.value);
 	}
 
 	private async notifyDidChange() {

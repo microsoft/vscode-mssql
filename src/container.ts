@@ -1,5 +1,6 @@
 import type { Disposable, ExtensionContext } from 'vscode';
 import { WebviewsController } from './webviews/webviewsController';
+import { memoize } from './system/decorators/memoize';
 // import { EventEmitter, ExtensionMode } from 'vscode';
 // import { getSupportedGitProviders, getSupportedRepositoryPathMappingProvider } from '@env/providers';
 // import type { AIProviderService } from './ai/aiProviderService';
@@ -95,7 +96,8 @@ import { WebviewsController } from './webviews/webviewsController';
 // import { registerSettingsWebviewCommands, registerSettingsWebviewPanel } from './webviews/settings/registration';
 // import type { WebviewViewProxy } from './webviews/webviewsController';
 // import { WebviewsController } from './webviews/webviewsController';
-import { registerWelcomeWebviewPanel } from './webviews/connection/registration';
+import { registerConnectionWebviewPanel } from './webviews/connection/registration';
+import { registerWelcomeWebviewPanel } from './webviews/welcome/registration';
 
 export type Environment = 'dev' | 'staging' | 'production';
 
@@ -201,137 +203,10 @@ export class Container {
 		this._context = context;
 		this._version = version;
 
-	// private constructor(
-	// 	context: ExtensionContext,
-	// 	storage: Storage,
-	// 	prerelease: boolean,
-	// 	version: string,
-	// 	previousVersion: string | undefined,
-	// ) {
-	// 	this._context = context;
-	// 	this._prerelease = prerelease;
-	// 	this._version = version;
-	// 	this.ensureModeApplied();
-
 		this._disposables = [];
-	// 	this._disposables = [
-	// 		(this._storage = storage),
-	// 		(this._telemetry = new TelemetryService(this)),
-	// 		(this._usage = new UsageTracker(this, storage)),
-	// 		configuration.onDidChangeAny(this.onAnyConfigurationChanged, this),
-	// 	];
-
-	// 	this._disposables.push((this._connection = new ServerConnection(this)));
-
-	// 	this._disposables.push(
-	// 		(this._accountAuthentication = new AccountAuthenticationProvider(this, this._connection)),
-	// 	);
-	// 	this._disposables.push((this._subscription = new SubscriptionService(this, this._connection, previousVersion)));
-	// 	this._disposables.push((this._organizations = new OrganizationService(this, this._connection)));
-
-	// 	this._disposables.push((this._git = new GitProviderService(this)));
-	// 	this._disposables.push(new GitFileSystemProvider(this));
-
-	// 	this._disposables.push((this._uri = new UriService(this)));
-
-	// 	this._disposables.push((this._deepLinks = new DeepLinkService(this)));
-
-	// 	this._disposables.push((this._actionRunners = new ActionRunners(this)));
-	// 	this._disposables.push((this._documentTracker = new GitDocumentTracker(this)));
-	// 	this._disposables.push((this._lineTracker = new LineTracker(this, this._documentTracker)));
-	// 	this._disposables.push((this._keyboard = new Keyboard()));
-	// 	this._disposables.push((this._vsls = new VslsController(this)));
-	// 	this._disposables.push((this._eventBus = new EventBus()));
-	// 	this._disposables.push((this._focusProvider = new FocusProvider(this)));
-
-	// 	this._disposables.push((this._fileAnnotationController = new FileAnnotationController(this)));
-	// 	this._disposables.push((this._lineAnnotationController = new LineAnnotationController(this)));
-	// 	this._disposables.push((this._lineHoverController = new LineHoverController(this)));
-	// 	this._disposables.push((this._statusBarController = new StatusBarController(this)));
-	// 	this._disposables.push((this._codeLensController = new GitCodeLensController(this)));
-
 		this._disposables.push((this._webviews = new WebviewsController(this)));
-
-	// 	const graphPanels = registerGraphWebviewPanel(this._webviews);
-	// 	this._disposables.push(graphPanels);
-	// 	this._disposables.push(registerGraphWebviewCommands(this, graphPanels));
-	// 	this._disposables.push((this._graphView = registerGraphWebviewView(this._webviews)));
-	// 	this._disposables.push(new GraphStatusBarController(this));
-
-	// 	const focusPanels = registerFocusWebviewPanel(this._webviews);
-	// 	this._disposables.push(focusPanels);
-	// 	this._disposables.push(registerFocusWebviewCommands(focusPanels));
-
-	// 	const timelinePanels = registerTimelineWebviewPanel(this._webviews);
-	// 	this._disposables.push(timelinePanels);
-	// 	this._disposables.push(registerTimelineWebviewCommands(timelinePanels));
-	// 	this._disposables.push((this._timelineView = registerTimelineWebviewView(this._webviews)));
-
-	// 	this._disposables.push((this._rebaseEditor = new RebaseEditorProvider(this)));
-
-	// 	const settingsPanels = registerSettingsWebviewPanel(this._webviews);
-	// 	this._disposables.push(settingsPanels);
-	// 	this._disposables.push(registerSettingsWebviewCommands(settingsPanels));
-
+		this._disposables.push(registerConnectionWebviewPanel(this._webviews));
 		this._disposables.push(registerWelcomeWebviewPanel(this._webviews));
-
-	// 	this._disposables.push(new ViewFileDecorationProvider());
-
-	// 	this._disposables.push((this._repositoriesView = new RepositoriesView(this)));
-	// 	this._disposables.push((this._commitDetailsView = registerCommitDetailsWebviewView(this._webviews)));
-	// 	const patchDetailsPanels = registerPatchDetailsWebviewPanel(this._webviews);
-	// 	this._disposables.push(patchDetailsPanels);
-	// 	this._disposables.push((this._patchDetailsView = registerPatchDetailsWebviewView(this._webviews)));
-	// 	this._disposables.push((this._graphDetailsView = registerGraphDetailsWebviewView(this._webviews)));
-	// 	this._disposables.push((this._commitsView = new CommitsView(this)));
-	// 	this._disposables.push((this._fileHistoryView = new FileHistoryView(this)));
-	// 	this._disposables.push((this._lineHistoryView = new LineHistoryView(this)));
-	// 	this._disposables.push((this._branchesView = new BranchesView(this)));
-	// 	this._disposables.push((this._remotesView = new RemotesView(this)));
-	// 	this._disposables.push((this._stashesView = new StashesView(this)));
-	// 	this._disposables.push((this._tagsView = new TagsView(this)));
-	// 	this._disposables.push((this._worktreesView = new WorktreesView(this)));
-	// 	this._disposables.push((this._contributorsView = new ContributorsView(this)));
-	// 	this._disposables.push((this._searchAndCompareView = new SearchAndCompareView(this)));
-	// 	this._disposables.push((this._draftsView = new DraftsView(this)));
-	// 	this._disposables.push((this._workspacesView = new WorkspacesView(this)));
-
-	// 	this._disposables.push((this._homeView = registerHomeWebviewView(this._webviews)));
-	// 	this._disposables.push((this._accountView = registerAccountWebviewView(this._webviews)));
-
-	// 	if (configuration.get('launchpad.indicator.enabled')) {
-	// 		this._disposables.push((this._focusIndicator = new FocusIndicator(this, this._focusProvider)));
-	// 	}
-
-	// 	if (configuration.get('terminalLinks.enabled')) {
-	// 		this._disposables.push((this._terminalLinks = new GitTerminalLinkProvider(this)));
-	// 	}
-
-	// 	this._disposables.push(
-	// 		configuration.onDidChange(e => {
-	// 			if (configuration.changed(e, 'terminalLinks.enabled')) {
-	// 				this._terminalLinks?.dispose();
-	// 				this._terminalLinks = undefined;
-	// 				if (configuration.get('terminalLinks.enabled')) {
-	// 					this._disposables.push((this._terminalLinks = new GitTerminalLinkProvider(this)));
-	// 				}
-	// 			}
-
-	// 			if (configuration.changed(e, 'launchpad.indicator.enabled')) {
-	// 				this._focusIndicator?.dispose();
-	// 				this._focusIndicator = undefined;
-	// 				if (configuration.get('launchpad.indicator.enabled')) {
-	// 					this._disposables.push((this._focusIndicator = new FocusIndicator(this, this._focusProvider)));
-	// 				}
-	// 			}
-	// 		}),
-	// 	);
-
-	// 	context.subscriptions.push({
-	// 		dispose: () => this._disposables.reverse().forEach(d => void d.dispose()),
-	// 	});
-
-	// 	scheduleAddMissingCurrentWorkspaceRepos(this);
 	}
 
 	// deactivate() {
@@ -353,16 +228,6 @@ export class Container {
 	// 	queueMicrotask(() => this._onReady.fire());
 	// }
 
-	// @log()
-	// private async registerGitProviders() {
-	// 	const providers = await getSupportedGitProviders(this);
-	// 	for (const provider of providers) {
-	// 		this._disposables.push(this._git.register(provider.descriptor.id, provider));
-	// 	}
-
-	// 	// Don't wait here otherwise will we deadlock in certain places
-	// 	void this._git.registrationComplete();
-	// }
 
 	// private onAnyConfigurationChanged(e: ConfigurationChangeEvent) {
 	// 	if (!configuration.changedAny(e, extensionPrefix)) return;
@@ -382,11 +247,6 @@ export class Container {
 	// 	}
 	// }
 
-	// private _accountAuthentication: AccountAuthenticationProvider;
-	// get accountAuthentication() {
-	// 	return this._accountAuthentication;
-	// }
-
 	// private readonly _accountView: WebviewViewProxy<[]>;
 	// get accountView() {
 	// 	return this._accountView;
@@ -395,41 +255,6 @@ export class Container {
 	// private readonly _actionRunners: ActionRunners;
 	// get actionRunners() {
 	// 	return this._actionRunners;
-	// }
-
-	// private _ai: Promise<AIProviderService | undefined> | undefined;
-	// get ai() {
-	// 	if (this._ai == null) {
-	// 		async function load(this: Container) {
-	// 			try {
-	// 				const ai = new (
-	// 					await import(/* webpackChunkName: "ai" */ './ai/aiProviderService')
-	// 				).AIProviderService(this);
-	// 				this._disposables.push(ai);
-	// 				return ai;
-	// 			} catch (ex) {
-	// 				Logger.error(ex);
-	// 				return undefined;
-	// 			}
-	// 		}
-
-	// 		this._ai = load.call(this);
-	// 	}
-	// 	return this._ai;
-	// }
-
-	// private _autolinks: Autolinks | undefined;
-	// get autolinks() {
-	// 	if (this._autolinks == null) {
-	// 		this._disposables.push((this._autolinks = new Autolinks(this)));
-	// 	}
-
-	// 	return this._autolinks;
-	// }
-
-	// private readonly _branchesView: BranchesView;
-	// get branchesView() {
-	// 	return this._branchesView;
 	// }
 
 	// private _cache: CacheProvider | undefined;
@@ -441,74 +266,10 @@ export class Container {
 	// 	return this._cache;
 	// }
 
-	// private _cloudIntegrations: Promise<CloudIntegrationService | undefined> | undefined;
-	// get cloudIntegrations() {
-	// 	if (this._cloudIntegrations == null) {
-	// 		async function load(this: Container) {
-	// 			try {
-	// 				const cloudIntegrations = new (
-	// 					await import(
-	// 						/* webpackChunkName: "integrations" */ './plus/integrations/authentication/cloudIntegrationService'
-	// 					)
-	// 				).CloudIntegrationService(this, this._connection);
-	// 				return cloudIntegrations;
-	// 			} catch (ex) {
-	// 				Logger.error(ex);
-	// 				return undefined;
-	// 			}
-	// 		}
-
-	// 		this._cloudIntegrations = load.call(this);
-	// 	}
-
-	// 	return this._cloudIntegrations;
-	// }
-
-	// private _drafts: DraftService | undefined;
-	// get drafts() {
-	// 	if (this._drafts == null) {
-	// 		this._disposables.push((this._drafts = new DraftService(this, this._connection)));
-	// 	}
-	// 	return this._drafts;
-	// }
-
-	// private _repositoryIdentity: RepositoryIdentityService | undefined;
-	// get repositoryIdentity() {
-	// 	if (this._repositoryIdentity == null) {
-	// 		this._disposables.push((this._repositoryIdentity = new RepositoryIdentityService(this, this._connection)));
-	// 	}
-	// 	return this._repositoryIdentity;
-	// }
-
-	// private readonly _draftsView: DraftsView;
-	// get draftsView() {
-	// 	return this._draftsView;
-	// }
-
-	// private readonly _codeLensController: GitCodeLensController;
-	// get codeLens() {
-	// 	return this._codeLensController;
-	// }
-
-	// private readonly _commitsView: CommitsView;
-	// get commitsView() {
-	// 	return this._commitsView;
-	// }
-
-	// private readonly _commitDetailsView: WebviewViewProxy<CommitDetailsWebviewShowingArgs>;
-	// get commitDetailsView() {
-	// 	return this._commitDetailsView;
-	// }
-
 	private readonly _context: ExtensionContext;
 	get context() {
 		return this._context;
 	}
-
-	// private readonly _contributorsView: ContributorsView;
-	// get contributorsView() {
-	// 	return this._contributorsView;
-	// }
 
 	// @memoize()
 	// get debugging() {
@@ -520,20 +281,7 @@ export class Container {
 	// 	return this._deepLinks;
 	// }
 
-	// private readonly _documentTracker: GitDocumentTracker;
-	// get documentTracker() {
-	// 	return this._documentTracker;
-	// }
-
-	// private _enrichments: EnrichmentService | undefined;
-	// get enrichments() {
-	// 	if (this._enrichments == null) {
-	// 		this._disposables.push((this._enrichments = new EnrichmentService(this, new ServerConnection(this))));
-	// 	}
-
-	// 	return this._enrichments;
-	// }
-
+	// private readonly _d
 	// @memoize()
 	// get env(): Environment {
 	// 	if (this.prereleaseOrDebugging) {
@@ -550,72 +298,9 @@ export class Container {
 	// 	return this._eventBus;
 	// }
 
-	// private readonly _fileAnnotationController: FileAnnotationController;
-	// get fileAnnotations() {
-	// 	return this._fileAnnotationController;
-	// }
-
-	// private readonly _fileHistoryView: FileHistoryView;
-	// get fileHistoryView() {
-	// 	return this._fileHistoryView;
-	// }
-
 	// private readonly _focusProvider: FocusProvider;
 	// get focus(): FocusProvider {
 	// 	return this._focusProvider;
-	// }
-
-	// private readonly _git: GitProviderService;
-	// get git() {
-	// 	return this._git;
-	// }
-
-	// private _github: Promise<GitHubApi | undefined> | undefined;
-	// get github() {
-	// 	if (this._github == null) {
-	// 		async function load(this: Container) {
-	// 			try {
-	// 				const github = new (
-	// 					await import(
-	// 						/* webpackChunkName: "integrations" */ './plus/integrations/providers/github/github'
-	// 					)
-	// 				).GitHubApi(this);
-	// 				this._disposables.push(github);
-	// 				return github;
-	// 			} catch (ex) {
-	// 				Logger.error(ex);
-	// 				return undefined;
-	// 			}
-	// 		}
-
-	// 		this._github = load.call(this);
-	// 	}
-
-	// 	return this._github;
-	// }
-
-	// private _gitlab: Promise<GitLabApi | undefined> | undefined;
-	// get gitlab() {
-	// 	if (this._gitlab == null) {
-	// 		async function load(this: Container) {
-	// 			try {
-	// 				const gitlab = new (
-	// 					await import(
-	// 						/* webpackChunkName: "integrations" */ './plus/integrations/providers/gitlab/gitlab'
-	// 					)
-	// 				).GitLabApi(this);
-	// 				this._disposables.push(gitlab);
-	// 				return gitlab;
-	// 			} catch (ex) {
-	// 				Logger.error(ex);
-	// 				return undefined;
-	// 			}
-	// 		}
-
-	// 		this._gitlab = load.call(this);
-	// 	}
-
-	// 	return this._gitlab;
 	// }
 
 	// private readonly _graphDetailsView: WebviewViewProxy<CommitDetailsWebviewShowingArgs>;
@@ -633,10 +318,10 @@ export class Container {
 	// 	return this._homeView;
 	// }
 
-	// @memoize()
-	// get id() {
-	// 	return this._context.extension.id;
-	// }
+	@memoize()
+	get id() {
+		return this._context.extension.id;
+	}
 
 	// private _integrationAuthentication: IntegrationAuthenticationService | undefined;
 	// get integrationAuthentication() {

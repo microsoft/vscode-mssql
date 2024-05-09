@@ -378,8 +378,13 @@
     },
     "commands": [
       {
-				"command": "gitlens.showWelcomePage",
+				"command": "mssql.showWelcomePage",
 				"title": "Welcome",
+				"category": "MS SQL GL"
+			},
+      {
+				"command": "mssql.showConnectionManager",
+				"title": "Connection Manager",
 				"category": "MS SQL GL"
 			},
       {

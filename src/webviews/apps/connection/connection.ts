@@ -7,9 +7,9 @@ import { App } from '../shared/appBase';
 import { DOM } from '../shared/dom';
 
 
-export class WelcomeApp extends App<State> {
+export class ConnectionApp extends App<State> {
 	constructor() {
-		super('WelcomeApp');
+		super('ConnectionApp');
 	}
 
 	protected override onInitialize() {
@@ -132,5 +132,5 @@ export class WelcomeApp extends App<State> {
 	}
 }
 
-new WelcomeApp();
+new ConnectionApp();
 // requestAnimationFrame(() => new Snow());
