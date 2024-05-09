@@ -25,7 +25,7 @@ steps:
 
   - pwsh: |
       yarn --frozen-lockfile
-    displayName: "Install extension depedencies"
+    displayName: Install extension depedencies
     workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: gulp@1
