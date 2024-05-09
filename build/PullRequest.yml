@@ -10,3 +10,4 @@ steps:
   - template: ./templates/build.yml@self
     parameters:
       publishArtifactName: drop # artifact name for publish task
+      packageOffline: false # don't build offline packages for PR builds to speed runs up
