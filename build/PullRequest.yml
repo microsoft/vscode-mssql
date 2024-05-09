@@ -9,4 +9,4 @@ pool:
 steps:
   - template: ./templates/build.yml@self
     parameters:
-      publishArtifactName: drop # artifact name for publish task; enforced by OneBranch
+      publishArtifactName: drop # artifact name for publish task
