@@ -2,7 +2,9 @@
 import type { IpcScope, WebviewState } from '../protocol';
 import { IpcCommand, IpcNotification } from '../protocol';
 
-export const scope: IpcScope = 'welcome';
+export const scope: IpcScope = 'connection';
+
+export const ConnectCommand = new IpcCommand(scope, 'connect');
 
 export interface State extends WebviewState {
 	version: string;

@@ -2,7 +2,7 @@
 import type { Disposable } from 'vscode';
 import type { IpcMessage } from '../../protocol';
 import type { State } from '../../connection/protocol';
-import { DidChangeNotification, DidChangeOrgSettings, UpdateConfigurationCommand } from '../../connection/protocol';
+import { ConnectCommand, DidChangeNotification, DidChangeOrgSettings, UpdateConfigurationCommand } from '../../connection/protocol';
 import { App } from '../shared/appBase';
 import { DOM } from '../shared/dom';
 
@@ -10,10 +10,16 @@ import { DOM } from '../shared/dom';
 export class ConnectionApp extends App<State> {
 	constructor() {
 		super('ConnectionApp');
+
+		console.log('Connection.ts loading here....');
 	}
 
 	protected override onInitialize() {
 		this.updateState();
+	}
+
+	private onStartClicked() {
+		this.sendCommand(ConnectCommand, undefined);
 	}
 
 	protected override onBind(): Disposable[] {
@@ -21,6 +27,8 @@ export class ConnectionApp extends App<State> {
 			...(super.onBind?.() ?? []),
 			DOM.on('[data-feature]', 'change', (e, target: HTMLInputElement) => this.onFeatureToggled(e, target)),
 			DOM.on('[data-requires="repo"]', 'click', (e, target: HTMLElement) => this.onRepoFeatureClicked(e, target)),
+
+			DOM.on('[data-action="connect"]', 'click', () => this.onStartClicked()),
 		];
 		return disposables;
 	}

@@ -9,6 +9,7 @@
 	// map tells the System loader where to look for things
 	var map = {
 		'app': 'views/htmlcontent/src/js',
+		'connection': 'webviews/apps/connection',
 		'@angular': 'npm:@angular',
 		'rxjs': 'npm:rxjs',
 		'json': 'npm:json.js',
@@ -26,6 +27,7 @@
 	// packages tells the System loader how to load when no filename and/or no extension
 	var packages = {
 		'app': { main: 'main.js', defaultExtension: 'js' },
+		'connection': { main: 'connection.js', defaultExtension: 'js' },
 		'': { main: 'views/htmlcontent/src/js/constants.js', defaultExtension: 'js' },
 		'angular2-slickgrid': { main: 'out/index.js', defaultExtension: 'js' },
 		'/src/controllers': { defaultExtension: 'js' },
