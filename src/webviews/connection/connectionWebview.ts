@@ -1,19 +1,13 @@
 import type { ConfigurationChangeEvent } from 'vscode';
-import { Disposable, workspace } from 'vscode';
+import { Disposable } from 'vscode';
 import type { ContextKeys } from '../../constants';
 import type { Container } from '../../container';
 import { configuration } from '../../system/configuration';
-import { getContext, onDidChangeContext } from '../../system/context';
+import { onDidChangeContext } from '../../system/context';
 import type { IpcMessage } from '../protocol';
 import type { WebviewHost, WebviewProvider } from '../webviewProvider';
 import type { State, UpdateConfigurationParams } from './protocol';
-import { DidChangeNotification, DidChangeOrgSettings, UpdateConfigurationCommand } from './protocol';
-
-const emptyDisposable = Object.freeze({
-	dispose: () => {
-		/* noop */
-	},
-});
+import { ConnectCommand, DidChangeNotification, UpdateConfigurationCommand } from './protocol';
 
 export class ConnectionWebviewProvider implements WebviewProvider<State> {
 	private readonly _disposable: Disposable;
@@ -24,9 +18,6 @@ export class ConnectionWebviewProvider implements WebviewProvider<State> {
 	) {
 		this._disposable = Disposable.from(
 			configuration.onDidChange(this.onConfigurationChanged, this),
-			!workspace.isTrusted
-				? workspace.onDidGrantWorkspaceTrust(() => this.notifyDidChange(), this)
-				: emptyDisposable,
 			onDidChangeContext(this.onContextChanged, this),
 		);
 	}
@@ -43,17 +34,10 @@ export class ConnectionWebviewProvider implements WebviewProvider<State> {
 		void this.notifyDidChange();
 	}
 
-	private getOrgSettings(): State['orgSettings'] {
-		return {
-			ai: getContext<boolean>('mssql:gk:organization:ai:enabled', false),
-			drafts: getContext<boolean>('mssql:gk:organization:drafts:enabled', false),
-		};
-	}
-
 	private onContextChanged(key: ContextKeys) {
-		if (['gitlens:gk:organization:ai:enabled', 'gitlens:gk:organization:drafts:enabled'].includes(key)) {
-			this.notifyDidChangeOrgSettings();
-		}
+		// if (['mssql:connect'].includes(key)) {
+		// 	this.notifyDidChangeOrgSettings();
+		// }
 	}
 
 	private onConfigurationChanged(e: ConfigurationChangeEvent) {
@@ -67,6 +51,9 @@ export class ConnectionWebviewProvider implements WebviewProvider<State> {
 			case UpdateConfigurationCommand.is(e):
 				this.updateConfiguration(e.params);
 				break;
+			case ConnectCommand.is(e):
+				console.log('ConnectCommand');
+				break;
 		}
 	}
 
@@ -78,12 +65,7 @@ export class ConnectionWebviewProvider implements WebviewProvider<State> {
 			config: {
 				codeLens: undefined,
 				currentLine: true, // configuration.get('currentLine.enabled', undefined, true, true),
-			},
-			repoFeaturesBlocked:
-				!workspace.isTrusted,
-			isTrialOrPaid: false,
-			canShowPromo: false,
-			orgSettings: this.getOrgSettings(),
+			}
 		};
 	}
 
@@ -92,11 +74,5 @@ export class ConnectionWebviewProvider implements WebviewProvider<State> {
 
 	private async notifyDidChange() {
 		void this.host.notify(DidChangeNotification, { state: await this.getState() });
-	}
-
-	private notifyDidChangeOrgSettings() {
-		void this.host.notify(DidChangeOrgSettings, {
-			orgSettings: this.getOrgSettings(),
-		});
 	}
 }

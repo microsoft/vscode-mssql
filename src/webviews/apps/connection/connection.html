@@ -1,65 +1,15 @@
 <!doctype html>
 <html lang="en">
-
 <head>
 	<base href="#{root}/out/src/">
 	<meta http-equiv="Content-Security-Policy" content="base-uri 'self'; object-src 'none'; default-src 'self' vscode-resource: https:; script-src #{cspSource} 'unsafe-inline' 'unsafe-eval'; style-src #{cspSource} 'unsafe-hashes' 'unsafe-inline'; img-src #{cspSource} https: data:; font-src #{cspSource}" />
 	<meta charset="utf-8" />
-
-	<!-- <script src="views/htmlcontent/src/js/lib/jquery-1.8.3.js"></script>
-    <script src="views/htmlcontent/src/js/lib/jquery.event.drag-2.2.js"></script>
-    <script src="views/htmlcontent/src/js/lib/jquery-ui-1.9.2.js"></script>
-    <script src="views/htmlcontent/src/js/lib/underscore-min.js"></script>
-    <script src="views/htmlcontent/src/js/lib/slick.core.js"></script>
-    <script src="views/htmlcontent/src/js/lib/slick.grid.js"></script>
-    <script src="views/htmlcontent/src/js/lib/slick.editors.js"></script>
-    <script src="views/htmlcontent/src/js/slick.autosizecolumn.js"></script>
-    <script src="views/htmlcontent/src/js/slick.dragrowselector.js"></script>
-    <script src="views/htmlcontent/src/js/lib/rangy-core.js"></script>
-    <script src="views/htmlcontent/src/js/lib/rangy-textrange.js"></script>
-    <script src="views/htmlcontent/src/js/lib/shim.min.js"></script>
-    <script src="views/htmlcontent/src/js/lib/zone.js/dist/zone.js"></script>
-    <script src="views/htmlcontent/src/js/lib/Reflect.js"></script> -->
-
-
-
     <script src="views/htmlcontent/src/js/lib/system.src.js"></script>
     <script src="views/htmlcontent/systemjs.config.js"></script>
-
-	<!-- <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self' vscode-resource: https:;
-              script-src vscode-resource: 'self' 'unsafe-inline' 'unsafe-eval' https:;
-              style-src vscode-resource: 'self' 'unsafe-inline';
-              img-src 'self' vscode-resource: data:"/> -->
-
-	<!-- <script>var exports = {};</script>
-
-	<script src="#{root}/out/src/views/htmlcontent/src/js/lib/jquery-1.8.3.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/jquery.event.drag-2.2.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/jquery-ui-1.9.2.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/underscore-min.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/slick.core.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/slick.grid.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/slick.editors.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/slick.autosizecolumn.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/slick.dragrowselector.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/rangy-core.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/rangy-textrange.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/shim.min.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/zone.js/dist/zone.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/Reflect.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/src/js/lib/system.src.js"></script>
-    <script src="#{root}/out/src/views/htmlcontent/systemjs.config.js"></script>
-	-->
-
-	<!-- <script type="module" src="#{root}/out/src/webviews/apps/connection/connection.js" nonce="#{cspNonce}"></script> -->
-
 	<script>
 		System.import('connection').catch(function(err){ console.error(err); });
 	</script>
-
 </head>
-
 <body class="connection scrollable preload" data-placement="#{placement}"
 	data-vscode-context='{ "webview": "#{webviewId}", "webviewInstance": "#{webviewInstanceId}" }'>
 	<!-- <canvas class="snow"></canvas>
@@ -69,10 +19,10 @@
 			alt="Let it snow — Happy Holidays!"
 			src="#{root}/images/snowman.png"
 		/> -->
-	<header class="welcome__header">
-		<h1 class="welcome__brand"><gitlens-logo></gitlens-logo> <small>SQL SERVER CONNECTION</small></h1>
+	<header class="connection__header">
+		<h1><small>SQL SERVER CONNECTION</small></h1>
 	</header>
-	<main class="welcome__main">
+	<main class="connection__main">
 		<form>
 			<fieldset class="default-fieldset" aria-label="Connection Details">
 				<div class="connection-details-title">Connection Details</div>
@@ -225,20 +175,8 @@ Encrypt=Strict." style="display: flex;">
 					<button name="start" class="button button--flat-primary" data-action="connect">
 						Connect
 					</button>
-
-					<!--
-					<div class="footer-button"><a class="monaco-button monaco-text-button" role="button"
-							aria-label="Connect" aria-disabled="false"
-							style="color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border-width: 1px; border-style: solid; border-color: var(--vscode-button-border); opacity: 1; font-weight: 600; font-size: 12px; border-radius: 2px;"
-							tabindex="0">Connect</a></div>
-					<div class="footer-button"><a class="monaco-button secondary monaco-text-button" tabindex="0"
-							role="button" aria-label="Cancel"
-							style="color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border-width: 1px; border-style: solid; border-color: var(--vscode-button-secondaryBorder); opacity: 1; font-weight: 600; font-size: 12px; border-radius: 2px;">Cancel</a>
-					</div>
-				-->
 				</div>
 			</div>
-
 		</form>
 	</main>
 	#{endOfBody}

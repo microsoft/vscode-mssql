@@ -7,12 +7,12 @@ import type {
 	WebviewViewResolveContext,
 } from 'vscode';
 import { Disposable, Uri, ViewColumn, window } from 'vscode';
-import { uuid } from '../env/node/crypto';
+import { uuid } from '../env/browser/crypto';
 import type { Commands, WebviewIds, WebviewTypes, WebviewViewIds, WebviewViewTypes } from '../constants';
 import type { Container } from '../container';
 // import { ensurePlusFeaturesEnabled } from '../plus/gk/utils';
 import { executeCoreCommand, registerCommand } from '../system/command';
-import { debug } from '../system/decorators/log';
+// import { debug } from '../system/decorators/log';
 import { find, first, map } from '../system/iterable';
 import { Logger } from '../system/logger';
 import { getNewLogScope } from '../system/logger.scope';

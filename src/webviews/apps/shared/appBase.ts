@@ -19,7 +19,7 @@ import { getHostIpcApi, HostIpc } from './ipc';
 import type { ThemeChangeEvent } from './theme';
 import { computeThemeColors, onDidChangeTheme, watchThemeColors } from './theme';
 
-declare const DEBUG: boolean;
+const DEBUG: boolean = true; ////////////
 
 export abstract class App<
 	State extends { webviewId: CustomEditorIds | WebviewIds | WebviewViewIds; timestamp: number } = {

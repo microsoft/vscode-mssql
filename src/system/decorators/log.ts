@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { hrtime } from '../../env/node/hrtime';
+import { hrtime } from '../../env/browser/hrtime';
 import { getParameters } from '../function';
 import { getLoggableName, Logger } from '../logger';
 import { slowCallWarningThreshold } from '../logger.constants';

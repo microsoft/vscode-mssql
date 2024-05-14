@@ -4,10 +4,10 @@
 // 	Result as TruncatedStringWidthResult,
 // } from 'fast-string-truncated-width';
 // import getTruncatedStringWidth from 'fast-string-truncated-width';
-import { hrtime } from '../env/node/hrtime';
+import { hrtime } from '../env/browser/hrtime';
 import { CharCode } from '../constants';
 
-export { fromBase64, base64 } from '../env/node/base64';
+export { fromBase64, base64 } from '../env/browser/base64';
 
 export function capitalize(s: string) {
 	return `${s[0].toLocaleUpperCase()}${s.slice(1)}`;

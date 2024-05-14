@@ -1,8 +1,8 @@
 /*global*/
 import type { Disposable } from 'vscode';
 import type { IpcMessage } from '../../protocol';
-import type { State } from '../../connection/protocol';
-import { DidChangeNotification, DidChangeOrgSettings, UpdateConfigurationCommand } from '../../connection/protocol';
+import type { State } from '../../welcome/protocol';
+import { DidChangeNotification, DidChangeOrgSettings, UpdateConfigurationCommand } from '../../welcome/protocol';
 import { App } from '../shared/appBase';
 import { DOM } from '../shared/dom';
 

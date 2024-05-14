@@ -1,4 +1,4 @@
-import { hrtime } from '../env/node/hrtime';
+import { hrtime } from '../env/browser/hrtime';
 import type { LogProvider } from './logger';
 import { defaultLogProvider } from './logger';
 import type { LogLevel } from './logger.constants';

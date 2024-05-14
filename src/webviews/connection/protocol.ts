@@ -4,7 +4,6 @@ import { IpcCommand, IpcNotification } from '../protocol';
 
 export const scope: IpcScope = 'connection';
 
-export const ConnectCommand = new IpcCommand(scope, 'connect');
 
 export interface State extends WebviewState {
 	version: string;
@@ -12,13 +11,10 @@ export interface State extends WebviewState {
 		codeLens: boolean
 		currentLine: boolean
 	};
-	repoFeaturesBlocked?: boolean;
-	isTrialOrPaid: boolean;
-	canShowPromo: boolean;
-	orgSettings: {
-		ai: boolean;
-		drafts: boolean;
-	};
+	serverName?: string;
+	databaseName?: string;
+	username?: string;
+	password?: string;
 }
 
 // COMMANDS
@@ -29,6 +25,9 @@ export interface UpdateConfigurationParams {
 }
 export const UpdateConfigurationCommand = new IpcCommand<UpdateConfigurationParams>(scope, 'configuration/update');
 
+export const ConnectCommand = new IpcCommand(scope, 'connection/connect');
+export const CancelCommand = new IpcCommand(scope, 'connection/cancel');
+
 // NOTIFICATIONS
 
 export interface DidChangeParams {
@@ -36,7 +35,3 @@ export interface DidChangeParams {
 }
 export const DidChangeNotification = new IpcNotification<DidChangeParams>(scope, 'didChange', true);
 
-export interface DidChangeOrgSettingsParams {
-	orgSettings: State['orgSettings'];
-}
-export const DidChangeOrgSettings = new IpcNotification<DidChangeOrgSettingsParams>(scope, 'org/settings/didChange');
