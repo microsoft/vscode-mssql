@@ -74,7 +74,7 @@ steps:
       targets: package:offline
       gulpFile: ${{ parameters.gulpfile }}
 
-  # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
+  # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact task can't use wildcards
   - task: CopyFiles@2
     displayName: 'Copy VSIXs to clean folder'
     inputs:
