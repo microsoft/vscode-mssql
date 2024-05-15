@@ -377,6 +377,10 @@
     },
     "commands": [
       {
+        "command": "mssql.WelcomePageReact",
+        "title": "MSSQL: Welcome Page"
+      },
+      {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
         "category": "MS SQL",

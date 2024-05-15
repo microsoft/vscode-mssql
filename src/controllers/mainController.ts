@@ -183,6 +183,76 @@ export default class MainController implements vscode.Disposable {
 				vscode.workspace.getConfiguration().update(Constants.cmdObjectExplorerGroupBySchemaFlagName, false, true);
 			});
 
+			this.registerCommand('mssql.WelcomePageReact');
+			this._event.on('mssql.WelcomePageReact', async () => {
+				const panel = vscode.window.createWebviewPanel(
+					'welcomePage',
+					'Welcome',
+					vscode.ViewColumn.One,
+					{
+						enableScripts: true,
+						localResourceRoots: [
+							vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist')
+						]
+					}
+				);
+				console.log('localResourceRoots', panel.webview.options.localResourceRoots)
+				const scriptUri = panel.webview.asWebviewUri(
+					vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist', 'assets', 'index.js')
+				);
+
+				const styleUri = panel.webview.asWebviewUri(
+					vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist', 'assets', 'index.css')
+				);
+
+				const baseUri = panel.webview.asWebviewUri(
+					vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist')
+				);
+				const nonce = getNonce();
+				panel.webview.html = `<!DOCTYPE html>
+				<html lang="en">
+				<head>
+				  <meta charset="UTF-8">
+				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+				  <title>reacttree</title>
+				  <link rel="stylesheet" href="${styleUri}">
+				  <base href="${baseUri}/">
+				</head>
+				<body>
+				  <div id="root"></div>
+				  <script nonce="${nonce}" src="${scriptUri}"></script>
+
+				</body>
+				</html>
+			  `;
+
+				const rpcHandlers = {
+					getImageUrl: (path) => {
+						const imagePath = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist', path)).toString();
+						return imagePath;
+					},
+					showDemoAlert: (message) => {
+						vscode.window.showInformationMessage(message);
+					},
+				};
+
+				panel.webview.onDidReceiveMessage(async (message) => {
+					switch (message.type) {
+						case 'rpc':
+							const { id, method, params } = message;
+							if (rpcHandlers[method]) {
+								const result = await rpcHandlers[method](params);
+								panel.webview.postMessage({ type: 'rpcResponse', id, result });
+							}
+					}
+				});
+				panel.webview.postMessage({
+					type: 'notification', method: 'setRoute', params: {
+						route: '/queryPlan'
+					}
+				});
+			});
+
 			this.initializeQueryHistory();
 
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
@@ -1326,4 +1396,14 @@ export default class MainController implements vscode.Disposable {
 	public onClearAzureTokenCache(): void {
 		this.connectionManager.onClearTokenCache();
 	}
+}
+
+export function getNonce(): string {
+	let text: string = "";
+	const possible: string =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
 }
