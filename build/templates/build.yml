@@ -2,8 +2,11 @@ parameters:
   - name: gulpfile
     type: string
     default: "$(Build.SourcesDirectory)/gulpfile.js"
-  - name: publishArtifactName  # artifact name for publish task; enforced by OneBranch
+  - name: publishArtifactName  # artifact name for publish task
     type: string
+  - name: packageOffline
+    type: boolean
+    default: true
 
 steps:
   - task: UseNode@1
@@ -22,7 +25,7 @@ steps:
 
   - pwsh: |
       yarn --frozen-lockfile
-    displayName: "Install extension depedencies"
+    displayName: Install extension depedencies
     workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: gulp@1
@@ -66,10 +69,12 @@ steps:
 
   - task: gulp@1
     displayName: Package (offline)
+    condition: eq( ${{ parameters.packageOffline }}, 'true')
     inputs:
       targets: package:offline
       gulpFile: ${{ parameters.gulpfile }}
 
+  # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
     displayName: 'Copy VSIXs to clean folder'
     inputs:
