@@ -192,21 +192,21 @@ export default class MainController implements vscode.Disposable {
 					{
 						enableScripts: true,
 						localResourceRoots: [
-							vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist')
+							vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app')
 						]
 					}
 				);
 				console.log('localResourceRoots', panel.webview.options.localResourceRoots)
 				const scriptUri = panel.webview.asWebviewUri(
-					vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist', 'assets', 'index.js')
+					vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', 'assets', 'index.js')
 				);
 
 				const styleUri = panel.webview.asWebviewUri(
-					vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist', 'assets', 'index.css')
+					vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', 'assets', 'index.css')
 				);
 
 				const baseUri = panel.webview.asWebviewUri(
-					vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist')
+					vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', 'out')
 				);
 				const nonce = getNonce();
 				panel.webview.html = `<!DOCTYPE html>
@@ -228,7 +228,7 @@ export default class MainController implements vscode.Disposable {
 
 				const rpcHandlers = {
 					getImageUrl: (path) => {
-						const imagePath = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'mssql-react-app', 'dist', path)).toString();
+						const imagePath = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', path)).toString();
 						return imagePath;
 					},
 					showDemoAlert: (message) => {

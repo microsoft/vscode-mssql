@@ -14,5 +14,6 @@ export default defineConfig({
         assetFileNames: `assets/[name].[ext]`
       }
     },
+    outDir: '../out/mssql-react-app'
   }
 })
