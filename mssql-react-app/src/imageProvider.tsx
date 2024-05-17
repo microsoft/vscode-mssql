@@ -25,7 +25,10 @@ interface ImageProviderProps {
 }
 const ImageProvider: React.FC<ImageProviderProps> = ({ children }) => {
 
-	const [imageSources, setImageSources] = useState<Record<ImageKeys, string>>({});
+	const [imageSources, setImageSources] = useState<Record<ImageKeys, string>>({
+		[ImageKeys.vite]: '',
+		[ImageKeys.react]: '',
+	});
 
 	useEffect(() => {
 		const fetchImages = async () => {

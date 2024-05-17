@@ -1,32 +1,41 @@
 import { PrimaryButton } from "@fluentui/react";
-import { useContext } from "react";
-import { ImageContext, ImageKeys } from '../imageProvider';
 import { rpc } from "../utils/rpc";
+import { useContext } from "react";
+import { StateContext } from "../StateProvider";
+import { makeStyles, shorthands } from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    ...shorthands.gap('10px'),
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  }
+})
+
 
 export const WelcomePage = () => {
-	const imageSources = useContext(ImageContext);
-	return (
-		<>
-        <div>
-          <a href="https://vitejs.dev" target="_blank">
-            <img src={imageSources?.imageSources[ImageKeys.vite]} className="logo" alt="Vite logo" />
-          </a>
-          <a href="https://react.dev" target="_blank">
-            <img src={imageSources?.imageSources[ImageKeys.react]} className="logo react" alt="React logo" />
-          </a>
-        </div>
-        <h1>Vite + React</h1>
-        <div className="card">
-          <PrimaryButton
-            text='Click me'
-            onClick={() => {
-              rpc.call('showDemoAlert', 'Hello from React!');
-            }}
-          />
-        </div>
-        <p className="read-the-docs">
-          Click on the Vite and React logos to learn more
-        </p>
-      </>
-	);
+  const state = useContext(StateContext);
+  const classNames = useStyles();
+  return (
+    <div className={classNames.root}>
+      <h1>Count: {(state?.state?.state as WelcomePageState)?.count}</h1>
+      <div className="card">
+        <PrimaryButton
+          text='Click me'
+          onClick={() => {
+            rpc.action('increment');
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+
+export interface WelcomePageState {
+  count: number;
 }

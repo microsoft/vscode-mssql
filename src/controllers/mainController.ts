@@ -41,6 +41,7 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { ReactWebViewPanelController, ReactWebViewRoutes } from './reactWebviewController';
 
 /**
  * The main controller class that initializes the extension
@@ -185,71 +186,21 @@ export default class MainController implements vscode.Disposable {
 
 			this.registerCommand('mssql.WelcomePageReact');
 			this._event.on('mssql.WelcomePageReact', async () => {
-				const panel = vscode.window.createWebviewPanel(
-					'welcomePage',
+				const reactPanel = new ReactWebViewPanelController(
+					this._context,
 					'Welcome',
+					ReactWebViewRoutes.home,
 					vscode.ViewColumn.One,
 					{
-						enableScripts: true,
-						localResourceRoots: [
-							vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app')
-						]
+						count: 0
 					}
 				);
-				console.log('localResourceRoots', panel.webview.options.localResourceRoots)
-				const scriptUri = panel.webview.asWebviewUri(
-					vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', 'assets', 'index.js')
-				);
-
-				const styleUri = panel.webview.asWebviewUri(
-					vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', 'assets', 'index.css')
-				);
-
-				const baseUri = panel.webview.asWebviewUri(
-					vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', 'out')
-				);
-				const nonce = getNonce();
-				panel.webview.html = `<!DOCTYPE html>
-				<html lang="en">
-				<head>
-				  <meta charset="UTF-8">
-				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-				  <title>reacttree</title>
-				  <link rel="stylesheet" href="${styleUri}">
-				  <base href="${baseUri}/">
-				</head>
-				<body>
-				  <div id="root"></div>
-				  <script nonce="${nonce}" src="${scriptUri}"></script>
-
-				</body>
-				</html>
-			  `;
-
-				const rpcHandlers = {
-					getImageUrl: (path) => {
-						const imagePath = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app', path)).toString();
-						return imagePath;
-					},
-					showDemoAlert: (message) => {
-						vscode.window.showInformationMessage(message);
-					},
-				};
-
-				panel.webview.onDidReceiveMessage(async (message) => {
-					switch (message.type) {
-						case 'rpc':
-							const { id, method, params } = message;
-							if (rpcHandlers[method]) {
-								const result = await rpcHandlers[method](params);
-								panel.webview.postMessage({ type: 'rpcResponse', id, result });
-							}
-					}
-				});
-				panel.webview.postMessage({
-					type: 'notification', method: 'setRoute', params: {
-						route: '/queryPlan'
-					}
+				reactPanel.revealToForeground();
+				reactPanel.registerReducer('increment', (state, action) => {
+					return {
+						...state,
+						count: state.count + 1
+					};
 				});
 			});
 

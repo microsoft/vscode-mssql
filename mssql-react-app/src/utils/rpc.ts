@@ -8,7 +8,8 @@ class webViewRpc {
 	constructor() {
 		window.addEventListener('message', (event) => {
 			const message = event.data;
-            if (message.type === 'rpcResponse') {
+            if (message.type === 'response') {
+				console.log('response', message, this.rpcCallbacks);
                 const { id, result, error } = message;
                 if (this.rpcCallbacks[id]) {
                     if (error) {
@@ -30,12 +31,16 @@ class webViewRpc {
 
 	}
 
-	public call(method: string, params: unknown): Promise<unknown> {
+	public call(method: string, params?: unknown): Promise<unknown> {
 		const id = this.rpcId++;
-		vscodeApi.postMessage({ type: 'rpc', id, method, params });
+		vscodeApi.postMessage({ type: 'request', id, method, params });
 		return new Promise((resolve, reject) => {
 			this.rpcCallbacks[id] = { resolve, reject };
 		});
+	}
+
+	public action(type: string, payload?: unknown) {
+		this.call('action', { type, payload });
 	}
 
 	public subscribe(method: string, callback: (params: unknown) => void) {
