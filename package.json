@@ -381,6 +381,10 @@
         "title": "MSSQL: Welcome Page"
       },
       {
+        "command": "mssql.TableDesigner",
+        "title": "MSSQL: TableDesigner"
+      },
+      {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
         "category": "MS SQL",

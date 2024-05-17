@@ -203,6 +203,17 @@ export default class MainController implements vscode.Disposable {
 					};
 				});
 			});
+			this.registerCommand('mssql.TableDesigner');
+			this._event.on('mssql.TableDesigner', async () => {
+				const reactPanel = new ReactWebViewPanelController(
+					this._context,
+					'Table Designer',
+					ReactWebViewRoutes.tableDesigner,
+					vscode.ViewColumn.One,
+					undefined
+				);
+				reactPanel.revealToForeground();
+			});
 
 			this.initializeQueryHistory();
 
