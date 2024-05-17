@@ -29,7 +29,7 @@ function App() {
   }, [state?.state?.route, navigate])
 
   return (
-    <FluentProvider className={className.root} theme={ [ColorThemeKind.Dark, ColorThemeKind.Light].includes(state?.state?.theme ?? ColorThemeKind.Dark) ? webDarkTheme : webLightTheme}>
+    <FluentProvider className={className.root}  theme={ [ColorThemeKind.Dark, ColorThemeKind.Light].includes(state?.state?.theme ?? ColorThemeKind.Dark) ? webDarkTheme : webLightTheme}>
       <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route path='/tableDesigner' element={<TableDesigner />} />

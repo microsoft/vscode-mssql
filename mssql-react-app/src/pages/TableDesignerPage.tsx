@@ -1,18 +1,29 @@
 import { Toolbar, ToolbarButton } from "@fluentui/react-toolbar";
 import { DocumentChevronDoubleRegular } from "@fluentui/react-icons";
-import { Separator, Stack } from "@fluentui/react";
 import { Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger } from "@fluentui/react-dialog";
 import { Button } from "@fluentui/react-button";
 import { DatabaseArrowDownRegular } from "@fluentui/react-icons";
+import { makeStyles, shorthands } from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+	root: {
+		display: 'flex',
+		flexDirection: 'column',
+		just: 'center',
+		alignItems: 'center',
+		width: '100%',
+		height: '100%',
+		...shorthands.gap('10px'),
+	}
+});
 
 export const TableDesigner = () => {
+	const classNames = useStyles();
 	return (
 		<div>
 			<div>
 				<Toolbar size="small">
-					<Stack horizontal tokens={
-						{ childrenGap: 10 }
-					}>
+					<div className={classNames.root}>
 						<ToolbarButton
 							aria-label="Generate Script"
 							title="Generate"
@@ -25,7 +36,7 @@ export const TableDesigner = () => {
 						>
 							Script As Create
 						</ToolbarButton>
-					</Stack>
+					</div>
 					<Dialog>
 						<DialogTrigger disableButtonEnhancement>
 							<ToolbarButton
@@ -58,8 +69,6 @@ export const TableDesigner = () => {
 						</DialogSurface>
 					</Dialog>
 				</Toolbar>
-				<Separator>
-				</Separator>
 			</div>
 		</div >
 	);

@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fluentui/react": "^8.118.2",
     "@fluentui/react-components": "^9.51.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/webview-ui-toolkit": "^1.4.0",
