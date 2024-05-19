@@ -87,7 +87,7 @@ gulp.task('ext:compile-view', (done) => {
 
 // Compile react views
 gulp.task('ext:compile-mssql-react-app', (done) => {
-	return exec('cd mssql-react-app && vite build --emptyOutDir', (err, stdout, stderr) => {
+	return exec('cd mssql-react-app && yarn dev', (err, stdout, stderr) => {
 		if (err) {
 			console.error(err);
 			return;

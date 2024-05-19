@@ -50,7 +50,8 @@
   "scripts": {
     "build": "gulp build",
     "compile": "gulp ext:compile",
-    "watch": "gulp watch"
+    "watch": "gulp watch",
+    "install:all": "yarn install && cd mssql-react-app && yarn install && cd .."
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
