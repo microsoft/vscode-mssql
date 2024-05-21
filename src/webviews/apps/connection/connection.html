@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<base href="#{root}/out/src/">
+	<meta http-equiv="Content-Security-Policy" content="base-uri 'self'; object-src 'none'; default-src 'self' vscode-resource: https:; script-src #{cspSource} 'unsafe-inline' 'unsafe-eval'; style-src #{cspSource} 'unsafe-hashes' 'unsafe-inline'; img-src #{cspSource} https: data:; font-src #{cspSource}" />
+	<meta charset="utf-8" />
+    <script src="views/htmlcontent/src/js/lib/system.src.js"></script>
+    <script src="views/htmlcontent/systemjs.config.js"></script>
+	<script>
+		System.import('connection').catch(function(err){ console.error(err); });
+	</script>
+</head>
+<body class="connection scrollable preload" data-placement="#{placement}"
+	data-vscode-context='{ "webview": "#{webviewId}", "webviewInstance": "#{webviewInstanceId}" }'>
+	<!-- <canvas class="snow"></canvas>
+		<img
+			class="snow__trigger snow__trigger--fixed-right snow__trigger--flipped"
+			title="Let it snow — Happy Holidays!"
+			alt="Let it snow — Happy Holidays!"
+			src="#{root}/images/snowman.png"
+		/> -->
+	<header class="connection__header">
+		<h1><small>SQL SERVER CONNECTION</small></h1>
+	</header>
+	<main class="connection__main">
+		<form>
+			<fieldset class="default-fieldset" aria-label="Connection Details">
+				<div class="connection-details-title">Connection Details</div>
+
+				<div class="connection-provider-info" id="connectionProviderInfo">
+					<div class="connection-table">
+						<table class="connection-table-content hide-azure-tenants hide-azure-accounts"
+							role="presentation">
+
+							<tr class="server-name-row">
+								<td class="connection-label">
+									<div class="dialog-label-container required-indicator" style="display: flex;">
+										<div>Server</div>
+									</div>
+								</td>
+								<td class="connection-input">
+									<div class="monaco-inputbox idle synthetic-focus"
+										style="background-color: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border, transparent);">
+										<div class="ibwrapper"><input class="input empty" autocorrect="off"
+												autocapitalize="off" spellcheck="false" type="text" wrap="off"
+												aria-label="Server" placeholder="e.g. servername,port"
+												title="e.g. servername,port" required=""
+												style="background-color: inherit; color: var(--vscode-input-foreground);">
+										</div>
+									</div>
+								</td>
+							</tr>
+							<tr class="auth-type-row">
+								<td class="connection-label">
+									<div class="dialog-label-container" style="display: flex;">
+										<div>Authentication type</div>
+									</div>
+								</td>
+								<td class="connection-input select-container"><select class="monaco-select-box"
+										aria-label="Authentication type" title="SQL Login"
+										style="background-color: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border-color: var(--vscode-dropdown-border);">
+										<option value="SQL Login">SQL Login</option>
+										<option value="Windows Authentication">Windows Authentication</option>
+										<option value="Microsoft Entra ID - Universal with MFA support">Microsoft Entra
+											ID -
+											Universal with MFA support</option>
+									</select></td>
+							</tr>
+							<tr class="username-row">
+								<td class="connection-label">
+									<div class="dialog-label-container required-indicator" style="display: flex;">
+										<div>User name</div>
+									</div>
+								</td>
+								<td class="connection-input">
+									<div class="monaco-inputbox idle"
+										style="background-color: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border, transparent);">
+										<div class="ibwrapper"><input class="input empty" autocorrect="off"
+												autocapitalize="off" spellcheck="false" type="text" wrap="off"
+												aria-label="User name" required=""
+												style="background-color: inherit; color: var(--vscode-input-foreground);">
+										</div>
+									</div>
+								</td>
+							</tr>
+							<tr class="password-row">
+								<td class="connection-label">
+									<div class="dialog-label-container" style="display: flex;">
+										<div>Password</div>
+									</div>
+								</td>
+								<td class="connection-input">
+									<div class="monaco-inputbox idle"
+										style="background-color: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border);">
+										<div class="ibwrapper"><input class="input empty" autocorrect="off"
+												autocapitalize="off" spellcheck="false" type="password" wrap="off"
+												aria-label="Password"
+												style="background-color: inherit; color: var(--vscode-input-foreground);">
+										</div>
+									</div>
+								</td>
+							</tr>
+							<tr class="password-row">
+								<td></td>
+								<td class="connection-input"><input type="checkbox"
+										id="73252f1a-af30-4c2a-b290-6121d98484ab" aria-label="Remember password"
+										style="vertical-align: middle;"><label
+										for="73252f1a-af30-4c2a-b290-6121d98484ab"
+										style="vertical-align: middle; color: inherit;">Remember password</label></td>
+							</tr>
+
+							<tr class="database-row">
+								<td class="connection-label">
+									<div class="dialog-label-container" style="display: flex;">
+										<div>Database</div>
+									</div>
+								</td>
+
+								<td class="connection-input">
+									<div class="monaco-inputbox idle"
+										style="background-color: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border);">
+										<div class="ibwrapper"><input class="input empty" autocorrect="off"
+												autocapitalize="off" spellcheck="false" type="password" wrap="off"
+												aria-label="Database"
+												style="background-color: inherit; color: var(--vscode-input-foreground);">
+										</div>
+									</div>
+								</td>
+
+							</tr>
+							<tr class="custom-connection-options option-encrypt">
+								<td class="connection-label">
+									<div class="dialog-label-container info-icon" title="When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client
+and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0
+for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022
+onwards." style="display: flex;">
+										<div>Encrypt</div>
+									</div>
+								</td>
+								<td class="connection-input select-container">
+									<div class="monaco-selectbox idle"></div><select class="monaco-select-box"
+										aria-label="Encrypt" title="Mandatory (True)" id="encrypt"
+										style="background-color: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border-color: var(--vscode-dropdown-border);">
+										<option value="Mandatory (True)">Mandatory (True)</option>
+										<option value="Strict">Strict</option>
+										<option value="Optional (False)">Optional (False)</option>
+									</select>
+								</td>
+							</tr>
+							<tr class="custom-connection-options option-trustServerCertificate">
+								<td class="connection-label">
+									<div class="dialog-label-container info-icon" title="When true (and encrypt=true), SQL Server uses SSL encryption for all data sent between the client
+and server without validating the server certificate. This property is not supported with
+Encrypt=Strict." style="display: flex;">
+										<div>Trust server certificate</div>
+									</div>
+								</td>
+								<td class="connection-input select-container">
+									<div class="monaco-selectbox idle"></div><select class="monaco-select-box"
+										aria-label="Trust server certificate" title="False" id="trustServerCertificate"
+										style="background-color: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border-color: var(--vscode-dropdown-border);">
+										<option value="True">True</option>
+										<option value="False">False</option>
+									</select>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</fieldset>
+
+
+			<div class="modal-footer">
+				<div class="right-footer">
+					<button name="start" class="button button--flat-primary" data-action="connect">
+						Connect
+					</button>
+				</div>
+			</div>
+		</form>
+	</main>
+	#{endOfBody}
+</body>
+
+</html>
