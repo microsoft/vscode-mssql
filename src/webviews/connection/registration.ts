@@ -22,7 +22,7 @@ export function registerConnectionWebviewPanel(controller: WebviewsController) {
 		},
 		async (container, host) => {
 			const { ConnectionWebviewProvider } = await import(
-				/* webpackChunkName: "webview-welcome" */ './connectionWebview'
+				/* webpackChunkName: "webview-connection" */ './connectionWebview'
 			);
 			return new ConnectionWebviewProvider(container, host);
 		},

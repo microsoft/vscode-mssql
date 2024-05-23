@@ -2,9 +2,6 @@
 {
 	"version": "0.1.0",
 	"configurations": [
-
-
-
 		{
 			"type": "node",
 			"request": "launch",
@@ -20,7 +17,7 @@
 			"name": "Gulp task",
 			"program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
 			"args": [
-				"package:offline"
+				"ext:compile-src"
 			]
 		},
 		{

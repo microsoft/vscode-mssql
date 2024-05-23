@@ -16,6 +16,19 @@
         "experimentalDecorators": true,
         "rootDir": ".",
         "noUnusedLocals": false,
+        "jsx": "react-jsx",
+        //"strict": false
+        // "allowImportingTsExtensions": true,
+        // "resolveJsonModule": true,
+        // "isolatedModules": true,
+        // "noEmit": false,
+
+        // "composite": true,
+        "skipLibCheck": true,
+        // "strict": false,
+        // "useDefineForClassFields": true,
+        // "resolveJsonModule": true,
+
     },
     "exclude": [
         "node_modules"

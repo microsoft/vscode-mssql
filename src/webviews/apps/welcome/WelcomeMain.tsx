@@ -1,9 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import { ImageProvider } from './imageProvider.tsx';
+import App from './App'
+import { ImageProvider } from './imageProvider';
 import { MemoryRouter as Router } from 'react-router-dom';
-import { StateProvider } from './StateProvider.tsx';
+import { StateProvider } from './StateProvider';
 
 export const vscodeApi = acquireVsCodeApi<number>();
 ReactDOM.createRoot(document.getElementById('root')!).render(

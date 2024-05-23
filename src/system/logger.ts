@@ -25,8 +25,11 @@ export interface LogChannel {
 }
 
 export const Logger = new (class Logger {
-	private output: LogChannel | undefined;
-	private provider: LogChannelProvider | undefined;
+	output: LogChannel | undefined;
+	provider: LogChannelProvider | undefined;
+	_isDebugging = false;
+	level: OrderedLevel = OrderedLevel.Off;
+	_logLevel: LogLevel = 'off';
 
 	configure(provider: LogChannelProvider, logLevel: LogLevel, debugging: boolean = false) {
 		this.provider = provider;
@@ -39,13 +42,10 @@ export const Logger = new (class Logger {
 		return this.level >= toOrderedLevel(level);
 	}
 
-	private _isDebugging = false;
 	get isDebugging() {
 		return this._isDebugging;
 	}
 
-	private level: OrderedLevel = OrderedLevel.Off;
-	private _logLevel: LogLevel = 'off';
 	get logLevel(): LogLevel {
 		return this._logLevel;
 	}
@@ -196,7 +196,7 @@ export const Logger = new (class Logger {
 		}
 	}
 
-	private toLoggableParams(debugOnly: boolean, params: any[]) {
+	toLoggableParams(debugOnly: boolean, params: any[]) {
 		if (params.length === 0 || (debugOnly && this.level < OrderedLevel.Debug && !this.isDebugging)) {
 			return '';
 		}
