@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import SqlToolsServiceClient from "../languageservice/serviceclient";
+import SqlToolsServiceClient from '../languageservice/serviceclient';
 import * as vscodeMssql from 'vscode-mssql';
-import { DisposeTableDesignerRequest, InitializeTableDesignerRequest, ProcessTableDesignerEditRequest, PublishTableDesignerChangesRequest, TableDesignerGenerateChangePreviewReportRequest, TableDesignerGenerateScriptRequest } from "../models/contracts/tableDesigner";
+import { DisposeTableDesignerRequest, InitializeTableDesignerRequest, ProcessTableDesignerEditRequest, PublishTableDesignerChangesRequest, TableDesignerGenerateChangePreviewReportRequest, TableDesignerGenerateScriptRequest } from '../models/contracts/tableDesigner';
 
 export class TableDesignerService implements vscodeMssql.designers.TableDesignerProvider {
 	constructor(private _sqlToolsClient: SqlToolsServiceClient) {
@@ -26,33 +26,33 @@ export class TableDesignerService implements vscodeMssql.designers.TableDesigner
 			throw e;
 		}
 	}
-	publishChanges(table: vscodeMssql.designers.TableInfo): Thenable<vscodeMssql.designers.PublishChangesResult> {
+	async publishChanges(table: vscodeMssql.designers.TableInfo): Promise<vscodeMssql.designers.PublishChangesResult> {
 		try {
-			return this._sqlToolsClient.sendRequest(PublishTableDesignerChangesRequest.type, table);
+			return await this._sqlToolsClient.sendRequest(PublishTableDesignerChangesRequest.type, table);
 		} catch (e) {
 			this._sqlToolsClient.logger.error(e);
 			throw e;
 		}
 	}
-	generateScript(table: vscodeMssql.designers.TableInfo): Thenable<string> {
+	async generateScript(table: vscodeMssql.designers.TableInfo): Promise<string> {
 		try {
-			return this._sqlToolsClient.sendRequest(TableDesignerGenerateScriptRequest.type, table);
+			return await this._sqlToolsClient.sendRequest(TableDesignerGenerateScriptRequest.type, table);
 		} catch (e) {
 			this._sqlToolsClient.logger.error(e);
 			throw e;
 		}
 	}
-	generatePreviewReport(table: vscodeMssql.designers.TableInfo): Thenable<vscodeMssql.designers.GeneratePreviewReportResult> {
+	async generatePreviewReport(table: vscodeMssql.designers.TableInfo): Promise<vscodeMssql.designers.GeneratePreviewReportResult> {
 		try {
-			return this._sqlToolsClient.sendRequest(TableDesignerGenerateChangePreviewReportRequest.type, table);
+			return await this._sqlToolsClient.sendRequest(TableDesignerGenerateChangePreviewReportRequest.type, table);
 		} catch (e) {
 			this._sqlToolsClient.logger.error(e);
 			throw e;
 		}
 	}
-	disposeTableDesigner(table: vscodeMssql.designers.TableInfo): Thenable<void> {
+	async disposeTableDesigner(table: vscodeMssql.designers.TableInfo): Promise<void> {
 		try {
-			return this._sqlToolsClient.sendRequest(DisposeTableDesignerRequest.type, table);
+			return await this._sqlToolsClient.sendRequest(DisposeTableDesignerRequest.type, table);
 		} catch (e) {
 			this._sqlToolsClient.logger.error(e);
 			throw e;

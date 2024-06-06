@@ -1,9 +1,9 @@
 import * as vscodeMssql from 'vscode-mssql';
 import { RequestType } from 'vscode-languageclient';
 
-export interface TableDesignerEditRequestParams {
-	tableInfo: vscodeMssql.designers.TableInfo,
-	tableChangeInfo: vscodeMssql.designers.DesignerEdit
+export interface ITableDesignerEditRequestParams {
+	tableInfo: vscodeMssql.designers.TableInfo;
+	tableChangeInfo: vscodeMssql.designers.DesignerEdit;
 }
 
 export namespace InitializeTableDesignerRequest {
@@ -11,7 +11,7 @@ export namespace InitializeTableDesignerRequest {
 }
 
 export namespace ProcessTableDesignerEditRequest {
-	export const type = new RequestType<TableDesignerEditRequestParams, vscodeMssql.designers.DesignerEditResult<vscodeMssql.designers.TableDesignerView>, void, void>('tabledesigner/processedit');
+	export const type = new RequestType<ITableDesignerEditRequestParams, vscodeMssql.designers.DesignerEditResult<vscodeMssql.designers.TableDesignerView>, void, void>('tabledesigner/processedit');
 }
 
 export namespace PublishTableDesignerChangesRequest {
