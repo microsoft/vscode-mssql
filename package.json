@@ -918,6 +918,21 @@
           ],
           "scope": "resource"
         },
+        "mssql.cloud.enablePublicCloud": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.azure.enablePublicCloudDescription%"
+        },
+        "mssql.cloud.enableUsGovCloud": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.azure.enableUsGovCloudDescription%"
+        },
+        "mssql.cloud.enableChinaCloud": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.azure.enableChinaCloudDescription%"
+        },
         "mssql.enableSqlAuthenticationProvider": {
           "type": "boolean",
           "description": "%mssql.enableSqlAuthenticationProvider%",

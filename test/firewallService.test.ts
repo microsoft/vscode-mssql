@@ -14,7 +14,7 @@ import {
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
-import { AzureAuthType, IAccount, ITenant, IToken, IAzureAccountProperties } from '../src/models/contracts/azure';
+import { IAccount, AzureAuthType, ITenant, IToken, IAzureAccountProperties } from '../src/models/contracts/azure';
 import allSettings from '../src/azure/providerSettings';
 
 
@@ -88,7 +88,7 @@ suite('Firewall Service Tests', () => {
 				id: '1',
 				displayName: undefined
 			},
-			providerSettings: allSettings
+			providerSettings: allSettings[0].metadata
 		};
 		let mockAccount: IAccount = {
 			properties: properties,
@@ -102,7 +102,7 @@ suite('Firewall Service Tests', () => {
 			token: '',
 			expiresOn: 0
 		};
-		accountService.setup(v => v.refreshToken(mockAccount, mockTenant.id)).returns(() => Promise.resolve(mockToken));
+		accountService.setup(v => v.getToken(mockAccount, mockTenant.id)).returns(() => Promise.resolve(mockToken));
 		accountService.object.setAccount(mockAccount);
 		let result = await firewallService.object.createFirewallRule({
 			account: mockAccount,
