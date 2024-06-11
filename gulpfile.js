@@ -293,3 +293,5 @@ gulp.task('watch-mssql-react-app', function () {
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-mssql-react-app')));
 
 gulp.task('lint', gulp.series('ext:lint'));
+
+gulp.task('cover', gulp.series('remap-coverage', 'cover:combine-json'));
