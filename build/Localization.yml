@@ -23,8 +23,8 @@ jobs:
     inputs:
       locProj: 'localization/LocProject.json'
       outDir: '$(Build.ArtifactStagingDirectory)'
+      dependencyPackageSource: 'https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json'
       packageSourceAuth: patAuth
-      patVariable: '$(OneLocBuildPat)'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'
