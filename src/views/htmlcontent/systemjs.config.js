@@ -92,6 +92,29 @@
 		'@fluentui/react-search': 'npm:@fluentui/react-search',
 		'@fluentui/react-teaching-popover': 'npm:@fluentui/react-teaching-popover',
 		'@fluentui/react-tag-picker': 'npm:@fluentui/react-tag-picker',
+		'@fluentui/react-tags': 'npm:@fluentui/react-tags',
+		'@griffel/core': 'npm:@griffel/core',
+		'@floating-ui/devtools': 'npm:@floating-ui/devtools',
+		'@floating-ui/dom': 'npm:@floating-ui/dom',
+		'@floating-ui/core': 'npm:@floating-ui/core',
+		'@fluentui/react-motion-preview': 'npm:@fluentui/react-motion-preview',
+		'@fluentui/priority-overflow': 'npm:@fluentui/priority-overflow',
+		'@fluentui/keyboard-keys': 'npm:@fluentui/keyboard-keys',
+		'@fluentui/react-context-selector': 'npm:@fluentui/react-context-selector',
+		'@fluentui/tokens': 'npm:@fluentui/tokens',
+		'use-disposable': 'npm:use-disposable',
+		'react-transition-group': 'npm:react-transition-group',
+		'scheduler': 'npm:scheduler',
+		'keyborg': 'npm:keyborg',
+		'tabster': 'npm:tabster',
+		'traceur': 'npm:traceur',
+		'stylis': 'npm:stylis',
+		'rtl-css-js': 'npm:rtl-css-js',
+		'@emotion/hash': 'npm:@emotion/hash',
+		'@swc/helpers': 'npm:@swc/helpers',
+		'react-is': 'npm:react-is',
+		'tslib': 'npm:tslib',
+
 
 	};
 	// packages tells the System loader how to load when no filename and/or no extension
@@ -111,10 +134,12 @@
 		'react-router': { main: 'dist/umd/react-router.development.js', defaultExtension: 'js' },
 		'@griffel/react': { main: 'index.cjs.js', defaultExtension: 'js' },
 		'use-sync-external-store': { main: 'cjs/use-sync-external-store.production.min.js', defaultExtension: 'js' },
+		'use-sync-external-store/shim': { main: 'index.js', defaultExtension: 'js' },
+
 
 		'@fluentui/react-components': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-toolbar': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
-		'@fluentui/react-icons': { main: 'lib/index.js', defaultExtension: 'js' },
+		'@fluentui/react-icons': { main: 'lib-cjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-button': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-provider':  { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-tabster':  { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
@@ -129,7 +154,7 @@
 		'@fluentui/react-divider': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-image': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-input': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
-		'@fluentui/react-jsx-runtime': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/react-jsx-runtime': { main: 'lib/index.js', defaultExtension: 'js' },
 		'@fluentui/react-label': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-link': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-menu': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
@@ -169,6 +194,67 @@
 		'@fluentui/react-teaching-popover': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 		'@fluentui/react-tag-picker': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
 
+		'@fluentui/react-tags': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@griffel/core': { main: 'index.cjs.js', defaultExtension: 'js' },
+
+		'@floating-ui/devtools': { main: 'dist/floating-ui.devtools.umd.min.js', defaultExtension: 'js' },
+		'@fluentui/react-motion-preview': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/react-jsx-runtime': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/react-overflow': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/priority-overflow': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/keyboard-keys': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/react-context-selector': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+		'@fluentui/tokens': { main: 'lib-commonjs/index.js', defaultExtension: 'js' },
+
+		'@fluentui/react-dialog/lib-commonjs/contexts': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-dialog/lib-commonjs/utils': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-table/lib-commonjs/hooks': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-tags/lib-commonjs/utils': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-tree/lib-commonjs/context': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-message-bar/lib-commonjs/contexts': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-toast/lib-commonjs/state': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-drawer/lib-commonjs/contexts': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-drawer/lib-commonjs/components/OverlayDrawer': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-drawer/lib-commonjs/components/OverlayDrawer/OverlayDrawerSurface': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-drawer/lib-commonjs/components/InlineDrawer': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-text/lib-commonjs/components/Text': { main: 'index.js', defaultExtension: 'js' },
+
+		'@fluentui/react-toast/lib-commonjs/components/ToastContainer': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-toast/lib-commonjs/components/AriaLive': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-table/lib-commonjs/components/TableSelectionCell': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-teaching-popover/lib-commonjs/components/TeachingPopoverFooter': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-toast/lib-commonjs/state/vanilla': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-positioning/lib-commonjs/middleware': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-positioning/lib-commonjs/utils': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-aria/lib-commonjs/activedescendant': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-tree/lib-commonjs/contexts': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-menu/lib-commonjs/utils': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-shared-contexts/lib-commonjs/AnnounceContext': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-shared-contexts/lib-commonjs/BackgroundAppearanceContex': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-shared-contexts/lib-commonjs/OverridesContext': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-motion-preview/lib-commonjs/hooks': { main: 'index.js', defaultExtension: 'js' },
+		'@fluentui/react-shared-contexts/lib-commonjs/BackgroundAppearanceContext': { main: 'index.js', defaultExtension: 'js' },
+
+		'use-disposable': { main: 'lib/index.cjs', defaultExtension: 'cjs' },
+		'react-transition-group': { main: 'dist/react-transition-group.min.js', defaultExtension: 'js' },
+		'scheduler': { main: 'cjs/scheduler.production.min.js', defaultExtension: 'js' },
+		'keyborg': { main: 'dist/index.js', defaultExtension: 'js' },
+		'tabster': { main: 'dist/index.js', defaultExtension: 'js' },
+		'traceur': { main: 'dist/commonjs/traceur.js', defaultExtension: 'js' },
+		'stylis': { main: 'dist/umd/stylis.js', defaultExtension: 'js' },
+		'rtl-css-js': { main: 'dist/rtl-css-js.umd.min.js', defaultExtension: 'js' },
+		'@emotion/hash': { main: 'dist/emotion-hash.cjs.js', defaultExtension: 'js' },
+		'@floating-ui/dom': { main: 'dist/floating-ui.dom.umd.min.js', defaultExtension: 'js' },
+		'@floating-ui/core': { main: 'dist/floating-ui.core.umd.min.js', defaultExtension: 'js' },
+		'@fluentui/react-jsx-runtime/jsx-runtime': { main: '../lib-commonjs/jsx-runtime.js', defaultExtension: 'js' },
+		'react-is': { main: 'cjs/react-is.production.min.js', defaultExtension: 'js' },
+		'rtl-css-js/core': { main: '../dist/cjs/core.js', defaultExtension: 'js' },
+		'@swc/helpers': { main: 'cjs/index.cjs', defaultExtension: 'js' },
+		'@swc/helpers/_/_interop_require_wildcard': { main: '../../cjs/_interop_require_wildcard.cjs', defaultExtension: 'cjs' },
+		'@swc/helpers/_/_export_star': { main: '../../cjs/_export_star.cjs', defaultExtension: 'cjs' },
+		'tslib': { main: 'tslib.js', defaultExtension: 'js' },
+		'@fluentui/react-icons/lib-cjs/contexts': { main: 'index.js', defaultExtension: 'js' },
+
 	};
 
 
@@ -186,4 +272,34 @@
 		meta: meta
 	};
 	System.config(config);
+
+
+// 	// Function to recursively configure subfolders
+// 	function configureSubfolders(basePath, packages) {
+// 		const fs = require('fs');
+// 		const path = require('path');
+
+// 		function configure(pathName) {
+// 			const items = fs.readdirSync(pathName);
+// 			items.forEach(item => {
+// 				const itemPath = path.join(pathName, item);
+// 				if (fs.lstatSync(itemPath).isDirectory()) {
+// 				const packagePath = path.relative(basePath, itemPath).replace(/\\/g, '/');
+// 				packages[packagePath] = {
+// 					main: 'index.js',
+// 					defaultExtension: 'js'
+// 				};
+// 				configure(itemPath); // Recurse into subdirectory
+// 				}
+// 			});
+// 		}
+
+// 		configure(basePath);
+// 	}
+
+//   // Assume your-module's absolute path is available
+
+//   //out/srcviews\htmlcontent\src\js\lib\
+//   const modulePath = path.resolve(__dirname, '@fluentui/react-table/lib-commonjs');
+//   configureSubfolders(modulePath, System.packages);
 })(this);
