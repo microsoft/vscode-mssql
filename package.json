@@ -315,6 +315,11 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
+        },
+        {
+          "command": "mssql.TableDesigner",
+          "when": "view == objectExplorer && viewItem == Server",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -515,6 +520,15 @@
         "command": "mssql.scriptExecute",
         "title": "%mssql.scriptExecute%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.TableDesigner",
+        "title": "%mssql.TableDesigner%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/newTable_inverse.svg",
+          "light": "media/newTable.svg"
+        }
       },
       {
         "command": "mssql.scriptAlter",

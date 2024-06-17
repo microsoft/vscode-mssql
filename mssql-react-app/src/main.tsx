@@ -1,20 +1,16 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { ImageProvider } from './imageProvider.tsx';
-import { MemoryRouter as Router } from 'react-router-dom';
-import { StateProvider } from './StateProvider.tsx';
 
 export const vscodeApi = acquireVsCodeApi<number>();
+
+export enum ColorThemeKind {
+  Light = 1,
+  Dark = 2,
+  HighContrast = 3,
+  HighContrastLight = 4
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <StateProvider>
-      <Router>
-        <ImageProvider>
-          <App />
-        </ImageProvider>
-      </Router>
-    </StateProvider>
-  </React.StrictMode>,
+  <App />
 )

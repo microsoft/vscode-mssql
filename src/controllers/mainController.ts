@@ -41,8 +41,8 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
-import { ReactWebViewPanelController, ReactWebViewRoutes } from './reactWebviewController';
 import { TableDesignerService } from '../services/tableDesignerService';
+import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -186,33 +186,16 @@ export default class MainController implements vscode.Disposable {
 				vscode.workspace.getConfiguration().update(Constants.cmdObjectExplorerGroupBySchemaFlagName, false, true);
 			});
 
-			this.registerCommand('mssql.WelcomePageReact');
-			this._event.on('mssql.WelcomePageReact', async () => {
-				const reactPanel = new ReactWebViewPanelController(
-					this._context,
-					'Welcome',
-					ReactWebViewRoutes.home,
-					vscode.ViewColumn.One,
-					{
-						count: 0
-					}
-				);
-				reactPanel.revealToForeground();
-				reactPanel.registerReducer('increment', (state, action) => {
-					return {
-						...state,
-						count: state.count + 1
-					};
-				});
-			});
 			this.registerCommand('mssql.TableDesigner');
 			this._event.on('mssql.TableDesigner', async () => {
-				const reactPanel = new ReactWebViewPanelController(
+
+
+				const reactPanel = new TableDesignerWebViewController(
 					this._context,
-					'Table Designer',
-					ReactWebViewRoutes.tableDesigner,
-					vscode.ViewColumn.One,
-					undefined
+					this.tableDesignerService,
+					this._connectionMgr,
+					this._objectExplorerProvider,
+					this._untitledSqlDocumentService
 				);
 				reactPanel.revealToForeground();
 			});

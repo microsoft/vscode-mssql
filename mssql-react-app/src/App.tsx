@@ -1,11 +1,11 @@
 import './App.css'
-import { Routes, Route, useNavigate } from 'react-router-dom';
-import { WelcomePage } from './pages/WelcomePage';
-import { TableDesigner } from './pages/TableDesignerPage';
-import { QueryPlan } from './pages/QueryPlan';
 import { FluentProvider, makeStyles, webDarkTheme, webLightTheme, teamsHighContrastTheme } from '@fluentui/react-components';
-import { useContext, useEffect } from 'react';
-import { ColorThemeKind, StateContext } from './StateProvider';
+import { useContext, useState } from 'react';
+import { ColorThemeKind, StateContext, StateProvider } from './StateProvider';
+import { MemoryRouter as Router } from 'react-router-dom';
+import { AppRouter } from './Router';
+import { ImageProvider } from './imageProvider';
+import { vscodeApi } from './main';
 
 export const useStyles = makeStyles({
   root: {
@@ -19,11 +19,11 @@ export type RoutesParam = {
   route: string
 }
 function App() {
-  const state = useContext(StateContext);
-  const navigate = useNavigate();
+
   const className = useStyles();
-  const getTheme = () => {
-    switch (state?.state?.theme) {
+  const [theme, setTheme] = useState(webLightTheme);
+  const getTheme = (kind: ColorThemeKind) => {
+    switch (kind) {
       case ColorThemeKind.Dark:
         return webDarkTheme;
       case ColorThemeKind.HighContrast:
@@ -33,20 +33,33 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    if (state?.state?.route) {
-      navigate(state.state.route)
+  window.addEventListener('message', event => {
+    const message = event.data;
+    switch (message.type) {
+      case 'onDidChangeTheme':
+        setTheme(getTheme(message.theme));
+        break;
     }
-  }, [state?.state?.route, state?.state?.theme, navigate])
-  return (
-    <FluentProvider className={className.root}  theme={getTheme()}>
-      <Routes>
-        <Route path="/" element={<WelcomePage />} />
-        <Route path='/tableDesigner' element={<TableDesigner />} />
-        <Route path='/queryPlan' element={<QueryPlan />} />
-      </Routes>
-    </FluentProvider>
-  )
+  });
+
+  vscodeApi.postMessage({ type: 'getThemeKind' });
+
+  return <FluentProvider style={{
+    height: '100%',
+    width: '100%',
+    color: 'var(--vscode-foreground)',
+  }}  theme={theme}>
+    <div className={className.root}>
+    <StateProvider>
+      <ImageProvider>
+        <Router>
+          <AppRouter />
+        </Router>
+      </ImageProvider>
+    </StateProvider>
+    </div>
+
+  </FluentProvider>
 }
 
 export default App

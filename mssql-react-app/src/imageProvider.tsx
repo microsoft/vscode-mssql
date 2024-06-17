@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useEffect, useState } from "react";
-import { getImageUrl } from "./utils/imageLoader";
+import { getImageUrl } from "./common/imageLoader";
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg'
 // Define the shape of the image sources state

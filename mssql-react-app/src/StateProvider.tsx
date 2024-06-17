@@ -1,5 +1,5 @@
-import { ReactNode, createContext, useEffect, useState } from 'react';
-import { rpc } from './utils/rpc';
+import { ReactNode, createContext, useState } from 'react';
+import { rpc } from './common/rpc';
 
 export enum ColorThemeKind {
 	Light = 1,
@@ -11,7 +11,7 @@ export enum ColorThemeKind {
 export interface PanelState {
 	route: string;
 	theme: ColorThemeKind;
-	state: unknown;
+	data: unknown;
 }
 
 export interface StateProps {
@@ -29,7 +29,7 @@ const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
 	const [state, setState] = useState<PanelState | undefined>({
 		route: '/',
 		theme: ColorThemeKind.Light,
-		state: undefined
+		data: undefined
 	});
 	rpc.subscribe('updateState', (params => {
 		setState(params as PanelState);
@@ -41,9 +41,6 @@ const StateProvider: React.FC<StateProviderProps> = ({ children }) => {
 			payload
 		});
 	}
-
-	useEffect(() => {
-	}, []);
 
 	return <StateContext.Provider value={
 		{
