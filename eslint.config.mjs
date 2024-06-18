@@ -14,7 +14,7 @@ export default [
     },
     rules: {
       "notice/notice": [
-        "warn",
+        "error",
         {
           template: `/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
