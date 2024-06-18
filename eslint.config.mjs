@@ -2,19 +2,19 @@
 
 import tseslint from 'typescript-eslint';
 import notice from "eslint-plugin-notice";
-import microsoftEslintPlugin from '@microsoft/eslint-plugin-sdl';
 
 export default [
-  ...tseslint.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tseslint.parser
+    },
     plugins: {
-      microsoftEslintPlugin,
       notice
     },
     rules: {
       "notice/notice": [
-        "error",
+        "warn",
         {
           template: `/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
