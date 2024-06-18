@@ -51,8 +51,7 @@
     "build": "gulp build",
     "compile": "gulp ext:compile",
     "watch": "gulp watch",
-    "lint": "gulp lint",
-    "precommit": "yarn lint"
+    "lint": "gulp lint"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
