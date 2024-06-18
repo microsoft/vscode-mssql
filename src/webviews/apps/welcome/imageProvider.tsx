@@ -1,17 +1,10 @@
 import { ReactNode, createContext, useEffect, useState } from "react";
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg'
 // Define the shape of the image sources state
 
 export enum ImageKeys {
 	vite,
 	react
 }
-
-export const ImageMap: Record<ImageKeys, string> = {
-	[ImageKeys.vite]: viteLogo,
-	[ImageKeys.react]: reactLogo,
-};
 
 interface ImageContextType {
 	imageSources: Record<ImageKeys, string>;

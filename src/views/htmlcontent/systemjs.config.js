@@ -2,6 +2,11 @@
  * System configuration for Angular 2 samples
  * Adjust as necessary for your application needs.
  */
+
+var process = new Object();
+process.env = new Object();
+process.env.NODE_ENV = 'production';
+
 (function (global) {
 	var paths = {
 		'npm:': 'views/htmlcontent/src/js/lib/'

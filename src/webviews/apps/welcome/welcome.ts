@@ -5,11 +5,13 @@ import type { State } from '../../welcome/protocol';
 import { DidChangeNotification, DidChangeOrgSettings, UpdateConfigurationCommand } from '../../welcome/protocol';
 import { App } from '../shared/appBase';
 import { DOM } from '../shared/dom';
-
+import { createRootElement } from './WelcomeMain'
 
 export class WelcomeApp extends App<State> {
 	constructor() {
 		super('WelcomeApp');
+
+		createRootElement();
 	}
 
 	protected override onInitialize() {
