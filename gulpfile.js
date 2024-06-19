@@ -1,8 +1,6 @@
 ﻿var gulp = require('gulp');
 var rename = require('gulp-rename');
-var gulpTsLint = require('gulp-tslint');
 var ts = require('gulp-typescript');
-var tslint = require('tslint');
 var tsProject = ts.createProject('tsconfig.json');
 var del = require('del');
 var srcmap = require('gulp-sourcemaps');
@@ -14,24 +12,20 @@ var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('@vscode/test-electron');
+const gulpESLintNew = require('gulp-eslint-new');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
 
 gulp.task('ext:lint', () => {
-	// !! If updating this make sure to check if you need to update the TSA Scan task in ADO !!
-	var program = tslint.Linter.createProgram('tsconfig.json');
 	return gulp.src([
 		config.paths.project.root + '/src/**/*.ts',
 		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
 		config.paths.project.root + '/test/**/*.ts'
 	])
-		.pipe((gulpTsLint({
-			program,
-			formatter: "verbose",
-			rulesDirectory: "node_modules/tslint-microsoft-contrib"
-		})))
-		.pipe(gulpTsLint.report());
+		.pipe(gulpESLintNew())
+		.pipe(gulpESLintNew.format())           // Output lint results to the console.
+		.pipe(gulpESLintNew.failAfterError());
 });
 
 // Copy icons for OE
