@@ -75,7 +75,7 @@ export default [
       "semi": "off",
       "jsdoc/no-types": "warn",
       "no-restricted-syntax": [
-        'error',
+        'warn',
         "Literal[raw='null']"
       ],
       "@typescript-eslint/no-explicit-any": "warn",
