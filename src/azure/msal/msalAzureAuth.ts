@@ -122,7 +122,7 @@ export abstract class MsalAzureAuth {
 
 		if (!account) {
 			this.logger.error('Error: Account not received.');
-			return undefined;
+			return null;
 		}
 
 		if (!tenantId) {
@@ -222,7 +222,7 @@ export abstract class MsalAzureAuth {
 		const cache = this.clientApplication.getTokenCache();
 		if (!cache) {
 			this.logger.error('Error: Could not fetch token cache.');
-			return undefined;
+			return null;
 		}
 
 		let account: AccountInfo | null;
@@ -312,7 +312,7 @@ export abstract class MsalAzureAuth {
 			return result?.response;
 		}
 
-		return undefined;
+		return null;
 	}
 
 	/**
