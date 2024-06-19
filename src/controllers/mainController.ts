@@ -41,6 +41,7 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { TableDesignerService } from '../services/tableDesignerService';
 
 /**
  * The main controller class that initializes the extension
@@ -69,6 +70,7 @@ export default class MainController implements vscode.Disposable {
 	public sqlProjectsService: SqlProjectsService;
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
+	public tableDesignerService: TableDesignerService;
 
 	/**
 	 * The main controller constructor
@@ -192,6 +194,7 @@ export default class MainController implements vscode.Disposable {
 			const azureResourceController = new AzureResourceController();
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
+			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
