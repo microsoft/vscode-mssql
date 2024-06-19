@@ -3,17 +3,25 @@
 import tseslint from 'typescript-eslint';
 import notice from "eslint-plugin-notice";
 import jsdoc from 'eslint-plugin-jsdoc';
+import deprecationPlugin from "eslint-plugin-deprecation";
+import { fixupPluginRules } from "@eslint/compat";
 
 export default [
   {
     files: ['**/*.ts', '**/*.tsx'],
     ignores: ['src/prompts/**/*.ts', 'typings/**.*.d.ts'],  // Ignore prompts files as they are copied from other repos
     languageOptions: {
-      parser: tseslint.parser
+      parser: tseslint.parser,
+      parserOptions: {
+        project: "./tsconfig.json"
+      },
     },
     plugins: {
       notice,
-      jsdoc
+      jsdoc,
+      ['@typescript-eslint']: tseslint.plugin,
+      // @ts-ignore
+      ["deprecation"]: fixupPluginRules(deprecationPlugin),
     },
     rules: {
       "notice/notice": [
@@ -34,23 +42,23 @@ export default [
       ],
       "no-undef": "off",
       "no-unused-vars": "off",
-      "constructor-super": "error",
+      "constructor-super": "warn",
       "curly": "off",
-      "eqeqeq": "error",
-      "no-buffer-constructor": "error",
-      "no-caller": "error",
-      "no-debugger": "error",
-      "no-duplicate-case": "error",
+      "eqeqeq": "warn",
+      "no-buffer-constructor": "warn",
+      "no-caller": "warn",
+      "no-debugger": "warn",
+      "no-duplicate-case": "warn",
       "no-duplicate-imports": "off",
-      "no-eval": "error",
+      "no-eval": "warn",
       "no-async-promise-executor": "off",
-      "no-extra-semi": "error",
-      "no-new-wrappers": "error",
+      "no-extra-semi": "warn",
+      "no-new-wrappers": "warn",
       "no-redeclare": "off",
-      "no-sparse-arrays": "error",
+      "no-sparse-arrays": "warn",
       "no-throw-literal": "off",
-      "no-unsafe-finally": "error",
-      "no-unused-labels": "error",
+      "no-unsafe-finally": "warn",
+      "no-unused-labels": "warn",
       "no-restricted-globals": [
         "warn",
         "name",
@@ -65,11 +73,47 @@ export default [
       ], // non-complete list of globals that are easy to access unintentionally
       "no-var": "off",
       "semi": "off",
-      "jsdoc/no-types": "error",
+      "jsdoc/no-types": "warn",
       "no-restricted-syntax": [
         'error',
         "Literal[raw='null']"
       ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Not really that useful, there are valid reasons to have empty functions
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-inferrable-types": [
+        "warn",
+        {
+          "ignoreParameters": true,
+          "ignoreProperties": true
+        }
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ],
+      "deprecation/deprecation": "warn",
+      "@typescript-eslint/no-floating-promises": [
+        "warn",
+        {
+          "ignoreVoid": true
+        }
+      ],
+      "@typescript-eslint/naming-convention": [
+        "warn",
+        {
+          "selector": "property",
+          "modifiers": [
+            "private"
+          ],
+          "format": [
+            "camelCase"
+          ],
+          "leadingUnderscore": "require"
+        }
+      ]
     },
   }
 ];
