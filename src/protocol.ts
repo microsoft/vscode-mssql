@@ -149,5 +149,5 @@ export function createProxy(protocol: IMessageProtocol, handler: any, isClient: 
 			messageProxy.dispose();
 		}
 	};
-	return new Proxy(Object.create(undefined), proxy);
+	return new Proxy(Object.create(null), proxy);
 }
