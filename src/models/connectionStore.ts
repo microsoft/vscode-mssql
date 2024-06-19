@@ -65,11 +65,11 @@ export class ConnectionStore {
 	 * Creates a formatted credential usable for uniquely identifying a SQL Connection.
 	 * This string can be decoded but is not optimized for this.
 	 * @static
-	 * @param {string} server name of the server - required
-	 * @param {string} database name of the database - optional
-	 * @param {string} user name of the user - optional
-	 * @param {string} itemType type of the item (MRU or Profile) - optional
-	 * @returns {string} formatted string with server, DB and username
+	 * @param server name of the server - required
+	 * @param database name of the database - optional
+	 * @param user name of the user - optional
+	 * @param itemType type of the item (MRU or Profile) - optional
+	 * @returns formatted string with server, DB and username
 	 */
 	public static formatCredentialId(server: string, database?: string, user?: string, itemType?: string, isConnectionString?: boolean): string {
 		if (Utils.isEmpty(server) && !isConnectionString) {
@@ -113,7 +113,7 @@ export class ConnectionStore {
 	 * Load connections from MRU and profile list and return them as a formatted picklist.
 	 * Note: connections will not include password value
 	 *
-	 * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
+	 * @returns
 	 */
 	public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
 		let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(false);
@@ -129,7 +129,7 @@ export class ConnectionStore {
 	 * Gets all connection profiles stored in the user settings
 	 * Note: connections will not include password value
 	 *
-	 * @returns {IConnectionCredentialsQuickPickItem[]}
+	 * @returns
 	 */
 	public getProfilePickListItems(getWorkspaceProfiles: boolean): IConnectionCredentialsQuickPickItem[] {
 		return this.loadProfiles(getWorkspaceProfiles);
@@ -176,8 +176,8 @@ export class ConnectionStore {
 	/**
 	 * public for testing purposes. Validates whether a password should be looked up from the credential store or not
 	 *
-	 * @param {IConnectionProfile} connectionCreds
-	 * @returns {boolean}
+	 * @param connectionCreds
+	 * @returns
 	 * @memberof ConnectionStore
 	 */
 	public shouldLookupSavedPassword(connectionCreds: IConnectionProfile): boolean {
@@ -193,9 +193,9 @@ export class ConnectionStore {
 	 * Saves a connection profile to the user settings.
 	 * Password values are stored to a separate credential store if the "savePassword" option is true
 	 *
-	 * @param {IConnectionProfile} profile the profile to save
-	 * @param {forceWritePlaintextPassword} whether the plaintext password should be written to the settings file
-	 * @returns {Promise<IConnectionProfile>} a Promise that returns the original profile, for help in chaining calls
+	 * @param profile the profile to save
+	 * @param whether the plaintext password should be written to the settings file
+	 * @returns a Promise that returns the original profile, for help in chaining calls
 	 */
 	public async saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
 		// Add the profile to the saved list, taking care to clear out the password field if necessary
@@ -222,7 +222,7 @@ export class ConnectionStore {
 	 * Gets the list of recently used connections. These will not include the password - a separate call to
 	 * {addSavedPassword} is needed to fill that before connecting
 	 *
-	 * @returns {IConnectionInfo[]} the array of connections, empty if none are found
+	 * @returns the array of connections, empty if none are found
 	 */
 	public getRecentlyUsedConnections(): IConnectionInfo[] {
 		let configValues = this._context.globalState.get<IConnectionInfo[]>(Constants.configRecentConnections);
@@ -236,8 +236,8 @@ export class ConnectionStore {
 	 * Adds a connection to the recently used list.
 	 * Password values are stored to a separate credential store if the "savePassword" option is true
 	 *
-	 * @param {IConnectionInfo} conn the connection to add
-	 * @returns {Promise<void>} a Promise that returns when the connection was saved
+	 * @param conn the connection to add
+	 * @returns a Promise that returns when the connection was saved
 	 */
 	public addRecentlyUsed(conn: IConnectionInfo): Promise<void> {
 		const self = this;
@@ -361,9 +361,9 @@ export class ConnectionStore {
 	 * Removes a profile from the user settings and deletes any related password information
 	 * from the credential store
 	 *
-	 * @param {IConnectionProfile} profile the profile to be removed
-	 * @param {Boolean} keepCredentialStore optional value to keep the credential store after a profile removal
-	 * @returns {Promise<boolean>} true if successful
+	 * @param profile the profile to be removed
+	 * @param keepCredentialStore optional value to keep the credential store after a profile removal
+	 * @returns true if successful
 	 */
 	public async removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
 		let profileFound = await this._connectionConfig.removeConnection(profile);

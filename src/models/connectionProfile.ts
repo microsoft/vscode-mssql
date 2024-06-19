@@ -51,8 +51,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 	}
 	/**
 	 * Creates a new profile by prompting the user for information.
-	 * @param  {IPrompter} prompter that asks user the questions needed to complete a profile
-	 * @param  {IConnectionProfile} (optional) default profile values that will be prefilled for questions, if any
+	 * @param prompter that asks user the questions needed to complete a profile
+	 * @param (optional) default profile values that will be prefilled for questions, if any
 	 * @returns Promise - resolves to undefined if profile creation was not completed, or IConnectionProfile if completed
 	 */
 	public static async createProfile(
