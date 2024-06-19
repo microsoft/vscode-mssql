@@ -7,7 +7,7 @@ import jsdoc from 'eslint-plugin-jsdoc';
 export default [
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['src/prompts/**/*.ts'],  // Ignore prompts files as they are copied from other repos
+    ignores: ['src/prompts/**/*.ts', 'typings/**.*.d.ts'],  // Ignore prompts files as they are copied from other repos
     languageOptions: {
       parser: tseslint.parser
     },
@@ -17,7 +17,7 @@ export default [
     },
     rules: {
       "notice/notice": [
-        "warn",
+        "error",
         {
           template: `/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
@@ -34,23 +34,23 @@ export default [
       ],
       "no-undef": "off",
       "no-unused-vars": "off",
-      "constructor-super": "warn",
+      "constructor-super": "error",
       "curly": "off",
-      "eqeqeq": "warn",
-      "no-buffer-constructor": "warn",
-      "no-caller": "warn",
-      "no-debugger": "warn",
-      "no-duplicate-case": "warn",
+      "eqeqeq": "error",
+      "no-buffer-constructor": "error",
+      "no-caller": "error",
+      "no-debugger": "error",
+      "no-duplicate-case": "error",
       "no-duplicate-imports": "off",
-      "no-eval": "warn",
+      "no-eval": "error",
       "no-async-promise-executor": "off",
-      "no-extra-semi": "warn",
-      "no-new-wrappers": "warn",
+      "no-extra-semi": "error",
+      "no-new-wrappers": "error",
       "no-redeclare": "off",
-      "no-sparse-arrays": "warn",
+      "no-sparse-arrays": "error",
       "no-throw-literal": "off",
-      "no-unsafe-finally": "warn",
-      "no-unused-labels": "warn",
+      "no-unsafe-finally": "error",
+      "no-unused-labels": "error",
       "no-restricted-globals": [
         "warn",
         "name",
@@ -65,7 +65,11 @@ export default [
       ], // non-complete list of globals that are easy to access unintentionally
       "no-var": "off",
       "semi": "off",
-      "jsdoc/no-types": "warn",
+      "jsdoc/no-types": "error",
+      "no-restricted-syntax": [
+        'error',
+        "Literal[raw='null']"
+      ],
     },
   }
 ];

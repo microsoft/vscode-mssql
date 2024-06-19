@@ -23,7 +23,6 @@ export type GetTenantsResponseData = {
 };
 export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
 
-// tslint:disable:no-null-keyword
 export abstract class MsalAzureAuth {
 	protected readonly loginEndpointUrl: string;
 	protected readonly redirectUri: string;
@@ -123,7 +122,7 @@ export abstract class MsalAzureAuth {
 
 		if (!account) {
 			this.logger.error('Error: Account not received.');
-			return null;
+			return undefined;
 		}
 
 		if (!tenantId) {
@@ -223,7 +222,7 @@ export abstract class MsalAzureAuth {
 		const cache = this.clientApplication.getTokenCache();
 		if (!cache) {
 			this.logger.error('Error: Could not fetch token cache.');
-			return null;
+			return undefined;
 		}
 
 		let account: AccountInfo | null;
@@ -313,7 +312,7 @@ export abstract class MsalAzureAuth {
 			return result?.response;
 		}
 
-		return null;
+		return undefined;
 	}
 
 	/**
