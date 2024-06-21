@@ -4,7 +4,7 @@ import { TableDesignerContext } from "./TableDesignerStateProvider";
 import { DesignerCheckbox } from "./DesignerCheckbox";
 import { DesignerInputBox } from "./DesignerInputBox";
 import { DesignerDropdown } from "./DesignerDropdown";
-import { DesignerTable2 } from "./DesginerTable2";
+import { DesignerTable2 } from "./DesginerTable";
 import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces";
 import { DesignerCollapsibleDiv } from "./DesignerCollapsibleDiv";
 

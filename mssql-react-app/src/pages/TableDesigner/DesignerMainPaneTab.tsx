@@ -5,7 +5,7 @@ import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputB
 import { DesignerCheckbox } from "./DesignerCheckbox";
 import { DesignerInputBox } from "./DesignerInputBox";
 import { DesignerDropdown } from "./DesignerDropdown";
-import { DesignerTable2 } from "./DesginerTable2";
+import { DesignerTable2 } from "./DesginerTable";
 
 export interface DesignerMainPaneTabProps {
     tabId: string;
