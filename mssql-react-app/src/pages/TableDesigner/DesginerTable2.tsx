@@ -1,4 +1,4 @@
-import { Button, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Toolbar, ToolbarButton, createTableColumn, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components"
+import { Button, Popover, PopoverSurface, PopoverTrigger, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Toolbar, ToolbarButton, createTableColumn, makeStyles, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components"
 import { CheckBoxProperties, DesignerDataPropertyInfo, DesignerEditType, DesignerTableComponentDataItem, DesignerTableProperties, DesignerUIArea, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces"
 import {
 	AddRegular, NavigationFilled, DeleteRegular
@@ -8,6 +8,7 @@ import { TableDesignerContext } from "./TableDesignerStateProvider";
 import { DesignerCheckbox } from "./DesignerCheckbox";
 import { DesignerDropdown } from "./DesignerDropdown";
 import { DesignerInputBox } from "./DesignerInputBox";
+import { ErrorCircleFilled } from "@fluentui/react-icons";
 
 export type DesignerTableProps = {
 	component: DesignerDataPropertyInfo,
@@ -16,6 +17,17 @@ export type DesignerTableProps = {
 	UiArea: DesignerUIArea,
 	loadPropertiesTabData?: boolean
 }
+
+export type ErrorPopupProps = {
+	message: string | undefined
+}
+
+const useStyles = makeStyles({
+	tableCell: {
+		display: 'flex',
+		flexDirection: 'row',
+	}
+});
 
 export const DesignerTable2 = ({
 	component,
@@ -26,7 +38,7 @@ export const DesignerTable2 = ({
 }: DesignerTableProps) => {
 	const tableProps = component.componentProperties as DesignerTableProperties;
 	const state = useContext(TableDesignerContext);
-
+	const classes = useStyles();
 	const columnsDef: TableColumnDefinition<DesignerTableComponentDataItem>[] = tableProps.columns!.map((column) => {
 		const colProps = tableProps.itemProperties?.find(item => item.propertyName === column);
 		return createTableColumn(
@@ -86,6 +98,23 @@ export const DesignerTable2 = ({
 
 	const rows = getRows();
 
+	const ErrorPopup = ({
+		message
+	}: ErrorPopupProps) => {
+		return (
+			<div>
+				<div>{message}</div>
+			</div>
+		);
+	};
+
+	const getRowError = (index: number): string | undefined => {
+		const issue = state?.state.issues?.find(i => {
+			return i.propertyPath!.join('.') === [...componentPath, index].join('.');
+		});
+		return issue?.description ?? undefined;
+	}
+
 	return <div>
 		<Toolbar size='small'>
 			{model.canAddRows &&
@@ -126,18 +155,18 @@ export const DesignerTable2 = ({
 				{rows.map((row, index) => {
 					return <TableRow draggable
 
-					onClick={(event) => {
-						if (!loadPropertiesTabData) {
-							return;
-						}
-						state?.provider.setPropertiesComponents({
-							componentPath: [...componentPath, row.rowId],
-							component:  component,
-							model: model
-						});
-						event.preventDefault();
-					}}
-					key={index}>
+						onFocus={(event) => {
+							if (!loadPropertiesTabData) {
+								return;
+							}
+							state?.provider.setPropertiesComponents({
+								componentPath: [...componentPath, row.rowId],
+								component: component,
+								model: model
+							});
+							event.preventDefault();
+						}}
+						key={index}>
 						{columnsDef.map((column) => {
 							const colProps = tableProps.itemProperties?.find(item => item.propertyName === column.columnId);
 							const value = row.item[column.columnId];
@@ -147,6 +176,20 @@ export const DesignerTable2 = ({
 										{...columnSizing_unstable.getTableCellProps(column.columnId)}
 									>
 										{tableProps.canMoveRows && <Button appearance="subtle" size="small" icon={<NavigationFilled />} />}
+										{
+											getRowError(row.rowId as number) &&
+											<Popover>
+												<PopoverTrigger disableButtonEnhancement>
+													<Button appearance="subtle" icon={<ErrorCircleFilled style={{
+														marginTop: '5px'
+													}} color="red" />}></Button>
+												</PopoverTrigger>
+
+												<PopoverSurface tabIndex={-1}>
+													<ErrorPopup message={getRowError(row.rowId as number)} />
+												</PopoverSurface>
+											</Popover>
+										}
 									</TableCell>
 								case 'remove':
 									return <TableCell
@@ -169,39 +212,89 @@ export const DesignerTable2 = ({
 											return <TableCell
 												{...columnSizing_unstable.getTableCellProps(column.columnId)}
 											>
-												<DesignerInputBox
-													component={colProps}
-													model={value as InputBoxProperties}
-													componentPath={[...componentPath, row.rowId, column.columnId]}
-													UiArea={UiArea}
-													showLabel={false}
-													showError={false}
-												/>
+												<div className={classes.tableCell}>
+													<DesignerInputBox
+														component={colProps}
+														model={value as InputBoxProperties}
+														componentPath={[...componentPath, row.rowId, column.columnId]}
+														UiArea={UiArea}
+														showLabel={false}
+														showError={false}
+													/>
+													{
+														state?.provider.getErrorMessage([...componentPath, row.rowId, column.columnId]) &&
+														<Popover>
+															<PopoverTrigger disableButtonEnhancement>
+																<Button appearance="subtle" icon={<ErrorCircleFilled style={{
+																	marginTop: '5px'
+																}} color="red" />}></Button>
+															</PopoverTrigger>
+
+															<PopoverSurface tabIndex={-1}>
+																<ErrorPopup message={state?.provider.getErrorMessage([...componentPath, row.rowId, column.columnId])} />
+															</PopoverSurface>
+														</Popover>
+													}
+												</div>
+
 											</TableCell>
 										case 'dropdown':
 											return <TableCell
 												{...columnSizing_unstable.getTableCellProps(column.columnId)}
 											>
-												<DesignerDropdown
-													component={colProps}
-													model={value as DropDownProperties}
-													componentPath={[...componentPath, row.rowId, column.columnId]}
-													UiArea={UiArea}
-													showLabel={false}
-													showError={false}
-												/>
+												<div className={classes.tableCell}>
+													<DesignerDropdown
+														component={colProps}
+														model={value as DropDownProperties}
+														componentPath={[...componentPath, row.rowId, column.columnId]}
+														UiArea={UiArea}
+														showLabel={false}
+														showError={false}
+													/>
+													{
+														state?.provider.getErrorMessage([...componentPath, row.rowId, column.columnId]) &&
+														<Popover>
+															<PopoverTrigger disableButtonEnhancement>
+																<Button appearance="subtle" icon={<ErrorCircleFilled style={{
+																	marginTop: '5px'
+																}} color="red" />}></Button>
+															</PopoverTrigger>
+
+															<PopoverSurface tabIndex={-1}>
+																<ErrorPopup message={state?.provider.getErrorMessage([...componentPath, row.rowId, column.columnId])} />
+															</PopoverSurface>
+														</Popover>
+													}
+												</div>
 											</TableCell>
 										case 'checkbox': {
 											return <TableCell
 												{...columnSizing_unstable.getTableCellProps(column.columnId)}
 											>
-												<DesignerCheckbox
-													component={colProps}
-													model={value as CheckBoxProperties}
-													componentPath={[...componentPath, row.rowId, column.columnId]}
-													UiArea={UiArea}
-													showLabel={false}
-												/>
+												<div className={classes.tableCell}>
+													<DesignerCheckbox
+														component={colProps}
+														model={value as CheckBoxProperties}
+														componentPath={[...componentPath, row.rowId, column.columnId]}
+														UiArea={UiArea}
+														showLabel={false}
+													/>
+													{
+														state?.provider.getErrorMessage([...componentPath, row.rowId, column.columnId]) &&
+														<Popover>
+															<PopoverTrigger disableButtonEnhancement>
+																<Button appearance="subtle" icon={<ErrorCircleFilled style={{
+																	marginTop: '5px'
+																}} color="red" />}></Button>
+															</PopoverTrigger>
+
+															<PopoverSurface tabIndex={-1}>
+																<ErrorPopup message={state?.provider.getErrorMessage([...componentPath, row.rowId, column.columnId])} />
+															</PopoverSurface>
+														</Popover>
+													}
+												</div>
+
 											</TableCell>
 										}
 										default:

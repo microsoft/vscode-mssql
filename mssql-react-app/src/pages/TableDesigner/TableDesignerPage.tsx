@@ -130,7 +130,7 @@ export const TableDesigner = () => {
                         {
                             state.state.propertiesPaneData &&
                             <ResizableBox
-                                width={500}
+                                width={350}
                                 height={Infinity}
                                 maxConstraints={[800, Infinity]}
                                 minConstraints={[300, Infinity]}

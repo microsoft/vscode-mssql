@@ -37,8 +37,8 @@ export const DesignerInputBox = ({
         {showLabel ? component.componentProperties.title : undefined}
       </InfoLabel> : undefined
       }}
-        validationState={(showError && state?.provider.getErrorMessage(componentPath)) ? 'error' : undefined}
-        validationMessage={state?.provider.getErrorMessage(componentPath)}
+        validationState={(state?.provider.getErrorMessage(componentPath)) ? 'error' : undefined}
+        validationMessage={showError ? state?.provider.getErrorMessage(componentPath): undefined}
         style={{ width: width }}
         size="small"
     >

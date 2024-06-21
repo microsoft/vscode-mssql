@@ -40,7 +40,7 @@ export interface TableDesignerProvider {
 	scriptAsCreate: () => void;
 
 	getComponentId: (componentPath: (string | number)[]) => string;
-	getErrorMessage: (componentPath: (string | number)[]) => string;
+	getErrorMessage: (componentPath: (string | number)[]) => string | undefined;
 	setPropertiesComponents: (data: PropertiesPaneData | undefined) => void;
 	setResultTab: (tabId: string) => void;
 }

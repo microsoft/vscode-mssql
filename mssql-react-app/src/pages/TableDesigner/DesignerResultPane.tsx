@@ -1,10 +1,11 @@
-import { Button, CounterBadge, Divider, Link, Tab, TabList, Text, Theme, makeStyles, shorthands, teamsHighContrastTheme, webDarkTheme } from "@fluentui/react-components";
-import { useContext } from "react";
+import { Button, CounterBadge, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
+import { useContext, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
 import { TableDesignerContext } from "./TableDesignerStateProvider";
-import { DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
+import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
 import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
+import { ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
 	root: {
@@ -64,9 +65,6 @@ export const DesignerResultPane = () => {
 	const state = useContext(TableDesignerContext);
 	const webViewState = useContext(VscodeWebviewContext);
 	const metadata = state?.state;
-	if (!metadata) {
-		return null;
-	}
 
 	const getVscodeTheme = (theme: Theme) => {
 
@@ -80,6 +78,54 @@ export const DesignerResultPane = () => {
 		}
 	}
 
+	const columnsDef: TableColumnDefinition<DesignerIssue>[] = [
+		createTableColumn({
+			columnId: 'severity',
+			renderHeaderCell: () => <>Severity</>
+		}),
+		createTableColumn({
+			columnId: 'description',
+			renderHeaderCell: () => <>Description</>
+		}),
+		createTableColumn({
+			columnId: 'propertyPath',
+			renderHeaderCell: () => <></>
+		}),
+	];
+	const [columns] = useState<TableColumnDefinition<DesignerIssue>[]>(columnsDef);
+	const items = metadata.issues ?? [];
+
+	const sizingOptions: TableColumnSizingOptions = {
+		'severity': {
+			minWidth: 50,
+			idealWidth: 50,
+			defaultWidth: 50
+		},
+		'description': {
+			minWidth: 500,
+			idealWidth: 500,
+			defaultWidth: 500
+		},
+		'propertyPath': {
+			minWidth: 100,
+			idealWidth: 100,
+			defaultWidth: 100
+		}
+	};
+
+	const [columnSizingOption] = useState<TableColumnSizingOptions>(sizingOptions);
+	const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
+		{
+			columns,
+			items: items
+		},
+		[useTableColumnSizing_unstable({ columnSizingOptions: columnSizingOption })]
+	);
+	const rows = getRows();
+
+	if (!metadata) {
+		return null;
+	}
 	return <div className={classes.root}>
 		<div className={classes.ribbon}>
 			<TabList
@@ -104,7 +150,7 @@ export const DesignerResultPane = () => {
 			</TabList>
 			<Divider vertical style={{
 				flex: '0'
-			}}/>
+			}} />
 			{metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
 				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title='Open in new tab'></Button>
 			}
@@ -124,19 +170,60 @@ export const DesignerResultPane = () => {
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Issues && <div className={classes.issuesContainer}>
-				{metadata.issues?.map((i, index) => {
-					return <div className={classes.issuesRows}>
-						<Text size={300}>{(index + 1)}.</Text>
-						<Text size={300}>{i.description} : {i.propertyPath?.join('.')}</Text>
-						<Link onClick={() => {
-							console.log('Go there');
-							//designerContext.goToProperty(i.propertyPath!);
-						}}>
-							Go there
-						</Link>
-						{i.moreInfoLink && <Link href={i.moreInfoLink} target="_blank">More info</Link>}
-					</div>
-				})}
+				<Table size="small"
+					{...columnSizing_unstable.getTableProps()}
+					ref={tableRef}
+				>
+					<TableHeader>
+						<TableRow>
+							{
+								columnsDef.map((column) => {
+									return <TableHeaderCell
+										{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+										key={column.columnId}>
+										{column.renderHeaderCell()}
+									</TableHeaderCell>
+								})
+							}
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{
+							rows.map((row, index) => {
+								return <TableRow key={index}>
+									<TableCell
+										{...columnSizing_unstable.getTableCellProps('severity')}
+									>
+										{row.item.severity === 'error' && <ErrorCircleFilled style={{marginTop: '5px'}} fontSize={20} color="red" /> }
+										{row.item.severity === 'warning' && <WarningFilled style={{marginTop: '5px'}} fontSize={20} color="yellow" />}
+										{row.item.severity === 'information' && <InfoFilled style={{marginTop: '5px'}} fontSize={20} color="blue" />}
+									</TableCell>
+									<TableCell
+										{...columnSizing_unstable.getTableCellProps('description')}
+									>{row.item.description} {row.item.propertyPath}</TableCell>
+									<TableCell
+										{...columnSizing_unstable.getTableCellProps('propertyPath')}
+									><Link>
+										Go there
+									</Link></TableCell>
+								</TableRow>
+							})
+						}
+					</TableBody>
+					{/* {metadata.issues?.map((i, index) => {
+						return <div className={classes.issuesRows}>
+							<Text size={300}>{(index + 1)}.</Text>
+							<Text size={300}>{i.description} : {i.propertyPath?.join('.')}</Text>
+							<Link onClick={() => {
+								console.log('Go there');
+								//designerContext.goToProperty(i.propertyPath!);
+							}}>
+								Go there
+							</Link>
+							{i.moreInfoLink && <Link href={i.moreInfoLink} target="_blank">More info</Link>}
+						</div>
+					})} */}
+				</Table>
 			</div>
 			}
 		</div>

@@ -46,7 +46,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 				getComponentId: function (componentPath: (string | number)[]): string {
 					return `${tableState.tableInfo?.id}_${componentPath.join('_')}`;
 				},
-				getErrorMessage: function (componentPath: (string | number)[]): string {
+				getErrorMessage: function (componentPath: (string | number)[]): string | undefined {
 					const componentPathStr = componentPath.join('.');
 					const result = [];
 					for (const issue of tableState.issues ?? []) {
@@ -56,6 +56,9 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 							}
 						}
 
+					}
+					if(result.length === 0) {
+						return undefined;
 					}
 					return result.join('\n') ?? '';
 				},
