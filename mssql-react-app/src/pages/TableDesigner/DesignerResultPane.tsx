@@ -148,10 +148,15 @@ export const DesignerResultPane = () => {
 					}} count={metadata.issues?.length} size='small' />}
 				</Tab>
 			</TabList>
-			<Divider vertical style={{
-				flex: '0'
-			}} />
-			{metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
+			{
+				metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
+				<Divider vertical style={{
+					flex: '0'
+				}} />
+			}
+
+			{
+				metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
 				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title='Open in new tab'></Button>
 			}
 		</div>
@@ -194,9 +199,9 @@ export const DesignerResultPane = () => {
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('severity')}
 									>
-										{row.item.severity === 'error' && <ErrorCircleFilled style={{marginTop: '5px'}} fontSize={20} color="red" /> }
-										{row.item.severity === 'warning' && <WarningFilled style={{marginTop: '5px'}} fontSize={20} color="yellow" />}
-										{row.item.severity === 'information' && <InfoFilled style={{marginTop: '5px'}} fontSize={20} color="blue" />}
+										{row.item.severity === 'error' && <ErrorCircleFilled style={{ marginTop: '5px' }} fontSize={20} color="red" />}
+										{row.item.severity === 'warning' && <WarningFilled style={{ marginTop: '5px' }} fontSize={20} color="yellow" />}
+										{row.item.severity === 'information' && <InfoFilled style={{ marginTop: '5px' }} fontSize={20} color="blue" />}
 									</TableCell>
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('description')}
@@ -204,8 +209,8 @@ export const DesignerResultPane = () => {
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('propertyPath')}
 									><Link>
-										Go there
-									</Link></TableCell>
+											Go there
+										</Link></TableCell>
 								</TableRow>
 							})
 						}
