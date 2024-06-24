@@ -12,6 +12,7 @@ export type DesignerInputBoxProps = {
     autoAdjustHeight?: boolean,
     showLabel?: boolean
     showError?: boolean
+    id?: string
 }
 
 export const DesignerInputBox = ({
@@ -21,7 +22,7 @@ export const DesignerInputBox = ({
     UiArea,
     multiline = false,
     showLabel = true,
-    showError = true
+    showError = true,
 }: DesignerInputBoxProps) => {
     const [value, setValue] = useState(model.value);
     const state = useContext(TableDesignerContext);

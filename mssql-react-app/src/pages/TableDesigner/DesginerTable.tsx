@@ -8,7 +8,7 @@ import { TableDesignerContext } from "./TableDesignerStateProvider";
 import { DesignerCheckbox } from "./DesignerCheckbox";
 import { DesignerDropdown } from "./DesignerDropdown";
 import { DesignerInputBox } from "./DesignerInputBox";
-import { ErrorCircleFilled } from "@fluentui/react-icons";
+import { ErrorCircleFilled, ArrowCircleUpFilled, ArrowCircleDownFilled } from "@fluentui/react-icons";
 
 export type DesignerTableProps = {
 	component: DesignerDataPropertyInfo,
@@ -98,6 +98,20 @@ export const DesignerTable2 = ({
 
 	const rows = getRows();
 
+	const moveRows = (from: number, to: number) => {
+		state?.provider.processTableEdit({
+			type: DesignerEditType.Move,
+			path: [...componentPath, from],
+			value: to,
+			source: UiArea
+		});
+
+		// Focus on the first cell of the moved row
+		const firstCellElementId = state?.provider.getComponentId([...componentPath, to, columns[1].columnId]);
+		document.getElementById(firstCellElementId!)?.focus();
+		//setFocusedRowId(to);
+	}
+
 	const getRowError = (index: number): string | undefined => {
 		const issue = state?.state.issues?.find(i => {
 			return i.propertyPath!.join('.') === [...componentPath, index].join('.');
@@ -165,27 +179,29 @@ export const DesignerTable2 = ({
 							}
 						</div>
 					case 'dropdown':
-						return <div className={classes.tableCell}><DesignerDropdown
-							component={colProps}
-							model={value as DropDownProperties}
-							componentPath={[...componentPath, row.rowId, columnId]}
-							UiArea={UiArea}
-							showLabel={false}
-							showError={false}
-						/>
+						return <div className={classes.tableCell}>
+							<DesignerDropdown
+								component={colProps}
+								model={value as DropDownProperties}
+								componentPath={[...componentPath, row.rowId, columnId]}
+								UiArea={UiArea}
+								showLabel={false}
+								showError={false}
+							/>
 							{
 								state?.provider.getErrorMessage([...componentPath, row.rowId, columnId]) &&
 								getErrorPopup(state?.provider.getErrorMessage([...componentPath, row.rowId, columnId]))
 							}
 						</div>
 					case 'checkbox': {
-						return <div className={classes.tableCell}><DesignerCheckbox
-							component={colProps}
-							model={value as CheckBoxProperties}
-							componentPath={[...componentPath, row.rowId, columnId]}
-							UiArea={UiArea}
-							showLabel={false}
-						/>
+						return <div className={classes.tableCell}>
+							<DesignerCheckbox
+								component={colProps}
+								model={value as CheckBoxProperties}
+								componentPath={[...componentPath, row.rowId, columnId]}
+								UiArea={UiArea}
+								showLabel={false}
+							/>
 							{
 								state?.provider.getErrorMessage([...componentPath, row.rowId, columnId]) &&
 								getErrorPopup(state?.provider.getErrorMessage([...componentPath, row.rowId, columnId]))
@@ -199,12 +215,17 @@ export const DesignerTable2 = ({
 		}
 	}
 
+	const [draggedRowId, setDraggedRowId] = useState<number | undefined>(undefined);
+	const [draggedOverRowId, setDraggedOverRowId] = useState<number | undefined>(undefined);
+	const [focusedRowId, setFocusedRowId] = useState<number | undefined>(undefined);
+
 	return <div>
 		<Toolbar size='small'>
-			{model.canAddRows &&
+			{
+				tableProps.canAddRows &&
 				<ToolbarButton
 					icon={<AddRegular />}
-					onClick={() => {
+					onClick={(event) => {
 						state?.provider.processTableEdit({
 							path: [...componentPath, rows.length],
 							source: UiArea,
@@ -216,6 +237,33 @@ export const DesignerTable2 = ({
 					{tableProps.labelForAddNewButton}
 				</ToolbarButton>
 			}
+			{
+				tableProps.canMoveRows &&
+				<ToolbarButton
+					icon={<ArrowCircleUpFilled />}
+					onClick={(event) => {
+						(event.target as HTMLElement).focus();
+						moveRows(focusedRowId!, focusedRowId! - 1);
+					}}
+					disabled={focusedRowId === undefined || focusedRowId === 0}
+				>
+					Move Up
+				</ToolbarButton>
+			}
+			{
+				tableProps.canMoveRows &&
+				<ToolbarButton
+					icon={<ArrowCircleDownFilled />}
+					onClick={(event) => {
+						(event.target as HTMLElement).focus();
+						moveRows(focusedRowId!, focusedRowId! + 1);
+					}}
+					disabled={focusedRowId === undefined || focusedRowId === rows.length - 1}
+				>
+					Move Down
+				</ToolbarButton>
+			}
+
 		</Toolbar>
 		<Table
 			size="small"
@@ -237,8 +285,7 @@ export const DesignerTable2 = ({
 			</TableHeader>
 			<TableBody>
 				{rows.map((row, index) => {
-					return <TableRow draggable
-
+					return <TableRow draggable={tableProps.canMoveRows}
 						onFocus={(event) => {
 							if (!loadPropertiesTabData) {
 								return;
@@ -248,17 +295,41 @@ export const DesignerTable2 = ({
 								component: component,
 								model: model
 							});
+							setFocusedRowId(index);
 							event.preventDefault();
 						}}
-						key={index}>
+						key={index}
+
+						onDragEnter={() => {
+							setDraggedOverRowId(index);
+						}}
+
+						onDragEnd={() => {
+							if (draggedRowId === undefined || draggedOverRowId === undefined) {
+								return;
+							}
+							moveRows(draggedRowId, draggedOverRowId);
+							setDraggedRowId(undefined);
+						}}
+
+						onDrag={() => {
+							setDraggedRowId(index);
+						}}
+						onDragStart={() => {
+							setDraggedOverRowId(undefined);
+							setDraggedRowId(index);
+						}}
+					>
 						{
-							columnsDef.map((column) => {
+							columnsDef.map((column, columnIndex) => {
 								return <TableCell
 									{...columnSizing_unstable.getTableCellProps(column.columnId)}
+									id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join('-')}_${index}-${columnIndex}`}
 								>
 									{getTableCell(row, column.columnId)}
 								</TableCell>
-							})}
+							})
+						}
 					</TableRow>;
 				})}
 			</TableBody>

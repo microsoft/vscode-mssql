@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { TableDesignerContext } from "./TableDesignerStateProvider";
 import { CheckBoxProperties, DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea } from "./tableDesignerInterfaces";
-import { Checkbox, Field } from "@fluentui/react-components";
+import { Checkbox, Field, Label } from "@fluentui/react-components";
 
 export type DesignerCheckboxProps = {
 	component: DesignerDataPropertyInfo,
@@ -27,10 +27,10 @@ export const DesignerCheckbox = ({
 		size="small"
 	>
 		<Checkbox
-			label={showLabel ? component.componentProperties.title! : undefined}
+			label={showLabel ? <Label size="small">{component.componentProperties.title!}</Label>  : undefined}
 			id={state?.provider.getComponentId(componentPath)}
 			checked={value}
-			onChange={async (event, data) => {
+			onChange={async (_event, data) => {
 				if (model.enabled === false) {
 					return;
 				}
@@ -42,7 +42,11 @@ export const DesignerCheckbox = ({
 				}
 				);
 			}}
-			size="medium"
+			style = {
+				{
+					fontSize: '12px'
+				}
+			}
 			disabled={model.enabled === undefined ? false : !model.enabled}
 		/>
 	</Field>

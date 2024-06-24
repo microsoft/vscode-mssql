@@ -86,9 +86,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 				table: designer.TableInfo,
 				tableChangeInfo: designer.DesignerEdit
 			}) => {
-				console.log('state before edit', this.state, payload.tableChangeInfo);
 				const editResponse = await this._tableDesignerService.processTableEdit(payload.table, payload.tableChangeInfo);
-				console.log('edit response', editResponse);
 				const afterEditState = {
 					...this.state,
 					view: editResponse.view ? getDesignerView(editResponse.view) : this.state.view,
@@ -100,7 +98,6 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 						editState: designer.LoadState.Loaded
 					}
 				};
-				console.log('state after edit', afterEditState);
 				return afterEditState;
 			},
 			'publishChanges': async (state, payload: {
