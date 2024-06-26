@@ -47,11 +47,11 @@
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceRoot}",
-				"--extensionTestsPath=${workspaceRoot}/out/test"
+				"--extensionTestsPath=${workspaceRoot}/out/test/integration"
 			],
 			"sourceMaps": true,
 			"outFiles": [
-				"${workspaceRoot}/out/test/**/*,js"
+				"${workspaceRoot}/out/test/integration/**/*,js"
 			]
 		},
 		{
@@ -61,11 +61,11 @@
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceRoot}",
-				"--extensionTestsPath=${workspaceRoot}/out/test"
+				"--extensionTestsPath=${workspaceRoot}/out/test/integration"
 			],
 			"sourceMaps": true,
 			"outFiles": [
-				"${workspaceRoot}/out/test/**/*,js"
+				"${workspaceRoot}/out/test/integration/**/*,js"
 			]
 		}
 	]
