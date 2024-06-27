@@ -246,7 +246,7 @@ gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-con
 
 gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package.nls', 'ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-mssql-react-app')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];
