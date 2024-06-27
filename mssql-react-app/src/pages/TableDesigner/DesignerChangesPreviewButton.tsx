@@ -102,7 +102,7 @@ export const DesignerChangesPreviewButton = () => {
                             designerContext.provider.generateScript()
                         }
                     } >Open Script</Button>
-                    <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={(event) => {
+                    <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
                         designerContext.provider.publishChanges();
                     }} >Update Database</Button>
                 </DialogActions>

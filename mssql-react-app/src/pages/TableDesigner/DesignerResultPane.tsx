@@ -1,4 +1,4 @@
-import { Button, CounterBadge, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
+import { Button, CounterBadge, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
@@ -93,7 +93,7 @@ export const DesignerResultPane = () => {
 		}),
 	];
 	const [columns] = useState<TableColumnDefinition<DesignerIssue>[]>(columnsDef);
-	const items = metadata.issues ?? [];
+	const items = metadata?.issues ?? [];
 
 	const sizingOptions: TableColumnSizingOptions = {
 		'severity': {
@@ -131,7 +131,7 @@ export const DesignerResultPane = () => {
 			<TabList
 				size='medium'
 				selectedValue={metadata.tabStates!.resultPaneTab}
-				onTabSelect={(event, data) => {
+				onTabSelect={(_event, data) => {
 					state.provider.setResultTab(data.value as string)
 				}}
 				className={classes.designerResultPaneTabs}

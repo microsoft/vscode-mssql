@@ -87,14 +87,12 @@ gulp.task('ext:compile-view', (done) => {
 
 // Compile react views
 gulp.task('ext:compile-mssql-react-app', (done) => {
-	return exec('cd mssql-react-app && yarn dev', (err, stdout, stderr) => {
-		if (err) {
-			console.error(err);
-			return;
-		}
+	return exec('cd mssql-react-app && yarn build --emptyOutDir', {
+		continueOnError: true
+	}, (err, stdout, stderr) => {
 		console.log(stdout);
-        console.error(stderr);
-        done();
+		console.error(stderr);
+		done();
 	});
 })
 
@@ -286,11 +284,11 @@ gulp.task('watch-tests', function () {
 });
 
 gulp.task('watch-mssql-react-app', function () {
-	return gulp.watch('./mssql-react-app/src/**/*.*', gulp.series('ext:compile-mssql-react-app'))
+	return gulp.watch('./mssql-react-app/src/**/*', gulp.series('ext:compile-mssql-react-app'))
 });
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
-gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests')));
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-mssql-react-app')));
 
 gulp.task('lint', gulp.series('ext:lint'));
 

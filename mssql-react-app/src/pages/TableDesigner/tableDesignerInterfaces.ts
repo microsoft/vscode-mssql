@@ -406,7 +406,7 @@ export interface DesignerTableProperties extends TableDesignerComponentPropertie
  * The data item of the designer's table component.
  */
 export interface DesignerTableComponentDataItem {
-	[key: string]: InputBoxProperties | CheckBoxProperties | DropDownProperties | DesignerTableProperties | boolean;
+	[key: string]: InputBoxProperties | CheckBoxProperties | DropDownProperties | DesignerTableProperties | boolean | undefined;
 	/**
 	 * Whether the row can be deleted. The default value is true.
 	 */

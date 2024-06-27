@@ -225,7 +225,7 @@ export const DesignerTable2 = ({
 				tableProps.canAddRows &&
 				<ToolbarButton
 					icon={<AddRegular />}
-					onClick={(event) => {
+					onClick={() => {
 						state?.provider.processTableEdit({
 							path: [...componentPath, rows.length],
 							source: UiArea,

@@ -69,7 +69,7 @@ export const DesignerMainPane = () => {
         <TabList
             size="medium"
             selectedValue={metadata.tabStates?.mainPaneTab}
-            onTabSelect={(event, data) => {
+            onTabSelect={(_event, data) => {
                 state.provider.setTab(data.value as string)
                 state.provider.setPropertiesComponents(undefined);
             }}
