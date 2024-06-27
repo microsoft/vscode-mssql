@@ -51,7 +51,7 @@
     "build": "gulp build",
     "compile": "gulp ext:compile",
     "watch": "gulp watch",
-    "install:all": "yarn install && cd mssql-react-app && yarn install && cd .."
+    "postinstall": "cd mssql-react-app && yarn install"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
