@@ -28,9 +28,6 @@ let testCoverOptions: ITestCoverOptions | undefined = undefined;
 
 export function configure(mochaOpts: Mocha.MochaOptions, testCoverOpts: ITestCoverOptions): void {
 	mocha = new Mocha(mochaOpts);
-	console.log('*** testCoverOpts - start ***');
-	console.log(testCoverOpts)
-	console.log('*** testCoverOpts - end ***');
 	testCoverOptions = testCoverOpts;
 }
 
@@ -48,24 +45,15 @@ class CoverageRunner {
 	private instrumenter: any = undefined;
 
 	constructor(private options: ITestRunnerOptions, private testsRoot: string, endRunCallback: any) {
-		console.log('*** contructor options - start ***');
-		console.log(options);
-		console.log('*** contructor options - end ***');
-		console.log(`testsRoot: ${testsRoot}`);
-		console.log(`options.relativeSourcePath: ${options.relativeSourcePath}`);
-		console.log(`options.relativeCoverageDir: ${options.relativeCoverageDir}`);
 		if (!options.relativeSourcePath) {
 			return endRunCallback('Error - relativeSourcePath must be defined for code coverage to work');
 		}
-
 	}
 
 	public setupCoverage(): void {
 		// Set up Code Coverage, hooking require so that instrumented code is returned
 		let self = this;
-		console.log(`coverageVar: ${self.coverageVar}`);
 		self.instrumenter = new istanbul.Instrumenter({ coverageVariable: self.coverageVar });
-		console.log(`tests root: ${self.testsRoot}, source path: ${self.options.relativeSourcePath}`);
 		let sourceRoot = paths.join(self.testsRoot, self.options.relativeSourcePath);
 
 		// Glob source files
@@ -168,7 +156,6 @@ class CoverageRunner {
 			}
 		});
 
-		console.log(`reportingDir: ${reportingDir}`);
 		let reporter = new istanbul.Reporter(undefined, reportingDir);
 		let reportTypes = (self.options.reports instanceof Array) ? self.options.reports : ['lcov'];
 		reporter.addAll(reportTypes);
