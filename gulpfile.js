@@ -21,7 +21,7 @@ gulp.task('ext:lint', () => {
 	return gulp.src([
 		config.paths.project.root + '/src/**/*.ts',
 		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
-		config.paths.project.root + '/test/**/*.ts'
+		config.paths.project.root + '/test/integration/**/*.ts'
 	])
 		.pipe(gulpESLintNew())
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
@@ -188,7 +188,7 @@ gulp.task('ext:copy-dependencies', (done) => {
 // Compile tests
 gulp.task('ext:compile-tests', (done) => {
 	return gulp.src([
-		config.paths.project.root + '/test/**/*.ts',
+		config.paths.project.root + '/test/integration/**/*.ts',
 		config.paths.project.root + '/typings/**/*.ts'])
 		.pipe(srcmap.init())
 		.pipe(tsProject())
@@ -198,8 +198,8 @@ gulp.task('ext:compile-tests', (done) => {
 				process.exit(1);
 			}
 		})
-		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../test' }))
-		.pipe(gulp.dest('out/test/'));
+		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../test/integration' }))
+		.pipe(gulp.dest('out/test/integration/'));
 
 });
 
@@ -236,7 +236,7 @@ gulp.task('ext:test', async () => {
 	}
 	process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/test-results-ext.xml';
 	var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
-	let extensionTestsPath = `${workspace}/out/test`;
+	let extensionTestsPath = `${workspace}/out/test/integration`;
 	let vscodePath = await vscodeTest.downloadAndUnzipVSCode();
 	await vscodeTest.runTests({
 		vscodeExecutablePath: vscodePath,
@@ -261,7 +261,7 @@ gulp.task('watch-src', function () {
 });
 
 gulp.task('watch-tests', function () {
-	return gulp.watch('./test/**/*.ts', gulp.series('ext:compile-tests'))
+	return gulp.watch('./test/integration/**/*.ts', gulp.series('ext:compile-tests'))
 });
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
