@@ -1,0 +1,30 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+trigger:
+  branches:
+    include:
+    - refs/heads/main
+  paths:
+    include:
+    - src
+
+jobs:
+- job: Localization
+  pool:
+    vmImage: windows-latest
+  steps:
+  - checkout: self
+    fetchDepth: 1
+    persistCredentials: True
+  - task: cesve.one-loc-build.one-loc-build.OneLocBuild@2
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      locProj: 'localization/LocProject.json'
+      outDir: '$(Build.ArtifactStagingDirectory)'
+      dependencyPackageSource: 'https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json'
+      packageSourceAuth: patAuth
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
