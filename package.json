@@ -318,7 +318,12 @@
         },
         {
           "command": "mssql.TableDesigner",
-          "when": "view == objectExplorer && viewItem == Server",
+          "when": "view == objectExplorer && viewItem == TablesFolder",
+          "group": "inline"
+        },
+        {
+          "command": "mssql.TableDesigner",
+          "when": "view == objectExplorer && viewItem == Table",
           "group": "inline"
         }
       ],
