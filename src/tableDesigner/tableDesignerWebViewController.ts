@@ -7,13 +7,15 @@ import { ReactWebViewPanelController } from "../controllers/reactWebviewControll
 import * as designer from './tableDesignerInterfaces';
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import { getDesignerView } from './tableDesignerTabDefinition';
+import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 
 export class TableDesignerWebViewController extends ReactWebViewPanelController<designer.TableDesignerWebViewState> {
 	constructor(context: vscode.ExtensionContext,
 		private _tableDesignerService: designer.TableDesignerProvider,
 		private _connectionManager: ConnectionManager,
 		private _objectExplorerProvider: ObjectExplorerProvider,
-		private _untitledSqlDocumentService: UntitledSqlDocumentService
+		private _untitledSqlDocumentService: UntitledSqlDocumentService,
+		private _tableNode?: TreeNodeInfo
 	) {
 		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', vscode.ViewColumn.Active, {
 			apiState: {
@@ -43,15 +45,31 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 		const databaseName  = this._objectExplorerProvider.currentNode.connectionInfo.database ? this._objectExplorerProvider.currentNode.connectionInfo.database : 'master';
 
 		try {
-			const tableInfo = {
-				id: randomUUID(),
-				isNewTable: true,
-				title: 'New Table',
-				tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - New Table`,
-				server: this._objectExplorerProvider.currentNode.connectionInfo.server,
-				database: databaseName,
-				connectionString: connectionString
-			};
+			let tableInfo: designer.TableInfo;
+			if(this._tableNode) {
+				tableInfo = {
+					id: randomUUID(),
+					isNewTable: false,
+					title: this._tableNode.label as string,
+					tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - ${this._tableNode.label}`,
+					server: this._objectExplorerProvider.currentNode.connectionInfo.server,
+					database: databaseName,
+					connectionString: connectionString,
+					schema: this._tableNode.metadata.schema,
+					name: this._tableNode.metadata.name
+				};
+			} else {
+				tableInfo = {
+					id: randomUUID(),
+					isNewTable: true,
+					title: 'New Table',
+					tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - New Table`,
+					server: this._objectExplorerProvider.currentNode.connectionInfo.server,
+					database: databaseName,
+					connectionString: connectionString
+				};
+			}
+
 			this.panel.title = tableInfo.title;
 			const intializeData = await this._tableDesignerService.initializeTableDesigner(tableInfo);
 			intializeData.tableInfo.database = this._objectExplorerProvider.currentNode.connectionInfo.database ?? 'master';
