@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
 import {
@@ -74,10 +74,10 @@ class LanguageClientErrorHandler {
 	/**
 	 * Callback for language service client error
 	 *
-	 * @param {Error} error
-	 * @param {Message} message
-	 * @param {number} count
-	 * @returns {ErrorAction}
+	 * @param error
+	 * @param message
+	 * @param count
+	 * @returns
 	 *
 	 * @memberOf LanguageClientErrorHandler
 	 */
@@ -92,7 +92,7 @@ class LanguageClientErrorHandler {
 	/**
 	 * Callback for language service client closed
 	 *
-	 * @returns {CloseAction}
+	 * @returns
 	 *
 	 * @memberOf LanguageClientErrorHandler
 	 */
@@ -238,7 +238,7 @@ export default class SqlToolsServiceClient {
 	 * Gets the known service version of the backing tools service. This can be useful for filtering
 	 * commands that are not supported if the tools service is below a certain known version
 	 *
-	 * @returns {number}
+	 * @returns
 	 * @memberof SqlToolsServiceClient
 	 */
 	public getServiceVersion(): number {

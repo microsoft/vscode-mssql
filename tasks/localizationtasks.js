@@ -106,7 +106,7 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 		.pipe(through.obj(function (file, enc, callback) {
 			// convert xliff into json document
 			let dict = convertXmlToDictionary(String(file.contents));
-			var contents = ['/* tslint:disable */',
+			var contents = ['/* eslint-disable */',
 				'// THIS IS A COMPUTER GENERATED FILE. CHANGES IN THIS FILE WILL BE OVERWRITTEN.',
 				'// TO ADD LOCALIZED CONSTANTS, ADD YOUR CONSTANT TO THE ENU XLIFF FILE UNDER ~/localization/xliff/enu/constants/localizedConstants.enu.xlf AND REBUILD THE PROJECT',
 				'import * as nls from \'vscode-nls\';'];

@@ -103,7 +103,7 @@ class CoverageRunner {
 	/**
 	 * Writes a coverage report. Note that as this is called in the process exit callback, all calls must be synchronous.
 	 *
-	 * @returns {void}
+	 * @returns
 	 *
 	 * @memberOf CoverageRunner
 	 */
