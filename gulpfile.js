@@ -24,7 +24,9 @@ gulp.task('ext:lint', () => {
 		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
 		config.paths.project.root + '/test/**/*.ts'
 	])
-		.pipe(gulpESLintNew())
+		.pipe(gulpESLintNew({
+			quiet: true
+		}))
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
 		.pipe(gulpESLintNew.failAfterError());
 });
