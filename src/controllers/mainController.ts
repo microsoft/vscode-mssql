@@ -72,6 +72,7 @@ export default class MainController implements vscode.Disposable {
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
 	public tableDesignerService: TableDesignerService;
+	public configuration: vscode.WorkspaceConfiguration;
 
 	/**
 	 * The main controller constructor
@@ -86,6 +87,7 @@ export default class MainController implements vscode.Disposable {
 		}
 		this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 		this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
+		this.configuration = vscode.workspace.getConfiguration(Constants.extensionName);
 	}
 
 	/**
@@ -120,6 +122,10 @@ export default class MainController implements vscode.Disposable {
 		Utils.logDebug('de-activated.');
 		await this.onDisconnect();
 		this._statusview.dispose();
+	}
+
+	public get isPreviewEnabled(): boolean {
+		return this.configuration.get(Constants.configEnablePreviewFeatures);
 	}
 
 	/**
@@ -479,30 +485,32 @@ export default class MainController implements vscode.Disposable {
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
 
-		this._context.subscriptions.push(
-			vscode.commands.registerCommand(
-				'mssql.TableDesigner', async (node: TreeNodeInfo) => {
-					if(node.nodeType === 'Table'){
-						const reactPanel = new TableDesignerWebViewController(
-							this._context,
-							this.tableDesignerService,
-							this._connectionMgr,
-							this._objectExplorerProvider,
-							this._untitledSqlDocumentService,
-							node
-						);
-						reactPanel.revealToForeground();
-					} else {
-						const reactPanel = new TableDesignerWebViewController(
-							this._context,
-							this.tableDesignerService,
-							this._connectionMgr,
-							this._objectExplorerProvider,
-							this._untitledSqlDocumentService
-						);
-						reactPanel.revealToForeground();
-					}
-				}));
+		if (this.isPreviewEnabled) {
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					'mssql.TableDesigner', async (node: TreeNodeInfo) => {
+						if (node.nodeType === 'Table') {
+							const reactPanel = new TableDesignerWebViewController(
+								this._context,
+								this.tableDesignerService,
+								this._connectionMgr,
+								this._objectExplorerProvider,
+								this._untitledSqlDocumentService,
+								node
+							);
+							reactPanel.revealToForeground();
+						} else {
+							const reactPanel = new TableDesignerWebViewController(
+								this._context,
+								this.tableDesignerService,
+								this._connectionMgr,
+								this._objectExplorerProvider,
+								this._untitledSqlDocumentService
+							);
+							reactPanel.revealToForeground();
+						}
+					}));
+		}
 
 		// Initiate the scripting service
 		this._scriptingService = new ScriptingService(this._connectionMgr);
