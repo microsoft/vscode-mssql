@@ -1,13 +1,13 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import DecompressProvider from '../src/languageservice/decompressProvider';
 import { IPackage, IStatusView } from '../src/languageservice/interfaces';
 import { ILogger } from '../src/models/interfaces';
 import { assert } from 'chai';
 import HttpClient, { IDownloadProgress } from '../src/languageservice/httpClient';
-
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
 
 suite('Language Service Tests', () => {
 

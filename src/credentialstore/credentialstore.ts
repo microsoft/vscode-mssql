@@ -1,7 +1,8 @@
 /*---------------------------------------------------------------------------------------------
-*  Copyright (c) Microsoft Corporation. All rights reserved.
-*  Licensed under the MIT License. See License.txt in the project root for license information.
-*--------------------------------------------------------------------------------------------*/
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
@@ -28,8 +29,8 @@ export class CredentialStore implements ICredentialStore {
 
 	/**
 	 * Gets a credential saved in the credential store
-	 * @param {string} credentialId the ID uniquely identifying this credential
-	 * @returns {Promise<Credential>} Promise that resolved to the credential, or undefined if not found
+	 * @param credentialId the ID uniquely identifying this credential
+	 * @returns Promise that resolved to the credential, or undefined if not found
 	 */
 	public async readCredential(credentialId: string): Promise<Contracts.Credential> {
 		let cred: Contracts.Credential = new Contracts.Credential();

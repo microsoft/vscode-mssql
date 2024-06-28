@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from 'typemoq';
 import * as assert from 'assert';
@@ -168,13 +168,13 @@ suite('Query Runner tests', () => {
 		let batchStart: QueryExecuteBatchNotificationParams = {
 			ownerUri: 'uri',
 			batchSummary: {
-				executionElapsed: null,     // tslint:disable-line:no-null-keyword
-				executionEnd: null,         // tslint:disable-line:no-null-keyword
+				executionElapsed: null,
+				executionEnd: null,
 				executionStart: new Date().toISOString(),
 				hasError: false,
 				id: 0,
 				selection: { startLine: 0, endLine: 0, startColumn: 3, endColumn: 3 },
-				resultSetSummaries: null    // tslint:disable-line:no-null-keyword
+				resultSetSummaries: null
 			}
 		};
 
@@ -228,8 +228,8 @@ suite('Query Runner tests', () => {
 			testVscodeWrapper.object
 		);
 		queryRunner.batchSets[0] = {
-			executionElapsed: null,         // tslint:disable-line:no-null-keyword
-			executionEnd: null,             // tslint:disable-line:no-null-keyword
+			executionElapsed: null,
+			executionEnd: null,
 			executionStart: new Date().toISOString(),
 			hasError: false,
 			id: 0,
@@ -287,8 +287,8 @@ suite('Query Runner tests', () => {
 			testQueryNotificationHandler.object,
 			testVscodeWrapper.object);
 		queryRunner.batchSets[0] = {
-			executionElapsed: null,         // tslint:disable-line:no-null-keyword
-			executionEnd: null,             // tslint:disable-line:no-null-keyword
+			executionElapsed: null,
+			executionEnd: null,
 			executionStart: new Date().toISOString(),
 			hasError: false,
 			id: 0,
@@ -333,8 +333,8 @@ suite('Query Runner tests', () => {
 			testQueryNotificationHandler.object,
 			testVscodeWrapper.object);
 		queryRunner.batchSets[0] = {
-			executionElapsed: null,         // tslint:disable-line:no-null-keyword
-			executionEnd: null,             // tslint:disable-line:no-null-keyword
+			executionElapsed: null,
+			executionEnd: null,
 			executionStart: new Date().toISOString(),
 			hasError: false,
 			id: 0,

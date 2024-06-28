@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
-*  Copyright (c) Microsoft Corporation. All rights reserved.
-*  Licensed under the MIT License. See License.txt in the project root for license information.
-*--------------------------------------------------------------------------------------------*/
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
 import { IAccount } from '../models/contracts/azure';
@@ -49,8 +49,8 @@ export class AccountStore {
 	/**
 	 * Adds an account to the account store.
 	 *
-	 * @param {IAccount} account the account to add
-	 * @returns {Promise<void>} a Promise that returns when the account was saved
+	 * @param account the account to add
+	 * @returns a Promise that returns when the account was saved
 	 */
 	public async addAccount(account: IAccount): Promise<void> {
 		if (account) {

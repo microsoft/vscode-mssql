@@ -639,7 +639,7 @@ export class ConnectionUI {
 					firewallRuleNameAnswer = value;
 				},
 				default: defaultFirewallRuleName
-			}, ,
+			},
 			{
 				type: QuestionTypes.expand,
 				name: LocalizedConstants.aad,

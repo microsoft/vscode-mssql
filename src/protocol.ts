@@ -149,6 +149,5 @@ export function createProxy(protocol: IMessageProtocol, handler: any, isClient: 
 			messageProxy.dispose();
 		}
 	};
-	// tslint:disable-next-line: no-null-keyword
 	return new Proxy(Object.create(null), proxy);
 }

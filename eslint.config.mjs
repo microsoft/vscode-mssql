@@ -3,21 +3,29 @@
 import tseslint from 'typescript-eslint';
 import notice from "eslint-plugin-notice";
 import jsdoc from 'eslint-plugin-jsdoc';
+import deprecationPlugin from "eslint-plugin-deprecation";
+import { fixupPluginRules } from "@eslint/compat";
 
 export default [
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['src/prompts/**/*.ts'],  // Ignore prompts files as they are copied from other repos
+    ignores: ['src/prompts/**/*.ts', 'typings/**.*.d.ts'],  // Ignore prompts files as they are copied from other repos
     languageOptions: {
-      parser: tseslint.parser
+      parser: tseslint.parser,
+      parserOptions: {
+        project: "./tsconfig.json"
+      },
     },
     plugins: {
       notice,
-      jsdoc
+      jsdoc,
+      ['@typescript-eslint']: tseslint.plugin,
+      // @ts-ignore
+      ["deprecation"]: fixupPluginRules(deprecationPlugin),
     },
     rules: {
       "notice/notice": [
-        "warn",
+        "error",
         {
           template: `/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
@@ -66,6 +74,46 @@ export default [
       "no-var": "off",
       "semi": "off",
       "jsdoc/no-types": "warn",
+      "no-restricted-syntax": [
+        'warn',
+        "Literal[raw='null']"
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Not really that useful, there are valid reasons to have empty functions
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-inferrable-types": [
+        "warn",
+        {
+          "ignoreParameters": true,
+          "ignoreProperties": true
+        }
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ],
+      "deprecation/deprecation": "warn",
+      "@typescript-eslint/no-floating-promises": [
+        "warn",
+        {
+          "ignoreVoid": true
+        }
+      ],
+      "@typescript-eslint/naming-convention": [
+        "warn",
+        {
+          "selector": "property",
+          "modifiers": [
+            "private"
+          ],
+          "format": [
+            "camelCase"
+          ],
+          "leadingUnderscore": "require"
+        }
+      ]
     },
   }
 ];
