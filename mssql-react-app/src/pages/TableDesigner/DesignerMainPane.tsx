@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { Tab, TabList } from "@fluentui/react-tabs"
 import { CounterBadge, Text, makeStyles, shorthands } from "@fluentui/react-components";
 import { TableDesignerContext } from "./TableDesignerStateProvider";

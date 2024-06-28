@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { useContext, useEffect, useState } from "react";
 import { TableDesignerContext } from "./TableDesignerStateProvider";
 import { DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea, DropDownProperties } from "./tableDesignerInterfaces";

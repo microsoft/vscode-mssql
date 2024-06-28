@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { Button, makeStyles, shorthands } from "@fluentui/react-components";
 import { AppsListDetailRegular, ChevronDownRegular, ChevronUpRegular } from "@fluentui/react-icons";
 import React, { useState } from "react";

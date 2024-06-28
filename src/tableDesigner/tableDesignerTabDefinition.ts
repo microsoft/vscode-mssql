@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { DesignerDataPropertyInfo, DesignerDataPropertyWithTabInfo, DesignerIssue, DesignerMainPaneTabs, DesignerPropertyPath, DesignerTableProperties, DesignerView, ForeignKeyColumnMappingProperty, InputType, TableCheckConstraintProperty, TableColumnProperty, TableDesignerBuiltInTableViewOptions, TableDesignerView, TableForeignKeyProperty, TableIndexColumnSpecificationProperty, TableIndexProperty, TableProperty } from "./tableDesignerInterfaces";
 
 export function getAboutTableComponents(viewDefinition: TableDesignerView | undefined): DesignerDataPropertyInfo[] {

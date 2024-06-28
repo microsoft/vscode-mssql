@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { Toolbar, ToolbarButton } from "@fluentui/react-toolbar";
 import { DocumentChevronDoubleRegular } from "@fluentui/react-icons";
 import { Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
