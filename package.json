@@ -389,17 +389,19 @@
         {
           "command": "mssql.runQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode"
+        },
+        {
+          "command": "mssql.TableDesigner",
+          "when": "view == objectExplorer && viewItem == TablesFolder"
         }
       ]
     },
     "commands": [
       {
-        "command": "mssql.WelcomePageReact",
-        "title": "MSSQL: Welcome Page"
-      },
-      {
         "command": "mssql.TableDesigner",
-        "title": "MSSQL: TableDesigner"
+        "title": "MSSQL: TableDesigner",
+        "category": "MS SQL",
+        "icon": "$(new-table)"
       },
       {
         "command": "mssql.runQuery",
