@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 import * as tmp from 'tmp';
 import { ILogger } from '../models/interfaces';
 import * as vscodeMssql from 'vscode-mssql';

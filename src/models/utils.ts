@@ -214,8 +214,8 @@ function isSameAuthenticationType(currentAuthenticationType: string, expectedAut
  * If not, match on all key properties (server, db, auth type, user) being identical.
  * Other properties are ignored for this purpose
  *
- * @param {IConnectionProfile} currentProfile the profile to check
- * @param {IConnectionProfile} expectedProfile the profile to try
+ * @param currentProfile the profile to check
+ * @param expectedProfile the profile to try
  * @returns boolean that is true if the profiles match
  */
 export function isSameProfile(currentProfile: IConnectionProfile, expectedProfile: IConnectionProfile): boolean {
@@ -247,8 +247,8 @@ export function isSameProfile(currentProfile: IConnectionProfile, expectedProfil
  * match on all key properties (connectionString or server, db, auth type, user) being identical.
  * Other properties are ignored for this purpose
  *
- * @param {IConnectionInfo} conn the connection to check
- * @param {IConnectionInfo} expectedConn the connection to try to match
+ * @param conn the connection to check
+ * @param expectedConn the connection to try to match
  * @returns boolean that is true if the connections match
  */
 export function isSameConnection(conn: IConnectionInfo, expectedConn: IConnectionInfo): boolean {

@@ -23,7 +23,6 @@ export type GetTenantsResponseData = {
 };
 export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
 
-// tslint:disable:no-null-keyword
 export abstract class MsalAzureAuth {
 	protected readonly loginEndpointUrl: string;
 	protected readonly redirectUri: string;

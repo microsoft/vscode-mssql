@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
 import * as paths from 'path';
@@ -104,7 +104,7 @@ class CoverageRunner {
 	/**
 	 * Writes a coverage report. Note that as this is called in the process exit callback, all calls must be synchronous.
 	 *
-	 * @returns {void}
+	 * @returns
 	 *
 	 * @memberOf CoverageRunner
 	 */
