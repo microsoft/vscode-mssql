@@ -2,6 +2,9 @@
 {
 	"version": "0.1.0",
 	"configurations": [
+
+
+
 		{
 			"type": "node",
 			"request": "launch",
@@ -30,7 +33,8 @@
 			],
 			"sourceMaps": true,
 			"outFiles": [
-				"${workspaceRoot}/out/src/**/*.js"
+				"${workspaceRoot}/out/src/**/*.js",
+				"${workspaceRoot}/myssql-react-app/dist/**/*.js"
 			],
 			"preLaunchTask": "build",
 			"env": {

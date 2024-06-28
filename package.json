@@ -51,6 +51,7 @@
     "build": "gulp build",
     "compile": "gulp ext:compile",
     "watch": "gulp watch",
+    "postinstall": "cd mssql-react-app && yarn install",
     "lint": "gulp lint"
   },
   "devDependencies": {
@@ -322,6 +323,16 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
+        },
+        {
+          "command": "mssql.TableDesigner",
+          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enablePreviewFeatures",
+          "group": "inline"
+        },
+        {
+          "command": "mssql.TableDesigner",
+          "when": "view == objectExplorer && viewItem == Table && config.mssql.enablePreviewFeatures",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -380,10 +391,20 @@
         {
           "command": "mssql.runQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode"
+        },
+        {
+          "command": "mssql.TableDesigner",
+          "when": "view == objectExplorer && viewItem == TablesFolder"
         }
       ]
     },
     "commands": [
+      {
+        "command": "mssql.TableDesigner",
+        "title": "MSSQL: TableDesigner",
+        "category": "MS SQL",
+        "icon": "$(new-table)"
+      },
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
@@ -516,6 +537,15 @@
         "category": "MS SQL"
       },
       {
+        "command": "mssql.TableDesigner",
+        "title": "%mssql.TableDesigner%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/newTable_inverse.svg",
+          "light": "media/newTable.svg"
+        }
+      },
+      {
         "command": "mssql.scriptAlter",
         "title": "%mssql.scriptAlter%",
         "category": "MS SQL"
@@ -613,6 +643,11 @@
       "type": "object",
       "title": "%mssql.Configuration%",
       "properties": {
+        "mssql.enablePreviewFeatures": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enablePreviewFeaturesDescription%"
+        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

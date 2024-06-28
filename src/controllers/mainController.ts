@@ -41,6 +41,8 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { TableDesignerService } from '../services/tableDesignerService';
+import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -69,6 +71,8 @@ export default class MainController implements vscode.Disposable {
 	public sqlProjectsService: SqlProjectsService;
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
+	public tableDesignerService: TableDesignerService;
+	public configuration: vscode.WorkspaceConfiguration;
 
 	/**
 	 * The main controller constructor
@@ -83,6 +87,7 @@ export default class MainController implements vscode.Disposable {
 		}
 		this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 		this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
+		this.configuration = vscode.workspace.getConfiguration(Constants.extensionName);
 	}
 
 	/**
@@ -117,6 +122,10 @@ export default class MainController implements vscode.Disposable {
 		Utils.logDebug('de-activated.');
 		await this.onDisconnect();
 		this._statusview.dispose();
+	}
+
+	public get isPreviewEnabled(): boolean {
+		return this.configuration.get(Constants.configEnablePreviewFeatures);
 	}
 
 	/**
@@ -192,6 +201,7 @@ export default class MainController implements vscode.Disposable {
 			const azureResourceController = new AzureResourceController();
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
+			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -474,6 +484,33 @@ export default class MainController implements vscode.Disposable {
 					await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
+
+		if (this.isPreviewEnabled) {
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					'mssql.TableDesigner', async (node: TreeNodeInfo) => {
+						if (node.nodeType === 'Table') {
+							const reactPanel = new TableDesignerWebViewController(
+								this._context,
+								this.tableDesignerService,
+								this._connectionMgr,
+								this._objectExplorerProvider,
+								this._untitledSqlDocumentService,
+								node
+							);
+							reactPanel.revealToForeground();
+						} else {
+							const reactPanel = new TableDesignerWebViewController(
+								this._context,
+								this.tableDesignerService,
+								this._connectionMgr,
+								this._objectExplorerProvider,
+								this._untitledSqlDocumentService
+							);
+							reactPanel.revealToForeground();
+						}
+					}));
+		}
 
 		// Initiate the scripting service
 		this._scriptingService = new ScriptingService(this._connectionMgr);
@@ -1326,4 +1363,14 @@ export default class MainController implements vscode.Disposable {
 	public onClearAzureTokenCache(): void {
 		this.connectionManager.onClearTokenCache();
 	}
+}
+
+export function getNonce(): string {
+	let text: string = "";
+	const possible: string =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
 }

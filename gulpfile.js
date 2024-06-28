@@ -12,6 +12,7 @@ var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('@vscode/test-electron');
+var { exec } = require('child_process');
 const gulpESLintNew = require('gulp-eslint-new');
 
 require('./tasks/packagetasks');
@@ -23,7 +24,9 @@ gulp.task('ext:lint', () => {
 		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
 		config.paths.project.root + '/test/unit/**/*.ts'
 	])
-		.pipe(gulpESLintNew())
+		.pipe(gulpESLintNew({
+			quiet: true
+		}))
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
 		.pipe(gulpESLintNew.failAfterError());
 });
@@ -77,6 +80,18 @@ gulp.task('ext:compile-view', (done) => {
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
 		.pipe(gulp.dest('out/src/views/htmlcontent'));
 });
+
+// Compile react views
+gulp.task('ext:compile-mssql-react-app', (done) => {
+	return exec('cd mssql-react-app && yarn build --emptyOutDir', {
+		continueOnError: true
+	}, (err, stdout, stderr) => {
+		console.log(stdout);
+		console.error(stderr);
+		done();
+	});
+})
+
 
 // Copy systemjs config file
 gulp.task('ext:copy-systemjs-config', (done) => {
@@ -227,7 +242,7 @@ gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-con
 
 gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package.nls', 'ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-mssql-react-app')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];
@@ -264,8 +279,12 @@ gulp.task('watch-tests', function () {
 	return gulp.watch('./test/unit/**/*.ts', gulp.series('ext:compile-tests'))
 });
 
+gulp.task('watch-mssql-react-app', function () {
+	return gulp.watch('./mssql-react-app/src/**/*', gulp.series('ext:compile-mssql-react-app'))
+});
+
 // Do a full build first so we have the latest compiled files before we start watching for more changes
-gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests')));
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-mssql-react-app')));
 
 gulp.task('lint', gulp.series('ext:lint'));
 

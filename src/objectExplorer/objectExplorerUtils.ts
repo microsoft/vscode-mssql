@@ -24,6 +24,9 @@ export class ObjectExplorerUtils {
 				// if connected
 				label += '_green';
 			}
+			if(label === 'TablesFolder') {
+				label = 'Folder';
+			}
 			return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
 		}
 	}
