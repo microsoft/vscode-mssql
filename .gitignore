@@ -20,3 +20,7 @@ test-reports
 localization/i18n/
 src/constants/localizedConstants.ts
 package.nls.*.json
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
