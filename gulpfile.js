@@ -22,7 +22,7 @@ gulp.task('ext:lint', () => {
 	return gulp.src([
 		config.paths.project.root + '/src/**/*.ts',
 		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
-		config.paths.project.root + '/test/unit/**/*.ts'
+		config.paths.project.root + '/test/**/*.ts'
 	])
 		.pipe(gulpESLintNew({
 			quiet: true
@@ -203,7 +203,7 @@ gulp.task('ext:copy-dependencies', (done) => {
 // Compile tests
 gulp.task('ext:compile-tests', (done) => {
 	return gulp.src([
-		config.paths.project.root + '/test/unit/**/*.ts',
+		config.paths.project.root + '/test/**/*.ts',
 		config.paths.project.root + '/typings/**/*.ts'])
 		.pipe(srcmap.init())
 		.pipe(tsProject())
@@ -213,8 +213,8 @@ gulp.task('ext:compile-tests', (done) => {
 				process.exit(1);
 			}
 		})
-		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../test/unit' }))
-		.pipe(gulp.dest('out/test/unit/'));
+		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../test' }))
+		.pipe(gulp.dest('out/test/'));
 
 });
 
@@ -276,7 +276,7 @@ gulp.task('watch-src', function () {
 });
 
 gulp.task('watch-tests', function () {
-	return gulp.watch('./test/unit/**/*.ts', gulp.series('ext:compile-tests'))
+	return gulp.watch('./test/**/*.ts', gulp.series('ext:compile-tests'))
 });
 
 gulp.task('watch-mssql-react-app', function () {
