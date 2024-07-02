@@ -10,7 +10,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 	let vsCodeApp: ElectronApplication;
 	let vsCodePage: Page;
 
-	test.beforeEach(async () => {
+	test.beforeAll(async () => {
 		const { electronApp, page } = await launchVsCodeWithMssqlExtension();
 		vsCodeApp = electronApp;
 		vsCodePage = page;
@@ -54,7 +54,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		await expect(disconnectOption).toBeHidden({ timeout: 10000 });
 	});
 
-	test.afterEach(async () => {
+	test.afterAll(async () => {
 		await vsCodeApp.close();
 	});
 });
