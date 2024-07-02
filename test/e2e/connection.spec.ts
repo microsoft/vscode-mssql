@@ -36,7 +36,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		});
 	});
 
-	test('Connect to local SQL Database', async () => {
+	test('Connect to local SQL Database, and disconnect', async () => {
 		// wait for 30 seconds
 		const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
 		let isConnectionButtonVisible = await addConnectionButton.isVisible();
@@ -63,6 +63,17 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 
 		const addedSqlConnection = await vsCodePage.locator('div[aria-label="test-connection"]');
 		await expect(addedSqlConnection).toBeVisible({ timeout: 10000 });
+
+		await addedSqlConnection.click({ button: 'right' });
+		const disconnectOption = await vsCodePage.locator('span[aria-label="Disconnect"]');
+		await disconnectOption.click();
+		const isDiconnectOptionVisible = await disconnectOption.isVisible()
+		if (isDiconnectOptionVisible) {
+			await disconnectOption.click();
+		}
+
+		await addedSqlConnection.click({ button: 'right' });
+		await expect(disconnectOption).toBeHidden({ timeout: 10000 });
 	});
 
 	test.afterEach(async () => {
