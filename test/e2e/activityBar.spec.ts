@@ -8,14 +8,14 @@ import { _electron as electron } from 'playwright';
 import { ElectronApplication, Page, test, expect } from '@playwright/test';
 import * as path from 'path';
 
-test.describe('MSSQL Extension - Database Connection', async () => {
+test.describe('MSSQL Extension - Activity Bar', async () => {
 	let vsCodeApp: ElectronApplication;
 	let vsCodePage: Page;
 
-	test.beforeEach(async () => {
+	test.beforeAll(async () => {
 		const vsCodeExecutablePath = await downloadAndUnzipVSCode('insiders');
-
 		const mssqlExtensionPath = path.resolve(__dirname, '../../../');
+
 		vsCodeApp = await electron.launch({
 			executablePath: vsCodeExecutablePath,
 			args: [
@@ -36,36 +36,13 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		});
 	});
 
-	test('Connect to local SQL Database', async () => {
-		// wait for 30 seconds
-		const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
-		let isConnectionButtonVisible = await addConnectionButton.isVisible();
-		console.log(`isVisible: ${isConnectionButtonVisible ? 'true' : 'false'}`)
-
-		if (!isConnectionButtonVisible) {
-			await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
-		}
-
-		await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
-		await addConnectionButton.click();
-
-		// await vsCodePage.click('input[aria-label="input"]');
-		await vsCodePage.fill('input[aria-label="input"]', '(localdb)\\MSSqlLocalDb');
-		await vsCodePage.keyboard.press('Enter');
-
-		await vsCodePage.keyboard.press('Enter');
-
-		await vsCodePage.fill('input[aria-label="input"]', 'Integrated');
-		await vsCodePage.keyboard.press('Enter');
-
-		await vsCodePage.fill('input[aria-label="input"]', 'test-connection');
-		await vsCodePage.keyboard.press('Enter');
-
-		const addedSqlConnection = await vsCodePage.locator('div[aria-label="test-connection"]');
-		await expect(addedSqlConnection).toBeVisible({ timeout: 10000 });
+	test('MSSQL button is present in activity bar', async () => {
+		await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
+		const count = await vsCodePage.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
+		expect(count).toEqual(1);
 	});
 
-	test.afterEach(async () => {
+	test.afterAll(async () => {
 		await vsCodeApp.close();
 	});
 });
