@@ -5,16 +5,17 @@
 
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import { _electron as electron } from 'playwright';
-import { ElectronApplication, test, expect } from '@playwright/test';
+import { ElectronApplication, Page, test, expect } from '@playwright/test';
 import * as path from 'path';
 
 test.describe('MSSQL Extension - Activity Bar', async () => {
 	let vsCodeApp: ElectronApplication;
+	let vsCodePage: Page;
 
 	test.beforeAll(async () => {
 		const vsCodeExecutablePath = await downloadAndUnzipVSCode('insiders');
-
 		const mssqlExtensionPath = path.resolve(__dirname, '../../../');
+
 		vsCodeApp = await electron.launch({
 			executablePath: vsCodeExecutablePath,
 			args: [
@@ -29,15 +30,15 @@ test.describe('MSSQL Extension - Activity Bar', async () => {
 				'--skip-welcome'
 			],
 		});
+
+		vsCodePage = await vsCodeApp.firstWindow({
+			timeout: 10000
+		});
 	});
 
 	test('MSSQL button is present in activity bar', async () => {
-		const vsCodeWindow = await vsCodeApp.firstWindow({
-			timeout: 10000
-		});
-
-		await vsCodeWindow.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
-		const count = await vsCodeWindow.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
+		await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
+		const count = await vsCodePage.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
 		expect(count).toEqual(1);
 	});
 
