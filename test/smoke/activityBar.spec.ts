@@ -9,17 +9,17 @@ import { ElectronApplication, test, expect } from '@playwright/test';
 import * as path from 'path';
 
 test.describe('MSSQL Extension - Activity Bar', async () => {
-	let electronApp: ElectronApplication;
+	let vsCodeApp: ElectronApplication;
 
 	test.beforeAll(async () => {
-		const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
+		const vsCodeExecutablePath = await downloadAndUnzipVSCode('insiders');
 
-		const extensionPath = path.resolve(__dirname, '../../../');
-		electronApp = await electron.launch({
-			executablePath: vscodeExecutablePath,
+		const mssqlExtensionPath = path.resolve(__dirname, '../../../');
+		vsCodeApp = await electron.launch({
+			executablePath: vsCodeExecutablePath,
 			args: [
 				'--disable-extensions',
-				'--extensionDevelopmentPath=' + extensionPath,
+				'--extensionDevelopmentPath=' + mssqlExtensionPath,
 				'--disable-gpu-sandbox', // https://github.com/microsoft/vscode-test/issues/221
 				'--disable-updates', // https://github.com/microsoft/vscode-test/issues/120
 				'--new-window', // Opens a new session of VS Code instead of restoring the previous session (default).
@@ -31,17 +31,17 @@ test.describe('MSSQL Extension - Activity Bar', async () => {
 		});
 	});
 
-	test('MSSQL Extension button is present in activity bar', async () => {
-		await new Promise(resolve => setTimeout(resolve, 5 * 1000));
-		const vsCodeView = await electronApp.firstWindow({
+	test('MSSQL button is present in activity bar', async () => {
+		const vsCodeWindow = await vsCodeApp.firstWindow({
 			timeout: 10000
 		});
 
-		const count = await vsCodeView.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
+		await vsCodeWindow.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
+		const count = await vsCodeWindow.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
 		expect(count).toEqual(1);
 	});
 
 	test.afterAll(async () => {
-		await electronApp.close();
+		await vsCodeApp.close();
 	});
-})
+});
