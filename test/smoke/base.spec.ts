@@ -28,7 +28,7 @@ test('Launch VS Code extension host with MSSQL ext', async () => {
 		],
 	});
 
-	await Promise.resolve(resolve => setTimeout(resolve, 20 * 1000));
+	await new Promise(resolve => setTimeout(resolve, 20 * 1000));
 
 	await electronApp.close();
 })
