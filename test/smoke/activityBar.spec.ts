@@ -32,7 +32,7 @@ test.describe('MSSQL Extension - Activity Bar', async () => {
 		});
 
 		vsCodePage = await vsCodeApp.firstWindow({
-			timeout: 10000
+			timeout: 10 * 1000 // 10 seconds
 		});
 	});
 
