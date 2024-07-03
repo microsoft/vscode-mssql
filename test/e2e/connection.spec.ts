@@ -5,6 +5,7 @@
 
 import { ElectronApplication, Page, test, expect } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsqqlExt.ts';
+import { screenshotOnFailure } from './utils/screenshotOnError.js';
 
 test.describe('MSSQL Extension - Database Connection', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -52,6 +53,10 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 
 		await addedSqlConnection.click({ button: 'right' });
 		await expect(disconnectOption).toBeHidden({ timeout: 10000 });
+	});
+
+	test.afterEach(async ({ }, testInfo) => {
+		await screenshotOnFailure(vsCodePage, testInfo);
 	});
 
 	test.afterAll(async () => {

@@ -5,6 +5,7 @@
 
 import { ElectronApplication, Page, test, expect } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsqqlExt.ts';
+import { screenshotOnFailure } from './utils/screenshotOnError.js';
 
 test.describe('MSSQL Extension - Activity Bar', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -20,6 +21,10 @@ test.describe('MSSQL Extension - Activity Bar', async () => {
 		await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
 		const count = await vsCodePage.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
 		expect(count).toEqual(1);
+	});
+
+	test.afterEach(async ({ }, testInfo) => {
+		await screenshotOnFailure(vsCodePage, testInfo);
 	});
 
 	test.afterAll(async () => {
