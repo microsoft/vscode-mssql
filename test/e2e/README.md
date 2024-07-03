@@ -42,6 +42,7 @@ To run tests, the following options can be used:
     - [Run tests with a single click](https://github.com/microsoft/playwright-vscode/blob/main/README.md#run-tests-with-a-single-click)
 
     > Note: If you don't see any tests appearing in the **Test Explorer** view, like in the image, then you'll need to run them from the terminal first to get them to appear. Please refer to option 2.
+
 ![Playwright Test for VSCode Test Explorer](../../images/test-explorer-view.png).
 
 2. To run tests from the command line execute the following command from the root:
@@ -50,4 +51,6 @@ To run tests, the following options can be used:
 npx playwright test
 ```
 
-The tests will automatically appear in the **Test Explorer** view after running them once, and green run icons will appear to the left of line numbers in the editor, like this: ![Run buttons to the left of line numbers in editor](../../images/editor-view-with-tests.png)
+The tests will automatically appear in the **Test Explorer** view after running them once, and green run icons will appear to the left of line numbers in the editor, like this:
+
+![Run buttons to the left of line numbers in editor](../../images/editor-view-with-tests.png)
