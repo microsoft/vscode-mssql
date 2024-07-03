@@ -7,9 +7,11 @@ import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import { _electron as electron } from 'playwright';
 import * as path from 'path';
 import { ElectronApplication, Page } from '@playwright/test';
+import { getVsCodeVersionName } from './envConfigReader';
 
 export async function launchVsCodeWithMssqlExtension(): Promise<{ electronApp: ElectronApplication, page: Page }> {
-	const vsCodeExecutablePath = await downloadAndUnzipVSCode('insiders');
+	const vsCodeVersionName = getVsCodeVersionName();
+	const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
 
 		const mssqlExtensionPath = path.resolve(__dirname, '../../../../');
 		const electronApp = await electron.launch({

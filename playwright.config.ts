@@ -2,8 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
+import dotenv from 'dotenv';
 import { defineConfig } from '@playwright/test';
+
+dotenv.config({ path: './test/e2e/.env' })
 
 /**
  * Read environment variables from file.
