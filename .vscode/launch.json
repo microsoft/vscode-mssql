@@ -35,7 +35,6 @@
 			"sourceMaps": true,
 			"outFiles": [
 				"${workspaceRoot}/out/src/**/*.js",
-				"${workspaceRoot}/myssql-react-app/dist/**/*.js"
 			],
 			"env": {
 				// Uncomment this to use a specified version of STS, see

@@ -218,7 +218,7 @@ async function generateReactWebviewsBundle() {
 			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
 		},
 		bundle: true,
-		outdir: 'out/react-webviews/assets',
+		outdir: 'out/src/reactviews/assets',
 		platform: 'browser',
 		minify: false,
 		sourcemap: 'inline',

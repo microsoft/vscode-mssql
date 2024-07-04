@@ -105,6 +105,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				  <meta charset="UTF-8">
 				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 				  <title>mssqlwebview</title>
+				  <link rel="stylesheet" href="${styleUri}">
 				  <style>
 					html, body {
 						margin: 0;
@@ -116,7 +117,6 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				</head>
 				<body>
 				  <div id="root"></div>
-				  <link nonce="${nonce}" rel="stylesheet" href="${styleUri}">
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>
@@ -124,7 +124,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 	}
 
 	public resourceUrl(path: string[]) {
-		return this._panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'react-webviews', 'assets', ...path));
+		return this._panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets', ...path));
 	}
 
 	public get panel(): vscode.WebviewPanel {
