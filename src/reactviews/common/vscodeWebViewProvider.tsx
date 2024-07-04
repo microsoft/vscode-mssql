@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FluentProvider, Theme, teamsHighContrastTheme, webDarkTheme, webLightTheme } from "@fluentui/react-components";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 
@@ -28,6 +28,25 @@ const VscodeWebViewProvider: React.FC<VscodeWebViewProviderProps> = ({ children 
 	const extensionRpc = new WebviewRpc(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);
 	const [state, setState] = useState<unknown>();
+
+	useEffect(() => {
+		async function getTheme() {
+			const theme = await extensionRpc.call('getTheme');
+			switch (theme) {
+				case ColorThemeKind.Dark:
+					setTheme(webDarkTheme);
+					break;
+				case ColorThemeKind.HighContrast:
+					setTheme(teamsHighContrastTheme);
+					break;
+				default:
+					setTheme(webLightTheme);
+					break;
+			}
+		}
+
+		getTheme();
+	})
 
 	extensionRpc.subscribe('onDidChangeTheme', (params) => {
 		const kind = params as ColorThemeKind;

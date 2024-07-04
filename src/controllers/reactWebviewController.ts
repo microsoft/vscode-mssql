@@ -74,6 +74,9 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				throw new Error(`No reducer registered for action ${action.type}`);
 			}
 		}
+		this._webViewRequestHandlers['getTheme'] = () => {
+			return vscode.window.activeColorTheme.kind;
+		}
 	}
 
 	public registerRequestHandler(method: string, handler: (params: any) => any) {
