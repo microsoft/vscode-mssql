@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea, DropDownProperties } from "./tableDesignerInterfaces";
 import { Dropdown, useId, Option, Field, InfoLabel } from "@fluentui/react-components";
 

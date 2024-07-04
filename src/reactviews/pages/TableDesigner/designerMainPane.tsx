@@ -5,10 +5,10 @@
 
 import { Tab, TabList } from "@fluentui/react-tabs"
 import { CounterBadge, Text, makeStyles, shorthands } from "@fluentui/react-components";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext } from "react";
 import { InputBoxProperties } from "./tableDesignerInterfaces";
-import { DesignerMainPaneTab } from "./DesignerMainPaneTab";
+import { DesignerMainPaneTab } from "./designerMainPaneTab";
 
 const useStyles = makeStyles({
     root: {

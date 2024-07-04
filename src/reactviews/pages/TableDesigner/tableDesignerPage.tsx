@@ -6,12 +6,12 @@
 import { Button, Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
 import * as td from './tableDesignerInterfaces';
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ResizableBox } from "react-resizable";
 import { DesignerPageRibbon } from "./DesignerPageRibbon";
-import { DesignerMainPane } from "./DesignerMainPane";
-import { DesignerPropertiesPane } from "./DesignerPropertiesPane";
+import { DesignerMainPane } from "./designerMainPane";
+import { DesignerPropertiesPane } from "./designerPropertiesPane";
 import { DesignerResultPane } from "./DesignerResultPane";
 
 const useStyles = makeStyles({

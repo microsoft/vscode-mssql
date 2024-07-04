@@ -7,9 +7,9 @@ import { Toolbar, ToolbarButton } from "@fluentui/react-toolbar";
 import { DocumentChevronDoubleRegular } from "@fluentui/react-icons";
 import { Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "./tableDesignerInterfaces";
-import { DesignerChangesPreviewButton } from "./DesignerChangesPreviewButton";
+import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
 
 const useStyles = makeStyles({
 	separator: {

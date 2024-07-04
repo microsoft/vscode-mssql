@@ -5,7 +5,7 @@
 
 import { ReactNode, createContext, useContext } from 'react';
 import * as td from './tableDesignerInterfaces';
-import { VscodeWebviewContext } from '../../common/VscodeWebViewProvider';
+import { VscodeWebviewContext } from '../../common/vscodeWebViewProvider';
 
 export interface TableDesignerState {
 	provider: td.TableDesignerProvider;

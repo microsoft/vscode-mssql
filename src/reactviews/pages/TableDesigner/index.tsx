@@ -5,7 +5,7 @@
 
 import ReactDOM from 'react-dom/client'
 import '../../index.css'
-import { VscodeWebViewProvider } from '../../common/VscodeWebViewProvider'
+import { VscodeWebViewProvider } from '../../common/vscodeWebViewProvider'
 import { TableDesignerStateProvider } from './TableDesignerStateProvider'
 import { TableDesigner } from './TableDesignerPage'
 

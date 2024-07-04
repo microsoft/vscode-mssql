@@ -9,7 +9,7 @@ import {
 	AddRegular, NavigationFilled, DeleteRegular
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerCheckbox } from "./DesignerCheckbox";
 import { DesignerDropdown } from "./DesignerDropdown";
 import { DesignerInputBox } from "./DesignerInputBox";

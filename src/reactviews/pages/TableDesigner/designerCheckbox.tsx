@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { CheckBoxProperties, DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea } from "./tableDesignerInterfaces";
 import { Checkbox, Field, Label } from "@fluentui/react-components";
 

@@ -10,7 +10,7 @@ import { Button } from "@fluentui/react-button";
 import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "./tableDesignerInterfaces";
 
 const useStyles = makeStyles({

@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext } from "react";
 import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces";
 import { DesignerCheckbox } from "./DesignerCheckbox";
-import { DesignerInputBox } from "./DesignerInputBox";
-import { DesignerDropdown } from "./DesignerDropdown";
-import { DesignerTable } from "./DesignerTable";
+import { DesignerInputBox } from "./designerInputBox";
+import { DesignerDropdown } from "./designerDropdown";
+import { DesignerTable } from "./designerTable";
 
 export interface DesignerMainPaneTabProps {
     tabId: string;

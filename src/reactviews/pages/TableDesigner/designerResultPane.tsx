@@ -7,9 +7,9 @@ import { Button, CounterBadge, Divider, Link, Tab, TabList, Table, TableBody, Ta
 import { useContext, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
-import { TableDesignerContext } from "./TableDesignerStateProvider";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
-import { VscodeWebviewContext } from "../../common/VscodeWebViewProvider";
+import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
 import { ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
