@@ -9,7 +9,7 @@ import { OpenFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
 import { TableDesignerContext } from "./TableDesignerStateProvider";
 import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
-import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
+import { VscodeWebviewContext } from "../../common/VscodeWebViewProvider";
 import { ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
