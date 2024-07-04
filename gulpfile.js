@@ -165,6 +165,16 @@ function transformExtensionLocalization(patterns) {
 		.pipe(gulp.dest('out/src/'));
 }
 
+gulp.task('ext:bundle', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
+	[
+		'out/src/extension.js',
+		'out/src/languageService/serviceInstallerUtil.js',
+		'out/src/telemetry/telemetryInterfaces.js',
+		'out/src/protocol.js',
+		'out/src/models/interfaces.js'
+	]
+)));
+
 gulp.task('ext:compile-src', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
 	[
 		'out/src/extension.js',
