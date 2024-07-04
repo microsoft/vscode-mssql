@@ -177,22 +177,22 @@ gulp.task('ext:bundle', gulp.series(generateExtensionBundle, () => transformExte
 
 gulp.task('ext:compile-src', (done) => {
 	return gulp.src([
-	config.paths.project.root + '/src/**/*.ts',
-	config.paths.project.root + '/src/**/*.js',
-	config.paths.project.root + '/typings/**/*.d.ts',
-	'!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
-	.pipe(srcmap.init())
-	.pipe(tsProject())
-	.on('error', function () {
-		if (process.env.BUILDMACHINE) {
-			done('Extension source failed to build. See Above.');
-			process.exit(1);
-		}
-	})
-	.pipe(nls.rewriteLocalizeCalls())
-	.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-	.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
-	.pipe(gulp.dest('out/src/'));
+		config.paths.project.root + '/src/**/*.ts',
+		config.paths.project.root + '/src/**/*.js',
+		config.paths.project.root + '/typings/**/*.d.ts',
+		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
+		.pipe(srcmap.init())
+		.pipe(tsProject())
+		.on('error', function () {
+			if (process.env.BUILDMACHINE) {
+				done('Extension source failed to build. See Above.');
+				process.exit(1);
+			}
+		})
+		.pipe(nls.rewriteLocalizeCalls())
+		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
+		.pipe(gulp.dest('out/src/'));
 });
 
 // Compile angular view
@@ -210,6 +210,10 @@ gulp.task('ext:compile-view', (done) => {
 
 async function generateReactWebviewsBundle() {
 	const ctx = await esbuild.context({
+		/**
+		 * Entry points for React webviews. This generates individual bundles (both .js and .css files)
+		 * for each entry point, to be used by the webview's HTML content.
+		 */
 		entryPoints: {
 			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
 		},
