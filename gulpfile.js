@@ -118,6 +118,11 @@ async function buildExtension() {
 			'vscode',
 		],
 		logLevel: 'silent',
+		loader: {
+			'.ts': 'ts',
+			'.js': 'js',
+			'.json': 'json',
+		},
 		plugins: [
 			{
 				name: 'custom-types',
@@ -129,14 +134,6 @@ async function buildExtension() {
 			},
 			copy.copy({
 				assets: [
-					{
-						from: 'package.json',
-						to: './out/package.json',
-					},
-					{
-						from: 'src/configurations/config.json',
-						to: './out/src/config.json'
-					},
 					{
 						from: 'src/objectExplorer/objectTypes/*.svg',
 						to: './out/src/objectTypes'
