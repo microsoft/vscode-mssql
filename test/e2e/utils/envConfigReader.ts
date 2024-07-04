@@ -6,3 +6,19 @@
 export function getVsCodeVersionName(): string {
 	return process.env.VS_CODE_VERSION_NAME ?? 'stable';
 }
+
+export function getServerName(): string {
+	return process.env.SERVER_NAME ?? '';
+}
+
+export function getDatabaseName(): string {
+	return process.env.DATABASE_NAME ?? '';
+}
+
+export function getAuthenticationType(): string {
+	return process.env.AUTHENTICATION_TYPE ?? 'Integrated'
+}
+
+export function getProfileName(): string {
+	return process.env.PROFILE_NAME ?? '';
+}

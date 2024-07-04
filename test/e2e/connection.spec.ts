@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, Page, test, expect } from '@playwright/test';
+import { ElectronApplication, Page, Locator, test, expect } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsqqlExt.ts';
 import { screenshotOnFailure } from './utils/screenshotOnError.js';
+import { getAuthenticationType, getDatabaseName, getProfileName, getServerName } from './utils/envConfigReader.js';
 
 test.describe('MSSQL Extension - Database Connection', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -28,20 +29,35 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
 		await addConnectionButton.click();
 
-		// await vsCodePage.click('input[aria-label="input"]');
-		await vsCodePage.fill('input[aria-label="input"]', '(localdb)\\MSSqlLocalDb');
+		const serverName = getServerName();
+		await vsCodePage.fill('input[aria-label="input"]', `${serverName}`);
 		await vsCodePage.keyboard.press('Enter');
 
+		const databaseName = getDatabaseName();
+		if (databaseName) {
+			await vsCodePage.fill('input[aria-label="input"]', `${databaseName}`);
+		}
 		await vsCodePage.keyboard.press('Enter');
 
-		await vsCodePage.fill('input[aria-label="input"]', 'Integrated');
+		const authType = getAuthenticationType();
+		await vsCodePage.fill('input[aria-label="input"]', `${authType}`);
 		await vsCodePage.keyboard.press('Enter');
 
-		await vsCodePage.fill('input[aria-label="input"]', 'test-connection');
+		const profileName = getProfileName();
+		if (profileName) {
+			await vsCodePage.fill('input[aria-label="input"]', `${profileName}`);
+		}
 		await vsCodePage.keyboard.press('Enter');
 
-		const addedSqlConnection = await vsCodePage.locator('div[aria-label="test-connection"]');
-		await expect(addedSqlConnection).toBeVisible({ timeout: 10000 });
+		let addedSqlConnection: Locator;
+		if (profileName) {
+			 addedSqlConnection = await vsCodePage.locator(`div[aria-label="${profileName}"]`);
+		}
+		else {
+			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
+		}
+
+		await expect(addedSqlConnection).toBeVisible({ timeout: 20 * 1000 });
 
 		await addedSqlConnection.click({ button: 'right' });
 		const disconnectOption = await vsCodePage.locator('span[aria-label="Disconnect"]');
