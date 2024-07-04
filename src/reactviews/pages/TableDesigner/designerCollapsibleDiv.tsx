@@ -56,7 +56,7 @@ const useStyles = makeStyles({
         height: "20px",
         lineHeight: "24px",
         alignItems: "flex-start",
-        ...shorthands.flex("1")
+        ...shorthands.flex(1)
     },
     collapseIcon: {
         width: "20px",

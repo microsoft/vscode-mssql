@@ -69,8 +69,8 @@ export const DesignerDropdown = ({
                 }
             }
         >
-            {model.values.map((option) => (
-                <Option text={option} value={option}>
+            {model.values.map((option, index) => (
+                <Option key={componentPath.join('.')+index} text={option} value={option}>
                     {option}
                 </Option>
             ))}

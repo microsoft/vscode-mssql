@@ -305,7 +305,7 @@ export const DesignerTable = ({
 							setFocusedRowId(index);
 							event.preventDefault();
 						}}
-						key={index}
+						key={componentPath.join('.') + index}
 
 						onDragEnter={() => {
 							setDraggedOverRowId(index);
@@ -330,6 +330,7 @@ export const DesignerTable = ({
 						{
 							columnsDef.map((column, columnIndex) => {
 								return <TableCell
+									key={componentPath.join('.') + index + columnIndex}
 									{...columnSizing_unstable.getTableCellProps(column.columnId)}
 									id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join('-')}_${index}-${columnIndex}`}
 								>

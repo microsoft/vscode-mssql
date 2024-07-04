@@ -52,7 +52,7 @@ export const DesignerInputBox = ({
         <Input
             aria-labelledby={dropdownId}
             id={state?.provider.getComponentId(componentPath)}
-            value={value}
+            value={value ?? ''}
             onChange={(_event, newValue) => {
                 setValue(newValue.value ?? '');
             }}
@@ -75,7 +75,7 @@ export const DesignerInputBox = ({
         <Textarea
             aria-labelledby={dropdownId}
             id={state?.provider.getComponentId(componentPath)}
-            value={value}
+            value={value ?? ''}
             onChange={(_event, newValue) => {
                 setValue(newValue.value ?? '');
             }}

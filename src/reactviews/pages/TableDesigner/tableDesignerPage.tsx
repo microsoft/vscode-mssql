@@ -66,7 +66,7 @@ const useStyles = makeStyles({
 		width: '100%',
 		minHeight: '100%',
 		display: 'flex',
-		...shorthands.flex('1'),
+		...shorthands.flex(1),
 		flexDirection: 'column',
 		...shorthands.overflow('hidden'),
 	},

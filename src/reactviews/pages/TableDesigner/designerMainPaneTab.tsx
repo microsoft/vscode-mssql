@@ -48,6 +48,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             model={modelInputProps}
                             componentPath={[component.propertyName]}
                             UiArea={'TabsView'}
+                            key={component.propertyName}
                         />;
 					}
                     case 'textarea': {
@@ -59,6 +60,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             UiArea={'TabsView'}
                             multiline
                             autoAdjustHeight
+                            key={component.propertyName}
                         />;
 					}
                     case 'dropdown': {
@@ -68,6 +70,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             model={modelProps}
                             componentPath={[component.propertyName]}
                             UiArea={'TabsView'}
+                            key={component.propertyName}
                         />;
 					}
                     case 'checkbox': {
@@ -77,6 +80,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             model={modelCheckboxProps}
                             componentPath={[component.propertyName]}
                             UiArea={'TabsView'}
+                            key={component.propertyName}
                         />;
 					}
                     case 'table': {
@@ -86,6 +90,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             model={modelTableProps}
                             componentPath={[component.propertyName]}
                             UiArea={'TabsView'}
+                            key={component.propertyName}
                         />;
 						return null;
 					}
