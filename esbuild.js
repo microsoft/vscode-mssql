@@ -4,6 +4,7 @@ const fs = require('fs');
 const copy = require('esbuild-plugin-copy');
 const { platform } = require('os');
 const clc = require('cli-color');
+const clean = require('esbuild-plugin-clean').clean;
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -65,6 +66,10 @@ async function main() {
 				watch: watch
 			}),
 			esbuildProblemMatcherPlugin('Extension'),
+			clean({
+				patterns: ['out/src/**/*'],
+				verbose: true
+			})
 		],
 	});
 
@@ -86,6 +91,10 @@ async function main() {
 		plugins: [
 			cssLoaderPlugin,
 			esbuildProblemMatcherPlugin('React App'),
+			clean({
+				patterns: ['out/mssql-react-app/**/*'],
+				verbose: true,
+			})
 		]
 	});
 
@@ -98,13 +107,14 @@ async function main() {
 }
 
 function esbuildProblemMatcherPlugin(processName){
+	const formattedProcessName = clc.cyan(`[${processName}]`);
 	return {
 		name: 'esbuild-problem-matcher',
 		setup(build) {
 			let timeStart;
 			build.onStart(async () => {
 				timeStart = Date.now();
-				console.log(`${clc.cyan(`[${processName}]`)} build started`);
+				console.log(`${formattedProcessName} build started`);
 			});
 			build.onEnd(async (result) => {
 				const timeEnd = Date.now();
@@ -112,7 +122,7 @@ function esbuildProblemMatcherPlugin(processName){
 					console.error(`✘ [ERROR] ${text}`);
 					console.error(`    ${location.file}:${location.line}:${location.column}:`);
 				});
-				console.log(`${clc.cyan(`[${processName}]`)} build finished in ${timeEnd - timeStart}ms`);
+				console.log(`${formattedProcessName} build finished in ${timeEnd - timeStart}ms`);
 			})
 		}
 	};

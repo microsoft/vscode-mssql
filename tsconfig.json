@@ -28,6 +28,7 @@
     "exclude": [
         "node_modules",
         "mssql-react-app",
-        "src/views"
+        "src/views",
+        "src/reactviews"
     ]
 }

@@ -1,22 +1,73 @@
-﻿var gulp = require('gulp');
-var rename = require('gulp-rename');
-var ts = require('gulp-typescript');
-var tsProject = ts.createProject('tsconfig.json');
-var del = require('del');
-var srcmap = require('gulp-sourcemaps');
-var config = require('./tasks/config');
-var concat = require('gulp-concat');
-var minifier = require('gulp-uglify/minifier');
-var uglifyjs = require('uglify-js');
-var nls = require('vscode-nls-dev');
-var argv = require('yargs').argv;
-var min = (argv.min === undefined) ? false : true;
-var vscodeTest = require('@vscode/test-electron');
-var { exec } = require('child_process');
+﻿const gulp = require('gulp');
+const rename = require('gulp-rename');
+const ts = require('gulp-typescript');
+const tsProject = ts.createProject('tsconfig.json');
+const del = require('del');
+const srcmap = require('gulp-sourcemaps');
+const config = require('./tasks/config');
+const concat = require('gulp-concat');
+const minifier = require('gulp-uglify/minifier');
+const uglifyjs = require('uglify-js');
+const nls = require('vscode-nls-dev');
+const argv = require('yargs').argv;
+const min = (argv.min === undefined) ? false : true;
+const vscodeTest = require('@vscode/test-electron');
+const { exec } = require('child_process');
 const gulpESLintNew = require('gulp-eslint-new');
+const copy = require('esbuild-plugin-copy');
+const clc = require('cli-color');
+const path = require('path');
+const esbuild = require('esbuild');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
+
+function getTimeString() {
+	const now = new Date();
+	const hours = String(now.getHours()).padStart(2, '0');
+	const minutes = String(now.getMinutes()).padStart(2, '0');
+	const seconds = String(now.getSeconds()).padStart(2, '0');
+	return clc.white(`${hours}:${minutes}:${seconds}`);
+}
+
+function esbuildProblemMatcherPlugin(processName) {
+	const formattedProcessName = clc.cyan(`${processName}`);
+	return {
+		name: 'esbuild-problem-matcher',
+		setup(build) {
+			let timeStart;
+			build.onStart(async () => {
+				timeStart = Date.now();
+				timeStart.toString()
+				console.log(`[${getTimeString()}] Starting '${formattedProcessName}' build`);
+			});
+			build.onEnd(async (result) => {
+				const timeEnd = Date.now();
+				result.errors.forEach(({ text, location }) => {
+					console.error(`✘ [ERROR] ${text}`);
+					console.error(`    ${location.file}:${location.line}:${location.column}:`);
+				});
+				console.log(`[${getTimeString()}] Finished '${formattedProcessName}' build after ${clc.magenta((timeEnd - timeStart)) + ' ms'} `);
+			})
+		}
+	};
+}
+
+const cssLoaderPlugin = {
+	name: 'css-loader',
+	setup(build) {
+		build.onLoad({ filter: /\.css$/ }, async (args) => {
+			const fs = require('fs').promises;
+			const css = await fs.readFile(args.path, 'utf8');
+			const contents = `
+		  const style = document.createElement('style');
+		  style.textContent = ${JSON.stringify(css)};
+		  document.head.appendChild(style);
+		`;
+			return { contents, loader: 'js' };
+		});
+	},
+};
 
 gulp.task('ext:lint', () => {
 	return gulp.src([
@@ -47,26 +98,99 @@ gulp.task('ext:copy-queryHistory-assets', (done) => {
 		.pipe(gulp.dest('out/src/queryHistory/icons'));
 });
 
-// Compile source
-gulp.task('ext:compile-src', (done) => {
-	return gulp.src([
-		config.paths.project.root + '/src/**/*.ts',
-		config.paths.project.root + '/src/**/*.js',
-		config.paths.project.root + '/typings/**/*.d.ts',
-		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
-		.pipe(srcmap.init())
-		.pipe(tsProject())
-		.on('error', function () {
-			if (process.env.BUILDMACHINE) {
-				done('Extension source failed to build. See Above.');
-				process.exit(1);
-			}
-		})
-		.pipe(nls.rewriteLocalizeCalls())
+async function buildExtension() {
+	const ctx = await esbuild.context({
+		entryPoints: [
+			'src/extension.ts',
+			'src/languageService/serviceInstallerUtil.ts',
+			'src/telemetry/telemetryInterfaces.ts',
+			'src/protocol.ts',
+			'src/models/interfaces.ts'
+		],
+		bundle: true,
+		format: 'cjs',
+		minify: false,
+		sourcemap: true,
+		sourcesContent: false,
+		platform: 'node',
+		outdir: 'out/src',
+		external: [
+			'vscode',
+		],
+		logLevel: 'silent',
+		plugins: [
+			{
+				name: 'custom-types',
+				setup(build) {
+					build.onResolve({ filter: /^vscode-mssql$/ }, args => {
+						return { path: path.resolve(__dirname, 'typings/vscode-mssql.d.ts') };
+					});
+				}
+			},
+			copy.copy({
+				assets: [
+					{
+						from: 'package.json',
+						to: './out/package.json',
+					},
+					{
+						from: 'src/configurations/config.json',
+						to: './out/src/config.json'
+					},
+					{
+						from: 'src/objectExplorer/objectTypes/*.svg',
+						to: './out/src/objectTypes'
+					},
+					{
+						from: 'src/controllers/sqlOutput.ejs',
+						to: './out/src/sqlOutput.ejs'
+					},
+					{
+						from: 'src/configurations/config.json',
+						to: './out/config.json'
+					}
+				],
+				resolveFrom: __dirname
+			}),
+			esbuildProblemMatcherPlugin('Extension')
+		],
+	});
+
+	await ctx.rebuild();
+	await ctx.dispose();
+}
+
+// function transformExtension() {
+// 	return gulp.src([
+// 		'out/src/extension.js',
+// 		'out/src/languageService/serviceInstallerUtil.js',
+// 		'out/src/telemetry/telemetryInterfaces.js',
+// 		'out/src/protocol.js',
+// 		'out/src/models/interfaces.js'
+// 	])
+// 		.pipe(nls.rewriteLocalizeCalls())
+// 		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+// 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
+// 		.pipe(gulp.dest('out/src/'));
+// }
+
+function transformLocalizations(patterns) {
+	return gulp.src(patterns)
+	    .pipe(nls.rewriteLocalizeCalls())
 		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
 		.pipe(gulp.dest('out/src/'));
-});
+}
+
+gulp.task('ext:compile-src', gulp.series(buildExtension,() => transformLocalizations(
+	[
+		'out/src/extension.js',
+		'out/src/languageService/serviceInstallerUtil.js',
+		'out/src/telemetry/telemetryInterfaces.js',
+		'out/src/protocol.js',
+		'out/src/models/interfaces.js'
+	]
+)));
 
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
@@ -81,16 +205,43 @@ gulp.task('ext:compile-view', (done) => {
 		.pipe(gulp.dest('out/src/views/htmlcontent'));
 });
 
-// Compile react views
-gulp.task('ext:compile-mssql-react-app', (done) => {
-	return exec('cd mssql-react-app && yarn build --emptyOutDir', {
-		continueOnError: true
-	}, (err, stdout, stderr) => {
-		console.log(stdout);
-		console.error(stderr);
-		done();
+async function buildReactWebviews() {
+	const ctx = await esbuild.context({
+		entryPoints: {
+			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
+		},
+		bundle: true,
+		outdir: 'out/react-webviews/assets',
+		platform: 'browser',
+		minify: false,
+		sourcemap: 'inline',
+		loader: {
+			'.tsx': 'tsx',
+			'.ts': 'ts',
+			'.css': 'css',
+		},
+		tsconfig: './tsconfig.react.json',
+		plugins: [
+			cssLoaderPlugin,
+			esbuildProblemMatcherPlugin('React App')
+		]
 	});
-})
+
+	await ctx.rebuild();
+	await ctx.dispose();
+}
+
+// Compile react views
+gulp.task('ext:compile-mssql-react-app', gulp.series(buildReactWebviews));
+
+	// return exec('cd mssql-react-app && yarn build --emptyOutDir', {
+	// 	continueOnError: true
+	// }, (err, stdout, stderr) => {
+	// 	console.log(stdout);
+	// 	console.error(stderr);
+	// 	done();
+	// });
+// })
 
 
 // Copy systemjs config file
@@ -280,7 +431,7 @@ gulp.task('watch-tests', function () {
 });
 
 gulp.task('watch-mssql-react-app', function () {
-	return gulp.watch('./mssql-react-app/src/**/*', gulp.series('ext:compile-mssql-react-app'))
+	return gulp.watch('./src/reactviews/**/*', gulp.series('ext:compile-mssql-react-app'))
 });
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
