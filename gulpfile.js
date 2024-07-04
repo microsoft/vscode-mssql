@@ -160,20 +160,6 @@ async function buildExtension() {
 	await ctx.dispose();
 }
 
-// function transformExtension() {
-// 	return gulp.src([
-// 		'out/src/extension.js',
-// 		'out/src/languageService/serviceInstallerUtil.js',
-// 		'out/src/telemetry/telemetryInterfaces.js',
-// 		'out/src/protocol.js',
-// 		'out/src/models/interfaces.js'
-// 	])
-// 		.pipe(nls.rewriteLocalizeCalls())
-// 		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-// 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
-// 		.pipe(gulp.dest('out/src/'));
-// }
-
 function transformLocalizations(patterns) {
 	return gulp.src(patterns)
 	    .pipe(nls.rewriteLocalizeCalls())
@@ -232,16 +218,9 @@ async function buildReactWebviews() {
 }
 
 // Compile react views
-gulp.task('ext:compile-mssql-react-app', gulp.series(buildReactWebviews));
-
-	// return exec('cd mssql-react-app && yarn build --emptyOutDir', {
-	// 	continueOnError: true
-	// }, (err, stdout, stderr) => {
-	// 	console.log(stdout);
-	// 	console.error(stderr);
-	// 	done();
-	// });
-// })
+gulp.task('ext:compile-mssql-react-app', gulp.series(buildReactWebviews, () => transformLocalizations([
+	'out/react-webviews/assets/*.js',
+])));
 
 
 // Copy systemjs config file
