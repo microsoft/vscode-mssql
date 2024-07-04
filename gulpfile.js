@@ -205,7 +205,6 @@ async function generateReactWebviewsBundle() {
 		},
 		tsconfig: './tsconfig.react.json',
 		plugins: [
-			cssLoaderPlugin,
 			esbuildProblemMatcherPlugin('React App')
 		]
 	});

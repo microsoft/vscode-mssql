@@ -21,7 +21,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
 		private _tableNode?: TreeNodeInfo
 	) {
-		super(context, 'Table Designer', 'tableDesigner.js', {
+		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', {
 			apiState: {
 				editState: designer.LoadState.NotStarted,
 				generateScriptState: designer.LoadState.NotStarted,

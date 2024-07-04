@@ -17,6 +17,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 		private _context: vscode.ExtensionContext,
 		title: string,
 		private _srcFile: string,
+		private _styleFile: string,
 		initialData: T,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 	) {
@@ -96,6 +97,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 	private _getHtmlTemplate() {
 		const nonce = getNonce();
 		const scriptUri = this.resourceUrl([this._srcFile]);
+		const styleUri = this.resourceUrl([this._styleFile]);
 		return `
 		<!DOCTYPE html>
 				<html lang="en">
@@ -114,6 +116,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				</head>
 				<body>
 				  <div id="root"></div>
+				  <link nonce="${nonce}" rel="stylesheet" href="${styleUri}">
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>
