@@ -10,9 +10,9 @@ import {
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { DesignerCheckbox } from "./DesignerCheckbox";
-import { DesignerDropdown } from "./DesignerDropdown";
-import { DesignerInputBox } from "./DesignerInputBox";
+import { DesignerCheckbox } from "./designerCheckbox";
+import { DesignerDropdown } from "./designerDropdown";
+import { DesignerInputBox } from "./designerInputBox";
 import { ErrorCircleFilled, ArrowCircleUpFilled, ArrowCircleDownFilled } from "@fluentui/react-icons";
 
 export type DesignerTableProps = {

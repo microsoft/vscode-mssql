@@ -6,8 +6,9 @@
 import ReactDOM from 'react-dom/client'
 import '../../index.css'
 import { VscodeWebViewProvider } from '../../common/vscodeWebViewProvider'
-import { TableDesignerStateProvider } from './TableDesignerStateProvider'
-import { TableDesigner } from './TableDesignerPage'
+import { TableDesignerStateProvider } from './tableDesignerStateProvider'
+import { TableDesigner } from './tableDesignerPage'
+import React from 'react'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<VscodeWebViewProvider>

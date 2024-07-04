@@ -6,12 +6,12 @@
 import { Text, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { DesignerCheckbox } from "./DesignerCheckbox";
-import { DesignerInputBox } from "./DesignerInputBox";
-import { DesignerDropdown } from "./DesignerDropdown";
+import { DesignerCheckbox } from "./designerCheckbox";
+import { DesignerInputBox } from "./designerInputBox";
+import { DesignerDropdown } from "./designerDropdown";
 import { DesignerTable } from "./designerTable";
 import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces";
-import { DesignerCollapsibleDiv } from "./DesignerCollapsibleDiv";
+import { DesignerCollapsibleDiv } from "./designerCollapsibleDiv";
 
 const useStyles = makeStyles({
 	root: {

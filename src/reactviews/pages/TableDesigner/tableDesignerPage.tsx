@@ -9,10 +9,10 @@ import * as td from './tableDesignerInterfaces';
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ResizableBox } from "react-resizable";
-import { DesignerPageRibbon } from "./DesignerPageRibbon";
+import { DesignerPageRibbon } from "./designerPageRibbon";
 import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
-import { DesignerResultPane } from "./DesignerResultPane";
+import { DesignerResultPane } from "./designerResultPane";
 
 const useStyles = makeStyles({
 	root: {
