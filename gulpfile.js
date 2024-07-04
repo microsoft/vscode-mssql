@@ -175,15 +175,25 @@ gulp.task('ext:bundle', gulp.series(generateExtensionBundle, () => transformExte
 	]
 )));
 
-gulp.task('ext:compile-src', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
-	[
-		'out/src/extension.js',
-		'out/src/languageService/serviceInstallerUtil.js',
-		'out/src/telemetry/telemetryInterfaces.js',
-		'out/src/protocol.js',
-		'out/src/models/interfaces.js'
-	]
-)));
+gulp.task('ext:compile-src', (done) => {
+	return gulp.src([
+	config.paths.project.root + '/src/**/*.ts',
+	config.paths.project.root + '/src/**/*.js',
+	config.paths.project.root + '/typings/**/*.d.ts',
+	'!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
+	.pipe(srcmap.init())
+	.pipe(tsProject())
+	.on('error', function () {
+		if (process.env.BUILDMACHINE) {
+			done('Extension source failed to build. See Above.');
+			process.exit(1);
+		}
+	})
+	.pipe(nls.rewriteLocalizeCalls())
+	.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+	.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
+	.pipe(gulp.dest('out/src/'));
+});
 
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
