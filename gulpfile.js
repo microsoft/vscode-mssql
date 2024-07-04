@@ -98,7 +98,7 @@ gulp.task('ext:copy-queryHistory-assets', (done) => {
 		.pipe(gulp.dest('out/src/queryHistory/icons'));
 });
 
-async function buildExtension() {
+async function generateExtensionBundle() {
 	const ctx = await esbuild.context({
 		entryPoints: [
 			'src/extension.ts',
@@ -157,15 +157,15 @@ async function buildExtension() {
 	await ctx.dispose();
 }
 
-function transformLocalizations(patterns) {
+function transformExtensionLocalization(patterns) {
 	return gulp.src(patterns)
-	    .pipe(nls.rewriteLocalizeCalls())
+		.pipe(nls.rewriteLocalizeCalls())
 		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
 		.pipe(gulp.dest('out/src/'));
 }
 
-gulp.task('ext:compile-src', gulp.series(buildExtension,() => transformLocalizations(
+gulp.task('ext:compile-src', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
 	[
 		'out/src/extension.js',
 		'out/src/languageService/serviceInstallerUtil.js',
@@ -188,7 +188,7 @@ gulp.task('ext:compile-view', (done) => {
 		.pipe(gulp.dest('out/src/views/htmlcontent'));
 });
 
-async function buildReactWebviews() {
+async function generateReactWebviewsBundle() {
 	const ctx = await esbuild.context({
 		entryPoints: {
 			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
@@ -215,9 +215,12 @@ async function buildReactWebviews() {
 }
 
 // Compile react views
-gulp.task('ext:compile-mssql-react-app', gulp.series(buildReactWebviews, () => transformLocalizations([
-	'out/react-webviews/assets/*.js',
-])));
+gulp.task('ext:compile-mssql-react-app', gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
+	return transformExtensionLocalization([
+		'out/react-webviews/assets/*.js',
+	])
+}
+));
 
 
 // Copy systemjs config file

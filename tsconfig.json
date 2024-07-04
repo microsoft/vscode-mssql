@@ -14,6 +14,7 @@
         "allowSyntheticDefaultImports": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "jsx": "react-jsx",
         "rootDir": ".",
         "noUnusedLocals": true,
         "typeRoots": [
