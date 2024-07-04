@@ -9,7 +9,7 @@ import { IConnectionProfile } from '../models/interfaces';
 import * as vscode from 'vscode';
 import { TelemetryActions, TelemetryViews } from './telemetryInterfaces';
 
-const packageJson = vscode.extensions.getExtension('ms-mssql.mssql').packageJSON;
+const packageJson = vscode.extensions.getExtension(vscodeMssql.extension.name).packageJSON;
 
 let packageInfo = {
 	name: 'vscode-mssql', // Differentiate this from the mssql extension in ADS
