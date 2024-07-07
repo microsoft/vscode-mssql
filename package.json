@@ -345,12 +345,12 @@
           "group": "MS_SQL@3"
         },
         {
-          "command": "mssql.TableDesigner",
+          "command": "mssql.newTable",
           "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enablePreviewFeatures",
           "group": "inline"
         },
         {
-          "command": "mssql.TableDesigner",
+          "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem == Table && config.mssql.enablePreviewFeatures",
           "group": "inline"
         }
@@ -413,18 +413,16 @@
           "when": "view == queryHistory && viewItem == queryHistoryNode"
         },
         {
-          "command": "mssql.TableDesigner",
+          "command": "mssql.newTable",
           "when": "view == objectExplorer && viewItem == TablesFolder"
+        },
+        {
+          "command": "mssql.editTable",
+          "when": "view == objectExplorer && viewItem == Table"
         }
       ]
     },
     "commands": [
-      {
-        "command": "mssql.TableDesigner",
-        "title": "MSSQL: TableDesigner",
-        "category": "MS SQL",
-        "icon": "$(new-table)"
-      },
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
@@ -557,12 +555,21 @@
         "category": "MS SQL"
       },
       {
-        "command": "mssql.TableDesigner",
-        "title": "%mssql.TableDesigner%",
+        "command": "mssql.newTable",
+        "title": "%mssql.newTable%",
         "category": "MS SQL",
         "icon": {
           "dark": "media/newTable_inverse.svg",
           "light": "media/newTable.svg"
+        }
+      },
+      {
+        "command": "mssql.editTable",
+        "title": "%mssql.editTable%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/editTable_inverse.svg",
+          "light": "media/editTable.svg"
         }
       },
       {
