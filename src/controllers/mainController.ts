@@ -488,27 +488,29 @@ export default class MainController implements vscode.Disposable {
 		if (this.isPreviewEnabled) {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
-					'mssql.TableDesigner', async (node: TreeNodeInfo) => {
-						if (node.nodeType === 'Table') {
-							const reactPanel = new TableDesignerWebViewController(
-								this._context,
-								this.tableDesignerService,
-								this._connectionMgr,
-								this._objectExplorerProvider,
-								this._untitledSqlDocumentService,
-								node
-							);
-							reactPanel.revealToForeground();
-						} else {
-							const reactPanel = new TableDesignerWebViewController(
-								this._context,
-								this.tableDesignerService,
-								this._connectionMgr,
-								this._objectExplorerProvider,
-								this._untitledSqlDocumentService
-							);
-							reactPanel.revealToForeground();
-						}
+					Constants.cmdNewTable, async (node: TreeNodeInfo) => {
+						const reactPanel = new TableDesignerWebViewController(
+							this._context,
+							this.tableDesignerService,
+							this._connectionMgr,
+							this._objectExplorerProvider,
+							this._untitledSqlDocumentService
+						);
+						reactPanel.revealToForeground();
+					}));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdEditTable, async (node: TreeNodeInfo) => {
+						const reactPanel = new TableDesignerWebViewController(
+							this._context,
+							this.tableDesignerService,
+							this._connectionMgr,
+							this._objectExplorerProvider,
+							this._untitledSqlDocumentService,
+							node
+						);
+						reactPanel.revealToForeground();
 					}));
 		}
 
