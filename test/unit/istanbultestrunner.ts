@@ -58,7 +58,7 @@ class CoverageRunner {
 
 		// Glob source files
 		let srcFiles = glob.sync('**/**.js', {
-			ignore: self.options.ignorePatterns,
+			ignore: [...self.options.ignorePatterns, '**/reactviews/**'], // ignore reactviews folder for now
 			cwd: sourceRoot
 		});
 
