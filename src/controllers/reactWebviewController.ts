@@ -22,7 +22,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 	) {
 		this._panel = vscode.window.createWebviewPanel(
-			'mssql-react-app',
+			'mssql-react-webview',
 			title,
 			viewColumn,
 			{
