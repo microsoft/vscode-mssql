@@ -47,7 +47,7 @@ function esbuildProblemMatcherPlugin(processName) {
 					console.error(`✘ [ERROR] ${text}`);
 					console.error(`    ${location.file}:${location.line}:${location.column}:`);
 				});
-				console.log(`[${getTimeString()}] Finished '${formattedProcessName}' build after ${clc.magenta((timeEnd - timeStart)) + ' ms'} `);
+				console.log(`[${getTimeString()}] Finished '${formattedProcessName}' build after ${clc.magenta((timeEnd - timeStart)+ ' ms')} `);
 			})
 		}
 	};
@@ -165,7 +165,7 @@ function transformExtensionLocalization(patterns) {
 		.pipe(gulp.dest('out/src/'));
 }
 
-gulp.task('ext:bundle', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
+gulp.task('ext:bundle-src', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
 	[
 		'out/src/extension.js',
 		'out/src/languageService/serviceInstallerUtil.js',
@@ -238,7 +238,7 @@ async function generateReactWebviewsBundle() {
 }
 
 // Compile react views
-gulp.task('ext:compile-mssql-react-app', gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
+gulp.task('ext:compile-reactviews', gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
 	return transformExtensionLocalization([
 		'out/react-webviews/assets/*.js',
 	])
@@ -395,7 +395,7 @@ gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-con
 
 gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package.nls', 'ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-mssql-react-app')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];
@@ -432,12 +432,12 @@ gulp.task('watch-tests', function () {
 	return gulp.watch('./test/unit/**/*.ts', gulp.series('ext:compile-tests'))
 });
 
-gulp.task('watch-mssql-react-app', function () {
-	return gulp.watch('./src/reactviews/**/*', gulp.series('ext:compile-mssql-react-app'))
+gulp.task('watch-reactviews', function () {
+	return gulp.watch('./src/reactviews/**/*', gulp.series('ext:compile-reactviews'))
 });
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
-gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-mssql-react-app')));
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-reactviews')));
 
 gulp.task('lint', gulp.series('ext:lint'));
 
