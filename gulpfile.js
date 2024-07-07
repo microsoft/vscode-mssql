@@ -18,6 +18,7 @@ const copy = require('esbuild-plugin-copy');
 const clc = require('cli-color');
 const path = require('path');
 const esbuild = require('esbuild');
+const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -229,7 +230,8 @@ async function generateReactWebviewsBundle() {
 		},
 		tsconfig: './tsconfig.react.json',
 		plugins: [
-			esbuildProblemMatcherPlugin('React App')
+			esbuildProblemMatcherPlugin('React App'),
+			typecheckPlugin()
 		]
 	});
 
@@ -237,28 +239,14 @@ async function generateReactWebviewsBundle() {
 	await ctx.dispose();
 }
 
-gulp.task('ext:typecheck-reactviews', async () => {
-	const reactProject = ts.createProject('tsconfig.react.json');
-	return gulp.src([
-		config.paths.project.root + 'src/reactviews/**/*.ts',
-		config.paths.project.root + 'src/reactviews/**/*.tsx',
-		config.paths.project.root + '/typings/**/*.d.ts'])
-		.pipe(reactProject())
-		.on('error', function (err) {
-			console.error(err);
-		});
-
-});
-
 // Compile react views
-gulp.task('ext:compile-reactviews', gulp.parallel(
+gulp.task('ext:compile-reactviews',
 	gulp.series( generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
 		return transformExtensionLocalization([
 			'out/react-webviews/assets/*.js',
 		])
-	}),
-	'ext:typecheck-reactviews'
-));
+	})
+);
 
 
 // Copy systemjs config file

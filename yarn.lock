@@ -1387,6 +1387,11 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.3.0.tgz#6d86b8cb322660f03d3f0aa94b99bdd8e172d570"
   integrity sha512-d2CGZR2o7fS6sWB7DG/3a95bGKQyHMACZ5aW8qGkkqQpUoZV6C0X7Pc7l4ZNMZkfNBf4VWNe9E1jRsf0G146Ew==
 
+"@jgoz/esbuild-plugin-typecheck@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@jgoz/esbuild-plugin-typecheck/-/esbuild-plugin-typecheck-4.0.0.tgz#53b373c907b2fac30753f9124d6929722812a312"
+  integrity sha512-7yyamv/ahDr1INsPlkrmRxxa60haiGCvifcMniO9eVfSs37bz+f7yb588lNb52geUuzuPnY8Uo0LnbtFHr96BQ==
+
 "@microsoft/ads-extension-telemetry@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@microsoft/ads-extension-telemetry/-/ads-extension-telemetry-3.0.2.tgz#edcbebbf5ab8ea183a7198ea8056a51f8ac76653"

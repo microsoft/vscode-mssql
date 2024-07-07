@@ -8,7 +8,6 @@ import '../../index.css'
 import { VscodeWebViewProvider } from '../../common/vscodeWebViewProvider'
 import { TableDesignerStateProvider } from './tableDesignerStateProvider'
 import { TableDesigner } from './tableDesignerPage'
-import React from 'react'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<VscodeWebViewProvider>
