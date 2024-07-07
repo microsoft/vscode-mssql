@@ -7,6 +7,7 @@ import * as getmac from 'getmac';
 import * as crypto from 'crypto';
 import * as os from 'os';
 import * as path from 'path';
+import * as findRemoveSync from 'find-remove';
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
@@ -418,25 +419,8 @@ export function getConfigLogRetentionSeconds(): number {
 	}
 }
 
-export function removeOldLogFiles(logPath: string, prefix: string): string[] {
-	// Remove all log file older than the configured retention period
-	const result = [];
-	if (fs.existsSync(logPath)) {
-		const logFiles = fs.readdirSync(logPath);
-		for (let i = 0; i < logFiles.length; i++) {
-			const file = logFiles[i];
-			const filePath = path.join(logPath, file);
-			const fsStat = fs.statSync(filePath);
-			const now = new Date().getTime();
-			const fileModifiedTime = new Date(fsStat.mtime).getTime();
-			const ageInMillis = getConfigLogRetentionSeconds() * 1000;
-			if (now - fileModifiedTime > ageInMillis && file.startsWith(prefix)) {
-				fs.unlinkSync(filePath);
-			}
-			result.push(file);
-		}
-	}
-	return result;
+export function removeOldLogFiles(logPath: string, prefix: string): JSON {
+	return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
 }
 
 export function getCommonLaunchArgsAndCleanupOldLogFiles(executablePath: string, logPath: string, fileName: string): string[] {

@@ -16,17 +16,10 @@
         "experimentalDecorators": true,
         "jsx": "react-jsx",
         "rootDir": ".",
-        "noUnusedLocals": true,
-        "typeRoots": [
-            "node_modules/@types",
-            "./typings"
-        ]
+        "noUnusedLocals": true
     },
-    "src": [
-        "src",
-        "typings"
-    ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "src/reactviews"
     ]
 }

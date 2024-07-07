@@ -47,7 +47,7 @@ function esbuildProblemMatcherPlugin(processName) {
 					console.error(`✘ [ERROR] ${text}`);
 					console.error(`    ${location.file}:${location.line}:${location.column}:`);
 				});
-				console.log(`[${getTimeString()}] Finished '${formattedProcessName}' build after ${clc.magenta((timeEnd - timeStart)+ ' ms')} `);
+				console.log(`[${getTimeString()}] Finished '${formattedProcessName}' build after ${clc.magenta((timeEnd - timeStart) + ' ms')} `);
 			})
 		}
 	};
@@ -237,12 +237,27 @@ async function generateReactWebviewsBundle() {
 	await ctx.dispose();
 }
 
+gulp.task('ext:typecheck-reactviews', async () => {
+	const reactProject = ts.createProject('tsconfig.react.json');
+	return gulp.src([
+		config.paths.project.root + 'src/reactviews/**/*.ts',
+		config.paths.project.root + 'src/reactviews/**/*.tsx',
+		config.paths.project.root + '/typings/**/*.d.ts'])
+		.pipe(reactProject())
+		.on('error', function (err) {
+			console.error(err);
+		});
+
+});
+
 // Compile react views
-gulp.task('ext:compile-reactviews', gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
-	return transformExtensionLocalization([
-		'out/react-webviews/assets/*.js',
-	])
-}
+gulp.task('ext:compile-reactviews', gulp.parallel(
+	gulp.series( generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
+		return transformExtensionLocalization([
+			'out/react-webviews/assets/*.js',
+		])
+	}),
+	'ext:typecheck-reactviews'
 ));
 
 
