@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ElectronApplication, Page, test, expect } from '@playwright/test';
-import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsqqlExt.ts';
-import { screenshotOnFailure } from './utils/screenshotOnError.js';
+import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
+import { screenshotOnFailure } from './utils/screenshotOnError';
 
 test.describe('MSSQL Extension - Activity Bar', async () => {
 	let vsCodeApp: ElectronApplication;

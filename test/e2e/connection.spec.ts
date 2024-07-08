@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ElectronApplication, Page, Locator, test, expect } from '@playwright/test';
-import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsqqlExt.ts';
-import { screenshotOnFailure } from './utils/screenshotOnError.js';
-import { getAuthenticationType, getDatabaseName, getProfileName, getServerName } from './utils/envConfigReader.js';
+import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
+import { screenshotOnFailure } from './utils/screenshotOnError';
+import { getServerName, getDatabaseName, getAuthenticationType, getProfileName } from './utils/envConfigReader';
+import { addDatabaseConnection } from './utils/testHelpers';
 
 test.describe('MSSQL Extension - Database Connection', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -19,39 +20,15 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 	});
 
 	test('Connect to local SQL Database, and disconnect', async () => {
-		// wait for 30 seconds
-		const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
-		let isConnectionButtonVisible = await addConnectionButton.isVisible();
-		if (!isConnectionButtonVisible) {
-			await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
-		}
-
-		await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
-		await addConnectionButton.click();
-
 		const serverName = getServerName();
-		await vsCodePage.fill('input[aria-label="input"]', `${serverName}`);
-		await vsCodePage.keyboard.press('Enter');
-
 		const databaseName = getDatabaseName();
-		if (databaseName) {
-			await vsCodePage.fill('input[aria-label="input"]', `${databaseName}`);
-		}
-		await vsCodePage.keyboard.press('Enter');
-
 		const authType = getAuthenticationType();
-		await vsCodePage.fill('input[aria-label="input"]', `${authType}`);
-		await vsCodePage.keyboard.press('Enter');
-
 		const profileName = getProfileName();
-		if (profileName) {
-			await vsCodePage.fill('input[aria-label="input"]', `${profileName}`);
-		}
-		await vsCodePage.keyboard.press('Enter');
+		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, profileName);
 
 		let addedSqlConnection: Locator;
 		if (profileName) {
-			 addedSqlConnection = await vsCodePage.locator(`div[aria-label="${profileName}"]`);
+			addedSqlConnection = await vsCodePage.locator(`div[aria-label="${profileName}"]`);
 		}
 		else {
 			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
