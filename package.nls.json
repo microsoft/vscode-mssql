@@ -140,5 +140,7 @@
 "mssql.objectExplorer.enableGroupBySchema":"Enable Group By Schema",
 "mssql.objectExplorer.disableGroupBySchema":"Disable Group By Schema",
 "mssql.objectExplorer.expandTimeout":"The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.",
-"mssql.enablePreviewFeaturesDescription": "Enable preview features in the extension. Requires a restart of VS Code to take effect."
+"mssql.enablePreviewFeaturesDescription":"Enable preview features in the extension. Requires a restart of VS Code to take effect.",
+"mssql.newTable":"New Table",
+"mssql.editTable":"Edit Table"
 }
