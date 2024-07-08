@@ -21,7 +21,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
 		private _tableNode?: TreeNodeInfo
 	) {
-		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', vscode.ViewColumn.Active, {
+		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', {
 			apiState: {
 				editState: designer.LoadState.NotStarted,
 				generateScriptState: designer.LoadState.NotStarted,
@@ -29,28 +29,28 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 				publishState: designer.LoadState.NotStarted,
 				initializeState: designer.LoadState.Loading
 			}
-		});
+		}, vscode.ViewColumn.Active);
 		this.initialize();
 	}
 
 	private async initialize() {
 		const connectionUri = this._connectionManager.getUriForConnection(this._objectExplorerProvider.currentNode.connectionInfo);
 		if (!connectionUri) {
-			vscode.window.showErrorMessage('Unable to find connection');
+			await vscode.window.showErrorMessage('Unable to find connection');
 			return;
 		}
 
 		const connectionString = await this._connectionManager.getConnectionString(connectionUri, true);
 		if (!connectionString || connectionString === '') {
-			vscode.window.showErrorMessage('Unable to find connection string for the connection');
+			await vscode.window.showErrorMessage('Unable to find connection string for the connection');
 			return;
 		}
 		// get database name from connection string
-		const databaseName  = this._objectExplorerProvider.currentNode.connectionInfo.database ? this._objectExplorerProvider.currentNode.connectionInfo.database : 'master';
+		const databaseName = this._objectExplorerProvider.currentNode.connectionInfo.database ? this._objectExplorerProvider.currentNode.connectionInfo.database : 'master';
 
 		try {
 			let tableInfo: designer.TableInfo;
-			if(this._tableNode) {
+			if (this._tableNode) {
 				tableInfo = {
 					id: randomUUID(),
 					isNewTable: false,
@@ -94,7 +94,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			};
 
 		} catch (e) {
-			vscode.window.showErrorMessage('Error initializing table designer: ' + e);
+			await vscode.window.showErrorMessage('Error initializing table designer: ' + e);
 			this.state.apiState.initializeState = designer.LoadState.Error;
 			this.state = this.state;
 		}

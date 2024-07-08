@@ -11,7 +11,6 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 	private _isDisposed: boolean = false;
 	private _state: T;
 	private _webViewRequestHandlers: { [key: string]: (params: any) => any } = {};
-	private _assetUri: vscode.Uri;
 	private _reducers: { [key: string]: (state: T, payload: any) => ReducerResponse<T> } = {};
 
 	constructor(
@@ -19,12 +18,11 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 		title: string,
 		private _srcFile: string,
 		private _styleFile: string,
+		initialData: T,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
-		initialData: T
 	) {
-		this._assetUri = vscode.Uri.joinPath(this._context.extensionUri, 'out', 'mssql-react-app');
 		this._panel = vscode.window.createWebviewPanel(
-			'mssql-react-app',
+			'mssql-react-webview',
 			title,
 			viewColumn,
 			{
@@ -33,7 +31,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 			}
 		);
 
-		this._panel.webview.html = this._getHtmlTemplate(this._panel.webview);
+		this._panel.webview.html = this._getHtmlTemplate();
 
 		this._disposables.push(this._panel.webview.onDidReceiveMessage((message) => {
 			if (message.type === 'request') {
@@ -77,6 +75,9 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				throw new Error(`No reducer registered for action ${action.type}`);
 			}
 		}
+		this._webViewRequestHandlers['getTheme'] = () => {
+			return vscode.window.activeColorTheme.kind;
+		}
 	}
 
 	public registerRequestHandler(method: string, handler: (params: any) => any) {
@@ -93,10 +94,10 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 		}
 	}
 
-	private _getHtmlTemplate(webView: vscode.Webview) {
+	private _getHtmlTemplate() {
 		const nonce = getNonce();
-		const scriptUri = this.resourceUrl(['assets', this._srcFile]);
-		const styleUri = this.resourceUrl(['assets', this._styleFile]);
+		const scriptUri = this.resourceUrl([this._srcFile]);
+		const styleUri = this.resourceUrl([this._styleFile]);
 		return `
 		<!DOCTYPE html>
 				<html lang="en">
@@ -119,11 +120,11 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>
-		`
+		`;
 	}
 
 	public resourceUrl(path: string[]) {
-		return this._panel.webview.asWebviewUri(vscode.Uri.joinPath(this._assetUri, ...path));
+		return this._panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets', ...path));
 	}
 
 	public get panel(): vscode.WebviewPanel {
