@@ -2,6 +2,12 @@
 
 ## Get started
 
+### Limitations
+
+If running extension tests from CLI, the VS Code version the tests run with cannot be running already. As a workaround, VS Code Insiders should be used for test development, so that tests may run in VS Code Stable.
+
+For more information regarding this limitation, refer to [using insiders version for extension development.](https://code.visualstudio.com/api/working-with-extensions/testing-extension#using-insiders-version-for-extension-development)
+
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/) v18 or higher
@@ -45,11 +51,22 @@ To run tests, the following options can be used:
 
 ![Playwright Test for VSCode Test Explorer](../../images/test-explorer-view.png).
 
-2. To run tests from the command line execute the following command from the root:
+2. Setup environment variables in the `test\e2e` folder
+    - Create a `.env` file
+    - Add the variables that you want based on the .env.example
+    - Example:
+        ```env
+        VS_CODE_VERSION_NAME=stable
+        SERVER_NAME=(localdb)\MSSqlLocalDb
+        AUTHENTICATION_TYPE=Integrated
+        PROFILE_NAME=test-server
+        ```
 
-```shell
-npx playwright test
-```
+3. To run tests from the command line execute the following command from the root:
+
+    ```shell
+    npx playwright test
+    ```
 
 The tests will automatically appear in the **Test Explorer** view after running them once, and green run icons will appear to the left of line numbers in the editor, like this:
 
