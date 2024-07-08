@@ -5,7 +5,7 @@
 
 import { expect, Page } from "@playwright/test";
 
-export async function addDatabaseConnection(vsCodePage: Page, serverName: string, databaseName: string, authType: string, profileName: string): Promise<void> {
+export async function addDatabaseConnection(vsCodePage: Page, serverName: string, databaseName: string, authType: string, userName: string, password: string, savePassword: string, profileName: string): Promise<void> {
 	// wait for 10 seconds for the extension to load
 	await new Promise(resolve => setTimeout(resolve, 10 * 1000));
 
@@ -28,6 +28,17 @@ export async function addDatabaseConnection(vsCodePage: Page, serverName: string
 
 	await vsCodePage.fill('input[aria-label="input"]', `${authType}`);
 	await vsCodePage.keyboard.press('Enter');
+
+	if (authType === 'SQL Login') {
+		await vsCodePage.fill('input[aria-label="input"]', `${userName}`);
+		await vsCodePage.keyboard.press('Enter');
+
+		await vsCodePage.fill('input[aria-label="input"]', `${password}`);
+		await vsCodePage.keyboard.press('Enter');
+
+		await vsCodePage.fill('input[aria-label="input"]', `${savePassword}`);
+		await vsCodePage.keyboard.press('Enter');
+	}
 
 	if (profileName) {
 		await vsCodePage.fill('input[aria-label="input"]', `${profileName}`);

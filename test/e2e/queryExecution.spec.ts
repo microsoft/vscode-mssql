@@ -7,15 +7,17 @@ import { ElectronApplication, expect, Locator, Page, test } from '@playwright/te
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
 import { addDatabaseConnection } from './utils/testHelpers';
-import { getAuthenticationType, getDatabaseName, getProfileName, getServerName } from './utils/envConfigReader';
+import { getAuthenticationType, getDatabaseName, getPassword, getProfileName, getSavePassword, getServerName, getUserName } from './utils/envConfigReader';
 
 test.describe('MSSQL Extension - Query Execution', async () => {
 	let vsCodeApp: ElectronApplication;
 	let vsCodePage: Page;
 	let serverName: string;
-	let authType: string;
 	let databaseName: string;
-
+	let authType: string;
+	let userName: string;
+	let password: string;
+	let savePassword: string;
 	let profileName: string;
 
 	test.beforeAll(async () => {
@@ -26,8 +28,11 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 		serverName = getServerName();
 		databaseName = getDatabaseName();
 		authType = getAuthenticationType();
+		userName = getUserName();
+		password = getPassword();
+		savePassword = getSavePassword();
 		profileName = getProfileName();
-		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, profileName);
+		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, userName, password, savePassword, profileName);
 	});
 
 	test('Create table, insert data, and execute query', async () => {

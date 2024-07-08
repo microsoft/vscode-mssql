@@ -6,7 +6,7 @@
 import { ElectronApplication, Page, Locator, test, expect } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
-import { getServerName, getDatabaseName, getAuthenticationType, getProfileName } from './utils/envConfigReader';
+import { getServerName, getDatabaseName, getAuthenticationType, getUserName, getPassword, getProfileName, getSavePassword } from './utils/envConfigReader';
 import { addDatabaseConnection } from './utils/testHelpers';
 
 test.describe('MSSQL Extension - Database Connection', async () => {
@@ -23,8 +23,11 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		const serverName = getServerName();
 		const databaseName = getDatabaseName();
 		const authType = getAuthenticationType();
+		const userName = getUserName();
+		const password = getPassword();
+		const savePassword = getSavePassword();
 		const profileName = getProfileName();
-		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, profileName);
+		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, userName, password, savePassword, profileName);
 
 		let addedSqlConnection: Locator;
 		if (profileName) {

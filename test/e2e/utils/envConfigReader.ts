@@ -19,6 +19,18 @@ export function getAuthenticationType(): string {
 	return process.env.AUTHENTICATION_TYPE ?? 'Integrated'
 }
 
+export function getUserName(): string {
+	return process.env.USER_NAME ?? '';
+}
+
+export function getPassword(): string {
+	return process.env.PASSWORD ?? '';
+}
+
+export function getSavePassword(): string {
+	return process.env.SAVE_PASSWORD ?? 'No';
+}
+
 export function getProfileName(): string {
 	return process.env.PROFILE_NAME ?? '';
 }
