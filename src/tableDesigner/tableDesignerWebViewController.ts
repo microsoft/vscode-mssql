@@ -29,7 +29,10 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 				publishState: designer.LoadState.NotStarted,
 				initializeState: designer.LoadState.Loading
 			}
-		}, vscode.ViewColumn.Active);
+		}, vscode.ViewColumn.Active, {
+			dark: vscode.Uri.file(context.asAbsolutePath('media/tableDesigner_inverse.svg')),
+			light: vscode.Uri.file(context.asAbsolutePath('media/tableDesigner.svg'))
+		});
 		this.initialize();
 	}
 
@@ -75,10 +78,6 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			}
 
 			this.panel.title = tableInfo.title;
-			this.panel.iconPath = {
-				dark: vscode.Uri.file(this._context.asAbsolutePath('media/tableDesignerEditor_inverse.svg')),
-				light: vscode.Uri.file(this._context.asAbsolutePath('media/tableDesignerEditor.svg'))
-			};
 			const intializeData = await this._tableDesignerService.initializeTableDesigner(tableInfo);
 			intializeData.tableInfo.database = this._objectExplorerProvider.currentNode.connectionInfo.database ?? 'master';
 			this.state = {
