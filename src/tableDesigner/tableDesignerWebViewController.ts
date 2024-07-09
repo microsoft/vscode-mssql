@@ -29,7 +29,10 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 				publishState: designer.LoadState.NotStarted,
 				initializeState: designer.LoadState.Loading
 			}
-		}, vscode.ViewColumn.Active);
+		}, vscode.ViewColumn.Active, {
+			dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'tableDesignerEditor_inverse.svg'),
+			light: vscode.Uri.joinPath(context.extensionUri, 'media', 'tableDesignerEditor.svg')
+		});
 		this.initialize();
 	}
 

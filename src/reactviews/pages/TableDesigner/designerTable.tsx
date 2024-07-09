@@ -6,14 +6,13 @@
 import { Button, Popover, PopoverSurface, PopoverTrigger, Table, TableBody, TableCell, TableColumnDefinition, TableColumnId, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, TableRowData, Toolbar, ToolbarButton, createTableColumn, makeStyles, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components"
 import { CheckBoxProperties, DesignerDataPropertyInfo, DesignerEditType, DesignerTableComponentDataItem, DesignerTableProperties, DesignerUIArea, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces"
 import {
-	AddRegular, NavigationFilled, DeleteRegular
+	AddRegular, NavigationFilled, DeleteRegular, ErrorCircleFilled, ArrowCircleUpFilled, ArrowCircleDownFilled
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
-import { ErrorCircleFilled, ArrowCircleUpFilled, ArrowCircleDownFilled } from "@fluentui/react-icons";
 
 export type DesignerTableProps = {
 	component: DesignerDataPropertyInfo,
@@ -273,6 +272,7 @@ export const DesignerTable = ({
 
 		</Toolbar>
 		<Table
+			as = "table"
 			size="small"
 			{...columnSizing_unstable.getTableProps()}
 			ref={tableRef}

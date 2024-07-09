@@ -5,12 +5,11 @@
 
 import { Button, CounterBadge, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
 import { useContext, useState } from "react";
-import { OpenFilled } from "@fluentui/react-icons";
+import { OpenFilled, ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
 import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
-import { ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
 	root: {
@@ -181,6 +180,7 @@ export const DesignerResultPane = () => {
 			}
 			{metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Issues && <div className={classes.issuesContainer}>
 				<Table size="small"
+					as = "table"
 					{...columnSizing_unstable.getTableProps()}
 					ref={tableRef}
 				>

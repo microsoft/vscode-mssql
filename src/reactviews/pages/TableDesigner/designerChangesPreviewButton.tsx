@@ -96,7 +96,7 @@ export const DesignerChangesPreviewButton = () => {
                             borderBottom: '1px solid #e0e0e0',
                             overflow: 'auto',
                         }
-                    }><ReactMarkdown  children={metadata.generatePreviewReportResult?.report}></ReactMarkdown> </div>}
+                    }><ReactMarkdown>metadata.generatePreviewReportResult?.report</ReactMarkdown> </div>}
                 </DialogContent>
                 <DialogActions>
                     <DialogTrigger disableButtonEnhancement>

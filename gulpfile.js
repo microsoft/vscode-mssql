@@ -72,13 +72,15 @@ const cssLoaderPlugin = {
 
 gulp.task('ext:lint', () => {
 	return gulp.src([
-		config.paths.project.root + '/src/**/*.ts',
-		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
-		config.paths.project.root + '/test/**/*.ts'
+		'./src/**/*.ts',
+		'./src/**/*.tsx',
+		'./test/**/*.ts',
+		'!**/*.d.ts',
+		'!./src/views/htmlcontent/**/*'
 	])
-		.pipe(gulpESLintNew({
-			quiet: true
-		}))
+	.pipe(gulpESLintNew({
+		quiet: true
+	}))
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
 		.pipe(gulpESLintNew.failAfterError());
 });
@@ -242,7 +244,7 @@ async function generateReactWebviewsBundle() {
 
 // Compile react views
 gulp.task('ext:compile-reactviews',
-	gulp.series( generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
+	gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
 		return transformExtensionLocalization([
 			'out/react-webviews/assets/*.js',
 		])

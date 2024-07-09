@@ -14,12 +14,16 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 	private _reducers: { [key: string]: (state: T, payload: any) => ReducerResponse<T> } = {};
 
 	constructor(
-		private _context: vscode.ExtensionContext,
+		protected _context: vscode.ExtensionContext,
 		title: string,
 		private _srcFile: string,
 		private _styleFile: string,
 		initialData: T,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
+		private _iconPath?: vscode.Uri | {
+			readonly light: vscode.Uri;
+			readonly dark: vscode.Uri;
+		}
 	) {
 		this._panel = vscode.window.createWebviewPanel(
 			'mssql-react-webview',
@@ -32,7 +36,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 		);
 
 		this._panel.webview.html = this._getHtmlTemplate();
-
+		this._panel.iconPath = this._iconPath;
 		this._disposables.push(this._panel.webview.onDidReceiveMessage((message) => {
 			if (message.type === 'request') {
 				const handler = this._webViewRequestHandlers[message.method];
