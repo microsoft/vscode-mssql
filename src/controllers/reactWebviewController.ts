@@ -14,7 +14,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 	private _reducers: { [key: string]: (state: T, payload: any) => ReducerResponse<T> } = {};
 
 	constructor(
-		private _context: vscode.ExtensionContext,
+		protected _context: vscode.ExtensionContext,
 		title: string,
 		private _srcFile: string,
 		private _styleFile: string,
