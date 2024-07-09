@@ -43,6 +43,7 @@ import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
+import { ReactWebViewPanelController } from './reactWebviewController';
 
 /**
  * The main controller class that initializes the extension
@@ -486,6 +487,23 @@ export default class MainController implements vscode.Disposable {
 				}));
 
 		if (this.isPreviewEnabled) {
+			this.registerCommand(Constants.cmdAddObjectExplorer2);
+			this._event.on(Constants.cmdAddObjectExplorer2, async () => {
+				// if (!self._objectExplorerProvider.objectExplorerExists) {
+				// 	self._objectExplorerProvider.objectExplorerExists = true;
+				// }
+				// await self.createObjectExplorerSession();
+
+				const reactPanel = new ReactWebViewPanelController(
+					this._context,
+					'Connection',
+					'connectionDialog.js',
+					'connectionDialog.css',
+					{}
+				)
+				reactPanel.revealToForeground();
+			});
+
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdNewTable, async (node: TreeNodeInfo) => {

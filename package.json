@@ -255,6 +255,12 @@
           "group": "navigation"
         },
         {
+          "command": "mssql.addObjectExplorer2",
+          "when": "view == objectExplorer && config.mssql.enablePreviewFeatures",
+          "title": "%mssql.addObjectExplorer%",
+          "group": "navigation"
+        },
+        {
           "command": "mssql.startQueryHistoryCapture",
           "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
           "title": "%mssql.startQueryHistoryCapture%",
@@ -497,6 +503,15 @@
         "title": "%mssql.addObjectExplorer%",
         "category": "MS SQL",
         "icon": "$(add)"
+      },
+      {
+        "command": "mssql.addObjectExplorer2",
+        "title": "%mssql.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/addConnection_inverse.svg",
+          "light": "media/addConnection.svg"
+        }
       },
       {
         "command": "mssql.objectExplorer.enableGroupBySchema",
