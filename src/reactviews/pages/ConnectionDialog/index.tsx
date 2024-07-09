@@ -6,9 +6,10 @@
 import ReactDOM from 'react-dom/client'
 import '../../index.css'
 import { VscodeWebViewProvider } from '../../common/vscodeWebViewProvider'
+import { ConnectionPage } from './connectionPage'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<VscodeWebViewProvider>
-		<div>Hello World This is connection dialog</div>
+		<ConnectionPage />
 	</VscodeWebViewProvider>
 )
