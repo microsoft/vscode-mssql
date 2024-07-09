@@ -20,6 +20,5 @@
     },
     "exclude": [
         "node_modules",
-        "src/reactviews"
     ]
 }
