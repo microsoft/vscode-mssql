@@ -8,12 +8,17 @@ import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import { ConnectionStore } from '../models/connectionStore';
 import { getConnectionDisplayName } from '../models/connectionInfo';
+import { AccountStore } from '../azure/accountStore';
 export enum FormTabs {
 	Parameters = 'parameter',
 	ConnectionString = 'connString'
 }
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<vscodeMssql.ConnectionDialog.ConnectionDialogWebviewState> {
-	constructor(context: vscode.ExtensionContext, private _connectionStore: ConnectionStore) {
+	constructor(
+		context: vscode.ExtensionContext,
+		private _connectionStore: ConnectionStore,
+		account: AccountStore
+	) {
 		super(
 			context,
 			'Connection Dialog',
@@ -21,7 +26,15 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			'connectionDialog.css',
 			{
 				recentConnections: [],
-				selectedFormTab: FormTabs.Parameters
+				selectedFormTab: FormTabs.Parameters,
+				accounts: account.getAccounts().map(a => {
+					return {
+						id: a.key.id,
+						displayName: a.displayInfo.displayName,
+						isState: a.isStale
+					};
+				}),
+				formConnection: {} as vscodeMssql.ConnectionDialog.ConnectionInfo
 			},
 			vscode.ViewColumn.Active,
 			{
@@ -36,13 +49,15 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		const recentConnections = await this._connectionStore.getRecentlyUsedConnections();
 		console.log('recentConnections', recentConnections);
 		this.state = {
+			...this.state,
 			recentConnections: recentConnections.map(c => {
 				return {
 					...c,
 					profileName: getConnectionDisplayName(c)
 				};
 			}),
-			selectedFormTab: FormTabs.Parameters
+			selectedFormTab: FormTabs.Parameters,
+			formConnection: {} as vscodeMssql.ConnectionDialog.ConnectionInfo
 		};
 		this.registerRpcHandlers();
 	}
@@ -62,7 +77,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}) => {
 				return {
 					...state,
-					loadedConnection: payload.connection,
+					formConnection: payload.connection,
 					selectedFormTab: payload.connection.connectionString ? FormTabs.ConnectionString : FormTabs.Parameters
 				};
 			}

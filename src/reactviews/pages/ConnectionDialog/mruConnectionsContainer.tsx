@@ -50,7 +50,7 @@ export const MruConnectionsContainer = () => {
 			{
 				state?.state?.recentConnections && state.state.recentConnections.map((connection, index) => {
 					return <Card key={'mru'+index} className={styles.card} orientation="horizontal" onClick={()=>{
-						state.loadConnection(connection);
+						state.updateConnection(connection);
 					}}>
 							<CardPreview className={styles.horizontalCardImage}>
 								<ServerRegular />

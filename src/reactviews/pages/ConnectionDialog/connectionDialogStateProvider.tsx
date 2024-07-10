@@ -23,7 +23,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogContextProps> = ({
 	return <ConnectionDialogContext.Provider value={
 		{
 			state: connectionDialogState,
-			loadConnection: function (connection: vscodeMssql.ConnectionDialog.ConnectionInfo): void {
+			updateConnection: function (connection: vscodeMssql.ConnectionDialog.ConnectionInfo): void {
 				webViewState?.extensionRpc.action('loadConnection', {
 					connection: connection
 				 });

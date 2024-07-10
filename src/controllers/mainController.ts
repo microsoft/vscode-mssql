@@ -497,6 +497,7 @@ export default class MainController implements vscode.Disposable {
 				const connDialog = new ConnectionDialogWebViewController(
 					this._context,
 					this._connectionMgr.connectionStore,
+					this._connectionMgr.accountStore
 				);
 				connDialog.revealToForeground();
 			});
