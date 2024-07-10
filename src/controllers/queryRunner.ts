@@ -307,7 +307,6 @@ export default class QueryRunner {
 			const batchSet = this.batchSets[batchId];
 			this.eventEmitter.emit('batchStart', batchSet);
 			let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
-			this._totalElapsedMilliseconds += executionTime;
 			if (executionTime > 0) {
 				// send a time message in the format used for query complete
 				this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));

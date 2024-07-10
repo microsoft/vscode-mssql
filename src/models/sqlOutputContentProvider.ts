@@ -219,13 +219,18 @@ export class SqlOutputContentProvider {
 				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
 			});
 			queryRunner.eventEmitter.on('batchStart', (batch) => {
+				let time = new Date().toLocaleTimeString();
+				if (batch.executionElapsed && batch.executionEnd) {
+					time = new Date(batch.executionStart).toLocaleTimeString();
+				}
+
 				// Build a message for the selection and send the message
 				// from the webview
 				let message = {
 					message: LocalizedConstants.runQueryBatchStartMessage,
 					selection: batch.selection,
 					isError: false,
-					time: new Date().toLocaleTimeString(),
+					time: time,
 					link: {
 						text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1)
 					}
