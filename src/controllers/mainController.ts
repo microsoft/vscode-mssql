@@ -43,7 +43,7 @@ import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
-import { ReactWebViewPanelController } from './reactWebviewController';
+import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -494,14 +494,11 @@ export default class MainController implements vscode.Disposable {
 				// }
 				// await self.createObjectExplorerSession();
 
-				const reactPanel = new ReactWebViewPanelController(
+				const connDialog = new ConnectionDialogWebViewController(
 					this._context,
-					'Connection',
-					'connectionDialog.js',
-					'connectionDialog.css',
-					{}
-				)
-				reactPanel.revealToForeground();
+					this._connectionMgr.connectionStore,
+				);
+				connDialog.revealToForeground();
 			});
 
 			this._context.subscriptions.push(

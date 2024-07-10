@@ -1952,4 +1952,24 @@ declare module 'vscode-mssql' {
 			}
 		}
 	}
+
+	export namespace ConnectionDialog {
+		enum FormTabs {
+			Parameters = 'parameter',
+			ConnectionString = 'connString'
+		}
+		export interface ConnectionInfo extends IConnectionInfo {
+			profileName: string;
+		}
+		export interface ConnectionDialogWebviewState {
+			selectedFormTab: FormTabs;
+			recentConnections: ConnectionInfo[];
+			loadedConnection?: ConnectionInfo;
+		}
+		export interface ConnectionDialogContextProps {
+			state: ConnectionDialogWebviewState;
+			loadConnection: (connection: ConnectionInfo) => void;
+			setFormTab: (tab: FormTabs) => void;
+		}
+	}
 }

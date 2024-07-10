@@ -1,7 +1,18 @@
-import { Button, Caption1, Card, CardHeader, CardPreview, Text, makeStyles, tokens } from "@fluentui/react-components"
-import { MoreHorizontal20Regular, ServerRegular } from "@fluentui/react-icons";
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Card, CardHeader, CardPreview, Text, makeStyles, tokens } from "@fluentui/react-components"
+import { ServerRegular } from "@fluentui/react-icons";
+import { useContext } from "react";
+import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 
 const useStyles = makeStyles({
+	paneTitle: {
+		marginTop: '12px',
+		marginBottom: '12px',
+	},
 	main: {
 		gap: "36px",
 		display: "flex",
@@ -13,25 +24,13 @@ const useStyles = makeStyles({
 		width: "100%",
 		maxWidth: "100%",
 		height: "fit-content",
+		marginBottom: "10px"
 	},
-
-	section: {
-		width: "fit-content",
-	},
-
-	title: { margin: "0 0 12px" },
-
 	horizontalCardImage: {
-		width: "60px",
+		width: "50px",
 		height: "30px",
+		paddingRight:'0px'
 	},
-
-	headerImage: {
-		borderRadius: "4px",
-		maxWidth: "44px",
-		maxHeight: "44px",
-	},
-
 	caption: {
 		color: tokens.colorNeutralForeground3,
 	},
@@ -41,29 +40,28 @@ const useStyles = makeStyles({
 
 export const MruConnectionsContainer = () => {
 	const styles = useStyles();
+	const state = useContext(ConnectionDialogContext);
 
 	return (
-		<>
-			<Text weight="semibold" className={styles.title}>Recent Connections</Text>
-			<Card className={styles.card} orientation="horizontal">
-				<CardPreview className={styles.horizontalCardImage}>
-					<ServerRegular />
-				</CardPreview>
+		<div>
+			<div className={styles.paneTitle}>
+				<Text weight="semibold" className={styles.paneTitle}>Recent Connections</Text>
+			</div>
+			{
+				state?.state?.recentConnections && state.state.recentConnections.map((connection, index) => {
+					return <Card key={'mru'+index} className={styles.card} orientation="horizontal" onClick={()=>{
+						state.loadConnection(connection);
+					}}>
+							<CardPreview className={styles.horizontalCardImage}>
+								<ServerRegular />
+							</CardPreview>
 
-				<CardHeader
-					header={<Text weight="semibold">App Name</Text>}
-					description={
-						<Caption1 className={styles.caption}>Developer</Caption1>
-					}
-					action={
-						<Button
-							appearance="transparent"
-							icon={<MoreHorizontal20Regular />}
-							aria-label="More options"
-						/>
-					}
-				/>
-			</Card>
-		</>
+							<CardHeader
+								header={<Text weight="semibold">{connection.profileName}</Text>}
+							/>
+						</Card>;
+				})
+			}
+		</div>
 	)
 }

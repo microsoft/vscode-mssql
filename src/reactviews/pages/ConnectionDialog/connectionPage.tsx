@@ -1,6 +1,12 @@
-import { Divider, Tab, TabList, Text, makeStyles, shorthands } from "@fluentui/react-components";
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Divider, makeStyles, shorthands } from "@fluentui/react-components";
 import { ResizableBox } from "react-resizable";
 import { MruConnectionsContainer } from "./mruConnectionsContainer";
+import { ConnectionInfoFormContainer } from "./connectionInfoFormContainer";
 
 export const useStyles = makeStyles({
 	root: {
@@ -17,7 +23,6 @@ export const useStyles = makeStyles({
 	},
 	mruContainer: {
 		position: 'relative',
-
 		height: '100%',
 		width: '300px',
 		padding: '20px',
@@ -38,12 +43,7 @@ export const ConnectionPage = () => {
 	return (
 		<div className={classes.root}>
 			<div className={classes.mainContainer}>
-				<TabList>
-					<Tab value="tab1">Connections</Tab>
-					<Tab value="tab2">Azure Accounts</Tab>
-				</TabList>
-				<Text size={600} weight='bold'>Connection Page</Text>
-				<p>Connection Page</p>
+				<ConnectionInfoFormContainer />
 			</div>
 			<Divider style={
 				{
@@ -54,7 +54,7 @@ export const ConnectionPage = () => {
 			} vertical />
 			<ResizableBox
 				className={classes.mruContainer}
-				width={250}
+				width={350}
 				height={Infinity}
 				maxConstraints={[800, Infinity]}
 				minConstraints={[300, Infinity]}
