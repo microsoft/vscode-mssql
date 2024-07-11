@@ -304,6 +304,11 @@
           "group": "MS_SQL@4"
         },
         {
+          "command": "mssql.editConnection",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
+          "group": "inline"
+        },
+        {
           "command": "mssql.refreshObjectExplorerNode",
           "when": "view == objectExplorer && viewItem != disconnectedServer",
           "group": "MS_SQL@10"
@@ -371,6 +376,10 @@
         },
         {
           "command": "mssql.removeObjectExplorerNode",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
+        },
+        {
+          "command": "mssql.editConnection",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
@@ -541,6 +550,12 @@
         "command": "mssql.removeObjectExplorerNode",
         "title": "%mssql.removeObjectExplorerNode%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.editConnection",
+        "title": "%mssql.editConnection%",
+        "category": "MS SQL",
+        "icon": "$(edit)"
       },
       {
         "command": "mssql.refreshObjectExplorerNode",

@@ -70,6 +70,7 @@ export const cmdAadAddAccount = 'mssql.addAadAccount';
 export const cmdClearAzureTokenCache = 'mssql.clearAzureAccountTokenCache';
 export const cmdNewTable = 'mssql.newTable';
 export const cmdEditTable = 'mssql.editTable';
+export const cmdEditConnection = 'mssql.editConnection';
 export const piiLogging = 'piiLogging';
 export const mssqlPiiLogging = 'mssql.piiLogging';
 export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';

@@ -27,5 +27,6 @@
   "include": [
     "src/reactviews",
     "typings",
+    "src/sharedInterfaces",
   ],
 }

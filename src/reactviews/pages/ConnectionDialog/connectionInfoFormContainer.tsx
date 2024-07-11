@@ -26,7 +26,16 @@ export const ConnectionInfoFormContainer = () => {
 	const classes = useStyles();
 	const [showPassword, setShowPassword] = useState<Record<number, boolean>>({});
 	const [components, setComponents] = useState<vscodeMssql.ConnectionDialog.FormComponent[]>([]);
+
+	useEffect(() => {
+		generateComponent();
+	}, [state?.state]);
+
 	const generateComponent = () => {
+		if(!state?.state?.formConnection){
+			return;
+		}
+
 		setComponents([
 			{
 				label: 'Server',
@@ -54,7 +63,7 @@ export const ConnectionInfoFormContainer = () => {
 					}
 				],
 
-				value: state?.state?.formConnection?.authenticationType ? state.state.formConnection.authenticationType : '',
+				value: state?.state?.formConnection?.authenticationType ? state.state.formConnection.authenticationType : 'SqlLogin',
 				onChange: (value) => {
 					state.updateConnection({ ...state.state.formConnection, authenticationType: value as string });
 				}
@@ -65,16 +74,16 @@ export const ConnectionInfoFormContainer = () => {
 				onChange: (value) => {
 					state.updateConnection({ ...state.state.formConnection, user: value as string });
 				},
-				hidden: state?.state?.formConnection?.authenticationType !== 'SqlLogin'
+				hidden: state?.state?.formConnection?.authenticationType !== 'SqlLogin' || state?.state?.formConnection?.authenticationType !== undefined
 
 			}, {
 				label: 'Password',
 				type: 'password',
 				value: state?.state?.formConnection?.password ? state.state.formConnection.password : '',
 				onChange: (value) => {
-					state.updateConnection({ ...state.state.formConnection, password: value as string });
+					state.updateConnection({ ...state?.state?.formConnection, password: value as string });
 				},
-				hidden: state?.state?.formConnection?.authenticationType !== 'SqlLogin'
+				hidden: state?.state?.formConnection?.authenticationType !== 'SqlLogin' || state?.state?.formConnection?.authenticationType !== undefined
 
 			}, {
 				label: 'Remember Password',
@@ -83,7 +92,7 @@ export const ConnectionInfoFormContainer = () => {
 				onChange: (_value) => {
 					// state.updateConnection({ ...state.state.formConnection, persistSecurityInfo: value as boolean });
 				},
-				hidden: state?.state?.formConnection?.authenticationType !== 'SqlLogin'
+				hidden: state?.state?.formConnection?.authenticationType !== 'SqlLogin' || state?.state?.formConnection?.authenticationType !== undefined
 			}, {
 				label: 'Azure Account',
 				type: 'dropdown',
@@ -150,9 +159,6 @@ export const ConnectionInfoFormContainer = () => {
 			}
 		]);
 	};
-	useEffect(() => {
-		generateComponent();
-	}, [state?.state?.formConnection]);
 
 	const getShowPasswordForComponent = (idx: number) => {
 		if (!showPassword[idx]) {
@@ -183,7 +189,13 @@ export const ConnectionInfoFormContainer = () => {
 				);
 			case 'dropdown':
 				return (
-					<Dropdown>
+					<Dropdown value={
+						component.value as string
+					}  onOptionSelect={
+						(_event, data) => {
+							component.onChange(data.optionValue);
+						}
+					}>
 						{
 							component.options?.map(option => {
 								return (
