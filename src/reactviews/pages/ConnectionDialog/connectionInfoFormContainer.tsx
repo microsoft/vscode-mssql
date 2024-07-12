@@ -5,9 +5,10 @@
 
 import { useContext, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Button, Dropdown, Field, Input, Option, Tab, TabList, makeStyles } from "@fluentui/react-components";
+import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image } from "@fluentui/react-components";
 import { FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connections";
-import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
+import { EyeRegular, EyeOffRegular, DatabasePlugConnectedRegular } from "@fluentui/react-icons";
+const sqlServerImage = require('../../../../media/sqlServer.svg');
 
 const useStyles = makeStyles({
 	formDiv: {
@@ -39,12 +40,11 @@ export const ConnectionInfoFormContainer = () => {
 	};
 
 	const generateFormComponent = (component: FormComponent, profile: IConnectionDialogProfile, idx: number) => {
-		console.log('generateFormComponent', component, profile);
 		switch (component.type) {
 			case FormComponentType.Input:
-				return <Input
+				return <Input autoFocus={idx === 0}
 					size="small"
-					value={profile[component.propertyName] as string}
+					value={(profile[component.propertyName] as string) ?? ''}
 					onChange={(_value, data) => state?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
@@ -55,7 +55,7 @@ export const ConnectionInfoFormContainer = () => {
 				return <Input
 					size="small"
 					type={getShowPasswordForComponent(idx) ? 'text' : 'password'}
-					value={profile[component.propertyName] as string}
+					value={profile[component.propertyName] as string ?? ''}
 					onChange={(_value, data) => state?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
@@ -71,24 +71,39 @@ export const ConnectionInfoFormContainer = () => {
 						</Button>}
 				/>
 			case FormComponentType.Dropdown:
-				if(component.options === undefined) {
+				if (component.options === undefined) {
 					throw new Error('Dropdown component must have options');
 				}
-				return <Dropdown size= "small" defaultValue={profile[component.propertyName] as string} onOptionSelect={(_event, data) => {
-					state?.formAction({
-						propertyName: component.propertyName,
-						isAction: false,
-						value: data.optionValue as string
-					});
-				}}>
+				return <Dropdown
+					size="small"
+					placeholder={component.placeholder ?? ''}
+					defaultValue={profile[component.propertyName] as string}
+					onOptionSelect={(_event, data) => {
+						state?.formAction({
+							propertyName: component.propertyName,
+							isAction: false,
+							value: data.optionValue as string
+						});
+					}}>
 					{
 						component.options?.map((option, idx) => {
 							return <Option key={component.propertyName + idx} value={option.value}>{option.displayName}</Option>
 						})
 					}
-				</Dropdown>
+				</Dropdown>;
+			case FormComponentType.Checkbox:
+				return <Checkbox
+					size="medium"
+					checked={profile[component.propertyName] as boolean ?? false}
+					onChange={(_value, data) => state?.formAction({
+						propertyName: component.propertyName,
+						isAction: false,
+						value: data.checked
+					})}
+				/>;
+
 		}
-	}
+	};
 
 	if (!state?.state) {
 		return undefined;
@@ -96,6 +111,22 @@ export const ConnectionInfoFormContainer = () => {
 
 	return (
 		<div>
+			<div style={
+				{
+					display: 'flex',
+					flexDirection: 'row',
+					alignItems: 'center'
+				}
+			}>
+				<Image src={sqlServerImage} alt='SQL Server' height={60} width={60} style={{
+					padding: '10px'
+				}} />
+				<Text size={600} style={
+					{
+						lineHeight: '60px'
+					}
+				} weight='medium'>Connect to SQL Server</Text>
+			</div>
 			<TabList selectedValue={state?.state?.selectedFormTab ?? FormTabs.Parameters} onTabSelect={(_event, data) => {
 				state?.setFormTab(data.value as FormTabs);
 			}}>
@@ -103,28 +134,23 @@ export const ConnectionInfoFormContainer = () => {
 				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
 			</TabList>
 			<div>
-				{
-					state?.state?.selectedFormTab === FormTabs.Parameters &&
-					<div className={classes.formDiv}>
+				<div className={classes.formDiv}>
+					{
+						state.state.formComponents.map((component, idx) => {
+							if (component.hidden === true) {
+								return undefined;
+							}
+							return <Field key={idx} label={component.label}>
+								{generateFormComponent(component, state.state.connectionProfile, idx)}
+							</Field>
+						})
+					}
+					<Button appearance="primary" style={
 						{
-							state.state.formComponents.map((component, idx) => {
-								if(component.hidden === true)
-								{
-									return undefined;
-								}
-								return <Field key={idx} label={component.label} orientation='horizontal'>
-									{generateFormComponent(component, state.state.connectionProfile, idx)}
-								</Field>
-							})
+							width: '120px'
 						}
-					</div>
-				}
-				{
-					state?.state?.selectedFormTab === FormTabs.ConnectionString &&
-					<div className={classes.formDiv}>
-						Under Construction
-					</div>
-				}
+					} icon={<DatabasePlugConnectedRegular />}>Connect</Button>
+				</div>
 			</div>
 		</div>
 	)

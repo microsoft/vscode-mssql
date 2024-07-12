@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscodeMssql from "vscode-mssql";
 
 export enum FormTabs {
@@ -73,6 +78,8 @@ export interface FormComponent {
 		id: string;
 		hidden?: boolean;
 	}
+
+	placeholder?: string;
 }
 
 export interface FormComponentOptions {

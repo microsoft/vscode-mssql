@@ -47,7 +47,9 @@
 			"runtimeExecutable": "${execPath}",
 			"args": [
 				"--disable-extensions",
-				"--extensionDevelopmentPath=${workspaceRoot}"
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--skip-release-notes",
+				"--skip-welcome"
 			],
 			"sourceMaps": true,
 			"outFiles": [
