@@ -161,7 +161,7 @@ export const ConnectionInfoFormContainer = () => {
 									{generateFormComponent(component, state.state.connectionProfile, idx)}
 								</Field>
 								{
-									component.actionButtons?.length > 0 &&
+									component?.actionButtons?.length! > 0 &&
 									<div className={classes.formComponentActionDiv}>
 										{
 											component.actionButtons?.map((actionButton, idx) => {
