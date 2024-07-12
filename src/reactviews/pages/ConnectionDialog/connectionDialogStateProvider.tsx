@@ -33,6 +33,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 				webViewState?.extensionRpc.action('setFormTab', {
 					tab: tab
 				});
+			},
+			connect: function (): void {
+				webViewState?.extensionRpc.action('connect', {});
 			}
 		}
 	}>{children}</ConnectionDialogContext.Provider>;

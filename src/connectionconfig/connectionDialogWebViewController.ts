@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connections';
+import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connections';
 import ConnectionManager from '../controllers/connectionManager';
 import { IConnectionInfo } from 'vscode-mssql';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -42,7 +42,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			storedConnections[i] = await this.loadConnection(storedConnections[i]);
 		}
 		let tab = FormTabs.Parameters;
-		if(connectionInfo?.connectionString) {
+		if (connectionInfo?.connectionString) {
 			tab = FormTabs.ConnectionString;
 		}
 
@@ -80,18 +80,21 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				type: FormComponentType.Input,
 				propertyName: 'server',
 				label: 'Server',
+				required: true,
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString
 			},
 			{
 				type: FormComponentType.Input,
 				propertyName: 'connectionString',
 				label: 'Connection String',
+				required: true,
 				hidden: this.state.selectedFormTab === FormTabs.Parameters
 			},
 			{
 				type: FormComponentType.Dropdown,
 				propertyName: 'authenticationType',
 				label: 'Authentication Type',
+				required: true,
 				options: [
 					{
 						displayName: 'SQL Login',
@@ -113,37 +116,53 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: 'user',
 				label: 'User Name',
 				type: FormComponentType.Input,
+				required: true,
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
 			},
 			{
 				propertyName: 'password',
 				label: 'Password',
+				required: true,
 				type: FormComponentType.Password,
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
 			},
 			{
 				propertyName: 'savePassword',
 				label: 'Save Password',
+				required: false,
 				type: FormComponentType.Checkbox,
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
 			},
 			{
 				propertyName: 'accountId',
 				label: 'Azure Account',
+				required: true,
 				type: FormComponentType.Dropdown,
 				options: this.getAzureAccounts(),
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA,
-				placeholder: 'Select an account'
+				placeholder: 'Select an account',
+				actionButtons: this.getAccountActionButtons()
+			},
+			{
+				propertyName: 'tenantId',
+				label: 'Tenant ID',
+				required: true,
+				type: FormComponentType.Dropdown,
+				options: this.getTenantIds(this.state.connectionProfile.accountId),
+				hidden: this.isTenantDropdownHidden(),
+				placeholder: 'Select a tenant'
 			},
 			{
 				propertyName: 'trustServerCertificate',
 				label: 'Trust Server Certificate',
+				required: false,
 				type: FormComponentType.Checkbox,
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString
 			},
 			{
 				propertyName: 'encrypt',
 				label: 'Encrypt Connection',
+				required: false,
 				type: FormComponentType.Dropdown,
 				options: [
 					{
@@ -164,6 +183,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			{
 				propertyName: 'profileName',
 				label: 'Profile Name',
+				required: false,
 				type: FormComponentType.Input,
 			}
 		];
@@ -181,19 +201,75 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		});
 	}
 
+	private isTenantDropdownHidden(): boolean {
+		if (this.state.selectedFormTab === FormTabs.ConnectionString) {
+			return true;
+		}
+		if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
+			return true;
+		}
+		if (this.getTenantIds(this.state.connectionProfile.accountId).length === 1) {
+			return true;
+		}
+		return false;
+	}
+
+	private getAccountActionButtons(): FormComponentActionButton[] {
+		const actionButtons: FormComponentActionButton[] = [];
+		actionButtons.push({
+			label: 'Add Account',
+			id: 'addAccount',
+			callback: async () => {
+				await this._connectionManager.addAccount();
+			}
+		});
+		if (this.state.connectionProfile.accountId) {
+			const accountId = this._connectionManager.accountStore.getAccount(this.state.connectionProfile.accountId);
+			if (accountId?.isStale) {
+				actionButtons.push({
+					label: 'Refresh Account',
+					id: 'refreshAccount',
+					callback: async () => {
+					}
+				});
+			}
+		}
+		return actionButtons;
+	}
+
+	private getTenantIds(key: string | undefined): FormComponentOptions[] {
+		if (key === undefined) {
+			return [];
+		}
+		const tenantIds = this._connectionManager.accountStore.getAccount(key).properties.tenants;
+		if (tenantIds === undefined && tenantIds.length === 0) {
+			return [];
+		}
+		return tenantIds.map(t => {
+			return {
+				displayName: t.displayName,
+				value: t.id
+			};
+		});
+	}
+
 	private registerRpcHandlers() {
 		this.registerReducers({
 			'setFormTab': async (state, payload: {
 				tab: FormTabs
 			}) => {
-				this. state.selectedFormTab = payload.tab;
+				this.state.selectedFormTab = payload.tab;
 				this.state.formComponents = this.generateFormComponents();
 				return state;
 			},
 			'formAction': async (state, payload: {
 				event: FormEvent
 			}) => {
-				state.connectionProfile[payload.event.propertyName] = payload.event.value;
+				if(payload.event.isAction){
+					await this.state.formComponents.find(c => c.propertyName === payload.event.propertyName)?.actionButtons?.find(b => b.id === payload.event.value)?.callback();
+				} else {
+					state.connectionProfile[payload.event.propertyName] = payload.event.value;
+				}
 				state.formComponents = this.generateFormComponents();
 				return state;
 			},
@@ -205,6 +281,9 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					connectionProfile: await this.loadConnection(payload.connection),
 					selectedFormTab: payload.connection.connectionString ? FormTabs.ConnectionString : FormTabs.Parameters
 				};
+			},
+			'connect': async (state) => {
+				return state;
 			}
 		});
 	}

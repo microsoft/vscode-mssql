@@ -31,6 +31,7 @@ export interface ConnectionDialogContextProps {
 	loadConnection: (connection: IConnectionDialogProfile) => void;
 	formAction: (event: FormEvent) => void;
 	setFormTab: (tab: FormTabs) => void;
+	connect: () => void;
 }
 
 /**
@@ -50,6 +51,10 @@ export interface FormComponent {
 	 * The label of the form component
 	 */
 	label: string;
+	/**
+	 * Whether the form component is required
+	 */
+	required: boolean;
 	/**
 	 * The tooltip of the form component
 	 */
@@ -73,13 +78,16 @@ export interface FormComponent {
 	/**
 	 *	Action buttons for the form component
 	 */
-	actionButtons?: {
-		label: string;
-		id: string;
-		hidden?: boolean;
-	}
+	actionButtons?: FormComponentActionButton[];
 
 	placeholder?: string;
+}
+
+export interface FormComponentActionButton {
+	label: string;
+	id: string;
+	hidden?: boolean;
+	callback: () => void;
 }
 
 export interface FormComponentOptions {
