@@ -157,7 +157,7 @@ export const ConnectionInfoFormContainer = () => {
 								return undefined;
 							}
 							return <div className={classes.formComponentDiv} key={idx}>
-								<Field required={component.required} label={component.label}>
+								<Field validationMessage={component.validationMessage} validationState={component.validationState} required={component.required} label={component.label}>
 									{generateFormComponent(component, state.state.connectionProfile, idx)}
 								</Field>
 								{
@@ -181,7 +181,9 @@ export const ConnectionInfoFormContainer = () => {
 							</div>;
 						})
 					}
-					<Button appearance="primary" style={
+					<Button appearance="primary" onClick={(event) => {
+						state.connect();
+					}} style={
 						{
 							width: '120px'
 						}

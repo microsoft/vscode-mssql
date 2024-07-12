@@ -81,6 +81,11 @@ export interface FormComponent {
 	actionButtons?: FormComponentActionButton[];
 
 	placeholder?: string;
+
+	validate?: (value: string | boolean | number) => {
+		ComponentValidationState?: ComponentValidationState;
+		validationMessage?: string;
+	}
 }
 
 export interface FormComponentActionButton {

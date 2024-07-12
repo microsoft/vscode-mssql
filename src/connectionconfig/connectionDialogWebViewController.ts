@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connections';
+import { AuthenticationType, ComponentValidationState, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connections';
 import ConnectionManager from '../controllers/connectionManager';
 import { IConnectionInfo } from 'vscode-mssql';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -81,14 +81,34 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: 'server',
 				label: 'Server',
 				required: true,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString
+				hidden: this.state.selectedFormTab === FormTabs.ConnectionString,
+				validate: (value: string) => {
+					if (!value) {
+						return {
+							validationMessage: 'Server is required',
+							ComponentValidationState: ComponentValidationState.Error
+						};
+					}
+					return {
+						validationMessage: undefined,
+						ComponentValidationState: value ? undefined : ComponentValidationState.Error
+					};
+				}
 			},
 			{
 				type: FormComponentType.Input,
 				propertyName: 'connectionString',
 				label: 'Connection String',
 				required: true,
-				hidden: this.state.selectedFormTab === FormTabs.Parameters
+				hidden: this.state.selectedFormTab === FormTabs.Parameters,
+				validate: (value: string) => {
+					if (!value) {
+						return {
+							validationMessage: 'Connection String is required',
+							ComponentValidationState: ComponentValidationState.Error
+						};
+					}
+				}
 			},
 			{
 				type: FormComponentType.Dropdown,
@@ -109,7 +129,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						value: AuthenticationType.AzureMFA
 					}
 				],
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString
+				hidden: this.state.selectedFormTab === FormTabs.ConnectionString,
 			},
 			{
 				// Hidden if connection string is set or if the authentication type is not SQL Login
@@ -117,12 +137,20 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				label: 'User Name',
 				type: FormComponentType.Input,
 				required: true,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
+				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin,
+				validate: (value: string) => {
+					if (!value) {
+						return {
+							validationMessage: 'Username is required',
+							ComponentValidationState: ComponentValidationState.Error
+						};
+					}
+				}
 			},
 			{
 				propertyName: 'password',
 				label: 'Password',
-				required: true,
+				required: false,
 				type: FormComponentType.Password,
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
 			},
@@ -141,7 +169,15 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				options: this.getAzureAccounts(),
 				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA,
 				placeholder: 'Select an account',
-				actionButtons: this.getAccountActionButtons()
+				actionButtons: this.getAccountActionButtons(),
+				validate: (value: string) => {
+					if (!value) {
+						return {
+							validationMessage: 'Azure Account is required',
+							ComponentValidationState: ComponentValidationState.Error
+						};
+					}
+				}
 			},
 			{
 				propertyName: 'tenantId',
@@ -265,12 +301,28 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			'formAction': async (state, payload: {
 				event: FormEvent
 			}) => {
-				if(payload.event.isAction){
-					await this.state.formComponents.find(c => c.propertyName === payload.event.propertyName)?.actionButtons?.find(b => b.id === payload.event.value)?.callback();
+				const formComponent = this.state.formComponents.find(c => c.propertyName === payload.event.propertyName);
+				if (payload.event.isAction) {
+					await formComponent?.actionButtons?.find(b => b.id === payload.event.value)?.callback();
 				} else {
 					state.connectionProfile[payload.event.propertyName] = payload.event.value;
 				}
-				state.formComponents = this.generateFormComponents();
+				const newComponent = this.generateFormComponents();
+				newComponent.forEach((c, idx) => {
+					const oldComponent = state.formComponents[idx];
+					if(c.propertyName === payload.event.propertyName && c.validate){
+						const validationResult = c.validate(state.connectionProfile[c.propertyName]);
+						if(validationResult){
+							formComponent.validationMessage = validationResult.validationMessage;
+							formComponent.validationState = validationResult.ComponentValidationState;
+						}
+					}
+					else if (oldComponent.validationMessage !== undefined) {
+						c.validationMessage = oldComponent.validationMessage;
+						c.validationState = oldComponent.validationState;
+					}
+				});
+				state.formComponents = newComponent;
 				return state;
 			},
 			'loadConnection': async (state, payload: {
@@ -283,6 +335,34 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				};
 			},
 			'connect': async (state) => {
+				// clear out all hidden fields
+				let invalidCount = 0;
+				this.state.formComponents.forEach(c => {
+					// Clear out validation messages
+					c.validationMessage = undefined;
+					c.validationState = undefined;
+					if (!c.hidden && c.validate) {
+						const validationResult = c.validate(this.state.connectionProfile[c.propertyName]);
+						if (validationResult.validationMessage !== undefined) {
+							invalidCount++;
+							c.validationMessage = validationResult.validationMessage;
+							c.validationState = validationResult.ComponentValidationState;
+						}
+
+					}
+				});
+
+				// If there are invalid fields, return the state without connecting
+				if (invalidCount > 0) {
+					return state;
+				}
+
+				// Clear out fields that are hidden
+				this.state.formComponents.forEach(c => {
+					if (c.hidden) {
+						(this.state.connectionProfile[c.propertyName] as any) = undefined;
+					}
+				});
 				return state;
 			}
 		});
