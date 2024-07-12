@@ -3,21 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscodeMssql from 'vscode-mssql';
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { ConnectionStore } from '../models/connectionStore';
-import { getConnectionDisplayName } from '../models/connectionInfo';
-import { AccountStore } from '../azure/accountStore';
-export enum FormTabs {
-	Parameters = 'parameter',
-	ConnectionString = 'connString'
-}
-export class ConnectionDialogWebViewController extends ReactWebViewPanelController<vscodeMssql.ConnectionDialog.ConnectionDialogWebviewState> {
+import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connections';
+import ConnectionManager from '../controllers/connectionManager';
+import { IConnectionInfo } from 'vscode-mssql';
+
+export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState> {
 	constructor(
 		context: vscode.ExtensionContext,
-		private _connectionStore: ConnectionStore,
-		account: AccountStore
+		private _connectionManager: ConnectionManager,
+		_connectionInfo?: IConnectionInfo
 	) {
 		super(
 			context,
@@ -27,14 +23,8 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			{
 				recentConnections: [],
 				selectedFormTab: FormTabs.Parameters,
-				accounts: account.getAccounts().map(a => {
-					return {
-						id: a.key.id,
-						displayName: a.displayInfo.displayName,
-						isState: a.isStale
-					};
-				}),
-				formConnection: {} as vscodeMssql.ConnectionDialog.ConnectionInfo
+				connectionProfile: {} as IConnectionDialogProfile,
+				formComponents: [],
 			},
 			vscode.ViewColumn.Active,
 			{
@@ -42,24 +32,93 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor.svg')
 			}
 		);
-		this.initialize();
+		this.initialize(_connectionInfo);
 	}
 
-	private async initialize() {
-		const recentConnections = await this._connectionStore.getRecentlyUsedConnections();
-		console.log('recentConnections', recentConnections);
+	private async initialize(connectionInfo: IConnectionDialogProfile | undefined) {
+		const recentConnections = this._connectionManager.connectionStore.loadAllConnections(true).map(c => c.connectionCreds) as IConnectionDialogProfile[];
+
 		this.state = {
-			...this.state,
-			recentConnections: recentConnections.map(c => {
-				return {
-					...c,
-					profileName: getConnectionDisplayName(c)
-				};
-			}),
+			connectionProfile: await this.loadConnection(this.state.connectionProfile),
+			recentConnections: recentConnections,
 			selectedFormTab: FormTabs.Parameters,
-			formConnection: {} as vscodeMssql.ConnectionDialog.ConnectionInfo
+			formComponents: this.generateFormComponents()
 		};
+
 		this.registerRpcHandlers();
+	}
+
+	private async loadConnection(connection: IConnectionDialogProfile): Promise<IConnectionDialogProfile> {
+		// Set default authentication type if not set
+		if (!connection.authenticationType) {
+			connection.authenticationType = AuthenticationType.SqlLogin;
+		}
+		// Load the password if it is saved
+		if (connection.savePassword) {
+			const password = await this._connectionManager.connectionStore.lookupPassword(connection, connection.connectionString !== undefined);
+			connection.password = password;
+		}
+		return connection;
+	}
+
+	private generateFormComponents(): FormComponent[] {
+		const result: FormComponent[] = [
+			{
+				type: FormComponentType.Input,
+				propertyName: 'server',
+				label: 'Server',
+			},
+			{
+				type: FormComponentType.Dropdown,
+				propertyName: 'authenticationType',
+				label: 'Authentication Type',
+				options: [
+					{
+						displayName: 'SQL Login',
+						value: AuthenticationType.SqlLogin
+					},
+					{
+						displayName: 'Windows Authentication',
+						value: AuthenticationType.Integrated
+					},
+					{
+						displayName: 'Azure MFA',
+						value: AuthenticationType.AzureMFA
+					}
+				]
+			},
+			{
+				propertyName: 'user',
+				label: 'User Name',
+				type: FormComponentType.Input,
+				hidden: this.state.connectionProfile?.authenticationType ? this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin : true
+			},
+			{
+				propertyName: 'password',
+				label: 'Password',
+				type: FormComponentType.Password,
+				hidden: this.state.connectionProfile?.authenticationType ? this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin : true
+			},
+			{
+				propertyName: 'accountId',
+				label: 'Azure Account',
+				type: FormComponentType.Dropdown,
+				options: this.getAzureAccounts(),
+				hidden: this.state.connectionProfile?.authenticationType ? this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA : true
+			}
+		];
+		console.log('generateFormComponents', result);
+		return result;
+	}
+
+	private getAzureAccounts(): FormComponentOptions[] {
+		const accounts = this._connectionManager.accountStore.getAccounts();
+		return accounts.map(a => {
+			return {
+				displayName: a.displayInfo.displayName,
+				value: a.key.id
+			};
+		});
 	}
 
 	private registerRpcHandlers() {
@@ -72,12 +131,19 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					selectedFormTab: payload.tab
 				};
 			},
+			'formAction': async (state, payload: {
+				event: FormEvent
+			}) => {
+				state.connectionProfile[payload.event.propertyName] = payload.event.value;
+				state.formComponents = this.generateFormComponents();
+				return state;
+			},
 			'loadConnection': async (state, payload: {
-				connection: vscodeMssql.ConnectionDialog.ConnectionInfo
+				connection: IConnectionDialogProfile
 			}) => {
 				return {
 					...state,
-					formConnection: payload.connection,
+					connectionProfile: await this.loadConnection(payload.connection),
 					selectedFormTab: payload.connection.connectionString ? FormTabs.ConnectionString : FormTabs.Parameters
 				};
 			}

@@ -24,7 +24,7 @@ export const useStyles = makeStyles({
 	mruContainer: {
 		position: 'relative',
 		height: '100%',
-		width: '300px',
+		width: '325px',
 		padding: '20px',
 	},
 	mruPaneHandle: {

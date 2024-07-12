@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Card, CardHeader, CardPreview, Text, makeStyles, tokens } from "@fluentui/react-components"
+import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluentui/react-components"
 import { ServerRegular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 	horizontalCardImage: {
 		width: "50px",
 		height: "30px",
-		paddingRight:'0px'
+		paddingRight: '0px'
 	},
 	caption: {
 		color: tokens.colorNeutralForeground3,
@@ -47,21 +47,19 @@ export const MruConnectionsContainer = () => {
 			<div className={styles.paneTitle}>
 				<Text weight="semibold" className={styles.paneTitle}>Recent Connections</Text>
 			</div>
-			{
-				state?.state?.recentConnections && state.state.recentConnections.map((connection, index) => {
-					return <Card key={'mru'+index} className={styles.card} orientation="horizontal" onClick={()=>{
-						state.updateConnection(connection);
-					}}>
-							<CardPreview className={styles.horizontalCardImage}>
-								<ServerRegular />
-							</CardPreview>
-
-							<CardHeader
-								header={<Text weight="semibold">{connection.profileName}</Text>}
-							/>
-						</Card>;
-				})
-			}
-		</div>
+			<Tree >
+				{
+					state?.state?.recentConnections?.map((connection, index) => {
+						return <TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
+							state.loadConnection(connection);
+						}}>
+							<TreeItemLayout iconBefore={<ServerRegular />}>
+								{connection.profileName}
+							</TreeItemLayout>
+						</TreeItem>
+					})
+				}
+			</Tree>
+		</div >
 	)
 }

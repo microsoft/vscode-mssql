@@ -39,12 +39,6 @@ export enum AuthenticationTypes {
 	AzureMFA = 3
 }
 
-export enum AuthenticationTypesStr {
-	Integrated = 'Integrated',
-	SqlLogin = 'SqlLogin',
-	AzureMFA = 'AzureMFA'
-}
-
 export enum EncryptOptions {
 	Optional = 'Optional',
 	Mandatory = 'Mandatory',

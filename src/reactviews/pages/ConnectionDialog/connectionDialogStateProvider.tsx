@@ -4,29 +4,30 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext, useContext } from "react";
-import * as vscodeMssql from 'vscode-mssql';
 import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
+import { ConnectionDialogContextProps, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connections";
 
-const ConnectionDialogContext = createContext<vscodeMssql.ConnectionDialog.ConnectionDialogContextProps | undefined>(undefined);
+const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
-interface ConnectionDialogContextProps {
+interface ConnectionDialogProviderProps {
 	children: React.ReactNode;
 }
-export enum FormTabs {
-	Parameters = 'parameter',
-	ConnectionString = 'connString'
-}
 
-const ConnectionDialogStateProvider: React.FC<ConnectionDialogContextProps> = ({ children }) => {
+const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
 	const webViewState = useContext(VscodeWebviewContext);
-	const connectionDialogState = webViewState?.state as vscodeMssql.ConnectionDialog.ConnectionDialogWebviewState;
+	const connectionDialogState = webViewState?.state as ConnectionDialogWebviewState;
 	return <ConnectionDialogContext.Provider value={
 		{
 			state: connectionDialogState,
-			updateConnection: function (connection: vscodeMssql.ConnectionDialog.ConnectionInfo): void {
+			loadConnection: function (connection: IConnectionDialogProfile): void {
 				webViewState?.extensionRpc.action('loadConnection', {
 					connection: connection
 				 });
+			},
+			formAction: function (event): void {
+				webViewState?.extensionRpc.action('formAction', {
+					event: event
+				});
 			},
 			setFormTab: function (tab: FormTabs): void {
 				webViewState?.extensionRpc.action('setFormTab', {
