@@ -1021,13 +1021,14 @@ export default class ConnectionManager {
 		return;
 	}
 
-	public async addAccount(): Promise<void> {
+	public async addAccount(): Promise<IAccount> {
 		let account = await this.connectionUI.addNewAccount();
 		if (account) {
 			this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.accountAddedSuccessfully, account.displayInfo.displayName));
 		} else {
 			this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
 		}
+		return account;
 	}
 
 	public async removeAccount(prompter: IPrompter): Promise<void> {

@@ -177,6 +177,9 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 							ComponentValidationState: ComponentValidationState.Error
 						};
 					}
+				},
+				onChange: (value: string) => {
+
 				}
 			},
 			{
@@ -223,7 +226,6 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				type: FormComponentType.Input,
 			}
 		];
-		console.log('generateFormComponents', result);
 		return result;
 	}
 
@@ -256,7 +258,10 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			label: 'Add Account',
 			id: 'addAccount',
 			callback: async () => {
-				await this._connectionManager.addAccount();
+				const newAccount = await this._connectionManager.addAccount();
+				if (newAccount) {
+					this.state.connectionProfile.accountId = newAccount.key.id;
+				}
 			}
 		});
 		if (this.state.connectionProfile.accountId) {
@@ -277,16 +282,18 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		if (key === undefined) {
 			return [];
 		}
-		const tenantIds = this._connectionManager.accountStore.getAccount(key).properties.tenants;
+		let tenantIds = this._connectionManager.accountStore.getAccount(key).properties.tenants;
 		if (tenantIds === undefined && tenantIds.length === 0) {
 			return [];
 		}
-		return tenantIds.map(t => {
+		tenantIds = tenantIds.filter(t => t.displayName === "Default Directory");
+		const result = tenantIds.map(t => {
 			return {
 				displayName: t.displayName,
 				value: t.id
 			};
 		});
+		return result;
 	}
 
 	private registerRpcHandlers() {
@@ -306,6 +313,9 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					await formComponent?.actionButtons?.find(b => b.id === payload.event.value)?.callback();
 				} else {
 					state.connectionProfile[payload.event.propertyName] = payload.event.value;
+					if(formComponent?.onChange){
+						formComponent.onChange(state.connectionProfile[payload.event.propertyName]);
+					}
 				}
 				const newComponent = this.generateFormComponents();
 				newComponent.forEach((c, idx) => {

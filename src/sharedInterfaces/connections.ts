@@ -79,13 +79,25 @@ export interface FormComponent {
 	 *	Action buttons for the form component
 	 */
 	actionButtons?: FormComponentActionButton[];
-
+	/**
+	 * Placeholder text for the form component
+	 */
 	placeholder?: string;
-
+	/**
+	 * Validation function for the form component
+	 * @param value The value of the form component
+	 * @returns the validation state and message for the form component
+	 */
 	validate?: (value: string | boolean | number) => {
 		ComponentValidationState?: ComponentValidationState;
 		validationMessage?: string;
 	}
+	/**
+	 * Action to perform when the form component value changes
+	 * @param value
+	 * @returns returns the value of the form component
+	 */
+	onChange?: (value: string | boolean | number) => void;
 }
 
 export interface FormComponentActionButton {

@@ -90,7 +90,8 @@ export const ConnectionInfoFormContainer = () => {
 				return <Dropdown
 					size="small"
 					placeholder={component.placeholder ?? ''}
-					defaultValue={profile[component.propertyName] as string}
+					value={component.options.find(option => option.value === profile[component.propertyName])?.displayName ?? ''}
+					selectedOptions={[profile[component.propertyName] as string]}
 					onOptionSelect={(_event, data) => {
 						state?.formAction({
 							propertyName: component.propertyName,
@@ -181,7 +182,7 @@ export const ConnectionInfoFormContainer = () => {
 							</div>;
 						})
 					}
-					<Button appearance="primary" onClick={(event) => {
+					<Button appearance="primary" onClick={(_event) => {
 						state.connect();
 					}} style={
 						{
