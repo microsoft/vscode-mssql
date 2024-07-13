@@ -158,7 +158,7 @@ export const ConnectionInfoFormContainer = () => {
 								return undefined;
 							}
 							return <div className={classes.formComponentDiv} key={idx}>
-								<Field validationMessage={component.validationMessage} validationState={component.validationState} required={component.required} label={component.label}>
+								<Field validationMessage={component.validationMessage} orientation={component.type === FormComponentType.Checkbox ? 'horizontal': 'vertical'} validationState={component.validationState} required={component.required} label={component.label}>
 									{generateFormComponent(component, state.state.connectionProfile, idx)}
 								</Field>
 								{
