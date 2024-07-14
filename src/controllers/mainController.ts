@@ -491,7 +491,9 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdAddObjectExplorer2, async () => {
 				const connDialog = new ConnectionDialogWebViewController(
 					this._context,
-					this._connectionMgr
+					this._connectionMgr,
+					undefined,
+					this
 				);
 				connDialog.revealToForeground();
 			});
@@ -502,7 +504,8 @@ export default class MainController implements vscode.Disposable {
 						const connDialog = new ConnectionDialogWebViewController(
 							this._context,
 							this._connectionMgr,
-							node.connectionInfo
+							node.connectionInfo,
+							this
 						);
 						connDialog.revealToForeground();
 					}

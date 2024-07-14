@@ -9,12 +9,15 @@ import { AuthenticationType, ComponentValidationState, ConnectionDialogWebviewSt
 import ConnectionManager from '../controllers/connectionManager';
 import { IConnectionInfo } from 'vscode-mssql';
 import { getConnectionDisplayName } from '../models/connectionInfo';
+import MainController from '../controllers/mainController';
+import { Deferred } from '../protocol';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState> {
 	constructor(
 		context: vscode.ExtensionContext,
 		private _connectionManager: ConnectionManager,
-		_connectionInfo?: IConnectionInfo
+		_connectionInfo?: IConnectionInfo,
+		private _mainController?: MainController
 	) {
 		super(
 			context,
@@ -177,7 +180,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 							ComponentValidationState: ComponentValidationState.Error
 						};
 					}
-				},
+ 				},
 				onChange: (value: string) => {
 
 				}
@@ -373,6 +376,11 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						(this.state.connectionProfile[c.propertyName] as any) = undefined;
 					}
 				});
+				const connectionPromise = new Deferred<boolean>();
+				const result = await this._mainController.connect('', this.state.connectionProfile, connectionPromise,  true);
+				if (result){
+					const connectionSucceeded = await connectionPromise;
+				}
 				return state;
 			}
 		});
