@@ -5,7 +5,7 @@
 
 import { createContext, useContext } from "react";
 import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
-import { ConnectionDialogContextProps, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connections";
+import { ConnectionDialogContextProps, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 

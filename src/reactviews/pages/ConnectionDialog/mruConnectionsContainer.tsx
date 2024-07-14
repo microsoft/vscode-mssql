@@ -40,7 +40,7 @@ const useStyles = makeStyles({
 
 export const MruConnectionsContainer = () => {
 	const styles = useStyles();
-	const state = useContext(ConnectionDialogContext);
+	const connectionDialogContext = useContext(ConnectionDialogContext);
 
 	return (
 		<div>
@@ -49,9 +49,9 @@ export const MruConnectionsContainer = () => {
 			</div>
 			<Tree >
 				{
-					state?.state?.recentConnections?.map((connection, index) => {
+					connectionDialogContext?.state?.recentConnections?.map((connection, index) => {
 						return <TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
-							state.loadConnection(connection);
+							connectionDialogContext.loadConnection(connection);
 						}}>
 							<TreeItemLayout iconBefore={<ServerRegular />}>
 								{connection.profileName}

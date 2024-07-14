@@ -6,7 +6,7 @@
 import { useContext, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image } from "@fluentui/react-components";
-import { FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connections";
+import { FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular, DatabasePlugConnectedRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
 const sqlServerImage = require('../../../../media/sqlServer.svg');
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
 });
 
 export const ConnectionInfoFormContainer = () => {
-	const state = useContext(ConnectionDialogContext);
+	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const classes = useStyles();
 	const [showPassword, setShowPassword] = useState<Record<number, boolean>>({});
 
@@ -58,7 +58,7 @@ export const ConnectionInfoFormContainer = () => {
 				return <Input autoFocus={idx === 0}
 					size="small"
 					value={(profile[component.propertyName] as string) ?? ''}
-					onChange={(_value, data) => state?.formAction({
+					onChange={(_value, data) => connectionDialogContext?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
 						value: data.value
@@ -69,7 +69,7 @@ export const ConnectionInfoFormContainer = () => {
 					size="small"
 					type={getShowPasswordForComponent(idx) ? 'text' : 'password'}
 					value={profile[component.propertyName] as string ?? ''}
-					onChange={(_value, data) => state?.formAction({
+					onChange={(_value, data) => connectionDialogContext?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
 						value: data.value
@@ -93,7 +93,7 @@ export const ConnectionInfoFormContainer = () => {
 					value={component.options.find(option => option.value === profile[component.propertyName])?.displayName ?? ''}
 					selectedOptions={[profile[component.propertyName] as string]}
 					onOptionSelect={(_event, data) => {
-						state?.formAction({
+						connectionDialogContext?.formAction({
 							propertyName: component.propertyName,
 							isAction: false,
 							value: data.optionValue as string
@@ -109,7 +109,7 @@ export const ConnectionInfoFormContainer = () => {
 				return <Checkbox
 					size="medium"
 					checked={profile[component.propertyName] as boolean ?? false}
-					onChange={(_value, data) => state?.formAction({
+					onChange={(_value, data) => connectionDialogContext?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
 						value: data.checked
@@ -119,7 +119,7 @@ export const ConnectionInfoFormContainer = () => {
 		}
 	};
 
-	if (!state?.state) {
+	if (!connectionDialogContext?.state) {
 		return undefined;
 	}
 
@@ -144,8 +144,8 @@ export const ConnectionInfoFormContainer = () => {
 					}
 				} weight='medium'>Connect to SQL Server</Text>
 			</div>
-			<TabList selectedValue={state?.state?.selectedFormTab ?? FormTabs.Parameters} onTabSelect={(_event, data) => {
-				state?.setFormTab(data.value as FormTabs);
+			<TabList selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabs.Parameters} onTabSelect={(_event, data) => {
+				connectionDialogContext?.setFormTab(data.value as FormTabs);
 			}}>
 				<Tab value={FormTabs.Parameters}>Parameters</Tab>
 				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
@@ -153,13 +153,13 @@ export const ConnectionInfoFormContainer = () => {
 			<div>
 				<div className={classes.formDiv}>
 					{
-						state.state.formComponents.map((component, idx) => {
+						Array.from(connectionDialogContext.state.formComponents, ([name, value]) => value).map((component, idx) => {
 							if (component.hidden === true) {
 								return undefined;
 							}
 							return <div className={classes.formComponentDiv} key={idx}>
-								<Field validationMessage={component.validationMessage} orientation={component.type === FormComponentType.Checkbox ? 'horizontal': 'vertical'} validationState={component.validationState} required={component.required} label={component.label}>
-									{generateFormComponent(component, state.state.connectionProfile, idx)}
+								<Field validationMessage={component.validationMessage} orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'} validationState={component.validationState} required={component.required} label={component.label}>
+									{generateFormComponent(component, connectionDialogContext.state.connectionProfile, idx)}
 								</Field>
 								{
 									component?.actionButtons?.length! > 0 &&
@@ -170,7 +170,7 @@ export const ConnectionInfoFormContainer = () => {
 													{
 														width: '120px'
 													}
-												} onClick={() => state?.formAction({
+												} onClick={() => connectionDialogContext?.formAction({
 													propertyName: component.propertyName,
 													isAction: true,
 													value: actionButton.id
@@ -183,7 +183,7 @@ export const ConnectionInfoFormContainer = () => {
 						})
 					}
 					<Button appearance="primary" onClick={(_event) => {
-						state.connect();
+						connectionDialogContext.connect();
 					}} style={
 						{
 							width: '120px'

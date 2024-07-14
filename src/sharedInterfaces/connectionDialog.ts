@@ -22,7 +22,7 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 export interface ConnectionDialogWebviewState {
 	selectedFormTab: FormTabs;
 	recentConnections: IConnectionDialogProfile[];
-	formComponents: FormComponent[];
+	formComponents: Map<keyof IConnectionDialogProfile, FormComponent>;
 	connectionProfile: IConnectionDialogProfile;
 }
 
