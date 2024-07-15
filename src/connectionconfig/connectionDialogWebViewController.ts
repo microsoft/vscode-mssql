@@ -5,10 +5,11 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
+import { AzureController } from '../azure/azureController';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState> {
 	constructor(
@@ -257,7 +258,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				type: FormComponentType.Dropdown,
 				options: await this.getAccounts(),
 				placeholder: 'Select an account',
-				actionButtons: [],
+				actionButtons: await this.getAzureActionButtons(),
 				validate: (value: string) => {
 					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
 						return {
@@ -269,7 +270,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						isValid: true,
 						validationMessage: ''
 					};
-				}
+				},
 			},
 			{
 				propertyName: 'tenantId',
@@ -360,12 +361,52 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return errorCount;
 	}
 
+	private async getAzureActionButtons(): Promise<FormComponentActionButton[]> {
+		const actionButtons: FormComponentActionButton[] = [];
+		actionButtons.push({
+			label: 'Sign in',
+			id: 'azureSignIn',
+			callback: async () => {
+				const account = await this._mainController.azureAccountService.addAccount();
+				const accountsComponent = this.getFormComponent('accountId');
+				if (accountsComponent) {
+					accountsComponent.options = await this.getAccounts();
+					this.state.connectionProfile.accountId = account.key.id;
+					this.state = this.state;
+					await this.handleAzureMFAEdits('accountId');
+				}
+			}
+		});
+		if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && this.state.connectionProfile.accountId) {
+			const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === this.state.connectionProfile.accountId);
+			if(account){
+				const session = await this._mainController.azureAccountService.getAccountSecurityToken(account, undefined);
+				const isTokenExpired = AzureController.isTokenInValid(session.token, session.expiresOn);
+				if (isTokenExpired) {
+					actionButtons.push({
+						label: 'Refresh Token',
+						id: 'refreshToken',
+						callback: async () => {
+							const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === this.state.connectionProfile.accountId);
+							if (account) {
+								const session = await this._mainController.azureAccountService.getAccountSecurityToken(account, undefined);
+								console.log('Token refreshed', session.expiresOn);
+							}
+						}
+					});
+				}
+			}
+		}
+		return actionButtons;
+	}
+
 	private async handleAzureMFAEdits(propertyName: keyof IConnectionDialogProfile ) {
 		const mfaComponents: (keyof IConnectionDialogProfile)[] = ['accountId', 'tenantId', 'authenticationType'];
 		if (mfaComponents.includes(propertyName)) {
 			if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
 				return;
 			}
+			const accountComponent = this.getFormComponent('accountId');
 			switch(propertyName) {
 				case 'accountId':
 					const tenants = await this.getTenants(this.state.connectionProfile.accountId);
@@ -376,10 +417,15 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 							this.state.connectionProfile.tenantId = tenants[0].value;
 						}
 					}
+					accountComponent.actionButtons = await this.getAzureActionButtons();
 					break;
 				case 'tenantId':
 					break;
 				case 'authenticationType':
+					const firstOption = accountComponent.options[0];
+					if(firstOption){
+						this.state.connectionProfile.accountId = firstOption.value;
+					}
 					break;
 			}
 			console.log('Handling Azure MFA edits');
@@ -399,7 +445,13 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				event: FormEvent
 			}) => {
 				if(payload.event.isAction) {
-
+					const component = this.getFormComponent(payload.event.propertyName);
+					if (component && component.actionButtons) {
+						const actionButton = component.actionButtons.find(b => b.id === payload.event.value);
+						if (actionButton?.callback) {
+							await actionButton.callback();
+						}
+					}
 				} else {
 					(this.state.connectionProfile[payload.event.propertyName] as any) = payload.event.value;
 					await this.validateFormComponents(payload.event.propertyName);

@@ -171,7 +171,7 @@ export const ConnectionInfoFormContainer = () => {
 									<div className={classes.formComponentActionDiv}>
 										{
 											component.actionButtons?.map((actionButton, idx) => {
-												return <Button key={idx + actionButton.id} appearance="primary" style={
+												return <Button key={idx + actionButton.id} appearance='outline' style={
 													{
 														width: '120px'
 													}
