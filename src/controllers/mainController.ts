@@ -382,7 +382,7 @@ export default class MainController implements vscode.Disposable {
 	 * @param connectionCredentials Connection credentials to use for the session
 	 * @returns True if the session was created successfully, false otherwise
 	 */
-	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
+	public async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
 		let createSessionPromise = new Deferred<TreeNodeInfo>();
 		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
 		if (sessionId) {
@@ -1387,14 +1387,4 @@ export default class MainController implements vscode.Disposable {
 	public onClearAzureTokenCache(): void {
 		this.connectionManager.onClearTokenCache();
 	}
-}
-
-export function getNonce(): string {
-	let text: string = "";
-	const possible: string =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
 }

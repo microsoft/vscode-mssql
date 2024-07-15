@@ -22,7 +22,7 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 export interface ConnectionDialogWebviewState {
 	selectedFormTab: FormTabs;
 	recentConnections: IConnectionDialogProfile[];
-	formComponents: Map<keyof IConnectionDialogProfile, FormComponent>;
+	formComponents: FormComponent[];
 	connectionProfile: IConnectionDialogProfile;
 }
 
@@ -64,14 +64,6 @@ export interface FormComponent {
 	 */
 	options?: FormComponentOptions[];
 	/**
-	 * The validation message for the form component
-	 */
-	validationMessage?: string;
-	/**
-	 * The validation state for the form component
-	 */
-	validationState?: ComponentValidationState;
-	/**
 	 * Whether the form component is hidden
 	 */
 	hidden?: boolean;
@@ -83,6 +75,25 @@ export interface FormComponent {
 	 * Placeholder text for the form component
 	 */
 	placeholder?: string;
+	/**
+	 * Validation callback for the form component
+	 */
+	validate?: (value: string | boolean | number) => FormComponentValidationState;
+	/**
+	 * Validation state and message for the form component
+	 */
+	validation?: FormComponentValidationState;
+}
+
+export interface FormComponentValidationState {
+	/**
+	 * The validation state of the form component
+	 */
+	isValid: boolean
+	/**
+	 * The validation message of the form component
+	 */
+	validationMessage: string;
 }
 
 export interface FormComponentActionButton {
@@ -104,7 +115,7 @@ export interface FormEvent {
 	/**
 	 * The property name of the form component that triggered the event
 	 */
-	propertyName: string;
+	propertyName: keyof IConnectionDialogProfile;
 	/**
 	 * Whether the event was triggered by an action button for the component
 	 */
@@ -125,16 +136,6 @@ export enum FormComponentType {
 	Checkbox = 'checkbox',
 	Password = 'password',
 	Button = 'button'
-}
-
-/**
- * Enum for the validation state of a component
- */
-export enum ComponentValidationState {
-	None = 'none',
-	Error = 'error',
-	Warning = 'warning',
-	Success = 'success'
 }
 
 export enum AuthenticationType {

@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -25,7 +25,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				recentConnections: [],
 				selectedFormTab: FormTabs.Parameters,
 				connectionProfile: {} as IConnectionDialogProfile,
-				formComponents: new Map<keyof IConnectionDialogProfile, FormComponent>(),
+				formComponents: []
 			},
 			vscode.ViewColumn.Active,
 			{
@@ -41,14 +41,19 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		await this.loadRecentConnections();
 		if(this._connectionToEdit) {
 			await this.loadConnectionToEdit();
+		} else {
+			await this.loadEmptyConnection();
 		}
+		this.state.formComponents = await this.generateFormComponents();
+		await this.updateItemVisibility();
+		this.state = this.state;
 	}
 
 	private async loadRecentConnections() {
 		const recentConnections = this._mainController.connectionManager.connectionStore.loadAllConnections(true).map(c => c.connectionCreds);
 		const dialogConnections = [];
 		for (let i = 0; i < recentConnections.length; i++) {
-			dialogConnections.push(await this.intializeConnectionForDialog(recentConnections[i]));
+			dialogConnections.push(await this.initializeConnectionForDialog(recentConnections[i]));
 		}
 		this.state.recentConnections = dialogConnections;
 		this.state = this.state;
@@ -56,13 +61,20 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	private async loadConnectionToEdit() {
 		if (this._connectionToEdit) {
-			const connection = await this.intializeConnectionForDialog(this._connectionToEdit);
+			const connection = await this.initializeConnectionForDialog(this._connectionToEdit);
 			this.state.connectionProfile = connection;
 			this.state = this.state;
 		}
 	}
 
-	private async intializeConnectionForDialog(connection: IConnectionInfo) {
+	private async loadEmptyConnection() {
+		const emptyConnection = {
+			authenticationType: AuthenticationType.SqlLogin,
+		} as IConnectionDialogProfile;
+		this.state.connectionProfile = emptyConnection;
+	}
+
+	private async initializeConnectionForDialog(connection: IConnectionInfo) {
 		// Load the password if it's saved
 		const isConnectionStringConnection = connection.connectionString !== undefined && connection.connectionString !== '';
 		connection.password = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
@@ -72,21 +84,120 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return dialogConnection;
 	}
 
-	private generateFormComponents(): FormComponent[] {
+	private async updateItemVisibility() {
+		const selectedTab = this.state.selectedFormTab;
+		let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
+		if (selectedTab === FormTabs.ConnectionString) {
+			hiddenProperties = [
+				'server',
+				'authenticationType',
+				'user',
+				'password',
+				'savePassword',
+				'accountId',
+				'tenantId',
+				'trustServerCertificate',
+				'encrypt'
+			];
+		} else {
+			hiddenProperties = [
+				'connectionString'
+			];
+			if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
+				hiddenProperties.push('user', 'password', 'savePassword');
+			}
+			if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
+				hiddenProperties.push('accountId', 'tenantId');
+			}
+			if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
+				// Hide tenantId if accountId has only one tenant
+				const tenants = await this.getTenants(this.state.connectionProfile.accountId);
+				if (tenants.length === 1) {
+					hiddenProperties.push('tenantId');
+				}
+
+			}
+		}
+
+		for (let i = 0; i < this.state.formComponents.length; i++) {
+			const component = this.state.formComponents[i];
+			if (hiddenProperties.includes(component.propertyName)) {
+				component.hidden = true;
+			} else {
+				component.hidden = false;
+			}
+		}
+	}
+
+	private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormComponent | undefined {
+		return this.state.formComponents.find(c => c.propertyName === propertyName);
+	}
+
+	private async getAccounts () : Promise<FormComponentOptions[]> {
+		const accounts = await this._mainController.azureAccountService.getAccounts();
+		return accounts.map(account => {
+			return {
+				displayName: account.displayInfo.displayName,
+				value: account.displayInfo.userId
+			};
+		});
+
+	}
+
+	private async getTenants(accountId: string): Promise <FormComponentOptions[]> {
+		const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === accountId);
+		if (!account) {
+			return [];
+		}
+		const tenants = account.properties.tenants;
+		if (!tenants) {
+			return [];
+		}
+		return tenants.map(tenant => {
+			return {
+				displayName: tenant.displayName,
+				value: tenant.id
+			};
+		});
+	}
+
+	private async generateFormComponents(): Promise<FormComponent[]> {
 		const result: FormComponent[] = [
 			{
 				type: FormComponentType.Input,
 				propertyName: 'server',
 				label: 'Server',
 				required: true,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString,
+				validate: (value: string) => {
+					if (this.state.selectedFormTab === FormTabs.Parameters && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'Server is required'
+						};
+					}
+					return {
+						isValid: true,
+						validationMessage: ''
+					};
+				}
 			},
 			{
 				type: FormComponentType.Input,
 				propertyName: 'connectionString',
 				label: 'Connection String',
 				required: true,
-				hidden: this.state.selectedFormTab === FormTabs.Parameters,
+				validate: (value: string) => {
+					if (this.state.selectedFormTab === FormTabs.ConnectionString && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'Connection string is required'
+						};
+					}
+					return {
+						isValid: true,
+						validationMessage: ''
+					};
+				}
 			},
 			{
 				type: FormComponentType.Dropdown,
@@ -107,7 +218,6 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						value: AuthenticationType.AzureMFA
 					}
 				],
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString,
 			},
 			{
 				// Hidden if connection string is set or if the authentication type is not SQL Login
@@ -115,31 +225,51 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				label: 'User Name',
 				type: FormComponentType.Input,
 				required: true,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin,
+				validate: (value: string) => {
+					if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'User name is required'
+						};
+					}
+					return {
+						isValid: true,
+						validationMessage: ''
+					};
+				}
 			},
 			{
 				propertyName: 'password',
 				label: 'Password',
 				required: false,
 				type: FormComponentType.Password,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
 			},
 			{
 				propertyName: 'savePassword',
 				label: 'Save Password',
 				required: false,
 				type: FormComponentType.Checkbox,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin
 			},
 			{
 				propertyName: 'accountId',
 				label: 'Azure Account',
 				required: true,
 				type: FormComponentType.Dropdown,
-				options: [],
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString ? true : this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA,
+				options: await this.getAccounts(),
 				placeholder: 'Select an account',
-				actionButtons: []
+				actionButtons: [],
+				validate: (value: string) => {
+					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'Azure Account is required'
+						};
+					}
+					return {
+						isValid: true,
+						validationMessage: ''
+					};
+				}
 			},
 			{
 				propertyName: 'tenantId',
@@ -148,14 +278,25 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				type: FormComponentType.Dropdown,
 				options: [],
 				hidden: true,
-				placeholder: 'Select a tenant'
+				placeholder: 'Select a tenant',
+				validate: (value: string) => {
+					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'Tenant ID is required'
+						};
+					}
+					return {
+						isValid: true,
+						validationMessage: ''
+					};
+				}
 			},
 			{
 				propertyName: 'trustServerCertificate',
 				label: 'Trust Server Certificate',
 				required: false,
 				type: FormComponentType.Checkbox,
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString
 			},
 			{
 				propertyName: 'encrypt',
@@ -176,7 +317,6 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						value: 'Strict (Requires SQL Server 2022 or Azure SQL)'
 					}
 				],
-				hidden: this.state.selectedFormTab === FormTabs.ConnectionString
 			},
 			{
 				propertyName: 'profileName',
@@ -188,24 +328,113 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return result;
 	}
 
+	private async validateFormComponents(propertyName?: keyof IConnectionDialogProfile): Promise<number> {
+		let errorCount = 0;
+		if (propertyName){
+			const component = this.getFormComponent(propertyName);
+			if (component && component.validate) {
+				component.validation = component.validate(this.state.connectionProfile[propertyName]);
+				if (!component.validation.isValid) {
+					return 1;
+				}
+			}
+		}
+		else {
+			this.state.formComponents.forEach(c => {
+				if(c.hidden){
+					c.validation = {
+						isValid: true,
+						validationMessage: ''
+					};
+					return;
+				} else {
+					if (c.validate) {
+						c.validation = c.validate(this.state.connectionProfile[c.propertyName]);
+						if (!c.validation.isValid) {
+							errorCount++;
+						}
+					}
+				}
+			});
+		}
+		return errorCount;
+	}
+
+	private async handleAzureMFAEdits(propertyName: keyof IConnectionDialogProfile ) {
+		const mfaComponents: (keyof IConnectionDialogProfile)[] = ['accountId', 'tenantId', 'authenticationType'];
+		if (mfaComponents.includes(propertyName)) {
+			if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
+				return;
+			}
+			switch(propertyName) {
+				case 'accountId':
+					const tenants = await this.getTenants(this.state.connectionProfile.accountId);
+					const tenantComponent = this.getFormComponent('tenantId');
+					if (tenantComponent) {
+						tenantComponent.options = tenants;
+						if (tenants && tenants.length > 0){
+							this.state.connectionProfile.tenantId = tenants[0].value;
+						}
+					}
+					break;
+				case 'tenantId':
+					break;
+				case 'authenticationType':
+					break;
+			}
+			console.log('Handling Azure MFA edits');
+		}
+	}
+
 	private registerRpcHandlers() {
 		this.registerReducers({
 			'setFormTab': async (state, payload: {
 				tab: FormTabs
 			}) => {
+				this.state.selectedFormTab = payload.tab;
+				await this.updateItemVisibility();
 				return state;
 			},
 			'formAction': async (state, payload: {
 				event: FormEvent
 			}) => {
+				if(payload.event.isAction) {
+
+				} else {
+					(this.state.connectionProfile[payload.event.propertyName] as any) = payload.event.value;
+					await this.validateFormComponents(payload.event.propertyName);
+					await this.handleAzureMFAEdits(payload.event.propertyName);
+				}
+				await this.updateItemVisibility();
 				return state;
 			},
 			'loadConnection': async (state, payload: {
 				connection: IConnectionDialogProfile
 			}) => {
+				this.state.connectionProfile = payload.connection;
+				await this.updateItemVisibility();
 				return state;
 			},
 			'connect': async (state) => {
+				this.state.formComponents.forEach(c => {
+					// Clear out hidden fields.
+					if(c.hidden){
+						(this.state.connectionProfile[c.propertyName] as any) = undefined;
+					}
+				});
+				const errorCount = await this.validateFormComponents();
+				if (errorCount > 0) {
+					return state;
+				}
+				console.log('validation successfull ready to connect');
+				this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any)
+					.then(async () => {
+						await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+					})
+					.catch(err => {
+						vscode.window.showErrorMessage(err);
+					});
+				//this._mainController.createObjectExplorerSession(this.state.connectionProfile);
 				return state;
 			}
 		});

@@ -153,12 +153,17 @@ export const ConnectionInfoFormContainer = () => {
 			<div>
 				<div className={classes.formDiv}>
 					{
-						Array.from(connectionDialogContext.state.formComponents, ([name, value]) => value).map((component, idx) => {
+						connectionDialogContext.state.formComponents.map((component, idx) => {
 							if (component.hidden === true) {
 								return undefined;
 							}
 							return <div className={classes.formComponentDiv} key={idx}>
-								<Field validationMessage={component.validationMessage} orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'} validationState={component.validationState} required={component.required} label={component.label}>
+								<Field
+									validationMessage={component.validation?.validationMessage ?? ''}
+									orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
+									validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
+									required={component.required}
+									label={component.label}>
 									{generateFormComponent(component, connectionDialogContext.state.connectionProfile, idx)}
 								</Field>
 								{
