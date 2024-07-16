@@ -495,6 +495,41 @@ export class ConnectionUI {
 		});
 	}
 
+	/**
+ * Validate a connection profile by connecting to it, and save it if we are successful.
+ */
+	public async validateAndSaveProfileFromDialog(profile: IConnectionProfile): Promise<IConnectionProfile | undefined> {
+		let uri = this.vscodeWrapper.activeTextEditorUri;
+		if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
+			uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+		}
+		return await this.connectionManager.connect(uri, profile).then(async (result) => {
+			if (result) {
+				// Success! save it
+				return await this.saveProfile(profile);
+			} else {
+				// Check whether the error was for firewall rule or not
+				if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+					let success = await this.addFirewallRule(uri, profile);
+					if (success) {
+						return await this.validateAndSaveProfile(profile);
+					}
+					return undefined;
+				} else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
+					// SSL error
+					let updatedConn = await this.connectionManager.handleSSLError(uri, profile);
+					if (updatedConn) {
+						return await this.validateAndSaveProfile(updatedConn as IConnectionProfile);
+					}
+					return undefined;
+				} else {
+					// Normal connection error! Throw error
+					return await this.promptToRetryAndSaveProfile(profile);
+				}
+			}
+		});
+	}
+
 	public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {
 		if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
 			// Firewall rule error

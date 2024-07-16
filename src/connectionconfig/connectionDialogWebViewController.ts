@@ -14,8 +14,8 @@ import { AzureController } from '../azure/azureController';
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState> {
 	constructor(
 		context: vscode.ExtensionContext,
-		private _mainController?: MainController,
-		private _connectionToEdit?: IConnectionInfo,
+		private _mainController: MainController,
+		private _connectionToEdit?: IConnectionInfo
 	) {
 		super(
 			context,
@@ -485,8 +485,12 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				}
 				console.log('validation successful ready to connect');
 				try {
-					const result = await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+					const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
 					if (result) {
+						const createSession = await this._mainController.createObjectExplorerSession(result);
+						if(!createSession){
+							console.log('Failed to create object explorer session');
+						}
 						this.state.connectionStatus = ApiStatus.Loaded;
 						this.state = this.state;
 						this.panel.dispose();

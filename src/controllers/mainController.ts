@@ -388,6 +388,7 @@ export default class MainController implements vscode.Disposable {
 		if (sessionId) {
 			const newNode = await createSessionPromise;
 			if (newNode) {
+				console.log(newNode);
 				this._objectExplorerProvider.refresh(undefined);
 				return true;
 			}
@@ -491,7 +492,7 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdAddObjectExplorer2, async () => {
 				const connDialog = new ConnectionDialogWebViewController(
 					this._context,
-					this
+					this,
 				);
 				connDialog.revealToForeground();
 			});
