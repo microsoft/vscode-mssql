@@ -14,10 +14,11 @@
         "allowSyntheticDefaultImports": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "jsx": "react-jsx",
         "rootDir": ".",
         "noUnusedLocals": true
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
     ]
 }

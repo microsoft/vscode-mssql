@@ -67,6 +67,8 @@ export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
 export const cmdAadAddAccount = 'mssql.addAadAccount';
 export const cmdClearAzureTokenCache = 'mssql.clearAzureAccountTokenCache';
+export const cmdNewTable = 'mssql.newTable';
+export const cmdEditTable = 'mssql.editTable';
 export const piiLogging = 'piiLogging';
 export const mssqlPiiLogging = 'mssql.piiLogging';
 export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
@@ -153,6 +155,7 @@ export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
 export const configEnableQueryHistoryFeature = 'enableQueryHistoryFeature';
+export const configEnablePreviewFeatures = 'enablePreviewFeatures';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';
