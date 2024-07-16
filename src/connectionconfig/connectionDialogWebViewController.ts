@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { ApiStatus, AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -26,7 +26,9 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				recentConnections: [],
 				selectedFormTab: FormTabs.Parameters,
 				connectionProfile: {} as IConnectionDialogProfile,
-				formComponents: []
+				formComponents: [],
+				connectionStatus: ApiStatus.NotStarted,
+				formError: ''
 			},
 			vscode.ViewColumn.Active,
 			{
@@ -183,7 +185,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				}
 			},
 			{
-				type: FormComponentType.Input,
+				type: FormComponentType.TextArea,
 				propertyName: 'connectionString',
 				label: 'Connection String',
 				required: true,
@@ -468,6 +470,9 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				return state;
 			},
 			'connect': async (state) => {
+				this.state.connectionStatus = ApiStatus.Loading;
+				this.state.formError = '';
+				this.state = this.state;
 				this.state.formComponents.forEach(c => {
 					// Clear out hidden fields.
 					if(c.hidden){
@@ -478,15 +483,22 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				if (errorCount > 0) {
 					return state;
 				}
-				console.log('validation successfull ready to connect');
-				this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any)
-					.then(async () => {
-						await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
-					})
-					.catch(err => {
-						vscode.window.showErrorMessage(err);
-					});
-				//this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+				console.log('validation successful ready to connect');
+				try {
+					const result = await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+					if (result) {
+						this.state.connectionStatus = ApiStatus.Loaded;
+						this.state = this.state;
+						this.panel.dispose();
+					} else {
+						this.state.connectionStatus = ApiStatus.Error;
+						this.state = this.state;
+					}
+				} catch (error) {
+					this.state.connectionStatus = ApiStatus.Error;
+					this.state = this.state;
+					return state;
+				}
 				return state;
 			}
 		});

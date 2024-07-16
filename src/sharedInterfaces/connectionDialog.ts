@@ -24,6 +24,15 @@ export interface ConnectionDialogWebviewState {
 	recentConnections: IConnectionDialogProfile[];
 	formComponents: FormComponent[];
 	connectionProfile: IConnectionDialogProfile;
+	connectionStatus: ApiStatus;
+	formError: string;
+}
+
+export enum ApiStatus {
+	NotStarted = 'notStarted',
+	Loading = 'loading',
+	Loaded = 'loaded',
+	Error = 'error',
 }
 
 export interface ConnectionDialogContextProps {
@@ -135,7 +144,8 @@ export enum FormComponentType {
 	Dropdown = 'dropdown',
 	Checkbox = 'checkbox',
 	Password = 'password',
-	Button = 'button'
+	Button = 'button',
+	TextArea = 'textarea'
 }
 
 export enum AuthenticationType {

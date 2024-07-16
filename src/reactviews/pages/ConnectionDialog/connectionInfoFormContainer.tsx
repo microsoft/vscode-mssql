@@ -5,8 +5,8 @@
 
 import { useContext, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image } from "@fluentui/react-components";
-import { FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea } from "@fluentui/react-components";
+import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular, DatabasePlugConnectedRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
 const sqlServerImage = require('../../../../media/sqlServer.svg');
@@ -56,6 +56,16 @@ export const ConnectionInfoFormContainer = () => {
 		switch (component.type) {
 			case FormComponentType.Input:
 				return <Input autoFocus={idx === 0}
+					size="small"
+					value={(profile[component.propertyName] as string) ?? ''}
+					onChange={(_value, data) => connectionDialogContext?.formAction({
+						propertyName: component.propertyName,
+						isAction: false,
+						value: data.value
+					})}
+				/>
+			case FormComponentType.TextArea:
+				return <Textarea
 					size="small"
 					value={(profile[component.propertyName] as string) ?? ''}
 					onChange={(_value, data) => connectionDialogContext?.formAction({
@@ -150,6 +160,13 @@ export const ConnectionInfoFormContainer = () => {
 				<Tab value={FormTabs.Parameters}>Parameters</Tab>
 				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
 			</TabList>
+			{
+				connectionDialogContext?.state.formError &&
+				<MessageBar>
+					{connectionDialogContext.state.formError}
+				</MessageBar>
+			}
+
 			<div>
 				<div className={classes.formDiv}>
 					{
@@ -187,13 +204,14 @@ export const ConnectionInfoFormContainer = () => {
 							</div>;
 						})
 					}
-					<Button appearance="primary" onClick={(_event) => {
-						connectionDialogContext.connect();
-					}} style={
-						{
-							width: '120px'
-						}
-					} icon={<DatabasePlugConnectedRegular />}>Connect</Button>
+					<Button appearance="primary"
+						disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading} onClick={(_event) => {
+							connectionDialogContext.connect();
+						}} style={
+							{
+								width: '120px'
+							}
+						} icon={<DatabasePlugConnectedRegular />}>Connect</Button>
 				</div>
 			</div>
 		</div>
