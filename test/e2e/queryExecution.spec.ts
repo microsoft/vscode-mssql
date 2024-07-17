@@ -38,12 +38,9 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 	test('Create table, insert data, and execute query', async () => {
 		await openNewQueryEditor(vsCodePage, profileName, password);
 
-		await new Promise(resolve => setTimeout(resolve, 2 * 1000));
 		const createTestDB = 'CREATE DATABASE TestDB;';
 		await enterTextIntoQueryEditor(vsCodePage, createTestDB);
 		await executeQuery(vsCodePage);
-
-		await new Promise(resolve => setTimeout(resolve, 4 * 1000));
 
 		await openNewQueryEditor(vsCodePage, profileName, password);
 
@@ -55,8 +52,6 @@ SELECT Name FROM TestTable;`;
 
 		await enterTextIntoQueryEditor(vsCodePage, sqlScript);
 		await executeQuery(vsCodePage);
-
-		await new Promise(resolve => setTimeout(resolve, 4 * 1000));
 
 		const nameQueryResult = await vsCodePage.getByText('Doe');
 		await expect(nameQueryResult).toBeVisible({ timeout: 10000 });

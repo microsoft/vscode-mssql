@@ -56,14 +56,15 @@ export async function addDatabaseConnection(vsCodePage: Page, serverName: string
 
 export async function openNewQueryEditor(vsCodePage: Page, profileName: string, password: string): Promise<void> {
 	await vsCodePage.keyboard.press('Control+P');
+	await waitForCommandPaletteToBeVisible(vsCodePage);
 	await vsCodePage.keyboard.type('>MS SQL: New Query');
-	await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+	await waitForCommandPaletteToBeVisible(vsCodePage);
 	await vsCodePage.keyboard.press('Enter');
-	await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+	await waitForCommandPaletteToBeVisible(vsCodePage);
 	await vsCodePage.keyboard.type(profileName);
-	await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+	await waitForCommandPaletteToBeVisible(vsCodePage);
 	await vsCodePage.keyboard.press('Enter');
-	await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+	await waitForCommandPaletteToBeVisible(vsCodePage);
 	await vsCodePage.keyboard.type(password);
 	await vsCodePage.keyboard.press('Enter');
 
@@ -74,7 +75,7 @@ export async function openNewQueryEditor(vsCodePage: Page, profileName: string, 
 export async function disconnect(vsCodePage: Page): Promise<void> {
 	await vsCodePage.keyboard.press('Control+P');
 	await vsCodePage.keyboard.type('>MS SQL: Disconnect');
-	await new Promise(resolve => setTimeout(resolve, 1 * 1000));
+	// await new Promise(resolve => setTimeout(resolve, 1 * 1000));
 	await vsCodePage.keyboard.press('Enter');
 }
 
@@ -84,4 +85,9 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
 	await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', text);
+}
+
+export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
+	const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
+	await expect(commandPaletteInput).toBeVisible();
 }

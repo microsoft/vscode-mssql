@@ -30,10 +30,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, userName, password, savePassword, profileName);
 
 		await openNewQueryEditor(vsCodePage, profileName, password);
-		await new Promise(r => setTimeout(r, 2 * 1000));
 		await disconnect(vsCodePage);
-
-		await new Promise(r => setTimeout(r, 5 * 1000));
 
 		const disconnectedStatus = await vsCodePage.getByText('Disconnected');
 		await expect(disconnectedStatus).toBeVisible({ timeout: 10 * 1000 });
