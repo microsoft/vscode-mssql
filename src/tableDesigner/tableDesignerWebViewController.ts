@@ -143,9 +143,10 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 					model: publishResponse.viewModel,
 					apiState: {
 						...state.apiState,
-						publishState: designer.LoadState.Loaded
+						publishState: designer.LoadState.Loaded,
+						previewState: designer.LoadState.NotStarted
 					},
-				}
+				};
 				this.panel.title = state.tableInfo.title;
 				return state;
 			},
@@ -197,9 +198,9 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 				return state;
 			},
 			'scriptAsCreate': async (state, payload: {}) => {
-				this._untitledSqlDocumentService.newQuery(
+				await this._untitledSqlDocumentService.newQuery(
 					(state.model['script'] as designer.InputBoxProperties).value ?? ''
-				)
+				);
 				return state;
 			},
 			'setTab': async (state, payload: { tabId: designer.DesignerMainPaneTabs }) => {
@@ -213,7 +214,15 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			'setResultTab': async (state, payload: { tabId: designer.DesignerResultPaneTabs }) => {
 				state.tabStates.resultPaneTab = payload.tabId;
 				return state;
+			},
+			'closeDesigner': async (state, payload: {}) => {
+				this.panel.dispose();
+				return state;
+			},
+			'continueEditing': async (state, payload: {}) => {
+				this.state.apiState.publishState = designer.LoadState.NotStarted;
+				return state;
 			}
-		})
+		});
 	}
 }

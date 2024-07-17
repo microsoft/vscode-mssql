@@ -39,16 +39,16 @@ const useStyles = makeStyles({
 });
 
 export const DesignerChangesPreviewButton = () => {
-	const designerContext = useContext(TableDesignerContext);
-	const classes = useStyles();
+    const designerContext = useContext(TableDesignerContext);
+    const classes = useStyles();
     if (!designerContext) {
-		return null;
-	}
+        return null;
+    }
 
     const metadata = designerContext.state;
 
     const generateScriptIcon = () => {
-        switch (metadata.apiState?.generateScriptState) {
+        switch (metadata?.apiState?.generateScriptState) {
             case LoadState.Loading:
                 return <Spinner size='extra-small' />
             case LoadState.Error:
@@ -56,9 +56,81 @@ export const DesignerChangesPreviewButton = () => {
             default:
                 return undefined;
         }
-    }
+    };
 
-    return <Dialog>
+    const getDialogContent = () => {
+        if (metadata.apiState.publishState === LoadState.Loading) {
+            return <>
+                <DialogContent className={classes.dialogContent}>
+                    <Spinner label="Publishing Changes" labelPosition='below' />
+                </DialogContent>
+            </>;
+        }
+        if (metadata?.apiState?.publishState === LoadState.Loaded) {
+            return <>
+                <DialogContent className={classes.dialogContent}>
+                    <div>Changes published successfully</div>
+                </DialogContent>
+                <DialogActions>
+                    <Button size="medium" appearance="primary" onClick={designerContext.provider.closeDesigner}>Close Designer</Button>
+                    <DialogTrigger action="close">
+                        <Button size="medium" appearance="secondary" onClick={designerContext.provider.continueEditing}>Continue Editing</Button>
+                    </DialogTrigger>
+                </DialogActions>
+            </>;
+        }
+        if (metadata?.apiState?.previewState === LoadState.Loading) {
+            return <>
+                <DialogContent className={classes.dialogContent}>
+                    <Spinner label="Loading" labelPosition='below' />
+                </DialogContent>
+            </>;
+        }
+        if (metadata?.apiState?.previewState === LoadState.Error) {
+            return <>
+                <DialogContent className={classes.dialogContent}>
+                    <ErrorCircleRegular className={classes.errorIcon} />
+                    <div>Error loading preview</div>
+                    <Button className={classes.retryButton} onClick={() => {
+                        designerContext.provider.generatePreviewReport();
+                    }}>Retry</Button>
+                </DialogContent>
+            </>;
+        }
+        if (metadata?.apiState?.previewState === LoadState.Loaded) {
+            return <>
+                <DialogContent>
+                    <div style = {
+                        {
+                            width: '98%',
+                            height: '100%',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderTop: '1px solid #e0e0e0',
+                            borderBottom: '1px solid #e0e0e0',
+                            overflow: 'auto',
+                        }
+                    }>
+                    <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
+                    </div>
+                </DialogContent>
+                <DialogActions>
+                    <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
+                        designerContext.provider.publishChanges();
+                    }} >Update Database</Button>
+                    <DialogTrigger action="close">
+                        <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={designerContext.provider.generateScript} >Generate Script</Button>
+                    </DialogTrigger>
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button size="medium" appearance="secondary">Close</Button>
+                    </DialogTrigger>
+                </DialogActions>
+            </>;
+        }
+
+    };
+
+    return <Dialog inertTrapFocus={true}>
         <DialogTrigger disableButtonEnhancement>
             <ToolbarButton
                 aria-label="Publish"
@@ -75,42 +147,9 @@ export const DesignerChangesPreviewButton = () => {
         <DialogSurface>
             <DialogBody>
                 <DialogTitle>
-                    Preview Designer Changes
+                    Preview Database Updates
                 </DialogTitle>
-                <DialogContent className={classes.dialogContent}>
-                    {metadata.apiState?.previewState === LoadState.Loading && <Spinner label="Loading" labelPosition='below' />}
-                    {metadata.apiState?.previewState === LoadState.Error && <div className={classes.dialogContent}>
-                        <ErrorCircleRegular className={classes.errorIcon} />
-                        <div>Error loading preview</div>
-                        <Button className={classes.retryButton} onClick={() => {
-                            designerContext.provider.generatePreviewReport();
-                        }}>Retry</Button>
-                    </div>}
-                    {metadata.apiState?.previewState === LoadState.Loaded && <div style = {
-                        {
-                            width: '98%',
-                            height: '100%',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderTop: '1px solid #e0e0e0',
-                            borderBottom: '1px solid #e0e0e0',
-                            overflow: 'auto',
-                        }
-                    }><ReactMarkdown>metadata.generatePreviewReportResult?.report</ReactMarkdown> </div>}
-                </DialogContent>
-                <DialogActions>
-                    <DialogTrigger disableButtonEnhancement>
-                        <Button size="medium" appearance="secondary">Close</Button>
-                    </DialogTrigger>
-                    <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={
-                        () => {
-                            designerContext.provider.generateScript()
-                        }
-                    } >Open Script</Button>
-                    <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
-                        designerContext.provider.publishChanges();
-                    }} >Update Database</Button>
-                </DialogActions>
+                {getDialogContent()}
             </DialogBody>
         </DialogSurface>
     </Dialog>
