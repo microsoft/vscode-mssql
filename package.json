@@ -349,12 +349,12 @@
         },
         {
           "command": "mssql.newTable",
-          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enablePreviewFeatures",
+          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enableExperimentalFeatures",
           "group": "inline"
         },
         {
           "command": "mssql.editTable",
-          "when": "view == objectExplorer && viewItem == Table && config.mssql.enablePreviewFeatures",
+          "when": "view == objectExplorer && viewItem == Table && config.mssql.enableExperimentalFeatures",
           "group": "inline"
         }
       ],
@@ -673,11 +673,6 @@
       "type": "object",
       "title": "%mssql.Configuration%",
       "properties": {
-        "mssql.enablePreviewFeatures": {
-          "type": "boolean",
-          "default": false,
-          "description": "%mssql.enablePreviewFeaturesDescription%"
-        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

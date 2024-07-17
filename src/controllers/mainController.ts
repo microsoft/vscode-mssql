@@ -125,7 +125,7 @@ export default class MainController implements vscode.Disposable {
 	}
 
 	public get isPreviewEnabled(): boolean {
-		return this.configuration.get(Constants.configEnablePreviewFeatures);
+		return this.configuration.get(Constants.configEnableExperimentalFeatures);
 	}
 
 	/**
