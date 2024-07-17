@@ -54,7 +54,10 @@
     "lint": "gulp lint",
     "localization": "gulp ext:localization",
     "test": "gulp test && gulp cover",
-    "smoke": "gulp ext:smoke"
+    "smoketest": "gulp ext:smoke",
+    "unittest": "gulp test:cover --log",
+    "cover": "gulp cover",
+    "package": "gulp package:online"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -171,6 +174,7 @@
     "tar": "^6.1.9",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
+    "vsce": "^2.15.0",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
