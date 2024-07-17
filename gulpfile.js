@@ -420,7 +420,7 @@ gulp.task('ext:test', async () => {
 	});
 });
 
-gulp.task('ext:smoke', run('npx playwright test --reporter=line'));
+gulp.task('ext:smoke', run('npx playwright test'));
 
 gulp.task('test', gulp.series('ext:test'));
 
