@@ -50,7 +50,7 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{ electronApp: E
 
 		const electronApp = await electron.launch({
 			executablePath: vsCodeExecutablePath,
-			args: args,
+			args: args
 		});
 
 

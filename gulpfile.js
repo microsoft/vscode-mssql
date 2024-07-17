@@ -19,6 +19,7 @@ const clc = require('cli-color');
 const path = require('path');
 const esbuild = require('esbuild');
 const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
+const run = require('gulp-run-command').default;
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -419,7 +420,9 @@ gulp.task('ext:test', async () => {
 	});
 });
 
-gulp.task('test', gulp.series('ext:test'));
+gulp.task('ext:smoke', run('npx playwright test --reporter=line'));
+
+gulp.task('test', gulp.series('ext:test', 'ext:smoke'));
 
 require('./tasks/covertasks');
 

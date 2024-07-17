@@ -53,7 +53,8 @@
     "watch": "gulp watch",
     "lint": "gulp lint",
     "localization": "gulp ext:localization",
-    "test": "gulp test && gulp cover"
+    "test": "gulp test && gulp cover",
+    "smoke": "gulp ext:smoke"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -110,6 +111,7 @@
     "gulp-eslint-new": "^2.1.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-rename": "^1.2.2",
+    "gulp-run-command": "^0.0.10",
     "gulp-shell": "^0.7.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-typescript": "^5.0.1",
