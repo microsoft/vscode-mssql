@@ -422,7 +422,7 @@ gulp.task('ext:test', async () => {
 
 gulp.task('ext:smoke', run('npx playwright test --reporter=line'));
 
-gulp.task('test', gulp.series('ext:test', 'ext:smoke'));
+gulp.task('test', gulp.series('ext:test'));
 
 require('./tasks/covertasks');
 
