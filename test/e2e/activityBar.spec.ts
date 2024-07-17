@@ -6,6 +6,7 @@
 import { ElectronApplication, Page, test, expect } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
+import { mssqlActivityBarButton } from './utils/commonSelectors';
 
 test.describe('MSSQL Extension - Activity Bar', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -18,8 +19,8 @@ test.describe('MSSQL Extension - Activity Bar', async () => {
 	});
 
 	test('MSSQL button is present in activity bar', async () => {
-		await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
-		const count = await vsCodePage.locator('a[aria-label="SQL Server (Ctrl+Alt+D)"]').count();
+		await vsCodePage.click(mssqlActivityBarButton);
+		const count = await vsCodePage.locator(mssqlActivityBarButton).count();
 		expect(count).toEqual(1);
 	});
 
