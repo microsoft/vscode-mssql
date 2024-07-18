@@ -73,6 +73,12 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 				},
 				setResultTab: function (tabId: string): void {
 					webViewState?.extensionRpc.action('setResultTab', { tabId: tabId });
+				},
+				closeDesigner: function (): void {
+					webViewState?.extensionRpc.action('closeDesigner', {});
+				},
+				continueEditing: function (): void {
+					webViewState?.extensionRpc.action('continueEditing', {});
 				}
 			},
 			state: webViewState?.state as td.TableDesignerWebViewState
