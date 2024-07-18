@@ -59,7 +59,7 @@ export const DesignerChangesPreviewButton = () => {
     };
 
     const getDialogContent = () => {
-        if (metadata.apiState.publishState === LoadState.Loading) {
+        if (metadata?.apiState?.publishState === LoadState.Loading) {
             return <>
                 <DialogContent className={classes.dialogContent}>
                     <Spinner label="Publishing Changes" labelPosition='below' />
