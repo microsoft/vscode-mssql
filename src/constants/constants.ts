@@ -157,7 +157,7 @@ export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
 export const configEnableQueryHistoryFeature = 'enableQueryHistoryFeature';
-export const configEnablePreviewFeatures = 'enablePreviewFeatures';
+export const configEnableExperimentalFeatures = 'enableExperimentalFeatures';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';
