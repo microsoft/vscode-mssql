@@ -37,19 +37,28 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 	}
 
 	private async initialize() {
-		const connectionUri = this._connectionManager.getUriForConnection(this._objectExplorerProvider.currentNode.connectionInfo);
-		if (!connectionUri) {
-			await vscode.window.showErrorMessage('Unable to find connection');
+
+		const targetNode = this._objectExplorerProvider.currentNode;
+		if (!targetNode) {
+			await vscode.window.showErrorMessage('Unable to find object explorer node');
 			return;
 		}
 
-		const connectionString = await this._connectionManager.getConnectionString(connectionUri, true);
+		const targetDatabase = this.getDatabaseNameForNode(targetNode);
+		// get database name from connection string
+		const databaseName = targetDatabase ? targetDatabase : 'master';
+
+
+		const connectionInfo = targetNode.connectionInfo;
+		connectionInfo.database = databaseName;
+
+		const connectionDetails = await this._connectionManager.createConnectionDetails(connectionInfo);
+		const connectionString = await this._connectionManager.getConnectionString(connectionDetails, true, true);
+
 		if (!connectionString || connectionString === '') {
 			await vscode.window.showErrorMessage('Unable to find connection string for the connection');
 			return;
 		}
-		// get database name from connection string
-		const databaseName = this._objectExplorerProvider.currentNode.connectionInfo.database ? this._objectExplorerProvider.currentNode.connectionInfo.database : 'master';
 
 		try {
 			let tableInfo: designer.TableInfo;
@@ -58,8 +67,8 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 					id: randomUUID(),
 					isNewTable: false,
 					title: this._tableNode.label as string,
-					tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - ${this._tableNode.label}`,
-					server: this._objectExplorerProvider.currentNode.connectionInfo.server,
+					tooltip: `${connectionInfo.server} - ${databaseName} - ${this._tableNode.label}`,
+					server: connectionInfo.server,
 					database: databaseName,
 					connectionString: connectionString,
 					schema: this._tableNode.metadata.schema,
@@ -70,8 +79,8 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 					id: randomUUID(),
 					isNewTable: true,
 					title: 'New Table',
-					tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - New Table`,
-					server: this._objectExplorerProvider.currentNode.connectionInfo.server,
+					tooltip: `${connectionInfo.server} - ${databaseName} - New Table`,
+					server: connectionInfo.server,
 					database: databaseName,
 					connectionString: connectionString
 				};
@@ -79,7 +88,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 
 			this.panel.title = tableInfo.title;
 			const intializeData = await this._tableDesignerService.initializeTableDesigner(tableInfo);
-			intializeData.tableInfo.database = this._objectExplorerProvider.currentNode.connectionInfo.database ?? 'master';
+			intializeData.tableInfo.database = databaseName ?? 'master';
 			this.state = {
 				tableInfo: tableInfo,
 				view: getDesignerView(intializeData.view),
@@ -103,6 +112,17 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 		}
 
 		this.registerRpcHandlers();
+	}
+
+	private getDatabaseNameForNode(node: TreeNodeInfo): string {
+		if (node.metadata?.metadataTypeName === 'Database') {
+			return node.metadata.name;
+		} else {
+			if (node.parentNode) {
+				return this.getDatabaseNameForNode(node.parentNode);
+			}
+		}
+		return '';
 	}
 
 	private registerRpcHandlers() {
