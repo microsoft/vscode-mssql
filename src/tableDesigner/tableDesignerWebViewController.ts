@@ -14,12 +14,13 @@ import { getDesignerView } from './tableDesignerTabDefinition';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 
 export class TableDesignerWebViewController extends ReactWebViewPanelController<designer.TableDesignerWebViewState> {
+	private _isEdit: boolean = false;
+
 	constructor(context: vscode.ExtensionContext,
 		private _tableDesignerService: designer.TableDesignerProvider,
 		private _connectionManager: ConnectionManager,
-		private _objectExplorerProvider: ObjectExplorerProvider,
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
-		private _tableNode?: TreeNodeInfo
+		private _targetNode?: TreeNodeInfo
 	) {
 		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', {
 			apiState: {
@@ -37,19 +38,19 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 	}
 
 	private async initialize() {
-
-		const targetNode = this._objectExplorerProvider.currentNode;
-		if (!targetNode) {
+		if (!this._targetNode) {
 			await vscode.window.showErrorMessage('Unable to find object explorer node');
 			return;
 		}
 
-		const targetDatabase = this.getDatabaseNameForNode(targetNode);
+		this._isEdit = this._targetNode.nodeType === 'Table' || this._targetNode.nodeType === 'View' ? true : false;
+
+		const targetDatabase = this.getDatabaseNameForNode(this._targetNode);
 		// get database name from connection string
 		const databaseName = targetDatabase ? targetDatabase : 'master';
 
 
-		const connectionInfo = targetNode.connectionInfo;
+		const connectionInfo = this._targetNode.connectionInfo;
 		connectionInfo.database = databaseName;
 
 		const connectionDetails = await this._connectionManager.createConnectionDetails(connectionInfo);
@@ -62,17 +63,17 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 
 		try {
 			let tableInfo: designer.TableInfo;
-			if (this._tableNode) {
+			if (this._isEdit) {
 				tableInfo = {
 					id: randomUUID(),
 					isNewTable: false,
-					title: this._tableNode.label as string,
-					tooltip: `${connectionInfo.server} - ${databaseName} - ${this._tableNode.label}`,
+					title: this._targetNode.label as string,
+					tooltip: `${connectionInfo.server} - ${databaseName} - ${this._targetNode.label}`,
 					server: connectionInfo.server,
 					database: databaseName,
 					connectionString: connectionString,
-					schema: this._tableNode.metadata.schema,
-					name: this._tableNode.metadata.name
+					schema: this._targetNode.metadata.schema,
+					name: this._targetNode.metadata.name
 				};
 			} else {
 				tableInfo = {
@@ -85,7 +86,6 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 					connectionString: connectionString
 				};
 			}
-
 			this.panel.title = tableInfo.title;
 			const intializeData = await this._tableDesignerService.initializeTableDesigner(tableInfo);
 			intializeData.tableInfo.database = databaseName ?? 'master';
@@ -180,7 +180,6 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 						generateScriptState: designer.LoadState.Loading
 					}
 				}
-				payload.table.database = this._objectExplorerProvider.currentNode.connectionInfo.database ?? 'master';
 				const script = await this._tableDesignerService.generateScript(payload.table);
 				state = {
 					...state,
