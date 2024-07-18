@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import ConnectionManager from "../controllers/connectionManager";
-import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { randomUUID } from "crypto";
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import * as designer from './tableDesignerInterfaces';
