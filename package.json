@@ -257,7 +257,7 @@
         },
         {
           "command": "mssql.addObjectExplorer2",
-          "when": "view == objectExplorer && config.mssql.enablePreviewFeatures",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
         },
