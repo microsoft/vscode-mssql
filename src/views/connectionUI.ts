@@ -501,9 +501,6 @@ export class ConnectionUI {
  */
 	public async validateAndSaveProfileFromDialog(profile: IConnectionProfile): Promise<ConnectionCompleteParams> {
 		const result = await this.connectionManager.connectDialog(profile);
-		if (!result.errorMessage) {
-			await this.saveProfile(profile);
-		}
 		return result;
 	}
 

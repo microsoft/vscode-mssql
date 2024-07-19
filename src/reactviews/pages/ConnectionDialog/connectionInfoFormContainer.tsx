@@ -5,13 +5,18 @@
 
 import { useContext, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, MessageBarTitle } from "@fluentui/react-components";
+import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea } from "@fluentui/react-components";
 import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
-import { EyeRegular, EyeOffRegular, DatabasePlugConnectedRegular } from "@fluentui/react-icons";
+import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
 const sqlServerImage = require('../../../../media/sqlServer.svg');
 
 const useStyles = makeStyles({
+	formRoot: {
+		display: 'flex',
+		flexDirection: 'column',
+		height: '100%',
+	},
 	formDiv: {
 		padding: '10px',
 		maxWidth: '500px',
@@ -134,7 +139,7 @@ export const ConnectionInfoFormContainer = () => {
 	}
 
 	return (
-		<div>
+		<div className={classes.formRoot}>
 			<div style={
 				{
 					display: 'flex',
@@ -160,7 +165,11 @@ export const ConnectionInfoFormContainer = () => {
 				<Tab value={FormTabs.Parameters}>Parameters</Tab>
 				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
 			</TabList>
-			<div>
+			<div style={
+				{
+					overflow: 'auto'
+				}
+			}>
 				<div className={classes.formDiv}>
 					{
 						connectionDialogContext?.state.formError &&
@@ -188,7 +197,7 @@ export const ConnectionInfoFormContainer = () => {
 									<div className={classes.formComponentActionDiv}>
 										{
 											component.actionButtons?.map((actionButton, idx) => {
-												return <Button key={idx + actionButton.id} appearance='outline' style={
+												return <Button shape="square" key={idx + actionButton.id} appearance='outline' style={
 													{
 														width: '120px'
 													}
@@ -204,8 +213,11 @@ export const ConnectionInfoFormContainer = () => {
 							</div>;
 						})
 					}
-					<Button appearance="primary"
-						disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading} onClick={(_event) => {
+					<Button
+						appearance="primary"
+						disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
+						shape="square"
+						onClick={(_event) => {
 							connectionDialogContext.connect();
 						}} style={
 							{

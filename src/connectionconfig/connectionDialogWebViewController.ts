@@ -10,11 +10,14 @@ import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
+import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState> {
+	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
 	constructor(
 		context: vscode.ExtensionContext,
 		private _mainController: MainController,
+		private _objectExplorerProvider: ObjectExplorerProvider,
 		private _connectionToEdit?: IConnectionInfo
 	) {
 		super(
@@ -64,6 +67,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	private async loadConnectionToEdit() {
 		if (this._connectionToEdit) {
+			this._connectionToEditCopy = structuredClone(this._connectionToEdit);
 			const connection = await this.initializeConnectionForDialog(this._connectionToEdit);
 			this.state.connectionProfile = connection;
 			this.state = this.state;
@@ -434,6 +438,13 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		}
 	}
 
+	private clearFormError() {
+		this.state.formError = '';
+		for (let i = 0; i < this.state.formComponents.length; i++) {
+			this.state.formComponents[i].validation = undefined;
+		}
+	}
+
 	private registerRpcHandlers() {
 		this.registerReducers({
 			'setFormTab': async (state, payload: {
@@ -465,11 +476,16 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			'loadConnection': async (state, payload: {
 				connection: IConnectionDialogProfile
 			}) => {
+				this._connectionToEditCopy = structuredClone(payload.connection);
+				this.clearFormError();
 				this.state.connectionProfile = payload.connection;
 				await this.updateItemVisibility();
+				await this.handleAzureMFAEdits('azureAuthType');
+				await this.handleAzureMFAEdits('accountId');
 				return state;
 			},
 			'connect': async (state) => {
+				this.clearFormError();
 				this.state.connectionStatus = ApiStatus.Loading;
 				this.state.formError = '';
 				this.state = this.state;
@@ -492,8 +508,18 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						this.state.connectionStatus = ApiStatus.Error;
 						return state;
 					}
+					if (this._connectionToEditCopy) {
+						await this._mainController.connectionManager.getUriForConnection(this._connectionToEditCopy);
+						await this._objectExplorerProvider.removeConnectionNodes([this._connectionToEditCopy]);
+						await this._mainController.connectionManager.connectionStore.removeProfile(this._connectionToEditCopy as any);
+						await this._objectExplorerProvider.refresh(undefined);
+					}
+					await this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any);
 					await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+					await this._objectExplorerProvider.refresh(undefined);
+					await this.loadRecentConnections();
 					this.state.connectionStatus = ApiStatus.Loaded;
+					await this.panel.dispose();
 				} catch (error) {
 					this.state.connectionStatus = ApiStatus.Error;
 					return state;
