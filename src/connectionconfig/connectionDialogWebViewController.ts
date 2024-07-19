@@ -83,7 +83,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		connection.password = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
 		const dialogConnection = connection as IConnectionDialogProfile;
 		// Set the profile name
-		dialogConnection.profileName = getConnectionDisplayName(connection);
+		dialogConnection.profileName = dialogConnection.profileName ?? getConnectionDisplayName(connection);
 		return dialogConnection;
 	}
 
