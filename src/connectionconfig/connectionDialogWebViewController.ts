@@ -42,7 +42,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	private async initializeDialog() {
 		await this.loadRecentConnections();
-		if(this._connectionToEdit) {
+		if (this._connectionToEdit) {
 			await this.loadConnectionToEdit();
 		} else {
 			await this.loadEmptyConnection();
@@ -136,7 +136,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return this.state.formComponents.find(c => c.propertyName === propertyName);
 	}
 
-	private async getAccounts () : Promise<FormComponentOptions[]> {
+	private async getAccounts(): Promise<FormComponentOptions[]> {
 		const accounts = await this._mainController.azureAccountService.getAccounts();
 		return accounts.map(account => {
 			return {
@@ -147,7 +147,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	}
 
-	private async getTenants(accountId: string): Promise <FormComponentOptions[]> {
+	private async getTenants(accountId: string): Promise<FormComponentOptions[]> {
 		const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === accountId);
 		if (!account) {
 			return [];
@@ -316,8 +316,8 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						value: 'Mandatory'
 					},
 					{
-						displayName: 'Strict',
-						value: 'Strict (Requires SQL Server 2022 or Azure SQL)'
+						displayName: 'Strict  (Requires SQL Server 2022 or Azure SQL)',
+						value: 'Strict'
 					}
 				],
 			},
@@ -333,7 +333,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	private async validateFormComponents(propertyName?: keyof IConnectionDialogProfile): Promise<number> {
 		let errorCount = 0;
-		if (propertyName){
+		if (propertyName) {
 			const component = this.getFormComponent(propertyName);
 			if (component && component.validate) {
 				component.validation = component.validate(this.state.connectionProfile[propertyName]);
@@ -344,7 +344,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		}
 		else {
 			this.state.formComponents.forEach(c => {
-				if(c.hidden){
+				if (c.hidden) {
 					c.validation = {
 						isValid: true,
 						validationMessage: ''
@@ -381,7 +381,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		});
 		if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && this.state.connectionProfile.accountId) {
 			const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === this.state.connectionProfile.accountId);
-			if(account){
+			if (account) {
 				const session = await this._mainController.azureAccountService.getAccountSecurityToken(account, undefined);
 				const isTokenExpired = AzureController.isTokenInValid(session.token, session.expiresOn);
 				if (isTokenExpired) {
@@ -402,20 +402,20 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return actionButtons;
 	}
 
-	private async handleAzureMFAEdits(propertyName: keyof IConnectionDialogProfile ) {
+	private async handleAzureMFAEdits(propertyName: keyof IConnectionDialogProfile) {
 		const mfaComponents: (keyof IConnectionDialogProfile)[] = ['accountId', 'tenantId', 'authenticationType'];
 		if (mfaComponents.includes(propertyName)) {
 			if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
 				return;
 			}
 			const accountComponent = this.getFormComponent('accountId');
-			switch(propertyName) {
+			switch (propertyName) {
 				case 'accountId':
 					const tenants = await this.getTenants(this.state.connectionProfile.accountId);
 					const tenantComponent = this.getFormComponent('tenantId');
 					if (tenantComponent) {
 						tenantComponent.options = tenants;
-						if (tenants && tenants.length > 0){
+						if (tenants && tenants.length > 0) {
 							this.state.connectionProfile.tenantId = tenants[0].value;
 						}
 					}
@@ -425,7 +425,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					break;
 				case 'authenticationType':
 					const firstOption = accountComponent.options[0];
-					if(firstOption){
+					if (firstOption) {
 						this.state.connectionProfile.accountId = firstOption.value;
 					}
 					break;
@@ -446,7 +446,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			'formAction': async (state, payload: {
 				event: FormEvent
 			}) => {
-				if(payload.event.isAction) {
+				if (payload.event.isAction) {
 					const component = this.getFormComponent(payload.event.propertyName);
 					if (component && component.actionButtons) {
 						const actionButton = component.actionButtons.find(b => b.id === payload.event.value);
@@ -475,7 +475,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				this.state = this.state;
 				this.state.formComponents.forEach(c => {
 					// Clear out hidden fields.
-					if(c.hidden){
+					if (c.hidden) {
 						(this.state.connectionProfile[c.propertyName] as any) = undefined;
 					}
 				});
@@ -483,24 +483,18 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				if (errorCount > 0) {
 					return state;
 				}
-				console.log('validation successful ready to connect');
+
 				try {
 					const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
-					if (result) {
-						const createSession = await this._mainController.createObjectExplorerSession(result);
-						if(!createSession){
-							console.log('Failed to create object explorer session');
-						}
-						this.state.connectionStatus = ApiStatus.Loaded;
-						this.state = this.state;
-						this.panel.dispose();
-					} else {
+					if (result?.errorMessage) {
+						this.state.formError = result.errorMessage;
 						this.state.connectionStatus = ApiStatus.Error;
-						this.state = this.state;
+						return state;
 					}
+					await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+					this.state.connectionStatus = ApiStatus.Loaded;
 				} catch (error) {
 					this.state.connectionStatus = ApiStatus.Error;
-					this.state = this.state;
 					return state;
 				}
 				return state;

@@ -5,7 +5,7 @@
 
 import { useContext, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea } from "@fluentui/react-components";
+import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, MessageBarTitle } from "@fluentui/react-components";
 import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular, DatabasePlugConnectedRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
@@ -160,15 +160,15 @@ export const ConnectionInfoFormContainer = () => {
 				<Tab value={FormTabs.Parameters}>Parameters</Tab>
 				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
 			</TabList>
-			{
-				connectionDialogContext?.state.formError &&
-				<MessageBar>
-					{connectionDialogContext.state.formError}
-				</MessageBar>
-			}
-
 			<div>
 				<div className={classes.formDiv}>
+					{
+						connectionDialogContext?.state.formError &&
+						<MessageBar intent="error">
+							{connectionDialogContext.state.formError}
+						</MessageBar>
+					}
+
 					{
 						connectionDialogContext.state.formComponents.map((component, idx) => {
 							if (component.hidden === true) {
@@ -209,9 +209,12 @@ export const ConnectionInfoFormContainer = () => {
 							connectionDialogContext.connect();
 						}} style={
 							{
-								width: '120px'
+								width: '150px',
+								alignSelf: 'center'
 							}
-						} icon={<DatabasePlugConnectedRegular />}>Connect</Button>
+						}
+					// icon={<DatabasePlugConnectedRegular />}
+					>Connect</Button>
 				</div>
 			</div>
 		</div>
