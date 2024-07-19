@@ -481,6 +481,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				});
 				const errorCount = await this.validateFormComponents();
 				if (errorCount > 0) {
+					this.state.connectionStatus = ApiStatus.Error;
 					return state;
 				}
 
