@@ -74,6 +74,7 @@ export default class MainController implements vscode.Disposable {
 	public azureResourceService: AzureResourceService;
 	public tableDesignerService: TableDesignerService;
 	public configuration: vscode.WorkspaceConfiguration;
+	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
 
 	/**
 	 * The main controller constructor
@@ -396,6 +397,20 @@ export default class MainController implements vscode.Disposable {
 		return false;
 	}
 
+	public async createObjectExplorerSessionFromDialog(connectionCredentials?: IConnectionInfo): Promise<TreeNodeInfo> {
+		let createSessionPromise = new Deferred<TreeNodeInfo>();
+		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
+		if (sessionId) {
+			const newNode = await createSessionPromise;
+			if (newNode) {
+				console.log(newNode);
+				this._objectExplorerProvider.refresh(undefined);
+				return newNode;
+			}
+		}
+		return undefined;
+	}
+
 	/**
 	 * Initializes the Object Explorer commands
 	 */
@@ -403,14 +418,14 @@ export default class MainController implements vscode.Disposable {
 		const self = this;
 		// Register the object explorer tree provider
 		this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
-		const treeView = vscode.window.createTreeView('objectExplorer', {
+		this.objectExplorerTree = vscode.window.createTreeView('objectExplorer', {
 			treeDataProvider: this._objectExplorerProvider,
 			canSelectMany: false
 		});
-		this._context.subscriptions.push(treeView);
+		this._context.subscriptions.push(this.objectExplorerTree);
 
 		// Sets the correct current node on any node selection
-		this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
+		this._context.subscriptions.push(this.objectExplorerTree.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
 			if (e.selection?.length > 0) {
 				self._objectExplorerProvider.currentNode = e.selection[0];
 			}

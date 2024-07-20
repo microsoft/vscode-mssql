@@ -515,10 +515,11 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						await this._objectExplorerProvider.refresh(undefined);
 					}
 					await this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any);
-					await this._mainController.createObjectExplorerSession(this.state.connectionProfile);
+					const node = await this._mainController.createObjectExplorerSessionFromDialog(this.state.connectionProfile);
 					await this._objectExplorerProvider.refresh(undefined);
 					await this.loadRecentConnections();
 					this.state.connectionStatus = ApiStatus.Loaded;
+					await this._mainController.objectExplorerTree.reveal(node, {focus: true, select: true, expand: true});
 					await this.panel.dispose();
 				} catch (error) {
 					this.state.connectionStatus = ApiStatus.Error;

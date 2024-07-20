@@ -84,7 +84,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "1.78.1",
+    "@types/vscode": "1.91.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",

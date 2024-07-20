@@ -16,9 +16,10 @@
         "experimentalDecorators": true,
         "jsx": "react-jsx",
         "rootDir": ".",
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "skipLibCheck": true
     },
     "exclude": [
         "node_modules",
-    ]
+    ],
 }
