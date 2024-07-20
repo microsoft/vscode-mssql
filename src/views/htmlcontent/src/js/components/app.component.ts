@@ -40,13 +40,14 @@ export interface IGridDataSet {
 }
 
 // tslint:disable:max-line-length
+
 const template = `
 <div class="fullsize vertBox">
     <div #resultsheader *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!resultActive"
         (click)="toggleResultsPane()"
         (keydown)="handleResultsKeydown($event)"
-        [attr.aria-label]="Constants.resultPaneLabel"
+        [attr.aria-label]="Constants.resultPaneLabel + '. ' + Constants.accessShortcut + ': ' + resultShortcut"
         [attr.aria-expanded]="resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
@@ -90,7 +91,7 @@ const template = `
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div #messagesheader id="messagepane" role="button" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!messageActive"
-        [attr.aria-label]="Constants.messagePaneLabel"
+        [attr.aria-label]="Constants.messagePaneLabel + '. ' + Constants.accessShortcut + ': ' + messageShortcut"
         [attr.aria-expanded]="messageActive"
         (click)="toggleMessagesPane()"
         (keydown)="handleMessagesKeydown($event)"
@@ -136,6 +137,7 @@ const template = `
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
 </div>
 `;
+
 // tslint:enable:max-line-length
 
 /**
