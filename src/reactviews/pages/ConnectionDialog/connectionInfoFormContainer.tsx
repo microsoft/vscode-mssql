@@ -3,13 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea } from "@fluentui/react-components";
+import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, webLightTheme } from "@fluentui/react-components";
 import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
+import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
 const sqlServerImage = require('../../../../media/sqlServer.svg');
+const sqlServerImageDark = require('../../../../media/sqlServer_inverse.svg');
 
 const useStyles = makeStyles({
 	formRoot: {
@@ -40,64 +42,83 @@ const useStyles = makeStyles({
 	}
 });
 
+const FormInput = ({ value, target, type }: { value: string, target: keyof IConnectionDialogProfile, type: 'input' | 'password' | 'textarea' }) => {
+	const connectionDialogContext = useContext(ConnectionDialogContext);
+	const [inputVal, setValueVal] = useState(value);
+	const [showPassword, setShowPassword] = useState(false);
+
+	useEffect(() => {
+		console.log('value changed');
+		setValueVal(value);
+	}, [value]);
+
+	const handleChange = (data: string) => {
+		setValueVal(data);
+	};
+
+	const handleBlur = () => {
+		connectionDialogContext?.formAction({
+			propertyName: target,
+			isAction: false,
+			value: inputVal
+		});
+	};
+
+	return (
+		<>
+			{
+				type === 'input' &&
+				<Input
+					value={inputVal}
+					onChange={(_value, data) => handleChange(data.value)}
+					onBlur={handleBlur}
+					size="small"
+				/>
+			}
+			{
+				type === 'password' &&
+				<Input
+					type={showPassword ? 'text' : 'password'}
+					value={inputVal}
+					onChange={(_value, data) => handleChange(data.value)}
+					onBlur={handleBlur}
+					size="small"
+					contentAfter={
+						<Button
+							onClick={() => setShowPassword(!showPassword)}
+							icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
+							appearance="transparent"
+							size="small"
+						>
+						</Button>}
+				/>
+			}
+			{
+				type === 'textarea' &&
+				<Textarea
+				    value={inputVal}
+					size="small"
+					onChange={(_value, data) => handleChange(data.value)}
+					onBlur={handleBlur}
+				/>
+			}
+		</>
+	);
+};
+
 export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const classes = useStyles();
-	const [showPassword, setShowPassword] = useState<Record<number, boolean>>({});
-
-
-	const getShowPasswordForComponent = (idx: number) => {
-		if (!showPassword[idx]) {
-			showPassword[idx] = false;
-		}
-		return showPassword[idx];
-	};
-	const setShowPasswordForComponent = (idx: number, value: boolean) => {
-		showPassword[idx] = value;
-		setShowPassword({ ...showPassword });
-	};
+	const vscode = useContext(VscodeWebviewContext);
 
 	const generateFormComponent = (component: FormComponent, profile: IConnectionDialogProfile, idx: number) => {
 		switch (component.type) {
 			case FormComponentType.Input:
-				return <Input autoFocus={idx === 0}
-					size="small"
-					value={(profile[component.propertyName] as string) ?? ''}
-					onChange={(_value, data) => connectionDialogContext?.formAction({
-						propertyName: component.propertyName,
-						isAction: false,
-						value: data.value
-					})}
-				/>
+				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
 			case FormComponentType.TextArea:
-				return <Textarea
-					size="small"
-					value={(profile[component.propertyName] as string) ?? ''}
-					onChange={(_value, data) => connectionDialogContext?.formAction({
-						propertyName: component.propertyName,
-						isAction: false,
-						value: data.value
-					})}
-				/>
+				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='textarea' />;
 			case FormComponentType.Password:
-				return <Input
-					size="small"
-					type={getShowPasswordForComponent(idx) ? 'text' : 'password'}
-					value={profile[component.propertyName] as string ?? ''}
-					onChange={(_value, data) => connectionDialogContext?.formAction({
-						propertyName: component.propertyName,
-						isAction: false,
-						value: data.value
-					})}
-					contentAfter={
-						<Button
-							onClick={() => setShowPasswordForComponent(idx, !getShowPasswordForComponent(idx))}
-							icon={getShowPasswordForComponent(idx) ? <EyeRegular /> : <EyeOffRegular />}
-							size="small"
-							appearance="transparent"
-						>
-						</Button>}
-				/>
+				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='password' />;
 			case FormComponentType.Dropdown:
 				if (component.options === undefined) {
 					throw new Error('Dropdown component must have options');
@@ -152,8 +173,8 @@ export const ConnectionInfoFormContainer = () => {
 						padding: '10px',
 					}
 				}
-					src={sqlServerImage} alt='SQL Server' height={60} width={60} />
-				<Text size={600} style={
+					src={vscode?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
+				<Text size={500} style={
 					{
 						lineHeight: '60px'
 					}
