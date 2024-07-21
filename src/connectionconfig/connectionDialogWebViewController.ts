@@ -489,10 +489,11 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				this.state.connectionStatus = ApiStatus.Loading;
 				this.state.formError = '';
 				this.state = this.state;
-				this.state.formComponents.forEach(c => {
-					// Clear out hidden fields.
-					if (c.hidden) {
-						(this.state.connectionProfile[c.propertyName] as any) = undefined;
+				const notHiddenComponents = this.state.formComponents.filter(c => !c.hidden).map(c => c.propertyName);
+				// Set all other fields to undefined
+				Object.keys(this.state.connectionProfile).forEach(key => {
+					if (!notHiddenComponents.includes(key as keyof IConnectionDialogProfile)) {
+						(this.state.connectionProfile[key as keyof IConnectionDialogProfile] as any) = undefined;
 					}
 				});
 				const errorCount = await this.validateFormComponents();
