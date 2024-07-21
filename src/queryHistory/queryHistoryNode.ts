@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 /**
@@ -51,7 +52,8 @@ export class QueryHistoryNode extends vscode.TreeItem {
 		this._isSuccess = isSuccess;
 		this._connectionLabel = connectionLabel;
 		this.iconPath = this._isSuccess ? this.successIcon : this.failureIcon;
-		this.tooltip = tooltip;
+		const queryStatusLabel = this._isSuccess ? LocalizedConstants.querySuccess : LocalizedConstants.queryFailed;
+		this.tooltip = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
 		this.contextValue = QueryHistoryNode.contextValue;
 	}
 
