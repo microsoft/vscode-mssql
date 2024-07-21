@@ -90,7 +90,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		} else {
 			connection.connectionString = '';
 			// extract password from connection string it starts after 'Password=' and ends before ';'
-			const passwordIndex = password.indexOf('Password=');
+			const passwordIndex = password.indexOf('Password=') === -1 ? password.indexOf('password=') : password.indexOf('Password=');
 			if (passwordIndex !== -1) {
 				const passwordStart = passwordIndex + 'Password='.length;
 				const passwordEnd = password.indexOf(';', passwordStart);
