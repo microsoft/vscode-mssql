@@ -84,7 +84,22 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	private async initializeConnectionForDialog(connection: IConnectionInfo) {
 		// Load the password if it's saved
 		const isConnectionStringConnection = connection.connectionString !== undefined && connection.connectionString !== '';
-		connection.password = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
+		const password = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
+		if (!isConnectionStringConnection) {
+			connection.password = password;
+		} else {
+			connection.connectionString = '';
+			// extract password from connection string it starts after 'Password=' and ends before ';'
+			const passwordIndex = password.indexOf('Password=');
+			if (passwordIndex !== -1) {
+				const passwordStart = passwordIndex + 'Password='.length;
+				const passwordEnd = password.indexOf(';', passwordStart);
+				if (passwordEnd !== -1) {
+					connection.password = password.substring(passwordStart, passwordEnd);
+				}
+			}
+
+		}
 		const dialogConnection = connection as IConnectionDialogProfile;
 		// Set the profile name
 		dialogConnection.profileName = dialogConnection.profileName ?? getConnectionDisplayName(connection);
@@ -520,7 +535,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					await this._objectExplorerProvider.refresh(undefined);
 					await this.loadRecentConnections();
 					this.state.connectionStatus = ApiStatus.Loaded;
-					await this._mainController.objectExplorerTree.reveal(node, {focus: true, select: true, expand: true});
+					await this._mainController.objectExplorerTree.reveal(node, { focus: true, select: true, expand: true });
 					await this.panel.dispose();
 				} catch (error) {
 					this.state.connectionStatus = ApiStatus.Error;
