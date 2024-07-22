@@ -31,7 +31,7 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['playwright-trx-reporter', {
     outputFile: './test-reports/smoke-results.trx',
-  } as any]],
+  }]],
   /* Set timeout to 5 minutes */
   timeout: 5 * 60 * 1000,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
