@@ -118,6 +118,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				'savePassword',
 				'accountId',
 				'tenantId',
+				'database',
 				'trustServerCertificate',
 				'encrypt'
 			];
@@ -313,6 +314,12 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						validationMessage: ''
 					};
 				}
+			},
+			{
+				propertyName: 'database',
+				label: 'Database',
+				required: false,
+				type: FormComponentType.Input,
 			},
 			{
 				propertyName: 'trustServerCertificate',
