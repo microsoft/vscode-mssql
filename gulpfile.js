@@ -20,7 +20,6 @@ const path = require('path');
 const esbuild = require('esbuild');
 const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
 const run = require('gulp-run-command').default;
-var Xvfb = require('xvfb');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -405,9 +404,6 @@ gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package
 gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
-	if (process.env.BUILDMACHINE) {
-		xvfb.startSync();
-	}
 	let workspace = process.env['WORKSPACE'];
 	if (!workspace) {
 		workspace = process.cwd();
@@ -422,9 +418,6 @@ gulp.task('ext:test', async () => {
 		extensionTestsPath: extensionTestsPath,
 		launchArgs: args
 	});
-	if (process.env.BUILDMACHINE) {
-		xvfb.stopSync();
-	}
 });
 
 gulp.task('ext:smoke', run('npx playwright test'));
