@@ -126,7 +126,7 @@ export default class MainController implements vscode.Disposable {
 		this._statusview.dispose();
 	}
 
-	public get isPreviewEnabled(): boolean {
+	public get isExperimentalEnabled(): boolean {
 		return this.configuration.get(Constants.configEnableExperimentalFeatures);
 	}
 
@@ -431,14 +431,18 @@ export default class MainController implements vscode.Disposable {
 			}
 		}));
 
-		// Add Object Explorer Node
-		this.registerCommand(Constants.cmdAddObjectExplorer);
-		this._event.on(Constants.cmdAddObjectExplorer, async () => {
-			if (!self._objectExplorerProvider.objectExplorerExists) {
-				self._objectExplorerProvider.objectExplorerExists = true;
-			}
-			await self.createObjectExplorerSession();
-		});
+		// Old style Add connection when experimental features are not enabled
+		if (!this.isExperimentalEnabled) {
+			// Add Object Explorer Node
+			this.registerCommand(Constants.cmdAddObjectExplorer);
+			this._event.on(Constants.cmdAddObjectExplorer, async () => {
+				if (!self._objectExplorerProvider.objectExplorerExists) {
+					self._objectExplorerProvider.objectExplorerExists = true;
+				}
+				await self.createObjectExplorerSession();
+			});
+		}
+
 
 		// Object Explorer New Query
 		this._context.subscriptions.push(
@@ -502,7 +506,7 @@ export default class MainController implements vscode.Disposable {
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
 
-		if (this.isPreviewEnabled) {
+		if (this.isExperimentalEnabled) {
 			this.registerCommand(Constants.cmdAddObjectExplorer2);
 			this._event.on(Constants.cmdAddObjectExplorer2, async () => {
 				const connDialog = new ConnectionDialogWebViewController(
