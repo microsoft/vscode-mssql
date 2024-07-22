@@ -11,6 +11,9 @@
         <trans-unit id="mssql.cancelQuery">
             <source xml:lang="en">Cancel Query</source>
         </trans-unit>
+        <trans-unit id="mssql.changeDatabase">
+            <source xml:lang="en">Change Database</source>
+        </trans-unit>
         <trans-unit id="mssql.addObjectExplorer">
             <source xml:lang="en">Add Connection</source>
         </trans-unit>
@@ -424,9 +427,6 @@
         </trans-unit>
         <trans-unit id="mssql.objectExplorer.expandTimeout">
             <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
-        </trans-unit>
-        <trans-unit id="mssql.enablePreviewFeaturesDescription">
-            <source xml:lang="en">Enable preview features in the extension. Requires a restart of VS Code to take effect.</source>
         </trans-unit>
         <trans-unit id="mssql.newTable">
             <source xml:lang="en">New Table</source>

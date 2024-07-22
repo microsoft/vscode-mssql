@@ -125,7 +125,7 @@ export default class MainController implements vscode.Disposable {
 	}
 
 	public get isPreviewEnabled(): boolean {
-		return this.configuration.get(Constants.configEnablePreviewFeatures);
+		return this.configuration.get(Constants.configEnableExperimentalFeatures);
 	}
 
 	/**
@@ -148,6 +148,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdClearPooledConnections, async () => { await this.onClearPooledConnections(); });
 			this.registerCommand(Constants.cmdRunCurrentStatement);
 			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
+			this.registerCommand(Constants.cmdChangeDatabase);
+			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
@@ -493,8 +495,8 @@ export default class MainController implements vscode.Disposable {
 							this._context,
 							this.tableDesignerService,
 							this._connectionMgr,
-							this._objectExplorerProvider,
-							this._untitledSqlDocumentService
+							this._untitledSqlDocumentService,
+							node
 						);
 						reactPanel.revealToForeground();
 					}));
@@ -506,7 +508,6 @@ export default class MainController implements vscode.Disposable {
 							this._context,
 							this.tableDesignerService,
 							this._connectionMgr,
-							this._objectExplorerProvider,
 							this._untitledSqlDocumentService,
 							node
 						);
@@ -731,6 +732,9 @@ export default class MainController implements vscode.Disposable {
 				this._outputContentProvider.cancelQuery(fileUri);
 			}
 			const success = await this._connectionMgr.onDisconnect();
+			if (success) {
+				vscode.commands.executeCommand('setContext', 'mssql.editorConnected', false);
+			}
 			return success;
 		}
 		return false;

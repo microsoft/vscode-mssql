@@ -707,6 +707,7 @@ export default class ConnectionManager {
 			}
 
 			delete this._connections[fileUri];
+			vscode.commands.executeCommand('setContext', 'mssql.connections', this._connections);
 			return result;
 
 		} else if (this.isConnecting(fileUri)) {
@@ -873,6 +874,7 @@ export default class ConnectionManager {
 					if (error) {
 						reject(error);
 					} else {
+						vscode.commands.executeCommand('setContext', 'mssql.connections', this._connections);
 						resolve(connectResult);
 					}
 				});

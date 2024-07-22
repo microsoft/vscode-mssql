@@ -24,6 +24,7 @@ export const cmdRunCurrentStatement = 'mssql.runCurrentStatement';
 export const cmdCancelQuery = 'mssql.cancelQuery';
 export const cmdConnect = 'mssql.connect';
 export const cmdDisconnect = 'mssql.disconnect';
+export const cmdChangeDatabase = 'mssql.changeDatabase';
 export const cmdChooseDatabase = 'mssql.chooseDatabase';
 export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
@@ -155,7 +156,7 @@ export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
 export const configEnableQueryHistoryFeature = 'enableQueryHistoryFeature';
-export const configEnablePreviewFeatures = 'enablePreviewFeatures';
+export const configEnableExperimentalFeatures = 'enableExperimentalFeatures';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';
