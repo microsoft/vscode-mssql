@@ -148,6 +148,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdClearPooledConnections, async () => { await this.onClearPooledConnections(); });
 			this.registerCommand(Constants.cmdRunCurrentStatement);
 			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
+			this.registerCommand(Constants.cmdChangeDatabase);
+			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
@@ -730,6 +732,9 @@ export default class MainController implements vscode.Disposable {
 				this._outputContentProvider.cancelQuery(fileUri);
 			}
 			const success = await this._connectionMgr.onDisconnect();
+			if (success) {
+				vscode.commands.executeCommand('setContext', 'mssql.editorConnected', false);
+			}
 			return success;
 		}
 		return false;
