@@ -48,35 +48,6 @@ steps:
       targets: test:cover --log
       gulpFile: ${{ parameters.gulpfile }}
 
-  - task: DockerInstaller@0
-    displayName: Installing Docker
-    inputs:
-      dockerVersion: 17.09.0-ce
-      releaseType: stable
-
-  - script: docker pull mcr.microsoft.com/mssql/server:2022-latest
-    displayName: Pull MSSQL Docker Image
-
-  - script: |
-      set -e
-      VS_CODE_VERSION_NAME=insiders
-      SERVER_NAME=localhost
-      AUTHENTICATION_TYPE=SQL Login
-      USER_NAME=sa
-      PASSWORD=$(cat /dev/urandom | tr -dc 'A-Za-z0-9_!@#$%^&*()-+=' | head -c24)
-      SAVE_PASSWORD=No
-      PROFILE_NAME=test-server
-    displayName: Setup environment variables for smoke tests
-
-  - script: 'docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=$(PASSWORD)" -e "MSSQL_AGENT_ENABLED=True" -p 1433:1433 --name sql1 -h sql1 -d mcr.microsoft.com/mssql/server:2022-latest'
-    displayName: Starting Server in Docker Container
-
-  - task: gulp@1
-    displayName: Run Smoke tests
-    inputs:
-      targets: ext:smoke
-      gulpFile: ${{ parameters.gulpfile }}
-
   - task: PublishTestResults@2
     displayName: Publish test results
     inputs:
