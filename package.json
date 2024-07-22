@@ -136,6 +136,7 @@
     "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
+    "xvfb": "^0.4.0",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
@@ -248,7 +249,8 @@
           "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
         },
-        {"command": "mssql.connect",
+        {
+          "command": "mssql.connect",
           "when": "editorLangId == sql && resource not in mssql.connections",
           "group": "navigation@3"
         },

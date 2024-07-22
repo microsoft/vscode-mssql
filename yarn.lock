@@ -7244,6 +7244,11 @@ nan@^2.12.1:
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.15.0.tgz#3f34a473ff18e15c1b5626b62903b5ad6e665fee"
   integrity sha512-8ZtvEnA2c5aYCZYd1cvgdnU6cqwixRoYg70xPLWUws5ORTa/lnw+u4amixRS/Ac5U5mQVgp9pnlSUnbNWFaWZQ==
 
+nan@^2.13.2:
+  version "2.20.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.20.0.tgz#08c5ea813dd54ed16e5bd6505bf42af4f7838ca3"
+  integrity sha512-bk3gXBZDGILuuo/6sKtr0DQmSThYHLtNCdSdXk9YkxD/jK6X2vmCyyXBBxyqZ4XcnzTyYEAThfX3DCEnLf6igw==
+
 nanoid@3.1.23:
   version "3.1.23"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.23.tgz#f744086ce7c2bc47ee0a8472574d5c78e4183a81"
@@ -8877,6 +8882,13 @@ slash@^3.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
+sleep@6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/sleep/-/sleep-6.1.0.tgz#5507b520556a82ffb983d39123c5459470fa2a9e"
+  integrity sha512-Z1x4JjJxsru75Tqn8F4tnOFeEu3HjtITTsumYUiuz54sGKdISgLCek9AUlXlVVrkhltRFhNUsJDJE76SFHTDIQ==
+  dependencies:
+    nan "^2.13.2"
+
 "slickgrid@github:Microsoft/SlickGrid.ADS#2.3.46":
   version "2.3.46"
   resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/7768663102f64e22fe5dfd9afa4a368c85a28778"
@@ -10495,6 +10507,13 @@ xtend@~4.0.0, xtend@~4.0.1:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
+
+xvfb@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/xvfb/-/xvfb-0.4.0.tgz#52c4ddb991b7c5ae9d175d35452718b734781e85"
+  integrity sha512-g55AbjcBL4Bztfn7kiUrR0ne8mMUsFODDJ+HFGf5OuHJqKKccpExX2Qgn7VF2eImw1eoh6+riXHser1J4agrFA==
+  optionalDependencies:
+    sleep "6.1.0"
 
 y18n@^3.2.0, y18n@^3.2.1:
   version "3.2.2"
