@@ -251,7 +251,7 @@
       "view/title": [
         {
           "command": "mssql.addObjectExplorer",
-          "when": "view == objectExplorer",
+          "when": "view == objectExplorer && !config.mssql.enableExperimentalFeatures",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
         },
@@ -518,10 +518,7 @@
         "command": "mssql.addObjectExplorer2",
         "title": "%mssql.addObjectExplorer%",
         "category": "MS SQL",
-        "icon": {
-          "dark": "media/addConnection_inverse.svg",
-          "light": "media/addConnection.svg"
-        }
+        "icon": "$(add)"
       },
       {
         "command": "mssql.objectExplorer.enableGroupBySchema",

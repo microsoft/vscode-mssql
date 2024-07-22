@@ -435,10 +435,11 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				return;
 			}
 			const accountComponent = this.getFormComponent('accountId');
+			const tenantComponent = this.getFormComponent('tenantId');
+			let tenants: FormComponentOptions[] = [];
 			switch (propertyName) {
 				case 'accountId':
-					const tenants = await this.getTenants(this.state.connectionProfile.accountId);
-					const tenantComponent = this.getFormComponent('tenantId');
+					tenants = await this.getTenants(this.state.connectionProfile.accountId);
 					if (tenantComponent) {
 						tenantComponent.options = tenants;
 						if (tenants && tenants.length > 0) {
@@ -454,9 +455,16 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					if (firstOption) {
 						this.state.connectionProfile.accountId = firstOption.value;
 					}
+					tenants = await this.getTenants(this.state.connectionProfile.accountId);
+					if (tenantComponent) {
+						tenantComponent.options = tenants;
+						if (tenants && tenants.length > 0) {
+							this.state.connectionProfile.tenantId = tenants[0].value;
+						}
+					}
+					accountComponent.actionButtons = await this.getAzureActionButtons();
 					break;
 			}
-			console.log('Handling Azure MFA edits');
 		}
 	}
 

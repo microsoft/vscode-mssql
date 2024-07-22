@@ -111,7 +111,7 @@ export const ConnectionInfoFormContainer = () => {
 	const classes = useStyles();
 	const vscode = useContext(VscodeWebviewContext);
 
-	const generateFormComponent = (component: FormComponent, profile: IConnectionDialogProfile, idx: number) => {
+	const generateFormComponent = (component: FormComponent, profile: IConnectionDialogProfile, _idx: number) => {
 		switch (component.type) {
 			case FormComponentType.Input:
 				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
