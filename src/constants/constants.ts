@@ -24,6 +24,7 @@ export const cmdRunCurrentStatement = 'mssql.runCurrentStatement';
 export const cmdCancelQuery = 'mssql.cancelQuery';
 export const cmdConnect = 'mssql.connect';
 export const cmdDisconnect = 'mssql.disconnect';
+export const cmdChangeDatabase = 'mssql.changeDatabase';
 export const cmdChooseDatabase = 'mssql.chooseDatabase';
 export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';

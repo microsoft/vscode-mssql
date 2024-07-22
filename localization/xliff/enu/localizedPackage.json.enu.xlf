@@ -11,6 +11,9 @@
         <trans-unit id="mssql.cancelQuery">
             <source xml:lang="en">Cancel Query</source>
         </trans-unit>
+        <trans-unit id="mssql.changeDatabase">
+            <source xml:lang="en">Change Database</source>
+        </trans-unit>
         <trans-unit id="mssql.addObjectExplorer">
             <source xml:lang="en">Add Connection</source>
         </trans-unit>

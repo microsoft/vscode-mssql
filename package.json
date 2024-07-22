@@ -240,6 +240,20 @@
           "command": "mssql.cancelQuery",
           "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
+        },
+        {"command": "mssql.connect",
+          "when": "editorLangId == sql && resource not in mssql.connections",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mssql.disconnect",
+          "when": "editorLangId == sql && resource in mssql.connections",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mssql.changeDatabase",
+          "when": "editorLangId == sql",
+          "group": "navigation@4"
         }
       ],
       "editor/context": [
@@ -446,12 +460,26 @@
       {
         "command": "mssql.connect",
         "title": "%mssql.connect%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/connect_inverse.svg",
+          "light": "media/connect.svg"
+        }
       },
       {
         "command": "mssql.disconnect",
         "title": "%mssql.disconnect%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "mssql.changeDatabase",
+        "title": "%mssql.changeDatabase%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/changeConnection_inverse.svg",
+          "light": "media/changeConnection.svg"
+        }
       },
       {
         "command": "mssql.manageProfiles",
