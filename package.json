@@ -54,7 +54,7 @@
     "lint": "gulp lint",
     "localization": "gulp ext:localization",
     "smoketest": "gulp ext:smoke",
-    "unittest": "gulp test:cover --log"
+    "test": "gulp test:cover --log"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
