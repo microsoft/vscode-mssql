@@ -53,6 +53,7 @@ export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExpl
 export const cmdObjectExplorerGroupBySchemaFlagName = 'mssql.objectExplorer.groupBySchema';
 export const cmdObjectExplorerEnableGroupBySchemaCommand = 'mssql.objectExplorer.enableGroupBySchema';
 export const cmdObjectExplorerDisableGroupBySchemaCommand = 'mssql.objectExplorer.disableGroupBySchema';
+export const cmdObjectExplorerFilter = 'mssql.objectExplorer.filter';
 export const cmdScriptSelect = 'mssql.scriptSelect';
 export const cmdScriptCreate = 'mssql.scriptCreate';
 export const cmdScriptDelete = 'mssql.scriptDelete';

@@ -370,6 +370,11 @@
           "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem == Table && config.mssql.enableExperimentalFeatures",
           "group": "inline"
+        },
+        {
+          "command": "mssql.objectExplorer.filter",
+          "when": "view == objectExplorer && viewItem == DatabasesFolder && config.mssql.enableExperimentalFeatures",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -664,6 +669,15 @@
         "command": "mssql.clearAzureAccountTokenCache",
         "title": "%mssql.clearAzureAccountTokenCache%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.objectExplorer.filter",
+        "title": "%mssql.objectExplorer.filter%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/filter_inverse.svg",
+          "light": "media/filter.svg"
+        }
       }
     ],
     "keybindings": [

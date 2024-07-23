@@ -141,6 +141,7 @@
 "mssql.objectExplorer.enableGroupBySchema":"Enable Group By Schema",
 "mssql.objectExplorer.disableGroupBySchema":"Disable Group By Schema",
 "mssql.objectExplorer.expandTimeout":"The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.",
+"mssql.objectExplorer.filter":"Filter",
 "mssql.newTable":"New Table",
 "mssql.editTable":"Edit Table"
 }

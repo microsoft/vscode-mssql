@@ -57,6 +57,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		if((nodeInfo as any).objectType === "Tables") {
 			type = 'TablesFolder';
 		}
+		else if ((nodeInfo as any).objectType === 'Databases') {
+			type = 'DatabasesFolder';
+		}
 		const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, type,
 			nodeInfo.isLeaf ? vscode.TreeItemCollapsibleState.None :
 				(type === Constants.serverLabel ? vscode.TreeItemCollapsibleState.Expanded :

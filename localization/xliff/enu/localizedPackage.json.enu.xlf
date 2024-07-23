@@ -428,6 +428,9 @@
         <trans-unit id="mssql.objectExplorer.expandTimeout">
             <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         </trans-unit>
+        <trans-unit id="mssql.objectExplorer.filter">
+            <source xml:lang="en">Filter</source>
+        </trans-unit>
         <trans-unit id="mssql.newTable">
             <source xml:lang="en">New Table</source>
         </trans-unit>
