@@ -14,7 +14,6 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{ electronApp: E
 	const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
 
 		const mssqlExtensionPath = path.resolve(__dirname, '../../../');
-		console.error(`mssqlExtensionPath: ${mssqlExtensionPath}`);
 		const electronApp = await electron.launch({
 			executablePath: vsCodeExecutablePath,
 			args: [
