@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, webLightTheme } from "@fluentui/react-components";
+import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, webLightTheme, Spinner } from "@fluentui/react-components";
 import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
@@ -242,12 +242,14 @@ export const ConnectionInfoFormContainer = () => {
 							connectionDialogContext.connect();
 						}} style={
 							{
-								width: '150px',
+								width: '200px',
 								alignSelf: 'center'
 							}
 						}
-					// icon={<DatabasePlugConnectedRegular />}
-					>Connect</Button>
+						iconPosition="after"
+					    icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
+							Connect
+						</Button>
 				</div>
 			</div>
 		</div>
