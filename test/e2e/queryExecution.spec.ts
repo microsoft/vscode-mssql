@@ -6,7 +6,7 @@
 import { ElectronApplication, expect, Page, test } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
-import { addDatabaseConnection, executeCommand, wait } from './utils/testHelpers';
+import { addDatabaseConnection, enterTextIntoQueryEditor, executeQuery, openNewQueryEditor } from './utils/testHelpers';
 import { getAuthenticationType, getDatabaseName, getPassword, getProfileName, getSavePassword, getServerName, getUserName } from './utils/envConfigReader';
 
 test.describe('MSSQL Extension - Query Execution', async () => {
@@ -36,27 +36,25 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 	});
 
 	test('Create table, insert data, and execute query', async () => {
+		await openNewQueryEditor(vsCodePage, profileName, password);
 
-		//Making sure the connection is added
-		if (profileName) {
-			await vsCodePage.locator(`div[aria-label="${profileName}"]`);
-		}
-		else {
-			await vsCodePage.getByText(`${serverName}`);
-		}
+		const createTestDB = 'CREATE DATABASE TestDB;';
+		await enterTextIntoQueryEditor(vsCodePage, createTestDB);
+		await executeQuery(vsCodePage);
 
-		await executeCommand(vsCodePage, 'MS SQL: New Query'); // Open new query editor
-		await vsCodePage.keyboard.press('Enter'); // Select the created connection. It should be the first on the list
-		const sqlScript = `select * from sys.all_objects;`; // SQL script to execute
-		await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', sqlScript); // Fill the query editor with the script
-		await vsCodePage.click('.action-label.codicon.codicon-debug-start'); // Execute the query
-		await wait(2000); // waiting for the connections picker to appear
-		await vsCodePage.keyboard.press('Enter'); // Select the created connection. It should be the first on the list
-		if (password && savePassword === 'No') {
-			await vsCodePage.fill('.input.empty[aria-label="input"]', password); // Fill the box password
-			await vsCodePage.keyboard.press('Enter'); // Continue
-		}
-		await expect(await vsCodePage.locator('.grid')).not.toBeNull(); // Wait for the results to appear
+		await openNewQueryEditor(vsCodePage, profileName, password);
+
+ 		const sqlScript = `
+USE TestDB;
+CREATE TABLE TestTable (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
+INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
+SELECT Name FROM TestTable;`;
+
+		await enterTextIntoQueryEditor(vsCodePage, sqlScript);
+		await executeQuery(vsCodePage);
+
+		const nameQueryResult = await vsCodePage.getByText('Doe');
+		await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
 	});
 
 	test.afterEach(async ({ }, testInfo) => {
@@ -64,6 +62,16 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 	});
 
 	test.afterAll(async () => {
+		await openNewQueryEditor(vsCodePage, profileName, password);
+		const dropTestDatabaseScript = `
+USE master
+ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+DROP DATABASE TestDB;`;
+		await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
+		await executeQuery(vsCodePage);
+
+		await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+
 		await vsCodeApp.close();
 	});
 });

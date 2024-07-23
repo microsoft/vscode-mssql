@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, Page, Locator, test, expect } from '@playwright/test';
+import { ElectronApplication, Page, test, expect } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
 import { getServerName, getDatabaseName, getAuthenticationType, getUserName, getPassword, getProfileName, getSavePassword } from './utils/envConfigReader';
-import { addDatabaseConnection } from './utils/testHelpers';
+import { addDatabaseConnection, disconnect, openNewQueryEditor } from './utils/testHelpers';
 
 test.describe('MSSQL Extension - Database Connection', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -19,7 +19,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		vsCodePage = page;
 	});
 
-	test('Connect to local SQL Database', async () => {
+	test('Connect to local SQL Database, and disconnect', async () => {
 		const serverName = getServerName();
 		const databaseName = getDatabaseName();
 		const authType = getAuthenticationType();
@@ -27,17 +27,13 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		const password = getPassword();
 		const savePassword = getSavePassword();
 		const profileName = getProfileName();
-
 		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, userName, password, savePassword, profileName);
 
-		let addedSqlConnection: Locator;
-		if (profileName) {
-			addedSqlConnection = await vsCodePage.locator(`div[aria-label="${profileName}"]`);
-		}
-		else {
-			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
-		}
-		await expect(addedSqlConnection).not.toBeNull();
+		await openNewQueryEditor(vsCodePage, profileName, password);
+		await disconnect(vsCodePage);
+
+		const disconnectedStatus = await vsCodePage.getByText('Disconnected');
+		await expect(disconnectedStatus).toBeVisible({ timeout: 10 * 1000 });
 	});
 
 	test.afterEach(async ({ }, testInfo) => {
