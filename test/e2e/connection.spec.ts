@@ -7,7 +7,7 @@ import { ElectronApplication, Page, Locator, test, expect } from '@playwright/te
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
 import { getServerName, getDatabaseName, getAuthenticationType, getUserName, getPassword, getProfileName, getSavePassword } from './utils/envConfigReader';
-import { addDatabaseConnection } from './utils/testHelpers';
+import { addDatabaseConnection, disconnectConnection } from './utils/testHelpers';
 
 test.describe('MSSQL Extension - Database Connection', async () => {
 	let vsCodeApp: ElectronApplication;
@@ -19,7 +19,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		vsCodePage = page;
 	});
 
-	test('Connect to local SQL Database, and disconnect', async () => {
+	test('Connect to local SQL Database', async () => {
 		const serverName = getServerName();
 		const databaseName = getDatabaseName();
 		const authType = getAuthenticationType();
@@ -27,6 +27,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		const password = getPassword();
 		const savePassword = getSavePassword();
 		const profileName = getProfileName();
+
 		await addDatabaseConnection(vsCodePage, serverName, databaseName, authType, userName, password, savePassword, profileName);
 
 		let addedSqlConnection: Locator;
@@ -38,17 +39,7 @@ test.describe('MSSQL Extension - Database Connection', async () => {
 		}
 
 		await expect(addedSqlConnection).toBeVisible({ timeout: 20 * 1000 });
-
-		await addedSqlConnection.click({ button: 'right' });
-		const disconnectOption = await vsCodePage.locator('span[aria-label="Disconnect"]');
-		await disconnectOption.click();
-		const isDiconnectOptionVisible = await disconnectOption.isVisible()
-		if (isDiconnectOptionVisible) {
-			await disconnectOption.click();
-		}
-
-		await addedSqlConnection.click({ button: 'right' });
-		await expect(disconnectOption).toBeHidden({ timeout: 10000 });
+		await disconnectConnection(vsCodePage, addedSqlConnection);
 	});
 
 	test.afterEach(async ({ }, testInfo) => {

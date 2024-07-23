@@ -6,7 +6,7 @@
 import { ElectronApplication, expect, Locator, Page, test } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
-import { addDatabaseConnection } from './utils/testHelpers';
+import { addDatabaseConnection, newQueryForConnection } from './utils/testHelpers';
 import { getAuthenticationType, getDatabaseName, getPassword, getProfileName, getSavePassword, getServerName, getUserName } from './utils/envConfigReader';
 
 test.describe('MSSQL Extension - Query Execution', async () => {
@@ -44,13 +44,15 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
 		}
 
-		await addedSqlConnection.click({ button: 'right' });
-		const newQueryOption = await vsCodePage.locator('span[aria-label="New Query"]');
-		await newQueryOption.click();
-		let newQueryOptionVisible = await newQueryOption.isVisible()
-		if (newQueryOptionVisible) {
-			await newQueryOption.click();
-		}
+		await newQueryForConnection(vsCodePage, addedSqlConnection);
+
+		// await addedSqlConnection.click({ button: 'right' });
+		// const newQueryOption = await vsCodePage.locator('span[aria-label="New Query"]');
+		// await newQueryOption.click();
+		// let newQueryOptionVisible = await newQueryOption.isVisible()
+		// if (newQueryOptionVisible) {
+		// 	await newQueryOption.click();
+		// }
 
 		const editor = await vsCodePage.locator('div[class="view-lines monaco-mouse-cursor-text"]');
 		await editor.click();
@@ -63,12 +65,14 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 
 		await new Promise(resolve => setTimeout(resolve, 3 * 1000));
 
-		await addedSqlConnection.click({ button: 'right' });
-		await newQueryOption.click();
-		newQueryOptionVisible = await newQueryOption.isVisible()
-		if (newQueryOptionVisible) {
-			await newQueryOption.click();
-		}
+		// await addedSqlConnection.click({ button: 'right' });
+		// await newQueryOption.click();
+		// newQueryOptionVisible = await newQueryOption.isVisible()
+		// if (newQueryOptionVisible) {
+		// 	await newQueryOption.click();
+		// }
+
+		await newQueryForConnection(vsCodePage, addedSqlConnection);
 
 		const sqlScript = `
 USE TestDB;
@@ -100,13 +104,7 @@ SELECT Name FROM TestTable;`;
 			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
 		}
 
-		await addedSqlConnection.click({ button: 'right' });
-		const newQueryOption = await vsCodePage.locator('span[aria-label="New Query"]');
-		await newQueryOption.click();
-		let newQueryOptionVisible = await newQueryOption.isVisible()
-		if (newQueryOptionVisible) {
-			await newQueryOption.click();
-		}
+		await newQueryForConnection(vsCodePage, addedSqlConnection);
 
 		const dropTestDatabaseScript = 'DROP DATABASE TestDB;';
 		await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', dropTestDatabaseScript);

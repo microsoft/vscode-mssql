@@ -6,7 +6,7 @@
 import dotenv from 'dotenv';
 import { defineConfig } from '@playwright/test';
 
-dotenv.config({ path: './test/e2e/.env' })
+dotenv.config({ path: './test/e2e/.env' });
 
 /**
  * Read environment variables from file.
