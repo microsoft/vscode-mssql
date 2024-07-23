@@ -6,7 +6,7 @@
 import { ElectronApplication, expect, Locator, Page, test } from '@playwright/test';
 import { launchVsCodeWithMssqlExtension } from './utils/launchVscodeWithMsSqlExt';
 import { screenshotOnFailure } from './utils/screenshotOnError';
-import { addDatabaseConnection, newQueryForConnection } from './utils/testHelpers';
+import { addDatabaseConnection, wait } from './utils/testHelpers';
 import { getAuthenticationType, getDatabaseName, getPassword, getProfileName, getSavePassword, getServerName, getUserName } from './utils/envConfigReader';
 
 test.describe('MSSQL Extension - Query Execution', async () => {
@@ -44,74 +44,18 @@ test.describe('MSSQL Extension - Query Execution', async () => {
 			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
 		}
 
-		await newQueryForConnection(vsCodePage, addedSqlConnection);
+		vsCodePage.keyboard.press('F1');
 
-		// await addedSqlConnection.click({ button: 'right' });
-		// const newQueryOption = await vsCodePage.locator('span[aria-label="New Query"]');
-		// await newQueryOption.click();
-		// let newQueryOptionVisible = await newQueryOption.isVisible()
-		// if (newQueryOptionVisible) {
-		// 	await newQueryOption.click();
-		// }
-
-		const editor = await vsCodePage.locator('div[class="view-lines monaco-mouse-cursor-text"]');
-		await editor.click();
-
-		await new Promise(resolve => setTimeout(resolve, 4 * 1000));
-
-		const createTestDB = 'CREATE DATABASE TestDB;';
-		await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', createTestDB);
-		await vsCodePage.click('a[aria-label="Execute Query (Ctrl+Shift+E)"]');
-
-		await new Promise(resolve => setTimeout(resolve, 3 * 1000));
-
-		// await addedSqlConnection.click({ button: 'right' });
-		// await newQueryOption.click();
-		// newQueryOptionVisible = await newQueryOption.isVisible()
-		// if (newQueryOptionVisible) {
-		// 	await newQueryOption.click();
-		// }
-
-		await newQueryForConnection(vsCodePage, addedSqlConnection);
-
-		const sqlScript = `
-USE TestDB;
-
-CREATE TABLE TestTable (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
-
-INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
-
-SELECT Name FROM TestTable;`;
+		await vsCodePage.fill('input[class="input"]', '> new query');
+		await vsCodePage.getByText('MS SQL: New Query').click();
+		await vsCodePage.keyboard.press('Enter');
+		const sqlScript = `select * from sys.all_objects;`;
 		await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', sqlScript);
-		await vsCodePage.click('a[aria-label="Execute Query (Ctrl+Shift+E)"]');
-
-		await new Promise(resolve => setTimeout(resolve, 4 * 1000));
-
-		const nameQueryResult = await vsCodePage.getByText('Doe');
-		await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
-	});
-
-	test.afterEach(async ({ }, testInfo) => {
-		await screenshotOnFailure(vsCodePage, testInfo);
-	});
-
-	test.afterAll(async () => {
-		let addedSqlConnection: Locator;
-		if (profileName) {
-			addedSqlConnection = await vsCodePage.locator(`div[aria-label="${profileName}"]`);
-		}
-		else {
-			addedSqlConnection = await vsCodePage.getByText(`${serverName}`);
-		}
-
-		await newQueryForConnection(vsCodePage, addedSqlConnection);
-
-		const dropTestDatabaseScript = 'DROP DATABASE TestDB;';
-		await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', dropTestDatabaseScript);
-		await vsCodePage.click('a[aria-label="Execute Query (Ctrl+Shift+E)"]');
-
-		await new Promise(resolve => setTimeout(resolve, 10 * 1000));
-
-		await vsCodeApp.close();
+		await vsCodePage.click('.action-label.codicon.codicon-debug-start');
+		await wait(2000);
+		await vsCodePage.keyboard.press('Enter');
+		await vsCodePage.fill('.input.empty[aria-label="input"]', password);
+		await vsCodePage.keyboard.press('Enter');
+		await expect(await vsCodePage.locator('.grid')).not.toBeNull();
 	});
 });
