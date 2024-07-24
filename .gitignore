@@ -9,6 +9,7 @@ packages
 *.nupkg
 *.orig
 *.vsix
+*.trx
 *BROWSE.VC*
 tools
 examples
