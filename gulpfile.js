@@ -434,7 +434,7 @@ gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
 gulp.task('quick-build', function(done) {
 	if (!require('fs').existsSync('out')) {
-		return run('gulp build')();
+		run('gulp build')();
 	}
 
 	done();
