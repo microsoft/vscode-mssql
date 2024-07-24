@@ -7,26 +7,5 @@
         "--no-color"
     ],
     "tasks": [
-        {
-            "label": "build",
-            "type": "gulp",
-            "task": "build",
-            "problemMatcher": [
-                "$lessCompile",
-                "$tsc",
-                "$jshint"
-            ],
-            "group": {
-                "_id": "build",
-                "isDefault": false
-            }
-        },
-        {
-            "type": "npm",
-            "script": "lint",
-            "problemMatcher": [],
-            "label": "npm: lint",
-            "detail": "eslint ."
-        }
     ]
 }
