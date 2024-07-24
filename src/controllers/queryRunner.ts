@@ -247,6 +247,7 @@ export default class QueryRunner {
 			this._uriToQueryPromiseMap.delete(result.ownerUri);
 		}
 		this._statusView.executedQuery(result.ownerUri);
+		this._statusView.setExecutionTime(result.ownerUri, Utils.parseNumAsTimeString(this._totalElapsedMilliseconds));
 		let hasError = this._batchSets.some(batch => batch.hasError === true);
 		this.removeRunningQuery();
 		this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
