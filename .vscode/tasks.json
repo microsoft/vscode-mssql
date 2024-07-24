@@ -22,6 +22,20 @@
             }
         },
         {
+            "label": "quick-build",
+            "type": "gulp",
+            "task": "quick-build",
+            "problemMatcher": [
+                "$lessCompile",
+                "$tsc",
+                "$jshint"
+            ],
+            "group": {
+                "_id": "quick-build",
+                "isDefault": false
+            }
+        },
+        {
             "type": "npm",
             "script": "lint",
             "problemMatcher": [],
