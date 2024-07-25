@@ -22,16 +22,31 @@
             }
         },
         {
-            "label": "quick-build",
+            "label": "watch",
             "type": "gulp",
-            "task": "quick-build",
+            "task": "watch",
+            "isBackground": true,
             "problemMatcher": [
                 "$lessCompile",
                 "$tsc",
-                "$jshint"
+                "$jshint",
+                {
+                    "owner": "custom",
+                    "pattern": {
+                        "regexp": ".",
+                        "file": 1,
+                        "location": 2,
+                        "message": 3
+                    },
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Starting 'watch'...",
+                        "endsPattern": "Starting 'watch-reactviews'...",
+                    }
+                }
             ],
             "group": {
-                "_id": "quick-build",
+                "_id": "watch",
                 "isDefault": false
             }
         },
