@@ -8,6 +8,7 @@ import { FilterTable } from "./components/FilterTable";
 import { FilterDescription } from "./components/FilterDescription";
 import { Filter } from "./objectExplorerFilteringInterfaces";
 import { useState } from "react";
+// import { Button } from "@fluentui/react-components";
 
 export const ObjectExplorerFiltering = () => {
 	const filters: Array<Filter> = [
@@ -43,8 +44,11 @@ export const ObjectExplorerFiltering = () => {
 	return (
 		<>
 			<FilterHeading databasesPath={path}/>
-			<FilterTable filters={filters} onSelectedFilter={handleSelectedFilter} />
+			<FilterTable filterData={filters} onSelectedFilter={handleSelectedFilter} />
 			<FilterDescription description={filterDescription} />
+			{/* <Button>Clear All</Button>
+			<Button>OK</Button>
+			<Button>Cancel</Button> */}
 		</>
 	);
 }

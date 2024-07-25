@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Label, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@fluentui/react-components";
+import { Button, Input, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@fluentui/react-components";
 import { Filter } from "../objectExplorerFilteringInterfaces";
+import { Eraser20Regular } from "@fluentui/react-icons";
+import { useState } from "react";
 
 interface TableHeaderColumn {
 	id: number;
@@ -12,11 +14,18 @@ interface TableHeaderColumn {
 }
 
 interface Props {
-	filters: Array<Filter>;
+	filterData: Array<Filter>;
 	onSelectedFilter: (description: string) => void;
 }
 
-export const FilterTable = ({ filters, onSelectedFilter }: Props) => {
+export const FilterTable = ({ filterData, onSelectedFilter }: Props) => {
+	const [filters, setFilters] = useState(filterData);
+
+	const updateFilterValue = (filter: Filter, filterIndex: number, newValue: string) => {
+		const updatedFilter: Filter = {filterName: filter.filterName, operator: filter.operator, value: newValue, filterDescription: filter.filterDescription};
+		setFilters(filters.map((f, i) => (filterIndex == i ? updatedFilter : f)));
+	};
+
 	const tableHeaderColumns: Array<TableHeaderColumn> = [
 		{
 			id: 1,
@@ -45,27 +54,30 @@ export const FilterTable = ({ filters, onSelectedFilter }: Props) => {
 				<TableHeader>
 					<TableRow>
 						{tableHeaderColumns.map((column: TableHeaderColumn) =>
-							<TableHeaderCell key={column.id}>
+							<TableHeaderCell key={`header-col-${column.id}`}>
 								{column.name}
 							</TableHeaderCell>
 						)}
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{filters.map((filterRow) => {
+					{filters.map((filter, index) => {
 						return (
-							<TableRow onClick={() => onSelectedFilter(filterRow.filterDescription)}>
+							<TableRow
+								key={`row-${index}`}
+								onClick={() => onSelectedFilter(filter.filterDescription)}
+							>
 								<TableCell>
-									{filterRow.filterName}
+									{filter.filterName}
 								</TableCell>
 								<TableCell>
-									{filterRow.operator}
+									{filter.operator}
 								</TableCell>
 								<TableCell>
-									{filterRow.value}
+									<Input as="input" value={filter.value} onChange={(_, newValue) => updateFilterValue(filter, index, newValue.value)} />
 								</TableCell>
 								<TableCell>
-									<Label>Clear</Label>
+									<Button icon={<Eraser20Regular />} aria-label="Clear" onClick={() => updateFilterValue(filter, index, '')} />
 								</TableCell>
 							</TableRow>
 						)
