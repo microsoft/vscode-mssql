@@ -67,10 +67,16 @@ export const FilterTable = ({ filters, onSelectedFilter, onFilterValueChange }: 
 									{filter.operator}
 								</TableCell>
 								<TableCell>
-									<Input as="input" value={filter.value} onChange={(_, newValue) => onFilterValueChange(filter, index, newValue.value)} />
+									<Input
+										as="input"
+										value={filter.value}
+										onChange={(_, newValue) => onFilterValueChange(filter, index, newValue.value)} />
 								</TableCell>
 								<TableCell>
-									<Button icon={<Eraser20Regular />} aria-label="Clear" onClick={() => onFilterValueChange(filter, index, '')} />
+									<Button
+										icon={<Eraser20Regular />}
+										aria-label="Clear"
+										onClick={() => onFilterValueChange(filter, index, '')} />
 								</TableCell>
 							</TableRow>
 						)
