@@ -434,6 +434,9 @@
         <trans-unit id="mssql.editTable">
             <source xml:lang="en">Edit Table</source>
         </trans-unit>
+        <trans-unit id="mssql.editConnection">
+            <source xml:lang="en">Edit Connection</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

@@ -21,6 +21,7 @@ import { Timer } from '../models/utils';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { CancelError } from '../utils/utils';
+import { ConnectionCompleteParams } from '../models/contracts/connection';
 
 /**
  * The different tasks for managing connection profiles.
@@ -493,6 +494,14 @@ export class ConnectionUI {
 				}
 			}
 		});
+	}
+
+	/**
+ * Validate a connection profile by connecting to it, and save it if we are successful.
+ */
+	public async validateAndSaveProfileFromDialog(profile: IConnectionProfile): Promise<ConnectionCompleteParams> {
+		const result = await this.connectionManager.connectDialog(profile);
+		return result;
 	}
 
 	public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {

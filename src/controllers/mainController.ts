@@ -43,6 +43,7 @@ import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
+import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -73,6 +74,7 @@ export default class MainController implements vscode.Disposable {
 	public azureResourceService: AzureResourceService;
 	public tableDesignerService: TableDesignerService;
 	public configuration: vscode.WorkspaceConfiguration;
+	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
 
 	/**
 	 * The main controller constructor
@@ -124,7 +126,7 @@ export default class MainController implements vscode.Disposable {
 		this._statusview.dispose();
 	}
 
-	public get isPreviewEnabled(): boolean {
+	public get isExperimentalEnabled(): boolean {
 		return this.configuration.get(Constants.configEnableExperimentalFeatures);
 	}
 
@@ -383,17 +385,32 @@ export default class MainController implements vscode.Disposable {
 	 * @param connectionCredentials Connection credentials to use for the session
 	 * @returns True if the session was created successfully, false otherwise
 	 */
-	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
+	public async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
 		let createSessionPromise = new Deferred<TreeNodeInfo>();
 		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
 		if (sessionId) {
 			const newNode = await createSessionPromise;
 			if (newNode) {
+				console.log(newNode);
 				this._objectExplorerProvider.refresh(undefined);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	public async createObjectExplorerSessionFromDialog(connectionCredentials?: IConnectionInfo): Promise<TreeNodeInfo> {
+		let createSessionPromise = new Deferred<TreeNodeInfo>();
+		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
+		if (sessionId) {
+			const newNode = await createSessionPromise;
+			if (newNode) {
+				console.log(newNode);
+				this._objectExplorerProvider.refresh(undefined);
+				return newNode;
+			}
+		}
+		return undefined;
 	}
 
 	/**
@@ -403,27 +420,31 @@ export default class MainController implements vscode.Disposable {
 		const self = this;
 		// Register the object explorer tree provider
 		this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
-		const treeView = vscode.window.createTreeView('objectExplorer', {
+		this.objectExplorerTree = vscode.window.createTreeView('objectExplorer', {
 			treeDataProvider: this._objectExplorerProvider,
 			canSelectMany: false
 		});
-		this._context.subscriptions.push(treeView);
+		this._context.subscriptions.push(this.objectExplorerTree);
 
 		// Sets the correct current node on any node selection
-		this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
+		this._context.subscriptions.push(this.objectExplorerTree.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
 			if (e.selection?.length > 0) {
 				self._objectExplorerProvider.currentNode = e.selection[0];
 			}
 		}));
 
-		// Add Object Explorer Node
-		this.registerCommand(Constants.cmdAddObjectExplorer);
-		this._event.on(Constants.cmdAddObjectExplorer, async () => {
-			if (!self._objectExplorerProvider.objectExplorerExists) {
-				self._objectExplorerProvider.objectExplorerExists = true;
-			}
-			await self.createObjectExplorerSession();
-		});
+		// Old style Add connection when experimental features are not enabled
+		if (!this.isExperimentalEnabled) {
+			// Add Object Explorer Node
+			this.registerCommand(Constants.cmdAddObjectExplorer);
+			this._event.on(Constants.cmdAddObjectExplorer, async () => {
+				if (!self._objectExplorerProvider.objectExplorerExists) {
+					self._objectExplorerProvider.objectExplorerExists = true;
+				}
+				await self.createObjectExplorerSession();
+			});
+		}
+
 
 		// Object Explorer New Query
 		this._context.subscriptions.push(
@@ -487,7 +508,30 @@ export default class MainController implements vscode.Disposable {
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
 
-		if (this.isPreviewEnabled) {
+		if (this.isExperimentalEnabled) {
+			this.registerCommand(Constants.cmdAddObjectExplorer2);
+			this._event.on(Constants.cmdAddObjectExplorer2, async () => {
+				const connDialog = new ConnectionDialogWebViewController(
+					this._context,
+					this,
+					this._objectExplorerProvider
+				);
+				connDialog.revealToForeground();
+			});
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdEditConnection, async (node: TreeNodeInfo) => {
+						const connDialog = new ConnectionDialogWebViewController(
+							this._context,
+							this,
+							this._objectExplorerProvider,
+							node.connectionInfo,
+						);
+						connDialog.revealToForeground();
+					}
+				));
+
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdNewTable, async (node: TreeNodeInfo) => {
@@ -1369,14 +1413,4 @@ export default class MainController implements vscode.Disposable {
 	public onClearAzureTokenCache(): void {
 		this.connectionManager.onClearTokenCache();
 	}
-}
-
-export function getNonce(): string {
-	let text: string = "";
-	const possible: string =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
 }

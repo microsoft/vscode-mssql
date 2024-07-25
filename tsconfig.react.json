@@ -25,6 +25,9 @@
     "allowSyntheticDefaultImports": true,
   },
   "include": [
-    "src/reactviews"
-  ]
+    "src/reactviews",
+    "typings",
+    "src/sharedInterfaces",
+    "media"
+  ],
 }

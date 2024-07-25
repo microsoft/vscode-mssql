@@ -22,6 +22,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 		this._objectExplorerService = new ObjectExplorerService(connectionManager, this);
 	}
 
+	getParent(element: TreeNodeInfo)
+	{
+		return element.parentNode;
+	}
+
 	refresh(nodeInfo?: TreeNodeInfo): void {
 		this._onDidChangeTreeData.fire(nodeInfo);
 	}

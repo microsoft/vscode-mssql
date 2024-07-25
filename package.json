@@ -85,7 +85,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "1.78.1",
+    "@types/vscode": "1.83.1",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",
@@ -270,7 +270,13 @@
       "view/title": [
         {
           "command": "mssql.addObjectExplorer",
-          "when": "view == objectExplorer",
+          "when": "view == objectExplorer && !config.mssql.enableExperimentalFeatures",
+          "title": "%mssql.addObjectExplorer%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.addObjectExplorer2",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
         },
@@ -315,6 +321,11 @@
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
           "group": "MS_SQL@4"
+        },
+        {
+          "command": "mssql.editConnection",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
+          "group": "inline"
         },
         {
           "command": "mssql.refreshObjectExplorerNode",
@@ -384,6 +395,10 @@
         },
         {
           "command": "mssql.removeObjectExplorerNode",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
+        },
+        {
+          "command": "mssql.editConnection",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
@@ -533,6 +548,12 @@
         "icon": "$(add)"
       },
       {
+        "command": "mssql.addObjectExplorer2",
+        "title": "%mssql.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": "$(add)"
+      },
+      {
         "command": "mssql.objectExplorer.enableGroupBySchema",
         "title": "%mssql.objectExplorer.enableGroupBySchema%",
         "category": "MS SQL",
@@ -559,6 +580,12 @@
         "command": "mssql.removeObjectExplorerNode",
         "title": "%mssql.removeObjectExplorerNode%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.editConnection",
+        "title": "%mssql.editConnection%",
+        "category": "MS SQL",
+        "icon": "$(edit)"
       },
       {
         "command": "mssql.refreshObjectExplorerNode",

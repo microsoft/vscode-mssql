@@ -220,6 +220,7 @@ async function generateReactWebviewsBundle() {
 		 */
 		entryPoints: {
 			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
+			connectionDialog: 'src/reactviews/pages/ConnectionDialog/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
@@ -230,6 +231,7 @@ async function generateReactWebviewsBundle() {
 			'.tsx': 'tsx',
 			'.ts': 'ts',
 			'.css': 'css',
+			'.svg': 'dataurl'
 		},
 		tsconfig: './tsconfig.react.json',
 		plugins: [
@@ -441,7 +443,7 @@ gulp.task('watch-tests', function () {
 });
 
 gulp.task('watch-reactviews', function () {
-	return gulp.watch('./src/reactviews/**/*', gulp.series('ext:compile-reactviews'))
+	return gulp.watch(['./src/reactviews/**/*', './typings/**/*', './src/sharedInterfaces/**/*'], gulp.series('ext:compile-reactviews'))
 });
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes

@@ -227,3 +227,20 @@ export function getEncryptionMode(encryption: string | boolean | undefined): Enc
 	}
 	return encryptionMode;
 }
+
+export function getConnectionDisplayName(credentials: IConnectionInfo): string {
+	let database = credentials.database;
+	const server = credentials.server;
+	const authType = credentials.authenticationType;
+	let userOrAuthType = authType;
+	if (authType === Constants.sqlAuthentication) {
+		userOrAuthType = credentials.user;
+	}
+	if (authType === Constants.azureMfa) {
+		userOrAuthType = credentials.email;
+	}
+	if (!database || database === '') {
+		database = LocalizedConstants.defaultDatabaseLabel;
+	}
+	return `${server}, ${database} (${userOrAuthType})`;
+}
