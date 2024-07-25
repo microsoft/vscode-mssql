@@ -220,6 +220,8 @@ async function generateReactWebviewsBundle() {
 		 */
 		entryPoints: {
 			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
+			objectExplorerFiltering: 'src/reactviews/pages/ObjectExplorerFiltering/index.tsx',
+
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',

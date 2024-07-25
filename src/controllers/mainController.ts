@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -510,6 +510,19 @@ export default class MainController implements vscode.Disposable {
 							this._connectionMgr,
 							this._untitledSqlDocumentService,
 							node
+						);
+						reactPanel.revealToForeground();
+					}));
+
+				this._context.subscriptions.push(
+					vscode.commands.registerCommand(
+						Constants.cmdObjectExplorerFilter, async (node: TreeNodeInfo) => {
+							const reactPanel = new ObjectExplorerFilteringWebViewController(
+								this._context,
+								this._objectExplorerProvider,
+								this._connectionMgr,
+								this._untitledSqlDocumentService,
+								node
 						);
 						reactPanel.revealToForeground();
 					}));
