@@ -6,7 +6,6 @@
 import { Button, Input, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@fluentui/react-components";
 import { Filter } from "../objectExplorerFilteringInterfaces";
 import { Eraser20Regular } from "@fluentui/react-icons";
-import { useState } from "react";
 
 interface TableHeaderColumn {
 	id: number;
@@ -14,18 +13,12 @@ interface TableHeaderColumn {
 }
 
 interface Props {
-	filterData: Array<Filter>;
+	filters: Array<Filter>;
 	onSelectedFilter: (description: string) => void;
+	onFilterValueChange: (filter: Filter, filterIndex: number, newValue: string) => void;
 }
 
-export const FilterTable = ({ filterData, onSelectedFilter }: Props) => {
-	const [filters, setFilters] = useState(filterData);
-
-	const updateFilterValue = (filter: Filter, filterIndex: number, newValue: string) => {
-		const updatedFilter: Filter = {filterName: filter.filterName, operator: filter.operator, value: newValue, filterDescription: filter.filterDescription};
-		setFilters(filters.map((f, i) => (filterIndex == i ? updatedFilter : f)));
-	};
-
+export const FilterTable = ({ filters, onSelectedFilter, onFilterValueChange }: Props) => {
 	const tableHeaderColumns: Array<TableHeaderColumn> = [
 		{
 			id: 1,
@@ -74,10 +67,10 @@ export const FilterTable = ({ filterData, onSelectedFilter }: Props) => {
 									{filter.operator}
 								</TableCell>
 								<TableCell>
-									<Input as="input" value={filter.value} onChange={(_, newValue) => updateFilterValue(filter, index, newValue.value)} />
+									<Input as="input" value={filter.value} onChange={(_, newValue) => onFilterValueChange(filter, index, newValue.value)} />
 								</TableCell>
 								<TableCell>
-									<Button icon={<Eraser20Regular />} aria-label="Clear" onClick={() => updateFilterValue(filter, index, '')} />
+									<Button icon={<Eraser20Regular />} aria-label="Clear" onClick={() => onFilterValueChange(filter, index, '')} />
 								</TableCell>
 							</TableRow>
 						)

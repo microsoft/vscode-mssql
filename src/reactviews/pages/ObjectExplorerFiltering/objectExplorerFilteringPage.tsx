@@ -11,7 +11,7 @@ import { useState } from "react";
 // import { Button } from "@fluentui/react-components";
 
 export const ObjectExplorerFiltering = () => {
-	const filters: Array<Filter> = [
+	const filterData: Array<Filter> = [
 		{
 			filterName: 'Name',
 			operator: 'Contains',
@@ -31,6 +31,8 @@ export const ObjectExplorerFiltering = () => {
 			filterDescription: 'Include or exclude objects based on their creation date.',
 		},
 	];
+
+	const [filters, setFilters] = useState(filterData);
 	let initialDescripion = filters[0].filterDescription;
 
 	const [filterDescription, setFilterDescription] = useState<string>(initialDescripion);
@@ -39,12 +41,17 @@ export const ObjectExplorerFiltering = () => {
 		setFilterDescription(description);
 	};
 
+	const updateFilterValue = (filter: Filter, filterIndex: number, newValue: string) => {
+		const updatedFilter: Filter = {filterName: filter.filterName, operator: filter.operator, value: newValue, filterDescription: filter.filterDescription};
+		setFilters(filters.map((f, i) => (filterIndex == i ? updatedFilter : f)));
+	};
+
 	let path = '(localdb)\\MSSqlLocalDb/Databases';
 
 	return (
 		<>
 			<FilterHeading databasesPath={path}/>
-			<FilterTable filterData={filters} onSelectedFilter={handleSelectedFilter} />
+			<FilterTable filters={filters} onSelectedFilter={handleSelectedFilter} onFilterValueChange={updateFilterValue} />
 			<FilterDescription description={filterDescription} />
 			{/* <Button>Clear All</Button>
 			<Button>OK</Button>
