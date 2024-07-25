@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import ConnectionManager from "../controllers/connectionManager";
-import { randomUUID } from "crypto";
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import * as filtering from './objectExplorerFilteringInterfaces';
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';

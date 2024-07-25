@@ -524,9 +524,9 @@ export default class MainController implements vscode.Disposable {
 								this._connectionMgr,
 								this._untitledSqlDocumentService,
 								node
-						);
-						reactPanel.revealToForeground();
-					}));
+							);
+							reactPanel.revealToForeground();
+						}));
 		}
 
 		// Initiate the scripting service
