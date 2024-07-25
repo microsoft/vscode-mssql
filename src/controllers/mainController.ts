@@ -43,6 +43,7 @@ import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
+import { ObjectExplorerFilteringWebViewController } from '../objectExplorer/objectExplorerFilteringWebViewController';
 
 /**
  * The main controller class that initializes the extension
