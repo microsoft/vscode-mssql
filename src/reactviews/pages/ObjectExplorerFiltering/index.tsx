@@ -5,7 +5,7 @@
 
 import ReactDOM from 'react-dom/client'
 import '../../index.css'
-import { ObjectExplorerFiltering } from './objectExplorerFiltering'
+import { ObjectExplorerFiltering } from './objectExplorerFilteringPage'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<ObjectExplorerFiltering />
