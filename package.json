@@ -53,7 +53,8 @@
     "watch": "gulp watch",
     "lint": "gulp lint",
     "localization": "gulp ext:localization",
-    "test": "gulp test && gulp cover"
+    "smoketest": "gulp ext:smoke",
+    "test": "gulp test:cover --log"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -110,6 +111,7 @@
     "gulp-eslint-new": "^2.1.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-rename": "^1.2.2",
+    "gulp-run-command": "^0.0.10",
     "gulp-shell": "^0.7.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-typescript": "^5.0.1",
@@ -117,6 +119,7 @@
     "husky": "^9.0.11",
     "istanbul": "^0.4.5",
     "npm-run-all": "^4.1.5",
+    "playwright-trx-reporter": "^1.0.8",
     "pm-mocha-jenkins-reporter": "^0.2.6",
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
@@ -169,6 +172,7 @@
     "tar": "^6.2.1",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
+    "vsce": "^2.15.0",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
@@ -241,7 +245,8 @@
           "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
         },
-        {"command": "mssql.connect",
+        {
+          "command": "mssql.connect",
           "when": "editorLangId == sql && resource not in mssql.connections",
           "group": "navigation@3"
         },
