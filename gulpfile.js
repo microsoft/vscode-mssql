@@ -432,14 +432,6 @@ gulp.task('clean', function (done) {
 
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
-gulp.task('quick-build', function(done) {
-	if (!require('fs').existsSync('out')) {
-		run('gulp build')();
-	}
-
-	done();
-});
-
 gulp.task('watch-src', function () {
 	return gulp.watch('./src/**/*.ts', gulp.series('ext:compile-src'))
 });
