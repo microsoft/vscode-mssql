@@ -8,6 +8,7 @@ import { FilterTable } from "./components/FilterTable";
 import { FilterDescription } from "./components/FilterDescription";
 import { Filter } from "./objectExplorerFilteringInterfaces";
 import { useState } from "react";
+import { Button } from "@fluentui/react-components";
 // import { Button } from "@fluentui/react-components";
 
 export const ObjectExplorerFiltering = () => {
@@ -37,13 +38,21 @@ export const ObjectExplorerFiltering = () => {
 
 	const [filterDescription, setFilterDescription] = useState<string>(initialDescripion);
 
-	const handleSelectedFilter = (description: string) => {
+	const updateFilterDescription = (description: string) => {
 		setFilterDescription(description);
 	};
 
 	const updateFilterValue = (filter: Filter, filterIndex: number, newValue: string) => {
-		const updatedFilter: Filter = {filterName: filter.filterName, operator: filter.operator, value: newValue, filterDescription: filter.filterDescription};
+		const updatedFilter: Filter = {...filter, value: newValue};
 		setFilters(filters.map((f, i) => (filterIndex == i ? updatedFilter : f)));
+	};
+
+	const clearAllFilters = () => {
+		const updatedFilters = filters.map(f => {
+			return {...f, value: ''};
+		});
+
+		setFilters(updatedFilters);
 	};
 
 	let path = '(localdb)\\MSSqlLocalDb/Databases';
@@ -51,11 +60,10 @@ export const ObjectExplorerFiltering = () => {
 	return (
 		<>
 			<FilterHeading databasesPath={path}/>
-			<FilterTable filters={filters} onSelectedFilter={handleSelectedFilter} onFilterValueChange={updateFilterValue} />
+			<FilterTable filters={filters} onSelectedFilter={updateFilterDescription} onFilterValueChange={updateFilterValue} />
 			<FilterDescription description={filterDescription} />
-			{/* <Button>Clear All</Button>
-			<Button>OK</Button>
-			<Button>Cancel</Button> */}
+			<Button onClick={clearAllFilters}>Clear All</Button>
+			{/* <Button>OK</Button> */}
 		</>
 	);
 }
