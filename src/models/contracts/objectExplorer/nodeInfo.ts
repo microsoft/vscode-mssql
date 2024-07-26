@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ObjectMetadata } from 'vscode-mssql';
+import { NodeFilterProperty, ObjectMetadata } from 'vscode-mssql';
 
 /**
  * Information describing a Node in the Object Explorer tree.
@@ -55,4 +55,8 @@ export class NodeInfo {
 	 * Object metadata about the node
 	 */
 	public metadata: ObjectMetadata;
+	/**
+	 * Filterable properties that this node supports
+	 */
+	filterableProperties?: NodeFilterProperty[];
 }
