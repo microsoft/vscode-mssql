@@ -63,7 +63,7 @@ export const ObjectExplorerFiltering = () => {
 			<FilterTable filters={filters} onSelectedFilter={updateFilterDescription} onFilterValueChange={updateFilterValue} />
 			<FilterDescription description={filterDescription} />
 			<Button onClick={clearAllFilters}>Clear All</Button>
-			{/* <Button>OK</Button> */}
+			<Button>OK</Button>
 		</>
 	);
 }
