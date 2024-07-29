@@ -53,7 +53,8 @@
     "watch": "gulp watch",
     "lint": "gulp lint",
     "localization": "gulp ext:localization",
-    "test": "gulp test && gulp cover"
+    "smoketest": "gulp ext:smoke",
+    "test": "gulp test:cover --log"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -84,7 +85,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "1.78.1",
+    "@types/vscode": "1.83.1",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",
@@ -110,6 +111,7 @@
     "gulp-eslint-new": "^2.1.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-rename": "^1.2.2",
+    "gulp-run-command": "^0.0.10",
     "gulp-shell": "^0.7.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-typescript": "^5.0.1",
@@ -117,6 +119,7 @@
     "husky": "^9.0.11",
     "istanbul": "^0.4.5",
     "npm-run-all": "^4.1.5",
+    "playwright-trx-reporter": "^1.0.8",
     "pm-mocha-jenkins-reporter": "^0.2.6",
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
@@ -146,7 +149,7 @@
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "dotenv": "^16.4.5",
-    "ejs": "^3.1.7",
+    "ejs": "^3.1.10",
     "error-ex": "^1.3.0",
     "figures": "^1.4.0",
     "find-remove": "1.2.1",
@@ -166,9 +169,10 @@
     "react-router-dom": "^6.24.1",
     "reflect-metadata": "0.1.12",
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
-    "tar": "^6.1.9",
+    "tar": "^6.2.1",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
+    "vsce": "^2.15.0",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
@@ -240,6 +244,21 @@
           "command": "mssql.cancelQuery",
           "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
+        },
+        {
+          "command": "mssql.connect",
+          "when": "editorLangId == sql && resource not in mssql.connections",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mssql.disconnect",
+          "when": "editorLangId == sql && resource in mssql.connections",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mssql.changeDatabase",
+          "when": "editorLangId == sql",
+          "group": "navigation@4"
         }
       ],
       "editor/context": [
@@ -251,7 +270,13 @@
       "view/title": [
         {
           "command": "mssql.addObjectExplorer",
-          "when": "view == objectExplorer",
+          "when": "view == objectExplorer && !config.mssql.enableExperimentalFeatures",
+          "title": "%mssql.addObjectExplorer%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.addObjectExplorer2",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
         },
@@ -296,6 +321,11 @@
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
           "group": "MS_SQL@4"
+        },
+        {
+          "command": "mssql.editConnection",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
+          "group": "inline"
         },
         {
           "command": "mssql.refreshObjectExplorerNode",
@@ -349,12 +379,12 @@
         },
         {
           "command": "mssql.newTable",
-          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enablePreviewFeatures",
+          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enableExperimentalFeatures",
           "group": "inline"
         },
         {
           "command": "mssql.editTable",
-          "when": "view == objectExplorer && viewItem == Table && config.mssql.enablePreviewFeatures",
+          "when": "view == objectExplorer && viewItem == Table && config.mssql.enableExperimentalFeatures",
           "group": "inline"
         }
       ],
@@ -365,6 +395,10 @@
         },
         {
           "command": "mssql.removeObjectExplorerNode",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
+        },
+        {
+          "command": "mssql.editConnection",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
@@ -446,12 +480,26 @@
       {
         "command": "mssql.connect",
         "title": "%mssql.connect%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/connect_inverse.svg",
+          "light": "media/connect.svg"
+        }
       },
       {
         "command": "mssql.disconnect",
         "title": "%mssql.disconnect%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "mssql.changeDatabase",
+        "title": "%mssql.changeDatabase%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/changeConnection_inverse.svg",
+          "light": "media/changeConnection.svg"
+        }
       },
       {
         "command": "mssql.manageProfiles",
@@ -500,6 +548,12 @@
         "icon": "$(add)"
       },
       {
+        "command": "mssql.addObjectExplorer2",
+        "title": "%mssql.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": "$(add)"
+      },
+      {
         "command": "mssql.objectExplorer.enableGroupBySchema",
         "title": "%mssql.objectExplorer.enableGroupBySchema%",
         "category": "MS SQL",
@@ -526,6 +580,12 @@
         "command": "mssql.removeObjectExplorerNode",
         "title": "%mssql.removeObjectExplorerNode%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.editConnection",
+        "title": "%mssql.editConnection%",
+        "category": "MS SQL",
+        "icon": "$(edit)"
       },
       {
         "command": "mssql.refreshObjectExplorerNode",
@@ -673,11 +733,6 @@
       "type": "object",
       "title": "%mssql.Configuration%",
       "properties": {
-        "mssql.enablePreviewFeatures": {
-          "type": "boolean",
-          "default": false,
-          "description": "%mssql.enablePreviewFeaturesDescription%"
-        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

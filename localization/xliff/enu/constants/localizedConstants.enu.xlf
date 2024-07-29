@@ -671,6 +671,12 @@
         <trans-unit id="dismiss">
             <source xml:lang="en">Dismiss</source>
         </trans-unit>
+        <trans-unit id="querySuccess">
+            <source xml:lang="en">Query succeeded</source>
+        </trans-unit>
+        <trans-unit id="queryFailed">
+            <source xml:lang="en">Query failed</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

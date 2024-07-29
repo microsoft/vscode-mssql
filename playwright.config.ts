@@ -6,7 +6,7 @@
 import dotenv from 'dotenv';
 import { defineConfig } from '@playwright/test';
 
-dotenv.config({ path: './test/e2e/.env' })
+dotenv.config({ path: './test/e2e/.env' });
 
 /**
  * Read environment variables from file.
@@ -29,7 +29,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: [['playwright-trx-reporter', {
+    outputFile: './test-reports/smoke-results.trx',
+  }]],
   /* Set timeout to 5 minutes */
   timeout: 5 * 60 * 1000,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -39,5 +41,6 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    video: 'retain-on-failure',
   },
 });

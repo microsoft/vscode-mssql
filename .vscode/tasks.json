@@ -22,6 +22,30 @@
             }
         },
         {
+            "label": "watch",
+            "type": "gulp",
+            "task": "watch",
+            "isBackground": true,
+            "problemMatcher": [
+                "$lessCompile",
+                "$tsc",
+                "$jshint",
+                {
+                    "owner": "custom",
+                    "base": "$tsc",
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "Starting 'watch'...",
+                        "endsPattern": "Starting 'watch-reactviews'...",
+                    }
+                }
+            ],
+            "group": {
+                "_id": "watch",
+                "isDefault": false
+            }
+        },
+        {
             "type": "npm",
             "script": "lint",
             "problemMatcher": [],

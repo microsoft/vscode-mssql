@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import ConnectionManager from "../controllers/connectionManager";
-import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { randomUUID } from "crypto";
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import * as designer from './tableDesignerInterfaces';
@@ -14,12 +13,13 @@ import { getDesignerView } from './tableDesignerTabDefinition';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 
 export class TableDesignerWebViewController extends ReactWebViewPanelController<designer.TableDesignerWebViewState> {
+	private _isEdit: boolean = false;
+
 	constructor(context: vscode.ExtensionContext,
 		private _tableDesignerService: designer.TableDesignerProvider,
 		private _connectionManager: ConnectionManager,
-		private _objectExplorerProvider: ObjectExplorerProvider,
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
-		private _tableNode?: TreeNodeInfo
+		private _targetNode?: TreeNodeInfo
 	) {
 		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', {
 			apiState: {
@@ -37,49 +37,57 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 	}
 
 	private async initialize() {
-		const connectionUri = this._connectionManager.getUriForConnection(this._objectExplorerProvider.currentNode.connectionInfo);
-		if (!connectionUri) {
-			await vscode.window.showErrorMessage('Unable to find connection');
+		if (!this._targetNode) {
+			await vscode.window.showErrorMessage('Unable to find object explorer node');
 			return;
 		}
 
-		const connectionString = await this._connectionManager.getConnectionString(connectionUri, true);
+		this._isEdit = this._targetNode.nodeType === 'Table' || this._targetNode.nodeType === 'View' ? true : false;
+
+		const targetDatabase = this.getDatabaseNameForNode(this._targetNode);
+		// get database name from connection string
+		const databaseName = targetDatabase ? targetDatabase : 'master';
+
+
+		const connectionInfo = this._targetNode.connectionInfo;
+		connectionInfo.database = databaseName;
+
+		const connectionDetails = await this._connectionManager.createConnectionDetails(connectionInfo);
+		const connectionString = await this._connectionManager.getConnectionString(connectionDetails, true, true);
+
 		if (!connectionString || connectionString === '') {
 			await vscode.window.showErrorMessage('Unable to find connection string for the connection');
 			return;
 		}
-		// get database name from connection string
-		const databaseName = this._objectExplorerProvider.currentNode.connectionInfo.database ? this._objectExplorerProvider.currentNode.connectionInfo.database : 'master';
 
 		try {
 			let tableInfo: designer.TableInfo;
-			if (this._tableNode) {
+			if (this._isEdit) {
 				tableInfo = {
 					id: randomUUID(),
 					isNewTable: false,
-					title: this._tableNode.label as string,
-					tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - ${this._tableNode.label}`,
-					server: this._objectExplorerProvider.currentNode.connectionInfo.server,
+					title: this._targetNode.label as string,
+					tooltip: `${connectionInfo.server} - ${databaseName} - ${this._targetNode.label}`,
+					server: connectionInfo.server,
 					database: databaseName,
 					connectionString: connectionString,
-					schema: this._tableNode.metadata.schema,
-					name: this._tableNode.metadata.name
+					schema: this._targetNode.metadata.schema,
+					name: this._targetNode.metadata.name
 				};
 			} else {
 				tableInfo = {
 					id: randomUUID(),
 					isNewTable: true,
 					title: 'New Table',
-					tooltip: `${this._objectExplorerProvider.currentNode.connectionInfo.server} - ${databaseName} - New Table`,
-					server: this._objectExplorerProvider.currentNode.connectionInfo.server,
+					tooltip: `${connectionInfo.server} - ${databaseName} - New Table`,
+					server: connectionInfo.server,
 					database: databaseName,
 					connectionString: connectionString
 				};
 			}
-
 			this.panel.title = tableInfo.title;
 			const intializeData = await this._tableDesignerService.initializeTableDesigner(tableInfo);
-			intializeData.tableInfo.database = this._objectExplorerProvider.currentNode.connectionInfo.database ?? 'master';
+			intializeData.tableInfo.database = databaseName ?? 'master';
 			this.state = {
 				tableInfo: tableInfo,
 				view: getDesignerView(intializeData.view),
@@ -103,6 +111,17 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 		}
 
 		this.registerRpcHandlers();
+	}
+
+	private getDatabaseNameForNode(node: TreeNodeInfo): string {
+		if (node.metadata?.metadataTypeName === 'Database') {
+			return node.metadata.name;
+		} else {
+			if (node.parentNode) {
+				return this.getDatabaseNameForNode(node.parentNode);
+			}
+		}
+		return '';
 	}
 
 	private registerRpcHandlers() {
@@ -143,9 +162,10 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 					model: publishResponse.viewModel,
 					apiState: {
 						...state.apiState,
-						publishState: designer.LoadState.Loaded
+						publishState: designer.LoadState.Loaded,
+						previewState: designer.LoadState.NotStarted
 					},
-				}
+				};
 				this.panel.title = state.tableInfo.title;
 				return state;
 			},
@@ -159,7 +179,6 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 						generateScriptState: designer.LoadState.Loading
 					}
 				}
-				payload.table.database = this._objectExplorerProvider.currentNode.connectionInfo.database ?? 'master';
 				const script = await this._tableDesignerService.generateScript(payload.table);
 				state = {
 					...state,
@@ -197,9 +216,9 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 				return state;
 			},
 			'scriptAsCreate': async (state, payload: {}) => {
-				this._untitledSqlDocumentService.newQuery(
+				await this._untitledSqlDocumentService.newQuery(
 					(state.model['script'] as designer.InputBoxProperties).value ?? ''
-				)
+				);
 				return state;
 			},
 			'setTab': async (state, payload: { tabId: designer.DesignerMainPaneTabs }) => {
@@ -213,7 +232,15 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			'setResultTab': async (state, payload: { tabId: designer.DesignerResultPaneTabs }) => {
 				state.tabStates.resultPaneTab = payload.tabId;
 				return state;
+			},
+			'closeDesigner': async (state, payload: {}) => {
+				this.panel.dispose();
+				return state;
+			},
+			'continueEditing': async (state, payload: {}) => {
+				this.state.apiState.publishState = designer.LoadState.NotStarted;
+				return state;
 			}
-		})
+		});
 	}
 }

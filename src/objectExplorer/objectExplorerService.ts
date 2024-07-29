@@ -31,6 +31,7 @@ import { sendActionEvent } from '../telemetry/telemetry';
 import { IAccount } from '../models/contracts/azure';
 import * as AzureConstants from '../azure/constants';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { getConnectionDisplayName } from '../models/connectionInfo';
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
 	node = node.parentNode;
@@ -97,11 +98,11 @@ export class ObjectExplorerService {
 				let node: TreeNodeInfo;
 
 				if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
-					nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionInfo) : nodeLabel;
+					nodeLabel = !nodeLabel ? getConnectionDisplayName(self._currentNode.connectionInfo) : nodeLabel;
 					node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
 						undefined, self._currentNode.connectionInfo, nodeLabel, Constants.serverLabel);
 				} else {
-					nodeLabel = !nodeLabel ? self.createNodeLabel(nodeConnection) : nodeLabel;
+					nodeLabel = !nodeLabel ? getConnectionDisplayName(nodeConnection) : nodeLabel;
 					node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
 						undefined, nodeConnection, nodeLabel, Constants.serverLabel);
 				}
@@ -318,7 +319,7 @@ export class ObjectExplorerService {
 		let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
 		for (const conn of savedConnections) {
 			let nodeLabel = conn.label === conn.connectionCreds.server ?
-				this.createNodeLabel(conn.connectionCreds) : conn.label;
+				getConnectionDisplayName(conn.connectionCreds) : conn.label;
 			this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
 			let node = new TreeNodeInfo(nodeLabel,
 				Constants.disconnectedServerLabel,
@@ -650,29 +651,12 @@ export class ObjectExplorerService {
 	public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
 		const label = (<IConnectionProfile>connectionCredentials).profileName ?
 			(<IConnectionProfile>connectionCredentials).profileName :
-			this.createNodeLabel(connectionCredentials);
+			getConnectionDisplayName(connectionCredentials);
 		const node = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
 			vscode.TreeItemCollapsibleState.Collapsed, undefined, undefined,
 			Constants.disconnectedServerLabel, undefined, connectionCredentials,
 			undefined);
 		this.updateNode(node);
-	}
-
-	private createNodeLabel(credentials: IConnectionInfo): string {
-		let database = credentials.database;
-		const server = credentials.server;
-		const authType = credentials.authenticationType;
-		let userOrAuthType = authType;
-		if (authType === Constants.sqlAuthentication) {
-			userOrAuthType = credentials.user;
-		}
-		if (authType === Constants.azureMfa) {
-			userOrAuthType = credentials.email;
-		}
-		if (!database || database === '') {
-			database = LocalizedConstants.defaultDatabaseLabel;
-		}
-		return `${server}, ${database} (${userOrAuthType})`;
 	}
 
 	/**
