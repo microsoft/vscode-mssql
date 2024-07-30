@@ -26,6 +26,7 @@ export const cmdConnect = 'mssql.connect';
 export const cmdDisconnect = 'mssql.disconnect';
 export const cmdChangeDatabase = 'mssql.changeDatabase';
 export const cmdChooseDatabase = 'mssql.chooseDatabase';
+export const cmdEstimatedPlan = 'mssql.estimatedPlan';
 export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
 export const cmdShowGettingStarted = 'mssql.showGettingStarted';

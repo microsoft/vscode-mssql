@@ -258,6 +258,11 @@
           "command": "mssql.changeDatabase",
           "when": "editorLangId == sql",
           "group": "navigation@4"
+        },
+        {
+          "command": "mssql.estimatedPlan",
+          "when": "editorLangId == sql && config.mssql.enableExperimentalFeatures",
+          "group": "navigation@5"
         }
       ],
       "editor/context": [
@@ -498,6 +503,15 @@
         "icon": {
           "dark": "media/changeConnection_inverse.svg",
           "light": "media/changeConnection.svg"
+        }
+      },
+      {
+        "command": "mssql.estimatedPlan",
+        "title": "%mssql.estimatedPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/queryPlan_inverse.svg",
+          "light": "media/queryPlan.svg"
         }
       },
       {

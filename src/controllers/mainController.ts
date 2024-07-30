@@ -154,6 +154,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
+			this.registerCommand(Constants.cmdEstimatedPlan);
+			this._event.on(Constants.cmdEstimatedPlan, () => { this.onEstimatePlan(); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
 			this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()); });
 			this.registerCommand(Constants.cmdCancelQuery);
@@ -747,6 +749,77 @@ export default class MainController implements vscode.Disposable {
 			return success;
 		}
 		return false;
+	}
+
+	private async onEstimatePlan(callbackThis?: MainController): Promise<void> {
+		// the 'this' context is lost in retry callback, so capture it here
+		/*
+		let self: MainController = callbackThis ? callbackThis : this;
+		try {
+			if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
+				return;
+			}
+
+			// check if we're connected and editing a SQL file
+			if (await self.isRetryRequiredBeforeQuery(self.onEstimatePlan)) {
+				return;
+			}
+
+			let editor = self._vscodeWrapper.activeTextEditor;
+			let uri = self._vscodeWrapper.activeTextEditorUri;
+
+			// Do not execute when there are multiple selections in the editor until it can be properly handled.
+			// Otherwise only the first selection will be executed and cause unexpected issues.
+			if (editor.selections?.length > 1) {
+				self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgMultipleSelectionModeNotSupported);
+				return;
+			}
+
+			// create new connection
+			if (!self.connectionManager.isConnected(uri)) {
+				await self.onNewConnection();
+				sendActionEvent(TelemetryViews.QueryEditor,
+					TelemetryActions.CreateConnection);
+			}
+			// check if current connection is still valid / active - if not, refresh azure account token
+			await self._connectionMgr.refreshAzureAccountToken(uri);
+
+			let title = path.basename(editor.document.fileName);
+			let querySelection: ISelectionData;
+			// Calculate the selection if we have a selection, otherwise we'll treat null as
+			// the entire document's selection
+			if (!editor.selection.isEmpty) {
+				let selection = editor.selection;
+				querySelection = {
+					startLine: selection.start.line,
+					startColumn: selection.start.character,
+					endLine: selection.end.line,
+					endColumn: selection.end.character
+				};
+			}
+
+			// Trim down the selection. If it is empty after selecting, then we don't execute
+			let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
+			if (editor.document.getText(selectionToTrim).trim().length === 0) {
+				return;
+			}
+
+			// Show react view
+			const reactPanel = new TableDesignerWebViewController(
+				this._context,
+				this.tableDesignerService,
+				this._connectionMgr,
+				this._untitledSqlDocumentService,
+			);
+			reactPanel.revealToForeground();
+
+			// await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
+
+		} catch (err) {
+			console.warn(`Unexpected error estimating plan : ${err}`);
+		}
+		*/
+		vscode.window.showInformationMessage("Estimate Query button clicked");
 	}
 
 	/**
