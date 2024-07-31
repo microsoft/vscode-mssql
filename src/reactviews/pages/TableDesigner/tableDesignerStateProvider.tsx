@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactNode, createContext, useContext } from 'react';
-import * as td from './tableDesignerInterfaces';
+import * as designer from '../../../sharedInterfaces/tableDesigner';
 import { VscodeWebviewContext } from '../../common/vscodeWebViewProvider';
 
 export interface TableDesignerState {
-	provider: td.TableDesignerProvider;
-	state: td.TableDesignerWebViewState;
+	provider: designer.TableDesignerReactProvider;
+	state: designer.TableDesignerWebViewState;
 }
 
 const TableDesignerContext = createContext<TableDesignerState | undefined>(undefined);
@@ -20,12 +20,11 @@ interface TableDesignerContextProps {
 
 const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ children }) => {
 	const webViewState = useContext(VscodeWebviewContext);
-	const tableState = webViewState?.state as td.TableDesignerWebViewState;
+	const tableState = webViewState?.state as designer.TableDesignerWebViewState;
 	return <TableDesignerContext.Provider value={
 		{
 			provider: {
-
-				processTableEdit: function (tableChangeInfo: td.DesignerEdit): void {
+				processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
 					webViewState?.extensionRpc.action('processTableEdit', {
 						table: tableState.tableInfo,
 						tableChangeInfo: tableChangeInfo
@@ -68,7 +67,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 					}
 					return result.join('\n') ?? '';
 				},
-				setPropertiesComponents: function (components: td.PropertiesPaneData | undefined): void {
+				setPropertiesComponents: function (components: designer.PropertiesPaneData | undefined): void {
 					webViewState?.extensionRpc.action('setPropertiesComponents', { components: components });
 				},
 				setResultTab: function (tabId: string): void {
@@ -81,7 +80,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 					webViewState?.extensionRpc.action('continueEditing', {});
 				}
 			},
-			state: webViewState?.state as td.TableDesignerWebViewState
+			state: webViewState?.state as designer.TableDesignerWebViewState
 		}
 	}>{children}</TableDesignerContext.Provider>;
 };

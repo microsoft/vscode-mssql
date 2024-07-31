@@ -153,3 +153,16 @@ export enum AuthenticationType {
 	Integrated = 'Integrated',
 	AzureMFA = 'AzureMFA'
 }
+
+export interface ConnectionDialogReducers {
+	setFormTab: {
+		tab: FormTabs;
+	},
+	formAction: {
+		event: FormEvent;
+	},
+	loadConnection: {
+		connection: IConnectionDialogProfile;
+	},
+	connect: {}
+}

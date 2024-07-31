@@ -8,7 +8,7 @@ import { useContext, useState } from "react";
 import { OpenFilled, ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
+import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
 
 const useStyles = makeStyles({

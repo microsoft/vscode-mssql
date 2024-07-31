@@ -11,7 +11,7 @@ import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { LoadState } from "./tableDesignerInterfaces";
+import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 
 const useStyles = makeStyles({
     dialogContent: {

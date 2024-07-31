@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DesignerDataPropertyInfo, DesignerDataPropertyWithTabInfo, DesignerIssue, DesignerMainPaneTabs, DesignerPropertyPath, DesignerTableProperties, DesignerView, ForeignKeyColumnMappingProperty, InputType, TableCheckConstraintProperty, TableColumnProperty, TableDesignerBuiltInTableViewOptions, TableDesignerView, TableForeignKeyProperty, TableIndexColumnSpecificationProperty, TableIndexProperty, TableProperty } from "./tableDesignerInterfaces";
+import * as designer from '../sharedInterfaces/tableDesigner';
 
-export function getAboutTableComponents(viewDefinition: TableDesignerView | undefined): DesignerDataPropertyInfo[] {
+export function getAboutTableComponents(viewDefinition: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
     if (!viewDefinition) {
         return [];
     }
-    const tabComponents: DesignerDataPropertyInfo[] = [
+    const tabComponents: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'input',
-            propertyName: TableColumnProperty.Name,
+            propertyName: designer.TableColumnProperty.Name,
             description: "The name of the table object.",
             componentProperties: {
                 title: "Table name",
@@ -21,7 +21,7 @@ export function getAboutTableComponents(viewDefinition: TableDesignerView | unde
         },
         {
             componentType: 'dropdown',
-            propertyName: TableProperty.Schema,
+            propertyName: designer.TableProperty.Schema,
             description: "The schema that contains the table.",
             componentProperties: {
                 title: "Schema",
@@ -30,7 +30,7 @@ export function getAboutTableComponents(viewDefinition: TableDesignerView | unde
         },
         {
             componentType: 'textarea',
-            propertyName: TableProperty.Description,
+            propertyName: designer.TableProperty.Description,
             description: "Description for the table.",
             componentProperties: {
                 title: "Description",
@@ -46,17 +46,17 @@ export function getAboutTableComponents(viewDefinition: TableDesignerView | unde
     return tabComponents;
 }
 
-export function getColumnsTabComponents(view: TableDesignerView | undefined): DesignerDataPropertyInfo[] {
+export function getColumnsTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
     if (!view || !view?.columnTableOptions) {
         return [];
     }
 
     const columnTableOptions = view.columnTableOptions;
 
-    const columnTableColumnDefinitions: DesignerDataPropertyInfo[] = [
+    const columnTableColumnDefinitions: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'input',
-            propertyName: TableColumnProperty.Name,
+            propertyName: designer.TableColumnProperty.Name,
             description: "The name of the column object.",
             componentProperties: {
                 title: "Name",
@@ -64,7 +64,7 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'input',
-            propertyName: TableColumnProperty.Description,
+            propertyName: designer.TableColumnProperty.Description,
             description: "Displays the description of the column",
             componentProperties: {
                 title: "Description",
@@ -72,7 +72,7 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'dropdown',
-            propertyName: TableColumnProperty.AdvancedType,
+            propertyName: designer.TableColumnProperty.AdvancedType,
             description: "Displays the unified data type (including length, scale and precision) for the column",
             componentProperties: {
                 title: "Advanced Type",
@@ -81,7 +81,7 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'dropdown',
-            propertyName: TableColumnProperty.Type,
+            propertyName: designer.TableColumnProperty.Type,
             showInPropertiesView: false,
             description: "Displays the data type name for the column",
             componentProperties: {
@@ -90,7 +90,7 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'input',
-            propertyName: TableColumnProperty.Length,
+            propertyName: designer.TableColumnProperty.Length,
             description: "The maximum length (in characters) that can be stored in this database object.",
             componentProperties: {
                 title: "Length",
@@ -98,7 +98,7 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'input',
-            propertyName: TableColumnProperty.DefaultValue,
+            propertyName: designer.TableColumnProperty.DefaultValue,
             description: "A predefined global default value for the column or binding.",
             componentProperties: {
                 title: "Default Value",
@@ -106,51 +106,51 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'checkbox',
-            propertyName: TableColumnProperty.AllowNulls,
+            propertyName: designer.TableColumnProperty.AllowNulls,
             description: "Specifies whether the column may have a NULL value.",
             componentProperties: {
                 title: "Allow Nulls",
             }
         }, {
             componentType: 'checkbox',
-            propertyName: TableColumnProperty.IsPrimaryKey,
+            propertyName: designer.TableColumnProperty.IsPrimaryKey,
             description: "Specifies whether the column is included in the primary key for the table.",
             componentProperties: {
                 title: "Primary Key",
             }
         }, {
             componentType: 'input',
-            propertyName: TableColumnProperty.Precision,
+            propertyName: designer.TableColumnProperty.Precision,
             description: "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
             componentProperties: {
                 title: "Precision",
                 width: 60,
-                inputType: InputType.Number
+                inputType: designer.InputType.Number
             }
         }, {
             componentType: 'input',
-            propertyName: TableColumnProperty.Scale,
+            propertyName: designer.TableColumnProperty.Scale,
             description: "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
             componentProperties: {
                 title: "Scale",
                 width: 60,
-                inputType: InputType.Number
+                inputType: designer.InputType.Number
             }
         }
     ];
 
     const displayProperties = getTableDisplayProperties(columnTableOptions, [
-        TableColumnProperty.Name,
-        TableColumnProperty.AdvancedType,
-        TableColumnProperty.IsPrimaryKey,
-        TableColumnProperty.AllowNulls,
-        TableColumnProperty.DefaultValue,
+        designer.TableColumnProperty.Name,
+        designer.TableColumnProperty.AdvancedType,
+        designer.TableColumnProperty.IsPrimaryKey,
+        designer.TableColumnProperty.AllowNulls,
+        designer.TableColumnProperty.DefaultValue,
     ]);
 
-    const tabComponents: DesignerDataPropertyInfo[] = [
+    const tabComponents: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'table',
-            propertyName: TableProperty.Columns,
+            propertyName: designer.TableProperty.Columns,
             showInPropertiesView: false,
             componentProperties: {
                 ariaLabel: "Columns",
@@ -164,25 +164,25 @@ export function getColumnsTabComponents(view: TableDesignerView | undefined): De
                 removeRowConfirmationMessage: columnTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: columnTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton: columnTableOptions.labelForAddNewButton ?? "New Column"
-            } as DesignerTableProperties
+            } as designer.DesignerTableProperties
         },
     ];
 
-    const additionalComponents = getAdditionalComponentsForTab(TableProperty.Columns, view.additionalComponents);
+    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.Columns, view.additionalComponents);
     if(additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getPrimaryKeyTabComponents(view: TableDesignerView | undefined): DesignerDataPropertyInfo[] {
+export function getPrimaryKeyTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
     if (!view || !view.primaryKeyColumnSpecificationTableOptions) {
         return [];
     }
-    const columnSpecProperties: DesignerDataPropertyInfo[] = [
+    const columnSpecProperties: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'dropdown',
-            propertyName: TableIndexColumnSpecificationProperty.Column,
+            propertyName: designer.TableIndexColumnSpecificationProperty.Column,
             description: "The name of the column.",
             componentProperties: {
                 title: "Column",
@@ -191,10 +191,10 @@ export function getPrimaryKeyTabComponents(view: TableDesignerView | undefined):
         }
     ];
 
-    const tabComponents: DesignerDataPropertyInfo[] = [
+    const tabComponents: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'input',
-            propertyName: TableProperty.PrimaryKeyName,
+            propertyName: designer.TableProperty.PrimaryKeyName,
             showInPropertiesView: false,
             description: "Name of the primary key.",
             componentProperties: {
@@ -204,7 +204,7 @@ export function getPrimaryKeyTabComponents(view: TableDesignerView | undefined):
         },
         {
             componentType: 'textarea',
-            propertyName: TableProperty.PrimaryKeyDescription,
+            propertyName: designer.TableProperty.PrimaryKeyDescription,
             showInPropertiesView: false,
             description: "The description of the primary key.",
             componentProperties: {
@@ -226,13 +226,13 @@ export function getPrimaryKeyTabComponents(view: TableDesignerView | undefined):
     if (primaryKeyTableOptions) {
         tabComponents.push({
             componentType: 'table',
-            propertyName: TableProperty.PrimaryKeyColumns,
+            propertyName: designer.TableProperty.PrimaryKeyColumns,
             showInPropertiesView: false,
             description: "Columns in the primary key.",
             componentProperties: {
                 title: "Primary Key Columns",
                 ariaLabel: "Primary Key Columns",
-                columns: getTableDisplayProperties(primaryKeyTableOptions, [TableIndexColumnSpecificationProperty.Column]),
+                columns: getTableDisplayProperties(primaryKeyTableOptions, [designer.TableIndexColumnSpecificationProperty.Column]),
                 itemProperties: addAdditionalTableProperties(primaryKeyTableOptions, columnSpecProperties),
                 objectTypeDisplayName: '',
                 canAddRows: primaryKeyTableOptions.canAddRows,
@@ -242,37 +242,37 @@ export function getPrimaryKeyTabComponents(view: TableDesignerView | undefined):
                 showItemDetailInPropertiesView: false,
                 labelForAddNewButton: primaryKeyTableOptions.labelForAddNewButton ?? "Add Column",
                 canMoveRows: primaryKeyTableOptions.canMoveRows
-            } as DesignerTableProperties
+            } as designer.DesignerTableProperties
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(TableProperty.PrimaryKey, view.additionalComponents);
+    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.PrimaryKey, view.additionalComponents);
     if(additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getIndexesTabComponents(view: TableDesignerView | undefined): DesignerDataPropertyInfo[] {
+export function getIndexesTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
     if (!view || !view.indexTableOptions) {
         return [];
     }
     const indexTableOptions = view.indexTableOptions;
     const columnSpecTableOptions = view.indexColumnSpecificationTableOptions;
-    const columnSpecProperties: DesignerDataPropertyInfo[] = [
+    const columnSpecProperties: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'dropdown',
-            propertyName: TableIndexColumnSpecificationProperty.Column,
+            propertyName: designer.TableIndexColumnSpecificationProperty.Column,
             description: "The name of the column.",
             componentProperties: {
                 title: "Column",
                 width: 100
             }
         }];
-    const indexProperties: DesignerDataPropertyInfo[] = [
+    const indexProperties: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'input',
-            propertyName: TableIndexProperty.Name,
+            propertyName: designer.TableIndexProperty.Name,
             description: "The name of the index.",
             componentProperties: {
                 title: "Name",
@@ -280,7 +280,7 @@ export function getIndexesTabComponents(view: TableDesignerView | undefined): De
             }
         }, {
             componentType: 'input',
-            propertyName: TableIndexProperty.Description,
+            propertyName: designer.TableIndexProperty.Description,
             description: "The description of the index.",
             componentProperties: {
                 title: "Description",
@@ -293,12 +293,12 @@ export function getIndexesTabComponents(view: TableDesignerView | undefined): De
         indexProperties.push(
             {
                 componentType: 'table',
-                propertyName: TableIndexProperty.Columns,
+                propertyName: designer.TableIndexProperty.Columns,
                 description: "The columns of the index.",
                 group: "Columns",
                 componentProperties: {
                     ariaLabel: "Columns",
-                    columns: getTableDisplayProperties(columnSpecTableOptions, [TableIndexColumnSpecificationProperty.Column]),
+                    columns: getTableDisplayProperties(columnSpecTableOptions, [designer.TableIndexColumnSpecificationProperty.Column]),
                     itemProperties: addAdditionalTableProperties(columnSpecTableOptions, columnSpecProperties),
                     objectTypeDisplayName: '',
                     canAddRows: columnSpecTableOptions.canAddRows,
@@ -306,21 +306,21 @@ export function getIndexesTabComponents(view: TableDesignerView | undefined): De
                     removeRowConfirmationMessage: columnSpecTableOptions.removeRowConfirmationMessage,
                     showRemoveRowConfirmation: columnSpecTableOptions.showRemoveRowConfirmation,
                     labelForAddNewButton: columnSpecTableOptions.labelForAddNewButton ?? "Add Column"
-                } as DesignerTableProperties
+                } as designer.DesignerTableProperties
             }
         );
     }
 
-    const tabComponents: DesignerDataPropertyInfo[] = [];
+    const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
     if(indexTableOptions) {
         tabComponents.push({
             componentType: 'table',
-            propertyName: TableProperty.Indexes,
+            propertyName: designer.TableProperty.Indexes,
             showInPropertiesView: false,
             componentProperties: {
                 ariaLabel: "Indexes",
-                columns: getTableDisplayProperties(indexTableOptions, [TableIndexProperty.Name]),
+                columns: getTableDisplayProperties(indexTableOptions, [designer.TableIndexProperty.Name]),
                 itemProperties: addAdditionalTableProperties(indexTableOptions, indexProperties),
                 objectTypeDisplayName: "Index",
                 canAddRows: indexTableOptions.canAddRows,
@@ -328,27 +328,27 @@ export function getIndexesTabComponents(view: TableDesignerView | undefined): De
                 removeRowConfirmationMessage: indexTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: indexTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton: indexTableOptions.labelForAddNewButton ?? "New Index"
-            } as DesignerTableProperties
+            } as designer.DesignerTableProperties
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(TableProperty.Indexes, view.additionalComponents);
+    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.Indexes, view.additionalComponents);
     if(additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getForeignKeysTabComponents(view: TableDesignerView | undefined): DesignerDataPropertyInfo[] {
+export function getForeignKeysTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
     if (!view || !view.foreignKeyTableOptions) {
         return [];
     }
     const foreignKeyTableOptions = view.foreignKeyTableOptions;
     const columnMappingTableOptions = view!.foreignKeyColumnMappingTableOptions;
-    const foreignKeyColumnMappingProperties: DesignerDataPropertyInfo[] = [
+    const foreignKeyColumnMappingProperties: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'dropdown',
-            propertyName: ForeignKeyColumnMappingProperty.ForeignColumn,
+            propertyName: designer.ForeignKeyColumnMappingProperty.ForeignColumn,
             componentProperties: {
                 title: "Foreign Column",
                 width: 150
@@ -356,7 +356,7 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
         },
         {
             componentType: 'dropdown',
-            propertyName: ForeignKeyColumnMappingProperty.Column,
+            propertyName: designer.ForeignKeyColumnMappingProperty.Column,
             componentProperties: {
                 title: "Column",
                 width: 150
@@ -364,10 +364,10 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
         },
     ];
 
-    const foreignKeyProperties: DesignerDataPropertyInfo[] = [
+    const foreignKeyProperties: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'input',
-            propertyName: TableForeignKeyProperty.Name,
+            propertyName: designer.TableForeignKeyProperty.Name,
             description: "The name of the foreign key.",
             componentProperties: {
                 title: "Name",
@@ -376,7 +376,7 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
         },
         {
             componentType: 'input',
-            propertyName: TableForeignKeyProperty.Description,
+            propertyName: designer.TableForeignKeyProperty.Description,
             description: "The description of the foreign key.",
             componentProperties: {
                 title: "Description",
@@ -384,7 +384,7 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
         },
         {
             componentType: 'dropdown',
-            propertyName: TableForeignKeyProperty.ForeignTable,
+            propertyName: designer.TableForeignKeyProperty.ForeignTable,
             description: "The table which contains the primary or unique key column.",
             componentProperties: {
                 title: "Foreign Table",
@@ -393,7 +393,7 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
         },
         {
             componentType: 'dropdown',
-            propertyName: TableForeignKeyProperty.OnUpdateAction,
+            propertyName: designer.TableForeignKeyProperty.OnUpdateAction,
             description: "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
             componentProperties: {
                 title: "On Update Action",
@@ -402,7 +402,7 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
         },
         {
             componentType: 'dropdown',
-            propertyName: TableForeignKeyProperty.OnDeleteAction,
+            propertyName: designer.TableForeignKeyProperty.OnDeleteAction,
             description: "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
             componentProperties: {
                 title: "On Delete Action",
@@ -415,31 +415,31 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
     if (columnMappingTableOptions) {
         foreignKeyProperties.push({
             componentType: 'table',
-            propertyName: TableForeignKeyProperty.Columns,
+            propertyName: designer.TableForeignKeyProperty.Columns,
             description: "The mapping between foreign key columns and primary key columns.",
             group: "Columns",
             componentProperties: {
                 ariaLabel: "Columns",
-                columns: getTableDisplayProperties(columnMappingTableOptions, [ForeignKeyColumnMappingProperty.Column, ForeignKeyColumnMappingProperty.ForeignColumn]),
+                columns: getTableDisplayProperties(columnMappingTableOptions, [designer.ForeignKeyColumnMappingProperty.Column, designer.ForeignKeyColumnMappingProperty.ForeignColumn]),
                 itemProperties: addAdditionalTableProperties(columnMappingTableOptions, foreignKeyColumnMappingProperties),
                 canAddRows: columnMappingTableOptions.canAddRows,
                 canRemoveRows: columnMappingTableOptions.canRemoveRows,
                 removeRowConfirmationMessage: columnMappingTableOptions.removeRowConfirmationMessage,
                 labelForAddNewButton: columnMappingTableOptions.labelForAddNewButton ?? "New Column Mapping"
-            } as DesignerTableProperties
+            } as designer.DesignerTableProperties
         });
     }
 
-    const tabComponents: DesignerDataPropertyInfo[] = [];
+    const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
     if (foreignKeyTableOptions) {
         tabComponents.push({
             componentType: 'table',
-            propertyName: TableProperty.ForeignKeys,
+            propertyName: designer.TableProperty.ForeignKeys,
             showInPropertiesView: false,
             componentProperties: {
                 ariaLabel: "Foreign Keys",
-                columns: getTableDisplayProperties(foreignKeyTableOptions, [TableForeignKeyProperty.Name, TableForeignKeyProperty.ForeignTable]),
+                columns: getTableDisplayProperties(foreignKeyTableOptions, [designer.TableForeignKeyProperty.Name, designer.TableForeignKeyProperty.ForeignTable]),
                 itemProperties: addAdditionalTableProperties(foreignKeyTableOptions, foreignKeyProperties),
                 objectTypeDisplayName: "Foreign Key",
                 canAddRows: foreignKeyTableOptions.canAddRows,
@@ -447,27 +447,27 @@ export function getForeignKeysTabComponents(view: TableDesignerView | undefined)
                 removeRowConfirmationMessage: foreignKeyTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: foreignKeyTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton: foreignKeyTableOptions.labelForAddNewButton ?? "New Foreign Key"
-            } as DesignerTableProperties
+            } as designer.DesignerTableProperties
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(TableProperty.ForeignKeys, view.additionalComponents);
+    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.ForeignKeys, view.additionalComponents);
     if(additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getCheckConstraintsTabComponents(view: TableDesignerView | undefined): DesignerDataPropertyInfo[] {
+export function getCheckConstraintsTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
     if(!view || !view.checkConstraintTableOptions) {
         return [];
     }
     const checkConstraintTableOptions = view.checkConstraintTableOptions;
     const additionalcomponents = view.additionalComponents || [];
-    const checkConstraintProperties: DesignerDataPropertyInfo[] = [
+    const checkConstraintProperties: designer.DesignerDataPropertyInfo[] = [
         {
             componentType: 'input',
-            propertyName: TableCheckConstraintProperty.Name,
+            propertyName: designer.TableCheckConstraintProperty.Name,
             description: "The name of the check constraint.",
             componentProperties: {
                 title: "Name",
@@ -475,14 +475,14 @@ export function getCheckConstraintsTabComponents(view: TableDesignerView | undef
             }
         }, {
             componentType: 'input',
-            propertyName: TableCheckConstraintProperty.Description,
+            propertyName: designer.TableCheckConstraintProperty.Description,
             description: "The description of the check constraint.",
             componentProperties: {
                 title: "Description",
             }
         }, {
             componentType: 'input',
-            propertyName: TableCheckConstraintProperty.Expression,
+            propertyName: designer.TableCheckConstraintProperty.Expression,
             description: "The expression defining the check constraint.",
             componentProperties: {
                 title: "Expression",
@@ -491,16 +491,16 @@ export function getCheckConstraintsTabComponents(view: TableDesignerView | undef
         }
     ];
 
-    const tabComponents: DesignerDataPropertyInfo[] = [];
+    const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
     if(checkConstraintTableOptions) {
         tabComponents.push({
             componentType: 'table',
-            propertyName: TableProperty.CheckConstraints,
+            propertyName: designer.TableProperty.CheckConstraints,
             showInPropertiesView: false,
             componentProperties: {
                 ariaLabel: "Check Constraints",
-                columns: getTableDisplayProperties(checkConstraintTableOptions, [TableCheckConstraintProperty.Name, TableCheckConstraintProperty.Expression]),
+                columns: getTableDisplayProperties(checkConstraintTableOptions, [designer.TableCheckConstraintProperty.Name, designer.TableCheckConstraintProperty.Expression]),
                 itemProperties: addAdditionalTableProperties(checkConstraintTableOptions, checkConstraintProperties),
                 objectTypeDisplayName: "Check Constraint",
                 canAddRows: checkConstraintTableOptions.canAddRows,
@@ -508,48 +508,48 @@ export function getCheckConstraintsTabComponents(view: TableDesignerView | undef
                 removeRowConfirmationMessage: checkConstraintTableOptions.removeRowConfirmationMessage,
                 showRemoveRowConfirmation: checkConstraintTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton: checkConstraintTableOptions.labelForAddNewButton ?? "New Check Constraint"
-            } as DesignerTableProperties
+            } as designer.DesignerTableProperties
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(TableProperty.CheckConstraints, additionalcomponents);
+    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.CheckConstraints, additionalcomponents);
     if(additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getDesignerView(view: TableDesignerView | undefined): DesignerView {
+export function getDesignerView(view: designer.TableDesignerView | undefined): designer.DesignerView {
    return {
     tabs: [
         {
             title: "About table",
-            id: DesignerMainPaneTabs.AboutTable,
+            id: designer.DesignerMainPaneTabs.AboutTable,
             components: getAboutTableComponents(view)
         },
         {
             title: "Columns",
-            id: DesignerMainPaneTabs.Columns,
+            id: designer.DesignerMainPaneTabs.Columns,
             components: getColumnsTabComponents(view)
         },
         {
             title: "Primary Key",
-            id: DesignerMainPaneTabs.PrimaryKey,
+            id: designer.DesignerMainPaneTabs.PrimaryKey,
             components: getPrimaryKeyTabComponents(view)
         },
         {
             title: "Indexes",
-            id: DesignerMainPaneTabs.Indexes,
+            id: designer.DesignerMainPaneTabs.Indexes,
             components: getIndexesTabComponents(view)
         },
         {
             title: "Foreign Keys",
-            id: DesignerMainPaneTabs.ForeignKeys,
+            id: designer.DesignerMainPaneTabs.ForeignKeys,
             components: getForeignKeysTabComponents(view)
         },
         {
             title: "Check Constraints",
-            id: DesignerMainPaneTabs.CheckConstraints,
+            id: designer.DesignerMainPaneTabs.CheckConstraints,
             components: getCheckConstraintsTabComponents(view)
         }
     ]
@@ -557,28 +557,28 @@ export function getDesignerView(view: TableDesignerView | undefined): DesignerVi
 }
 
 
-function getTableDisplayProperties(options: TableDesignerBuiltInTableViewOptions | undefined, defaultProperties: string[]): string[] {
+function getTableDisplayProperties(options: designer.TableDesignerBuiltInTableViewOptions | undefined, defaultProperties: string[]): string[] {
     if (!options) {
         return defaultProperties;
     }
     return (options.propertiesToDisplay!.length > 0 ? options.propertiesToDisplay : defaultProperties) || [];
 }
 
-function addAdditionalTableProperties(options: TableDesignerBuiltInTableViewOptions, properties: DesignerDataPropertyInfo[]): DesignerDataPropertyInfo[] {
+function addAdditionalTableProperties(options: designer.TableDesignerBuiltInTableViewOptions, properties: designer.DesignerDataPropertyInfo[]): designer.DesignerDataPropertyInfo[] {
     if (options.additionalProperties) {
         properties.push(...options.additionalProperties);
     }
     return properties;
 }
 
-function getAdditionalComponentsForTab(tabId: TableProperty, additionalComponents: DesignerDataPropertyWithTabInfo[] | undefined): DesignerDataPropertyInfo[] {
+function getAdditionalComponentsForTab(tabId: designer.TableProperty, additionalComponents: designer.DesignerDataPropertyWithTabInfo[] | undefined): designer.DesignerDataPropertyInfo[] {
     if (additionalComponents) {
         return additionalComponents.filter(c => c.tab === tabId);
     }
     return [];
 }
 
-export function getIssuesForComponent(componentPath: DesignerPropertyPath, issues: DesignerIssue[]): string {
+export function getIssuesForComponent(componentPath: designer.DesignerPropertyPath, issues: designer.DesignerIssue[]): string {
     if (!issues || issues.length === 0) {
         return "";
     }

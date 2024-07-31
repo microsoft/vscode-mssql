@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Popover, PopoverSurface, PopoverTrigger, Table, TableBody, TableCell, TableColumnDefinition, TableColumnId, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, TableRowData, Toolbar, ToolbarButton, createTableColumn, makeStyles, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components"
-import { CheckBoxProperties, DesignerDataPropertyInfo, DesignerEditType, DesignerTableComponentDataItem, DesignerTableProperties, DesignerUIArea, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces"
+import * as fluentui from '@fluentui/react-components';
+import * as designer from '../../../sharedInterfaces/tableDesigner';
 import {
 	AddRegular, NavigationFilled, DeleteRegular, ErrorCircleFilled, ArrowCircleUpFilled, ArrowCircleDownFilled
 } from "@fluentui/react-icons";
@@ -15,10 +15,10 @@ import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
 
 export type DesignerTableProps = {
-	component: DesignerDataPropertyInfo,
-	model: DesignerTableProperties,
+	component: designer.DesignerDataPropertyInfo,
+	model: designer.DesignerTableProperties,
 	componentPath: (string | number)[],
-	UiArea: DesignerUIArea,
+	UiArea: designer.DesignerUIArea,
 	loadPropertiesTabData?: boolean
 }
 
@@ -26,7 +26,7 @@ export type ErrorPopupProps = {
 	message: string | undefined
 }
 
-const useStyles = makeStyles({
+const useStyles = fluentui.makeStyles({
 	tableCell: {
 		display: 'flex',
 		flexDirection: 'row',
@@ -42,37 +42,37 @@ export const DesignerTable = ({
 	UiArea,
 	loadPropertiesTabData = true
 }: DesignerTableProps) => {
-	const tableProps = component.componentProperties as DesignerTableProperties;
+	const tableProps = component.componentProperties as designer.DesignerTableProperties;
 	const state = useContext(TableDesignerContext);
 	const classes = useStyles();
-	const columnsDef: TableColumnDefinition<DesignerTableComponentDataItem>[] = tableProps.columns!.map((column) => {
+	const columnsDef: fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[] = tableProps.columns!.map((column) => {
 		const colProps = tableProps.itemProperties?.find(item => item.propertyName === column);
-		return createTableColumn(
+		return fluentui.createTableColumn(
 			{
 				columnId: column,
 				renderHeaderCell: () => <>{colProps?.componentProperties.title ?? column}</>
 			}
 		)
 	});
-	columnsDef.unshift(createTableColumn({
+	columnsDef.unshift(fluentui.createTableColumn({
 		columnId: 'dragHandle',
 		renderHeaderCell: () => <></>,
 	}));
 
 	if (tableProps.canRemoveRows) {
-		columnsDef.push(createTableColumn({
+		columnsDef.push(fluentui.createTableColumn({
 			columnId: 'remove',
 			renderHeaderCell: () => <>Delete</>
 		}));
 	}
 
-	const items: DesignerTableComponentDataItem[] = model.data?.map((row) => {
+	const items: designer.DesignerTableComponentDataItem[] = model.data?.map((row) => {
 		return row;
 	}) ?? [];
 
-	const [columns] = useState<TableColumnDefinition<DesignerTableComponentDataItem>[]>(columnsDef);
+	const [columns] = useState<fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[]>(columnsDef);
 
-	const sizingOptions: TableColumnSizingOptions = {
+	const sizingOptions: fluentui.TableColumnSizingOptions = {
 	};
 	tableProps.columns!.forEach((column) => {
 		const colProps = tableProps.itemProperties?.find(item => item.propertyName === column);
@@ -92,21 +92,21 @@ export const DesignerTable = ({
 		defaultWidth: 100
 	};
 
-	const [columnSizingOptions] = useState<TableColumnSizingOptions>(sizingOptions);
+	const [columnSizingOptions] = useState<fluentui.TableColumnSizingOptions>(sizingOptions);
 
-	const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
+	const { getRows, columnSizing_unstable, tableRef } = fluentui.useTableFeatures(
 		{
 			columns,
 			items,
 		},
-		[useTableColumnSizing_unstable({ columnSizingOptions })]
+		[fluentui.useTableColumnSizing_unstable({ columnSizingOptions })]
 	);
 
 	const rows = getRows();
 
 	const moveRows = (from: number, to: number) => {
 		state?.provider.processTableEdit({
-			type: DesignerEditType.Move,
+			type: designer.DesignerEditType.Move,
 			path: [...componentPath, from],
 			value: to,
 			source: UiArea
@@ -127,42 +127,42 @@ export const DesignerTable = ({
 
 	const getErrorPopup = (message: string | undefined) => {
 
-		return <Popover>
-			<PopoverTrigger disableButtonEnhancement>
-				<Button appearance="subtle"
+		return <fluentui.Popover>
+			<fluentui.PopoverTrigger disableButtonEnhancement>
+				<fluentui.Button appearance="subtle"
 					aria-label={message}
 					icon={<ErrorCircleFilled style={{
 						marginTop: '5px',
 						marginLeft: '5px'
-					}} color="red" />}></Button>
-			</PopoverTrigger>
+					}} color="red" />}></fluentui.Button>
+			</fluentui.PopoverTrigger>
 
-			<PopoverSurface tabIndex={-1}>
+			<fluentui.PopoverSurface tabIndex={-1}>
 				<div>
 					<div>{message}</div>
 				</div>
-			</PopoverSurface>
-		</Popover>;
+			</fluentui.PopoverSurface>
+		</fluentui.Popover>;
 	};
 
-	const getTableCell = (row: TableRowData<DesignerTableComponentDataItem>, columnId: TableColumnId) => {
+	const getTableCell = (row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>, columnId: fluentui.TableColumnId) => {
 		const colProps = tableProps.itemProperties?.find(item => item.propertyName === columnId);
 		const value = row.item[columnId];
 		switch (columnId) {
 			case 'dragHandle':
 				return <div className={classes.tableCell}>
-					{tableProps.canMoveRows && <Button appearance="subtle" size="small" icon={<NavigationFilled />} />}
+					{tableProps.canMoveRows && <fluentui.Button appearance="subtle" size="small" icon={<NavigationFilled />} />}
 					{
 						getRowError(row.rowId as number) && getErrorPopup(getRowError(row.rowId as number))
 					}
 				</div>;
 			case 'remove':
-				return <Button disabled={row.item.canBeDeleted ? !row.item.canBeDeleted : false} appearance="subtle" size="small" icon={<DeleteRegular />}
+				return <fluentui.Button disabled={row.item.canBeDeleted ? !row.item.canBeDeleted : false} appearance="subtle" size="small" icon={<DeleteRegular />}
 					onClick={async () => {
 						state?.provider.processTableEdit({
 							path: [...componentPath, row.rowId],
 							source: UiArea,
-							type: DesignerEditType.Remove,
+							type: designer.DesignerEditType.Remove,
 							value: undefined
 						});
 					}}
@@ -173,7 +173,7 @@ export const DesignerTable = ({
 						return <div className={classes.tableCell}>
 							<DesignerInputBox
 								component={colProps}
-								model={value as InputBoxProperties}
+								model={value as designer.InputBoxProperties}
 								componentPath={[...componentPath, row.rowId, columnId]}
 								UiArea={UiArea}
 								showLabel={false}
@@ -189,7 +189,7 @@ export const DesignerTable = ({
 						return <div className={classes.tableCell}>
 							<DesignerDropdown
 								component={colProps}
-								model={value as DropDownProperties}
+								model={value as designer.DropDownProperties}
 								componentPath={[...componentPath, row.rowId, columnId]}
 								UiArea={'TabsView'}
 								showLabel={false}
@@ -204,7 +204,7 @@ export const DesignerTable = ({
 						return <div className={classes.tableCell}>
 							<DesignerCheckbox
 								component={colProps}
-								model={value as CheckBoxProperties}
+								model={value as designer.CheckBoxProperties}
 								componentPath={[...componentPath, row.rowId, columnId]}
 								UiArea={UiArea}
 								showLabel={false}
@@ -227,26 +227,26 @@ export const DesignerTable = ({
 	const [focusedRowId, setFocusedRowId] = useState<number | undefined>(undefined);
 
 	return <div>
-		<Toolbar size='small'>
+		<fluentui.Toolbar size='small'>
 			{
 				tableProps.canAddRows &&
-				<ToolbarButton
+				<fluentui.ToolbarButton
 					icon={<AddRegular />}
 					onClick={() => {
 						state?.provider.processTableEdit({
 							path: [...componentPath, rows.length],
 							source: UiArea,
-							type: DesignerEditType.Add,
+							type: designer.DesignerEditType.Add,
 							value: undefined
 						})
 					}}
 				>
 					{tableProps.labelForAddNewButton}
-				</ToolbarButton>
+				</fluentui.ToolbarButton>
 			}
 			{
 				tableProps.canMoveRows &&
-				<ToolbarButton
+				<fluentui.ToolbarButton
 					icon={<ArrowCircleUpFilled />}
 					onClick={(event) => {
 						(event.target as HTMLElement).focus();
@@ -255,11 +255,11 @@ export const DesignerTable = ({
 					disabled={focusedRowId === undefined || focusedRowId === 0}
 				>
 					Move Up
-				</ToolbarButton>
+				</fluentui.ToolbarButton>
 			}
 			{
 				tableProps.canMoveRows &&
-				<ToolbarButton
+				<fluentui.ToolbarButton
 					icon={<ArrowCircleDownFilled />}
 					onClick={(event) => {
 						(event.target as HTMLElement).focus();
@@ -268,32 +268,32 @@ export const DesignerTable = ({
 					disabled={focusedRowId === undefined || focusedRowId === rows.length - 1}
 				>
 					Move Down
-				</ToolbarButton>
+				</fluentui.ToolbarButton>
 			}
 
-		</Toolbar>
-		<Table
+		</fluentui.Toolbar>
+		<fluentui.Table
 			as = "table"
 			size="small"
 			{...columnSizing_unstable.getTableProps()}
 			ref={tableRef}
 		>
-			<TableHeader>
-				<TableRow>
+			<fluentui.TableHeader>
+				<fluentui.TableRow>
 					{
 						columnsDef.map((column) => {
-							return <TableHeaderCell
+							return <fluentui.TableHeaderCell
 								{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
 								key={column.columnId}>
 								{column.renderHeaderCell()}
-							</TableHeaderCell>
+							</fluentui.TableHeaderCell>
 						})
 					}
-				</TableRow>
-			</TableHeader>
-			<TableBody>
+				</fluentui.TableRow>
+			</fluentui.TableHeader>
+			<fluentui.TableBody>
 				{rows.map((row, index) => {
-					return <TableRow draggable={tableProps.canMoveRows}
+					return <fluentui.TableRow draggable={tableProps.canMoveRows}
 						onFocus={(event) => {
 							if (!loadPropertiesTabData) {
 								return;
@@ -330,18 +330,18 @@ export const DesignerTable = ({
 					>
 						{
 							columnsDef.map((column, columnIndex) => {
-								return <TableCell
+								return <fluentui.TableCell
 									key={componentPath.join('.') + index + columnIndex}
 									{...columnSizing_unstable.getTableCellProps(column.columnId)}
 									id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join('-')}_${index}-${columnIndex}`}
 								>
 									{getTableCell(row, column.columnId)}
-								</TableCell>
+								</fluentui.TableCell>
 							})
 						}
-					</TableRow>;
+					</fluentui.TableRow>;
 				})}
-			</TableBody>
-		</Table>
+			</fluentui.TableBody>
+		</fluentui.Table>
 	</div>
 }
