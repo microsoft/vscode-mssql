@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "./tableDesignerInterfaces";
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
     dialogContent: {
@@ -100,7 +101,7 @@ export const DesignerChangesPreviewButton = () => {
         if (metadata?.apiState?.previewState === LoadState.Loaded) {
             return <>
                 <DialogContent>
-                    <div style = {
+                    <div style={
                         {
                             width: '98%',
                             height: '100%',
@@ -111,7 +112,7 @@ export const DesignerChangesPreviewButton = () => {
                             overflow: 'auto',
                         }
                     }>
-                    <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
+                        <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
                     </div>
                 </DialogContent>
                 <DialogActions>
@@ -147,7 +148,7 @@ export const DesignerChangesPreviewButton = () => {
         <DialogSurface>
             <DialogBody>
                 <DialogTitle>
-                    Preview Database Updates
+                    {l10n.t('Preview Database Updates')}
                 </DialogTitle>
                 {getDialogContent()}
             </DialogBody>

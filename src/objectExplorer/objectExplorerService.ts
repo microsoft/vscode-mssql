@@ -15,7 +15,7 @@ import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplore
 import { CloseSessionRequest, CloseSessionParams, CloseSessionResponse } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { AuthenticationTypes, IConnectionProfile } from '../models/interfaces';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
 import { ConnectTreeNode, TreeNodeType } from './connectTreeNode';

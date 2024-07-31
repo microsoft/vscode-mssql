@@ -2,7 +2,7 @@
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
 import Prompt from './prompt';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import EscapeException from '../utils/escapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 

@@ -102,6 +102,7 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 		const nonce = getNonce();
 		const scriptUri = this.resourceUrl([this._srcFile]);
 		const styleUri = this.resourceUrl([this._styleFile]);
+		const extensionBundlePath = process.env['EXTENSION_BUNDLE_PATH'];
 		return `
 		<!DOCTYPE html>
 				<html lang="en">
@@ -121,6 +122,9 @@ export class ReactWebViewPanelController<T> implements vscode.Disposable {
 				</head>
 				<body>
 				  <div id="root"></div>
+				  <script>
+				  	var EXTENSION_BUNDLE_PATH = ${extensionBundlePath}
+				  </script>
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>

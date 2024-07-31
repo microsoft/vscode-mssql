@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { IConnectionInfo } from 'vscode-mssql';
 import { AzureResourceController } from '../azure/azureResourceController';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as ConnInfo from '../models/connectionInfo';
 import { CompletionExtensionParams, CompletionExtLoadRequest, RebuildIntelliSenseNotification } from '../models/contracts/languageService';

@@ -7,6 +7,16 @@ import { FluentProvider, Theme, teamsHighContrastTheme, webDarkTheme, webLightTh
 import { createContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
+import * as l10n from '@vscode/l10n';
+
+declare const EXTENSION_BUNDLE_PATH: string | undefined;
+
+if (EXTENSION_BUNDLE_PATH) {
+	console.log('Setting up l10n with bundle path: ' + EXTENSION_BUNDLE_PATH);
+	l10n.config({
+		fsPath: EXTENSION_BUNDLE_PATH
+	});
+}
 
 interface VscodeWebviewContext {
 	vscodeApi: WebviewApi<unknown>;

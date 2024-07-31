@@ -1,7 +1,10 @@
 var dom = require('@xmldom/xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
-var through = require('through2')
+var through = require('through2');
+var fs = require('fs');
+var path = require('path');
+var vscodel10n = require('@vscode/l10n-dev');
 
 const iso639_3_to_2 = {
 	chs: 'zh-cn',
@@ -215,11 +218,11 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 
 function replaceLastString(stringInput, stringToTrim) {
 	const index = stringInput.lastIndexOf(stringToTrim);
-    if (index < 0) {
-        return stringInput;
-    }
+	if (index < 0) {
+		return stringInput;
+	}
 
-    return stringInput.substr(0, index) + stringInput.substr(index + stringToTrim.length);
+	return stringInput.substr(0, index) + stringInput.substr(index + stringToTrim.length);
 }
 
 // Generates a package.nls.json file from localizedPackage.json.enu.xlf by using the
@@ -248,4 +251,19 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
 			callback(null, file);
 		}))
 		.pipe(gulp.dest(config.paths.project.root));
+});
+
+
+gulp.task('ext:new-localization', function () {
+	return gulp.src([config.paths.extension.root + '/**/*.*'])
+	.pipe(through.obj(function (file, enc, callback) {
+		console.error('file: ' + file.path);
+		const f = fs.readFileSync(file.path, 'utf8');
+		const result = vscodel10n.getL10nJson([{
+			contents: f,
+			extension: path.basename(file.path),
+		}]);
+		console.error('file: ' + file.path, 'result: ' + JSON.stringify(result));
+		callback(null, file);
+	}));
 });

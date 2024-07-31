@@ -5,7 +5,7 @@
 
 import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import { EncryptOptions } from '../models/interfaces';
 import * as Interfaces from './interfaces';
 import * as Utils from './utils';
