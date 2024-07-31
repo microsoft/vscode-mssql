@@ -5,7 +5,11 @@
 
 import { WebviewApi } from "vscode-webview";
 
-export class WebviewRpc {
+/**
+ * Rpc to communicate with the extension.
+ * @template Reducers interface that contains definitions for all reducers and their payloads.
+ */
+export class WebviewRpc<Reducers> {
 	private _rpcRequestId = 0;
 	private _rpcHandlers: { [id: number]: { resolve: (result: unknown) => void, reject: (error: unknown) => void } } = {};
 	private _methodSubscriptions: { [method: string]: ((params: unknown) => void)[] } = {};
@@ -34,6 +38,12 @@ export class WebviewRpc {
 
 	}
 
+	/**
+	 * Call a method on the extension. Use this method when you expect a response object from the extension.
+	 * @param method name of the method to call
+	 * @param params parameters to pass to the method
+	 * @returns a promise that resolves to the result of the method call
+	 */
 	public call(method: string, params?: unknown): Promise<unknown> {
 		const id = this._rpcRequestId++;
 		this._vscodeApi.postMessage({ type: 'request', id, method, params });
@@ -42,8 +52,14 @@ export class WebviewRpc {
 		});
 	}
 
-	public action(type: string, payload?: unknown) {
-		this.call('action', { type, payload });
+	/**
+	 * Call reducers defined for the webview. Use this for actions that modify the state of the webview.
+	 * @param method name of the method to call
+	 * @param payload parameters to pass to the method
+	 * @template MethodName name of the method to call. Must be a key of the Reducers interface.
+	 */
+	public action<MethodName extends keyof Reducers>(method: MethodName, payload?: Reducers[MethodName]) {
+		this.call('action', { type: method, payload });
 	}
 
 	public subscribe(method: string, callback: (params: unknown) => void) {

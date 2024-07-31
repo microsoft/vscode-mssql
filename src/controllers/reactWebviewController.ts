@@ -9,16 +9,16 @@ import * as vscode from 'vscode';
  * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides
  * a way to communicate with it. It provides a way to register request handlers and reducers
  * that can be called from the webview. It also provides a way to post notifications to the webview.
- * @template T The type of the state object that the webview will use
- * @template K The type of the reducers that the webview will use
+ * @template State The type of the state object that the webview will use
+ * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebViewPanelController<T, K> implements vscode.Disposable {
+export class ReactWebViewPanelController<State, Reducers> implements vscode.Disposable {
 	private _panel: vscode.WebviewPanel;
 	private _disposables: vscode.Disposable[] = [];
 	private _isDisposed: boolean = false;
-	private _state: T;
+	private _state: State;
 	private _webViewRequestHandlers: { [key: string]: (params: any) => any } = {};
-	private _reducers: Record<keyof K, (state: T, payload: K[keyof K]) => ReducerResponse<T>> = {} as Record<keyof K, (state: T, payload: K[keyof K]) => ReducerResponse<T>>;
+	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
 
 	/**
 	 * Creates a new ReactWebViewPanelController
@@ -35,7 +35,7 @@ export class ReactWebViewPanelController<T, K> implements vscode.Disposable {
 		title: string,
 		private _srcFile: string,
 		private _styleFile: string,
-		initialData: T,
+		initialData: State,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 		private _iconPath?: vscode.Uri | {
 			readonly light: vscode.Uri;
@@ -145,9 +145,9 @@ export class ReactWebViewPanelController<T, K> implements vscode.Disposable {
 	 * This method registers a reducer that can be called from the webview.
 	 * @param method The method name that the webview will use to call the reducer
 	 * @param reducer The reducer that will be called when the method is called
-	 * @template Z The key of the reducer that is being registered
+	 * @template Method The key of the reducer that is being registered
 	 */
-	public registerReducer<Z extends keyof K>(method: Z, reducer: (state: T, payload: K[Z]) => ReducerResponse<T>) {
+	public registerReducer<Method extends keyof Reducers>(method: Method, reducer: (state: State, payload: Reducers[Method]) => ReducerResponse<State>) {
 		this._reducers[method] = reducer;
 	}
 
@@ -169,7 +169,7 @@ export class ReactWebViewPanelController<T, K> implements vscode.Disposable {
 	/**
 	 * Gets the state object that the webview is using
 	 */
-	public get state(): T {
+	public get state(): State {
 		return this._state;
 	}
 
@@ -178,7 +178,7 @@ export class ReactWebViewPanelController<T, K> implements vscode.Disposable {
 	 * and may cause the webview to re-render.
 	 * @param value The new state object
 	 */
-	public set state(value: T) {
+	public set state(value: State) {
 		this._state = value;
 		this.postNotification(DefaultWebViewNotifications.updateState, value);
 	}

@@ -476,13 +476,13 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	}
 
 	private registerRpcHandlers() {
-		this.registerReducer<'setFormTab'>('setFormTab', async (state, payload) => {
+		this.registerReducer('setFormTab', async (state, payload) => {
 			this.state.selectedFormTab = payload.tab;
 			await this.updateItemVisibility();
 			return state;
 		});
 
-		this.registerReducer<'formAction'>('formAction', async (state, payload) => {
+		this.registerReducer('formAction', async (state, payload) => {
 			if (payload.event.isAction) {
 				const component = this.getFormComponent(payload.event.propertyName);
 				if (component && component.actionButtons) {
@@ -500,7 +500,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			return state;
 		});
 
-		this.registerReducer<'loadConnection'>('loadConnection', async (state, payload) => {
+		this.registerReducer('loadConnection', async (state, payload) => {
 			this._connectionToEditCopy = structuredClone(payload.connection);
 			this.clearFormError();
 			this.state.connectionProfile = payload.connection;
@@ -510,7 +510,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			return state;
 		});
 
-		this.registerReducer<'connect'>('connect', async (state) => {
+		this.registerReducer('connect', async (state) => {
 			this.clearFormError();
 			this.state.connectionStatus = ApiStatus.Loading;
 			this.state.formError = '';

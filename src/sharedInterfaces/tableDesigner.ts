@@ -791,7 +791,7 @@ export interface TableDesignerReactProvider {
 	 * Set the active result pane tab.
 	 * @param tabId the tab id.
 	 */
-	setResultTab: (tabId: string) => void;
+	setResultTab: (tabId: DesignerResultPaneTabs) => void;
 
 	/**
 	 * Close the table designer.

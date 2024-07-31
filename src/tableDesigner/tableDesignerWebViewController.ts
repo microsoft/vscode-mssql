@@ -125,7 +125,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 	}
 
 	private registerRpcHandlers() {
-		this.registerReducer<'processTableEdit'>('processTableEdit', async (state, payload) => {
+		this.registerReducer('processTableEdit', async (state, payload) => {
 			const editResponse = await this._tableDesignerService.processTableEdit(payload.table, payload.tableChangeInfo);
 			const afterEditState = {
 				...this.state,
@@ -141,7 +141,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			return afterEditState;
 		});
 
-		this.registerReducer<'publishChanges'>('publishChanges', async (state, payload) => {
+		this.registerReducer('publishChanges', async (state, payload) => {
 			this.state = {
 				...this.state,
 				apiState: {
@@ -165,7 +165,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			return state;
 		});
 
-		this.registerReducer<'generateScript'>('generateScript', async (state, payload) => {
+		this.registerReducer('generateScript', async (state, payload) => {
 			this.state = {
 				...this.state,
 				apiState: {
@@ -185,7 +185,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			return state;
 		});
 
-		this.registerReducer<'generatePreviewReport'>('generatePreviewReport', async (state, payload) => {
+		this.registerReducer('generatePreviewReport', async (state, payload) => {
 			this.state = {
 				...this.state,
 				apiState: {
@@ -205,39 +205,39 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 			return state;
 		});
 
-		this.registerReducer<'initializeTableDesigner'>('initializeTableDesigner', async (state) => {
+		this.registerReducer('initializeTableDesigner', async (state) => {
 			await this.initialize();
 			return state;
 		});
 
-		this.registerReducer<'scriptAsCreate'>('scriptAsCreate', async (state) => {
+		this.registerReducer('scriptAsCreate', async (state) => {
 			await this._untitledSqlDocumentService.newQuery(
 				(state.model['script'] as designer.InputBoxProperties).value ?? ''
 			);
 			return state;
 		});
 
-		this.registerReducer<'setTab'>('setTab', async (state, payload) => {
+		this.registerReducer('setTab', async (state, payload) => {
 			state.tabStates.mainPaneTab = payload.tabId;
 			return state;
 		});
 
-		this.registerReducer<'setPropertiesComponents'>('setPropertiesComponents', async (state, payload) => {
+		this.registerReducer('setPropertiesComponents', async (state, payload) => {
 			state.propertiesPaneData = payload.components;
 			return state;
 		});
 
-		this.registerReducer<'setResultTab'>('setResultTab', async (state, payload) => {
+		this.registerReducer('setResultTab', async (state, payload) => {
 			state.tabStates.resultPaneTab = payload.tabId;
 			return state;
 		});
 
-		this.registerReducer<'closeDesigner'>('closeDesigner', async (state) => {
+		this.registerReducer('closeDesigner', async (state) => {
 			this.panel.dispose();
 			return state;
 		});
 
-		this.registerReducer<'continueEditing'>('continueEditing', async (state) => {
+		this.registerReducer('continueEditing', async (state) => {
 			this.state.apiState.publishState = designer.LoadState.NotStarted;
 			return state;
 		});

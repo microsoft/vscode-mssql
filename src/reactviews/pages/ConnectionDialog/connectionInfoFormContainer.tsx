@@ -9,7 +9,6 @@ import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, m
 import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
-import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
 const sqlServerImage = require('../../../../media/sqlServer.svg');
 const sqlServerImageDark = require('../../../../media/sqlServer_inverse.svg');
 
@@ -109,7 +108,6 @@ const FormInput = ({ value, target, type }: { value: string, target: keyof IConn
 export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const classes = useStyles();
-	const vscode = useContext(VscodeWebviewContext);
 
 	const generateFormComponent = (component: FormComponent, profile: IConnectionDialogProfile, _idx: number) => {
 		switch (component.type) {
@@ -173,7 +171,7 @@ export const ConnectionInfoFormContainer = () => {
 						padding: '10px',
 					}
 				}
-					src={vscode?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
+					src={connectionDialogContext?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
 				<Text size={500} style={
 					{
 						lineHeight: '60px'

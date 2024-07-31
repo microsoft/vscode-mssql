@@ -3,13 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useContext } from 'react';
+import { ReactNode, createContext } from 'react';
 import * as designer from '../../../sharedInterfaces/tableDesigner';
-import { VscodeWebviewContext } from '../../common/vscodeWebViewProvider';
+import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
+import { Theme } from '@fluentui/react-components';
 
 export interface TableDesignerState {
 	provider: designer.TableDesignerReactProvider;
 	state: designer.TableDesignerWebViewState;
+	theme: Theme;
 }
 
 const TableDesignerContext = createContext<TableDesignerState | undefined>(undefined);
@@ -19,33 +21,33 @@ interface TableDesignerContextProps {
 }
 
 const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ children }) => {
-	const webViewState = useContext(VscodeWebviewContext);
-	const tableState = webViewState?.state as designer.TableDesignerWebViewState;
+	const webViewState = useVscodeWebview<designer.TableDesignerWebViewState, designer.TableDesignerReducers>();
+	const tableState = webViewState?.state;
 	return <TableDesignerContext.Provider value={
 		{
 			provider: {
 				processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
 					webViewState?.extensionRpc.action('processTableEdit', {
-						table: tableState.tableInfo,
-						tableChangeInfo: tableChangeInfo
+						table: tableState.tableInfo!,
+						tableChangeInfo: tableChangeInfo,
 					});
 				},
 				publishChanges: function (): void {
-					webViewState?.extensionRpc.action('publishChanges', { table: tableState.tableInfo });
+					webViewState?.extensionRpc.action('publishChanges', { table: tableState.tableInfo! });
 				},
 				generateScript: function (): void {
-					webViewState?.extensionRpc.action('generateScript', { table: tableState.tableInfo });
+					webViewState?.extensionRpc.action('generateScript', { table: tableState.tableInfo! });
 				},
 				generatePreviewReport: function (): void {
-					webViewState?.extensionRpc.action('generatePreviewReport', { table: tableState.tableInfo });
+					webViewState?.extensionRpc.action('generatePreviewReport', { table: tableState.tableInfo! });
 				},
 				initializeTableDesigner: function (): void {
-					webViewState?.extensionRpc.action('initializeTableDesigner', {});
+					webViewState?.extensionRpc.action('initializeTableDesigner', { table: tableState.tableInfo! });
 				},
 				scriptAsCreate: function (): void {
 					webViewState?.extensionRpc.action('scriptAsCreate', {});
 				},
-				setTab: function (tabId: string): void {
+				setTab: function (tabId: designer.DesignerMainPaneTabs): void {
 					webViewState?.extensionRpc.action('setTab', { tabId: tabId });
 				},
 				getComponentId: function (componentPath: (string | number)[]): string {
@@ -68,9 +70,9 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 					return result.join('\n') ?? '';
 				},
 				setPropertiesComponents: function (components: designer.PropertiesPaneData | undefined): void {
-					webViewState?.extensionRpc.action('setPropertiesComponents', { components: components });
+					webViewState?.extensionRpc.action('setPropertiesComponents', { components: components! });
 				},
-				setResultTab: function (tabId: string): void {
+				setResultTab: function (tabId: designer.DesignerResultPaneTabs): void {
 					webViewState?.extensionRpc.action('setResultTab', { tabId: tabId });
 				},
 				closeDesigner: function (): void {
@@ -80,7 +82,8 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 					webViewState?.extensionRpc.action('continueEditing', {});
 				}
 			},
-			state: webViewState?.state as designer.TableDesignerWebViewState
+			state: webViewState?.state as designer.TableDesignerWebViewState,
+			theme: webViewState?.theme
 		}
 	}>{children}</TableDesignerContext.Provider>;
 };

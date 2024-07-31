@@ -4,30 +4,52 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FluentProvider, Theme, teamsHighContrastTheme, webDarkTheme, webLightTheme } from "@fluentui/react-components";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 
-interface VscodeWebviewContext {
+/**
+ * Context for vscode webview functionality like theming, state management, rpc and vscode api.
+ * @template State interface that contains definitions for all state properties.
+ * @template Reducers interface that contains definitions for all reducers and their payloads.
+ */
+interface VscodeWebviewContext<State, Reducers> {
+	/**
+	 * The vscode api instance.
+	 */
 	vscodeApi: WebviewApi<unknown>;
-	extensionRpc: WebviewRpc;
-	state: unknown;
+	/**
+	 * Rpc to communicate with the extension.
+	 */
+	extensionRpc: WebviewRpc<Reducers>;
+	/**
+	 * State of the webview.
+	 */
+	state: State;
+	/**
+	 * Theme of the webview.
+	 */
 	theme: Theme;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
 
-const VscodeWebviewContext = createContext<VscodeWebviewContext | undefined>(undefined);
+const VscodeWebviewContext = createContext<VscodeWebviewContext<unknown, unknown> | undefined>(undefined);
 
 interface VscodeWebViewProviderProps {
 	children: React.ReactNode;
 }
 
-const VscodeWebViewProvider: React.FC<VscodeWebViewProviderProps> = ({ children }) => {
+/**
+ * Provider for essential vscode webview functionality like
+ * theming, state management, rpc and vscode api.
+ * @param param0 child components
+ */
+export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebViewProviderProps) {
 	const vscodeApi = vscodeApiInstance;
-	const extensionRpc = new WebviewRpc(vscodeApi);
+	const extensionRpc = new WebviewRpc<Reducers>(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);
-	const [state, setState] = useState<unknown>();
+	const [state, setState] = useState<State>();
 
 	useEffect(() => {
 		async function getTheme() {
@@ -46,7 +68,7 @@ const VscodeWebViewProvider: React.FC<VscodeWebViewProviderProps> = ({ children 
 		}
 
 		getTheme();
-	})
+	});
 
 	extensionRpc.subscribe('onDidChangeTheme', (params) => {
 		const kind = params as ColorThemeKind;
@@ -64,7 +86,7 @@ const VscodeWebViewProvider: React.FC<VscodeWebViewProviderProps> = ({ children 
 	});
 
 	extensionRpc.subscribe('updateState', (params) => {
-		setState(params);
+		setState(params as State);
 	});
 
 	return <VscodeWebviewContext.Provider value={{
@@ -83,7 +105,14 @@ const VscodeWebViewProvider: React.FC<VscodeWebViewProviderProps> = ({ children 
 	</VscodeWebviewContext.Provider>;
 }
 
-export { VscodeWebviewContext, VscodeWebViewProvider };
+export function useVscodeWebview<State, Reducers>() {
+	const context = useContext(VscodeWebviewContext);
+	if (!context) {
+		throw new Error('useVscodeWebview must be used within a VscodeWebviewProvider');
+	}
+	return context as VscodeWebviewContext<State, Reducers>;
+}
+
 export enum ColorThemeKind {
 	Light = 1,
 	Dark = 2,
