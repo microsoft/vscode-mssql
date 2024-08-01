@@ -106,7 +106,7 @@ jobs:
         with:
             name: 'Smoke Test'
             path: ./test-reports/**/smoke-results.xml
-            reporter: dotnet-trx
+            reporter: jest-junit
 
 
 
