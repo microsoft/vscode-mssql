@@ -37,7 +37,6 @@ jobs:
           npm install --global vsce@2.9.2
           echo "Installing gulp"
           npm install --global gulp@4.0.2
-          npm install gulp
 
       - name: Install extension dependencies
         run: |
