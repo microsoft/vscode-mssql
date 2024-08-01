@@ -29,8 +29,8 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['playwright-trx-reporter', {
-    outputFile: './test-reports/smoke-results.trx',
+  reporter: [['junit', {
+    outputFile: './test-reports/smoke-results.xml',
   }]],
   /* Set timeout to 5 minutes */
   timeout: 5 * 60 * 1000,

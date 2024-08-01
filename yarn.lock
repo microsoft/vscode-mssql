@@ -7840,13 +7840,6 @@ playwright-core@1.45.0:
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.45.0.tgz#5741a670b7c9060ce06852c0051d84736fb94edc"
   integrity sha512-lZmHlFQ0VYSpAs43dRq1/nJ9G/6SiTI7VPqidld9TDefL9tX87bTKExWZZUF5PeRyqtXqd8fQi2qmfIedkwsNQ==
 
-playwright-trx-reporter@^1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/playwright-trx-reporter/-/playwright-trx-reporter-1.0.8.tgz#3bc5a28eb432f5b5c132716aab7ae9a487defd63"
-  integrity sha512-Pufi7jWWc43X4wnx436dgxyoSkN2ZmzbIGzPIXl1MVgq2sdRW9CGaECe/7kpUwjJXDfbZ7WkbM6yWVq8tSnocg==
-  dependencies:
-    uuid "^9.0.0"
-
 playwright@1.45.0:
   version "1.45.0"
   resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.45.0.tgz#400c709c64438690f13705cb9c88ef93089c5c27"
@@ -10020,11 +10013,6 @@ uuid@^8.3.0:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
-uuid@^9.0.0:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
-  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8flags@^3.2.0:
   version "3.2.0"

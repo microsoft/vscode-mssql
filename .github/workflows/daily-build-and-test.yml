@@ -105,7 +105,7 @@ jobs:
         if: success() || failure()
         with:
             name: 'Smoke Test'
-            path: ./test-reports/**/*.trx
+            path: ./test-reports/**/smoke-results.xml
             reporter: dotnet-trx
 
 
