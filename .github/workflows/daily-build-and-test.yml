@@ -71,6 +71,10 @@ jobs:
           reporter: jest-junit
           badge-title: 'unit-tests'
 
+      - name: Generate Code Coverage Report
+        run: |
+          yarn gulp cover
+
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
