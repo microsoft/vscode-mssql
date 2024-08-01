@@ -72,6 +72,7 @@ jobs:
           badge-title: 'unit-tests'
 
       - name: Generate Code Coverage Report
+        id: testcoverage
         run: |
           yarn gulp cover
 
@@ -86,6 +87,17 @@ jobs:
           hide_complexity: true
           indicators: true
           output: both
+
+      - name: Create a check run for code coverage
+        uses: LouisBrunner/checks-action@v2.0.0
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Coverage
+          conclusion: ${{ steps.testcoverage.conclusion }}
+          output: |
+            {"summary":"${{ steps.testcoverage }}"}
+          output_text_description_file: ./code-coverage-results.md
 
       - name: Setup environment for smoke tests
         run: |
