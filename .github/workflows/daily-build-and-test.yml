@@ -38,7 +38,6 @@ jobs:
           echo "Installing gulp"
           npm install --global gulp@4.0.2
           npm install gulp
-          npm link gulp
 
       - name: Install extension dependencies
         run: |
