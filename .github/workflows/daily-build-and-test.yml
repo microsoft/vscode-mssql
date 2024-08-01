@@ -58,12 +58,13 @@ jobs:
         run: |
           DISPLAY=:10 yarn test --coverage --log
 
-      - name: Publish test
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+      - name: Unit Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
         with:
-          files: |
-            ./test-reports/**/*.xml
+          name: 'Unit Test'
+          path: ./test-reports/**/*.xml
+          reporter: jest-junit
 
       - name: Setup environment for smoke tests
         run: |
@@ -95,12 +96,13 @@ jobs:
           PROFILE_NAME=test-server
           DISPLAY=:10 yarn smoketest
 
-      - name: Publish smoke test
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+      - name: Smoke Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
         with:
-          files: |
-            ./test-reports/**/*.trx
+            name: 'Smoke Test'
+            path: ./test-reports/**/*.trx
+            reporter: dotnet-trx
 
 
 
