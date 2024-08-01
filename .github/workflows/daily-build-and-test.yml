@@ -83,12 +83,6 @@ jobs:
           indicators: true
           output: both
 
-      - uses: dtinth/markdown-report-action@v1
-        with:
-        name: Coverage Report
-        title: Unit Test Coverage
-        body-file: code-coverage-results.md
-
       - name: Setup environment for smoke tests
         run: |
           echo "Setting up environment for smoke tests"
