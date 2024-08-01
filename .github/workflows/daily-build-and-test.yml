@@ -96,7 +96,7 @@ jobs:
           name: Coverage
           conclusion: ${{ steps.testcoverage.conclusion }}
           output: |
-            {"summary":"${{ steps.testcoverage }}"}
+            {"summary":"${{ steps.testcoverage.summary }}"}
           output_text_description_file: ./code-coverage-results.md
 
       - name: Setup environment for smoke tests
