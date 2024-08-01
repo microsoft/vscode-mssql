@@ -1,0 +1,107 @@
+name: Daily Build and Test
+
+on:
+	schedule:
+		- cron: '0 0 * * *'
+	workflow_dispatch:
+
+jobs:
+	runs-on: ubuntu-latest
+
+	steps:
+		- name: Checkout Repository
+		uses: actions/checkout@v2
+
+		- name: Set up Node.js
+		uses: actions/setup-node@v2
+		with:
+			node-version: '18'
+
+		- name: Set up xvfb
+		run: |
+			sudo apt-get update
+      		sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+      		sudo cp build/xvfb.init /etc/init.d/xvfb
+      		sudo chmod +x /etc/init.d/xvfb
+     		sudo update-rc.d xvfb defaults
+      		sudo service xvfb start
+
+		- name: Install tools
+		run: |
+			echo "Installing Yarn"
+			npm install --global yarn@1.22.19
+			echo "Installing Gulp CLI"
+			npm install --global gulp-cli@2.3.0
+			echo "Installing VSCE"
+			npm install --global vsce@2.9.2
+			echo "Installing gulp"
+			npm install --global gulp@4.0.2
+			npm install gulp
+			npm link gulp
+
+		- name: Install extension dependencies
+		run: |
+			yarn --frozen-lockfile
+
+		- name: Install playwright dependencies
+		run: |
+			npx playwright install --with-deps
+
+		- name: Build extension
+		run: |
+			yarn build
+
+		- name: Run lint
+		run: |
+			yarn lint
+
+		- name: Run tests
+		run: |
+			DISPLAY=:10 yarn test --coverage --log
+
+		- name: Publish test
+		uses: EnricoMi/publish-unit-test-result-action@v2
+		if: always()
+		with:
+			files: |
+				./test-reports/**/*.xml
+
+		- name: Setup environment for smoke tests
+		run: |
+			echo "Setting up environment for smoke tests"
+			echo "PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)" >> $GITHUB_ENV
+
+		- name: Install mssql
+		run: |
+			sudo cp build/mssql.init /etc/init.d/mssql-server
+     		sudo chmod +x /etc/init.d/mssql-server
+      		curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+      		sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
+      		sudo apt-get update
+      		sudo apt-get install -y mssql-server
+     		sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD=${{ env.PASSWORD }} /opt/mssql/bin/mssql-conf setup || true
+
+		- name: Start mssql
+		run: |
+			sudo service mssql-server start
+
+		- name: Run smoke tests
+		run: |
+			VS_CODE_VERSION=stable
+			SERVER_NAME=localhost
+			AUTHENTICATION_TYPE="SQL Login"
+			USER_NAME=sa
+			PASSWORD=${{ env.PASSWORD }}
+			SAVE_PASSWORD=No
+			PROFILE_NAME=test-server
+			DISPLAY=:10 yarn smoketest
+
+		- name: Publish smoke test
+		uses: EnricoMi/publish-unit-test-result-action@v2
+		if: always()
+		with:
+			files: |
+				./test-reports/**/*.trx
+
+
+
