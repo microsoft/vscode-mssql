@@ -4,6 +4,10 @@ on:
     schedule:
       - cron: '0 0 * * *'
     workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  checks: write
 
 jobs:
   build-and-test:
@@ -37,8 +41,6 @@ jobs:
           npm install --global vsce@2.9.2
           echo "Installing gulp"
           npm install --global gulp@4.0.2
-          npm install gulp
-          npm link gulp
 
       - name: Install extension dependencies
         run: |
@@ -60,12 +62,42 @@ jobs:
         run: |
           DISPLAY=:10 yarn test --coverage --log
 
-      - name: Publish test
-        uses: EnricoMi/publish-unit-test-result-action@v2
+      - name: Unit Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: 'Unit Test'
+          path: ./test-reports/**/*.xml
+          reporter: jest-junit
+          badge-title: 'unit-tests'
+
+      - name: Generate Code Coverage Report
+        id: testcoverage
+        run: |
+          yarn gulp cover
+
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: ./coverage/cobertura-coverage.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+
+      - name: Create a check run for code coverage
+        uses: LouisBrunner/checks-action@v2.0.0
         if: always()
         with:
-          files: |
-            ./test-reports/**/*.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Coverage
+          conclusion: ${{ steps.testcoverage.conclusion }}
+          output: |
+            {"summary":"${{ steps.testcoverage.summary }}"}
+          output_text_description_file: ./code-coverage-results.md
 
       - name: Setup environment for smoke tests
         run: |
@@ -97,12 +129,14 @@ jobs:
           PROFILE_NAME=test-server
           DISPLAY=:10 yarn smoketest
 
-      - name: Publish smoke test
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+      - name: Smoke Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
         with:
-          files: |
-            ./test-reports/**/*.trx
+            name: 'Smoke Test'
+            path: ./test-reports/**/smoke-results.xml
+            reporter: jest-junit
+            badge-title: 'smoke-tests'
 
 
 
