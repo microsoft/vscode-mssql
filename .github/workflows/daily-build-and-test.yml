@@ -69,6 +69,7 @@ jobs:
           name: 'Unit Test'
           path: ./test-reports/**/*.xml
           reporter: jest-junit
+          badge-title: 'unit-tests'
 
       - name: Setup environment for smoke tests
         run: |
@@ -107,6 +108,7 @@ jobs:
             name: 'Smoke Test'
             path: ./test-reports/**/smoke-results.xml
             reporter: jest-junit
+            badge-title: 'smoke-tests'
 
 
 

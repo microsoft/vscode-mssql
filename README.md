@@ -1,4 +1,4 @@
-[![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=main)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=main)
+[![Daily Build and Test](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml/badge.svg?branch=main&event=schedule)](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
