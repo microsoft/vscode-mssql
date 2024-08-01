@@ -71,6 +71,24 @@ jobs:
           reporter: jest-junit
           badge-title: 'unit-tests'
 
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/lcov.info
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+
+      - uses: dtinth/markdown-report-action@v1
+        with:
+        name: Coverage Report
+        title: Unit Test Coverage
+        body-file: code-coverage-results.md
+
       - name: Setup environment for smoke tests
         run: |
           echo "Setting up environment for smoke tests"
