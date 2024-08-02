@@ -44,6 +44,8 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { ExecutionPlanOptions } from '../models/contracts/queryExecute';
+// import { QueryPlanWebViewController } from './queryPlanWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -753,8 +755,8 @@ export default class MainController implements vscode.Disposable {
 
 	private async onEstimatePlan(callbackThis?: MainController): Promise<void> {
 		// the 'this' context is lost in retry callback, so capture it here
-		/*
 		let self: MainController = callbackThis ? callbackThis : this;
+		vscode.window.showInformationMessage("Estimate Query button clicked");
 		try {
 			if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
 				return;
@@ -804,22 +806,26 @@ export default class MainController implements vscode.Disposable {
 				return;
 			}
 
+			let executionPlanOptions: ExecutionPlanOptions = {
+				includeEstimatedExecutionPlanXml: true
+			}
+
 			// Show react view
-			const reactPanel = new TableDesignerWebViewController(
+			/*
+			const reactPanel = new QueryPlanWebViewController(
 				this._context,
-				this.tableDesignerService,
+				self._outputContentProvider,
 				this._connectionMgr,
 				this._untitledSqlDocumentService,
 			);
 			reactPanel.revealToForeground();
+			*/
 
-			// await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
+			await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title, undefined, executionPlanOptions);
 
 		} catch (err) {
 			console.warn(`Unexpected error estimating plan : ${err}`);
 		}
-		*/
-		vscode.window.showInformationMessage("Estimate Query button clicked");
 	}
 
 	/**

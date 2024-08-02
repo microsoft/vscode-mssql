@@ -21,7 +21,8 @@ import {
 	QueryExecuteOptionsRequest,
 	QueryExecutionOptionsParams,
 	QueryExecutionOptions,
-	DbCellValue
+	DbCellValue,
+	ExecutionPlanOptions
 } from '../models/contracts/queryExecute';
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
@@ -139,13 +140,14 @@ export default class QueryRunner {
 	}
 
 	// Pulls the query text from the current document/selection and initiates the query
-	public async runStatement(line: number, column: number): Promise<void> {
+	public async runStatement(line: number, column: number, executionPlanOptions: ExecutionPlanOptions = {}): Promise<void> {
 		await this.doRunQuery(
 			<ISelectionData>{ startLine: line, startColumn: column, endLine: 0, endColumn: 0 },
 			async (onSuccess, onError) => {
 				// Put together the request
 				let queryDetails: QueryExecuteStatementParams = {
 					ownerUri: this._ownerUri,
+					executionPlanOptions: executionPlanOptions,
 					line: line,
 					column: column
 				};
@@ -156,13 +158,14 @@ export default class QueryRunner {
 	}
 
 	// Pulls the query text from the current document/selection and initiates the query
-	public async runQuery(selection: ISelectionData, promise?: Deferred<boolean>): Promise<void> {
+	public async runQuery(selection: ISelectionData, promise?: Deferred<boolean>, executionPlanOptions: ExecutionPlanOptions = {}): Promise<void> {
 		await this.doRunQuery(
 			selection,
 			async (onSuccess, onError) => {
 				// Put together the request
 				let queryDetails: QueryExecuteParams = {
 					ownerUri: this._ownerUri,
+					executionPlanOptions: executionPlanOptions,
 					querySelection: selection
 				};
 

@@ -15,9 +15,10 @@ import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
 import { IServerProxy, Deferred } from '../protocol';
-import { ResultSetSubset } from './contracts/queryExecute';
+import { ResultSetSubset, ExecutionPlanOptions } from './contracts/queryExecute';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+
 // tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
 
@@ -104,7 +105,7 @@ export class SqlOutputContentProvider {
 
 	public async runQuery(
 		statusView: any, uri: string,
-		selection: ISelectionData, title: string, promise?: Deferred<boolean>): Promise<void> {
+		selection: ISelectionData, title: string, promise?: Deferred<boolean>, executionPlanOptions: ExecutionPlanOptions = {}): Promise<void> {
 		// execute the query with a query runner
 		await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
 			async (queryRunner: QueryRunner) => {
@@ -113,7 +114,7 @@ export class SqlOutputContentProvider {
 					if (this._panels.get(uri).isActive === false) {
 						this._panels.get(uri).revealToForeground(uri);
 					}
-					await queryRunner.runQuery(selection, promise);
+					await queryRunner.runQuery(selection, promise, executionPlanOptions);
 
 				}
 			});

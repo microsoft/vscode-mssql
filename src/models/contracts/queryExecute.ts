@@ -80,13 +80,20 @@ export namespace QueryExecuteStatementRequest {
 
 export class QueryExecuteParams {
 	ownerUri: string;
+	executionPlanOptions?: ExecutionPlanOptions
 	querySelection: ISelectionData;
 }
 
 export class QueryExecuteStatementParams {
 	ownerUri: string;
+	executionPlanOptions: ExecutionPlanOptions
 	line: number;
 	column: number;
+}
+
+export interface ExecutionPlanOptions {
+	includeEstimatedExecutionPlanXml?: boolean | undefined;
+	includeActualExecutionPlanXml?: boolean | undefined;
 }
 
 export class QueryExecuteResult { }

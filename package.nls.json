@@ -3,7 +3,6 @@
 "mssql.runCurrentStatement":"Execute Current Statement",
 "mssql.cancelQuery":"Cancel Query",
 "mssql.changeDatabase":"Change Database",
-"mssql.estimatePlan":"Estimate Plan",
 "mssql.addObjectExplorer":"Add Connection",
 "mssql.scriptSelect":"Select Top 1000",
 "mssql.scriptCreate":"Script as Create",
