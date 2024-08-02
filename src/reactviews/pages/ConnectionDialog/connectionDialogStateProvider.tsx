@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useContext } from "react";
-import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
-import { ConnectionDialogContextProps, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { createContext } from "react";
+import { useVscodeWebview } from "../../common/vscodeWebViewProvider";
+import { ConnectionDialogContextProps, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -14,14 +14,15 @@ interface ConnectionDialogProviderProps {
 }
 
 const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
-	const webViewState = useContext(VscodeWebviewContext);
-	const connectionDialogState = webViewState?.state as ConnectionDialogWebviewState;
+	const webViewState = useVscodeWebview<ConnectionDialogWebviewState, ConnectionDialogReducers>();
+	const connectionDialogState = webViewState?.state;
 	return <ConnectionDialogContext.Provider value={
 		{
 			state: connectionDialogState,
+			theme: webViewState?.theme,
 			loadConnection: function (connection: IConnectionDialogProfile): void {
 				webViewState?.extensionRpc.action('loadConnection', {
-					connection: connection
+					connection: connection,
 				 });
 			},
 			formAction: function (event): void {
@@ -35,7 +36,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 				});
 			},
 			connect: function (): void {
-				webViewState?.extensionRpc.action('connect', {});
+				webViewState?.extensionRpc.action('connect');
 			}
 		}
 	}>{children}</ConnectionDialogContext.Provider>;

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
 
 export enum FormTabs {
@@ -37,6 +38,7 @@ export enum ApiStatus {
 
 export interface ConnectionDialogContextProps {
 	state: ConnectionDialogWebviewState;
+	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
 	formAction: (event: FormEvent) => void;
 	setFormTab: (tab: FormTabs) => void;
@@ -152,4 +154,17 @@ export enum AuthenticationType {
 	SqlLogin = 'SqlLogin',
 	Integrated = 'Integrated',
 	AzureMFA = 'AzureMFA'
+}
+
+export interface ConnectionDialogReducers {
+	setFormTab: {
+		tab: FormTabs;
+	},
+	formAction: {
+		event: FormEvent;
+	},
+	loadConnection: {
+		connection: IConnectionDialogProfile;
+	},
+	connect: {}
 }

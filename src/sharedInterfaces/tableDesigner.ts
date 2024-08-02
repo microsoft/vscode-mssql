@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Definition for the table designer provider.
+ * Definition for the table designer service.
  */
-export interface TableDesignerProvider {
+export interface ITableDesignerService {
 	/**
 	 * Initialize the table designer for the specified table.
 	 * @param table the table information.
@@ -410,7 +410,7 @@ export interface DesignerTableComponentDataItem {
 	/**
 	 * Whether the row can be deleted. The default value is true.
 	 */
-	canBeDeleted?: boolean;
+	canBeDeleted: boolean;
 }
 
 /**
@@ -451,6 +451,10 @@ export interface DesignerEdit {
 	 * the new value.
 	 */
 	value?: any;
+	/**
+	 * The UI area where the edit originated.
+	 */
+	source: DesignerUIArea;
 }
 
 /**
@@ -495,7 +499,7 @@ export interface DesignerIssue {
 	 */
 	description: string,
 	/**
-	 * Url to a web page that has the explaination of the issue.
+	 * Url to a web page that has the explanation of the issue.
 	 */
 	moreInfoLink?: string;
 }
@@ -681,4 +685,121 @@ export interface DesignerView {
 export enum InputType {
     Text = "text",
     Number = "number"
+}
+
+export interface TableDesignerReducers {
+	processTableEdit: {
+		table: TableInfo,
+		tableChangeInfo: DesignerEdit
+	},
+	publishChanges: {
+		table: TableInfo
+	}
+	generateScript: {
+		table: TableInfo
+	},
+	generatePreviewReport: {
+		table: TableInfo
+	}
+	initializeTableDesigner: {
+		table: TableInfo
+	},
+	scriptAsCreate: {
+	},
+	setTab: {
+		tabId: DesignerMainPaneTabs
+	},
+	setPropertiesComponents: {
+		components: PropertiesPaneData
+	},
+	setResultTab: {
+		tabId: DesignerResultPaneTabs
+	}
+	closeDesigner: {
+	},
+	continueEditing: {
+	}
+}
+
+export type DesignerUIArea = 'PropertiesView' | 'ScriptView' | 'TopContentView' | 'TabsView';
+
+/**
+ * Definition for the table designer react context provider.
+ */
+export interface TableDesignerReactProvider {
+	/**
+	 * Initialize the table designer for the specified table.
+	 * @param table the table information.
+	 */
+	initializeTableDesigner(): void;
+
+	/**
+	 * Process the table change.
+	 * @param table the table information
+	 * @param tableChangeInfo the information about the change user made through the UI.
+	 */
+	processTableEdit(tableChangeInfo: DesignerEdit): void;
+
+	/**
+	 * Publish the changes.
+	 * @param table the table information
+	 */
+	publishChanges(): void;
+
+	/**
+	 * Generate script for the changes.
+	 * @param table the table information
+	 */
+	generateScript(): void;
+
+	/**
+	 * Generate preview report describing the changes to be made.
+	 * @param table the table information
+	 */
+	generatePreviewReport(): void;
+
+	/**
+	 * Change the active tab of table designer pane.
+	 * @param tabId
+	 */
+	setTab: (tabId: DesignerMainPaneTabs) => void;
+
+	/**
+	 * Create a new sql create script for the table.
+	 */
+	scriptAsCreate: () => void;
+
+	/**
+	 * Get the unique id for the component.
+	 * @param componentPath the path of the component.
+	 */
+	getComponentId: (componentPath: (string | number)[]) => string;
+
+	/**
+	 * Get the error message for the component.
+	 * @param componentPath the path of the component.
+	 */
+	getErrorMessage: (componentPath: (string | number)[]) => string | undefined;
+
+	/**
+	 * Set the properties components.
+	 * @param data the properties components data.
+	 */
+	setPropertiesComponents: (data: PropertiesPaneData | undefined) => void;
+
+	/**
+	 * Set the active result pane tab.
+	 * @param tabId the tab id.
+	 */
+	setResultTab: (tabId: DesignerResultPaneTabs) => void;
+
+	/**
+	 * Close the table designer.
+	 */
+	closeDesigner: () => void;
+
+	/**
+	 * Continue editing the table.
+	 */
+	continueEditing: () => void;
 }

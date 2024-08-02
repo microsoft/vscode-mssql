@@ -10,7 +10,7 @@ import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerInputBox } from "./designerInputBox";
 import { DesignerDropdown } from "./designerDropdown";
 import { DesignerTable } from "./designerTable";
-import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces";
+import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerCollapsibleDiv } from "./designerCollapsibleDiv";
 
 const useStyles = makeStyles({

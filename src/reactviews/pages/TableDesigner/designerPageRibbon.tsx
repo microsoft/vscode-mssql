@@ -8,7 +8,7 @@ import { DocumentChevronDoubleRegular } from "@fluentui/react-icons";
 import { Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { LoadState } from "./tableDesignerInterfaces";
+import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
 
 const useStyles = makeStyles({

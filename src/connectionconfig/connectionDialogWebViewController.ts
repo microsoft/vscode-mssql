@@ -5,14 +5,14 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { ApiStatus, AuthenticationType, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormEvent, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { ApiStatus, AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 
-export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState> {
+export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
 	constructor(
 		context: vscode.ExtensionContext,
@@ -476,88 +476,83 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	}
 
 	private registerRpcHandlers() {
-		this.registerReducers({
-			'setFormTab': async (state, payload: {
-				tab: FormTabs
-			}) => {
-				this.state.selectedFormTab = payload.tab;
-				await this.updateItemVisibility();
-				return state;
-			},
-			'formAction': async (state, payload: {
-				event: FormEvent
-			}) => {
-				if (payload.event.isAction) {
-					const component = this.getFormComponent(payload.event.propertyName);
-					if (component && component.actionButtons) {
-						const actionButton = component.actionButtons.find(b => b.id === payload.event.value);
-						if (actionButton?.callback) {
-							await actionButton.callback();
-						}
-					}
-				} else {
-					(this.state.connectionProfile[payload.event.propertyName] as any) = payload.event.value;
-					await this.validateFormComponents(payload.event.propertyName);
-					await this.handleAzureMFAEdits(payload.event.propertyName);
-				}
-				await this.updateItemVisibility();
-				return state;
-			},
-			'loadConnection': async (state, payload: {
-				connection: IConnectionDialogProfile
-			}) => {
-				this._connectionToEditCopy = structuredClone(payload.connection);
-				this.clearFormError();
-				this.state.connectionProfile = payload.connection;
-				await this.updateItemVisibility();
-				await this.handleAzureMFAEdits('azureAuthType');
-				await this.handleAzureMFAEdits('accountId');
-				return state;
-			},
-			'connect': async (state) => {
-				this.clearFormError();
-				this.state.connectionStatus = ApiStatus.Loading;
-				this.state.formError = '';
-				this.state = this.state;
-				const notHiddenComponents = this.state.formComponents.filter(c => !c.hidden).map(c => c.propertyName);
-				// Set all other fields to undefined
-				Object.keys(this.state.connectionProfile).forEach(key => {
-					if (!notHiddenComponents.includes(key as keyof IConnectionDialogProfile)) {
-						(this.state.connectionProfile[key as keyof IConnectionDialogProfile] as any) = undefined;
-					}
-				});
-				const errorCount = await this.validateFormComponents();
-				if (errorCount > 0) {
-					this.state.connectionStatus = ApiStatus.Error;
-					return state;
-				}
+		this.registerReducer('setFormTab', async (state, payload) => {
+			this.state.selectedFormTab = payload.tab;
+			await this.updateItemVisibility();
+			return state;
+		});
 
-				try {
-					const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
-					if (result?.errorMessage) {
-						this.state.formError = result.errorMessage;
-						this.state.connectionStatus = ApiStatus.Error;
-						return state;
+		this.registerReducer('formAction', async (state, payload) => {
+			if (payload.event.isAction) {
+				const component = this.getFormComponent(payload.event.propertyName);
+				if (component && component.actionButtons) {
+					const actionButton = component.actionButtons.find(b => b.id === payload.event.value);
+					if (actionButton?.callback) {
+						await actionButton.callback();
 					}
-					if (this._connectionToEditCopy) {
-						await this._mainController.connectionManager.getUriForConnection(this._connectionToEditCopy);
-						await this._objectExplorerProvider.removeConnectionNodes([this._connectionToEditCopy]);
-						await this._mainController.connectionManager.connectionStore.removeProfile(this._connectionToEditCopy as any);
-						await this._objectExplorerProvider.refresh(undefined);
-					}
-					await this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any);
-					const node = await this._mainController.createObjectExplorerSessionFromDialog(this.state.connectionProfile);
-					await this._objectExplorerProvider.refresh(undefined);
-					await this.loadRecentConnections();
-					this.state.connectionStatus = ApiStatus.Loaded;
-					await this._mainController.objectExplorerTree.reveal(node, { focus: true, select: true, expand: true });
-					await this.panel.dispose();
-				} catch (error) {
-					this.state.connectionStatus = ApiStatus.Error;
-					return state;
 				}
+			} else {
+				(this.state.connectionProfile[payload.event.propertyName] as any) = payload.event.value;
+				await this.validateFormComponents(payload.event.propertyName);
+				await this.handleAzureMFAEdits(payload.event.propertyName);
+			}
+			await this.updateItemVisibility();
+			return state;
+		});
+
+		this.registerReducer('loadConnection', async (state, payload) => {
+			this._connectionToEditCopy = structuredClone(payload.connection);
+			this.clearFormError();
+			this.state.connectionProfile = payload.connection;
+			await this.updateItemVisibility();
+			await this.handleAzureMFAEdits('azureAuthType');
+			await this.handleAzureMFAEdits('accountId');
+			return state;
+		});
+
+		this.registerReducer('connect', async (state) => {
+			this.clearFormError();
+			this.state.connectionStatus = ApiStatus.Loading;
+			this.state.formError = '';
+			this.state = this.state;
+			const notHiddenComponents = this.state.formComponents.filter(c => !c.hidden).map(c => c.propertyName);
+			// Set all other fields to undefined
+			Object.keys(this.state.connectionProfile).forEach(key => {
+				if (!notHiddenComponents.includes(key as keyof IConnectionDialogProfile)) {
+					(this.state.connectionProfile[key as keyof IConnectionDialogProfile] as any) = undefined;
+				}
+			});
+			const errorCount = await this.validateFormComponents();
+			if (errorCount > 0) {
+				this.state.connectionStatus = ApiStatus.Error;
 				return state;
 			}
+
+			try {
+				const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
+				if (result?.errorMessage) {
+					this.state.formError = result.errorMessage;
+					this.state.connectionStatus = ApiStatus.Error;
+					return state;
+				}
+				if (this._connectionToEditCopy) {
+					await this._mainController.connectionManager.getUriForConnection(this._connectionToEditCopy);
+					await this._objectExplorerProvider.removeConnectionNodes([this._connectionToEditCopy]);
+					await this._mainController.connectionManager.connectionStore.removeProfile(this._connectionToEditCopy as any);
+					await this._objectExplorerProvider.refresh(undefined);
+				}
+				await this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any);
+				const node = await this._mainController.createObjectExplorerSessionFromDialog(this.state.connectionProfile);
+				await this._objectExplorerProvider.refresh(undefined);
+				await this.loadRecentConnections();
+				this.state.connectionStatus = ApiStatus.Loaded;
+				await this._mainController.objectExplorerTree.reveal(node, { focus: true, select: true, expand: true });
+				await this.panel.dispose();
+			} catch (error) {
+				this.state.connectionStatus = ApiStatus.Error;
+				return state;
+			}
+			return state;
 		});
 	}
 }

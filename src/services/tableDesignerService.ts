@@ -5,12 +5,12 @@
 
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { DisposeTableDesignerRequest, InitializeTableDesignerRequest, ProcessTableDesignerEditRequest, PublishTableDesignerChangesRequest, TableDesignerGenerateChangePreviewReportRequest, TableDesignerGenerateScriptRequest } from '../models/contracts/tableDesigner';
-import * as td from '../tableDesigner/tableDesignerInterfaces';
+import * as designer from '../sharedInterfaces/tableDesigner';
 
-export class TableDesignerService implements td.TableDesignerProvider {
+export class TableDesignerService implements designer.ITableDesignerService {
 	constructor(private _sqlToolsClient: SqlToolsServiceClient) {
 	}
-	async initializeTableDesigner(table: td.TableInfo): Promise<td.TableDesignerInfo> {
+	async initializeTableDesigner(table: designer.TableInfo): Promise<designer.TableDesignerInfo> {
 		try {
 			return await this._sqlToolsClient.sendRequest(InitializeTableDesignerRequest.type, table);
 		} catch (e) {
@@ -18,7 +18,7 @@ export class TableDesignerService implements td.TableDesignerProvider {
 			throw e;
 		}
 	}
-	async processTableEdit(table: td.TableInfo, tableChangeInfo: td.DesignerEdit): Promise<td.DesignerEditResult<td.TableDesignerView>> {
+	async processTableEdit(table: designer.TableInfo, tableChangeInfo: designer.DesignerEdit): Promise<designer.DesignerEditResult<designer.TableDesignerView>> {
 		try {
 			return await this._sqlToolsClient.sendRequest(ProcessTableDesignerEditRequest.type, { tableInfo: table, tableChangeInfo: tableChangeInfo });
 		} catch (e) {
@@ -26,7 +26,7 @@ export class TableDesignerService implements td.TableDesignerProvider {
 			throw e;
 		}
 	}
-	async publishChanges(table: td.TableInfo): Promise<td.PublishChangesResult> {
+	async publishChanges(table: designer.TableInfo): Promise<designer.PublishChangesResult> {
 		try {
 			return await this._sqlToolsClient.sendRequest(PublishTableDesignerChangesRequest.type, table);
 		} catch (e) {
@@ -34,7 +34,7 @@ export class TableDesignerService implements td.TableDesignerProvider {
 			throw e;
 		}
 	}
-	async generateScript(table: td.TableInfo): Promise<string> {
+	async generateScript(table: designer.TableInfo): Promise<string> {
 		try {
 			return await this._sqlToolsClient.sendRequest(TableDesignerGenerateScriptRequest.type, table);
 		} catch (e) {
@@ -42,7 +42,7 @@ export class TableDesignerService implements td.TableDesignerProvider {
 			throw e;
 		}
 	}
-	async generatePreviewReport(table: td.TableInfo): Promise<td.GeneratePreviewReportResult> {
+	async generatePreviewReport(table: designer.TableInfo): Promise<designer.GeneratePreviewReportResult> {
 		try {
 			return await this._sqlToolsClient.sendRequest(TableDesignerGenerateChangePreviewReportRequest.type, table);
 		} catch (e) {
@@ -50,7 +50,7 @@ export class TableDesignerService implements td.TableDesignerProvider {
 			throw e;
 		}
 	}
-	async disposeTableDesigner(table: td.TableInfo): Promise<void> {
+	async disposeTableDesigner(table: designer.TableInfo): Promise<void> {
 		try {
 			return await this._sqlToolsClient.sendRequest(DisposeTableDesignerRequest.type, table);
 		} catch (e) {
