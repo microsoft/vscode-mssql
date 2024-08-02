@@ -1,9 +1,9 @@
-name: Daily Build and Test
-
+name: Daily CI/CD
 on:
     schedule:
       - cron: '0 0 * * *'
     workflow_dispatch:
+
 permissions:
   contents: read
   actions: read
@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
