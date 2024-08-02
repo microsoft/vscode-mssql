@@ -1,4 +1,4 @@
-name: CI (With Smoke Tests)
+name: CI
 on:
     schedule:
       - cron: '0 0 * * *'
@@ -72,7 +72,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: 'Unit Test'
+          name: 'Unit Test Report'
           path: ./test-reports/**/*.xml
           reporter: jest-junit
           badge-title: 'unit-tests'
@@ -99,7 +99,7 @@ jobs:
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: Coverage
+          name: Unit Test Coverage Report
           conclusion: ${{ steps.testcoverage.conclusion }}
           output: |
             {"summary":"${{ steps.testcoverage.summary }}"}
@@ -139,10 +139,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-            name: 'Smoke Test'
+            name: 'Smoke Test Report'
             path: ./test-reports/**/smoke-results.xml
             reporter: jest-junit
             badge-title: 'smoke-tests'
-
-
-
