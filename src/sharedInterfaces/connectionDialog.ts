@@ -8,7 +8,8 @@ import * as vscodeMssql from "vscode-mssql";
 
 export enum FormTabs {
 	Parameters = 'parameter',
-	ConnectionString = 'connString'
+	ConnectionString = 'connString',
+	AzureBrowse = 'azureBrowse',
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional
@@ -27,6 +28,7 @@ export interface ConnectionDialogWebviewState {
 	connectionProfile: IConnectionDialogProfile;
 	connectionStatus: ApiStatus;
 	formError: string;
+	azureInfo: string;
 }
 
 export enum ApiStatus {
@@ -43,6 +45,7 @@ export interface ConnectionDialogContextProps {
 	formAction: (event: FormEvent) => void;
 	setFormTab: (tab: FormTabs) => void;
 	connect: () => void;
+	loadAzureInfo: () => void;
 }
 
 /**
@@ -166,5 +169,6 @@ export interface ConnectionDialogReducers {
 	loadConnection: {
 		connection: IConnectionDialogProfile;
 	},
-	connect: {}
+	connect: {},
+	loadAzureInfo: {},
 }

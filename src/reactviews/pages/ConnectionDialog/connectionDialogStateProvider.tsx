@@ -23,7 +23,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 			loadConnection: function (connection: IConnectionDialogProfile): void {
 				webViewState?.extensionRpc.action('loadConnection', {
 					connection: connection,
-				 });
+				});
 			},
 			formAction: function (event): void {
 				webViewState?.extensionRpc.action('formAction', {
@@ -37,6 +37,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 			},
 			connect: function (): void {
 				webViewState?.extensionRpc.action('connect');
+			},
+			loadAzureInfo: function (): void {
+				webViewState?.extensionRpc.action('loadAzureInfo');
 			}
 		}
 	}>{children}</ConnectionDialogContext.Provider>;

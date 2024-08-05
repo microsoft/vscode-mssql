@@ -183,6 +183,7 @@ export const ConnectionInfoFormContainer = () => {
 			}}>
 				<Tab value={FormTabs.Parameters}>Parameters</Tab>
 				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
+				<Tab value={FormTabs.AzureBrowse}>Azure Browser</Tab>
 			</TabList>
 			<div style={
 				{
@@ -198,6 +199,7 @@ export const ConnectionInfoFormContainer = () => {
 					}
 
 					{
+						connectionDialogContext.state.selectedFormTab !== FormTabs.AzureBrowse ? (
 						connectionDialogContext.state.formComponents.map((component, idx) => {
 							if (component.hidden === true) {
 								return undefined;
@@ -224,13 +226,21 @@ export const ConnectionInfoFormContainer = () => {
 													propertyName: component.propertyName,
 													isAction: true,
 													value: actionButton.id
-												})}>{actionButton.label}</Button>
+												})}>{actionButton.label}</Button>;
 											})
 										}
 									</div>
 								}
 							</div>;
 						})
+					) : (
+						<div>
+							<Button onClick={() => connectionDialogContext.loadAzureInfo()}>Load Azure info</Button>
+							<Text style={{ whiteSpace: 'pre-line' }}>
+								{connectionDialogContext.state.azureInfo}
+							</Text>
+						</div>
+					)
 					}
 					<Button
 						appearance="primary"
