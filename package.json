@@ -268,13 +268,7 @@
       "view/title": [
         {
           "command": "mssql.addObjectExplorer",
-          "when": "view == objectExplorer && !config.mssql.enableExperimentalFeatures",
-          "title": "%mssql.addObjectExplorer%",
-          "group": "navigation"
-        },
-        {
-          "command": "mssql.addObjectExplorer2",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures",
+          "when": "view == objectExplorer",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
         },
@@ -393,10 +387,6 @@
         },
         {
           "command": "mssql.removeObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
-        },
-        {
-          "command": "mssql.editConnection",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
@@ -541,12 +531,6 @@
       },
       {
         "command": "mssql.addObjectExplorer",
-        "title": "%mssql.addObjectExplorer%",
-        "category": "MS SQL",
-        "icon": "$(add)"
-      },
-      {
-        "command": "mssql.addObjectExplorer2",
         "title": "%mssql.addObjectExplorer%",
         "category": "MS SQL",
         "icon": "$(add)"
