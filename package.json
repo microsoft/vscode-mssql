@@ -128,7 +128,7 @@
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
     "typemoq": "^1.7.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.4",
     "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",

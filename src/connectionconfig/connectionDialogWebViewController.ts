@@ -12,7 +12,6 @@ import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
-import { TenantIdDescription } from '@azure/arm-resources-subscriptions';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
@@ -578,10 +577,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 			if (await auth.isSignedIn()) {
 				// tenant info
-				const tenants = (await auth.getTenants()).reduce((acc, t) => {
-					acc.set(t.tenantId, t);
-					return acc;
-				}, new Map<string, TenantIdDescription>);
+				const tenants = new Map((await auth.getTenants()).map(t => [t.tenantId, t]));
 
 				text += `\nTenants (${tenants.size}):`;
 				text += Array.from(tenants.values()).map(x => `\n${x.displayName} (${x.tenantId})`);
@@ -600,7 +596,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					}, new Map<string, T[]>());
 				};
 
-				const subs = groupBy(await auth.getSubscriptions(), 'tenantId');
+				const subs = groupBy(await auth.getSubscriptions(), 'tenantId'); // TODO: replace with Object.groupBy once ES2024 is supported
 
 				if (subs.size === 0) {
 					text += `\nno subscriptions set in VS Code's Azure account filter`;
