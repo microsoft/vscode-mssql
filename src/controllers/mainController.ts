@@ -434,16 +434,24 @@ export default class MainController implements vscode.Disposable {
 		}));
 
 		// Old style Add connection when experimental features are not enabled
-		if (!this.isExperimentalEnabled) {
-			// Add Object Explorer Node
-			this.registerCommand(Constants.cmdAddObjectExplorer);
-			this._event.on(Constants.cmdAddObjectExplorer, async () => {
+
+		// Add Object Explorer Node
+		this.registerCommand(Constants.cmdAddObjectExplorer);
+		this._event.on(Constants.cmdAddObjectExplorer, async () => {
+			if (!this.isExperimentalEnabled) {
 				if (!self._objectExplorerProvider.objectExplorerExists) {
 					self._objectExplorerProvider.objectExplorerExists = true;
 				}
 				await self.createObjectExplorerSession();
-			});
-		}
+			} else {
+				const connDialog = new ConnectionDialogWebViewController(
+					this._context,
+					this,
+					this._objectExplorerProvider
+				);
+				connDialog.revealToForeground();
+			}
+		});
 
 
 		// Object Explorer New Query
@@ -509,16 +517,6 @@ export default class MainController implements vscode.Disposable {
 				}));
 
 		if (this.isExperimentalEnabled) {
-			this.registerCommand(Constants.cmdAddObjectExplorer2);
-			this._event.on(Constants.cmdAddObjectExplorer2, async () => {
-				const connDialog = new ConnectionDialogWebViewController(
-					this._context,
-					this,
-					this._objectExplorerProvider
-				);
-				connDialog.revealToForeground();
-			});
-
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdEditConnection, async (node: TreeNodeInfo) => {
