@@ -390,6 +390,10 @@
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
+          "command": "mssql.editConnection",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
+        },
+        {
           "command": "mssql.refreshObjectExplorerNode",
           "when": "view == objectExplorer && viewItem != disconnectedServer"
         },
