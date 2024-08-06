@@ -322,7 +322,7 @@
         },
         {
           "command": "mssql.editConnection",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /^(disconnectedServer|Server)$/",
           "group": "inline"
         },
         {
@@ -393,10 +393,6 @@
         },
         {
           "command": "mssql.removeObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
-        },
-        {
-          "command": "mssql.editConnection",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
