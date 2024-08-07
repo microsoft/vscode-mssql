@@ -44,8 +44,8 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
-import { ExecutionPlanOptions } from '../models/contracts/queryExecute';
-// import { QueryPlanWebViewController } from './queryPlanWebViewController';
+import { ExecutionPlanWebViewController } from './executionPlanWebViewController';
+import { ExecutionPlanService } from '../services/executionPlanService';
 
 /**
  * The main controller class that initializes the extension
@@ -75,6 +75,7 @@ export default class MainController implements vscode.Disposable {
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
 	public tableDesignerService: TableDesignerService;
+	public executionPlanService: ExecutionPlanService;
 	public configuration: vscode.WorkspaceConfiguration;
 	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
 
@@ -158,6 +159,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdEstimatedPlan);
 			this._event.on(Constants.cmdEstimatedPlan, () => { this.onEstimatePlan(); });
+			this.registerCommand(Constants.cmdSqlPlanView);
+			this._event.on(Constants.cmdSqlPlanView, () => { this.onSqlPlanView(); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
 			this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()); });
 			this.registerCommand(Constants.cmdCancelQuery);
@@ -210,6 +213,7 @@ export default class MainController implements vscode.Disposable {
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
+			this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -753,11 +757,12 @@ export default class MainController implements vscode.Disposable {
 		return false;
 	}
 
-	private async onEstimatePlan(callbackThis?: MainController): Promise<void> {
+	private async onEstimatePlan(): Promise<void> {
 		// the 'this' context is lost in retry callback, so capture it here
-		let self: MainController = callbackThis ? callbackThis : this;
+		// let self: MainController = callbackThis ? callbackThis : this;
 		vscode.window.showInformationMessage("Estimate Query button clicked");
 		try {
+			/*
 			if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
 				return;
 			}
@@ -810,22 +815,36 @@ export default class MainController implements vscode.Disposable {
 				includeEstimatedExecutionPlanXml: true
 			}
 
-			// Show react view
-			/*
-			const reactPanel = new QueryPlanWebViewController(
-				this._context,
-				self._outputContentProvider,
-				this._connectionMgr,
-				this._untitledSqlDocumentService,
-			);
-			reactPanel.revealToForeground();
+			await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title, undefined, executionPlanOptions);
 			*/
 
-			await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title, undefined, executionPlanOptions);
+			// Show react view
+			const reactPanel = new ExecutionPlanWebViewController(
+				this._context,
+				this.executionPlanService,
+				""
+			);
+			reactPanel.revealToForeground();
 
 		} catch (err) {
 			console.warn(`Unexpected error estimating plan : ${err}`);
 		}
+	}
+
+	private async onSqlPlanView() : Promise<void> {
+
+		// get text in active editor window
+		const queryPlanText = vscode.window.activeTextEditor.document.getText();
+
+		// Show react view
+		const reactPanel = new ExecutionPlanWebViewController(
+			this._context,
+			this.executionPlanService,
+			queryPlanText
+		);
+		reactPanel.revealToForeground();
+
+		vscode.window.showInformationMessage("this should show graph in future");
 	}
 
 	/**

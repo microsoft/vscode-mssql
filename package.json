@@ -67,7 +67,9 @@
     "@angular/upgrade": "~2.1.2",
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
+    "@fluentui/react-components": "^9.54.3",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
+    "@monaco-editor/react": "^4.6.0",
     "@playwright/test": "^1.45.0",
     "@types/azdata": "^1.44.0",
     "@types/ejs": "^3.1.0",
@@ -85,6 +87,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
+    "@types/uuid": "^10.0.0",
     "@types/vscode": "1.83.1",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
@@ -121,6 +124,11 @@
     "npm-run-all": "^4.1.5",
     "playwright-trx-reporter": "^1.0.8",
     "pm-mocha-jenkins-reporter": "^0.2.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "react-resizable": "^3.0.5",
+    "react-router-dom": "^6.24.1",
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
@@ -133,14 +141,7 @@
     "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
-    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz",
-    "@fluentui/react-components": "^9.54.3",
-    "@monaco-editor/react": "^4.6.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-markdown": "^9.0.1",
-    "react-resizable": "^3.0.5",
-    "react-router-dom": "^6.24.1"
+    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
@@ -150,6 +151,7 @@
     "@azure/msal-node": "^1.16.0",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
     "axios": "^1.6.0",
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.62",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "dotenv": "^16.4.5",
@@ -171,6 +173,7 @@
     "tar": "^6.2.1",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
+    "uuid": "^10.0.0",
     "vsce": "^2.15.0",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
@@ -217,6 +220,15 @@
           "SQL"
         ],
         "configuration": "./syntaxes/sql.configuration.json"
+      },
+      {
+        "id": "sqlplan",
+        "extensions": [
+          ".sqlplan"
+        ],
+        "aliases": [
+          "SQL Plan"
+        ]
       }
     ],
     "grammars": [
@@ -269,6 +281,10 @@
         {
           "command": "mssql.runQuery",
           "when": "editorLangId == sql"
+        },
+        {
+          "command": "mssql.sqlPlanView",
+          "when": "editorLangId == sqlplan"
         }
       ],
       "view/title": [
@@ -510,9 +526,19 @@
         "title": "%mssql.estimatedPlan%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/queryPlan_inverse.svg",
-          "light": "media/queryPlan.svg"
+          "dark": "media/estimatedPlan_inverse.svg",
+          "light": "media/estimatedPlan.svg"
         }
+      },
+      {
+        "command": "mssql.sqlPlanView",
+        "title": "%mssql.sqlPlanView%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/estimatedPlan_inverse.svg",
+          "light": "media/estimatedPlan.svg"
+        },
+        "when": "editorLangId == sqlplan"
       },
       {
         "command": "mssql.manageProfiles",

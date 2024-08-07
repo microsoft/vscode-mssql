@@ -221,7 +221,7 @@ async function generateReactWebviewsBundle() {
 		entryPoints: {
 			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
 			connectionDialog: 'src/reactviews/pages/ConnectionDialog/index.tsx',
-			queryPlan: 'src/reactviews/pages/QueryPlan/index.tsx',
+			executionPlan: 'src/reactviews/pages/ExecutionPlan/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
