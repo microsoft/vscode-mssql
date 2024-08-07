@@ -219,8 +219,7 @@ async function generateReactWebviewsBundle() {
 		 * for each entry point, to be used by the webview's HTML content.
 		 */
 		entryPoints: {
-			tableDesigner: 'src/reactviews/pages/TableDesigner/index.tsx',
-			connectionDialog: 'src/reactviews/pages/ConnectionDialog/index.tsx',
+			mssqlwebview: 'src/reactviews/index.tsx'
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
