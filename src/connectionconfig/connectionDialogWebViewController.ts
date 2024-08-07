@@ -11,7 +11,7 @@ import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
-import { VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
+import { getAzureText } from './azureBrowseController';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
@@ -572,50 +572,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		});
 
 		this.registerReducer('loadAzureInfo', async (state) => {
-			const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
-			let text = "";
-
-			if (await auth.isSignedIn()) {
-				// tenant info
-				const tenants = new Map((await auth.getTenants()).map(t => [t.tenantId, t]));
-
-				text += `\nTenants (${tenants.size}):`;
-				text += Array.from(tenants.values()).map(x => `\n${x.displayName} (${x.tenantId})`);
-				text += "\n";
-
-				// subscription info
-
-				const groupBy = function<T>(xs: T[], key: string): Map<string, T[]> {
-					return xs.reduce((rv, x) => {
-						const keyValue = x[key];
-						if (!rv.has(keyValue)) {
-							rv.set(keyValue, []);
-						}
-						rv.get(keyValue)!.push(x);
-						return rv;
-					}, new Map<string, T[]>());
-				};
-
-				const subs = groupBy(await auth.getSubscriptions(), 'tenantId'); // TODO: replace with Object.groupBy once ES2024 is supported
-
-				if (subs.size === 0) {
-					text += `\nno subscriptions set in VS Code's Azure account filter`;
-				} else {
-					text += '\nSubscriptions:';
-					for (const t of subs.keys()) {
-						text += `\n${tenants.get(t).displayName} (${t}):`;
-						for (const s of subs.get(t)) {
-							text += `\n${s.name} (${s.subscriptionId})`;
-						}
-					}
-				}
-			}
-			else {
-				text = "Not signed in.";
-				await auth.signIn();
-			}
-
-			state.azureInfo = text;
+			state.azureInfo = await getAzureText();
 			return state;
 		});
 	}
