@@ -237,7 +237,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						value: AuthenticationType.Integrated
 					},
 					{
-						displayName: 'Azure MFA',
+						displayName: 'Microsoft Entra MFA',
 						value: AuthenticationType.AzureMFA
 					}
 				],
