@@ -67,7 +67,13 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 			}
 		}
 
+		async function getState() {
+			const state = await extensionRpc.call('getState');
+			setState(state as State);
+		}
+
 		getTheme();
+		getState();
 	});
 
 	extensionRpc.subscribe('onDidChangeTheme', (params) => {
