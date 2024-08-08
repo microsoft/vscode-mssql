@@ -888,7 +888,7 @@ export default class ConnectionManager {
 					if (error) {
 						reject(error);
 					} else {
-						vscode.commands.executeCommand('setContext', 'mssql.connections', this._connections);
+						void vscode.commands.executeCommand('setContext', 'mssql.connections', this._connections);
 						resolve(connectResult);
 					}
 				});

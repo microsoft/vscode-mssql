@@ -19,6 +19,7 @@ import { MsalCachePluginProvider } from './msalCachePlugin';
 import { promises as fsPromises } from 'fs';
 import * as path from 'path';
 import * as AzureConstants from '../constants';
+import { VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
 
 export class MsalAzureController extends AzureController {
 	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -61,7 +62,7 @@ export class MsalAzureController extends AzureController {
 
 		let azureAuth = await this.getAzureAuthInstance(authType!);
 		await this.clearOldCacheIfExists();
-		azureAuth.loadTokenCache();
+		void azureAuth.loadTokenCache();
 	}
 
 	public async clearTokenCache(): Promise<void> {
@@ -125,6 +126,27 @@ export class MsalAzureController extends AzureController {
 					tokenType: result.tokenType,
 					expiresOn: result.account.idTokenClaims.exp
 				};
+
+				const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
+
+				const groupBy = function<T>(xs: T[], key: string): Map<string, T[]> {
+					return xs.reduce((rv, x) => {
+						const keyValue = x[key];
+						if (!rv.has(keyValue)) {
+							rv.set(keyValue, []);
+						}
+						rv.get(keyValue)!.push(x);
+						return rv;
+					}, new Map<string, T[]>());
+				};
+
+				const subMap = groupBy(await auth.getSubscriptions(), 'tenantId'); // TODO: replace with Object.groupBy once ES2024 is supported
+
+				const tenantSubs = subMap.get(tenantId);
+				const vscodeToken = await tenantSubs[0].credential.getToken("https://database.windows.net/.default", {tenantId});
+
+				token.token = vscodeToken.token;
+				token.expiresOn = vscodeToken.expiresOnTimestamp;
 				return token;
 			}
 		} else {
@@ -168,10 +190,10 @@ export class MsalAzureController extends AzureController {
 						account, tenantId ?? account.properties.owningTenant.id, settings
 					);
 				} catch (ex) {
-					this._vscodeWrapper.showErrorMessage(ex);
+					void this._vscodeWrapper.showErrorMessage(ex);
 				}
 			} else {
-				this._vscodeWrapper.showErrorMessage(ex);
+				void this._vscodeWrapper.showErrorMessage(ex);
 			}
 		}
 	}
@@ -198,7 +220,7 @@ export class MsalAzureController extends AzureController {
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
 				this.logger.error(errorMessage);
-				this._vscodeWrapper.showErrorMessage(errorMessage);
+				void this._vscodeWrapper.showErrorMessage(errorMessage);
 			} else {
 				profile.azureAccountToken = token.token;
 				profile.expiresOn = token.expiresOn;
