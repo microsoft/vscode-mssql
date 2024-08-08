@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 
 /**
  * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides
@@ -33,8 +34,7 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 	constructor(
 		protected _context: vscode.ExtensionContext,
 		title: string,
-		private _srcFile: string,
-		private _styleFile: string,
+		private _route: WebviewRoute,
 		initialData: State,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 		private _iconPath?: vscode.Uri | {
@@ -75,8 +75,8 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 
 	private _getHtmlTemplate() {
 		const nonce = getNonce();
-		const scriptUri = this.resourceUrl([this._srcFile]);
-		const styleUri = this.resourceUrl([this._styleFile]);
+		const scriptUri = this.resourceUrl(['mssqlwebview.js']);
+		const styleUri = this.resourceUrl(['mssqlwebview.css']);
 		return `
 		<!DOCTYPE html>
 				<html lang="en">
@@ -124,6 +124,9 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 		};
 		this._webViewRequestHandlers['getTheme'] = () => {
 			return vscode.window.activeColorTheme.kind;
+		};
+		this._webViewRequestHandlers['getRoute'] = () => {
+			return this._route;
 		};
 	}
 
