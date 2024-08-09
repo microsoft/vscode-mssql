@@ -44,6 +44,8 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { ReactWebViewPanelController } from './reactWebviewController';
+import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 
 /**
  * The main controller class that initializes the extension
@@ -515,6 +517,24 @@ export default class MainController implements vscode.Disposable {
 					await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
+
+		this._context.subscriptions.push(
+			vscode.commands.registerCommand(
+				'mssql.executionPlan', async () => {
+					const reactPanel = new ReactWebViewPanelController(
+						this._context,
+						'Execution Plan',
+						WebviewRoute.executionPlan,
+						{},
+						vscode.ViewColumn.Active,
+						{
+							dark: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor_inverse.svg'),
+							light: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor.svg')
+						});
+
+					reactPanel.revealToForeground();
+				}));
+
 
 		if (this.isExperimentalEnabled) {
 			this._context.subscriptions.push(

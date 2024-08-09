@@ -67,7 +67,9 @@
     "@angular/upgrade": "~2.1.2",
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
+    "@fluentui/react-components": "^9.54.3",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
+    "@monaco-editor/react": "^4.6.0",
     "@playwright/test": "^1.45.0",
     "@types/azdata": "^1.44.0",
     "@types/ejs": "^3.1.0",
@@ -92,6 +94,7 @@
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
     "assert": "^1.4.1",
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.62",
     "chai": "^3.5.0",
     "cli-color": "^2.0.4",
     "coveralls": "^3.0.2",
@@ -120,6 +123,12 @@
     "istanbul": "^0.4.5",
     "npm-run-all": "^4.1.5",
     "pm-mocha-jenkins-reporter": "^0.2.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-helmet": "^6.1.0",
+    "react-markdown": "^9.0.1",
+    "react-resizable": "^3.0.5",
+    "react-router-dom": "^6.24.1",
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
@@ -132,14 +141,7 @@
     "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
-    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz",
-    "@fluentui/react-components": "^9.54.3",
-    "@monaco-editor/react": "^4.6.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-markdown": "^9.0.1",
-    "react-resizable": "^3.0.5",
-    "react-router-dom": "^6.24.1"
+    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
@@ -444,6 +446,9 @@
         {
           "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem == Table"
+        },
+        {
+          "command": "mssql.executionPlan"
         }
       ]
     },
@@ -453,6 +458,11 @@
         "title": "%mssql.runQuery%",
         "category": "MS SQL",
         "icon": "$(debug-start)"
+      },
+      {
+        "command": "mssql.executionPlan",
+        "title": "Execution Plan",
+        "category": "MS SQL"
       },
       {
         "command": "mssql.runCurrentStatement",
