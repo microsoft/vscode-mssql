@@ -6,29 +6,42 @@
 import { useEffect } from 'react';
 import {data} from './demoGraph';
 import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from './queryPlanSetup';
-import * as azdataGraphModule from 'azdataGraph/dist/build.js';
-// @ts-ignore
-const azdataGraph = azdataGraphModule();
+import * as azdataGraph from 'azdataGraph/dist/build';
+import 'azdataGraph/src/css/common.css';
+import 'azdataGraph/src/css/explorer.css';
 
 const parseGraph = JSON.parse(data);
 
 export const ExecutionPlanPage = () => {
-
-
 	useEffect(() => {
+		// @ts-ignore
+		window['mxLoadResources'] = false;
+		// @ts-ignore
+		window['mxForceIncludes'] = false;
+		// @ts-ignore
+		window['mxResourceExtension'] = '.txt';
+		// @ts-ignore
+		window['mxLoadStylesheets'] = false;
+		// @ts-ignore
+		window['mxBasePath'] = './src/reactviews/pages/ExecutionPlan/mxgraph';
+
+
+		const mxClient = azdataGraph.default();
+		console.log(mxClient);
 		function loadGraph() {
-			const div = document.getElementById('queryPlan0');
+			const div = document.getElementById('queryPlanParent');
+			// create a div to hold the graph
 			var imageBasePath = './icons/';
 			const queryPlanConfiguration = {
 				container: div,
 				queryPlanGraph: parseGraph,
-				iconPath: getIconPaths(imageBasePath),
-				badgeIconPaths: getBadgePaths(imageBasePath),
-				expandCollapsePaths: getCollapseExpandPaths(imageBasePath),
+				iconPaths: getIconPaths(imageBasePath),
+				badgeIconPaths: getBadgePaths(),
+				expandCollapsePaths: getCollapseExpandPaths(),
 				showTooltipOnClick: true
 			};
-			// @ts-ignore
-			azdataGraph.azdataQueryPlan(queryPlanConfiguration);
+			const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
+			console.log(pen);
 		}
 		loadGraph();
 
@@ -37,13 +50,16 @@ export const ExecutionPlanPage = () => {
 	return (
 		<div>
 			<h1>Execution Plan Page</h1>
-			<div id="queryPlan0" style= {
+			<div id="queryPlanParent" style= {
 				{
-					width: '800px',
-					height: '800px',
 					position: 'relative',
-					backgroundColor: 'white',
-					overflow: 'auto'
+					overflow: 'scroll',
+					width: '1500px',
+					height: '800px',
+					cursor: 'default',
+					border: '1px solid',
+					marginTop: '100px',
+					marginLeft: '100px'
 				}
 			}></div>
 		</div>

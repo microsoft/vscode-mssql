@@ -232,6 +232,8 @@ async function generateReactWebviewsBundle() {
 			'.css': 'css',
 			'.svg': 'dataurl',
 			'.js': 'js',
+			'.png': 'dataurl',
+			'.gif': 'dataurl',
 		},
 		tsconfig: './tsconfig.react.json',
 		plugins: [
