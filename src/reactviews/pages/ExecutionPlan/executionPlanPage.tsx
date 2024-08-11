@@ -9,7 +9,7 @@ import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from './queryPlan
 import * as azdataGraph from 'azdataGraph/dist/build';
 import 'azdataGraph/src/css/common.css';
 import 'azdataGraph/src/css/explorer.css';
-
+import './executionPlan.css';
 const parseGraph = JSON.parse(data);
 
 export const ExecutionPlanPage = () => {
@@ -41,6 +41,8 @@ export const ExecutionPlanPage = () => {
 				showTooltipOnClick: true
 			};
 			const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
+			pen.setTextFontColor('var(--vscode-editor-foreground)'); // set text color
+			pen.setEdgeColor('var(--vscode-editor-foreground)'); // set edge color
 			console.log(pen);
 		}
 		loadGraph();
@@ -49,7 +51,6 @@ export const ExecutionPlanPage = () => {
 
 	return (
 		<div>
-			<h1>Execution Plan Page</h1>
 			<div id="queryPlanParent" style= {
 				{
 					position: 'relative',
@@ -58,8 +59,7 @@ export const ExecutionPlanPage = () => {
 					height: '800px',
 					cursor: 'default',
 					border: '1px solid',
-					marginTop: '100px',
-					marginLeft: '100px'
+					color: 'white !important'
 				}
 			}></div>
 		</div>

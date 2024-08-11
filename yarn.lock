@@ -2293,9 +2293,9 @@ axios@^1.6.0:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-"azdataGraph@github:Microsoft/azdataGraph#0.0.62":
-  version "0.0.62"
-  resolved "https://codeload.github.com/Microsoft/azdataGraph/tar.gz/03b2b6c1ab55281d26033d4faf2d78aca6d85f66"
+"azdataGraph@github:Microsoft/azdataGraph#0.0.66":
+  version "0.0.66"
+  resolved "https://codeload.github.com/Microsoft/azdataGraph/tar.gz/61edb7423ed285c9523027a37aa399a2ed268422"
 
 azure-devops-node-api@^11.0.1:
   version "11.2.0"

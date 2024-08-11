@@ -139,7 +139,8 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
     "react-resizable": "^3.0.5",
-    "react-router-dom": "^6.24.1"
+    "react-router-dom": "^6.24.1",
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.66"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
@@ -173,8 +174,7 @@
     "vsce": "^2.15.0",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
-    "zone.js": "^0.6.26",
-    "azdataGraph": "github:Microsoft/azdataGraph#0.0.62"
+    "zone.js": "^0.6.26"
   },
   "resolutions": {
     "gulp-typescript/source-map": "0.7.4"
