@@ -44,9 +44,8 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
-import { ReactWebViewPanelController } from './reactWebviewController';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ExecutionPlanService } from '../services/executionPlanService';
+import { ExecutionPlanWebViewController } from './executionPlanWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -919,18 +918,15 @@ export default class MainController implements vscode.Disposable {
 	}
 
 	public async onExecutionPlan() {
-		const reactPanel = new ReactWebViewPanelController(
-			this._context,
-			'Execution Plan',
-			WebviewRoute.executionPlan,
-			{},
-			vscode.ViewColumn.Active,
-			{
-				dark: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor_inverse.svg'),
-				light: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor.svg')
-			});
+		const planContents = vscode.window.activeTextEditor.document.getText();
 
-		reactPanel.revealToForeground();
+		const executionPlanPanel = new ExecutionPlanWebViewController(
+			this._context,
+			this.executionPlanService,
+			planContents
+		)
+
+		executionPlanPanel.revealToForeground();
 	}
 
 	/**

@@ -31,11 +31,10 @@ export const ExecutionPlanPage = () => {
 		function loadGraph() {
 			const div = document.getElementById('queryPlanParent');
 			// create a div to hold the graph
-			var imageBasePath = './icons/';
 			const queryPlanConfiguration = {
 				container: div,
 				queryPlanGraph: parseGraph,
-				iconPaths: getIconPaths(imageBasePath),
+				iconPaths: getIconPaths(),
 				badgeIconPaths: getBadgePaths(),
 				expandCollapsePaths: getCollapseExpandPaths(),
 				showTooltipOnClick: true

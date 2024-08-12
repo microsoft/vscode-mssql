@@ -12,7 +12,7 @@ export interface ExecutionPlanWebViewState {
 
 export interface ExecutionPlanReducers {
 	getExecutionPlan: {
-		sqlPlanContent: string,
+		sqlPlanContent: string
 	}
 }
 
