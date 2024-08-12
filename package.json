@@ -217,6 +217,15 @@
           "SQL"
         ],
         "configuration": "./syntaxes/sql.configuration.json"
+      },
+      {
+        "id": "sqlplan",
+        "extensions": [
+          ".sqlplan"
+        ],
+        "aliases": [
+          "SQL Plan"
+        ]
       }
     ],
     "grammars": [
@@ -258,6 +267,11 @@
           "command": "mssql.changeDatabase",
           "when": "editorLangId == sql",
           "group": "navigation@4"
+        },
+        {
+          "command": "mssql.executionPlan",
+          "when": "editorLangId == sqlplan && config.mssql.enableExperimentalFeatures",
+          "group": "navigation@1"
         }
       ],
       "editor/context": [
@@ -445,9 +459,6 @@
         {
           "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem == Table"
-        },
-        {
-          "command": "mssql.executionPlan"
         }
       ]
     },
@@ -457,11 +468,6 @@
         "title": "%mssql.runQuery%",
         "category": "MS SQL",
         "icon": "$(debug-start)"
-      },
-      {
-        "command": "mssql.executionPlan",
-        "title": "Execution Plan",
-        "category": "MS SQL"
       },
       {
         "command": "mssql.runCurrentStatement",
@@ -496,6 +502,15 @@
         "icon": {
           "dark": "media/changeConnection_inverse.svg",
           "light": "media/changeConnection.svg"
+        }
+      },
+      {
+        "command": "mssql.executionPlan",
+        "title": "%mssql.executionPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/executionPlan_inverse.svg",
+          "light": "media/executionPlan.svg"
         }
       },
       {

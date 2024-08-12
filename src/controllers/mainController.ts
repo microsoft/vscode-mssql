@@ -46,6 +46,7 @@ import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWe
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 import { ReactWebViewPanelController } from './reactWebviewController';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
+import { ExecutionPlanService } from '../services/executionPlanService';
 
 /**
  * The main controller class that initializes the extension
@@ -77,6 +78,7 @@ export default class MainController implements vscode.Disposable {
 	public tableDesignerService: TableDesignerService;
 	public configuration: vscode.WorkspaceConfiguration;
 	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
+	public executionPlanService: ExecutionPlanService;
 
 	/**
 	 * The main controller constructor
@@ -155,6 +157,8 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdChangeDatabase);
 			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
+			this.registerCommand(Constants.cmdExecutionPlan);
+			this._event.on(Constants.cmdExecutionPlan, () => { this.onExecutionPlan(); });
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
 			this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()); });
@@ -208,6 +212,7 @@ export default class MainController implements vscode.Disposable {
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
+			this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -517,24 +522,6 @@ export default class MainController implements vscode.Disposable {
 					await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
-
-		this._context.subscriptions.push(
-			vscode.commands.registerCommand(
-				'mssql.executionPlan', async () => {
-					const reactPanel = new ReactWebViewPanelController(
-						this._context,
-						'Execution Plan',
-						WebviewRoute.executionPlan,
-						{},
-						vscode.ViewColumn.Active,
-						{
-							dark: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor_inverse.svg'),
-							light: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor.svg')
-						});
-
-					reactPanel.revealToForeground();
-				}));
-
 
 		if (this.isExperimentalEnabled) {
 			this._context.subscriptions.push(
@@ -929,6 +916,21 @@ export default class MainController implements vscode.Disposable {
 		} catch (err) {
 			console.warn(`Unexpected error running current statement : ${err}`);
 		}
+	}
+
+	public async onExecutionPlan() {
+		const reactPanel = new ReactWebViewPanelController(
+			this._context,
+			'Execution Plan',
+			WebviewRoute.executionPlan,
+			{},
+			vscode.ViewColumn.Active,
+			{
+				dark: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor_inverse.svg'),
+				light: vscode.Uri.joinPath(this._context.extensionUri, 'media', 'tableDesignerEditor.svg')
+			});
+
+		reactPanel.revealToForeground();
 	}
 
 	/**
