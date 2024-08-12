@@ -4,379 +4,379 @@
  *--------------------------------------------------------------------------------------------*/
 
 
-// const iterator_catch_all = require('./icons/iterator_catch_all.png');
-// const cursor_catch_all = require('./icons/cursor_catch_all.png');
-// const language_construct_catch_all = require('./icons/language_construct_catch_all.png');
-// const adaptive_join = require('./icons/adaptive_join.png');
-// const assert = require('./icons/assert.png');
-// const bitmap = require('./icons/bitmap.png');
-// const clustered_index_delete = require('./icons/clustered_index_delete.png');
-// const clustered_index_insert = require('./icons/clustered_index_insert.png');
-const clustered_index_scan = require('./icons/clustered_index_scan.png');
-const clustered_index_seek = require('./icons/clustered_index_seek.png');
-// const clustered_index_update = require('./icons/clustered_index_update.png');
-// const clustered_index_merge = require('./icons/clustered_index_merge.png');
-// const clustered_update = require('./icons/clustered_update.png');
-// const collapse = require('./icons/collapse.png');
-const compute_scalar = require('./icons/compute_scalar.png');
-const concatenation = require('./icons/concatenation.png');
-// const constant_scan = require('./icons/constant_scan.png');
-// const deleted_scan = require('./icons/deleted_scan.png');
-const filter = require('./icons/filter.png');
-const hash_match = require('./icons/hash_match.png');
-// const index_delete = require('./icons/index_delete.png');
-// const index_insert = require('./icons/index_insert.png');
-const index_scan = require('./icons/index_scan.png');
-// const columnstore_index_delete = require('./icons/columnstore_index_delete.png');
-// const columnstore_index_insert = require('./icons/columnstore_index_insert.png');
-// const columnstore_index_merge = require('./icons/columnstore_index_merge.png');
-// const columnstore_index_scan = require('./icons/columnstore_index_scan.png');
-// const columnstore_index_update = require('./icons/columnstore_index_update.png');
-// const index_seek = require('./icons/index_seek.png');
-// const index_spool = require('./icons/index_spool.png');
-// const index_update = require('./icons/index_update.png');
-// const inserted_scan = require('./icons/inserted_scan.png');
-// const log_row_scan = require('./icons/log_row_scan.png');
-// const merge_interval = require('./icons/merge_interval.png');
-const merge_join = require('./icons/merge_join.png');
-const nested_loops = require('./icons/nested_loops.png');
-// const parallelism = require('./icons/parallelism.png');
-// const parameter_table_scan = require('./icons/parameter_table_scan.png');
-// const print = require('./icons/print.png');
-// const rank = require('./icons/rank.png');
-// const foreign_key_references_check = require('./icons/foreign_key_references_check.png');
-// const remote_delete = require('./icons/remote_delete.png');
-// const remote_index_scan = require('./icons/remote_index_scan.png');
-// const remote_index_seek = require('./icons/remote_index_seek.png');
-// const remote_insert = require('./icons/remote_insert.png');
-// const remote_query = require('./icons/remote_query.png');
-// const remote_scan = require('./icons/remote_scan.png');
-// const remote_update = require('./icons/remote_update.png');
-// const rid_lookup = require('./icons/rid_lookup.png');
-// const row_count_spool = require('./icons/row_count_spool.png');
-// const segment = require('./icons/segment.png');
-// const sequence = require('./icons/sequence.png');
-// const sequence_project = require('./icons/sequence_project.png');
-// const sort = require('./icons/sort.png');
-// const split = require('./icons/split.png');
-// const stream_aggregate = require('./icons/stream_aggregate.png');
-// const switchStatement = require('./icons/switch.png');
-const table_valued_function = require('./icons/table_valued_function.png');
-// const table_delete = require('./icons/table_delete.png');
-// const table_insert = require('./icons/table_insert.png');
-// const table_scan = require('./icons/table_scan.png');
-const table_spool = require('./icons/table_spool.png');
-// const table_update = require('./icons/table_update.png');
-// const table_merge = require('./icons/table_merge.png');
-// const tfp = require('./icons/predict.png');
-// const top = require('./icons/top.png');
-// const udx = require('./icons/udx.png');
-// const batch_hash_table_build = require('./icons/batch_hash_table_build.png');
-// const window_spool = require('./icons/table_spool.png');
-// const window_aggregate = require('./icons/window_aggregate.png');
-// const fetch_query = require('./icons/fetch_query.png');
-// const populate_query = require('./icons/population_query.png');
-// const refresh_query = require('./icons/refresh_query.png');
-const result = require('./icons/result.png');
-// const aggregate = require('./icons/aggregate.png');
+const iterator_catch_all = require('./images/icons/iterator_catch_all.png');
+const cursor_catch_all = require('./images/icons/cursor_catch_all.png');
+const language_construct_catch_all = require('./images/icons/language_construct_catch_all.png');
+const adaptive_join = require('./images/icons/adaptive_join.png');
+const assert = require('./images/icons/assert.png');
+const bitmap = require('./images/icons/bitmap.png');
+const clustered_index_delete = require('./images/icons/clustered_index_delete.png');
+const clustered_index_insert = require('./images/icons/clustered_index_insert.png');
+const clustered_index_scan = require('./images/icons/clustered_index_scan.png');
+const clustered_index_seek = require('./images/icons/clustered_index_seek.png');
+const clustered_index_update = require('./images/icons/clustered_index_update.png');
+const clustered_index_merge = require('./images/icons/clustered_index_merge.png');
+const clustered_update = require('./images/icons/clustered_update.png');
+const collapse = require('./images/icons/collapse.png');
+const compute_scalar = require('./images/icons/compute_scalar.png');
+const concatenation = require('./images/icons/concatenation.png');
+const constant_scan = require('./images/icons/constant_scan.png');
+const deleted_scan = require('./images/icons/deleted_scan.png');
+const filter = require('./images/icons/filter.png');
+const hash_match = require('./images/icons/hash_match.png');
+const index_delete = require('./images/icons/index_delete.png');
+const index_insert = require('./images/icons/index_insert.png');
+const index_scan = require('./images/icons/index_scan.png');
+const columnstore_index_delete = require('./images/icons/columnstore_index_delete.png');
+const columnstore_index_insert = require('./images/icons/columnstore_index_insert.png');
+const columnstore_index_merge = require('./images/icons/columnstore_index_merge.png');
+const columnstore_index_scan = require('./images/icons/columnstore_index_scan.png');
+const columnstore_index_update = require('./images/icons/columnstore_index_update.png');
+const index_seek = require('./images/icons/index_seek.png');
+const index_spool = require('./images/icons/index_spool.png');
+const index_update = require('./images/icons/index_update.png');
+const inserted_scan = require('./images/icons/inserted_scan.png');
+const log_row_scan = require('./images/icons/log_row_scan.png');
+const merge_interval = require('./images/icons/merge_interval.png');
+const merge_join = require('./images/icons/merge_join.png');
+const nested_loops = require('./images/icons/nested_loops.png');
+const parallelism = require('./images/icons/parallelism.png');
+const parameter_table_scan = require('./images/icons/parameter_table_scan.png');
+const print = require('./images/icons/print.png');
+const rank = require('./images/icons/rank.png');
+const foreign_key_references_check = require('./images/icons/foreign_key_references_check.png');
+const remote_delete = require('./images/icons/remote_delete.png');
+const remote_index_scan = require('./images/icons/remote_index_scan.png');
+const remote_index_seek = require('./images/icons/remote_index_seek.png');
+const remote_insert = require('./images/icons/remote_insert.png');
+const remote_query = require('./images/icons/remote_query.png');
+const remote_scan = require('./images/icons/remote_scan.png');
+const remote_update = require('./images/icons/remote_update.png');
+const rid_lookup = require('./images/icons/rid_lookup.png');
+const row_count_spool = require('./images/icons/row_count_spool.png');
+const segment = require('./images/icons/segment.png');
+const sequence = require('./images/icons/sequence.png');
+const sequence_project = require('./images/icons/sequence_project.png');
+const sort = require('./images/icons/sort.png');
+const split = require('./images/icons/split.png');
+const stream_aggregate = require('./images/icons/stream_aggregate.png');
+const switchStatement = require('./images/icons/switch.png');
+const table_valued_function = require('./images/icons/table_valued_function.png');
+const table_delete = require('./images/icons/table_delete.png');
+const table_insert = require('./images/icons/table_insert.png');
+const table_scan = require('./images/icons/table_scan.png');
+const table_spool = require('./images/icons/table_spool.png');
+const table_update = require('./images/icons/table_update.png');
+const table_merge = require('./images/icons/table_merge.png');
+const tfp = require('./images/icons/predict.png');
+const top = require('./images/icons/top.png');
+const udx = require('./images/icons/udx.png');
+const batch_hash_table_build = require('./images/icons/batch_hash_table_build.png');
+const window_spool = require('./images/icons/table_spool.png');
+const window_aggregate = require('./images/icons/window_aggregate.png');
+const fetch_query = require('./images/icons/fetch_query.png');
+const populate_query = require('./images/icons/population_query.png');
+const refresh_query = require('./images/icons/refresh_query.png');
+const result = require('./images/icons/result.png');
+const aggregate = require('./images/icons/aggregate.png');
 
-// const assign = require('./icons/assign.png');
-// const arithmetic_expression = require('./icons/arithmetic_expression.png');
-// const bookmark_lookup = require('./icons/bookmark_lookup.png');
-// const convert = require('./icons/convert.png');
-// const declare = require('./icons/declare.png');
-// const deleteOperator = require('./icons/delete.png');
-// const dynamic = require('./icons/dynamic.png');
-// const hash_match_root = require('./icons/hash_match_root.png');
-// const hash_match_team = require('./icons/hash_match_team.png');
-// const ifOperator = require('./icons/if.png');
-// const insert = require('./icons/insert.png');
-// const intrinsic = require('./icons/intrinsic.png');
-// const keyset = require('./icons/keyset.png');
-// const locate = require('./icons/locate.png');
-// const populationQuery = require('./icons/population_query.png');
-// const setFunction = require('./icons/set_function.png');
-// const snapshot = require('./icons/snapshot.png');
-// const spool = require('./icons/spool.png');
-// const tsql = require('./icons/sql.png');
-// const update = require('./icons/update.png');
-// const keyLookup = require('./icons/bookmark_lookup.png');
-// const apply = require('./icons/apply.png');
-// const broadcast = require('./icons/broadcast.png');
-// const computeToControlNode = require('./icons/compute_to_control_node.png');
-// const constTableGet = require('./icons/const_table_get.png');
-// const controlToComputeNodes = require('./icons/control_to_compute_nodes.png');
-// const externalBroadcast = require('./icons/external_broadcast.png');
+const assign = require('./images/icons/assign.png');
+const arithmetic_expression = require('./images/icons/arithmetic_expression.png');
+const bookmark_lookup = require('./images/icons/bookmark_lookup.png');
+const convert = require('./images/icons/convert.png');
+const declare = require('./images/icons/declare.png');
+const deleteOperator = require('./images/icons/delete.png');
+const dynamic = require('./images/icons/dynamic.png');
+const hash_match_root = require('./images/icons/hash_match_root.png');
+const hash_match_team = require('./images/icons/hash_match_team.png');
+const ifOperator = require('./images/icons/if.png');
+const insert = require('./images/icons/insert.png');
+const intrinsic = require('./images/icons/intrinsic.png');
+const keyset = require('./images/icons/keyset.png');
+const locate = require('./images/icons/locate.png');
+const populationQuery = require('./images/icons/population_query.png');
+const setFunction = require('./images/icons/set_function.png');
+const snapshot = require('./images/icons/snapshot.png');
+const spool = require('./images/icons/spool.png');
+const tsql = require('./images/icons/sql.png');
+const update = require('./images/icons/update.png');
+const keyLookup = require('./images/icons/bookmark_lookup.png');
+const apply = require('./images/icons/apply.png');
+const broadcast = require('./images/icons/broadcast.png');
+const computeToControlNode = require('./images/icons/compute_to_control_node.png');
+const constTableGet = require('./images/icons/const_table_get.png');
+const controlToComputeNodes = require('./images/icons/control_to_compute_nodes.png');
+const externalBroadcast = require('./images/icons/external_broadcast.png');
 
-// const externalExport = require('./icons/external_export.png');
-// const externalLocalStreaming = require('./icons/external_local_streaming.png');
-// const externalRoundRobin = require('./icons/external_round_robin.png');
-// const externalShuffle = require('./icons/external_shuffle.png');
-// const get = require('./icons/get.png');
-// const groupByApply = require('./icons/apply.png');
-// const groupByAggregate = require('./icons/group_by_aggregate.png');
-// const join = require('./icons/join.png');
-// const localCube = require('./icons/intrinsic.png');
-// const project = require('./icons/project.png');
-// const shuffle = require('./icons/shuffle.png');
-// const singleSourceRoundRobin = require('./icons/single_source_round_robin.png');
-// const singleSourceShuffle = require('./icons/single_source_shuffle.png');
-// const trim = require('./icons/trim.png');
-// const union = require('./icons/union.png');
-// const unionAll = require('./icons/union_all.png');
+const externalExport = require('./images/icons/external_export.png');
+const externalLocalStreaming = require('./images/icons/external_local_streaming.png');
+const externalRoundRobin = require('./images/icons/external_round_robin.png');
+const externalShuffle = require('./images/icons/external_shuffle.png');
+const get = require('./images/icons/get.png');
+const groupByApply = require('./images/icons/apply.png');
+const groupByAggregate = require('./images/icons/group_by_aggregate.png');
+const join = require('./images/icons/join.png');
+const localCube = require('./images/icons/intrinsic.png');
+const project = require('./images/icons/project.png');
+const shuffle = require('./images/icons/shuffle.png');
+const singleSourceRoundRobin = require('./images/icons/single_source_round_robin.png');
+const singleSourceShuffle = require('./images/icons/single_source_shuffle.png');
+const trim = require('./images/icons/trim.png');
+const union = require('./images/icons/union.png');
+const unionAll = require('./images/icons/union_all.png');
 
-const warning = require('./icons/overlay-warning.svg');
-const criticalWarning = require('./icons/badge_critical_warning.svg');
-const parallelismBadge = require('./icons/overlay-parallelism.svg');
+const warning = require('./images/icons/overlay-warning.svg');
+const criticalWarning = require('./images/icons/badge_critical_warning.svg');
+const parallelismBadge = require('./images/icons/overlay-parallelism.svg');
 
-const expandButton = require('./icons/expand.svg');
-const collapseButton = require('./icons/collapse.svg');
+const expandButton = require('./images/icons/expand.svg');
+const collapseButton = require('./images/icons/collapse.svg');
 
-export function getIconPaths(imageBasePath: string) {
+export function getIconPaths() {
 
 	var iconPaths =
 	{
 		// generic icons
-		iteratorCatchAll: imageBasePath + 'iterator_catch_all.png',
+		iteratorCatchAll: iterator_catch_all,
 
-		cursorCatchAll: imageBasePath + 'cursor_catch_all.png',
+		cursorCatchAll: cursor_catch_all,
 
-		languageConstructCatchAll: imageBasePath + 'language_construct_catch_all.png',
+		languageConstructCatchAll: language_construct_catch_all,
 
 		// operator icons
-		adaptiveJoin: imageBasePath + 'adaptive_join.png',
+		adaptiveJoin: adaptive_join,
 
-		assert: imageBasePath + 'assert.png',
+		assert: assert,
 
-		bitmap: imageBasePath + 'bitmap.png',
+		bitmap: bitmap,
 
-		clusteredIndexDelete: imageBasePath + 'clustered_index_delete.png',
+		clusteredIndexDelete: clustered_index_delete,
 
-		clusteredIndexInsert: imageBasePath + 'clustered_index_insert.png',
+		clusteredIndexInsert: clustered_index_insert,
 
 		clusteredIndexScan: clustered_index_scan,
 
 		clusteredIndexSeek: clustered_index_seek,
 
-		clusteredIndexUpdate: imageBasePath + 'clustered_index_update.png',
+		clusteredIndexUpdate: clustered_index_update,
 
-		clusteredIndexMerge: imageBasePath + 'clustered_index_merge.png',
+		clusteredIndexMerge: clustered_index_merge,
 
-		clusteredUpdate: imageBasePath + 'clustered_update.png',
+		clusteredUpdate: clustered_update,
 
-		collapse: imageBasePath + 'collapse.png',
+		collapse: collapse,
 
 		computeScalar: compute_scalar,
 
 		concatenation: concatenation,
 
-		constantScan: imageBasePath + 'constant_scan.png',
+		constantScan: constant_scan,
 
-		deletedScan: imageBasePath + 'deleted_scan.png',
+		deletedScan: deleted_scan,
 
 		filter: filter,
 
 		hashMatch: hash_match,
 
-		indexDelete: imageBasePath + 'index_delete.png',
+		indexDelete: index_delete,
 
-		indexInsert: imageBasePath + 'index_insert.png',
+		indexInsert: index_insert,
 
 		indexScan: index_scan,
 
-		columnstoreIndexDelete: imageBasePath + 'columnstore_index_delete.png',
+		columnstoreIndexDelete: columnstore_index_delete,
 
-		columnstoreIndexInsert: imageBasePath + 'columnstore_index_insert.png',
+		columnstoreIndexInsert: columnstore_index_insert,
 
-		columnstoreIndexMerge: imageBasePath + 'columnstore_index_merge.png',
+		columnstoreIndexMerge: columnstore_index_merge,
 
-		columnstoreIndexScan: imageBasePath + 'columnstore_index_scan.png',
+		columnstoreIndexScan: columnstore_index_scan,
 
-		columnstoreIndexUpdate: imageBasePath + 'columnstore_index_update.png',
+		columnstoreIndexUpdate: columnstore_index_update,
 
-		indexSeek: imageBasePath + 'index_seek.png',
+		indexSeek: index_seek,
 
-		indexSpool: imageBasePath + 'index_spool.png',
+		indexSpool: index_spool,
 
-		indexUpdate: imageBasePath + 'index_update.png',
+		indexUpdate: index_update,
 
-		insertedScan: imageBasePath + 'inserted_scan.png',
+		insertedScan: inserted_scan,
 
-		logRowScan: imageBasePath + 'log_row_scan.png',
+		logRowScan: log_row_scan,
 
-		mergeInterval: imageBasePath + 'merge_interval.png',
+		mergeInterval: merge_interval,
 
 		mergeJoin: merge_join,
 
 		nestedLoops: nested_loops,
 
-		parallelism: imageBasePath + 'parallelism.png',
+		parallelism: parallelism,
 
-		parameterTableScan: imageBasePath + 'parameter_table_scan.png',
+		parameterTableScan: parameter_table_scan,
 
-		print: imageBasePath + 'print.png',
+		print: print,
 
-		rank: imageBasePath + 'rank.png',
+		rank: rank,
 
-		foreignKeyReferencesCheck: imageBasePath + 'foreign_key_references_check.png',
+		foreignKeyReferencesCheck: foreign_key_references_check,
 
-		remoteDelete: imageBasePath + 'remote_delete.png',
+		remoteDelete: remote_delete,
 
-		remoteIndexScan: imageBasePath + 'remote_index_scan.png',
+		remoteIndexScan: remote_index_scan,
 
-		remoteIndexSeek: imageBasePath + 'remote_index_seek.png',
+		remoteIndexSeek: remote_index_seek,
 
-		remoteInsert: imageBasePath + 'remote_insert.png',
+		remoteInsert: remote_insert,
 
-		remoteQuery: imageBasePath + 'remote_query.png',
+		remoteQuery: remote_query,
 
-		remoteScan: imageBasePath + 'remote_scan.png',
+		remoteScan: remote_scan,
 
-		remoteUpdate: imageBasePath + 'remote_update.png',
+		remoteUpdate: remote_update,
 
-		ridLookup: imageBasePath + 'rid_lookup.png',
+		ridLookup: rid_lookup,
 
-		rowCountSpool: imageBasePath + 'row_count_spool.png',
+		rowCountSpool: row_count_spool,
 
-		segment: imageBasePath + 'segment.png',
+		segment: segment,
 
-		sequence: imageBasePath + 'sequence.png',
+		sequence: sequence,
 
-		sequenceProject: imageBasePath + 'sequence_project.png',
+		sequenceProject: sequence_project,
 
-		sort: imageBasePath + 'sort.png',
+		sort: sort,
 
-		split: imageBasePath + 'split.png',
+		split: split,
 
-		streamAggregate: imageBasePath + 'stream_aggregate.png',
+		streamAggregate: stream_aggregate,
 
-		switchStatement: imageBasePath + 'switch.png',
+		switchStatement: switchStatement,
 
 		tableValuedFunction: table_valued_function,
 
-		tableDelete: imageBasePath + 'table_delete.png',
+		tableDelete: table_delete,
 
-		tableInsert: imageBasePath + 'table_insert.png',
+		tableInsert: table_insert,
 
-		tableScan: imageBasePath + 'table_scan.png',
+		tableScan: table_scan,
 
 		tableSpool: table_spool,
 
-		tableUpdate: imageBasePath + 'table_update.png',
+		tableUpdate: table_update,
 
-		tableMerge: imageBasePath + 'table_merge.png',
+		tableMerge: table_merge,
 
-		tfp: imageBasePath + 'predict.png',
+		tfp: tfp,
 
-		top: imageBasePath + 'top.png',
+		top: top,
 
-		udx: imageBasePath + 'udx.png',
+		udx: udx,
 
-		batchHashTableBuild: imageBasePath + 'batch_hash_table_build.png',
+		batchHashTableBuild: batch_hash_table_build,
 
-		windowSpool: imageBasePath + 'table_spool.png',
+		windowSpool: window_spool,
 
-		windowAggregate: imageBasePath + 'window_aggregate.png',
+		windowAggregate: window_aggregate,
 
 		// cursor operators
-		fetchQuery: imageBasePath + 'fetch_query.png',
+		fetchQuery: fetch_query,
 
-		populateQuery: imageBasePath + 'population_query.png',
+		populateQuery: populate_query,
 
-		refreshQuery: imageBasePath + 'refresh_query.png',
+		refreshQuery: refresh_query,
 
 		// shiloh operators
 		result: result,
 
-		aggregate: imageBasePath + 'aggregate.png',
+		aggregate: aggregate,
 
-		assign: imageBasePath + 'assign.png',
+		assign: assign,
 
-		arithmeticExpression: imageBasePath + 'arithmetic_expression.png',
+		arithmeticExpression: arithmetic_expression,
 
-		bookmarkLookup: imageBasePath + 'bookmark_lookup.png',
+		bookmarkLookup: bookmark_lookup,
 
-		convert: imageBasePath + 'convert.png',
+		convert: convert,
 
-		declare: imageBasePath + 'declare.png',
+		declare: declare,
 
-		deleteOperator: imageBasePath + 'delete.png',
+		deleteOperator: deleteOperator,
 
-		dynamic: imageBasePath + 'dynamic.png',
+		dynamic: dynamic,
 
-		hashMatchRoot: imageBasePath + 'hash_match_root.png',
+		hashMatchRoot: hash_match_root,
 
-		hashMatchTeam: imageBasePath + 'hash_match_team.png',
+		hashMatchTeam: hash_match_team,
 
-		ifOperator: imageBasePath + 'if.png',
+		ifOperator: ifOperator,
 
-		insert: imageBasePath + 'insert.png',
+		insert: insert,
 
-		intrinsic: imageBasePath + 'intrinsic.png',
+		intrinsic: intrinsic,
 
-		keyset: imageBasePath + 'keyset.png',
+		keyset: keyset,
 
-		locate: imageBasePath + 'locate.png',
+		locate: locate,
 
-		populationQuery: imageBasePath + 'population_query.png',
+		populationQuery: populationQuery,
 
-		setFunction: imageBasePath + 'set_function.png',
+		setFunction: setFunction,
 
-		snapshot: imageBasePath + 'snapshot.png',
+		snapshot: snapshot,
 
-		spool: imageBasePath + 'spool.png',
+		spool: spool,
 
-		tsql: imageBasePath + 'sql.png',
+		tsql: tsql,
 
-		update: imageBasePath + 'update.png',
+		update: update,
 
 		// fake operators
-		keyLookup: imageBasePath + 'bookmark_lookup.png',
+		keyLookup: keyLookup,
 
 		// PDW operators
-		apply: imageBasePath + 'apply.png',
+		apply: apply,
 
-		broadcast: imageBasePath + 'broadcast.png',
+		broadcast: broadcast,
 
-		computeToControlNode: imageBasePath + 'compute_to_control_node.png',
+		computeToControlNode: computeToControlNode,
 
-		constTableGet: imageBasePath + 'const_table_get.png',
+		constTableGet: constTableGet,
 
-		controlToComputeNodes: imageBasePath + 'control_to_compute_nodes.png',
+		controlToComputeNodes: controlToComputeNodes,
 
-		externalBroadcast: imageBasePath + 'external_broadcast.png',
+		externalBroadcast: externalBroadcast,
 
-		externalExport: imageBasePath + 'external_export.png',
+		externalExport: externalExport,
 
-		externalLocalStreaming: imageBasePath + 'external_local_streaming.png',
+		externalLocalStreaming: externalLocalStreaming,
 
-		externalRoundRobin: imageBasePath + 'external_round_robin.png',
+		externalRoundRobin: externalRoundRobin,
 
-		externalShuffle: imageBasePath + 'external_shuffle.png',
+		externalShuffle: externalShuffle,
 
-		get: imageBasePath + 'get.png',
+		get: get,
 
-		groupByApply: imageBasePath + 'apply.png',
+		groupByApply: groupByApply,
 
-		groupByAggregate: imageBasePath + 'group_by_aggregate.png',
+		groupByAggregate: groupByAggregate,
 
-		join: imageBasePath + 'join.png',
+		join: join,
 
-		localCube: imageBasePath + 'intrinsic.png',
+		localCube: localCube,
 
-		project: imageBasePath + 'project.png',
+		project: project,
 
-		shuffle: imageBasePath + 'shuffle.png',
+		shuffle: shuffle,
 
-		singleSourceRoundRobin: imageBasePath + 'single_source_round_robin.png',
+		singleSourceRoundRobin: singleSourceRoundRobin,
 
-		singleSourceShuffle: imageBasePath + 'single_source_shuffle.png',
+		singleSourceShuffle: singleSourceShuffle,
 
-		trim: imageBasePath + 'trim.png',
+		trim: trim,
 
-		union: imageBasePath + 'union.png',
+		union: union,
 
-		unionAll: imageBasePath + 'union_all.png'
+		unionAll: unionAll
 	};
 
 	return iconPaths;

@@ -10,6 +10,12 @@ export interface ExecutionPlanWebViewState {
 	executionPlanGraphs?: ExecutionPlanGraph[];
 }
 
+export interface ExecutionPlanReducers {
+	getExecutionPlan: {
+		sqlPlanContent: string,
+	}
+}
+
 export interface ExecutionPlanGraph {
 	/**
 	 * Root of the execution plan tree
