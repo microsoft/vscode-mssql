@@ -11,6 +11,7 @@ const uglifyjs = require('uglify-js');
 const nls = require('vscode-nls-dev');
 const argv = require('yargs').argv;
 const min = (argv.min === undefined) ? false : true;
+const prod = (argv.prod === undefined) ? false : true;
 const vscodeTest = require('@vscode/test-electron');
 const { exec } = require('child_process');
 const gulpESLintNew = require('gulp-eslint-new');
@@ -79,9 +80,9 @@ gulp.task('ext:lint', () => {
 		'!**/*.d.ts',
 		'!./src/views/htmlcontent/**/*'
 	])
-	.pipe(gulpESLintNew({
-		quiet: true
-	}))
+		.pipe(gulpESLintNew({
+			quiet: true
+		}))
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
 		.pipe(gulpESLintNew.failAfterError());
 });
@@ -224,8 +225,6 @@ async function generateReactWebviewsBundle() {
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
 		platform: 'browser',
-		minify: false,
-		sourcemap: 'inline',
 		loader: {
 			'.tsx': 'tsx',
 			'.ts': 'ts',
@@ -236,10 +235,27 @@ async function generateReactWebviewsBundle() {
 		plugins: [
 			esbuildProblemMatcherPlugin('React App'),
 			typecheckPlugin()
-		]
+		],
+		sourcemap: prod ? undefined : 'inline',
+		metafile: !prod,
+		minify: prod,
+		minifyWhitespace: prod,
+		minifyIdentifiers: prod,
 	});
 
-	await ctx.rebuild();
+	const result = await ctx.rebuild();
+
+	if (!prod) {
+		/**
+		 * Generating esbuild metafile for webviews. You can analyze the metafile https://esbuild.github.io/analyze/
+		 * to see the bundle size and other details.
+		 */
+		const fs = require('fs').promises;
+		if (result.metafile) {
+			await fs.writeFile('./webviews-metafile.json', JSON.stringify(result.metafile));
+		}
+	}
+
 	await ctx.dispose();
 }
 

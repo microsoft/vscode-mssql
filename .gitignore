@@ -26,3 +26,4 @@ package.nls.*.json
 /blob-report/
 /playwright/.cache/
 .env
+webviews-metafile.json

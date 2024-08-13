@@ -58,7 +58,7 @@ jobs:
 
       - name: Build extension
         run: |
-          yarn build
+          yarn build --prod
 
       - name: Run lint
         run: |

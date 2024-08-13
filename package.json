@@ -54,7 +54,8 @@
     "lint": "gulp lint",
     "localization": "gulp ext:localization",
     "smoketest": "gulp ext:smoke",
-    "test": "gulp test:cover --log"
+    "test": "gulp test:cover --log",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -67,7 +68,9 @@
     "@angular/upgrade": "~2.1.2",
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
+    "@fluentui/react-components": "^9.54.3",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
+    "@monaco-editor/react": "^4.6.0",
     "@playwright/test": "^1.45.0",
     "@types/azdata": "^1.44.0",
     "@types/ejs": "^3.1.0",
@@ -120,6 +123,11 @@
     "istanbul": "^0.4.5",
     "npm-run-all": "^4.1.5",
     "pm-mocha-jenkins-reporter": "^0.2.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "react-resizable": "^3.0.5",
+    "react-router-dom": "^6.24.1",
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
@@ -132,14 +140,7 @@
     "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
-    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz",
-    "@fluentui/react-components": "^9.54.3",
-    "@monaco-editor/react": "^4.6.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-markdown": "^9.0.1",
-    "react-resizable": "^3.0.5",
-    "react-router-dom": "^6.24.1"
+    "yargs": "^17.7.2"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
