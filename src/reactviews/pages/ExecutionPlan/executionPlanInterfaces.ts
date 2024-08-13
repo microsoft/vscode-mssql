@@ -292,10 +292,175 @@ export interface ExecutionPlanService {
 	 * Determines if the provided value is an execution plan and returns the appropriate file extension.
 	 * @param value String that needs to be checked.
 	 */
-// 	isExecutionPlan(value: string): Thenable<IsExecutionPlanResult>;
+	// 	isExecutionPlan(value: string): Thenable<IsExecutionPlanResult>;
 }
 
 export interface ResultStatus {
 	success: boolean;
 	errorMessage: string;
+}
+
+
+export interface InternalExecutionPlanEdge extends ExecutionPlanEdge {
+	/**
+	 * Unique internal id given to graph edge by ADS.
+	 */
+	id?: string;
+}
+
+export type InternalExecutionPlanElement = InternalExecutionPlanEdge | ExecutionPlanNode;
+
+export interface AzDataGraphCell {
+	/**
+	 * Label for the azdata cell
+	 */
+	label: string;
+	/**
+	 * unique identifier for the cell
+	 */
+	id: string;
+	/**
+	 * icon for the cell
+	 */
+	icon: string;
+	/**
+	 * cost string for the cell
+	 */
+	costDisplayString: string;
+	/**
+	 * row count for the cell
+	 */
+	rowCountDisplayString: string;
+	/**
+	 * title for the cell hover tooltip
+	 */
+	tooltipTitle: string;
+	/**
+	 * metrics to be shown in the tooltip
+	 */
+	metrics: AzDataGraphCellMetric[];
+	/**
+	 * cell edges
+	 */
+	edges: AzDataGraphCellEdge[];
+	/**
+	 * child cells
+	 */
+	children: AzDataGraphCell[];
+	/**
+	 * Description to be displayed in the cell tooltip
+	 */
+	description: string;
+	badges: AzDataGraphNodeBadge[];
+	/**
+	 * Cost associated with the node
+	 */
+	cost: number;
+	/**
+	 * Cost of the node subtree
+	 */
+	subTreeCost: number;
+	/**
+	 * Relative cost of the node compared to its siblings.
+	 */
+	relativeCost: number;
+	/**
+	 * Time taken by the node operation in milliseconds
+	 */
+	elapsedTimeInMs: number;
+	/**
+	 * cost metrics for the node
+	 */
+	costMetrics: CostMetric[];
+}
+
+export interface CostMetric {
+	/**
+	 * Name of the cost metric.
+	 */
+	name: string;
+	/**
+	 * The value of the cost metric
+	 */
+	value: number | undefined;
+}
+
+export interface AzDataGraphNodeBadge {
+	type: string;
+	tooltip: string;
+}
+
+export interface AzDataGraphCellMetric {
+	/**
+	 * name of the metric
+	 */
+	name: string;
+	/**
+	 * display value of the metric
+	 */
+	value: string;
+	/**
+	 * flag that indicates if the display property is a long string
+	 * long strings will be displayed at the bottom
+	 */
+	isLongString: boolean;
+}
+
+export interface AzDataGraphCellEdge {
+	/**
+	 * Label for the edge
+	 */
+	label: string;
+	/**
+	 * Unique identifier for the edge
+	 */
+	id: string;
+	/**
+	 * weight of the edge. This value determines the edge thickness
+	 */
+	weight: number;
+	/**
+	 * metrics to be shown in the edge tooltip
+	 */
+	metrics: AzDataGraphCellMetric[];
+}
+
+// interface Point {
+// 	x: number;
+// 	y: number;
+// }
+
+export enum SearchType {
+	Equals,
+	Contains,
+	LesserThan,
+	GreaterThan,
+	GreaterThanEqualTo,
+	LesserThanEqualTo,
+	LesserAndGreaterThan
+}
+
+export enum ExpensiveMetricType {
+	Off = 'off',
+	ActualElapsedTime = 'actualElapsedTime',
+	ActualElapsedCpuTime = 'actualElapsedCpuTime',
+	Cost = 'cost',
+	SubtreeCost = 'subtreeCost',
+	ActualNumberOfRowsForAllExecutions = 'actualNumberOfRowsForAllExecutions',
+	NumberOfRowsRead = 'numberOfRowsRead'
+}
+
+export interface SearchQuery {
+	/**
+	 * property name to be searched
+	 */
+	propertyName: string,
+	/**
+	 * expected value of the property
+	 */
+	value: string,
+	/**
+	 * Type of search to be performed
+	 */
+	searchType: SearchType
 }
