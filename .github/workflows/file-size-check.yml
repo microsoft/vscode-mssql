@@ -101,7 +101,7 @@ jobs:
           echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} KB" >> results.md
           echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} KB" >> results.md
           echo "- **Size difference**: ${{ env.vsix_size_diff }} KB (${{ env.vsix_percentage_change }}%)" >> results.md
-          echo "### Bundle Size Comparison" >> results.md
+          echo "### React Webview Bundle Size Comparison" >> results.md
           echo "- **Main branch bundle size**: ${{ env.main_webview_bundle_size }} KB" >> results.md
           echo "- **PR branch bundle size**: ${{ env.pr_webview_bundle_size }} KB" >> results.md
           echo "- **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)" >> results.md
@@ -130,6 +130,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
           body-path: ./results.md
+          edit-mode: replace
 
       - name: Fail if vsix size is increased by 5% or size is above 25mb
         if: ${{ env.vsix_percentage_change > 5 || env.pr_vsix_size > 25000000 }}
