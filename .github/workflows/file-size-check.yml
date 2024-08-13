@@ -55,6 +55,20 @@ jobs:
           yarn build --prod
           yarn gulp package:online
 
+      - name: Calculate webview bundle sizes
+        run: |
+          main_file=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
+          pr_file=$(du -sk ./pr/out/src/reactviews/assets | cut -f1)
+          echo "Main branch bundle size: $main_file KB"
+          echo "PR branch bundle size: $pr_file KB"
+          size_diff=$((pr_file - main_file))
+          percentage_change=$((100 * size_diff / main_file))
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "main_webview_bundle_size=$main_file" >> $GITHUB_ENV
+          echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
+          echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
+
       - name: Calculate vsix file sizes
         run: |
           main_vsix=$(find ./main -name "*.vsix")
@@ -71,20 +85,6 @@ jobs:
           echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
 
-      - name: Calculate webview bundle sizes
-        run: |
-          main_webview_bundle=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
-          pr_webview_bundle=$(du -sk ./pr/out/src/reactviews/assets | cut -f1)
-          size_diff=$((pr_size - main_size))
-          percentage_change=$((100 * size_diff / main_size))
-          echo "Main branch bundle size: $main_size KB"
-          echo "PR branch bundle size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "main_webview_bundle_size=$main_size" >> $GITHUB_ENV
-          echo "pr_webview_bundle_size=$pr_size" >> $GITHUB_ENV
-          echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
-
       - name: Comment on PR with bundle size difference
         uses: actions/github-script@v7
         with:
@@ -95,15 +95,17 @@ jobs:
             const mainVsixSize = process.env.main_vsix_size;
             const prVsixSize = process.env.pr_vsix_size;
             const vsixPercentageChange = process.env.vsix_percentage_change;
-            # const comment = "### VSIX Size Comparison \n" +
-            # "- **Main branch VSIX size**: ${mainVsixSize} bytes \n" +
-            # "- **PR branch VSIX size**: ${prVsixSize} bytes \ n" +
-            # "- **Size difference**: ${prVsixSize - mainVsixSize} bytes (${vsixPercentageChange}%) \n" +
-            # "### Bundle Size Comparison\n" +
-            # "- **Main branch bundle size**: ${mainWebviewBundleSize} KB\n" +
-            # "- **PR branch bundle size**: ${prWebviewBundleSize} KB\n" +
-            # "- **Size difference**: ${prWebviewBundleSize - mainWebviewBundleSize} KB (${percentageChange}%)\n";
-            # console.log(comment);
+            const comment = `
+            ### VSIX Size Comparison
+            - **Main branch VSIX size**: ${mainVsixSize} bytes
+            - **PR branch VSIX size**: ${prVsixSize} bytes
+            - **Size difference**: ${prVsixSize - mainVsixSize} bytes (${vsixPercentageChange}%)
+            ### Bundle Size Comparison
+            - **Main branch bundle size**: ${mainWebviewBundleSize} KB
+            - **PR branch bundle size**: ${prWebviewBundleSize} KB
+            - **Size difference**: ${prWebviewBundleSize - mainWebviewBundleSize} KB (${webviewBundlePercentageChange}%)
+            `;
+            console.log(comment);
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
