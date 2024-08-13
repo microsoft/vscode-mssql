@@ -18,22 +18,27 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 
 	private async initialize() {
 		this.state.sqlPlanContent = this.executionPlanContents;
+		await this.getExecutionPlan();
 		this.registerRpcHandlers();
 	}
 
 	private registerRpcHandlers() {
 		this.registerReducer('getExecutionPlan', async (state, payload) => {
-			if (!this.state.executionPlan) {
-				const planFile: ep.ExecutionPlanGraphInfo = {
-					graphFileContent: this.executionPlanContents ?? payload.sqlPlanContent,
-					graphFileType: '.sqlplan'
-				}
-				this.state.executionPlan = await this._executionPlanService.getExecutionPlan(planFile);
-				this.state.executionPlanGraphs = this.state.executionPlan.graphs;
-				this.state.query = this.state.executionPlanGraphs[0].query;
-			}
+			await this.getExecutionPlan();
 
 			return { ...state, executionPlan: this.state.executionPlan, executionPlanGraphs: this.state.executionPlanGraphs, query: this.state.query };
 		});
+	}
+
+	private async getExecutionPlan() {
+		if (!this.state.executionPlan) {
+			const planFile: ep.ExecutionPlanGraphInfo = {
+				graphFileContent: this.executionPlanContents,
+				graphFileType: '.sqlplan'
+			}
+			this.state.executionPlan = await this._executionPlanService.getExecutionPlan(planFile);
+			this.state.executionPlanGraphs = this.state.executionPlan.graphs;
+			this.state.query = this.state.executionPlanGraphs[0].query;
+		}
 	}
 }

@@ -23,6 +23,7 @@ interface ExecutionPlanContextProps {
 const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({ children }) => {
 	const webViewState = useVscodeWebview<ep.ExecutionPlanWebViewState, ep.ExecutionPlanReducers>();
 	const executionPlanState = webViewState?.state;
+	console.log("Execution plan state provder: " , webViewState);
 	return <ExecutionPlanContext.Provider value={
 		{
 			provider: {

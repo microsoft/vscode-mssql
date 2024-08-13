@@ -45,7 +45,7 @@ import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 import { ExecutionPlanService } from '../services/executionPlanService';
-import { ExecutionPlanWebViewController } from './executionPlanWebViewController';
+import { ExecutionPlanWebViewController } from './executionPlanWebviewController';
 
 /**
  * The main controller class that initializes the extension

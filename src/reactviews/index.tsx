@@ -12,6 +12,7 @@ import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ConnectionDialogStateProvider } from './pages/ConnectionDialog/connectionDialogStateProvider';
 import { ConnectionPage } from './pages/ConnectionDialog/connectionPage';
 import { ExecutionPlanPage } from './pages/ExecutionPlan/executionPlanPage';
+import { ExecutionPlanStateProvider } from './pages/ExecutionPlan/executionPlanStateProvider';
 
 const Router = () => {
 	const vscodeWebviewState = useVscodeWebview<unknown, unknown>();
@@ -35,7 +36,9 @@ const Router = () => {
 			);
 		case WebviewRoute.executionPlan:
 			return (
-				<ExecutionPlanPage />
+				<ExecutionPlanStateProvider>
+					<ExecutionPlanPage />
+				</ExecutionPlanStateProvider>
 			);
 		default: (
 			<div>Route not found</div>
