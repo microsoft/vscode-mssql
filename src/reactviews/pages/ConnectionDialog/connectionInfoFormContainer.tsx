@@ -47,7 +47,6 @@ const FormInput = ({ value, target, type }: { value: string, target: keyof IConn
 	const [showPassword, setShowPassword] = useState(false);
 
 	useEffect(() => {
-		console.log('value changed');
 		setValueVal(value);
 	}, [value]);
 
