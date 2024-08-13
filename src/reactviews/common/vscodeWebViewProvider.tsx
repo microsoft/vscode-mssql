@@ -83,10 +83,17 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 			setState(state as State);
 		}
 
+		async function loadStats() {
+			await extensionRpc.call('loadStats', {
+				loadCompleteTimeStamp: Date.now()
+			});
+		}
+
 		getTheme();
 		getRoute();
 		getState();
-	});
+		loadStats();
+	}, []);
 
 	extensionRpc.subscribe('onDidChangeTheme', (params) => {
 		const kind = params as ColorThemeKind;
