@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, webLightTheme, Spinner } from "@fluentui/react-components";
-import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { ApiStatus, FormComponent, FormComponentType, FormTabType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
 const sqlServerImage = require('../../../../media/sqlServer.svg');
@@ -178,11 +178,11 @@ export const ConnectionInfoFormContainer = () => {
 					}
 				} weight='medium'>Connect to SQL Server</Text>
 			</div>
-			<TabList selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabs.Parameters} onTabSelect={(_event, data) => {
-				connectionDialogContext?.setFormTab(data.value as FormTabs);
+			<TabList selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters} onTabSelect={(_event, data) => {
+				connectionDialogContext?.setFormTab(data.value as FormTabType);
 			}}>
-				<Tab value={FormTabs.Parameters}>Parameters</Tab>
-				<Tab value={FormTabs.ConnectionString}>Connection String</Tab>
+				<Tab value={FormTabType.Parameters}>Parameters</Tab>
+				<Tab value={FormTabType.ConnectionString}>Connection String</Tab>
 			</TabList>
 			<div style={
 				{
@@ -198,7 +198,7 @@ export const ConnectionInfoFormContainer = () => {
 					}
 
 					{
-						connectionDialogContext.state.formComponents.map((component, idx) => {
+						connectionDialogContext.state.formTabs.filter(t => t.tab === connectionDialogContext.state.selectedFormTab)[0].components.map((component, idx) => {
 							if (component.hidden === true) {
 								return undefined;
 							}

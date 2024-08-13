@@ -6,9 +6,23 @@
 import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
 
-export enum FormTabs {
+export interface ConnectionDialogWebviewState {
+	selectedFormTab: FormTabType;
+	formTabs: FormTab[];
+	recentConnections: IConnectionDialogProfile[];
+	connectionProfile: IConnectionDialogProfile;
+	connectionStatus: ApiStatus;
+	formError: string;
+}
+
+export enum FormTabType {
 	Parameters = 'parameter',
 	ConnectionString = 'connString'
+}
+
+export interface FormTab {
+	tab: FormTabType;
+	components: FormComponent[];
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional
@@ -18,15 +32,6 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 	savePassword?: boolean;
 	emptyPasswordInput?: boolean;
 	azureAuthType?: vscodeMssql.AzureAuthType;
-}
-
-export interface ConnectionDialogWebviewState {
-	selectedFormTab: FormTabs;
-	recentConnections: IConnectionDialogProfile[];
-	formComponents: FormComponent[];
-	connectionProfile: IConnectionDialogProfile;
-	connectionStatus: ApiStatus;
-	formError: string;
 }
 
 export enum ApiStatus {
@@ -41,7 +46,7 @@ export interface ConnectionDialogContextProps {
 	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
 	formAction: (event: FormEvent) => void;
-	setFormTab: (tab: FormTabs) => void;
+	setFormTab: (tab: FormTabType) => void;
 	connect: () => void;
 }
 
@@ -158,7 +163,7 @@ export enum AuthenticationType {
 
 export interface ConnectionDialogReducers {
 	setFormTab: {
-		tab: FormTabs;
+		tab: FormTabType;
 	},
 	formAction: {
 		event: FormEvent;

@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { ApiStatus, AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTabs, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { ApiStatus, AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTab, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -26,10 +26,10 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			'Connection Dialog',
 			WebviewRoute.connectionDialog,
 			{
-				recentConnections: [],
-				selectedFormTab: FormTabs.Parameters,
 				connectionProfile: {} as IConnectionDialogProfile,
-				formComponents: [],
+				recentConnections: [],
+				selectedFormTab: FormTabType.Parameters,
+				formTabs: [],
 				connectionStatus: ApiStatus.NotStarted,
 				formError: ''
 			},
@@ -50,7 +50,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		} else {
 			await this.loadEmptyConnection();
 		}
-		this.state.formComponents = await this.generateFormComponents();
+		this.state.formTabs = await this.generateFormTabs();
 		await this.updateItemVisibility();
 		this.state = this.state;
 	}
@@ -109,7 +109,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	private async updateItemVisibility() {
 		const selectedTab = this.state.selectedFormTab;
 		let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
-		if (selectedTab === FormTabs.ConnectionString) {
+		if (selectedTab === FormTabType.ConnectionString) {
 			hiddenProperties = [
 				'server',
 				'authenticationType',
@@ -142,18 +142,15 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 		}
 
-		for (let i = 0; i < this.state.formComponents.length; i++) {
-			const component = this.state.formComponents[i];
-			if (hiddenProperties.includes(component.propertyName)) {
-				component.hidden = true;
-			} else {
-				component.hidden = false;
+		for (const tab of this.state.formTabs) {
+			for (const component of tab.components) {
+				component.hidden = hiddenProperties.includes(component.propertyName);
 			}
 		}
 	}
 
 	private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormComponent | undefined {
-		return this.state.formComponents.find(c => c.propertyName === propertyName);
+		return this.state.formTabs.flatMap(t => t.components).find(c => c.propertyName === propertyName);
 	}
 
 	private async getAccounts(): Promise<FormComponentOptions[]> {
@@ -184,176 +181,193 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		});
 	}
 
-	private async generateFormComponents(): Promise<FormComponent[]> {
-		const result: FormComponent[] = [
+	private async generateFormTabs(): Promise<FormTab[]> {
+		const result: FormTab[] = [
 			{
-				type: FormComponentType.Input,
-				propertyName: 'server',
-				label: 'Server',
-				required: true,
-				validate: (value: string) => {
-					if (this.state.selectedFormTab === FormTabs.Parameters && !value) {
-						return {
-							isValid: false,
-							validationMessage: 'Server is required'
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				}
-			},
-			{
-				type: FormComponentType.TextArea,
-				propertyName: 'connectionString',
-				label: 'Connection String',
-				required: true,
-				validate: (value: string) => {
-					if (this.state.selectedFormTab === FormTabs.ConnectionString && !value) {
-						return {
-							isValid: false,
-							validationMessage: 'Connection string is required'
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				}
-			},
-			{
-				type: FormComponentType.Dropdown,
-				propertyName: 'authenticationType',
-				label: 'Authentication Type',
-				required: true,
-				options: [
+				tab: FormTabType.Parameters,
+				components: [
 					{
-						displayName: 'SQL Login',
-						value: AuthenticationType.SqlLogin
+						type: FormComponentType.Input,
+						propertyName: 'server',
+						label: 'Server',
+						required: true,
+						validate: (value: string) => {
+							if (this.state.selectedFormTab === FormTabType.Parameters && !value) {
+								return {
+									isValid: false,
+									validationMessage: 'Server is required'
+								};
+							}
+							return {
+								isValid: true,
+								validationMessage: ''
+							};
+						}
 					},
 					{
-						displayName: 'Windows Authentication',
-						value: AuthenticationType.Integrated
+						type: FormComponentType.Dropdown,
+						propertyName: 'authenticationType',
+						label: 'Authentication Type',
+						required: true,
+						options: [
+							{
+								displayName: 'SQL Login',
+								value: AuthenticationType.SqlLogin
+							},
+							{
+								displayName: 'Windows Authentication',
+								value: AuthenticationType.Integrated
+							},
+							{
+								displayName: 'Microsoft Entra MFA',
+								value: AuthenticationType.AzureMFA
+							}
+						],
 					},
 					{
-						displayName: 'Microsoft Entra MFA',
-						value: AuthenticationType.AzureMFA
-					}
-				],
-			},
-			{
-				// Hidden if connection string is set or if the authentication type is not SQL Login
-				propertyName: 'user',
-				label: 'User Name',
-				type: FormComponentType.Input,
-				required: true,
-				validate: (value: string) => {
-					if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
-						return {
-							isValid: false,
-							validationMessage: 'User name is required'
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				}
-			},
-			{
-				propertyName: 'password',
-				label: 'Password',
-				required: false,
-				type: FormComponentType.Password,
-			},
-			{
-				propertyName: 'savePassword',
-				label: 'Save Password',
-				required: false,
-				type: FormComponentType.Checkbox,
-			},
-			{
-				propertyName: 'accountId',
-				label: 'Azure Account',
-				required: true,
-				type: FormComponentType.Dropdown,
-				options: await this.getAccounts(),
-				placeholder: 'Select an account',
-				actionButtons: await this.getAzureActionButtons(),
-				validate: (value: string) => {
-					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
-						return {
-							isValid: false,
-							validationMessage: 'Azure Account is required'
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				},
-			},
-			{
-				propertyName: 'tenantId',
-				label: 'Tenant ID',
-				required: true,
-				type: FormComponentType.Dropdown,
-				options: [],
-				hidden: true,
-				placeholder: 'Select a tenant',
-				validate: (value: string) => {
-					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
-						return {
-							isValid: false,
-							validationMessage: 'Tenant ID is required'
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				}
-			},
-			{
-				propertyName: 'database',
-				label: 'Database',
-				required: false,
-				type: FormComponentType.Input,
-			},
-			{
-				propertyName: 'trustServerCertificate',
-				label: 'Trust Server Certificate',
-				required: false,
-				type: FormComponentType.Checkbox,
-			},
-			{
-				propertyName: 'encrypt',
-				label: 'Encrypt Connection',
-				required: false,
-				type: FormComponentType.Dropdown,
-				options: [
-					{
-						displayName: 'Optional',
-						value: 'Optional'
+						// Hidden if connection string is set or if the authentication type is not SQL Login
+						propertyName: 'user',
+						label: 'User Name',
+						type: FormComponentType.Input,
+						required: true,
+						validate: (value: string) => {
+							if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
+								return {
+									isValid: false,
+									validationMessage: 'User name is required'
+								};
+							}
+							return {
+								isValid: true,
+								validationMessage: ''
+							};
+						}
 					},
 					{
-						displayName: 'Mandatory',
-						value: 'Mandatory'
+						propertyName: 'password',
+						label: 'Password',
+						required: false,
+						type: FormComponentType.Password,
 					},
 					{
-						displayName: 'Strict  (Requires SQL Server 2022 or Azure SQL)',
-						value: 'Strict'
+						propertyName: 'savePassword',
+						label: 'Save Password',
+						required: false,
+						type: FormComponentType.Checkbox,
+					},
+					{
+						propertyName: 'accountId',
+						label: 'Azure Account',
+						required: true,
+						type: FormComponentType.Dropdown,
+						options: await this.getAccounts(),
+						placeholder: 'Select an account',
+						actionButtons: await this.getAzureActionButtons(),
+						validate: (value: string) => {
+							if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+								return {
+									isValid: false,
+									validationMessage: 'Azure Account is required'
+								};
+							}
+							return {
+								isValid: true,
+								validationMessage: ''
+							};
+						},
+					},
+					{
+						propertyName: 'tenantId',
+						label: 'Tenant ID',
+						required: true,
+						type: FormComponentType.Dropdown,
+						options: [],
+						hidden: true,
+						placeholder: 'Select a tenant',
+						validate: (value: string) => {
+							if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+								return {
+									isValid: false,
+									validationMessage: 'Tenant ID is required'
+								};
+							}
+							return {
+								isValid: true,
+								validationMessage: ''
+							};
+						}
+					},
+					{
+						propertyName: 'database',
+						label: 'Database',
+						required: false,
+						type: FormComponentType.Input,
+					},
+					{
+						propertyName: 'trustServerCertificate',
+						label: 'Trust Server Certificate',
+						required: false,
+						type: FormComponentType.Checkbox,
+					},
+					{
+						propertyName: 'encrypt',
+						label: 'Encrypt Connection',
+						required: false,
+						type: FormComponentType.Dropdown,
+						options: [
+							{
+								displayName: 'Optional',
+								value: 'Optional'
+							},
+							{
+								displayName: 'Mandatory',
+								value: 'Mandatory'
+							},
+							{
+								displayName: 'Strict  (Requires SQL Server 2022 or Azure SQL)',
+								value: 'Strict'
+							}
+						],
+					},
+					{
+						propertyName: 'profileName',
+						label: 'Profile Name',
+						required: false,
+						type: FormComponentType.Input,
 					}
-				],
+				]
 			},
 			{
-				propertyName: 'profileName',
-				label: 'Profile Name',
-				required: false,
-				type: FormComponentType.Input,
+				tab: FormTabType.ConnectionString,
+				components: [
+					{
+						type: FormComponentType.TextArea,
+						propertyName: 'connectionString',
+						label: 'Connection String',
+						required: true,
+						validate: (value: string) => {
+							if (this.state.selectedFormTab === FormTabType.ConnectionString && !value) {
+								return {
+									isValid: false,
+									validationMessage: 'Connection string is required'
+								};
+							}
+							return {
+								isValid: true,
+								validationMessage: ''
+							};
+						}
+					},
+					{
+						propertyName: 'profileName',
+						label: 'Profile Name',
+						required: false,
+						type: FormComponentType.Input,
+					}
+				]
 			}
 		];
+
 		return result;
 	}
 
@@ -369,7 +383,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 		}
 		else {
-			this.state.formComponents.forEach(c => {
+			this.state.formTabs.flatMap(t => t.components.forEach(c => {
 				if (c.hidden) {
 					c.validation = {
 						isValid: true,
@@ -384,7 +398,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						}
 					}
 				}
-			});
+			}));
 		}
 		return errorCount;
 	}
@@ -470,8 +484,10 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	private clearFormError() {
 		this.state.formError = '';
-		for (let i = 0; i < this.state.formComponents.length; i++) {
-			this.state.formComponents[i].validation = undefined;
+		for (const tab of this.state.formTabs) {
+			for (const component of tab.components) {
+				component.validation = undefined;
+			}
 		}
 	}
 
@@ -515,10 +531,10 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			this.state.connectionStatus = ApiStatus.Loading;
 			this.state.formError = '';
 			this.state = this.state;
-			const notHiddenComponents = this.state.formComponents.filter(c => !c.hidden).map(c => c.propertyName);
+			const visibleComponents = this.state.formTabs.flatMap(t => t.components.filter(c => !c.hidden).map(c => c.propertyName));
 			// Set all other fields to undefined
 			Object.keys(this.state.connectionProfile).forEach(key => {
-				if (!notHiddenComponents.includes(key as keyof IConnectionDialogProfile)) {
+				if (!visibleComponents.includes(key as keyof IConnectionDialogProfile)) {
 					(this.state.connectionProfile[key as keyof IConnectionDialogProfile] as any) = undefined;
 				}
 			});
