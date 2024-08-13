@@ -78,7 +78,7 @@ jobs:
       - name: Calculate vsix file sizes
         run: |
           main_vsix=$(find ./main -name "*.vsix")
-          pr_vsix=$(find ./main -name "*.vsix")
+          pr_vsix=$(find ./pr -name "*.vsix")
           main_size=$(stat -c%s "$main_vsix")
           pr_size=$(stat -c%s "$pr_vsix")
           main_size=$((main_size / 1024))
