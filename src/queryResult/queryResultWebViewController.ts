@@ -6,11 +6,12 @@
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import * as qr from '../sharedInterfaces/queryResult';
+import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 
 export class QueryResultWebViewController extends ReactWebViewPanelController<qr.QueryResultWebViewState, qr.QueryResultReducers> {
 	constructor(context: vscode.ExtensionContext,
 	) {
-		super(context, 'Query Result', 'queryResult.js', 'queryResult.css', {
+		super(context, 'Query Result', WebviewRoute.queryResult, {
 			value: 0,
 			messages: [
 				{ message: 'Message 1', timestamp: '12:00' },

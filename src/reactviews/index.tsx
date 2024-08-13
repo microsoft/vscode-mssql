@@ -11,6 +11,8 @@ import { TableDesigner } from './pages/TableDesigner/tableDesignerPage';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ConnectionDialogStateProvider } from './pages/ConnectionDialog/connectionDialogStateProvider';
 import { ConnectionPage } from './pages/ConnectionDialog/connectionPage';
+import { QueryResult } from './pages/QueryResult/queryResultPage';
+import { QueryResultStateProvider } from './pages/QueryResult/queryResultStateProvider';
 
 const Router = () => {
 	const vscodeWebviewState = useVscodeWebview<unknown, unknown>();
@@ -26,13 +28,20 @@ const Router = () => {
 					<TableDesigner />
 				</TableDesignerStateProvider>
 			);
-		case WebviewRoute.connectionDialog:
-			return (
-				<ConnectionDialogStateProvider>
-					<ConnectionPage />
-				</ConnectionDialogStateProvider>
-			);
-		default: (
+			case WebviewRoute.connectionDialog:
+				return (
+					<ConnectionDialogStateProvider>
+						<ConnectionPage />
+					</ConnectionDialogStateProvider>
+				);
+			case WebviewRoute.queryResult:
+				return (
+					<QueryResultStateProvider>
+						<QueryResult />
+					</QueryResultStateProvider>
+				);
+
+			default: (
 			<div>Route not found</div>
 		);
 	}
