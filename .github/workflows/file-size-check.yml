@@ -96,7 +96,8 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: This comment was written by a bot!
+          body-includes: |
+            ### VSIX Size Comparison
 
       - name: Create comment
         if: steps.fc.outputs.comment-id == ''
