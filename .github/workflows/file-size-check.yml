@@ -17,6 +17,11 @@ permissions:
 jobs:
   size-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      actions: read
+      issues: write
 
     steps:
       - name: Checkout main branch
