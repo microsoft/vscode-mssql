@@ -410,3 +410,7 @@ export const openPlanFile = (theme: string) => {
 export const openQuery = (theme: string) => {
     return theme === "dark" ? require('./icons/openQueryDark.svg') : require('./icons/openQuery.svg');
 };
+
+export const background = (theme:string) => {
+	return theme === "dark" ? '#282C2C' : "#F2F2F2";
+}

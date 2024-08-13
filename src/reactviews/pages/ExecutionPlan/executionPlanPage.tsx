@@ -5,15 +5,62 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import { getBadgePaths, getCollapseExpandPaths, getIconPaths, openPlanFile, openQuery, save } from './queryPlanSetup';
+import { getBadgePaths, getCollapseExpandPaths, getIconPaths, openPlanFile, openQuery, save, background } from './queryPlanSetup';
 import * as azdataGraph from 'azdataGraph/dist/build';
 import 'azdataGraph/src/css/common.css';
 import 'azdataGraph/src/css/explorer.css';
 import './executionPlan.css';
-import { Spinner } from '@fluentui/react-components';
+import { makeStyles, Spinner } from '@fluentui/react-components';
 import { ExecutionPlanView } from "./executionPlanView";
 
+const useStyles = makeStyles({
+	outerDiv: {
+		height: "100%",
+		width: "100%",
+		overflow: "auto"
+	},
+	panelContainer: {
+		display: "flex",
+		flexDirection: "row",
+		height: "100%",
+		width: "100%",
+	},
+	planContainer: {
+		flexGrow: 1,
+		width: "100%",
+		height: "100%"
+	},
+	queryCostContainer: {
+		opacity: 1,
+		padding: "5px"
+	},
+	queryPlanParent: {
+		width: "100%",
+		height: "100%",
+	},
+	iconStack: {
+		display: "flex",
+		flexDirection: "column",
+		justifyContent: "flex-start",
+		alignItems: "center",
+		position: "fixed",
+		top: 0,
+		right: 0,
+		width: "25px",
+		height: "100%",
+		opacity: 1
+	},
+	button: {
+		cursor: "pointer",
+		marginBottom: "10px"
+	},
+	buttonImg: {
+		display: "block"
+	}
+})
+
 export const ExecutionPlanPage = () => {
+	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
 	const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
@@ -79,22 +126,22 @@ export const ExecutionPlanPage = () => {
 	};
 
 	return (
-		<div>
+		<div className={classes.outerDiv}>
 			{executionPlanState && executionPlanState.executionPlanGraphs ? (
-				<div id="panelContainer" style={{ display: 'flex', alignItems: 'flex-start', overflowX: 'auto', overflowY: 'auto'}}>
-					<div id="planContainer">
-						<div>{executionPlanState.query}</div>
-						<div id="queryPlanParent" style={{ display: 'flex', alignItems: 'flex-start', overflowX: 'auto', overflowY: 'auto'}}></div>
+				<div id="panelContainer" className={classes.panelContainer}>
+					<div id="planContainer" className={classes.planContainer}>
+						<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:background(executionPlanState.theme!)}}>{executionPlanState.query}</div>
+						<div id="queryPlanParent" className={classes.queryPlanParent}></div>
 					</div>
-					<div id="iconStack" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'absolute', opacity: 1, right: 0}}>
-						<div id="saveButton" className="button" onClick={handleSavePlan}>
-							<img src={save(executionPlanState.theme!)} alt="Save" width="15" height="15" />
+					<div id="iconStack" className={classes.iconStack} style={{background:background(executionPlanState.theme!)}}>
+						<div id="saveButton" className={classes.button} onClick={handleSavePlan}>
+							<img className={classes.buttonImg} src={save(executionPlanState.theme!)} alt="Save" width="20" height="20" />
 						</div>
-						<div id="showXmlButton" className="button" onClick={handleShowXml}>
-							<img src={openPlanFile(executionPlanState.theme!)} alt="Show Xml" width="15" height="15" />
+						<div id="showXmlButton" className={classes.button} onClick={handleShowXml}>
+							<img className={classes.buttonImg} src={openPlanFile(executionPlanState.theme!)} alt="Show Xml" width="20" height="20" />
 						</div>
-						<div id="showQueryButton" className="button" onClick={handleShowQuery}>
-							<img src={openQuery(executionPlanState.theme!)} alt="Show Query" width="15" height="15" />
+						<div id="showQueryButton" className={classes.button} onClick={handleShowQuery}>
+							<img className={classes.buttonImg} src={openQuery(executionPlanState.theme!)} alt="Show Query" width="20" height="20" />
 						</div>
 					</div>
 				</div>
