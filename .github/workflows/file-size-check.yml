@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  issues: write
 
 jobs:
   size-check:
