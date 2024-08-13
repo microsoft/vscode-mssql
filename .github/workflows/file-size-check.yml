@@ -108,7 +108,7 @@ jobs:
             ### VSIX Size Comparison
             - **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes
             - **PR branch VSIX size**: ${{ env.pr_webview_bundle_size }} bytes
-            - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change=$percentage_change }}%)
+            - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change }}%)
             ### Bundle Size Comparison
             - **Main branch bundle size**: ${mainWebviewBundleSize} KB
             - **PR branch bundle size**: ${prWebviewBundleSize} KB
@@ -123,7 +123,7 @@ jobs:
               ### VSIX Size Comparison
               - **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes
               - **PR branch VSIX size**: ${{ env.pr_webview_bundle_size }} bytes
-              - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change=$percentage_change }}%)
+              - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change }}%)
               ### Bundle Size Comparison
               - **Main branch bundle size**: ${mainWebviewBundleSize} KB
               - **PR branch bundle size**: ${prWebviewBundleSize} KB
