@@ -1,4 +1,3 @@
-import { getNonce } from '../../../controllers/reactWebviewController';
 import * as ep from './executionPlanInterfaces';
 
 export class ExecutionPlanView {
@@ -36,7 +35,7 @@ export class ExecutionPlanView {
 
 		diagramNode.badges = [];
 		for (let i = 0; node.badges && i < node.badges.length; i++) {
-			diagramNode.badges.push(this.getBadgeTypeString(node.badges[i].type));
+			diagramNode.badges.push((this.getBadgeTypeString(node.badges[i].type)) as ep.AzDataGraphNodeBadge);
 		}
 
 		diagramNode.edges = this.populateEdges(node.edges);
@@ -151,7 +150,16 @@ export class ExecutionPlanView {
 	}
 
 	private createGraphElementId(): string {
-		return `element-${getNonce()}`;
+		return `element-${this.getNonce()}`;
+	}
+
+	private getNonce(): string {
+		let text = "";
+		const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		for (let i = 0; i < 32; i++) {
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+		}
+		return text;
 	}
 
 	/**

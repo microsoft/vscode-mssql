@@ -5,23 +5,20 @@
 
 import { useContext, useEffect } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import {data} from './demoGraph';
 import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from './queryPlanSetup';
 import * as azdataGraph from 'azdataGraph/dist/build';
 import 'azdataGraph/src/css/common.css';
 import 'azdataGraph/src/css/explorer.css';
 import './executionPlan.css';
-const parseGraph = JSON.parse(data);
+import { Spinner } from '@fluentui/react-components';
+import { ExecutionPlanView } from "./executionPlanView";
 
 export const ExecutionPlanPage = () => {
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
 
-	if (!executionPlanState) {
-		return null;
-	}
-
 	useEffect(() => {
+		if (!executionPlanState) return;
 		// @ts-ignore
 		window['mxLoadResources'] = false;
 		// @ts-ignore
@@ -35,40 +32,59 @@ export const ExecutionPlanPage = () => {
 
 		const mxClient = azdataGraph.default();
 		console.log(mxClient);
+		console.log("Execution Plan State: ", executionPlanState);
 
-		function loadGraph() {
-			const div = document.getElementById('queryPlanParent');
-			// create a div to hold the graph
-			const queryPlanConfiguration = {
-				container: div,
-				queryPlanGraph: parseGraph,
-				iconPaths: getIconPaths(),
-				badgeIconPaths: getBadgePaths(),
-				expandCollapsePaths: getCollapseExpandPaths(),
-				showTooltipOnClick: true
-			};
-			const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
-			pen.setTextFontColor('var(--vscode-editor-foreground)'); // set text color
-			pen.setEdgeColor('var(--vscode-editor-foreground)'); // set edge color
-			console.log(pen);
+		function loadExecutionPlan() {
+			if (executionPlanState && executionPlanState.executionPlanGraphs) {
+				const executionPlanRootNode = executionPlanState.executionPlanGraphs[0].root;
+				const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
+				const executionPlanGraph = executionPlanView.populate();
+				console.log("Graph: ", executionPlanGraph);
+
+				const div = document.getElementById('queryPlanParent');
+				// create a div to hold the graph
+				const queryPlanConfiguration = {
+					container: div,
+					queryPlanGraph: executionPlanGraph,
+					iconPaths: getIconPaths(),
+					badgeIconPaths: getBadgePaths(),
+					expandCollapsePaths: getCollapseExpandPaths(),
+					showTooltipOnClick: true
+				};
+				const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
+				pen.setTextFontColor('var(--vscode-editor-foreground)'); // set text color
+				pen.setEdgeColor('var(--vscode-editor-foreground)'); // set edge color
+				console.log(pen);
+			}
+			else {
+				return;
+			}
 		}
-		loadGraph();
+		loadExecutionPlan();
 
-	}, []);
+	}, [executionPlanState]);
 
 	return (
 		<div>
-			<div id="queryPlanParent" style= {
-				{
-					position: 'relative',
-					overflow: 'scroll',
-					width: '1500px',
-					height: '800px',
-					cursor: 'default',
-					border: '1px solid',
-					color: 'white !important'
-				}
-			}></div>
+			{executionPlanState && executionPlanState.executionPlanGraphs ? (
+				<div>
+					<div>{executionPlanState.query}</div>
+					<div
+						id="queryPlanParent"
+						style={{
+							position: 'relative',
+							overflow: 'scroll',
+							width: '1500px',
+							height: '800px',
+							cursor: 'default',
+							border: '1px solid',
+							color: 'white !important',
+						}}
+					></div>
+				</div>
+			) : (
+				<Spinner label="Loading..." labelPosition="below" />
+			)}
 		</div>
 	);
 };
