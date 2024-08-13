@@ -135,7 +135,7 @@ export const ConnectionInfoFormContainer = () => {
 					}}>
 					{
 						component.options?.map((option, idx) => {
-							return <Option key={component.propertyName + idx} value={option.value}>{option.displayName}</Option>
+							return <Option key={component.propertyName + idx} value={option.value}>{option.displayName}</Option>;
 						})
 					}
 				</Dropdown>;
@@ -224,7 +224,7 @@ export const ConnectionInfoFormContainer = () => {
 													propertyName: component.propertyName,
 													isAction: true,
 													value: actionButton.id
-												})}>{actionButton.label}</Button>
+												})}>{actionButton.label}</Button>;
 											})
 										}
 									</div>
@@ -251,5 +251,5 @@ export const ConnectionInfoFormContainer = () => {
 				</div>
 			</div>
 		</div>
-	)
-}
+	);
+};
