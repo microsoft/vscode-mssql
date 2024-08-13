@@ -20,7 +20,8 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 	private _state: State;
 	private _webViewRequestHandlers: { [key: string]: (params: any) => any } = {};
 	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
-
+	private _isFirstLoad: boolean = true;
+	private _loadStartTime: number = Date.now();
 	/**
 	 * Creates a new ReactWebViewPanelController
 	 * @param _context The context of the extension
@@ -127,6 +128,17 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 		};
 		this._webViewRequestHandlers['getRoute'] = () => {
 			return this._route;
+		};
+		this._webViewRequestHandlers['loadStats'] = (message) => {
+			const timeStamp = message.loadCompleteTimeStamp;
+			const timeToLoad = timeStamp - this._loadStartTime;
+			if (this._isFirstLoad) {
+				console.log(`
+					Load stats for ${this._route}
+					Total time: ${timeToLoad} ms
+				`);
+				this._isFirstLoad = false;
+			}
 		};
 	}
 
