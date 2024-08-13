@@ -6,7 +6,8 @@
 export interface QueryResultReducers {
 }
 
-export interface QueryResultProvider {
+export interface QueryResultReactProvider {
+	setResultTab: (tabId: QueryResultPaneTabs) => void;
 }
 
 export enum QueryResultPaneTabs {
@@ -27,4 +28,10 @@ export interface QueryResultWebViewState {
 export interface QueryResultMessage {
 	message: string;
 	timestamp: string;
+}
+
+export interface QueryResultReducers {
+	setResultTab: {
+		tabId: QueryResultPaneTabs
+	}
 }

@@ -99,9 +99,6 @@ export const QueryResult = () => {
 	return (
 		<div className={classes.root}>
 			{
-								<div>test</div>
-			}
-			{
 				<div className={classes.mainContent}>
                         <QueryResultPane />
                 </div>

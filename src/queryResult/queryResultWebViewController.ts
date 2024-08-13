@@ -29,5 +29,14 @@ export class QueryResultWebViewController extends ReactWebViewPanelController<qr
 	}
 
 	private async initialize() {
+		this.registerRpcHandlers();
 	}
+
+	private registerRpcHandlers() {
+		this.registerReducer('setResultTab', async (state, payload) => {
+			state.tabStates.resultPaneTab = payload.tabId;
+			return state;
+		});
+	}
+
 }

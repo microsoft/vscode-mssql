@@ -130,8 +130,7 @@ export const QueryResultPane = () => {
 				size='medium'
 				selectedValue={metadata.tabStates!.resultPaneTab}
 				onTabSelect={(_event, data) => {
-					console.log("state.provider.setResultTab(data.value as string)");
-					console.log(data);
+					state.provider.setResultTab(data.value as qr.QueryResultPaneTabs);
 				}}
 				className={classes.queryResultPaneTabs}
 			>
