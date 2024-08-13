@@ -8,12 +8,36 @@ export interface ExecutionPlanWebViewState {
 	sqlPlanContent?: string;
 	executionPlan?: GetExecutionPlanResult;
 	executionPlanGraphs?: ExecutionPlanGraph[];
+	theme?: string;
 }
 
 export interface ExecutionPlanReducers {
 	getExecutionPlan: {
 		sqlPlanContent: string
+	},
+	saveExecutionPlan: {
+		sqlPlanContent: string
+	},
+	showPlanXml: {
+		sqlPlanContent: string
+	},
+	showQuery: {
+		query: string
 	}
+}
+
+export interface ExecutionPlanProvider {
+	/**
+	 * Gets the execution plan graph from the provider for a given plan file
+	 * @param planFile file that contains the execution plan
+	 */
+	getExecutionPlan(planFile: ExecutionPlanGraphInfo): Thenable<GetExecutionPlanResult>;
+
+	saveExecutionPlan(sqlPlanContent: string): void;
+
+	showPlanXml(sqlPlanContent: string): void;
+
+	showQuery(query: string): void;
 }
 
 export interface ExecutionPlanGraph {
@@ -282,6 +306,7 @@ export interface ExecutionPlanService {
 	 * @param planFile file that contains the execution plan
 	 */
 	getExecutionPlan(planFile: ExecutionPlanGraphInfo): Thenable<GetExecutionPlanResult>;
+
 	// /**
 	//  * Compares two execution plans and identifies matching regions in both execution plans.
 	//  * @param firstPlanFile file that contains the first execution plan.

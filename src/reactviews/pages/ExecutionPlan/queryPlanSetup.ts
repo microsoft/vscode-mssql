@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
 const iterator_catch_all = require('./icons/iterator_catch_all.png');
 const cursor_catch_all = require('./icons/cursor_catch_all.png');
 const language_construct_catch_all = require('./icons/language_construct_catch_all.png');
@@ -399,3 +398,15 @@ export function getCollapseExpandPaths() {
 		collapse: collapseButton
 	};
 }
+
+export const save = (theme: string) => {
+    return theme === "dark" ? require('./icons/saveDark.svg') : require('./icons/save.svg');
+};
+
+export const openPlanFile = (theme: string) => {
+    return theme === "dark" ? require('./icons/openPlanFileDark.svg') : require('./icons/openPlanFile.svg');
+};
+
+export const openQuery = (theme: string) => {
+    return theme === "dark" ? require('./icons/openQueryDark.svg') : require('./icons/openQuery.svg');
+};

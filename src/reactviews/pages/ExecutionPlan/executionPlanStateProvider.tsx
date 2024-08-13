@@ -9,7 +9,7 @@ import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
 import { Theme } from '@fluentui/react-components';
 
 export interface ExecutionPlanState {
-	provider: ep.ExecutionPlanService;
+	provider: ep.ExecutionPlanProvider;
 	state: ep.ExecutionPlanWebViewState;
 	theme: Theme;
 }
@@ -23,7 +23,6 @@ interface ExecutionPlanContextProps {
 const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({ children }) => {
 	const webViewState = useVscodeWebview<ep.ExecutionPlanWebViewState, ep.ExecutionPlanReducers>();
 	const executionPlanState = webViewState?.state;
-	console.log("Execution plan state provder: " , webViewState);
 	return <ExecutionPlanContext.Provider value={
 		{
 			provider: {
@@ -37,7 +36,22 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({ child
 					}
 
 					return Promise.resolve(executionPlanState.executionPlan);
-				}
+				},
+				saveExecutionPlan: function (sqlPlanContent: string): void {
+					webViewState?.extensionRpc.action('saveExecutionPlan',
+						{sqlPlanContent: sqlPlanContent}
+					);
+				},
+				showPlanXml: function (sqlPlanContent: string): void {
+					webViewState?.extensionRpc.action('showPlanXml',
+						{sqlPlanContent: sqlPlanContent}
+					);
+				},
+				showQuery: function (query: string): void {
+					webViewState?.extensionRpc.action('showQuery',
+						{query: query}
+					);
+				},
 			},
 			state: webViewState?.state as ep.ExecutionPlanWebViewState,
 			theme: webViewState?.theme
