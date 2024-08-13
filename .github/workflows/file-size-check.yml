@@ -106,6 +106,8 @@ jobs:
           echo "- **PR branch bundle size**: ${{ env.pr_webview_bundle_size }} KB" >> results.md
           echo "- **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)" >> results.md
             - name: Find comment
+
+      - name: Find comment
         uses: peter-evans/find-comment@v3
         id: fc
         with:
