@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  issues: write
+  content: write
 
 jobs:
   size-check:
@@ -70,6 +70,7 @@ jobs:
           echo "Percentage change: $percentage_change%"
           echo "main_webview_bundle_size=$main_file" >> $GITHUB_ENV
           echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
+          echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
           echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
 
       - name: Calculate vsix file sizes
@@ -86,35 +87,47 @@ jobs:
           echo "Percentage change: $percentage_change%"
           echo "main_vsix_size=$main_size" >> $GITHUB_ENV
           echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
 
-      - name: Comment on PR with bundle size difference
-        uses: actions/github-script@v7
+      - name: Find comment
+        uses: peter-evans/find-comment@v3
+        id: fc
         with:
-          script: |
-            const mainWebviewBundleSize = process.env.main_webview_bundle_size;
-            const prWebviewBundleSize = process.env.pr_webview_bundle_size;
-            const webviewBundlePercentageChange = process.env.webview_bundle_percentage_change;
-            const mainVsixSize = process.env.main_vsix_size;
-            const prVsixSize = process.env.pr_vsix_size;
-            const vsixPercentageChange = process.env.vsix_percentage_change;
-            const comment = `
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: This comment was written by a bot!
+
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
             ### VSIX Size Comparison
-            - **Main branch VSIX size**: ${mainVsixSize} bytes
-            - **PR branch VSIX size**: ${prVsixSize} bytes
-            - **Size difference**: ${prVsixSize - mainVsixSize} bytes (${vsixPercentageChange}%)
+            - **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes
+            - **PR branch VSIX size**: ${{ env.pr_webview_bundle_size }} bytes
+            - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change=$percentage_change }}%)
             ### Bundle Size Comparison
             - **Main branch bundle size**: ${mainWebviewBundleSize} KB
             - **PR branch bundle size**: ${prWebviewBundleSize} KB
-            - **Size difference**: ${prWebviewBundleSize - mainWebviewBundleSize} KB (${webviewBundlePercentageChange}%)
-            `;
-            console.log(comment);
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+            - **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)
+
+      - name: Update comment
+          if: steps.fc.outputs.comment-id != ''
+          uses: peter-evans/create-or-update-comment@v4
+          with:
+            comment-id: ${{ steps.fc.outputs.comment-id }}
+            body: |
+                ### VSIX Size Comparison
+                - **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes
+                - **PR branch VSIX size**: ${{ env.pr_webview_bundle_size }} bytes
+                - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change=$percentage_change }}%)
+                ### Bundle Size Comparison
+                - **Main branch bundle size**: ${mainWebviewBundleSize} KB
+                - **PR branch bundle size**: ${prWebviewBundleSize} KB
+                - **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)
+            edit-mode: replace
 
       - name: Fail if vsix size is increased by 10% or size is above 25mb
         if: ${{ env.vsix_percentage_change > 10 || env.pr_vsix_size > 25000000 }}
