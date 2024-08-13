@@ -11,6 +11,7 @@ on:
 permissions:
   issues: write
   contents: write
+  checks: write
 
 jobs:
   size-check:
@@ -91,47 +92,16 @@ jobs:
           echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
 
-      - name: Find comment
-        uses: peter-evans/find-comment@v3
-        id: fc
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: |
-            ### VSIX Size Comparison
-
-      - name: Create comment
-        if: steps.fc.outputs.comment-id == ''
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ### VSIX Size Comparison
-            - **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes
-            - **PR branch VSIX size**: ${{ env.pr_webview_bundle_size }} bytes
-            - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change }}%)
-            ### Bundle Size Comparison
-            - **Main branch bundle size**: ${mainWebviewBundleSize} KB
-            - **PR branch bundle size**: ${prWebviewBundleSize} KB
-            - **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)
-
-      - name: Update comment
-        if: steps.fc.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          body: |
-              ### VSIX Size Comparison
-              - **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes
-              - **PR branch VSIX size**: ${{ env.pr_webview_bundle_size }} bytes
-              - **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change }}%)
-              ### Bundle Size Comparison
-              - **Main branch bundle size**: ${mainWebviewBundleSize} KB
-              - **PR branch bundle size**: ${prWebviewBundleSize} KB
-              - **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)
-          edit-mode: replace
+      - name: Write results as Markdown file
+        run: |
+          echo "### VSIX Size Comparison" > results.md
+          echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} bytes" >> results.md
+          echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} bytes" >> results.md
+          echo "- **Size difference**: ${{ env.vsix_size_diff }} bytes (${{ env.vsix_percentage_change }}%)" >> results.md
+          echo "### Bundle Size Comparison" >> results.md
+          echo "- **Main branch bundle size**: ${mainWebviewBundleSize} KB" >> results.md
+          echo "- **PR branch bundle size**: ${prWebviewBundleSize} KB" >> results.md
+          echo "- **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)" >> results.md
 
       - name: Fail if vsix size is increased by 10% or size is above 25mb
         if: ${{ env.vsix_percentage_change > 10 || env.pr_vsix_size > 25000000 }}
@@ -140,6 +110,19 @@ jobs:
       - name: Fail if bundle size is increased by 10%
         if: ${{ env.webview_bundle_percentage_change > 10 }}
         run: exit 1
+
+      - name: Create a check run for code coverage
+        uses: LouisBrunner/checks-action@v2.0.0
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Size Check
+          conclusion: ${{ job.status }}
+          output: |
+            {"summary":"${{ steps.testcoverage.summary }}"}
+          output_text_description_file: ./results.md
+
+
 
 
 
