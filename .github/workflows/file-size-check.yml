@@ -8,12 +8,6 @@ on:
     branches:
       - main
 
-permissions:
-  issues: write
-  contents: write
-  checks: write
-  actions: read
-
 jobs:
   size-check:
     runs-on: ubuntu-latest
@@ -22,6 +16,7 @@ jobs:
       checks: write
       actions: read
       issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout main branch
