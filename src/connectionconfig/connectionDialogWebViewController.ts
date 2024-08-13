@@ -11,6 +11,7 @@ import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
+import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
@@ -23,8 +24,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		super(
 			context,
 			'Connection Dialog',
-			'connectionDialog.js',
-			'connectionDialog.css',
+			WebviewRoute.connectionDialog,
 			{
 				recentConnections: [],
 				selectedFormTab: FormTabs.Parameters,
