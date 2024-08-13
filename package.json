@@ -191,9 +191,23 @@
           "title": "SQL Server",
           "icon": "./images/server_page_inverse.svg"
         }
-      ]
+      ],
+			"panel": [
+				{
+					"id": "queryResult",
+					"title": "Query Result",
+					"icon": "media/SignIn.svg"
+				}
+			]
     },
     "views": {
+			"queryResult": [
+				{
+					"type": "webview",
+					"id": "queryResult",
+					"name": "AAAAA"
+				}
+			],
       "objectExplorer": [
         {
           "id": "objectExplorer",
@@ -517,6 +531,11 @@
       {
         "command": "mssql.newQuery",
         "title": "%mssql.newQuery%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.newQuery2",
+        "title": "%mssql.newQuery2%",
         "category": "MS SQL"
       },
       {

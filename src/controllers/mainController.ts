@@ -44,6 +44,7 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { QueryResultWebViewController } from '../queryResult/queryResultWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -555,6 +556,17 @@ export default class MainController implements vscode.Disposable {
 						);
 						reactPanel.revealToForeground();
 					}));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdNewQuery2, async () => {
+						console.log("New Query 2");
+						const reactPanel = new QueryResultWebViewController(
+							this._context,
+						);
+						reactPanel.revealToForeground();
+					}));
+
 		}
 
 		// Initiate the scripting service

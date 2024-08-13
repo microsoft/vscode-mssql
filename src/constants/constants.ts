@@ -38,6 +38,7 @@ export const cmdStartQueryHistory = 'mssql.startQueryHistoryCapture';
 export const cmdPauseQueryHistory = 'mssql.pauseQueryHistoryCapture';
 export const cmdCommandPaletteQueryHistory = 'mssql.commandPaletteQueryHistory';
 export const cmdNewQuery = 'mssql.newQuery';
+export const cmdNewQuery2 = 'mssql.newQuery2';
 export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
 export const cmdClearPooledConnections = 'mssql.clearPooledConnections';
 export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';
