@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Input, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@fluentui/react-components";
-import { Filter } from "../objectExplorerFilteringInterfaces";
+import { NodeFilterProperty } from "../objectExplorerFilteringInterfaces";
 import { Eraser20Regular } from "@fluentui/react-icons";
 
 interface TableHeaderColumn {
@@ -13,9 +13,9 @@ interface TableHeaderColumn {
 }
 
 interface Props {
-	filters: Array<Filter>;
+	filters: Array<NodeFilterProperty>;
 	onSelectedFilter: (description: string) => void;
-	onFilterValueChange: (filter: Filter, filterIndex: number, newValue: string) => void;
+	onFilterValueChange: (filter: NodeFilterProperty, filterIndex: number, newValue: string) => void;
 }
 
 export const FilterTable = ({ filters, onSelectedFilter, onFilterValueChange }: Props) => {
@@ -58,18 +58,18 @@ export const FilterTable = ({ filters, onSelectedFilter, onFilterValueChange }: 
 						return (
 							<TableRow
 								key={`row-${index}`}
-								onClick={() => onSelectedFilter(filter.filterDescription)}
+								onClick={() => onSelectedFilter(filter.description)}
 							>
 								<TableCell>
-									{filter.filterName}
+									{filter.displayName}
 								</TableCell>
 								<TableCell>
-									{filter.operator}
+									Some-Operator
 								</TableCell>
 								<TableCell>
 									<Input
 										as="input"
-										value={filter.value}
+										value={'some-value'}
 										onChange={(_, newValue) => onFilterValueChange(filter, index, newValue.value)} />
 								</TableCell>
 								<TableCell>

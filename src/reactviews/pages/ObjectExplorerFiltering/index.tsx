@@ -7,9 +7,12 @@ import ReactDOM from 'react-dom/client'
 import '../../index.css'
 import { ObjectExplorerFiltering } from './objectExplorerFilteringPage'
 import { VscodeWebViewProvider } from '../../common/vscodeWebViewProvider'
+import { ObjectExplorerFilteringProvider } from './objectExplorerFilteringProvider'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<VscodeWebViewProvider>
-		<ObjectExplorerFiltering />
+		<ObjectExplorerFilteringProvider>
+			<ObjectExplorerFiltering />
+		</ObjectExplorerFilteringProvider>
 	</VscodeWebViewProvider>
 )

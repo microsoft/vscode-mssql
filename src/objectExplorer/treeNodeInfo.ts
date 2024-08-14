@@ -114,6 +114,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		return this._metadata;
 	}
 
+	public get filterableProperties(): NodeFilterProperty[] {
+		return this._filterableProperties;
+	}
+
 	/** Setters */
 	public set nodePath(value: string) {
 		this._nodePath = value;
@@ -149,5 +153,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
 	public set connectionInfo(value: IConnectionInfo) {
 		this._connectionInfo = value;
+	}
+
+	public set filterableProperties(value: NodeFilterProperty[]) {
+		this._filterableProperties = value;
 	}
 }

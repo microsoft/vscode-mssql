@@ -16,41 +16,26 @@ export class ObjectExplorerFilteringWebViewController extends ReactWebViewPanelC
 		private _objectExplorerService: filtering.ObjectExplorerProvider,
 		private _connectionManager: ConnectionManager,
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
-		private _targetNode?: TreeNodeInfo
+		targetNode?: TreeNodeInfo
 	) {
-		let databasesFolderPath = _targetNode.nodePath;
+		let databasesFolderPath = targetNode.nodePath;
 
 		const initialData: filtering.ObjectExplorerFilteringWebViewState = {
 			databasesFolderPath: databasesFolderPath,
-			filters: [
-				{
-					filterName: 'Name',
-					operator: 'Contains',
-					value: '',
-					filterDescription: 'Include or exclude object based on the name or part of a name.',
-				},
-				{
-					filterName: 'Owner',
-					operator: 'Contains',
-					value: '',
-					filterDescription: 'Include or exclude objects based on the owner or part of an owner name.',
-				},
-				{
-					filterName: 'Create Date',
-					operator: 'Equals',
-					value: '',
-					filterDescription: 'Include or exclude objects based on their creation date.',
-				},
-			]
-		}
-		super(context, 'Object Explorer Filtering', 'objectExplorerFiltering.js', 'objectExplorerFiltering.css', initialData, vscode.ViewColumn.Active, {
-			dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter_inverse.svg'),
-			light: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter.svg')
-		});
-		this.initialize();
-	}
+			filterableProperties: targetNode.filterableProperties,
+		};
 
-	private async initialize() {
-
+		super(
+			context,
+			'Object Explorer Filtering',
+			'objectExplorerFiltering.js',
+			'objectExplorerFiltering.css',
+			initialData,
+			vscode.ViewColumn.Active,
+			{
+				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter_inverse.svg'),
+				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter.svg')
+			}
+		);
 	}
 }

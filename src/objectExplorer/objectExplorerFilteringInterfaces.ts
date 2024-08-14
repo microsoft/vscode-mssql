@@ -5,14 +5,21 @@
 
 export interface ObjectExplorerFilteringWebViewState {
 	databasesFolderPath: string;
-	filters: Array<Filter>;
+	filterableProperties: NodeFilterProperty[];
 }
 
-export interface Filter {
-	filterName: string;
-	operator: string;
-	value: string;
-	filterDescription: string;
+export interface NodeFilterProperty {
+	displayName: string;
+	type: NodeFilterPropertyDataType;
+	description: string;
+}
+
+export enum NodeFilterPropertyDataType {
+	String = 0,
+	Number = 1,
+	Boolean = 2,
+	Date = 3,
+	Choice = 4
 }
 
 export interface ObjectExplorerProvider {
