@@ -151,8 +151,6 @@ declare let Slick;
 			}
 		}
 
-		// make this function handle ctrl+alt+arrow keys
-		// or alt+arrow keys
 		function handleKeyDown(e): void {
 			let activeCell = _grid.getActiveCell();
 
@@ -257,9 +255,107 @@ declare let Slick;
 			}, 10);
 		}
 
+		// if header is right clicked, add a Resize option to the existing menu
+		// if resize option is selected, have popup that allows user to enter resize value
+		// set column width to this
 		function handleHeaderClick(e, args): boolean {
 			if (_columnResized) {
 				_columnResized = false;
+				return true;
+			}
+
+			if (e.ctrlKey || e.metaKey) {
+				let allColumns = _grid.getColumns();
+				let columnIndex = _grid.getColumnIndex(args.column.id);
+
+				// Create dialog elements
+				let dialog = document.createElement('div');
+				let title = document.createElement('div');
+				let subtext = document.createElement('div');
+				let inputBox = document.createElement('input');
+				let applyButton = document.createElement('button');
+				let cancelButton = document.createElement('button');
+
+				// Style the dialog
+				dialog.style.position = 'fixed';
+				dialog.style.left = '50%';
+				dialog.style.top = '50%';
+				dialog.style.transform = 'translate(-50%, -50%)';
+				dialog.style.padding = '20px';
+				dialog.style.background = 'white';
+				dialog.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.2)';
+				dialog.style.zIndex = '1000';
+				dialog.ariaLabel = "Resize Columns. Enter desired column width, in pixels, then press apply."
+				dialog.tabIndex = 0;
+
+				title.textContent = 'Resize Column';
+				title.style.fontSize = '18px';
+				title.style.marginBottom = '5px';
+				title.style.color = 'black';
+
+				subtext.textContent = 'Enter desired column width';
+				subtext.style.fontSize = '14px';
+				subtext.style.color = '#666';
+				subtext.style.marginBottom = '5px';
+
+				inputBox.type = 'number';
+				inputBox.placeholder = 'Enter column width';
+				inputBox.min = '1';
+				inputBox.value = (allColumns[columnIndex].width).toString();
+				inputBox.style.width = '100%';
+				inputBox.style.padding = '8px';
+				inputBox.style.boxSizing = 'border-box';
+				inputBox.tabIndex = 0;
+				inputBox.ariaLabel = "Input desired column width.";
+				inputBox.style.marginBottom = '5px';
+
+				applyButton.textContent = 'Apply';
+				applyButton.style.marginRight = '10px';
+				applyButton.tabIndex = 0;
+				applyButton.ariaLabel = "Apply Changes";
+				applyButton.textContent = 'Apply';
+				applyButton.style.padding = '10px 20px';
+				applyButton.style.backgroundColor = '#284C7C';
+				applyButton.style.color = 'white';
+				applyButton.style.border = 'none';
+				applyButton.style.borderRadius = '4px';
+				applyButton.style.cursor = 'pointer';
+				applyButton.style.transition = 'background-color 0.3s ease';
+				applyButton.style.marginRight = '10px';
+
+				cancelButton.textContent = 'Cancel';
+				cancelButton.style.backgroundColor = '#ccc';
+				cancelButton.tabIndex = 0;
+				cancelButton.ariaLabel = "Cancel Changes";
+				cancelButton.style.padding = '10px 20px';
+				cancelButton.style.backgroundColor = '#6c757d';
+				cancelButton.style.color = 'white';
+				cancelButton.style.border = 'none';
+				cancelButton.style.borderRadius = '4px';
+				cancelButton.style.cursor = 'pointer';
+				cancelButton.style.transition = 'background-color 0.3s ease';
+
+				// Append elements to dialog
+				dialog.appendChild(title);
+				dialog.appendChild(subtext);
+				dialog.appendChild(inputBox);
+				dialog.appendChild(applyButton);
+				dialog.appendChild(cancelButton);
+				document.body.appendChild(dialog);
+
+				// Apply button event listener
+				applyButton.addEventListener('click', function() {
+					allColumns[columnIndex].width = Number(inputBox.value);
+					_grid.setColumns(allColumns);
+					document.body.removeChild(dialog);
+				});
+
+				// Cancel button event listener
+				cancelButton.addEventListener('click', function() {
+					document.body.removeChild(dialog);
+				});
+
+				e.stopImmediatePropagation();
 				return true;
 			}
 
@@ -289,6 +385,7 @@ declare let Slick;
 			}
 			_grid.setActiveCell(newActiveRow, newActiveColumn);
 			setSelectedRanges(_ranges);
+
 			e.stopImmediatePropagation();
 			return true;
 		}
