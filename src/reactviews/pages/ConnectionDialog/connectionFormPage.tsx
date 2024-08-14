@@ -10,7 +10,6 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ApiStatus, FormComponentType } from "../../../sharedInterfaces/connectionDialog";
 import { generateFormComponent, useFormStyles } from "../../common/forms/formUtils";
 
-
 export const ConnectionFormPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const classes = useFormStyles();
@@ -28,7 +27,7 @@ export const ConnectionFormPage = () => {
 				</MessageBar>
 			}
 			{
-				connectionDialogContext.state.formTabs.filter(t => t.tab === connectionDialogContext.state.selectedFormTab)[0].components.map((component, idx) => {
+				connectionDialogContext.state.connectionFormComponents.map((component, idx) => {
 					if (component.hidden === true) {
 						return undefined;
 					}

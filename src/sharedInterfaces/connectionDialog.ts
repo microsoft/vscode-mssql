@@ -8,7 +8,8 @@ import * as vscodeMssql from "vscode-mssql";
 
 export interface ConnectionDialogWebviewState {
 	selectedFormTab: FormTabType;
-	formTabs: FormTab[];
+	connectionFormComponents: FormComponent[];
+	connectionStringComponents: FormComponent[];
 	recentConnections: IConnectionDialogProfile[];
 	connectionProfile: IConnectionDialogProfile;
 	connectionStatus: ApiStatus;
@@ -18,11 +19,6 @@ export interface ConnectionDialogWebviewState {
 export enum FormTabType {
 	Parameters = 'parameter',
 	ConnectionString = 'connString'
-}
-
-export interface FormTab {
-	tab: FormTabType;
-	components: FormComponent[];
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional

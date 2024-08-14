@@ -26,7 +26,7 @@ export const ConnectionStringPage = () => {
 				</MessageBar>
 			}
 			{
-				connectionDialogContext.state.formTabs.filter(t => t.tab === connectionDialogContext.state.selectedFormTab)[0].components.map((component, idx) => {
+				connectionDialogContext.state.connectionStringComponents.map((component, idx) => {
 					if (component.hidden === true) {
 						return undefined;
 					}

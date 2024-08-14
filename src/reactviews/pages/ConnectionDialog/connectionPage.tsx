@@ -6,7 +6,7 @@
 import { Divider, makeStyles, shorthands } from "@fluentui/react-components";
 import { ResizableBox } from "react-resizable";
 import { MruConnectionsContainer } from "./mruConnectionsContainer";
-import { ConnectionInfoFormContainer } from "./connectionInfoFormContainer";
+import { ConnectionInfoFormContainer } from "./connectionPageContainer";
 
 export const useStyles = makeStyles({
 	root: {
