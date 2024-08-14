@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, Image, MessageBar, Textarea, webLightTheme, Spinner } from "@fluentui/react-components";
-import { ApiStatus, FormComponent, FormComponentType, FormTabType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, makeStyles, MessageBar, Textarea } from "@fluentui/react-components";
+import { ConnectionDialogContextProps, FormComponent, FormComponentType, FormTabType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
-const sqlServerImage = require('../../../../media/sqlServer.svg');
-const sqlServerImageDark = require('../../../../media/sqlServer_inverse.svg');
+import { ConnectionHeader } from "./connectionHeader";
+import { ConnectionFormPage } from "./connectionFormPage";
 
 const useStyles = makeStyles({
 	formRoot: {
@@ -105,91 +105,55 @@ const FormInput = ({ value, target, type }: { value: string, target: keyof IConn
 	);
 };
 
-export const ConnectionInfoFormContainer = () => {
-	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const classes = useStyles();
-
-	const generateFormComponent = (component: FormComponent, profile: IConnectionDialogProfile, _idx: number) => {
-		switch (component.type) {
-			case FormComponentType.Input:
-				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
-			case FormComponentType.TextArea:
-				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='textarea' />;
-			case FormComponentType.Password:
-				return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='password' />;
-			case FormComponentType.Dropdown:
-				if (component.options === undefined) {
-					throw new Error('Dropdown component must have options');
-				}
-				return <Dropdown
-					size="small"
-					placeholder={component.placeholder ?? ''}
-					value={component.options.find(option => option.value === profile[component.propertyName])?.displayName ?? ''}
-					selectedOptions={[profile[component.propertyName] as string]}
-					onOptionSelect={(_event, data) => {
-						connectionDialogContext?.formAction({
-							propertyName: component.propertyName,
-							isAction: false,
-							value: data.optionValue as string
-						});
-					}}>
-					{
-						component.options?.map((option, idx) => {
-							return <Option key={component.propertyName + idx} value={option.value}>{option.displayName}</Option>;
-						})
-					}
-				</Dropdown>;
-			case FormComponentType.Checkbox:
-				return <Checkbox
-					size="medium"
-					checked={profile[component.propertyName] as boolean ?? false}
-					onChange={(_value, data) => connectionDialogContext?.formAction({
+function generateFormComponent(connectionDialogContext: ConnectionDialogContextProps, component: FormComponent, profile: IConnectionDialogProfile, _idx: number) {
+	switch (component.type) {
+		case FormComponentType.Input:
+			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
+		case FormComponentType.TextArea:
+			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='textarea' />;
+		case FormComponentType.Password:
+			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='password' />;
+		case FormComponentType.Dropdown:
+			if (component.options === undefined) {
+				throw new Error('Dropdown component must have options');
+			}
+			return <Dropdown
+				size="small"
+				placeholder={component.placeholder ?? ''}
+				value={component.options.find(option => option.value === profile[component.propertyName])?.displayName ?? ''}
+				selectedOptions={[profile[component.propertyName] as string]}
+				onOptionSelect={(_event, data) => {
+					connectionDialogContext?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
-						value: data.checked
-					})}
-				/>;
+						value: data.optionValue as string
+					});
+				}}>
+				{
+					component.options?.map((option, idx) => {
+						return <Option key={component.propertyName + idx} value={option.value}>{option.displayName}</Option>;
+					})
+				}
+			</Dropdown>;
+		case FormComponentType.Checkbox:
+			return <Checkbox
+				size="medium"
+				checked={profile[component.propertyName] as boolean ?? false}
+				onChange={(_value, data) => connectionDialogContext?.formAction({
+					propertyName: component.propertyName,
+					isAction: false,
+					value: data.checked
+				})}
+			/>;
 
-		}
-	};
-
-	if (!connectionDialogContext?.state) {
-		return undefined;
 	}
+}
+
+function renderConnectionStringTab(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
+	const classes = useStyles();
 
 	return (
-		<div className={classes.formRoot}>
-			<div style={
-				{
-					display: 'flex',
-					flexDirection: 'row',
-					alignItems: 'center'
-				}
-			}>
-				<Image style={
-					{
-						padding: '10px',
-					}
-				}
-					src={connectionDialogContext?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
-				<Text size={500} style={
-					{
-						lineHeight: '60px'
-					}
-				} weight='medium'>Connect to SQL Server</Text>
-			</div>
-			<TabList selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters} onTabSelect={(_event, data) => {
-				connectionDialogContext?.setFormTab(data.value as FormTabType);
-			}}>
-				<Tab value={FormTabType.Parameters}>Parameters</Tab>
-				<Tab value={FormTabType.ConnectionString}>Connection String</Tab>
-			</TabList>
-			<div style={
-				{
-					overflow: 'auto'
-				}
-			}>
-				<div className={classes.formDiv}>
+		<div className={classes.formDiv}>
 					{
 						connectionDialogContext?.state.formError &&
 						<MessageBar intent="error">
@@ -209,7 +173,7 @@ export const ConnectionInfoFormContainer = () => {
 									validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
 									required={component.required}
 									label={component.label}>
-									{generateFormComponent(component, connectionDialogContext.state.connectionProfile, idx)}
+									{generateFormComponent(connectionDialogContext, component, connectionDialogContext.state.connectionProfile, idx)}
 								</Field>
 								{
 									component?.actionButtons?.length! > 0 &&
@@ -232,23 +196,45 @@ export const ConnectionInfoFormContainer = () => {
 							</div>;
 						})
 					}
-					<Button
-						appearance="primary"
-						disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
-						shape="square"
-						onClick={(_event) => {
-							connectionDialogContext.connect();
-						}} style={
-							{
-								width: '200px',
-								alignSelf: 'center'
-							}
-						}
-						iconPosition="after"
-					    icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-							Connect
-						</Button>
 				</div>
+	);
+}
+
+function renderTab(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
+	switch (connectionDialogContext?.state.selectedFormTab) {
+		case FormTabType.Parameters:
+			return <ConnectionFormPage />;
+		case FormTabType.ConnectionString:
+			return renderConnectionStringTab(connectionDialogContext);
+	}
+}
+
+export const ConnectionInfoFormContainer = () => {
+	const connectionDialogContext = useContext(ConnectionDialogContext);
+	const classes = useStyles();
+
+	// TODO: if you want to generate components from a form spec, that's fine, but they shouldn't be part of the state.
+	// Refactor to bring the form spec here, and set the current connection profile in the state.
+
+	if (!connectionDialogContext?.state) {
+		return undefined;
+	}
+
+	return (
+		<div className={classes.formRoot}>
+			<ConnectionHeader />
+			<TabList selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters} onTabSelect={(_event, data) => {
+				connectionDialogContext?.setFormTab(data.value as FormTabType);
+			}}>
+				<Tab value={FormTabType.Parameters}>Parameters</Tab>
+				<Tab value={FormTabType.ConnectionString}>Connection String</Tab>
+			</TabList>
+			<div style={
+				{
+					overflow: 'auto'
+				}
+			}>
+				{ renderTab(connectionDialogContext) }
 			</div>
 		</div>
 	);
