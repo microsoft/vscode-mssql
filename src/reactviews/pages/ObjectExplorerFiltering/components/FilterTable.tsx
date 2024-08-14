@@ -6,6 +6,7 @@
 import { Button, Input, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow } from "@fluentui/react-components";
 import { NodeFilterProperty } from "../objectExplorerFilteringInterfaces";
 import { Eraser20Regular } from "@fluentui/react-icons";
+import { FilterOperatorSelect } from "./FilterOperatorSelect";
 
 interface TableHeaderColumn {
 	id: number;
@@ -39,50 +40,48 @@ export const FilterTable = ({ filters, onSelectedFilter, onFilterValueChange }: 
 	];
 
 	return (
-		<>
-			<Table
-				as="table"
-				size="small"
-			>
-				<TableHeader>
-					<TableRow>
-						{tableHeaderColumns.map((column: TableHeaderColumn) =>
-							<TableHeaderCell key={`header-col-${column.id}`}>
-								{column.name}
-							</TableHeaderCell>
-						)}
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{filters.map((filter, index) => {
-						return (
-							<TableRow
-								key={`row-${index}`}
-								onClick={() => onSelectedFilter(filter.description)}
-							>
-								<TableCell>
-									{filter.displayName}
-								</TableCell>
-								<TableCell>
-									Some-Operator
-								</TableCell>
-								<TableCell>
-									<Input
-										as="input"
-										value={'some-value'}
-										onChange={(_, newValue) => onFilterValueChange(filter, index, newValue.value)} />
-								</TableCell>
-								<TableCell>
-									<Button
-										icon={<Eraser20Regular />}
-										aria-label="Clear"
-										onClick={() => onFilterValueChange(filter, index, '')} />
-								</TableCell>
-							</TableRow>
-						)
-					})}
-				</TableBody>
-			</Table>
-		</>
+		<Table
+			as="table"
+			size="small"
+		>
+			<TableHeader>
+				<TableRow>
+					{tableHeaderColumns.map((column: TableHeaderColumn) =>
+						<TableHeaderCell key={`header-col-${column.id}`}>
+							{column.name}
+						</TableHeaderCell>
+					)}
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{filters.map((filter, index) => {
+					return (
+						<TableRow
+							key={`row-${index}`}
+							onClick={() => onSelectedFilter(filter.description)}
+						>
+							<TableCell>
+								{filter.displayName}
+							</TableCell>
+							<TableCell>
+								<FilterOperatorSelect type={filter.type} />
+							</TableCell>
+							<TableCell>
+								<Input
+									as="input"
+									value={'some-value'}
+									onChange={(_, newValue) => onFilterValueChange(filter, index, newValue.value)} />
+							</TableCell>
+							<TableCell>
+								<Button
+									icon={<Eraser20Regular />}
+									aria-label="Clear"
+									onClick={() => onFilterValueChange(filter, index, '')} />
+							</TableCell>
+						</TableRow>
+					)
+				})}
+			</TableBody>
+		</Table>
 	);
 }
