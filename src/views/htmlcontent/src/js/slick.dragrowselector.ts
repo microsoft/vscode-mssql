@@ -315,7 +315,7 @@ declare let Slick;
 				applyButton.ariaLabel = "Apply Changes";
 				applyButton.textContent = 'Apply';
 				applyButton.style.padding = '10px 20px';
-				applyButton.style.backgroundColor = '#284C7C';
+				applyButton.style.backgroundColor = '#0078d4';
 				applyButton.style.color = 'white';
 				applyButton.style.border = 'none';
 				applyButton.style.borderRadius = '4px';
