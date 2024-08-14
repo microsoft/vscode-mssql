@@ -29,4 +29,4 @@ const ObjectExplorerFilteringProvider: React.FC<Props> = ({ children }) => {
 	);
 };
 
-export { ObjectExplorerFilteringContext, ObjectExplorerFilteringProvider };
+export { ObjectExplorerFilteringProvider };

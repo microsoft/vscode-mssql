@@ -9,7 +9,7 @@ import { FilterDescription } from "./components/FilterDescription";
 import { NodeFilterProperty } from "./objectExplorerFilteringInterfaces";
 import { useContext, useState } from "react";
 import { Button } from "@fluentui/react-components";
-import { ObjectExplorerFilteringContext } from "./objectExplorerFilteringProvider";
+import ObjectExplorerFilteringContext from "./objectExplorerFilteringContext";
 
 export const ObjectExplorerFiltering = () => {
 	debugger;
