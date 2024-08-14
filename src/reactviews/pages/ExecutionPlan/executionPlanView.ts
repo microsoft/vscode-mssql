@@ -16,6 +16,14 @@ export class ExecutionPlanView {
 		return this.executionPlanRootNode;
 	}
 
+	public getDiagram(): any {
+		return this._diagram;
+	}
+
+	public setDiagram(model: any): void {
+		this._diagram = model;
+	}
+
 	public populate(node: ep.ExecutionPlanNode = this.executionPlanRootNode): ep.AzDataGraphCell {
 		let diagramNode: ep.AzDataGraphCell = <ep.AzDataGraphCell>{};
 		diagramNode.label = node.subtext.join('\n');
@@ -189,5 +197,48 @@ export class ExecutionPlanView {
 
 	public disableNodeCollapse(disable: boolean): void {
 		this._diagram.disableNodeCollapse(disable);
+	}
+
+	/**
+	 * Zooms in to the diagram.
+	 */
+	public zoomIn(): void {
+		this._diagram.zoomIn();
+	}
+
+	/**
+	 * Zooms out of the diagram
+	 */
+	public zoomOut(): void {
+		this._diagram.zoomOut();
+	}
+
+	/**
+	 * Fits the diagram into the parent container size.
+	 */
+	public zoomToFit(): void {
+		this._diagram.zoomToFit();
+		if (this.getZoomLevel() > 200) {
+			this.setZoomLevel(200);
+		}
+	}
+
+	/**
+	 * Gets the current zoom level of the diagram.
+	 */
+	public getZoomLevel(): number {
+		return this._diagram.graph.view.getScale() * 100;
+	}
+
+	/**
+	 * Sets the zoom level of the diagram
+	 * @param level The scale factor to be be applied to the diagram.
+	 */
+	public setZoomLevel(level: number): void {
+		if (level < 1) {
+			throw new Error("Zoom level cannot be 0 or negative");
+		}
+
+		this._diagram.zoomTo(level);
 	}
 }

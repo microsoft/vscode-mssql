@@ -411,6 +411,26 @@ export const openQuery = (theme: string) => {
     return theme === "dark" ? require('./icons/openQueryDark.svg') : require('./icons/openQuery.svg');
 };
 
+export const zoomIn = (theme: string) => {
+    return theme === "dark" ? require('./icons/zoomInDark.svg') : require('./icons/zoomIn.svg');
+};
+
+export const zoomOut = (theme: string) => {
+    return theme === "dark" ? require('./icons/zoomOutDark.svg') : require('./icons/zoomOut.svg');
+};
+
+export const zoomToFit = (theme: string) => {
+    return theme === "dark" ? require('./icons/zoomToFitDark.svg') : require('./icons/zoomToFit.svg');
+};
+
+export const customZoom = (theme: string) => {
+    return theme === "dark" ? require('./icons/customZoomDark.svg') : require('./icons/customZoom.svg');
+};
+
 export const background = (theme:string) => {
 	return theme === "dark" ? '#282C2C' : "#F2F2F2";
+}
+
+export const seperator = (theme:string) => {
+	return theme === "dark" ? '#161E1E' : "#FFFFFF";
 }
