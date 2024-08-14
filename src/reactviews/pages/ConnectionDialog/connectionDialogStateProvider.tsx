@@ -23,7 +23,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 			loadConnection: function (connection: IConnectionDialogProfile): void {
 				webViewState?.extensionRpc.action('loadConnection', {
 					connection: connection,
-				 });
+				});
 			},
 			formAction: function (event): void {
 				webViewState?.extensionRpc.action('formAction', {

@@ -7,7 +7,7 @@ import { Button, Field, MessageBar, Spinner } from "@fluentui/react-components";
 import { ApiStatus, FormComponentType } from "../../../sharedInterfaces/connectionDialog";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { generateFormComponent, useFormStyles } from "./formUtils";
+import { generateFormComponent, useFormStyles } from "../../common/forms/formUtils";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);

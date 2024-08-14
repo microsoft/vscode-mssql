@@ -41,11 +41,14 @@ export enum ApiStatus {
 	Error = 'error',
 }
 
-export interface ConnectionDialogContextProps {
+export interface FormContextProps<T> {
+	formAction: (event: FormEvent<T>) => void;
+}
+
+export interface ConnectionDialogContextProps extends FormContextProps<IConnectionDialogProfile> {
 	state: ConnectionDialogWebviewState;
 	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
-	formAction: (event: FormEvent) => void;
 	setFormTab: (tab: FormTabType) => void;
 	connect: () => void;
 }
@@ -127,11 +130,11 @@ export interface FormComponentOptions {
 /**
  * Interface for a form event
  */
-export interface FormEvent {
+export interface FormEvent<T> {
 	/**
 	 * The property name of the form component that triggered the event
 	 */
-	propertyName: keyof IConnectionDialogProfile;
+	propertyName: keyof T;
 	/**
 	 * Whether the event was triggered by an action button for the component
 	 */
@@ -166,7 +169,7 @@ export interface ConnectionDialogReducers {
 		tab: FormTabType;
 	},
 	formAction: {
-		event: FormEvent;
+		event: FormEvent<IConnectionDialogProfile>;
 	},
 	loadConnection: {
 		connection: IConnectionDialogProfile;

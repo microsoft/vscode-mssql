@@ -64,9 +64,10 @@ export const ConnectionInfoFormContainer = () => {
 	return (
 		<div className={classes.formRoot}>
 			<ConnectionHeader />
-			<TabList selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters} onTabSelect={(_event, data) => {
-				connectionDialogContext?.setFormTab(data.value as FormTabType);
-			}}>
+			<TabList
+				selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters}
+				onTabSelect={(_event, data) => { connectionDialogContext?.setFormTab(data.value as FormTabType); }}
+			>
 				<Tab value={FormTabType.Parameters}>Parameters</Tab>
 				<Tab value={FormTabType.ConnectionString}>Connection String</Tab>
 			</TabList>

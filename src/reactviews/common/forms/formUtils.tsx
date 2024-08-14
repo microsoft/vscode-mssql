@@ -8,7 +8,7 @@ import { Input, Button, Textarea, Dropdown, Checkbox, Option, makeStyles } from 
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContextProps, FormComponent, FormComponentType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
-import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import { ConnectionDialogContext } from "../../pages/ConnectionDialog/connectionDialogStateProvider";
 
 export const FormInput = ({ value, target, type }: { value: string, target: keyof IConnectionDialogProfile, type: 'input' | 'password' | 'textarea' }) => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
