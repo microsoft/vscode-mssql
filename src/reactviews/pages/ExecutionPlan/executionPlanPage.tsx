@@ -10,10 +10,11 @@ import * as azdataGraph from 'azdataGraph/dist/build';
 import 'azdataGraph/src/css/common.css';
 import 'azdataGraph/src/css/explorer.css';
 import './executionPlan.css';
-import { Button, Dropdown, Input, Option, makeStyles, Spinner } from '@fluentui/react-components';
+import { Button, Input, makeStyles, Spinner } from '@fluentui/react-components';
 import { ExecutionPlanView } from "./executionPlanView";
-import { ArrowUp20Regular, ArrowDown20Regular, Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
-import * as ep from './executionPlanInterfaces';
+import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
+import { IconStack } from './iconMenu';
+import { FindNode } from './findNodes';
 
 const useStyles = makeStyles({
 	outerDiv: {
@@ -95,23 +96,6 @@ export const ExecutionPlanPage = () => {
 	const [customZoomClicked, setCustomZoomClicked] = useState(false);
 	const [findNodeClicked, setFindNodeClicked] = useState(false);
 	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
-	const findNodeComparisonOptions = ["Equals","Contains",">","<",">=","<=","<>"];
-	const findNodeEnumMap: {
-		[key: string]: ep.SearchType;
-	  } = {
-		"Equals": ep.SearchType.Equals,
-		"Contains": ep.SearchType.Contains,
-		">": ep.SearchType.GreaterThan,
-		"<": ep.SearchType.LesserThan,
-		">=": ep.SearchType.GreaterThanEqualTo,
-		"<=": ep.SearchType.LesserThanEqualTo,
-		"<>": ep.SearchType.LesserAndGreaterThan
-	};
-	const [findNodeSelection, setFindNodeSelection] = useState('');
-	const [findNodeComparisonSelection, setFindNodeComparisonSelection] = useState('');
-	const [findNodeSearchValue, setFindNodeSearchValue] = useState('');
-	const [findNodeResults, setFindNodeResults] = useState<ep.ExecutionPlanNode[]>([]);
-	const [findNodeResultsIndex, setFindNodeResultsIndex] = useState(-1);
 
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -165,42 +149,6 @@ export const ExecutionPlanPage = () => {
 
 	}, [executionPlanState]);
 
-	const handleSavePlan = async () => {
-		await state!.provider.saveExecutionPlan(executionPlanState!.sqlPlanContent!);
-	};
-
-	const handleShowXml = async () => {
-		await state!.provider.showPlanXml(executionPlanState!.sqlPlanContent!);
-	};
-
-	const handleShowQuery = async () => {
-		await state!.provider.showQuery(executionPlanState!.query!);
-	};
-
-	const handleZoomIn = async () => {
-		if (executionPlanView) {
-			executionPlanView.zoomIn();
-			setExecutionPlanView(executionPlanView);
-			setZoomNumber(executionPlanView.getZoomLevel());
-		}
-	};
-
-	const handleZoomOut = async () => {
-		if (executionPlanView) {
-			executionPlanView.zoomOut();
-			setExecutionPlanView(executionPlanView);
-			setZoomNumber(executionPlanView.getZoomLevel());
-		}
-	};
-
-	const handleZoomToFit = async () => {
-		if (executionPlanView) {
-			executionPlanView.zoomToFit();
-			setExecutionPlanView(executionPlanView);
-			setZoomNumber(executionPlanView.getZoomLevel());
-		}
-	};
-
 	const handleCustomZoomInput = async () => {
 		if (executionPlanView) {
 			executionPlanView.setZoomLevel(zoomNumber);
@@ -208,52 +156,6 @@ export const ExecutionPlanPage = () => {
 			setZoomNumber(executionPlanView.getZoomLevel());
 		}
 		setCustomZoomClicked(false);
-	};
-
-	const handlePreviousFoundNode = async () => {
-		if (executionPlanView) {
-			if (findNodeResultsIndex === -1 && executionPlanView) {
-				let searchQuery: ep.SearchQuery = {
-					propertyName: findNodeSelection,
-					value: findNodeSearchValue,
-					searchType: findNodeEnumMap[findNodeComparisonSelection]
-				}
-
-				setFindNodeResults(executionPlanView.searchNodes(searchQuery));
-				setFindNodeResultsIndex(0);
-			}
-			else if (findNodeResultsIndex === 0) {
-				setFindNodeResultsIndex(findNodeResults.length - 1);
-			}
-			else {
-				setFindNodeResultsIndex(findNodeResultsIndex-1);
-			}
-			executionPlanView.selectElement(findNodeResults[findNodeResultsIndex], true);
-			setExecutionPlanView(executionPlanView);
-		}
-	};
-
-	const handleNextFoundNode = async () => {
-		if (executionPlanView) {
-			if (findNodeResultsIndex === -1) {
-				let searchQuery: ep.SearchQuery = {
-					propertyName: findNodeSelection,
-					value: findNodeSearchValue,
-					searchType: findNodeEnumMap[findNodeComparisonSelection]
-				}
-
-				setFindNodeResults(executionPlanView.searchNodes(searchQuery));
-				setFindNodeResultsIndex(0);
-			}
-			else if (findNodeResultsIndex === findNodeResults.length - 1) {
-				setFindNodeResultsIndex(0);
-			}
-			else {
-				setFindNodeResultsIndex(findNodeResultsIndex+1);
-			}
-			executionPlanView.selectElement(findNodeResults[findNodeResultsIndex], true);
-			setExecutionPlanView(executionPlanView);
-		}
 	};
 
 	return (
@@ -271,59 +173,10 @@ export const ExecutionPlanPage = () => {
 							</div>
 						) : null}
 						{findNodeClicked ? (
-							<div id="findNodeInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState.theme!)}}>
-								<div>Find Nodes</div>
-								<Dropdown id="findNodeDropdown" onOptionSelect={(_, data) => {setFindNodeSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1)}}>
-									<div style={{maxHeight:"250px"}}>
-									{findNodeOptions.map((option) => (
-										<Option key={option}>
-											{option}
-										</Option>
-									))}
-									</div>
-								</Dropdown>
-								<Dropdown id="findNodeComparisonDropdown" className={classes.dropdown} onOptionSelect={(_, data) => {setFindNodeComparisonSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1)}}>
-									{findNodeComparisonOptions.map((option) => (
-										<Option key={option}>
-											{option}
-										</Option>
-									))}
-								</Dropdown>
-								<Input id="findNodeInputBox" type="text"  onChange={(e) => {setFindNodeSearchValue(e.target.value); setFindNodeResultsIndex(-1)}}/>
-								<Button onClick={handlePreviousFoundNode} icon={<ArrowUp20Regular />} />
-								<Button onClick={handleNextFoundNode} icon={<ArrowDown20Regular />} />
-								<Button icon={<Dismiss20Regular />} onClick={() => setFindNodeClicked(false)}/>
-							</div>
+							<FindNode executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} findNodeOptions={findNodeOptions} setFindNodeClicked={setFindNodeClicked}/>
 						) : null}
 					</div>
-					<div id="iconStack" className={classes.iconStack} style={{background:utils.iconBackground(executionPlanState.theme!)}}>
-						<div id="saveButton" className={classes.button} onClick={handleSavePlan} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.save(executionPlanState.theme!)} alt="Save" width="20" height="20" />
-						</div>
-						<div id="showXmlButton" className={classes.button} onClick={handleShowXml} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.openPlanFile(executionPlanState.theme!)} alt="Show Xml" width="20" height="20" />
-						</div>
-						<div id="showQueryButton" className={classes.button} onClick={handleShowQuery} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.openQuery(executionPlanState.theme!)} alt="Show Query" width="20" height="20" />
-						</div>
-						<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState.theme!)}}></hr>
-						<div id="zoomInButton" className={classes.button} onClick={handleZoomIn} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.zoomIn(executionPlanState.theme!)} alt="Zoom In" width="20" height="20" />
-						</div>
-						<div id="zoomOutButton" className={classes.button} onClick={handleZoomOut} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.zoomOut(executionPlanState.theme!)} alt="Zoom Out" width="20" height="20" />
-						</div>
-						<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.zoomToFit(executionPlanState.theme!)} alt="Zoom To Fit" width="20" height="20" />
-						</div>
-						<div id="customZoomButton" className={classes.button} onClick={() => setCustomZoomClicked(true)} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.customZoom(executionPlanState.theme!)} alt="Custom Zoom" width="20" height="20" />
-						</div>
-						<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState.theme!)}}></hr>
-						<div id="findNodeButton" className={classes.button} onClick={() => setFindNodeClicked(true)} style={{background:utils.background(executionPlanState.theme!)}}>
-							<img className={classes.buttonImg} src={utils.search(executionPlanState.theme!)} alt="Find Node" width="20" height="20" />
-						</div>
-					</div>
+					<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked}/>
 				</div>
 			) : (
 				<Spinner label="Loading..." labelPosition="below" />
