@@ -428,6 +428,10 @@ export const customZoom = (theme: string) => {
 };
 
 export const background = (theme:string) => {
+	return theme === "dark" ? '#262C2C' : "#F2F2F2";
+}
+
+export const iconBackground = (theme:string) => {
 	return theme === "dark" ? '#282C2C' : "#F2F2F2";
 }
 

@@ -45,11 +45,14 @@ const useStyles = makeStyles({
 	},
 	queryCostContainer: {
 		opacity: 1,
-		padding: "5px"
+		padding: "5px",
+		width: "100%"
 	},
 	queryPlanParent: {
+		opacity: 1,
 		width: "100%",
 		height: "100%",
+		overflowX: 'auto',
 	},
 	iconStack: {
 		display: "flex",
@@ -60,8 +63,7 @@ const useStyles = makeStyles({
 		top: 0,
 		right: 0,
 		width: "25px",
-		height: "100%",
-		opacity: 1
+		height: "100%"
 	},
 	button: {
 		cursor: "pointer",
@@ -188,8 +190,8 @@ export const ExecutionPlanPage = () => {
 			{executionPlanState && executionPlanState.executionPlanGraphs ? (
 				<div id="panelContainer" className={classes.panelContainer}>
 					<div id="planContainer" className={classes.planContainer}>
-						<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState.theme!)}}>{executionPlanState.query}</div>
-						<div id="queryPlanParent" className={classes.queryPlanParent}></div>
+						<div id="queryCostContainer" className={classes.queryCostContainer} style={executionPlanState.theme === "light" ? { background: "#F2F2F2" } : {}}>{executionPlanState.query}</div>
+						<div id="queryPlanParent" className={classes.queryPlanParent} ></div>
 						{customZoomClicked ? (
 							<div id="customZoomInputContainer" className={classes.customZoomInputContainer} style={{background:utils.background(executionPlanState.theme!)}}>
 								<Input id="customZoomInputBox" type="number" min={1} defaultValue={zoomNumber.toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }}/>
@@ -198,27 +200,27 @@ export const ExecutionPlanPage = () => {
 							</div>
 						) : null}
 					</div>
-					<div id="iconStack" className={classes.iconStack} style={{background:utils.background(executionPlanState.theme!)}}>
-						<div id="saveButton" className={classes.button} onClick={handleSavePlan}>
+					<div id="iconStack" className={classes.iconStack} style={{background:utils.iconBackground(executionPlanState.theme!)}}>
+						<div id="saveButton" className={classes.button} onClick={handleSavePlan} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.save(executionPlanState.theme!)} alt="Save" width="20" height="20" />
 						</div>
-						<div id="showXmlButton" className={classes.button} onClick={handleShowXml}>
+						<div id="showXmlButton" className={classes.button} onClick={handleShowXml} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.openPlanFile(executionPlanState.theme!)} alt="Show Xml" width="20" height="20" />
 						</div>
-						<div id="showQueryButton" className={classes.button} onClick={handleShowQuery}>
+						<div id="showQueryButton" className={classes.button} onClick={handleShowQuery} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.openQuery(executionPlanState.theme!)} alt="Show Query" width="20" height="20" />
 						</div>
 						<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState.theme!)}}></hr>
-						<div id="zoomInButton" className={classes.button} onClick={handleZoomIn}>
+						<div id="zoomInButton" className={classes.button} onClick={handleZoomIn} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.zoomIn(executionPlanState.theme!)} alt="Zoom In" width="20" height="20" />
 						</div>
-						<div id="zoomOutButton" className={classes.button} onClick={handleZoomOut}>
+						<div id="zoomOutButton" className={classes.button} onClick={handleZoomOut} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.zoomOut(executionPlanState.theme!)} alt="Zoom Out" width="20" height="20" />
 						</div>
-						<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit}>
+						<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.zoomToFit(executionPlanState.theme!)} alt="Zoom To Fit" width="20" height="20" />
 						</div>
-						<div id="customZoomButton" className={classes.button} onClick={() => setCustomZoomClicked(true)}>
+						<div id="customZoomButton" className={classes.button} onClick={() => setCustomZoomClicked(true)} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.customZoom(executionPlanState.theme!)} alt="Custom Zoom" width="20" height="20" />
 						</div>
 					</div>
