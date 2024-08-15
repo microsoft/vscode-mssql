@@ -33,12 +33,14 @@
 			"outFiles": [
 				"${workspaceRoot}/out/src/**/*.js",
 			],
+			"preLaunchTask": "watch",
 			"rendererDebugOptions": {
 				"pauseForSourceMap": true,
 				"sourceMapRenames": true,
 				"sourceMaps": true,
 				"webRoot": "${workspaceRoot}/src/reactviews"
 			},
+			"debugWebWorkerHost": true,
 			"sourceMapRenames": true,
 			"pauseForSourceMap": true,
       		"debugWebviews": true,
