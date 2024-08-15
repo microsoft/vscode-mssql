@@ -49,7 +49,8 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 			viewColumn,
 			{
 				enableScripts: true,
-				retainContextWhenHidden: true
+				retainContextWhenHidden: true,
+				localResourceRoots: [vscode.Uri.file(this._context.extensionPath)]
 			}
 		);
 
