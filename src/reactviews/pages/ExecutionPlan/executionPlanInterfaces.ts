@@ -450,10 +450,10 @@ export interface AzDataGraphCellEdge {
 	metrics: AzDataGraphCellMetric[];
 }
 
-// interface Point {
-// 	x: number;
-// 	y: number;
-// }
+export interface Point {
+	x: number;
+	y: number;
+}
 
 export enum SearchType {
 	Equals,

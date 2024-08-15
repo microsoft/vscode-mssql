@@ -10,9 +10,10 @@ import * as azdataGraph from 'azdataGraph/dist/build';
 import 'azdataGraph/src/css/common.css';
 import 'azdataGraph/src/css/explorer.css';
 import './executionPlan.css';
-import { Button, Input, makeStyles, Spinner } from '@fluentui/react-components';
+import { Button, Dropdown, Input, Option, makeStyles, Spinner } from '@fluentui/react-components';
 import { ExecutionPlanView } from "./executionPlanView";
-import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
+import { ArrowUp20Regular, ArrowDown20Regular, Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
+import * as ep from './executionPlanInterfaces';
 
 const useStyles = makeStyles({
 	outerDiv: {
@@ -31,7 +32,7 @@ const useStyles = makeStyles({
 		width: "100%",
 		height: "100%"
 	},
-	customZoomInputContainer: {
+	inputContainer: {
 		position: "absolute",
 		top: 0,
 		right: "35px",
@@ -42,6 +43,7 @@ const useStyles = makeStyles({
 		display: "flex",
 		alignItems: "center",
 		gap: "2px",
+		opacity: 1
 	},
 	queryCostContainer: {
 		opacity: 1,
@@ -77,6 +79,9 @@ const useStyles = makeStyles({
 		width: "100%",
 		height: "2px",
 		border: "none"
+	},
+	dropdown: {
+		maxHeight: "200px"
 	}
 })
 
@@ -86,8 +91,27 @@ export const ExecutionPlanPage = () => {
 	const executionPlanState = state?.state;
 	const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
 	const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
-	const [customZoomClicked, setCustomZoomClicked] = useState(false);
 	const [zoomNumber, setZoomNumber] = useState(100);
+	const [customZoomClicked, setCustomZoomClicked] = useState(false);
+	const [findNodeClicked, setFindNodeClicked] = useState(false);
+	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
+	const findNodeComparisonOptions = ["Equals","Contains",">","<",">=","<=","<>"];
+	const findNodeEnumMap: {
+		[key: string]: ep.SearchType;
+	  } = {
+		"Equals": ep.SearchType.Equals,
+		"Contains": ep.SearchType.Contains,
+		">": ep.SearchType.GreaterThan,
+		"<": ep.SearchType.LesserThan,
+		">=": ep.SearchType.GreaterThanEqualTo,
+		"<=": ep.SearchType.LesserThanEqualTo,
+		"<>": ep.SearchType.LesserAndGreaterThan
+	};
+	const [findNodeSelection, setFindNodeSelection] = useState('');
+	const [findNodeComparisonSelection, setFindNodeComparisonSelection] = useState('');
+	const [findNodeSearchValue, setFindNodeSearchValue] = useState('');
+	const [findNodeResults, setFindNodeResults] = useState<ep.ExecutionPlanNode[]>([]);
+	const [findNodeResultsIndex, setFindNodeResultsIndex] = useState(-1);
 
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -131,6 +155,7 @@ export const ExecutionPlanPage = () => {
 
 				setExecutionPlanView(executionPlanView);
 				setIsExecutionPlanLoaded(true);
+				setFindNodeOptions(executionPlanView.getUniqueElementProperties());
 			}
 			else {
 				return;
@@ -185,6 +210,52 @@ export const ExecutionPlanPage = () => {
 		setCustomZoomClicked(false);
 	};
 
+	const handlePreviousFoundNode = async () => {
+		if (executionPlanView) {
+			if (findNodeResultsIndex === -1 && executionPlanView) {
+				let searchQuery: ep.SearchQuery = {
+					propertyName: findNodeSelection,
+					value: findNodeSearchValue,
+					searchType: findNodeEnumMap[findNodeComparisonSelection]
+				}
+
+				setFindNodeResults(executionPlanView.searchNodes(searchQuery));
+				setFindNodeResultsIndex(0);
+			}
+			else if (findNodeResultsIndex === 0) {
+				setFindNodeResultsIndex(findNodeResults.length - 1);
+			}
+			else {
+				setFindNodeResultsIndex(findNodeResultsIndex-1);
+			}
+			executionPlanView.selectElement(findNodeResults[findNodeResultsIndex], true);
+			setExecutionPlanView(executionPlanView);
+		}
+	};
+
+	const handleNextFoundNode = async () => {
+		if (executionPlanView) {
+			if (findNodeResultsIndex === -1) {
+				let searchQuery: ep.SearchQuery = {
+					propertyName: findNodeSelection,
+					value: findNodeSearchValue,
+					searchType: findNodeEnumMap[findNodeComparisonSelection]
+				}
+
+				setFindNodeResults(executionPlanView.searchNodes(searchQuery));
+				setFindNodeResultsIndex(0);
+			}
+			else if (findNodeResultsIndex === findNodeResults.length - 1) {
+				setFindNodeResultsIndex(0);
+			}
+			else {
+				setFindNodeResultsIndex(findNodeResultsIndex+1);
+			}
+			executionPlanView.selectElement(findNodeResults[findNodeResultsIndex], true);
+			setExecutionPlanView(executionPlanView);
+		}
+	};
+
 	return (
 		<div className={classes.outerDiv}>
 			{executionPlanState && executionPlanState.executionPlanGraphs ? (
@@ -193,10 +264,35 @@ export const ExecutionPlanPage = () => {
 						<div id="queryCostContainer" className={classes.queryCostContainer} style={executionPlanState.theme === "light" ? { background: "#F2F2F2" } : {}}>{executionPlanState.query}</div>
 						<div id="queryPlanParent" className={classes.queryPlanParent} ></div>
 						{customZoomClicked ? (
-							<div id="customZoomInputContainer" className={classes.customZoomInputContainer} style={{background:utils.background(executionPlanState.theme!)}}>
-								<Input id="customZoomInputBox" type="number" min={1} defaultValue={zoomNumber.toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }}/>
+							<div id="customZoomInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState.theme!)}}>
+								<Input id="customZoomInputBox" type="number" min={1} defaultValue={Math.floor(zoomNumber).toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }}/>
 								<Button onClick={handleCustomZoomInput} icon={<Checkmark20Regular />} />
 								<Button icon={<Dismiss20Regular />} onClick={() => setCustomZoomClicked(false)}/>
+							</div>
+						) : null}
+						{findNodeClicked ? (
+							<div id="findNodeInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState.theme!)}}>
+								<div>Find Nodes</div>
+								<Dropdown id="findNodeDropdown" onOptionSelect={(_, data) => {setFindNodeSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1)}}>
+									<div style={{maxHeight:"250px"}}>
+									{findNodeOptions.map((option) => (
+										<Option key={option}>
+											{option}
+										</Option>
+									))}
+									</div>
+								</Dropdown>
+								<Dropdown id="findNodeComparisonDropdown" className={classes.dropdown} onOptionSelect={(_, data) => {setFindNodeComparisonSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1)}}>
+									{findNodeComparisonOptions.map((option) => (
+										<Option key={option}>
+											{option}
+										</Option>
+									))}
+								</Dropdown>
+								<Input id="findNodeInputBox" type="text"  onChange={(e) => {setFindNodeSearchValue(e.target.value); setFindNodeResultsIndex(-1)}}/>
+								<Button onClick={handlePreviousFoundNode} icon={<ArrowUp20Regular />} />
+								<Button onClick={handleNextFoundNode} icon={<ArrowDown20Regular />} />
+								<Button icon={<Dismiss20Regular />} onClick={() => setFindNodeClicked(false)}/>
 							</div>
 						) : null}
 					</div>
@@ -222,6 +318,10 @@ export const ExecutionPlanPage = () => {
 						</div>
 						<div id="customZoomButton" className={classes.button} onClick={() => setCustomZoomClicked(true)} style={{background:utils.background(executionPlanState.theme!)}}>
 							<img className={classes.buttonImg} src={utils.customZoom(executionPlanState.theme!)} alt="Custom Zoom" width="20" height="20" />
+						</div>
+						<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState.theme!)}}></hr>
+						<div id="findNodeButton" className={classes.button} onClick={() => setFindNodeClicked(true)} style={{background:utils.background(executionPlanState.theme!)}}>
+							<img className={classes.buttonImg} src={utils.search(executionPlanState.theme!)} alt="Find Node" width="20" height="20" />
 						</div>
 					</div>
 				</div>

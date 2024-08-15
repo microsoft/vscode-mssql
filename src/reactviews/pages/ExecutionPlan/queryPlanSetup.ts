@@ -427,6 +427,10 @@ export const customZoom = (theme: string) => {
     return theme === "dark" ? require('./icons/customZoomDark.svg') : require('./icons/customZoom.svg');
 };
 
+export const search = (theme: string) => {
+    return theme === "dark" ? require('./icons/searchDark.svg') : require('./icons/search.svg');
+};
+
 export const background = (theme:string) => {
 	return theme === "dark" ? '#262C2C' : "#F2F2F2";
 }

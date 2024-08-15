@@ -241,4 +241,132 @@ export class ExecutionPlanView {
 
 		this._diagram.zoomTo(level);
 	}
+
+	/**
+	 * Searches the diagram nodes based on the search query provided.
+	 */
+	public searchNodes(searchQuery: ep.SearchQuery): ep.ExecutionPlanNode[] {
+		const resultNodes: ep.ExecutionPlanNode[] = [];
+
+		const nodeStack: ep.ExecutionPlanNode[] = [];
+		nodeStack.push(this.executionPlanRootNode);
+
+		while (nodeStack.length !== 0) {
+			const currentNode = nodeStack.pop()!;
+
+			const matchingProp = currentNode.properties.find(e => e.name === searchQuery.propertyName);
+			let matchFound = false;
+			// Searching only properties with string value.
+			if (typeof matchingProp?.value === 'string') {
+				// If the search type is '=' we look for exact match and for 'contains' we look search string occurrences in prop value
+				switch (searchQuery.searchType) {
+					case ep.SearchType.Equals:
+						matchFound = matchingProp.value === searchQuery.value;
+						break;
+					case ep.SearchType.Contains:
+						matchFound = matchingProp.value.includes(searchQuery.value);
+						break;
+					case ep.SearchType.GreaterThan:
+						matchFound = matchingProp.value > searchQuery.value;
+						break;
+					case ep.SearchType.LesserThan:
+						matchFound = matchingProp.value < searchQuery.value;
+						break;
+					case ep.SearchType.GreaterThanEqualTo:
+						matchFound = matchingProp.value >= searchQuery.value;
+						break;
+					case ep.SearchType.LesserThanEqualTo:
+						matchFound = matchingProp.value <= searchQuery.value;
+						break;
+					case ep.SearchType.LesserAndGreaterThan:
+						matchFound = matchingProp.value < searchQuery.value || matchingProp.value > searchQuery.value;
+						break;
+				}
+
+				if (matchFound) {
+					resultNodes.push(currentNode);
+				}
+			}
+
+			nodeStack.push(...currentNode.children);
+		}
+
+		return resultNodes;
+	}
+
+	/**
+	 * Brings a graph element to the center of the parent view.
+	 * @param node Node to be brought into the center
+	 */
+	public centerElement(node: ep.InternalExecutionPlanElement): void {
+		/**
+		 * The selected graph node might be hidden/partially visible if the graph is overflowing the parent container.
+		 * Apart from the obvious problems in aesthetics, user do not get a proper feedback of the search result.
+		 * To solve this problem, we will have to scroll the node into view. (preferably into the center of the view)
+		 * Steps for that:
+		 *  1. Get the bounding rect of the node on graph.
+		 *  2. Get the midpoint of the node's bounding rect.
+		 *  3. Find the dimensions of the parent container.
+		 *  4. Since, we are trying to position the node into center, we set the left top corner position of parent to
+		 *     below x and y.
+		 *  x =	node's x midpoint - half the width of parent container
+		 *  y = node's y midpoint - half the height of parent container
+		 * 	5. If the x and y are negative, we set them 0 as that is the minimum possible scroll position.
+		 *  6. Smoothly scroll to the left top x and y calculated in step 4, 5.
+		 */
+
+		if (!node) {
+			return;
+		}
+		const cell = this._diagram.graph.model.getCell(node.id);
+		if (!cell) {
+			return;
+		}
+
+		const cellRect = this._diagram.graph.getCellBounds(cell);
+
+		const cellMidPoint: ep.Point = {
+			x: cellRect.x + cellRect.width / 2,
+			y: cellRect.y + cellRect.height / 2
+		};
+
+		const graphContainer = <HTMLElement>this._diagram.graph.container;
+
+		const diagramContainerRect = graphContainer.getBoundingClientRect();
+
+		const leftTopScrollPoint: ep.Point = {
+			x: cellMidPoint.x - diagramContainerRect.width / 2,
+			y: cellMidPoint.y - diagramContainerRect.height / 2
+		};
+
+		leftTopScrollPoint.x = leftTopScrollPoint.x < 0 ? 0 : leftTopScrollPoint.x;
+		leftTopScrollPoint.y = leftTopScrollPoint.y < 0 ? 0 : leftTopScrollPoint.y;
+
+		graphContainer.scrollTo({
+			left: leftTopScrollPoint.x,
+			top: leftTopScrollPoint.y,
+			behavior: 'smooth'
+		});
+	}
+
+
+	/**
+	 * Selects an execution plan node/edge in the graph diagram.
+	 * @param element  Element to be selected
+	 * @param bringToCenter Check if the selected element has to be brought into the center of this view
+	 */
+	public selectElement(element: ep.InternalExecutionPlanElement | undefined, bringToCenter: boolean = false): void {
+		let cell;
+		if (element) {
+			cell = this._diagram.graph.model.getCell(element.id);
+		} else {
+			cell = this._diagram.graph.model.getCell((<ep.ExecutionPlanNode>this.executionPlanRootNode).id);
+		}
+
+		this._diagram.graph.getSelectionModel().setCell(cell);
+
+		if (bringToCenter) {
+			this.centerElement(element!);
+		}
+	}
 }
