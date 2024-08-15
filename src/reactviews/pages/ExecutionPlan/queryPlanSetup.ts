@@ -431,6 +431,10 @@ export const search = (theme: string) => {
     return theme === "dark" ? require('./icons/searchDark.svg') : require('./icons/search.svg');
 };
 
+export const highlightOps = (theme: string) => {
+    return theme === "dark" ? require('./icons/highlightExpensiveOperationDark.svg') : require('./icons/highlightExpensiveOperation.svg');
+};
+
 export const background = (theme:string) => {
 	return theme === "dark" ? '#262C2C' : "#F2F2F2";
 }

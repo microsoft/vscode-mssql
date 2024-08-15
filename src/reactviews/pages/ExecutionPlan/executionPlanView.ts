@@ -369,4 +369,40 @@ export class ExecutionPlanView {
 			this.centerElement(element!);
 		}
 	}
+
+	public clearExpensiveOperatorHighlighting(): void {
+		this._diagram.clearExpensiveOperatorHighlighting();
+	}
+
+	public highlightExpensiveOperator(predicate: (cell: ep.AzDataGraphCell) => number | undefined): string {
+		return this._diagram.highlightExpensiveOperator(predicate);
+	}
+
+	/**
+	 * Get the diagram element by its id
+	 * @param id id of the diagram element
+	 */
+	public getElementById(id: string): ep.InternalExecutionPlanElement | undefined {
+		const nodeStack: ep.ExecutionPlanNode[] = [];
+		nodeStack.push(this.executionPlanRootNode);
+
+		while (nodeStack.length !== 0) {
+			const currentNode = nodeStack.pop()!;
+			if (currentNode.id === id) {
+				return currentNode;
+			}
+
+			if (currentNode.edges) {
+				for (let i = 0; i < currentNode.edges.length; i++) {
+					if ((<ep.InternalExecutionPlanEdge>currentNode.edges[i]).id === id) {
+						return currentNode.edges[i];
+					}
+				}
+			}
+
+			nodeStack.push(...currentNode.children);
+		}
+
+		return undefined;
+	}
 }

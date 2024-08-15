@@ -15,6 +15,7 @@ import { ExecutionPlanView } from "./executionPlanView";
 import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
+import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
 
 const useStyles = makeStyles({
 	outerDiv: {
@@ -96,6 +97,7 @@ export const ExecutionPlanPage = () => {
 	const [customZoomClicked, setCustomZoomClicked] = useState(false);
 	const [findNodeClicked, setFindNodeClicked] = useState(false);
 	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
+	const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
 
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -175,8 +177,11 @@ export const ExecutionPlanPage = () => {
 						{findNodeClicked ? (
 							<FindNode executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} findNodeOptions={findNodeOptions} setFindNodeClicked={setFindNodeClicked}/>
 						) : null}
+						{highlightOpsClicked ? (
+							<HighlightExpensiveOperations executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setHighlightOpsClicked={setHighlightOpsClicked}/>
+						) : null}
 					</div>
-					<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked}/>
+					<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked}/>
 				</div>
 			) : (
 				<Spinner label="Loading..." labelPosition="below" />

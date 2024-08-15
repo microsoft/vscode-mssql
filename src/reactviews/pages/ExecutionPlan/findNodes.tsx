@@ -87,8 +87,7 @@ export const FindNode : React.FC<FindNodeProps> = ({
 			else {
 				setFindNodeResultsIndex(findNodeResultsIndex + node);
 			}
-			executionPlanView.selectElement(findNodeResults[findNodeResultsIndex]);
-			executionPlanView.centerElement(findNodeResults[findNodeResultsIndex]);
+			executionPlanView.selectElement(findNodeResults[findNodeResultsIndex], true);
 			setExecutionPlanView(executionPlanView);
 		}
 	};

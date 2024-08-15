@@ -42,6 +42,7 @@ interface IconStackProps {
 	setZoomNumber: any;
 	setCustomZoomClicked: any;
 	setFindNodeClicked: any;
+	setHighlightOpsClicked:any;
 }
 
 export const IconStack : React.FC<IconStackProps> = ({
@@ -49,7 +50,8 @@ export const IconStack : React.FC<IconStackProps> = ({
 	setExecutionPlanView,
 	setZoomNumber,
 	setCustomZoomClicked,
-	setFindNodeClicked
+	setFindNodeClicked,
+	setHighlightOpsClicked
   }) => {
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
@@ -118,6 +120,9 @@ export const IconStack : React.FC<IconStackProps> = ({
 			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
 			<div id="findNodeButton" className={classes.button} onClick={() => setFindNodeClicked(true)} style={{background:utils.background(executionPlanState!.theme!)}}>
 				<img className={classes.buttonImg} src={utils.search(executionPlanState!.theme!)} alt="Find Node" width="20" height="20" />
+			</div>
+			<div id="highlightOpsButton" className={classes.button} onClick={() => setHighlightOpsClicked(true)} style={{background:utils.background(executionPlanState!.theme!)}}>
+				<img className={classes.buttonImg} src={utils.highlightOps(executionPlanState!.theme!)} alt="Find Node" width="20" height="20" />
 			</div>
 		</div>
 	);
