@@ -435,6 +435,15 @@ export const highlightOps = (theme: string) => {
     return theme === "dark" ? require('./icons/highlightExpensiveOperationDark.svg') : require('./icons/highlightExpensiveOperation.svg');
 };
 
+export const enableTooltip = (theme: string) => {
+    return theme === "dark" ? require('./icons/enableTooltipDark.svg') : require('./icons/enableTooltip.svg');
+};
+
+export const disableTooltip = (theme: string) => {
+    return theme === "dark" ? require('./icons/disableTooltipDark.svg') : require('./icons/disableTooltip.svg');
+};
+
+
 export const background = (theme:string) => {
 	return theme === "dark" ? '#262C2C' : "#F2F2F2";
 }

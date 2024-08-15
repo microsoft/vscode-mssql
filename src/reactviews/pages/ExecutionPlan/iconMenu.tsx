@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import * as utils from './queryPlanSetup';
 import './executionPlan.css';
@@ -56,6 +56,7 @@ export const IconStack : React.FC<IconStackProps> = ({
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
+	const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
 
 	const handleSavePlan = async () => {
 		await state!.provider.saveExecutionPlan(executionPlanState!.sqlPlanContent!);
@@ -93,6 +94,14 @@ export const IconStack : React.FC<IconStackProps> = ({
 		}
 	};
 
+	const handleToggleTooltips = async () => {
+		if (executionPlanView) {
+			executionPlanView.toggleTooltip();
+			setExecutionPlanView(executionPlanView);
+			setTooltipsEnabled(!tooltipsEnabled);
+		}
+	};
+
 	return (
 		<div id="iconStack" className={classes.iconStack} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
 			<div id="saveButton" className={classes.button} onClick={handleSavePlan} style={{background:utils.background(executionPlanState!.theme!)}}>
@@ -122,7 +131,14 @@ export const IconStack : React.FC<IconStackProps> = ({
 				<img className={classes.buttonImg} src={utils.search(executionPlanState!.theme!)} alt="Find Node" width="20" height="20" />
 			</div>
 			<div id="highlightOpsButton" className={classes.button} onClick={() => setHighlightOpsClicked(true)} style={{background:utils.background(executionPlanState!.theme!)}}>
-				<img className={classes.buttonImg} src={utils.highlightOps(executionPlanState!.theme!)} alt="Find Node" width="20" height="20" />
+				<img className={classes.buttonImg} src={utils.highlightOps(executionPlanState!.theme!)} alt="Highlight Expensive Ops" width="20" height="20" />
+			</div>
+			<div id="tooltipsButton" className={classes.button} onClick={handleToggleTooltips} style={{background:utils.background(executionPlanState!.theme!)}}>
+			{tooltipsEnabled ? (
+					<img className={classes.buttonImg} src={utils.enableTooltip(executionPlanState!.theme!)} alt="Tooltips Enabled" width="20" height="20" />
+				):
+					<img className={classes.buttonImg} src={utils.disableTooltip(executionPlanState!.theme!)} alt="Tooltips Disabled" width="20" height="20" />
+				}
 			</div>
 		</div>
 	);
