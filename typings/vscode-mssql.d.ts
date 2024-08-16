@@ -1463,6 +1463,69 @@ declare module 'vscode-mssql' {
 		nodeType: string;
 		metadata: ObjectMetadata;
 		parentNode: ITreeNodeInfo;
+		/**
+		 * Filterable properties that this node supports
+		 */
+		filterableProperties?: NodeFilterProperty[];
+	}
+
+	export interface NodeFilterProperty {
+		/**
+		 * The non-localized name of the filter property
+		 */
+		name: string;
+		/**
+		 * The name of the filter property displayed to the user
+		 */
+		displayName: string;
+		/**
+		 * The type of the filter property
+		 */
+		type: NodeFilterPropertyDataType;
+		/**
+		 * The description of the filter property
+		 */
+		description: string;
+	}
+
+	export interface NodeFilter {
+		/**
+		 * The name of the filter property
+		 */
+		name: string;
+		/**
+		 * The operator of the filter property
+		 */
+		operator: NodeFilterOperator;
+		/**
+		 * The applied values of the filter property
+		 */
+		value: string | string[] | number | number[] | boolean | undefined;
+	}
+
+	export enum NodeFilterPropertyDataType {
+		String = 0,
+		Number = 1,
+		Boolean = 2,
+		Date = 3,
+		Choice = 4
+	}
+
+	export enum NodeFilterOperator {
+		Equals = 0,
+		NotEquals = 1,
+		LessThan = 2,
+		LessThanOrEquals = 3,
+		GreaterThan = 4,
+		GreaterThanOrEquals = 5,
+		Between = 6,
+		NotBetween = 7,
+		Contains = 8,
+		NotContains = 9,
+		StartsWith = 10,
+		NotStartsWith = 11,
+		EndsWith = 12,
+		NotEndsWith = 13
 	}
 
 	export const enum MetadataType {

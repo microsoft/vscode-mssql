@@ -32,6 +32,10 @@ const Router = () => {
 					<ConnectionPage />
 				</ConnectionDialogStateProvider>
 			);
+		case WebviewRoute.objectExplorerFilter:
+			return (
+				<div>Object Explorer Filter</div>
+			);
 		default: (
 			<div>Route not found</div>
 		);
