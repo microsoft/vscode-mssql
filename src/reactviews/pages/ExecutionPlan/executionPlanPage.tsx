@@ -12,7 +12,8 @@ const useStyles = makeStyles({
 	outerDiv: {
 		height: "100%",
 		width: "100%",
-		overflow: "auto"
+		overflow: "auto",
+		position: "relative"
 	}
 })
 
@@ -23,8 +24,7 @@ export const ExecutionPlanPage = () => {
 
 	return (
 		<div className={classes.outerDiv}>
-			{executionPlanState && executionPlanState.executionPlanGraphs ? (
-				// for graph in executionPlanGraphs
+			{executionPlanState && !executionPlanState.isLoading && executionPlanState.executionPlanGraphs ? (
 				executionPlanState.executionPlanGraphs.map((_, index) => (
 					<ExecutionPlanGraph key={index} graphIndex={index} />
 				))

@@ -23,6 +23,7 @@ const useStyles = makeStyles({
 		flexDirection: "row",
 		width: "100%",
 		height: "100%",
+		position: "relative"
 	},
 	planContainer: {
 		display: "flex",
@@ -47,7 +48,6 @@ const useStyles = makeStyles({
 	queryCostContainer: {
 		opacity: 1,
 		padding: "5px",
-		width: "100%"
 	},
 	queryPlanParent: {
 		opacity: 1,
@@ -67,9 +67,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
 	const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
-	const [query, setQuery] = useState('')
+	const [query, setQuery] = useState('');
+	const [cost, setCost] = useState(0);
 	const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
-	const [queryCost, setQueryCost] = useState(0);
 	const [zoomNumber, setZoomNumber] = useState(100);
 	const [customZoomClicked, setCustomZoomClicked] = useState(false);
 	const [findNodeClicked, setFindNodeClicked] = useState(false);
@@ -129,10 +129,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 					}
 				}
 				setQuery(tempQuery);
-
-				state!.provider.updateTotalCost(executionPlanView.getTotalRelativeCost());
-				setQueryCost(executionPlanView.getTotalRelativeCost())
-				console.log(executionPlanView.getTotalRelativeCost());
+				setCost(executionPlanView.getTotalRelativeCost());
 			}
 			else {
 				return;
@@ -152,17 +149,14 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	};
 
 	const getQueryCostPercentage = () => {
-		let queryCostDecimal = queryCost/executionPlanState!.totalCost!;
-		console.log(queryCostDecimal)
-		queryCostDecimal *= 100;
-		const formattedPercentage = queryCostDecimal.toFixed(2) + '%';
-		return formattedPercentage;
-	}
+		const percentage = (cost / executionPlanState!.totalCost!) * 100;
+  		return percentage.toFixed(2) + '%';
+	};
 
 	return (
 		<div id="panelContainer" className={classes.panelContainer}>
 			<div id="planContainer" className={classes.planContainer}>
-				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>Query {graphIndex + 1}:  Query cost (relative to the script):  {getQueryCostPercentage()}<br />{query}</div>
+				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>Query {graphIndex + 1}:  Query cost (relative to the script):  {getQueryCostPercentage()}<br />{query}</div>
 				<div id={`queryPlanParent${graphIndex + 1}`} className={classes.queryPlanParent}></div>
 				{customZoomClicked ? (
 					<div id="customZoomInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>

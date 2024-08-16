@@ -31,16 +31,18 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
         ),
       }
     );
+    this.state.isLoading = true;
     this.initialize();
   }
 
   private async initialize() {
     this.state.sqlPlanContent = this.executionPlanContents;
-    this.state.totalCost = 0;
 	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
 
     await this.getExecutionPlan();
+    this.state.totalCost = this.calculateTotalCost();
     this.registerRpcHandlers();
+    this.state.isLoading = false;
   }
 
   private registerRpcHandlers() {
@@ -145,5 +147,13 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
     } catch {
       return false;
     }
+  }
+
+  private calculateTotalCost(): number {
+    let sum = 0;
+    for (const graph of this.state.executionPlanGraphs!) {
+      sum += (graph.root.cost + graph.root.subTreeCost);
+    }
+    return sum;
   }
 }

@@ -9,6 +9,7 @@ export interface ExecutionPlanWebViewState {
 	executionPlanGraphs?: ExecutionPlanGraph[];
 	theme?: string;
 	totalCost?: number;
+	isLoading?: boolean;
 }
 
 export interface ExecutionPlanReducers {
