@@ -52,6 +52,11 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({ child
 						{query: query}
 					);
 				},
+				updateTotalCost: function (totalCost: number): void {
+					webViewState?.extensionRpc.action('updateTotalCost',
+						{totalCost: totalCost}
+					);
+				},
 			},
 			state: webViewState?.state as ep.ExecutionPlanWebViewState,
 			theme: webViewState?.theme

@@ -36,8 +36,8 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 
   private async initialize() {
     this.state.sqlPlanContent = this.executionPlanContents;
-
-	this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
+    this.state.totalCost = 0;
+	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
 
     await this.getExecutionPlan();
     this.registerRpcHandlers();
@@ -50,8 +50,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       return {
         ...state,
         executionPlan: this.state.executionPlan,
-        executionPlanGraphs: this.state.executionPlanGraphs,
-        query: this.state.query,
+        executionPlanGraphs: this.state.executionPlanGraphs
       };
     });
     this.registerReducer("saveExecutionPlan", async (state, payload) => {
@@ -113,6 +112,14 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 
       return state;
     });
+    this.registerReducer("updateTotalCost", async (state, payload) => {
+      this.state.totalCost += payload.totalCost;
+
+      return {
+        ...state,
+        totalCost: this.state.totalCost
+      };
+    });
   }
 
   private async getExecutionPlan() {
@@ -124,7 +131,6 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       this.state.executionPlan =
         await this._executionPlanService.getExecutionPlan(planFile);
       this.state.executionPlanGraphs = this.state.executionPlan.graphs;
-      this.state.query = this.state.executionPlanGraphs[0].query;
     }
   }
 

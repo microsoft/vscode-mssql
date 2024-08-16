@@ -16,6 +16,10 @@ export class ExecutionPlanView {
 		return this.executionPlanRootNode;
 	}
 
+	public getTotalRelativeCost(): number {
+		return this.executionPlanRootNode.cost + this.executionPlanRootNode.subTreeCost;
+	}
+
 	public getDiagram(): any {
 		return this._diagram;
 	}
@@ -404,5 +408,9 @@ export class ExecutionPlanView {
 		}
 
 		return undefined;
+	}
+
+	public calculateRelativeQueryCost(): number {
+		return (this.executionPlanRootNode.subTreeCost + this.executionPlanRootNode.cost)
 	}
 }

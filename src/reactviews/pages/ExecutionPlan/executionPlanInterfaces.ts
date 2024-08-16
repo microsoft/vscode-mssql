@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 export interface ExecutionPlanWebViewState {
-	query?: string;
 	sqlPlanContent?: string;
 	executionPlan?: GetExecutionPlanResult;
 	executionPlanGraphs?: ExecutionPlanGraph[];
 	theme?: string;
+	totalCost?: number;
 }
 
 export interface ExecutionPlanReducers {
@@ -23,6 +23,9 @@ export interface ExecutionPlanReducers {
 	},
 	showQuery: {
 		query: string
+	},
+	updateTotalCost: {
+		totalCost: number
 	}
 }
 
@@ -38,6 +41,8 @@ export interface ExecutionPlanProvider {
 	showPlanXml(sqlPlanContent: string): void;
 
 	showQuery(query: string): void;
+
+	updateTotalCost(totalCost: number): void;
 }
 
 export interface ExecutionPlanGraph {

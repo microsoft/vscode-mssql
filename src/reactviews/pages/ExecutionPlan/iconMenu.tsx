@@ -11,15 +11,11 @@ import { makeStyles } from '@fluentui/react-components';
 
 const useStyles = makeStyles({
 	iconStack: {
+		right: 0,
 		display: "flex",
 		flexDirection: "column",
-		justifyContent: "flex-start",
 		alignItems: "center",
-		position: "fixed",
-		top: 0,
-		right: 0,
 		width: "25px",
-		height: "100%"
 	},
 	button: {
 		cursor: "pointer",
@@ -43,6 +39,7 @@ interface IconStackProps {
 	setCustomZoomClicked: any;
 	setFindNodeClicked: any;
 	setHighlightOpsClicked:any;
+	query: any;
 }
 
 export const IconStack : React.FC<IconStackProps> = ({
@@ -51,7 +48,8 @@ export const IconStack : React.FC<IconStackProps> = ({
 	setZoomNumber,
 	setCustomZoomClicked,
 	setFindNodeClicked,
-	setHighlightOpsClicked
+	setHighlightOpsClicked,
+	query
   }) => {
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
@@ -67,7 +65,7 @@ export const IconStack : React.FC<IconStackProps> = ({
 	};
 
 	const handleShowQuery = async () => {
-		await state!.provider.showQuery(executionPlanState!.query!);
+		await state!.provider.showQuery(query);
 	};
 
 	const handleZoomIn = async () => {

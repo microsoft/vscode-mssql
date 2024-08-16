@@ -3,87 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import * as utils from './queryPlanSetup';
-import * as azdataGraph from 'azdataGraph/dist/build';
-import 'azdataGraph/src/css/common.css';
-import 'azdataGraph/src/css/explorer.css';
-import './executionPlan.css';
-import { Button, Input, makeStyles, Spinner } from '@fluentui/react-components';
-import { ExecutionPlanView } from "./executionPlanView";
-import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
-import { IconStack } from './iconMenu';
-import { FindNode } from './findNodes';
-import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
+import { makeStyles, Spinner } from '@fluentui/react-components';
+import { ExecutionPlanGraph } from './executionPlanGraph';
 
 const useStyles = makeStyles({
 	outerDiv: {
 		height: "100%",
 		width: "100%",
 		overflow: "auto"
-	},
-	panelContainer: {
-		display: "flex",
-		flexDirection: "row",
-		height: "100%",
-		width: "100%",
-	},
-	planContainer: {
-		flexGrow: 1,
-		width: "100%",
-		height: "100%"
-	},
-	inputContainer: {
-		position: "absolute",
-		top: 0,
-		right: "35px",
-		padding: "10px",
-		border: "1px solid #ccc",
-		zIndex: "100",
-		boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-		display: "flex",
-		alignItems: "center",
-		gap: "2px",
-		opacity: 1
-	},
-	queryCostContainer: {
-		opacity: 1,
-		padding: "5px",
-		width: "100%"
-	},
-	queryPlanParent: {
-		opacity: 1,
-		width: "100%",
-		height: "100%",
-		overflowX: 'auto',
-	},
-	iconStack: {
-		display: "flex",
-		flexDirection: "column",
-		justifyContent: "flex-start",
-		alignItems: "center",
-		position: "fixed",
-		top: 0,
-		right: 0,
-		width: "25px",
-		height: "100%"
-	},
-	button: {
-		cursor: "pointer",
-		marginTop: "5px",
-		marginBottom: "5px"
-	},
-	buttonImg: {
-		display: "block"
-	},
-	seperator: {
-		width: "100%",
-		height: "2px",
-		border: "none"
-	},
-	dropdown: {
-		maxHeight: "200px"
 	}
 })
 
@@ -91,98 +20,14 @@ export const ExecutionPlanPage = () => {
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
-	const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
-	const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
-	const [zoomNumber, setZoomNumber] = useState(100);
-	const [customZoomClicked, setCustomZoomClicked] = useState(false);
-	const [findNodeClicked, setFindNodeClicked] = useState(false);
-	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
-	const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
-
-	useEffect(() => {
-		if (!executionPlanState || isExecutionPlanLoaded) return;
-		// @ts-ignore
-		window['mxLoadResources'] = false;
-		// @ts-ignore
-		window['mxForceIncludes'] = false;
-		// @ts-ignore
-		window['mxResourceExtension'] = '.txt';
-		// @ts-ignore
-		window['mxLoadStylesheets'] = false;
-		// @ts-ignore
-		window['mxBasePath'] = './src/reactviews/pages/ExecutionPlan/mxgraph';
-
-		const mxClient = azdataGraph.default();
-		// console.log(mxClient);
-		console.log("Execution Plan State: ", executionPlanState);
-
-		function loadExecutionPlan() {
-			if (executionPlanState && executionPlanState.executionPlanGraphs) {
-				const executionPlanRootNode = executionPlanState.executionPlanGraphs[0].root;
-				const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
-				const executionPlanGraph = executionPlanView.populate(executionPlanRootNode);
-				console.log("Graph: ", executionPlanGraph);
-
-				const div = document.getElementById('queryPlanParent');
-				// create a div to hold the graph
-				const queryPlanConfiguration = {
-					container: div,
-					queryPlanGraph: executionPlanGraph,
-					iconPaths: utils.getIconPaths(),
-					badgeIconPaths: utils.getBadgePaths(),
-					expandCollapsePaths: utils.getCollapseExpandPaths(),
-					showTooltipOnClick: true
-				};
-				const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
-				pen.setTextFontColor('var(--vscode-editor-foreground)'); // set text color
-				pen.setEdgeColor('var(--vscode-editor-foreground)'); // set edge color
-
-				executionPlanView.setDiagram(pen);
-
-				setExecutionPlanView(executionPlanView);
-				setIsExecutionPlanLoaded(true);
-				setFindNodeOptions(executionPlanView.getUniqueElementProperties());
-			}
-			else {
-				return;
-			}
-		}
-		loadExecutionPlan();
-
-	}, [executionPlanState]);
-
-	const handleCustomZoomInput = async () => {
-		if (executionPlanView) {
-			executionPlanView.setZoomLevel(zoomNumber);
-			setExecutionPlanView(executionPlanView);
-			setZoomNumber(executionPlanView.getZoomLevel());
-		}
-		setCustomZoomClicked(false);
-	};
 
 	return (
 		<div className={classes.outerDiv}>
 			{executionPlanState && executionPlanState.executionPlanGraphs ? (
-				<div id="panelContainer" className={classes.panelContainer}>
-					<div id="planContainer" className={classes.planContainer}>
-						<div id="queryCostContainer" className={classes.queryCostContainer} style={executionPlanState.theme === "light" ? { background: "#F2F2F2" } : {}}>{executionPlanState.query}</div>
-						<div id="queryPlanParent" className={classes.queryPlanParent} ></div>
-						{customZoomClicked ? (
-							<div id="customZoomInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState.theme!)}}>
-								<Input id="customZoomInputBox" type="number" min={1} defaultValue={Math.floor(zoomNumber).toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }}/>
-								<Button onClick={handleCustomZoomInput} icon={<Checkmark20Regular />} />
-								<Button icon={<Dismiss20Regular />} onClick={() => setCustomZoomClicked(false)}/>
-							</div>
-						) : null}
-						{findNodeClicked ? (
-							<FindNode executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} findNodeOptions={findNodeOptions} setFindNodeClicked={setFindNodeClicked}/>
-						) : null}
-						{highlightOpsClicked ? (
-							<HighlightExpensiveOperations executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setHighlightOpsClicked={setHighlightOpsClicked}/>
-						) : null}
-					</div>
-					<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked}/>
-				</div>
+				// for graph in executionPlanGraphs
+				executionPlanState.executionPlanGraphs.map((_, index) => (
+					<ExecutionPlanGraph key={index} graphIndex={index} />
+				))
 			) : (
 				<Spinner label="Loading..." labelPosition="below" />
 			)}
