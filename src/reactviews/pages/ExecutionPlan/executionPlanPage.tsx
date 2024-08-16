@@ -12,8 +12,8 @@ const useStyles = makeStyles({
 	outerDiv: {
 		height: "100%",
 		width: "100%",
-		overflow: "auto",
-		position: "relative"
+		position: "relative",
+		overflowY: "auto"
 	}
 })
 
