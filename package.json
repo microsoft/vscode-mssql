@@ -1,12 +1,12 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.20.0",
+  "version": "1.24.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
   "license": "SEE LICENSE IN LICENSE.txt",
-  "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
+  "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
   "icon": "images/sqlserver.png",
   "galleryBanner": {
     "color": "#2F2F2F",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.78.0"
+    "vscode": "^1.83.1"
   },
   "categories": [
     "Programming Languages",
@@ -50,7 +50,12 @@
   "scripts": {
     "build": "gulp build",
     "compile": "gulp ext:compile",
-    "watch": "gulp watch"
+    "watch": "gulp watch",
+    "lint": "gulp lint",
+    "localization": "gulp ext:localization",
+    "smoketest": "gulp ext:smoke",
+    "test": "gulp test:cover --log",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -61,74 +66,101 @@
     "@angular/platform-browser-dynamic": "~2.1.2",
     "@angular/router": "~3.1.2",
     "@angular/upgrade": "~2.1.2",
+    "@eslint/compat": "^1.1.0",
+    "@eslint/js": "^9.5.0",
+    "@fluentui/react-components": "^9.54.3",
+    "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
+    "@monaco-editor/react": "^4.6.0",
+    "@playwright/test": "^1.45.0",
     "@types/azdata": "^1.44.0",
     "@types/ejs": "^3.1.0",
+    "@types/eslint__js": "^8.42.3",
     "@types/jquery": "^3.3.31",
     "@types/jqueryui": "^1.12.7",
     "@types/keytar": "^4.4.2",
     "@types/lockfile": "^1.0.2",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^14.17.0",
-    "@types/node-fetch": "^2.6.1",
+    "@types/node": "^20.14.8",
+    "@types/node-fetch": "^2.6.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/react-resizable": "^3.0.8",
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "1.78.1",
-    "@vscode/test-electron": "^2.1.5",
+    "@types/vscode": "1.83.1",
+    "@types/vscode-webview": "^1.57.5",
+    "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
     "assert": "^1.4.1",
     "chai": "^3.5.0",
+    "cli-color": "^2.0.4",
     "coveralls": "^3.0.2",
     "decache": "^4.1.0",
     "del": "^2.2.1",
+    "esbuild": "^0.22.0",
+    "esbuild-plugin-copy": "^2.1.1",
+    "eslint": "^9.5.0",
+    "eslint-plugin-deprecation": "^3.0.0",
+    "eslint-plugin-jsdoc": "^48.2.12",
+    "eslint-plugin-notice": "^1.0.0",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.0",
+    "gulp-eslint-new": "^2.1.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-rename": "^1.2.2",
+    "gulp-run-command": "^0.0.10",
     "gulp-shell": "^0.7.0",
     "gulp-sourcemaps": "^1.6.0",
-    "gulp-tslint": "^8.1.4",
     "gulp-typescript": "^5.0.1",
     "gulp-uglify": "^2.0.0",
+    "husky": "^9.0.11",
     "istanbul": "^0.4.5",
+    "npm-run-all": "^4.1.5",
     "pm-mocha-jenkins-reporter": "^0.2.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "react-resizable": "^3.0.5",
+    "react-router-dom": "^6.24.1",
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
-    "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.43",
+    "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.46",
     "systemjs": "0.19.40",
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
-    "tslint": "^6.1.3",
-    "tslint-microsoft-contrib": "^6.2.0",
     "typemoq": "^1.7.0",
-    "typescript": "^5.0.4",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
-    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
+    "yargs": "^17.7.2"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
     "@azure/arm-sql": "^9.0.0",
     "@azure/arm-subscriptions": "^5.0.0",
-    "@azure/msal-common": "^11.0.0",
-    "@azure/msal-node": "^1.16.0",
-    "@microsoft/ads-adal-library": "1.0.17",
+    "@azure/msal-common": "^14.14.0",
+    "@azure/msal-node": "^2.12.0",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
-    "http-proxy-agent": "5.0.0",
-    "https-proxy-agent": "5.0.0",
+    "axios": "^1.6.0",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
-    "ejs": "^3.1.7",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
     "error-ex": "^1.3.0",
     "figures": "^1.4.0",
     "find-remove": "1.2.1",
     "getmac": "1.2.1",
     "jquery": "^3.4.1",
     "lockfile": "1.0.4",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.2",
     "opener": "1.4.2",
     "plist": "^3.0.6",
     "pretty-data": "^0.40.0",
@@ -136,12 +168,16 @@
     "rangy": "^1.3.0",
     "reflect-metadata": "0.1.12",
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
-    "tar": "^6.1.9",
+    "tar": "^6.2.1",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
+    "vsce": "^2.15.0",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
+  },
+  "resolutions": {
+    "gulp-typescript/source-map": "0.7.4"
   },
   "capabilities": {
     "untrustedWorkspaces": {
@@ -207,6 +243,21 @@
           "command": "mssql.cancelQuery",
           "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
+        },
+        {
+          "command": "mssql.connect",
+          "when": "editorLangId == sql && resource not in mssql.connections",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mssql.disconnect",
+          "when": "editorLangId == sql && resource in mssql.connections",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mssql.changeDatabase",
+          "when": "editorLangId == sql",
+          "group": "navigation@4"
         }
       ],
       "editor/context": [
@@ -265,6 +316,11 @@
           "group": "MS_SQL@4"
         },
         {
+          "command": "mssql.editConnection",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /^(disconnectedServer|Server)$/",
+          "group": "inline"
+        },
+        {
           "command": "mssql.refreshObjectExplorerNode",
           "when": "view == objectExplorer && viewItem != disconnectedServer",
           "group": "MS_SQL@10"
@@ -313,6 +369,16 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
+        },
+        {
+          "command": "mssql.newTable",
+          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enableExperimentalFeatures",
+          "group": "inline"
+        },
+        {
+          "command": "mssql.editTable",
+          "when": "view == objectExplorer && viewItem == Table && config.mssql.enableExperimentalFeatures",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -371,6 +437,14 @@
         {
           "command": "mssql.runQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode"
+        },
+        {
+          "command": "mssql.newTable",
+          "when": "view == objectExplorer && viewItem == TablesFolder"
+        },
+        {
+          "command": "mssql.editTable",
+          "when": "view == objectExplorer && viewItem == Table"
         }
       ]
     },
@@ -395,16 +469,35 @@
       {
         "command": "mssql.connect",
         "title": "%mssql.connect%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/connect_inverse.svg",
+          "light": "media/connect.svg"
+        }
       },
       {
         "command": "mssql.disconnect",
         "title": "%mssql.disconnect%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "mssql.changeDatabase",
+        "title": "%mssql.changeDatabase%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/changeConnection_inverse.svg",
+          "light": "media/changeConnection.svg"
+        }
       },
       {
         "command": "mssql.manageProfiles",
         "title": "%mssql.manageProfiles%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.clearPooledConnections",
+        "title": "%mssql.clearPooledConnections%",
         "category": "MS SQL"
       },
       {
@@ -472,6 +565,12 @@
         "category": "MS SQL"
       },
       {
+        "command": "mssql.editConnection",
+        "title": "%mssql.editConnection%",
+        "category": "MS SQL",
+        "icon": "$(edit)"
+      },
+      {
         "command": "mssql.refreshObjectExplorerNode",
         "title": "%mssql.refreshObjectExplorerNode%",
         "category": "MS SQL"
@@ -500,6 +599,24 @@
         "command": "mssql.scriptExecute",
         "title": "%mssql.scriptExecute%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.newTable",
+        "title": "%mssql.newTable%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/newTable_inverse.svg",
+          "light": "media/newTable.svg"
+        }
+      },
+      {
+        "command": "mssql.editTable",
+        "title": "%mssql.editTable%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/editTable_inverse.svg",
+          "light": "media/editTable.svg"
+        }
       },
       {
         "command": "mssql.scriptAlter",
@@ -556,6 +673,11 @@
       {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.clearAzureAccountTokenCache",
+        "title": "%mssql.clearAzureAccountTokenCache%",
         "category": "MS SQL"
       }
     ],
@@ -664,6 +786,11 @@
               "encrypt": {
                 "type": "string",
                 "default": "Mandatory",
+                "enum": [
+                  "Mandatory",
+                  "Strict",
+                  "Optional"
+                ],
                 "description": "%mssql.connection.encrypt%"
               },
               "trustServerCertificate": {
@@ -902,23 +1029,14 @@
           ],
           "scope": "resource"
         },
-        "mssql.azureAuthenticationLibrary": {
-          "type": "string",
-          "description": "%mssql.azureAuthenticationLibrary%",
-          "default": "MSAL",
-          "enum": [
-            "ADAL",
-            "MSAL"
-          ],
-          "enumDescriptions": [
-            "(deprecated) Azure Active Directory Authentication Library",
-            "Microsoft Authentication Library"
-          ],
-          "deprecationMessage": "Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL (default option) instead."
-        },
         "mssql.enableSqlAuthenticationProvider": {
           "type": "boolean",
           "description": "%mssql.enableSqlAuthenticationProvider%",
+          "default": true
+        },
+        "mssql.enableConnectionPooling": {
+          "type": "boolean",
+          "description": "%mssql.enableConnectionPooling%",
           "default": true
         },
         "mssql.format.alignColumnDefinitionsInColumns": {
@@ -967,12 +1085,6 @@
           "default": false,
           "scope": "window"
         },
-        "mssql.query.displayBitAsNumber": {
-          "type": "boolean",
-          "default": true,
-          "description": "%mssql.query.displayBitAsNumber%",
-          "scope": "window"
-        },
         "mssql.intelliSense.enableIntelliSense": {
           "type": "boolean",
           "default": true,
@@ -1009,12 +1121,6 @@
           "description": "%mssql.persistQueryResultTabs%",
           "scope": "window"
         },
-        "mssql.queryHistoryLimit": {
-          "type": "number",
-          "default": 20,
-          "description": "%mssql.queryHistoryLimit%",
-          "scope": "window"
-        },
         "mssql.enableQueryHistoryCapture": {
           "type": "boolean",
           "default": true,
@@ -1026,11 +1132,6 @@
           "default": true,
           "description": "%mssql.enableQueryHistoryFeature%",
           "scope": "window"
-        },
-        "mssql.query.maxXmlCharsToStore": {
-          "type": "number",
-          "default": 2097152,
-          "description": "%mssql.query.maxXmlCharsToStore%"
         },
         "mssql.tracingLevel": {
           "type": "string",
@@ -1060,6 +1161,28 @@
           "type": "number",
           "default": 100,
           "description": "%mssql.logFilesRemovalLimit%"
+        },
+        "mssql.query.displayBitAsNumber": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.query.displayBitAsNumber%",
+          "scope": "window"
+        },
+        "mssql.query.maxCharsToStore": {
+          "type": "number",
+          "default": 65535,
+          "description": "%mssql.query.maxCharsToStore%"
+        },
+        "mssql.query.maxXmlCharsToStore": {
+          "type": "number",
+          "default": 2097152,
+          "description": "%mssql.query.maxXmlCharsToStore%"
+        },
+        "mssql.queryHistoryLimit": {
+          "type": "number",
+          "default": 20,
+          "description": "%mssql.queryHistoryLimit%",
+          "scope": "window"
         },
         "mssql.query.rowCount": {
           "type": "number",

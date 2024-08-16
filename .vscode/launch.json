@@ -30,9 +30,32 @@
 			],
 			"sourceMaps": true,
 			"outFiles": [
-				"${workspaceRoot}/out/src/**/*.js"
+				"${workspaceRoot}/out/src/**/*.js",
 			],
-			"preLaunchTask": "build",
+			"preLaunchTask": "watch",
+			"env": {
+				// Uncomment this to use a specified version of STS, see
+				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
+				// for more details
+				// "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
+			}
+		},
+		{
+			"name": "Launch Extension (With Other Extensions Disabled)",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--disable-extensions",
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--skip-release-notes",
+				"--skip-welcome"
+			],
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/src/**/*.js",
+			],
+			"preLaunchTask": "watch",
 			"env": {
 				// Uncomment this to use a specified version of STS, see
 				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable

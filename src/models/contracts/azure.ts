@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 /**
  * Represents a tenant information for an account.
  */
@@ -28,11 +29,6 @@ export interface IAccountKey {
 	 * Version of the account
 	 */
 	accountVersion?: any;
-}
-
-export enum AuthLibrary {
-	ADAL = 'ADAL',
-	MSAL = 'MSAL'
 }
 
 export enum AzureAuthType {

@@ -27,13 +27,16 @@ class FileStatusBar {
 	public statusLanguageService: vscode.StatusBarItem;
 
 	// Timer used for displaying a progress indicator on queries
-	public progressTimerId: NodeJS.Timer;
+	public progressTimerId: NodeJS.Timeout;
 
 	// Item for SQLCMD Mode
 	public sqlCmdMode: vscode.StatusBarItem;
 
 	// Item for Row Count
 	public rowCount: vscode.StatusBarItem;
+
+	// Item for execution time
+	public executionTime: vscode.StatusBarItem;
 
 	public currentLanguageServiceStatus: string;
 }
@@ -62,6 +65,7 @@ export default class StatusView implements vscode.Disposable {
 				this._statusBars[bar].statusLanguageService.dispose();
 				this._statusBars[bar].sqlCmdMode.dispose();
 				this._statusBars[bar].rowCount.dispose();
+				this._statusBars[bar].executionTime.dispose();
 				clearInterval(this._statusBars[bar].progressTimerId);
 				delete this._statusBars[bar];
 			}
@@ -81,6 +85,7 @@ export default class StatusView implements vscode.Disposable {
 		bar.statusLanguageService = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 		bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
 		bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
+		bar.executionTime = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 70);
 		this._statusBars[fileUri] = bar;
 	}
 
@@ -107,6 +112,9 @@ export default class StatusView implements vscode.Disposable {
 			}
 			if (bar.rowCount) {
 				bar.rowCount.dispose();
+			}
+			if (bar.executionTime) {
+				bar.executionTime.dispose();
 			}
 
 			delete this._statusBars[fileUri];
@@ -195,6 +203,12 @@ export default class StatusView implements vscode.Disposable {
 		setTimeout(() => {
 			bar.statusQuery.hide();
 		}, 200);
+	}
+
+	public setExecutionTime(fileUri: string, time: string): void {
+		let bar = this.getStatusBar(fileUri);
+		bar.executionTime.text = time;
+		this.showStatusBarItem(fileUri, bar.executionTime);
 	}
 
 	public cancelingQuery(fileUri: string): void {
@@ -302,6 +316,7 @@ export default class StatusView implements vscode.Disposable {
 			this._lastShownStatusBar.statusLanguageService.hide();
 			this._lastShownStatusBar.sqlCmdMode.hide();
 			this._lastShownStatusBar.rowCount.hide();
+			this._lastShownStatusBar.executionTime.hide();
 		}
 	}
 
@@ -318,6 +333,7 @@ export default class StatusView implements vscode.Disposable {
 				this.showStatusBarItem(fileUri, bar.statusLanguageService);
 				this.showStatusBarItem(fileUri, bar.sqlCmdMode);
 				this.showStatusBarItem(fileUri, bar.rowCount);
+				this.showStatusBarItem(fileUri, bar.executionTime);
 			}
 		}
 	}

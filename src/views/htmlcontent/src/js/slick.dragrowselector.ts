@@ -93,6 +93,10 @@ declare let Slick;
 			}
 		}
 
+		function isColumnResize(e): boolean {
+			return ((e.which === $.ui.keyCode.LEFT)||(e.which === $.ui.keyCode.RIGHT)) && (e.ctrlKey || e.metaKey);
+		}
+
 		function navigateLeft(e, activeCell): void {
 			if (activeCell.cell > 1) {
 				let isHome = e.which === $.ui.keyCode.HOME;
@@ -147,10 +151,30 @@ declare let Slick;
 			}
 		}
 
+		// make this function handle ctrl+alt+arrow keys
+		// or alt+arrow keys
 		function handleKeyDown(e): void {
 			let activeCell = _grid.getActiveCell();
 
 			if (activeCell) {
+				//column resize
+				if (isColumnResize(e)){
+					let cell = _grid.getCellFromEvent(e);
+
+					let allColumns = _grid.getColumns();
+					let activeColumnIndex = activeCell.cell;
+
+					if (e.which === $.ui.keyCode.LEFT) {
+						allColumns[activeColumnIndex].width -= keyColResizeIncr;
+						_grid.setColumns(allColumns);
+					}
+					else if (e.which === $.ui.keyCode.RIGHT) {
+						allColumns[activeColumnIndex].width += keyColResizeIncr;
+						_grid.setColumns(allColumns);
+					}
+					_grid.setActiveCell(cell.row, cell.cell);
+					return;
+				}
 				// navigation keys
 				if (isNavigationKey(e)) {
 					e.stopImmediatePropagation();
@@ -177,14 +201,7 @@ declare let Slick;
 					}
 					// left arrow
 					if (e.which === $.ui.keyCode.LEFT) {
-						// column resize
-						if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-							let allColumns = JSON.parse(JSON.stringify(_grid.getColumns()));
-							allColumns[activeCell.cell - 1].width = allColumns[activeCell.cell - 1].width - keyColResizeIncr;
-							_grid.setColumns(allColumns);
-						} else {
-							navigateLeft(e, activeCell);
-						}
+						navigateLeft(e, activeCell);
 						// up arrow
 					} else if (e.which === $.ui.keyCode.UP && activeCell.row > 0) {
 						if (e.shiftKey) {
@@ -207,14 +224,7 @@ declare let Slick;
 						setSelectedRanges(_ranges);
 						// right arrow
 					} else if (e.which === $.ui.keyCode.RIGHT) {
-						// column resize
-						if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-							let allColumns = JSON.parse(JSON.stringify(_grid.getColumns()));
-							allColumns[activeCell.cell - 1].width = allColumns[activeCell.cell - 1].width + keyColResizeIncr;
-							_grid.setColumns(allColumns);
-						} else {
-							navigateRight(e, activeCell);
-						}
+						navigateRight(e, activeCell);
 						// down arrow
 					} else if (e.which === $.ui.keyCode.DOWN && activeCell.row < _grid.getDataLength() - 1) {
 						if (e.shiftKey) {

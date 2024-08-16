@@ -250,7 +250,7 @@ export class PlatformInformation {
 	}
 
 	private static getUnixArchitecture(): Promise<string> {
-		return this.execChildProcess('uname -m')
+		return PlatformInformation.execChildProcess('uname -m')
 			.then(architecture => {
 				if (architecture) {
 					return architecture.trim();

@@ -106,7 +106,7 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 		.pipe(through.obj(function (file, enc, callback) {
 			// convert xliff into json document
 			let dict = convertXmlToDictionary(String(file.contents));
-			var contents = ['/* tslint:disable */',
+			var contents = ['/* eslint-disable */',
 				'// THIS IS A COMPUTER GENERATED FILE. CHANGES IN THIS FILE WILL BE OVERWRITTEN.',
 				'// TO ADD LOCALIZED CONSTANTS, ADD YOUR CONSTANT TO THE ENU XLIFF FILE UNDER ~/localization/xliff/enu/constants/localizedConstants.enu.xlf AND REBUILD THE PROJECT',
 				'import * as nls from \'vscode-nls\';'];
@@ -208,7 +208,18 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 
 	// Make the new file create on root.
 	// the original directory path was 'vscode-mssql\localization\xliff\<lang>'
-	file.dirname = file.dirname.replace(language, '').replace('localization', '').replace('xliff', '');
+	file.dirname = replaceLastString(file.dirname, `${language}`);
+	file.dirname = replaceLastString(file.dirname, 'xliff');
+	file.dirname = replaceLastString(file.dirname, 'localization');
+}
+
+function replaceLastString(stringInput, stringToTrim) {
+	const index = stringInput.lastIndexOf(stringToTrim);
+    if (index < 0) {
+        return stringInput;
+    }
+
+    return stringInput.substr(0, index) + stringInput.substr(index + stringToTrim.length);
 }
 
 // Generates a package.nls.json file from localizedPackage.json.enu.xlf by using the

@@ -74,17 +74,20 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param systemDatabase Type of system database
 	 * @param suppressMissingDependencies Whether to suppress missing dependencies
+	 * @param referencetype Type of reference - ArtifactReference or PackageReference
 	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
 	 */
 	public async addSystemDatabaseReference(
 		projectUri: string,
 		systemDatabase: mssql.SystemDatabase,
 		suppressMissingDependencies: boolean,
+		systemDbReferenceType: mssql.SystemDbReferenceType,
 		databaseLiteral?: string): Promise<mssql.ResultStatus> {
 		const params: mssql.AddSystemDatabaseReferenceParams = {
 			projectUri: projectUri,
 			systemDatabase: systemDatabase,
 			suppressMissingDependencies: suppressMissingDependencies,
+			referenceType: systemDbReferenceType,
 			databaseLiteral: databaseLiteral
 		};
 		return this._client.sendRequest(contracts.AddSystemDatabaseReferenceRequest.type, params);

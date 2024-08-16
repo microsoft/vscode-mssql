@@ -7,23 +7,14 @@ import { ResourceManagementClient } from '@azure/arm-resources';
 import { SqlManagementClient } from '@azure/arm-sql';
 import { SubscriptionClient } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
-import { HttpsProxyAgentOptions } from 'https-proxy-agent';
 import * as path from 'path';
 import * as os from 'os';
-import { parse } from 'url';
 import * as vscode from 'vscode';
-import { getProxyAgentOptions } from '../languageservice/proxy';
-import { AuthLibrary, AzureAuthType, IToken } from '../models/contracts/azure';
+import { AzureAuthType, IToken } from '../models/contracts/azure';
 import * as Constants from './constants';
 import { TokenCredentialWrapper } from './credentialWrapper';
-import { HttpClient } from './msal/httpClient';
 
 const configAzureAD = 'azureActiveDirectory';
-const configAzureAuthLibrary = 'azureAuthenticationLibrary';
-
-const configProxy = 'proxy';
-const configProxyStrictSSL = 'proxyStrictSSL';
-const configProxyAuthorization = 'proxyAuthorization';
 
 /**
  * Helper method to convert azure results that comes as pages to an array
@@ -60,9 +51,6 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 	return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
-function getHttpConfiguration(): vscode.WorkspaceConfiguration {
-	return vscode.workspace.getConfiguration(Constants.httpConfigSectionName);
-}
 export function getAzureActiveDirectoryConfig(): AzureAuthType {
 	let config = getConfiguration();
 	if (config) {
@@ -73,17 +61,6 @@ export function getAzureActiveDirectoryConfig(): AzureAuthType {
 	} else {
 		return AzureAuthType.AuthCodeGrant;
 	}
-}
-
-export function getAzureAuthLibraryConfig(): AuthLibrary {
-	let config = getConfiguration();
-	if (config) {
-		const val: string | undefined = config.get(configAzureAuthLibrary);
-		if (val) {
-			return AuthLibrary[val];
-		}
-	}
-	return AuthLibrary.MSAL; // default to MSAL
 }
 
 export function getEnableSqlAuthenticationProviderConfig(): boolean {
@@ -97,23 +74,15 @@ export function getEnableSqlAuthenticationProviderConfig(): boolean {
 	return true; // default setting
 }
 
-export function getProxyEnabledHttpClient(): HttpClient {
-	const proxy = <string>getHttpConfiguration().get(configProxy);
-	const strictSSL = getHttpConfiguration().get(configProxyStrictSSL, true);
-	const authorization = getHttpConfiguration().get(configProxyAuthorization);
-
-	const url = parse(proxy);
-	let agentOptions = getProxyAgentOptions(url, proxy, strictSSL);
-
-	if (authorization && url.protocol === 'https:') {
-		let httpsAgentOptions = agentOptions as HttpsProxyAgentOptions;
-		httpsAgentOptions!.headers = Object.assign(httpsAgentOptions!.headers || {}, {
-			'Proxy-Authorization': authorization
-		});
-		agentOptions = httpsAgentOptions;
+export function getEnableConnectionPoolingConfig(): boolean {
+	const config = getConfiguration();
+	if (config) {
+		const val: boolean | undefined = config.get(Constants.enableConnectionPoolingSection);
+		if (val !== undefined) {
+			return val;
+		}
 	}
-
-	return new HttpClient(proxy, agentOptions);
+	return true; // default setting
 }
 
 export function getAppDataPath(): string {

@@ -21,4 +21,12 @@
 	"yaml.schemas": {
 		"https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
 	},
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "html",
+        "typescriptreact",
+        "typescript"
+    ],
+    "svg.preview.background": "dark-transparent",
 }

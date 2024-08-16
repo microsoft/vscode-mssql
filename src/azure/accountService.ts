@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
@@ -69,17 +69,23 @@ export class AccountService {
 		return account;
 	}
 
-	public async createSecurityTokenMapping(): Promise<any> {
+	/**
+	 * Creates access token mappings for user selected account and tenant.
+	 * @param account User account to fetch tokens for.
+	 * @param tenantId Tenant Id for which refresh token is needed
+	 * @returns Security token mappings
+	 */
+	public async createSecurityTokenMapping(account: IAccount, tenantId: string): Promise<any> {
 		// TODO: match type for mapping in mssql and sqltoolsservice
 		let mapping = {};
-		mapping[this.getHomeTenant(this.account).id] = {
-			token: (await this.refreshToken(this.account)).token
+		mapping[tenantId] = {
+			token: (await this.refreshToken(account, tenantId)).token
 		};
 		return mapping;
 	}
 
-	public async refreshToken(account: IAccount): Promise<IToken> {
-		return await this._azureController.refreshAccessToken(account, this._accountStore, undefined, providerSettings.resources.azureManagementResource);
+	public async refreshToken(account: IAccount, tenantId: string): Promise<IToken> {
+		return await this._azureController.refreshAccessToken(account, this._accountStore, tenantId, providerSettings.resources.azureManagementResource);
 	}
 
 	public getHomeTenant(account: IAccount): ITenant {

@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 import * as os from 'os';
 import { ILogger } from './interfaces';
-import { Logger as AzureLogger } from '@microsoft/ads-adal-library';
 import * as Utils from './utils';
 
 export enum LogLevel {
@@ -21,7 +21,7 @@ export enum LogLevel {
 /*
 * Logger class handles logging messages using the Util functions.
 */
-export class Logger implements ILogger, AzureLogger {
+export class Logger implements ILogger {
 	private _writer: (message: string) => void;
 	private _piiLogging: boolean = false;
 	private _prefix: string;
@@ -45,7 +45,7 @@ export class Logger implements ILogger, AzureLogger {
 	 * @param stringsToShorten Set of strings to shorten
 	 * @param vals Any other values to add on to the end of the log message
 	 */
-	public piiSantized(msg: any, objsToSanitize: { name: string, objOrArray: any | any[] }[],
+	public piiSanitized(msg: any, objsToSanitize: { name: string, objOrArray: any | any[] }[],
 		stringsToShorten: { name: string, value: string }[], ...vals: any[]): void {
 		if (this.piiLogging) {
 			msg = [

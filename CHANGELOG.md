@@ -1,5 +1,58 @@
 # Change Log
 
+## Version 1.23.0
+* Release date: July, 31, 2024
+* Release status: GA
+### What's new in 1.23.0
+* update STS dependency to address [Transaction Isolation Level](https://github.com/microsoft/azuredatastudio/issues/25525) bug
+
+## Version 1.22.1
+* Release date: January, 10, 2024
+* Release status: GA
+### What's new in 1.22.1
+* update STS dependency to address [CVE-2024-0056](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-0056)
+
+## Version 1.22.0
+* Release date: November 8, 2023
+* Release status: GA
+### What's new in 1.22.0
+* Azure Active Directory (Azure AD) is renamed to Entra Id - [#17824](https://github.com/microsoft/vscode-mssql/issues/17824)
+* Added command for clearing Azure token cache - [#17807](https://github.com/microsoft/vscode-mssql/issues/17807)
+* Added support for setting Firewall rule name in firewall rule - [#17803](https://github.com/microsoft/vscode-mssql/issues/17803)
+* Removed Azure tenant config filter setting - [#17798](https://github.com/microsoft/vscode-mssql/issues/17798)
+
+* Bug Fixes:
+  - Fixed Firewall Rule creation issues when prompted - [#17607](https://github.com/microsoft/vscode-mssql/issues/17607)
+  - Fixed proxy error 502 when downloading Sql Tools Service - [#17772](https://github.com/microsoft/vscode-mssql/issues/17772)
+  - Fixed an issue where connection profile could not be saved after enabling trust server certificate [#17805](https://github.com/microsoft/vscode-mssql/issues/17805)
+
+## Version 1.21.0
+* Release date: September 20, 2023
+* Release status: GA
+### What's new in 1.21.0
+* Enabled connection pooling by default and added command support to clear pooled connections - https://github.com/microsoft/vscode-mssql/pull/17786
+* Added setting to configure `maxCharsToStore` to allow reading large data strings - https://github.com/microsoft/vscode-mssql/issues/1052
+* Bug Fixes
+  - Fixed status bar to show correct 'Encryption' option for connection - https://github.com/microsoft/vscode-mssql/issues/17671
+
+## Version 1.20.1
+* Release date: August 7, 2023
+* Release status: GA
+### What's new in 1.20.1
+* Fixed an issue with not being able to download the SQL Tools Service Component in a proxy-enabled environment (https://github.com/microsoft/vscode-mssql/issues/17755)
+
+## Version 1.20.0
+* Release date: July 26, 2023
+* Release status: GA
+### What's new in 1.20.0
+* Added new setting to support enabling connection pooling for performance improvement -  https://github.com/microsoft/vscode-mssql/pull/17733
+* Bug Fixes:
+  - Fixed issue where creating connection with connection string would fail -  https://github.com/microsoft/vscode-mssql/pull/17737
+  - Fixed issue where Copy actions wouldn't work on Data Grid cells -  https://github.com/microsoft/vscode-mssql/pull/17722
+  - Added missing DB Create syntax keyword colorization -  https://github.com/microsoft/vscode-mssql/pull/17732
+  - Improved connection description when selecting connection from quick pick -  https://github.com/microsoft/vscode-mssql/pull/17737
+  - Fixed authentication issue where user account could not be found in MSAL Cache in Linux - https://github.com/microsoft/vscode-mssql/pull/17747
+
 ## Version 1.19.1
 * Release date: June 5, 2023
 * Release status: GA

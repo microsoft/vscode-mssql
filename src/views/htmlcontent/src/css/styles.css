@@ -54,10 +54,27 @@
   padding: 8px;
   background-repeat: no-repeat;
   background-position: 0px;
+  text-decoration: none;
+  overflow: visible;
+}
+
+.icon:focus::after {
+  content: attr(title);
+  background-color: #292a2d;
+  color: #cfd1d4;
+  border: 1px solid #cfd1d4;
+  font-size: 95%;
+  padding:7px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  text-decoration: none;
+  z-index: 999999;
+  position: absolute;
 }
 
 .gridIcon {
     margin: 5px 5px;
+    overflow: visible;
 }
 
 /* messages */

@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
 import {
@@ -26,8 +26,8 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
-import { getAppDataPath, getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
-import { AuthLibrary } from '../models/contracts/azure';
+import { getAppDataPath, getEnableConnectionPoolingConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { serviceName } from '../azure/constants';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
 
@@ -74,10 +74,10 @@ class LanguageClientErrorHandler {
 	/**
 	 * Callback for language service client error
 	 *
-	 * @param {Error} error
-	 * @param {Message} message
-	 * @param {number} count
-	 * @returns {ErrorAction}
+	 * @param error
+	 * @param message
+	 * @param count
+	 * @returns
 	 *
 	 * @memberOf LanguageClientErrorHandler
 	 */
@@ -92,7 +92,7 @@ class LanguageClientErrorHandler {
 	/**
 	 * Callback for language service client closed
 	 *
-	 * @returns {CloseAction}
+	 * @returns
 	 *
 	 * @memberOf LanguageClientErrorHandler
 	 */
@@ -153,7 +153,7 @@ export default class SqlToolsServiceClient {
 
 	// gets or creates the singleton SQL Tools service client instance
 	public static get instance(): SqlToolsServiceClient {
-		if (this._instance === undefined) {
+		if (SqlToolsServiceClient._instance === undefined) {
 			let config = new ExtConfig();
 			let vscodeWrapper = new VscodeWrapper();
 			let logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
@@ -167,9 +167,9 @@ export default class SqlToolsServiceClient {
 				decompressProvider);
 			let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
 			let statusView = new StatusView(vscodeWrapper);
-			this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
+			SqlToolsServiceClient._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
 		}
-		return this._instance;
+		return SqlToolsServiceClient._instance;
 	}
 
 	// initialize the SQL Tools Service Client instance by launching
@@ -238,7 +238,7 @@ export default class SqlToolsServiceClient {
 	 * Gets the known service version of the backing tools service. This can be useful for filtering
 	 * commands that are not supported if the tools service is below a certain known version
 	 *
-	 * @returns {number}
+	 * @returns
 	 * @memberof SqlToolsServiceClient
 	 */
 	public getServiceVersion(): number {
@@ -405,14 +405,19 @@ export default class SqlToolsServiceClient {
 			}
 
 			// Send application name and path to determine MSAL cache location
-			serverArgs.push('--application-name', 'code');
+			serverArgs.push('--application-name', serviceName);
 			serverArgs.push('--data-path', getAppDataPath());
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
-			const azureAuthLibrary = getAzureAuthLibraryConfig();
-			if (azureAuthLibrary === AuthLibrary.MSAL && enableSqlAuthenticationProvider) {
+			if (enableSqlAuthenticationProvider) {
 				serverArgs.push('--enable-sql-authentication-provider');
+			}
+
+			// Enable Connection pooling to improve connection performance
+			const enableConnectionPooling = getEnableConnectionPoolingConfig();
+			if (enableConnectionPooling) {
+				serverArgs.push('--enable-connection-pooling');
 			}
 
 			// Send Locale for sqltoolsservice localization

@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
@@ -20,6 +20,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
 	constructor(connectionManager: ConnectionManager) {
 		this._objectExplorerService = new ObjectExplorerService(connectionManager, this);
+	}
+
+	getParent(element: TreeNodeInfo)
+	{
+		return element.parentNode;
 	}
 
 	refresh(nodeInfo?: TreeNodeInfo): void {

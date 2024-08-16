@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import {
 	Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
@@ -40,13 +40,14 @@ export interface IGridDataSet {
 }
 
 // tslint:disable:max-line-length
+
 const template = `
 <div class="fullsize vertBox">
     <div #resultsheader *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!resultActive"
         (click)="toggleResultsPane()"
         (keydown)="handleResultsKeydown($event)"
-        [attr.aria-label]="Constants.resultPaneLabel"
+        [attr.aria-label]="Constants.resultPaneLabel + '. ' + Constants.accessShortcut + ': ' + resultShortcut"
         [attr.aria-expanded]="resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
@@ -58,7 +59,8 @@ const template = `
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
-            [style.font-size]="resultsFontSize + 'px'">
+            [style.font-size]="resultsFontSize + 'px'"
+			[style.font-family]="resultsFontFamily">
             <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -89,7 +91,7 @@ const template = `
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div #messagesheader id="messagepane" role="button" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!messageActive"
-        [attr.aria-label]="Constants.messagePaneLabel"
+        [attr.aria-label]="Constants.messagePaneLabel + '. ' + Constants.accessShortcut + ': ' + messageShortcut"
         [attr.aria-expanded]="messageActive"
         (click)="toggleMessagesPane()"
         (keydown)="handleMessagesKeydown($event)"
@@ -135,6 +137,7 @@ const template = `
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
 </div>
 `;
+
 // tslint:enable:max-line-length
 
 /**
@@ -369,7 +372,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	public complete = false;
 	private uri: string;
 	private hasRunQuery: boolean = false;
-	public resultsFontSize;
+	public resultsFontSize: number;
+	public resultsFontFamily: string;
 	@ViewChild('contextmenu') contextMenu: ContextMenu;
 	@ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
 	@ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -399,6 +403,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			this.config = config;
 			self._messageActive = self.config.messagesDefaultOpen;
 			self.resultsFontSize = self.config.resultsFontSize;
+			self.resultsFontFamily = self.config.resultsFontFamily;
 			this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
 				self.messageShortcut = result;
 			});
@@ -635,9 +640,29 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	openContextMenu(event: MouseEvent, batchId, resultId, index): void {
 		let selection: ISlickRange[] = this.slickgrids.toArray()[index].getSelectedRanges();
 		selection = this.tryCombineSelectionsForResults(selection);
+
+		let grid = this.slickgrids.toArray()[index]._grid;
+		let contextMenuCell = grid.getCellFromEvent(event);
+		if (contextMenuCell || grid.canCellBeActive(contextMenuCell.row, contextMenuCell.cell)) {
+			if (selection.length === 0 || !this.isContextMenuCellWIthinSelection(selection, contextMenuCell)) {
+				selection = [new Slick.Range(contextMenuCell.row, contextMenuCell.cell - 1, contextMenuCell.row, contextMenuCell.cell - 1)];
+				grid.setActiveCell(contextMenuCell.row, contextMenuCell.cell);
+			}
+		}
+
 		this.contextMenu.show(event.clientX, event.clientY, batchId, resultId, index, selection);
 		event.preventDefault();
 		event.stopPropagation();
+	}
+
+	private isContextMenuCellWIthinSelection(selections: ISlickRange[], contextMenuCell: { row: number, cell: number }): boolean {
+		for (const selection of selections) {
+			if (selection.fromRow <= contextMenuCell.row && selection.toRow >= contextMenuCell.row && selection.fromCell <= contextMenuCell.cell - 1 && selection.toCell >= contextMenuCell.cell - 1) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private tryCombineSelectionsForResults(selections: ISlickRange[]): ISlickRange[] {

@@ -41,7 +41,8 @@ export enum AuthenticationTypes {
 
 export enum EncryptOptions {
 	Optional = 'Optional',
-	Mandatory = 'Mandatory'
+	Mandatory = 'Mandatory',
+	Strict = 'Strict'
 }
 
 export const contentTypes = [
@@ -154,6 +155,7 @@ export interface IResultsConfig {
 	shortcuts: { [key: string]: string };
 	messagesDefaultOpen: boolean;
 	resultsFontSize: number;
+	resultsFontFamily: string;
 }
 
 export interface ILogger {

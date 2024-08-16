@@ -41,6 +41,9 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { TableDesignerService } from '../services/tableDesignerService';
+import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
+import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -69,6 +72,9 @@ export default class MainController implements vscode.Disposable {
 	public sqlProjectsService: SqlProjectsService;
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
+	public tableDesignerService: TableDesignerService;
+	public configuration: vscode.WorkspaceConfiguration;
+	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
 
 	/**
 	 * The main controller constructor
@@ -83,6 +89,7 @@ export default class MainController implements vscode.Disposable {
 		}
 		this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 		this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
+		this.configuration = vscode.workspace.getConfiguration(Constants.extensionName);
 	}
 
 	/**
@@ -119,6 +126,10 @@ export default class MainController implements vscode.Disposable {
 		this._statusview.dispose();
 	}
 
+	public get isExperimentalEnabled(): boolean {
+		return this.configuration.get(Constants.configEnableExperimentalFeatures);
+	}
+
 	/**
 	 * Initializes the extension
 	 */
@@ -134,9 +145,13 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdRunQuery);
 			this._event.on(Constants.cmdRunQuery, () => { this.onRunQuery(); });
 			this.registerCommand(Constants.cmdManageConnectionProfiles);
-			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
-			this.registerCommand(Constants.cmdRunCurrentStatement);
 			this._event.on(Constants.cmdManageConnectionProfiles, async () => { await this.onManageProfiles(); });
+			this.registerCommand(Constants.cmdClearPooledConnections);
+			this._event.on(Constants.cmdClearPooledConnections, async () => { await this.onClearPooledConnections(); });
+			this.registerCommand(Constants.cmdRunCurrentStatement);
+			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
+			this.registerCommand(Constants.cmdChangeDatabase);
+			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
@@ -157,7 +172,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 			this.registerCommand(Constants.cmdAadAddAccount);
 			this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
-
+			this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
+			this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
 			this.initializeObjectExplorer();
 
 			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
@@ -189,6 +205,7 @@ export default class MainController implements vscode.Disposable {
 			const azureResourceController = new AzureResourceController();
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
+			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -368,17 +385,32 @@ export default class MainController implements vscode.Disposable {
 	 * @param connectionCredentials Connection credentials to use for the session
 	 * @returns True if the session was created successfully, false otherwise
 	 */
-	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
+	public async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
 		let createSessionPromise = new Deferred<TreeNodeInfo>();
 		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
 		if (sessionId) {
 			const newNode = await createSessionPromise;
 			if (newNode) {
+				console.log(newNode);
 				this._objectExplorerProvider.refresh(undefined);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	public async createObjectExplorerSessionFromDialog(connectionCredentials?: IConnectionInfo): Promise<TreeNodeInfo> {
+		let createSessionPromise = new Deferred<TreeNodeInfo>();
+		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
+		if (sessionId) {
+			const newNode = await createSessionPromise;
+			if (newNode) {
+				console.log(newNode);
+				this._objectExplorerProvider.refresh(undefined);
+				return newNode;
+			}
+		}
+		return undefined;
 	}
 
 	/**
@@ -388,27 +420,39 @@ export default class MainController implements vscode.Disposable {
 		const self = this;
 		// Register the object explorer tree provider
 		this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
-		const treeView = vscode.window.createTreeView('objectExplorer', {
+		this.objectExplorerTree = vscode.window.createTreeView('objectExplorer', {
 			treeDataProvider: this._objectExplorerProvider,
 			canSelectMany: false
 		});
-		this._context.subscriptions.push(treeView);
+		this._context.subscriptions.push(this.objectExplorerTree);
 
 		// Sets the correct current node on any node selection
-		this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
+		this._context.subscriptions.push(this.objectExplorerTree.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
 			if (e.selection?.length > 0) {
 				self._objectExplorerProvider.currentNode = e.selection[0];
 			}
 		}));
 
+		// Old style Add connection when experimental features are not enabled
+
 		// Add Object Explorer Node
 		this.registerCommand(Constants.cmdAddObjectExplorer);
 		this._event.on(Constants.cmdAddObjectExplorer, async () => {
-			if (!self._objectExplorerProvider.objectExplorerExists) {
-				self._objectExplorerProvider.objectExplorerExists = true;
+			if (!this.isExperimentalEnabled) {
+				if (!self._objectExplorerProvider.objectExplorerExists) {
+					self._objectExplorerProvider.objectExplorerExists = true;
+				}
+				await self.createObjectExplorerSession();
+			} else {
+				const connDialog = new ConnectionDialogWebViewController(
+					this._context,
+					this,
+					this._objectExplorerProvider
+				);
+				connDialog.revealToForeground();
 			}
-			await self.createObjectExplorerSession();
 		});
+
 
 		// Object Explorer New Query
 		this._context.subscriptions.push(
@@ -471,6 +515,47 @@ export default class MainController implements vscode.Disposable {
 					await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
 					return this._objectExplorerProvider.refresh(undefined);
 				}));
+
+		if (this.isExperimentalEnabled) {
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdEditConnection, async (node: TreeNodeInfo) => {
+						const connDialog = new ConnectionDialogWebViewController(
+							this._context,
+							this,
+							this._objectExplorerProvider,
+							node.connectionInfo,
+						);
+						connDialog.revealToForeground();
+					}
+				));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdNewTable, async (node: TreeNodeInfo) => {
+						const reactPanel = new TableDesignerWebViewController(
+							this._context,
+							this.tableDesignerService,
+							this._connectionMgr,
+							this._untitledSqlDocumentService,
+							node
+						);
+						reactPanel.revealToForeground();
+					}));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdEditTable, async (node: TreeNodeInfo) => {
+						const reactPanel = new TableDesignerWebViewController(
+							this._context,
+							this.tableDesignerService,
+							this._connectionMgr,
+							this._untitledSqlDocumentService,
+							node
+						);
+						reactPanel.revealToForeground();
+					}));
+		}
 
 		// Initiate the scripting service
 		this._scriptingService = new ScriptingService(this._connectionMgr);
@@ -689,6 +774,9 @@ export default class MainController implements vscode.Disposable {
 				this._outputContentProvider.cancelQuery(fileUri);
 			}
 			const success = await this._connectionMgr.onDisconnect();
+			if (success) {
+				vscode.commands.executeCommand('setContext', 'mssql.editorConnected', false);
+			}
 			return success;
 		}
 		return false;
@@ -701,6 +789,16 @@ export default class MainController implements vscode.Disposable {
 	public async onManageProfiles(): Promise<void> {
 		if (this.canRunCommand()) {
 			await this._connectionMgr.onManageProfiles();
+			return;
+		}
+	}
+
+	/**
+	 * Clears all pooled connections not in active use.
+	 */
+	public async onClearPooledConnections(): Promise<void> {
+		if (this.canRunCommand()) {
+			await this._connectionMgr.onClearPooledConnections();
 			return;
 		}
 	}
@@ -1268,12 +1366,13 @@ export default class MainController implements vscode.Disposable {
 			}
 
 			// Prompt to reload VS Code when below settings are updated.
-			if (e.affectsConfiguration(Constants.mssqlAzureAuthLibrary)
-				|| e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
-				if ((vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.azureAuthLibrary) === 'ADAL')) {
-					void vscode.window.showInformationMessage(LocalizedConstants.deprecatedMessage);
-				}
-				await this.displayReloadMessage();
+			if (e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+			}
+
+			// Prompt to reload VS Code when below settings are updated.
+			if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
 		}
 	}
@@ -1291,8 +1390,8 @@ export default class MainController implements vscode.Disposable {
 	 * return true if button clicked
 	 * return false if button not clicked
 	 */
-	private async displayReloadMessage(): Promise<boolean> {
-		const result = await vscode.window.showInformationMessage(LocalizedConstants.reloadPrompt, LocalizedConstants.reloadChoice);
+	private async displayReloadMessage(reloadPrompt: string): Promise<boolean> {
+		const result = await vscode.window.showInformationMessage(reloadPrompt, LocalizedConstants.reloadChoice);
 		if (result === LocalizedConstants.reloadChoice) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
 			return true;
@@ -1307,5 +1406,9 @@ export default class MainController implements vscode.Disposable {
 
 	public addAadAccount(): void {
 		this.connectionManager.addAccount();
+	}
+
+	public onClearAzureTokenCache(): void {
+		this.connectionManager.onClearTokenCache();
 	}
 }

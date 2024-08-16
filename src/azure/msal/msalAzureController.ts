@@ -12,7 +12,6 @@ import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/cont
 import { AccountStore } from '../accountStore';
 import { AzureController } from '../azureController';
 import { getAzureActiveDirectoryConfig, getEnableSqlAuthenticationProviderConfig } from '../utils';
-import { HttpClient } from './httpClient';
 import { MsalAzureAuth } from './msalAzureAuth';
 import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
 import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
@@ -65,6 +64,14 @@ export class MsalAzureController extends AzureController {
 		azureAuth.loadTokenCache();
 	}
 
+	public async clearTokenCache(): Promise<void> {
+		this.clientApplication.clearCache();
+		await this._cachePluginProvider.unlinkMsalCache();
+
+		// Delete Encryption Keys
+		await this._cachePluginProvider.clearCacheEncryptionKeys();
+	}
+
 	/**
 	 * Clears old cache file that is no longer needed on system.
 	 */
@@ -105,7 +112,7 @@ export class MsalAzureController extends AzureController {
 	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
 		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 		if (azureAuth) {
-			this.logger.piiSantized(`Getting account security token for ${JSON.stringify(account?.key)} (tenant ${tenantId}). Auth Method = ${AzureAuthType[account?.properties.azureAuthType]}`, [], []);
+			this.logger.piiSanitized(`Getting account security token for ${JSON.stringify(account?.key)} (tenant ${tenantId}). Auth Method = ${AzureAuthType[account?.properties.azureAuthType]}`, [], []);
 			tenantId = tenantId || account.properties.owningTenant.id;
 			let result = await azureAuth.getToken(account, tenantId, settings);
 			if (!result || !result.account || !result.account.idTokenClaims) {
@@ -221,8 +228,7 @@ export class MsalAzureController extends AzureController {
 						loggerCallback: this.getLoggerCallback(),
 						logLevel: MsalLogLevel.Trace,
 						piiLoggingEnabled: true
-					},
-					networkClient: new HttpClient()
+					}
 				},
 				cache: {
 					cachePlugin: this._cachePluginProvider?.getCachePlugin()

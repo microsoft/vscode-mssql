@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 import AdsTelemetryReporter, { TelemetryEventMeasures, TelemetryEventProperties } from '@microsoft/ads-extension-telemetry';
 import * as vscodeMssql from 'vscode-mssql';
 import { IConnectionProfile } from '../models/interfaces';
@@ -11,7 +12,7 @@ import { TelemetryActions, TelemetryViews } from './telemetryInterfaces';
 const packageJson = vscode.extensions.getExtension(vscodeMssql.extension.name).packageJSON;
 
 let packageInfo = {
-	name: packageJson.name,
+	name: 'vscode-mssql', // Differentiate this from the mssql extension in ADS
 	version: packageJson.version,
 	aiKey: packageJson.aiKey
 };
