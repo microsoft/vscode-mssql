@@ -59,6 +59,11 @@ export const IconStack : React.FC<IconStackProps> = ({
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
 	const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
+	enum InputEnum {
+		CustomZoom,
+		FindNode,
+		HighlightOps
+	}
 
 	const handleSavePlan = async () => {
 		await state!.provider.saveExecutionPlan(executionPlanState!.sqlPlanContent!);
@@ -104,6 +109,24 @@ export const IconStack : React.FC<IconStackProps> = ({
 		}
 	};
 
+	const setInputContainer = (inputType: InputEnum) => {
+		if (inputType == InputEnum.CustomZoom) {
+			setFindNodeClicked(false);
+			setHighlightOpsClicked(false);
+			setCustomZoomClicked(true);
+		}
+		else if (inputType == InputEnum.FindNode) {
+			setFindNodeClicked(true);
+			setHighlightOpsClicked(false);
+			setCustomZoomClicked(false);
+		}
+		else {
+			setFindNodeClicked(false);
+			setHighlightOpsClicked(true);
+			setCustomZoomClicked(false);
+		}
+	}
+
 	return (
 		<div id="iconStack" className={classes.iconStack} style={{outline: `2px solid ${utils.seperator(executionPlanState!.theme!)}`, background:`${utils.background(executionPlanState!.theme!)}`}}>
 			<div id="saveButton" className={classes.button} onClick={handleSavePlan} >
@@ -125,14 +148,14 @@ export const IconStack : React.FC<IconStackProps> = ({
 			<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit} >
 				<img className={classes.buttonImg} src={utils.zoomToFit(executionPlanState!.theme!)} alt="Zoom To Fit" width="20" height="20" />
 			</div>
-			<div id="customZoomButton" className={classes.button} onClick={() => setCustomZoomClicked(true)} >
+			<div id="customZoomButton" className={classes.button} onClick={() => setInputContainer(InputEnum.CustomZoom)} >
 				<img className={classes.buttonImg} src={utils.customZoom(executionPlanState!.theme!)} alt="Custom Zoom" width="20" height="20" />
 			</div>
 			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-			<div id="findNodeButton" className={classes.button} onClick={() => setFindNodeClicked(true)} >
+			<div id="findNodeButton" className={classes.button} onClick={() => setInputContainer(InputEnum.FindNode)} >
 				<img className={classes.buttonImg} src={utils.search(executionPlanState!.theme!)} alt="Find Node" width="20" height="20" />
 			</div>
-			<div id="highlightOpsButton" className={classes.button} onClick={() => setHighlightOpsClicked(true)} >
+			<div id="highlightOpsButton" className={classes.button} onClick={() => setInputContainer(InputEnum.HighlightOps)} >
 				<img className={classes.buttonImg} src={utils.highlightOps(executionPlanState!.theme!)} alt="Highlight Expensive Ops" width="20" height="20" />
 			</div>
 			<div id="tooltipsButton" className={classes.button} onClick={handleToggleTooltips} >
