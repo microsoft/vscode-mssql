@@ -919,11 +919,20 @@ export default class MainController implements vscode.Disposable {
 
 	public async onExecutionPlan() {
 		const planContents = vscode.window.activeTextEditor.document.getText();
+		// remove file extension from name
+		let docName = vscode.window.activeTextEditor.document.fileName;
+		console.log("File name: ", docName);
+		let lastSlash = docName.lastIndexOf('\\');
+		if (lastSlash === -1) {
+			lastSlash = docName.lastIndexOf('/');
+		}
+		docName = docName.substring(lastSlash + 1, docName.lastIndexOf('.'));
 
 		const executionPlanPanel = new ExecutionPlanWebViewController(
 			this._context,
 			this.executionPlanService,
-			planContents
+			planContents,
+			docName
 		)
 
 		executionPlanPanel.revealToForeground();

@@ -25,8 +25,15 @@ const useStyles = makeStyles({
 		gap: "2px",
 		opacity: 1
 	},
+	combobox: {
+		minWidth: "50px",
+		width: "100px",
+		maxWidth: "100px",
+		overflow: "hidden"
+	},
 	dropdown: {
-		maxHeight: "200px"
+		minWidth: "50px",
+		width: "100px"
 	}
 })
 
@@ -95,8 +102,8 @@ export const FindNode : React.FC<FindNodeProps> = ({
 	return (
 		<div id="findNodeInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
 			<div>Find Nodes</div>
-			<Combobox id="findNodeDropdown" onOptionSelect={(_, data) => {setFindNodeSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1); setFindNodeResults([])}}>
-				<div style={{maxHeight:"250px"}}>
+			<Combobox id="findNodeDropdown" className={classes.combobox} defaultValue={findNodeOptions[0]} onOptionSelect={(_, data) => {setFindNodeSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1); setFindNodeResults([])}}>
+				<div style={{maxHeight:"250px", maxWidth:"100px"}}>
 				{findNodeOptions.map((option) => (
 					<Option key={option}>
 						{option}
@@ -104,14 +111,14 @@ export const FindNode : React.FC<FindNodeProps> = ({
 				))}
 				</div>
 			</Combobox>
-			<Dropdown id="findNodeComparisonDropdown" className={classes.dropdown} onOptionSelect={(_, data) => {setFindNodeComparisonSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1); setFindNodeResults([])}}>
+			<Dropdown id="findNodeComparisonDropdown" className={classes.dropdown} defaultValue={findNodeComparisonOptions[0]} onOptionSelect={(_, data) => {setFindNodeComparisonSelection(data.optionText ?? ''); setFindNodeResultsIndex(-1); setFindNodeResults([])}}>
 				{findNodeComparisonOptions.map((option) => (
 					<Option key={option}>
 						{option}
 					</Option>
 				))}
 			</Dropdown>
-			<Input id="findNodeInputBox" type="text"  onChange={(e) => {setFindNodeSearchValue(e.target.value); setFindNodeResultsIndex(-1); setFindNodeResults([])}}/>
+			<Input id="findNodeInputBox" type="text" className={classes.combobox}  onChange={(e) => {setFindNodeSearchValue(e.target.value); setFindNodeResultsIndex(-1); setFindNodeResults([])}}/>
 			<Button onClick={() => handleFoundNode(-1)} icon={<ArrowUp20Regular />} />
 			<Button onClick={() => handleFoundNode(1)} icon={<ArrowDown20Regular />} />
 			<Button icon={<Dismiss20Regular />} onClick={() => setFindNodeClicked(false)}/>

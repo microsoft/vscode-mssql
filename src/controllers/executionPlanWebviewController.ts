@@ -10,11 +10,13 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   constructor(
     context: vscode.ExtensionContext,
     private _executionPlanService: ep.ExecutionPlanService,
-    private executionPlanContents: string
+    private executionPlanContents: string,
+    // @ts-ignore
+    private fileName: string
   ) {
     super(
       context,
-      "Execution Plan",
+      `${fileName} Execution Plan`,
       WebviewRoute.executionPlan,
       {},
       vscode.ViewColumn.Active,

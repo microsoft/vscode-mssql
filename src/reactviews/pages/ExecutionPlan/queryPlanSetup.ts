@@ -445,7 +445,7 @@ export const disableTooltip = (theme: string) => {
 
 
 export const background = (theme:string) => {
-	return theme === "dark" ? '#141E1E' : "#F2F2F2";
+	return theme === "dark" ? '#1E1E1E' : "#F2F2F2";
 }
 
 export const iconBackground = (theme:string) => {

@@ -24,7 +24,7 @@ const useStyles = makeStyles({
 	button: {
 		cursor: "pointer",
 		marginTop: "5px",
-		marginBottom: "5px"
+		marginBottom: "5px",
 	},
 	buttonImg: {
 		display: "block"
@@ -129,36 +129,36 @@ export const IconStack : React.FC<IconStackProps> = ({
 
 	return (
 		<div id="iconStack" className={classes.iconStack} style={{outline: `2px solid ${utils.seperator(executionPlanState!.theme!)}`, background:`${utils.background(executionPlanState!.theme!)}`}}>
-			<div id="saveButton" className={classes.button} onClick={handleSavePlan} >
+			<div id="saveButton" className={classes.button} onClick={handleSavePlan} tabIndex={0} title="Save Plan" aria-label='Save Plan'>
 				<img className={classes.buttonImg} src={utils.save(executionPlanState!.theme!)} alt="Save" width="20" height="20" />
 			</div>
-			<div id="showXmlButton" className={classes.button} onClick={handleShowXml} >
+			<div id="showXmlButton" className={classes.button} onClick={handleShowXml} tabIndex={0} title="Open Xml" aria-label='Open Xml'>
 				<img className={classes.buttonImg} src={utils.openPlanFile(executionPlanState!.theme!)} alt="Show Xml" width="20" height="20" />
 			</div>
-			<div id="showQueryButton" className={classes.button} onClick={handleShowQuery} >
+			<div id="showQueryButton" className={classes.button} onClick={handleShowQuery} tabIndex={0} title="Open Query" aria-label='Open Query'>
 				<img className={classes.buttonImg} src={utils.openQuery(executionPlanState!.theme!)} alt="Show Query" width="20" height="20" />
 			</div>
 			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-			<div id="zoomInButton" className={classes.button} onClick={handleZoomIn} >
+			<div id="zoomInButton" className={classes.button} onClick={handleZoomIn} tabIndex={0} title="Zoom In" aria-label='Zoom In'>
 				<img className={classes.buttonImg} src={utils.zoomIn(executionPlanState!.theme!)} alt="Zoom In" width="20" height="20" />
 			</div>
-			<div id="zoomOutButton" className={classes.button} onClick={handleZoomOut} >
+			<div id="zoomOutButton" className={classes.button} onClick={handleZoomOut} tabIndex={0} title="Zoom Out" aria-label='Zoom Out'>
 				<img className={classes.buttonImg} src={utils.zoomOut(executionPlanState!.theme!)} alt="Zoom Out" width="20" height="20" />
 			</div>
-			<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit} >
+			<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit} tabIndex={0} title="Zoom to Fit" aria-label='Zoom to Fit'>
 				<img className={classes.buttonImg} src={utils.zoomToFit(executionPlanState!.theme!)} alt="Zoom To Fit" width="20" height="20" />
 			</div>
-			<div id="customZoomButton" className={classes.button} onClick={() => setInputContainer(InputEnum.CustomZoom)} >
+			<div id="customZoomButton" className={classes.button} onClick={() => setInputContainer(InputEnum.CustomZoom)} tabIndex={0} title="Custom Zoom" aria-label='Custom Zoom'>
 				<img className={classes.buttonImg} src={utils.customZoom(executionPlanState!.theme!)} alt="Custom Zoom" width="20" height="20" />
 			</div>
 			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-			<div id="findNodeButton" className={classes.button} onClick={() => setInputContainer(InputEnum.FindNode)} >
+			<div id="findNodeButton" className={classes.button} onClick={() => setInputContainer(InputEnum.FindNode)} tabIndex={0} title="Find Node" aria-label='Find Node'>
 				<img className={classes.buttonImg} src={utils.search(executionPlanState!.theme!)} alt="Find Node" width="20" height="20" />
 			</div>
-			<div id="highlightOpsButton" className={classes.button} onClick={() => setInputContainer(InputEnum.HighlightOps)} >
+			<div id="highlightOpsButton" className={classes.button} onClick={() => setInputContainer(InputEnum.HighlightOps)} tabIndex={0} title="Highlight Expensive Operation" aria-label='Highlight Expensive Operation'>
 				<img className={classes.buttonImg} src={utils.highlightOps(executionPlanState!.theme!)} alt="Highlight Expensive Ops" width="20" height="20" />
 			</div>
-			<div id="tooltipsButton" className={classes.button} onClick={handleToggleTooltips} >
+			<div id="tooltipsButton" className={classes.button} onClick={handleToggleTooltips} tabIndex={0} title="Toggle Tooltips" aria-label='Toggle Tooltips'>
 			{tooltipsEnabled ? (
 					<img className={classes.buttonImg} src={utils.enableTooltip(executionPlanState!.theme!)} alt="Tooltips Enabled" width="20" height="20" />
 				):
