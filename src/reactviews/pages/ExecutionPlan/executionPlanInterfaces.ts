@@ -10,6 +10,7 @@ export interface ExecutionPlanWebViewState {
 	theme?: string;
 	totalCost?: number;
 	isLoading?: boolean;
+	localizedConstants?: any;
 }
 
 export interface ExecutionPlanReducers {

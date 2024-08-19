@@ -14,6 +14,13 @@ const useStyles = makeStyles({
 		width: "100%",
 		position: "relative",
 		overflowY: "auto"
+	},
+	spinnerDiv: {
+		height: "100%",
+		width: "100%",
+		display: "flex",
+		justifyContent: "center",
+		alignItems: "center"
 	}
 })
 
@@ -29,7 +36,10 @@ export const ExecutionPlanPage = () => {
 					<ExecutionPlanGraph key={index} graphIndex={index} />
 				))
 			) : (
-				<Spinner label="Loading..." labelPosition="below" />
+				// localize this
+				<div className={classes.spinnerDiv}>
+					<Spinner label="Loading..." labelPosition="below" />
+				</div>
 			)}
 		</div>
 	);

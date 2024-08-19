@@ -53,19 +53,12 @@ export const FindNode : React.FC<FindNodeProps> = ({
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
+	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
-	const findNodeComparisonOptions = ["Equals","Contains",">","<",">=","<=","<>"];
-	const findNodeEnumMap: {
-		[key: string]: ep.SearchType;
-	  } = {
-		"Equals": ep.SearchType.Equals,
-		"Contains": ep.SearchType.Contains,
-		">": ep.SearchType.GreaterThan,
-		"<": ep.SearchType.LesserThan,
-		">=": ep.SearchType.GreaterThanEqualTo,
-		"<=": ep.SearchType.LesserThanEqualTo,
-		"<>": ep.SearchType.LesserAndGreaterThan
-	};
+	const findNodeComparisonOptions: string[] = [LocalizedConstants.equals, LocalizedConstants.contains,">","<",">=","<=","<>"];
+	const findNodeEnum: ep.SearchType[] = [ep.SearchType.Equals, ep.SearchType.Contains, ep.SearchType.GreaterThan, ep.SearchType.LesserThan,
+		ep.SearchType.GreaterThanEqualTo, ep.SearchType.LesserThanEqualTo, ep.SearchType.LesserAndGreaterThan];
+
 	const [findNodeSelection, setFindNodeSelection] = useState('');
 	const [findNodeComparisonSelection, setFindNodeComparisonSelection] = useState('');
 	const [findNodeSearchValue, setFindNodeSearchValue] = useState('');
@@ -75,11 +68,12 @@ export const FindNode : React.FC<FindNodeProps> = ({
 
 	const handleFoundNode = async (node: number) => {
 		if (executionPlanView) {
+			const enumSelected = findNodeEnum[findNodeComparisonOptions.indexOf(findNodeComparisonSelection)];
 			if (findNodeResultsIndex === -1 && executionPlanView) {
 				let searchQuery: ep.SearchQuery = {
 					propertyName: findNodeSelection,
 					value: findNodeSearchValue,
-					searchType: findNodeEnumMap[findNodeComparisonSelection]
+					searchType: enumSelected
 				}
 
 				setFindNodeResults(executionPlanView.searchNodes(searchQuery));

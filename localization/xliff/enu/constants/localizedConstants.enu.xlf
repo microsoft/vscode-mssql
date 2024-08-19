@@ -692,9 +692,6 @@
         <trans-unit id="actualElapsedCpuTime">
             <source xml:lang="en">Actual Elapsed CPU Time</source>
         </trans-unit>
-        <trans-unit id="actualElapsedCpuTime">
-            <source xml:lang="en">Actual Elapsed CPU Time</source>
-        </trans-unit>
         <trans-unit id="cost">
             <source xml:lang="en">Cost</source>
         </trans-unit>
@@ -748,6 +745,9 @@
         </trans-unit>
         <trans-unit id="toggleTooltips">
             <source xml:lang="en">Toggle Tooltips</source>
+        </trans-unit>
+        <trans-unit id="executionPlan">
+            <source xml:lang="en">Execution Plan</source>
         </trans-unit>
     </body>
   </file>

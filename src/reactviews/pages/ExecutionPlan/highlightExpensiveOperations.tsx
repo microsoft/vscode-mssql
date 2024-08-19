@@ -44,9 +44,12 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
+	const LocalizedConstants = executionPlanState!.localizedConstants!;
 	const [highlightMetricSelected, setHighlightMetricSelected] = useState('');
 
-	const highlightMetricOptions: string[] = ['Actual Elapsed Time', 'Actual Elapsed CPU Time', 'Cost', 'Subtree Cost', 'Actual Number of Rows For All Executions', 'Number of Rows Read', 'Off'];
+	const highlightMetricOptions: string[] =
+		[LocalizedConstants.actualElapsedTime, LocalizedConstants.actualElapsedCpuTime, LocalizedConstants.cost, LocalizedConstants.subtreeCost,
+			LocalizedConstants.actualNumberOfRows, LocalizedConstants.numRowsRead, LocalizedConstants.off];
 	const highlightMetricOptionsEnum: ep.ExpensiveMetricType[] =
 	 [ep.ExpensiveMetricType.ActualElapsedTime, ep.ExpensiveMetricType.ActualElapsedCpuTime, ep.ExpensiveMetricType.Cost, ep.ExpensiveMetricType.SubtreeCost, ep.ExpensiveMetricType.ActualNumberOfRowsForAllExecutions, ep.ExpensiveMetricType.NumberOfRowsRead, ep.ExpensiveMetricType.Off];
 
@@ -74,7 +77,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 
 	return (
 		<div id="highlightExpensiveOpsContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
-			<div>Metric</div>
+			<div>{LocalizedConstants.metric}</div>
 			<Combobox id="highlightExpensiveOpsDropdown" onOptionSelect={(_, data) => setHighlightMetricSelected(data.optionText ?? '')}>
 				<div style={{maxHeight:"250px"}}>
 				{highlightMetricOptions.map((option) => (

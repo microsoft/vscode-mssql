@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { ReactWebViewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
+import * as LocalizedConstants from "../constants/localizedConstants";
 
 export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
@@ -16,7 +17,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ) {
     super(
       context,
-      `${fileName} Execution Plan`,
+      `${fileName} ${LocalizedConstants.executionPlan}`,
       WebviewRoute.executionPlan,
       {},
       vscode.ViewColumn.Active,
@@ -40,6 +41,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   private async initialize() {
     this.state.sqlPlanContent = this.executionPlanContents;
 	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
+    this.state.localizedConstants = LocalizedConstants;
 
     await this.getExecutionPlan();
     this.state.totalCost = this.calculateTotalCost();

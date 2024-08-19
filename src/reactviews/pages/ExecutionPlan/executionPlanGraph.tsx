@@ -76,9 +76,11 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	const [findNodeClicked, setFindNodeClicked] = useState(false);
 	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
 	const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
+	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
+
 		// @ts-ignore
 		window['mxLoadResources'] = false;
 		// @ts-ignore
@@ -157,7 +159,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	return (
 		<div id="panelContainer" className={classes.panelContainer}>
 			<div id="planContainer" className={classes.planContainer}>
-				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>Query {graphIndex + 1}:  Query cost (relative to the script):  {getQueryCostPercentage()}<br />{query}</div>
+				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>
+					{formatString(LocalizedConstants.queryCostHeader, graphIndex + 1, getQueryCostPercentage())}<br />{query}
+				</div>
 				<div id={`queryPlanParent${graphIndex + 1}`} className={classes.queryPlanParent}></div>
 				{customZoomClicked ? (
 					<div id="customZoomInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
@@ -177,3 +181,21 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 		</div>
 	);
 };
+
+/**
+ * Format a string. Behaves like C#'s string.Format() function.
+ */
+function formatString(str: string, ...args: any[]): string {
+	// This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
+	// License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
+	let result: string;
+	if (args.length === 0) {
+		result = str;
+	} else {
+		result = str.replace(/\{(\d+)\}/g, (match, rest) => {
+			let index = rest[0];
+			return typeof args[index] !== 'undefined' ? args[index] : match;
+		});
+	}
+	return result;
+}
