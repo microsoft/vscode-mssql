@@ -33,6 +33,7 @@ steps:
     inputs:
       targets: build
       gulpFile: ${{ parameters.gulpfile }}
+      arguments: '--prod'
     env:
       BUILDMACHINE: true
 

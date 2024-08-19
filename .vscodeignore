@@ -23,3 +23,4 @@ tsconfig.json
 tslint*.json
 **/*.map
 **/*.ts
+webviews-metafile.json
