@@ -507,7 +507,7 @@
       },
       {
         "command": "mssql.executionPlan",
-        "title": "%mssql.executionPlan%",
+        "title": "View Execution Plan",
         "category": "MS SQL",
         "icon": {
           "dark": "media/executionPlan_inverse.svg",
