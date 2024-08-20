@@ -119,10 +119,12 @@ jobs:
 
       - name: Write results as Markdown file
         run: |
+          COLORPREFIX='${\color{'}'
+          COLORPOSTFIX='}'
           echo "### VSIX Size Comparison" > results.md
           echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} KB" >> results.md
           echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} KB" >> results.md
-          echo "- **Size difference**: ${{ '$${\color{' }}${{env.vsix_text_color}}}  ${{ env.vsix_size_diff }} KB (${{ env.vsix_percentage_change }}%)  ${{ '}$$' }}  " >> results.md
+          echo "- **Size difference**: ${{ '\$\${\color{' }}${{env.vsix_text_color}}}  ${{ env.vsix_size_diff }} KB (${{ env.vsix_percentage_change }}%)  ${{ '}\$\$' }}  " >> results.md
           echo "### React Webview Bundle Size Comparison" >> results.md
           echo "- **Main branch bundle size**: ${{ env.main_webview_bundle_size }} KB" >> results.md
           echo "- **PR branch bundle size**: ${{ env.pr_webview_bundle_size }} KB" >> results.md
