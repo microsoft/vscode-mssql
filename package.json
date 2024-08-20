@@ -311,6 +311,11 @@
           "group": "MS_SQL@1"
         },
         {
+          "command": "mssql.filterNode",
+          "when": "view == objectExplorer && viewItem =~ /.*_Filterable$/",
+          "group": "inline"
+        },
+        {
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
           "group": "MS_SQL@4"
@@ -480,6 +485,11 @@
         "title": "%mssql.disconnect%",
         "category": "MS SQL",
         "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "mssql.filterNode",
+        "title": "%mssql.filterNode%",
+        "icon": "$(filter)"
       },
       {
         "command": "mssql.changeDatabase",

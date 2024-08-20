@@ -61,6 +61,7 @@ export const cmdScriptExecute = 'mssql.scriptExecute';
 export const cmdScriptAlter = 'mssql.scriptAlter';
 export const cmdToggleSqlCmd = 'mssql.toggleSqlCmd';
 export const cmdCopyObjectName = 'mssql.copyObjectName';
+export const cmdFilterNodes = "mssql.filterNodes";
 export const cmdOpenExtension = 'extension.open';
 export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const cmdAzureSignIn = 'azure-account.login';

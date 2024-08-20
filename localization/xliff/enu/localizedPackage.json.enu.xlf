@@ -437,6 +437,9 @@
         <trans-unit id="mssql.editConnection">
             <source xml:lang="en">Edit Connection</source>
         </trans-unit>
+        <trans-unit id="mssql.filterNode">
+            <source xml:lang="en">Filter Node</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

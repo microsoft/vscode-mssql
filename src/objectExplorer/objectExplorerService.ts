@@ -325,7 +325,7 @@ export class ObjectExplorerService {
 				Constants.disconnectedServerLabel,
 				TreeItemCollapsibleState.Collapsed,
 				undefined, undefined, Constants.disconnectedServerLabel,
-				undefined, conn.connectionCreds, undefined);
+				undefined, conn.connectionCreds, undefined, undefined);
 			this._rootTreeNodeArray.push(node);
 		}
 	}
@@ -590,7 +590,7 @@ export class ObjectExplorerService {
 			// make a new node to show disconnected behavior
 			let disconnectedNode = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
 				node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
-				undefined, node.connectionInfo, node.parentNode);
+				undefined, node.connectionInfo, node.parentNode, undefined);
 
 			this.updateNode(disconnectedNode);
 			this._currentNode = disconnectedNode;
@@ -655,7 +655,7 @@ export class ObjectExplorerService {
 		const node = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
 			vscode.TreeItemCollapsibleState.Collapsed, undefined, undefined,
 			Constants.disconnectedServerLabel, undefined, connectionCredentials,
-			undefined);
+			undefined, undefined);
 		this.updateNode(node);
 	}
 

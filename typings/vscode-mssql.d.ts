@@ -1463,10 +1463,14 @@ declare module 'vscode-mssql' {
 		nodeType: string;
 		metadata: ObjectMetadata;
 		parentNode: ITreeNodeInfo;
-		/**
-		 * Filterable properties that this node supports
-		 */
 		filterableProperties?: NodeFilterProperty[];
+		context?: TreeNodeContextValue
+	}
+
+	export interface TreeNodeContextValue {
+		type: string;
+		filterable: boolean;
+		hasFilters: boolean;
 	}
 
 	export interface NodeFilterProperty {

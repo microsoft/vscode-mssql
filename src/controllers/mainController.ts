@@ -555,6 +555,12 @@ export default class MainController implements vscode.Disposable {
 						);
 						reactPanel.revealToForeground();
 					}));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdFilterNodes, async (node: TreeNodeInfo) => {
+						console.log('Filter nodes', node);
+					}));
 		}
 
 		// Initiate the scripting service
