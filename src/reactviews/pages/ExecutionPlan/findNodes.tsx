@@ -18,7 +18,7 @@ const useStyles = makeStyles({
 		right: "35px",
 		padding: "10px",
 		border: "1px solid #ccc",
-		zIndex: "100",
+		zIndex: "1",
 		boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
 		display: "flex",
 		alignItems: "center",

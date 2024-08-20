@@ -17,7 +17,7 @@ const useStyles = makeStyles({
 		alignItems: "center",
 		width: "25px",
 		opacity: 1,
-		zIndex: "9999",
+		zIndex: "1",
 		position: "absolute",
 		height: "100%"
 	},

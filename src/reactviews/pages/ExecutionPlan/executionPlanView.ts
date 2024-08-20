@@ -7,8 +7,6 @@ import * as ep from './executionPlanInterfaces';
 
 export class ExecutionPlanView {
 	private _diagram: any;
-	// private _diagramModel: ep.AzDataGraphCell;
-	// private _cellInFocus: ep.AzDataGraphCell;
 	public expensiveMetricTypes: Set<ep.ExpensiveMetricType> = new Set();
 	private _graphElementPropertiesSet: Set<string> = new Set();
 	private executionPlanRootNode: ep.ExecutionPlanNode;

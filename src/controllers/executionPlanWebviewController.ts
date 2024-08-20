@@ -8,6 +8,7 @@ import { ReactWebViewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
 import * as LocalizedConstants from "../constants/localizedConstants";
+import { homedir } from "os";
 
 export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
@@ -17,6 +18,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
     context: vscode.ExtensionContext,
     private _executionPlanService: ep.ExecutionPlanService,
     private executionPlanContents: string,
+    // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
     // @ts-ignore
     private fileName: string
   ) {
@@ -65,7 +67,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       };
     });
     this.registerReducer("saveExecutionPlan", async (state, payload) => {
-      const homeDir = require("os").homedir(); // Get the user's home directory
+      const homeDir = homedir(); 
       const documentsFolder = vscode.Uri.file(`${homeDir}/Documents`);
 
       let filename: vscode.Uri;
