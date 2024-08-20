@@ -28,5 +28,5 @@
         "typescriptreact",
         "typescript"
     ],
-    "svg.preview.background": "editor",
+    "svg.preview.background": "dark-transparent",
 }
