@@ -166,6 +166,10 @@ jobs:
         if: ${{ env.webview_bundle_percentage_change > 5 }}
         run: exit 1
 
+      - name: Fail if JS bundle size is increased by 5%
+        if: ${{ env.js_percentage_change > 5 }}
+        run: exit 1
+
 
 
 
