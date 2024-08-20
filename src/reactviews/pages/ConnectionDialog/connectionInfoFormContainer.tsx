@@ -9,6 +9,7 @@ import { Text, Button, Checkbox, Dropdown, Field, Input, Option, Tab, TabList, m
 import { ApiStatus, FormComponent, FormComponentType, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import './sqlServerRotation.css';
+import { loadImage } from "../../common/loadImage";
 const sqlServerImage = require('../../../../media/sqlServer.svg');
 const sqlServerImageDark = require('../../../../media/sqlServer_inverse.svg');
 
@@ -170,7 +171,7 @@ export const ConnectionInfoFormContainer = () => {
 						padding: '10px',
 					}
 				}
-					src={connectionDialogContext?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
+					src={connectionDialogContext?.theme === webLightTheme ? loadImage(sqlServerImage) : loadImage(sqlServerImageDark)} alt='SQL Server' height={60} width={60} />
 				<Text size={500} style={
 					{
 						lineHeight: '60px'

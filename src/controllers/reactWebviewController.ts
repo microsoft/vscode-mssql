@@ -97,6 +97,9 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 				</head>
 				<body>
 				  <div id="root"></div>
+				  <script>
+				 	const assetPathVscodeUri = "${this.resourceUrl(['']).toString()}";
+				  </script>
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>
@@ -139,6 +142,11 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 				`);
 				this._isFirstLoad = false;
 			}
+		};
+		this._webViewRequestHandlers['getUri'] = async (path: string) => {
+			path = path.replace('./', '');
+			const result =  this.resourceUrl([path]).toString();
+			return result;
 		};
 	}
 

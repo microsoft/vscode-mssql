@@ -229,14 +229,17 @@ async function generateReactWebviewsBundle() {
 			'.tsx': 'tsx',
 			'.ts': 'ts',
 			'.css': 'css',
-			'.svg': 'dataurl'
+			'.svg': 'file',
+			'.js': 'js',
+			'.png': 'file',
+			'.gif': 'file',
 		},
 		tsconfig: './tsconfig.react.json',
 		plugins: [
 			esbuildProblemMatcherPlugin('React App'),
 			typecheckPlugin()
 		],
-		sourcemap: prod ? undefined : 'inline',
+		sourcemap: undefined,
 		metafile: !prod,
 		minify: prod,
 		minifyWhitespace: prod,
