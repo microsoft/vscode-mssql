@@ -88,6 +88,9 @@ jobs:
           echo "JS Size difference: $js_size_diff bytes"
           echo "JS Percentage change: $js_percentage_change%"
           echo "main_js_size=$main_js_size" >> $GITHUB_ENV
+          echo "pr_js_size=$pr_js_size" >> $GITHUB_ENV
+          echo "js_size_diff=$js_size_diff" >> $GITHUB_ENV
+          echo "js_percentage_change=$js_percentage_change" >> $GITHUB_ENV
 
       - name: Calculate vsix file sizes
         run: |
