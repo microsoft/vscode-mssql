@@ -16,7 +16,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 > {
   constructor(
     context: vscode.ExtensionContext,
-    private _executionPlanService: ep.ExecutionPlanService,
+    private executionPlanService: ep.ExecutionPlanService,
     private executionPlanContents: string,
     // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
     // @ts-ignore
@@ -24,8 +24,8 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ) {
     super(
       context,
-      `${xmlPlanFileName} ${LocalizedConstants.executionPlan}`,
-      WebviewRoute.executionPlan,
+      `${xmlPlanFileName} ${LocalizedConstants.executionPlan}`,  // Sets the webview title
+      WebviewRoute.executionPlanDocument,
       {},
       vscode.ViewColumn.Active,
       {
@@ -141,7 +141,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
         graphFileType: ".sqlplan",
       };
       this.state.executionPlan =
-        await this._executionPlanService.getExecutionPlan(planFile);
+        await this.executionPlanService.getExecutionPlan(planFile);
       this.state.executionPlanGraphs = this.state.executionPlan.graphs;
     }
   }

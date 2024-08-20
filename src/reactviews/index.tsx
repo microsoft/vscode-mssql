@@ -34,7 +34,7 @@ const Router = () => {
 					<ConnectionPage />
 				</ConnectionDialogStateProvider>
 			);
-		case WebviewRoute.executionPlan:
+		case WebviewRoute.executionPlanDocument:
 			return (
 				<ExecutionPlanStateProvider>
 					<ExecutionPlanPage />

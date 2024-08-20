@@ -93,15 +93,12 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 		window['mxBasePath'] = './src/reactviews/pages/ExecutionPlan/mxgraph';
 
 		const mxClient = azdataGraph.default();
-		// console.log(mxClient);
-		console.log("Execution Plan State: ", executionPlanState);
 
 		function loadExecutionPlan() {
 			if (executionPlanState && executionPlanState.executionPlanGraphs) {
 				const executionPlanRootNode = executionPlanState.executionPlanGraphs[graphIndex].root;
 				const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
 				const executionPlanGraph = executionPlanView.populate(executionPlanRootNode);
-				console.log("Graph: ", executionPlanGraph);
 
 				const div = document.getElementById(`queryPlanParent${graphIndex + 1}`);
 				// create a div to hold the graph

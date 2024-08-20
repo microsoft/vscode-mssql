@@ -9,18 +9,18 @@ export class ExecutionPlanView {
 	private _diagram: any;
 	public expensiveMetricTypes: Set<ep.ExpensiveMetricType> = new Set();
 	private _graphElementPropertiesSet: Set<string> = new Set();
-	private executionPlanRootNode: ep.ExecutionPlanNode;
+	private _executionPlanRootNode: ep.ExecutionPlanNode;
 
 	constructor(node: ep.ExecutionPlanNode) {
-		this.executionPlanRootNode = node;
+		this._executionPlanRootNode = node;
 	}
 
 	public getRoot(): ep.ExecutionPlanNode {
-		return this.executionPlanRootNode;
+		return this._executionPlanRootNode;
 	}
 
 	public getTotalRelativeCost(): number {
-		return this.executionPlanRootNode.cost + this.executionPlanRootNode.subTreeCost;
+		return this._executionPlanRootNode.cost + this._executionPlanRootNode.subTreeCost;
 	}
 
 	public getDiagram(): any {
@@ -31,7 +31,7 @@ export class ExecutionPlanView {
 		this._diagram = model;
 	}
 
-	public populate(node: ep.ExecutionPlanNode = this.executionPlanRootNode): ep.AzDataGraphCell {
+	public populate(node: ep.ExecutionPlanNode = this._executionPlanRootNode): ep.AzDataGraphCell {
 		let diagramNode: ep.AzDataGraphCell = <ep.AzDataGraphCell>{};
 		diagramNode.label = node.subtext.join('\n');
 		diagramNode.tooltipTitle = node.name;
@@ -256,7 +256,7 @@ export class ExecutionPlanView {
 		const resultNodes: ep.ExecutionPlanNode[] = [];
 
 		const nodeStack: ep.ExecutionPlanNode[] = [];
-		nodeStack.push(this.executionPlanRootNode);
+		nodeStack.push(this._executionPlanRootNode);
 
 		while (nodeStack.length !== 0) {
 			const currentNode = nodeStack.pop()!;
@@ -367,7 +367,7 @@ export class ExecutionPlanView {
 		if (element) {
 			cell = this._diagram.graph.model.getCell(element.id);
 		} else {
-			cell = this._diagram.graph.model.getCell((<ep.ExecutionPlanNode>this.executionPlanRootNode).id);
+			cell = this._diagram.graph.model.getCell((<ep.ExecutionPlanNode>this._executionPlanRootNode).id);
 		}
 
 		this._diagram.graph.getSelectionModel().setCell(cell);
@@ -391,7 +391,7 @@ export class ExecutionPlanView {
 	 */
 	public getElementById(id: string): ep.InternalExecutionPlanElement | undefined {
 		const nodeStack: ep.ExecutionPlanNode[] = [];
-		nodeStack.push(this.executionPlanRootNode);
+		nodeStack.push(this._executionPlanRootNode);
 
 		while (nodeStack.length !== 0) {
 			const currentNode = nodeStack.pop()!;
@@ -414,6 +414,6 @@ export class ExecutionPlanView {
 	}
 
 	public calculateRelativeQueryCost(): number {
-		return (this.executionPlanRootNode.subTreeCost + this.executionPlanRootNode.cost)
+		return (this._executionPlanRootNode.subTreeCost + this._executionPlanRootNode.cost)
 	}
 }
