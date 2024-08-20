@@ -23,7 +23,6 @@
     "noFallthroughCasesInSwitch": true,
     "composite": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
   },
   "include": [
     "src/reactviews",
