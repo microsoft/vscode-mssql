@@ -20,11 +20,11 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
     private executionPlanContents: string,
     // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
     // @ts-ignore
-    private fileName: string
+    private xmlPlanFileName: string
   ) {
     super(
       context,
-      `${fileName} ${LocalizedConstants.executionPlan}`,
+      `${xmlPlanFileName} ${LocalizedConstants.executionPlan}`,
       WebviewRoute.executionPlan,
       {},
       vscode.ViewColumn.Active,
@@ -50,7 +50,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
     this.state.localizedConstants = LocalizedConstants;
 
-    await this.getExecutionPlan();
+    await this.createExecutionPlanGraphs();
     this.state.totalCost = this.calculateTotalCost();
     this.registerRpcHandlers();
     this.state.isLoading = false;
@@ -58,7 +58,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 
   private registerRpcHandlers() {
     this.registerReducer("getExecutionPlan", async (state, payload) => {
-      await this.getExecutionPlan();
+      await this.createExecutionPlanGraphs();
 
       return {
         ...state,
@@ -134,7 +134,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
     });
   }
 
-  private async getExecutionPlan() {
+  private async createExecutionPlanGraphs() {
     if (!this.state.executionPlan) {
       const planFile: ep.ExecutionPlanGraphInfo = {
         graphFileContent: this.executionPlanContents,

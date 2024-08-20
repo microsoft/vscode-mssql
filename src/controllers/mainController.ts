@@ -156,8 +156,8 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdChangeDatabase);
 			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
-			this.registerCommand(Constants.cmdExecutionPlan);
-			this._event.on(Constants.cmdExecutionPlan, () => { this.onExecutionPlan(); });
+			this.registerCommand(Constants.cmdOpenExecutionPlanFile);
+			this._event.on(Constants.cmdOpenExecutionPlanFile, () => { this.onOpenExecutionPlanFile(); });
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
 			this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()); });
@@ -917,11 +917,10 @@ export default class MainController implements vscode.Disposable {
 		}
 	}
 
-	public async onExecutionPlan() {
+	public async onOpenExecutionPlanFile() {
 		const planContents = vscode.window.activeTextEditor.document.getText();
 		// remove file extension from name
 		let docName = vscode.window.activeTextEditor.document.fileName;
-		console.log("File name: ", docName);
 		let lastSlash = docName.lastIndexOf('\\');
 		if (lastSlash === -1) {
 			lastSlash = docName.lastIndexOf('/');

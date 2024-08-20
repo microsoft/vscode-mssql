@@ -225,7 +225,7 @@
           ".sqlplan"
         ],
         "aliases": [
-          "SQL Plan"
+          "SQL Server Execution Plan"
         ]
       }
     ],
@@ -250,6 +250,11 @@
           "group": "navigation@1"
         },
         {
+          "command": "mssql.openExecutionPlanFile",
+          "when": "editorLangId == sqlplan && config.mssql.enableExperimentalFeatures",
+          "group": "navigation@1"
+        },
+        {
           "command": "mssql.cancelQuery",
           "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
@@ -268,11 +273,6 @@
           "command": "mssql.changeDatabase",
           "when": "editorLangId == sql",
           "group": "navigation@4"
-        },
-        {
-          "command": "mssql.executionPlan",
-          "when": "editorLangId == sqlplan && config.mssql.enableExperimentalFeatures",
-          "group": "navigation@1"
         }
       ],
       "editor/context": [
@@ -506,8 +506,8 @@
         }
       },
       {
-        "command": "mssql.executionPlan",
-        "title": "View Execution Plan",
+        "command": "mssql.openExecutionPlanFile",
+        "title": "Open Execution Plan File",
         "category": "MS SQL",
         "icon": {
           "dark": "media/executionPlan_inverse.svg",
