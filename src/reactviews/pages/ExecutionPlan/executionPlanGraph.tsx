@@ -16,6 +16,7 @@ import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
 import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
+import { formatString } from '../../common/utils';
 
 const useStyles = makeStyles({
 	panelContainer: {
@@ -180,21 +181,3 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 		</div>
 	);
 };
-
-/**
- * Format a string. Behaves like C#'s string.Format() function.
- */
-function formatString(str: string, ...args: any[]): string {
-	// This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
-	// License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
-	let result: string;
-	if (args.length === 0) {
-		result = str;
-	} else {
-		result = str.replace(/\{(\d+)\}/g, (match, rest) => {
-			let index = rest[0];
-			return typeof args[index] !== 'undefined' ? args[index] : match;
-		});
-	}
-	return result;
-}

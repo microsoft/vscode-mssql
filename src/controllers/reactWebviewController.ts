@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
+import { getNonce } from '../reactviews/common/utils';
 
 /**
  * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides
@@ -234,18 +235,6 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 export enum DefaultWebViewNotifications {
 	updateState = 'updateState',
 	onDidChangeTheme = 'onDidChangeTheme'
-}
-
-/**
- * Generates a random nonce value that can be used in a webview
- */
-export function getNonce(): string {
-	let text = "";
-	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
 }
 
 export type ReducerResponse<T> = T | Promise<T>;

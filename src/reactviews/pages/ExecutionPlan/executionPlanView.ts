@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getNonce } from '../../common/utils';
 import * as ep from './executionPlanInterfaces';
 
 export class ExecutionPlanView {
@@ -165,16 +166,7 @@ export class ExecutionPlanView {
 	}
 
 	private createGraphElementId(): string {
-		return `element-${this.getNonce()}`;
-	}
-
-	private getNonce(): string {
-		let text = "";
-		const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		for (let i = 0; i < 32; i++) {
-			text += possible.charAt(Math.floor(Math.random() * possible.length));
-		}
-		return text;
+		return `element-${getNonce()}`;
 	}
 
 	/**

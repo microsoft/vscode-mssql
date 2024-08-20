@@ -9,6 +9,7 @@ import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
 import * as LocalizedConstants from "../constants/localizedConstants";
 import { homedir } from "os";
+import { fileExists } from "../utils/utils";
 
 export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
@@ -72,9 +73,9 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
 
       let filename: vscode.Uri;
       let counter = 1;
-      if (await this.fileExists(documentsFolder, `plan.sqlplan`)) {
+      if (await fileExists(documentsFolder, `plan.sqlplan`)) {
         while (
-          await this.fileExists(documentsFolder, `plan${counter}.sqlplan`)
+          await fileExists(documentsFolder, `plan${counter}.sqlplan`)
         ) {
           counter += 1;
         }
@@ -143,19 +144,6 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       this.state.executionPlan =
         await this.executionPlanService.getExecutionPlan(planFile);
       this.state.executionPlanGraphs = this.state.executionPlan.graphs;
-    }
-  }
-
-  private async fileExists(
-    uri: vscode.Uri,
-    filename: string
-  ): Promise<boolean> {
-    const path = vscode.Uri.joinPath(uri, filename);
-    try {
-      await vscode.workspace.fs.stat(path);
-      return true;
-    } catch {
-      return false;
     }
   }
 
