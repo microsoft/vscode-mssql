@@ -119,8 +119,6 @@ jobs:
 
       - name: Write results as Markdown file
         run: |
-          COLORPREFIX='${\color{'}'
-          COLORPOSTFIX='}'
           echo "### VSIX Size Comparison" > results.md
           echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} KB" >> results.md
           echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} KB" >> results.md
