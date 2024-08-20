@@ -239,7 +239,7 @@ async function generateReactWebviewsBundle() {
 			esbuildProblemMatcherPlugin('React App'),
 			typecheckPlugin()
 		],
-		sourcemap: undefined,
+		sourcemap: prod ? undefined : 'inline',
 		metafile: !prod,
 		minify: prod,
 		minifyWhitespace: prod,
