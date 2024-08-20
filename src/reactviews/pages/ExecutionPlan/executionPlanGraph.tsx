@@ -116,12 +116,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 				pen.setEdgeColor('var(--vscode-editor-foreground)'); // set edge color
 
 				executionPlanView.setDiagram(pen);
-				executionPlanView.zoomToFit();
 
 				setExecutionPlanView(executionPlanView);
 				setIsExecutionPlanLoaded(true);
 				setFindNodeOptions(executionPlanView.getUniqueElementProperties());
-				setZoomNumber(executionPlanView.getZoomLevel());
 
 				let tempQuery = executionPlanState.executionPlanGraphs[graphIndex].query
 				if (graphIndex != 0) {
