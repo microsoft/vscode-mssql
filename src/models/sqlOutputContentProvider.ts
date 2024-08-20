@@ -15,9 +15,10 @@ import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
 import { IServerProxy, Deferred } from '../protocol';
-import { ResultSetSubset } from './contracts/queryExecute';
+import { ResultSetSubset, ResultSetSummary } from './contracts/queryExecute';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
+import { QueryResultWebViewController } from '../queryResult/queryResultWebViewController';
 // tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
 
@@ -44,6 +45,7 @@ export class SqlOutputContentProvider {
 	// MEMBER VARIABLES ////////////////////////////////////////////////////
 	private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
 	private _panels = new Map<string, WebviewPanelController>();
+	private _reactPanels = new Map<string, QueryResultWebViewController>();
 
 	// CONSTRUCTOR /////////////////////////////////////////////////////////
 	constructor(
@@ -188,7 +190,9 @@ export class SqlOutputContentProvider {
 			}
 		};
 		const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
+		const reactController = new QueryResultWebViewController(this.context);
 		this._panels.set(uri, controller);
+		this._reactPanels.set(uri, reactController);
 		await controller.init();
 	}
 
@@ -215,8 +219,13 @@ export class SqlOutputContentProvider {
 			queryRunner.eventEmitter.on('start', (panelUri) => {
 				this._panels.get(uri).proxy.sendEvent('start', panelUri);
 			});
-			queryRunner.eventEmitter.on('resultSet', (resultSet) => {
+			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
 				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
+				this._reactPanels.get(uri).state.value = resultSet.batchId + ' ' + resultSet.id;
+				await this.rowRequestHandler(uri, resultSet.batchId, resultSet.id, 0, resultSet.rowCount).then((r) => {
+					this._reactPanels.get(uri).state.value = r.rowCount.toString();
+					console.log(r.rows);
+				});
 			});
 			queryRunner.eventEmitter.on('batchStart', (batch) => {
 				let time = new Date().toLocaleTimeString();

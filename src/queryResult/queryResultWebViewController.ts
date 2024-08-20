@@ -12,7 +12,7 @@ export class QueryResultWebViewController extends ReactWebViewPanelController<qr
 	constructor(context: vscode.ExtensionContext,
 	) {
 		super(context, 'Query Result', WebviewRoute.queryResult, {
-			value: 42,
+			value: '42',
 			messages: [
 				{ message: 'Message 1', timestamp: '12:00' },
 				{ message: 'Message 2', timestamp: '12:01' },

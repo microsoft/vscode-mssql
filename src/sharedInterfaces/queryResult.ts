@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+export enum QueryResultLoadState {
+	Loading = 'Loading',
+	Loaded = 'Loaded',
+	Error = 'Error'
+}
+
 export interface QueryResultReducers {
 }
 
@@ -20,7 +26,7 @@ export interface QueryResultTabStates {
 }
 
 export interface QueryResultWebViewState {
-	value?: number;
+	value?: string;
 	messages: QueryResultMessage[];
 	tabStates?: QueryResultTabStates;
 }
