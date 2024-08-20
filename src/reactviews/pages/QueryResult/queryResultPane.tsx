@@ -156,7 +156,7 @@ export const QueryResultPane = () => {
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div className={classes.queryResultContainer}>
-					<h1>queryResultContainer</h1>
+					queryResultContainer: {metadata.value}
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && <div className={classes.messagesContainer}>
