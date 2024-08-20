@@ -67,13 +67,12 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       };
     });
     this.registerReducer("saveExecutionPlan", async (state, payload) => {
-      const homeDir = homedir(); 
+      const homeDir = homedir();
       const documentsFolder = vscode.Uri.file(`${homeDir}/Documents`);
 
       let filename: vscode.Uri;
-      let counter = 0;
+      let counter = 1;
       if (await this.fileExists(documentsFolder, `plan.sqlplan`)) {
-        counter += 1;
         while (
           await this.fileExists(documentsFolder, `plan${counter}.sqlplan`)
         ) {
