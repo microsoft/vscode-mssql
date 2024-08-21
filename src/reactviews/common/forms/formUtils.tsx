@@ -16,7 +16,6 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 	const [showPassword, setShowPassword] = useState(false);
 
 	useEffect(() => {
-		console.log('value changed');
 		setValueVal(value);
 	}, [value]);
 
@@ -64,7 +63,7 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 			{
 				type === 'textarea' &&
 				<Textarea
-					value={inputVal}
+				    value={inputVal}
 					size="small"
 					onChange={(_value, data) => handleChange(data.value)}
 					onBlur={handleBlur}
