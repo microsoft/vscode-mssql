@@ -9,6 +9,7 @@ import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
 import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
+import SlickGrid from "./slickgrid";
 
 const useStyles = makeStyles({
 	root: {
@@ -156,6 +157,7 @@ export const QueryResultPane = () => {
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div className={classes.queryResultContainer}>
+					<SlickGrid></SlickGrid>
 					queryResultContainer, row count: {metadata.value}
 				</div>
 			}
