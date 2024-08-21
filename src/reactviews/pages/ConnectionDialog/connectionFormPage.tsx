@@ -4,22 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { Button, Field, MessageBar, Spinner } from "@fluentui/react-components";
+import { Button, MessageBar, Spinner } from "@fluentui/react-components";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { ApiStatus, FormComponentType } from "../../../sharedInterfaces/connectionDialog";
-import { generateFormComponent, useFormStyles } from "../../common/forms/formUtils";
+import { ApiStatus } from "../../../sharedInterfaces/connectionDialog";
+import { FormField, useFormStyles } from "../../common/forms/formUtils";
 
 export const ConnectionFormPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const classes = useFormStyles();
+	const formStyles = useFormStyles();
 
 	if (connectionDialogContext === undefined) {
 		return undefined;
 	}
 
 	return (
-		<div className={classes.formDiv}>
+		<div className={formStyles.formDiv}>
 			{
 				connectionDialogContext?.state.formError &&
 				<MessageBar intent="error">
@@ -31,34 +31,9 @@ export const ConnectionFormPage = () => {
 					if (component.hidden === true) {
 						return undefined;
 					}
-					return <div className={classes.formComponentDiv} key={idx}>
-						<Field
-							validationMessage={component.validation?.validationMessage ?? ''}
-							orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
-							validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
-							required={component.required}
-							label={component.label}>
-							{generateFormComponent(connectionDialogContext, component, connectionDialogContext.state.connectionProfile, idx)}
-						</Field>
-						{
-							component?.actionButtons?.length! > 0 &&
-							<div className={classes.formComponentActionDiv}>
-								{
-									component.actionButtons?.map((actionButton, idx) => {
-										return <Button shape="square" key={idx + actionButton.id} appearance='outline' style={
-											{
-												width: '120px'
-											}
-										} onClick={() => connectionDialogContext?.formAction({
-											propertyName: component.propertyName,
-											isAction: true,
-											value: actionButton.id
-										})}>{actionButton.label}</Button>;
-									})
-								}
-							</div>
-						}
-					</div>;
+					return (
+						<FormField key={idx} connectionDialogContext={connectionDialogContext} component={component} idx={idx} />
+					);
 				})
 			}
 			<Button

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Input, Button, Textarea, Dropdown, Checkbox, Option, makeStyles } from "@fluentui/react-components";
+import { Input, Button, Textarea, Dropdown, Checkbox, Option, makeStyles, Field } from "@fluentui/react-components";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContextProps, FormComponent, FormComponentType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -73,7 +73,77 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 	);
 };
 
-export function generateFormComponent(connectionDialogContext: ConnectionDialogContextProps, component: FormComponent, profile: IConnectionDialogProfile, _idx: number) {
+export const FormField = ({connectionDialogContext, component, idx}: { connectionDialogContext: ConnectionDialogContextProps, component: FormComponent, idx: number}) => {
+	const formStyles = useFormStyles();
+
+	return (
+		<div className={formStyles.formComponentDiv} key={idx}>
+			<Field
+				validationMessage={component.validation?.validationMessage ?? ''}
+				orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
+				validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
+				required={component.required}
+				label={component.label}>
+				{ generateFormComponent(connectionDialogContext, component, idx) }
+			</Field>
+			{
+				component?.actionButtons?.length! > 0 &&
+				<div className={formStyles.formComponentActionDiv}>
+					{
+						component.actionButtons?.map((actionButton, idx) => {
+							return <Button shape="square" key={idx + actionButton.id} appearance='outline' style={
+								{
+									width: '120px'
+								}
+							} onClick={() => connectionDialogContext?.formAction({
+								propertyName: component.propertyName,
+								isAction: true,
+								value: actionButton.id
+							})}>{actionButton.label}</Button>;
+						})
+					}
+				</div>
+			}
+		</div>
+	);
+};
+
+export function generateFormField(connectionDialogContext: ConnectionDialogContextProps, component: FormComponent, idx: number, formStyles: Record<"formRoot" | "formDiv" | "formComponentDiv" | "formComponentActionDiv", string>) {
+	return (
+		<div className={formStyles.formComponentDiv} key={idx}>
+			<Field
+				validationMessage={component.validation?.validationMessage ?? ''}
+				orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
+				validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
+				required={component.required}
+				label={component.label}>
+				{ generateFormComponent(connectionDialogContext, component, idx) }
+			</Field>
+			{
+				component?.actionButtons?.length! > 0 &&
+				<div className={formStyles.formComponentActionDiv}>
+					{
+						component.actionButtons?.map((actionButton, idx) => {
+							return <Button shape="square" key={idx + actionButton.id} appearance='outline' style={
+								{
+									width: '120px'
+								}
+							} onClick={() => connectionDialogContext?.formAction({
+								propertyName: component.propertyName,
+								isAction: true,
+								value: actionButton.id
+							})}>{actionButton.label}</Button>;
+						})
+					}
+				</div>
+			}
+		</div>
+	);
+}
+
+export function generateFormComponent(connectionDialogContext: ConnectionDialogContextProps, component: FormComponent,  _idx: number) {
+	const profile = connectionDialogContext.state.connectionProfile;
+
 	switch (component.type) {
 		case FormComponentType.Input:
 			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
