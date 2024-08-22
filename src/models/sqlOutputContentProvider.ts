@@ -245,9 +245,12 @@ export class SqlOutputContentProvider {
 					}
 				};
 				this._panels.get(uri).proxy.sendEvent('message', message);
+				this._reactPanels.get(uri).state.messages.push({message: LocalizedConstants.runQueryBatchStartMessage, timestamp: time});
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
 				this._panels.get(uri).proxy.sendEvent('message', message);
+				console.log(message);
+				this._reactPanels.get(uri).state.messages.push({message: message.message, timestamp: new Date().toLocaleTimeString()});
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
 				if (!isRefresh) {
