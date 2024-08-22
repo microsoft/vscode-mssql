@@ -158,7 +158,6 @@ export const QueryResultPane = () => {
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div className={classes.queryResultContainer}>
 					<SlickGrid></SlickGrid>
-					queryResultContainer, row count: {metadata.value}
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && <div className={classes.messagesContainer}>

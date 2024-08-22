@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as $ from 'jquery';
+import $ from 'jquery';
 import { useEffect, useRef } from 'react';
 import '../../../../media/slickgrid.css';
 import { Table } from '../../../queryResult/table';
