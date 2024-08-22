@@ -83,15 +83,17 @@ export const FormField = ({connectionDialogContext, component, idx}: { connectio
 				orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
 				validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
 				required={component.required}
-				label={component.tooltip
-					? {
-						children: (_: unknown, slotProps: LabelProps) => (
-							<InfoLabel {...slotProps} info={component.tooltip}>
-								{ component.label }
-							</InfoLabel>
-						)
-					}
-					: component.label}
+				// @ts-ignore there's a bug in the typings somewhere, so ignoring this line to avoid angering type-checker
+				label={
+					component.tooltip
+						? {
+							children: (_: unknown, slotProps: LabelProps) => (
+								<InfoLabel {...slotProps} info={component.tooltip}>
+									{ component.label }
+								</InfoLabel>
+							)
+						}
+						: component.label}
 			>
 				{ generateFormComponent(connectionDialogContext, component, idx) }
 			</Field>
