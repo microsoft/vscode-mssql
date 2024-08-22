@@ -1669,7 +1669,7 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@types/azdata@^1.44.0":
+"@types/azdata@^1.46.6":
   version "1.46.6"
   resolved "https://registry.yarnpkg.com/@types/azdata/-/azdata-1.46.6.tgz#7403bfabc59b2b7fa48bef9cc1e86848f41afdc8"
   integrity sha512-lOvRgMxrYuia+8l3EB+j5IaeGLHubmNf3RgGu9OmAxGAyXayjhZLoNAEjqNnVy/MmA35lwAXDpv2PDbNpCCnDA==

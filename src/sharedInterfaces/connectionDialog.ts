@@ -8,7 +8,10 @@ import * as vscodeMssql from "vscode-mssql";
 
 export interface ConnectionDialogWebviewState {
 	selectedFormTab: FormTabType;
-	connectionFormComponents: FormComponent[];
+	connectionFormComponents: {
+		mainComponents: FormComponent[];
+		advancedComponents: {[category: string]: FormComponent[]};
+	};
 	connectionStringComponents: FormComponent[];
 	recentConnections: IConnectionDialogProfile[];
 	connectionProfile: IConnectionDialogProfile;

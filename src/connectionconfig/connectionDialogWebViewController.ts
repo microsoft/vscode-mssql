@@ -12,7 +12,7 @@ import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
-import { GetCapabilitiesRequest } from '../models/contracts/connection';
+import { CapabilitiesResult, GetCapabilitiesRequest } from '../models/contracts/connection';
 import { ConnectionOption } from 'azdata';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
@@ -31,7 +31,10 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				connectionProfile: {} as IConnectionDialogProfile,
 				recentConnections: [],
 				selectedFormTab: FormTabType.Parameters,
-				connectionFormComponents: [],
+				connectionFormComponents: {
+					mainComponents: [],
+					advancedComponents: {}
+				},
 				connectionStringComponents: [],
 				connectionStatus: ApiStatus.NotStarted,
 				formError: ''
@@ -53,6 +56,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		} else {
 			await this.loadEmptyConnection();
 		}
+
 
 		this.state.connectionFormComponents = await this.generateConnectionFormComponents();
 		this.state.connectionStringComponents = await this.generateConnectionStringComponents();
@@ -131,14 +135,14 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 		}
 
-		for (const component of this.state.connectionFormComponents) {
+		for (const component of this.state.connectionFormComponents.mainComponents) {
 				component.hidden = hiddenProperties.includes(component.propertyName);
 		}
 	}
 
 	private getActiveFormComponents(): FormComponent[] {
 		if (this.state.selectedFormTab === FormTabType.Parameters) {
-			return this.state.connectionFormComponents;
+			return this.state.connectionFormComponents.mainComponents;
 		}
 		return this.state.connectionStringComponents;
 	}
@@ -220,7 +224,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					tooltip: connOption.description,
 					options: connOption.categoryValues.map(v => {
 						return {
-							displayName: v.displayName,
+							displayName: v.displayName ?? v.name, // Use name if displayName is not provided
 							value: v.name
 						};
 					}),
@@ -230,16 +234,21 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 	}
 
-	private async completeFormComponents(components: Map<string, FormComponent>) {
+	private async completeFormComponents(components: Map<string, {option: ConnectionOption, component: FormComponent}>) {
 		// Add additional components that are not part of the connection options
 		components.set('savePassword', {
-			propertyName: 'savePassword',
-			label: 'Save Password',
-			required: false,
-			type: FormComponentType.Checkbox,
+			option: undefined,
+			component: {
+				propertyName: 'savePassword',
+				label: 'Save Password',
+				required: false,
+				type: FormComponentType.Checkbox,
+			}
 		});
 
 		components.set('accountId', {
+			option: undefined,
+			component: {
 				propertyName: 'accountId',
 				label: 'Azure Account',
 				required: true,
@@ -259,39 +268,46 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 						validationMessage: ''
 					};
 				},
-			});
+			}
+		});
 
 		components.set('tenantId', {
-			propertyName: 'tenantId',
-			label: 'Tenant ID',
-			required: true,
-			type: FormComponentType.Dropdown,
-			options: [],
-			hidden: true,
-			placeholder: 'Select a tenant',
-			validate: (value: string) => {
-				if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+			option: undefined,
+			component: {
+				propertyName: 'tenantId',
+				label: 'Tenant ID',
+				required: true,
+				type: FormComponentType.Dropdown,
+				options: [],
+				hidden: true,
+				placeholder: 'Select a tenant',
+				validate: (value: string) => {
+					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'Tenant ID is required'
+						};
+					}
 					return {
-						isValid: false,
-						validationMessage: 'Tenant ID is required'
+						isValid: true,
+						validationMessage: ''
 					};
 				}
-				return {
-					isValid: true,
-					validationMessage: ''
-				};
 			}
 		});
 
 		components.set('profileName', {
+			option: undefined,
+			component: {
 			propertyName: 'profileName',
 			label: 'Profile Name',
 			required: false,
 			type: FormComponentType.Input,
+			}
 		});
 
 		// add missing validation functions for generated components
-		components.get('server')!.validate = (value: string) => {
+		components.get('server')!.component.validate = (value: string) => {
 			if (this.state.selectedFormTab === FormTabType.Parameters && !value) {
 				return {
 					isValid: false,
@@ -304,7 +320,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			};
 		};
 
-		components.get('user')!.validate = (value: string) => {
+		components.get('user')!.component.validate = (value: string) => {
 			if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
 				return {
 					isValid: false,
@@ -317,7 +333,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			};
 		};
 
-		components.get('tenantId')!.validate = (value: string) => {
+		components.get('tenantId')!.component.validate = (value: string) => {
 			if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
 				return {
 					isValid: false,
@@ -331,38 +347,54 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		};
 	}
 
-	private async generateConnectionFormComponents(): Promise<FormComponent[]> {
+	private _mainOptionNames = new Set<string>([
+		'server',
+		'authenticationType',
+		'user',
+		'password',
+		'savePassword',
+		'accountId',
+		'tenantId',
+		'database',
+		'trustServerCertificate',
+		'encrypt',
+		'profileName'
+	]);
+
+	private async generateConnectionFormComponents(): Promise<{
+		mainComponents: FormComponent[],
+		advancedComponents: {[category: string]: FormComponent[]}
+	}> {
 		// get list of connection options from Tools Service
-		const result = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
+		const result: CapabilitiesResult = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
 		const connectionOptions: ConnectionOption[] = result.capabilities.connectionProvider.options;
 
 		// convert connection options to form components
-		const allConnectionFormComponents = new Map<string, FormComponent>();
+		const allConnectionFormComponents = new Map<string, {option: ConnectionOption, component: FormComponent}>();
 
 		for (const option of connectionOptions) {
-			allConnectionFormComponents.set(option.name, this.convertToFormComponent(option));
+			allConnectionFormComponents.set(option.name, {option, component: this.convertToFormComponent(option)});
 		}
 
 		await this.completeFormComponents(allConnectionFormComponents);
 
-		// isolate just the main components
-		const mainOptions = [
-			'server',
-			'authenticationType',
-			'user',
-			'password',
-			'savePassword',
-			'accountId',
-			'tenantId',
-			'database',
-			'trustServerCertificate',
-			'encrypt',
-			'profileName'
-		];
+		// organize the main components and advanced components
+		const mainComponents: FormComponent[] = [];
+		const advancedComponents: {[category: string]: FormComponent[]} = {};
 
-		const mainComponents = mainOptions.map(o => allConnectionFormComponents.get(o));
+		for (const [optionName, {option, component}] of allConnectionFormComponents) {
+			if (this._mainOptionNames.has(optionName)) {
+				mainComponents.push(component);
+			} else {
+				if (!advancedComponents[option.groupName]) {
+					advancedComponents[option.groupName] = [component];
+				} else {
+					advancedComponents[option.groupName].push(component);
+				}
+			}
+		}
 
-		return mainComponents;
+		return {mainComponents, advancedComponents};
 	}
 
 	private async generateConnectionStringComponents(): Promise<FormComponent[]> {
