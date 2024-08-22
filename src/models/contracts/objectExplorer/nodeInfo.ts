@@ -60,4 +60,14 @@ export class NodeInfo {
 	 * Filterable properties that this node supports
 	 */
 	filterableProperties?: vscodeMssql.NodeFilterProperty[];
+
+	/**
+	 * Object type of the node. In case of folder nodes, this will be the type of objects that are present in the folder
+	 */
+	objectType?: string;
+
+	/**
+	 * Parent node path. This is used to identify the parent node of the current node
+	 */
+	parentNodePath?: string;
 }
