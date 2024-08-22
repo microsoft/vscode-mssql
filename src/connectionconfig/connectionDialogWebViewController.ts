@@ -584,13 +584,26 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			this.state.connectionStatus = ApiStatus.Loading;
 			this.state.formError = '';
 			this.state = this.state;
-			const visibleComponents = this.getActiveFormComponents().filter(c => !c.hidden).map(c => c.propertyName);
-			// Set all other fields to undefined
-			Object.keys(this.state.connectionProfile).forEach(key => {
-				if (!visibleComponents.includes(key as keyof IConnectionDialogProfile)) {
-					(this.state.connectionProfile[key as keyof IConnectionDialogProfile] as any) = undefined;
+
+			const usedFields = new Set<keyof IConnectionDialogProfile>(this.getActiveFormComponents().filter(c => !c.hidden).map(c => c.propertyName));
+
+			Object.keys(this.state.connectionFormComponents.advancedComponents).forEach(group => {
+				this.state.connectionFormComponents.advancedComponents[group].forEach(c => {
+					if (!c.hidden) {
+						usedFields.add(c.propertyName);
+					}
+				});
+			});
+
+			// Clear unused fields (anything that isn't visible due to form selections and isn't an advanced option)
+			Object.keys(this.state.connectionProfile).forEach(optionName => {
+				if (!usedFields.has(optionName as keyof IConnectionDialogProfile)) {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(this.state.connectionProfile[optionName as keyof IConnectionDialogProfile] as any) = undefined;
 				}
 			});
+
+			// Perform final validation of all inputs
 			const errorCount = await this.validateFormComponents();
 			if (errorCount > 0) {
 				this.state.connectionStatus = ApiStatus.Error;
