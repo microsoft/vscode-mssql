@@ -440,6 +440,9 @@
         <trans-unit id="mssql.filterNode">
             <source xml:lang="en">Filter Node</source>
         </trans-unit>
+        <trans-unit id="mssql.clearFilters">
+            <source xml:lang="en">Clear Filters</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
