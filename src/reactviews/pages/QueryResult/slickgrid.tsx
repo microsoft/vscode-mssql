@@ -19,7 +19,7 @@ require('slickgrid/slick.grid.js');
 //TODO: get hardcoded data & get gridpanel to render the hardcoded data
 // add console.log in the event handlers for example to onTableClick function
 
-const ROW_HEIGHT = 29;
+// const ROW_HEIGHT = 29;
 
 
 declare global {
@@ -29,7 +29,7 @@ declare global {
     }
 }
 
-export default function SlickGrid<T extends Slick.SlickData>() {
+export default function SlickGrid() {
 
     const ref = useRef<HTMLDivElement>(null);
 
@@ -42,10 +42,10 @@ export default function SlickGrid<T extends Slick.SlickData>() {
         {id: "finish", name: "Finish", field: "finish"},
         {id: "effort-driven", name: "Effort Driven", field: "effortDriven"}
         ];
-        let options = {
-            enableCellNavigation: true,
-            enableColumnReorder: false
-        };
+        // let options = {
+        //     enableCellNavigation: true,
+        //     enableColumnReorder: false
+        // };
         let data = [];
         for (var i = 0; i < 500; i++) {
         data[i] = {
@@ -59,16 +59,16 @@ export default function SlickGrid<T extends Slick.SlickData>() {
         }
         let div = document.createElement('div');
         div.id = 'grid';
-        let tableOptions: Slick.GridOptions<T> = {
-			rowHeight: ROW_HEIGHT,
-			showRowNumber: true,
-			forceFitColumns: false,
-			defaultColumnWidth: 120
-		};
+        // let tableOptions: Slick.GridOptions<T> = {
+		// 	rowHeight: ROW_HEIGHT,
+		// 	showRowNumber: true,
+		// 	forceFitColumns: false,
+		// 	defaultColumnWidth: 120
+		// };
 
         let tableData = new TableDataView(data);
 
-        const table = new Table(div, defaultTableStyles, { dataProvider: tableData, columns: columns });
+        new Table(div, defaultTableStyles, { dataProvider: tableData, columns: columns });
         let grid = document.body.appendChild(div);
         const elm = document.getElementById('grid')!;
         document.body.removeChild(grid);

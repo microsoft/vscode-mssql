@@ -12,7 +12,7 @@ import { ITableSorter, ITableConfiguration, ITableStyles } from '../sharedInterf
 import * as DOM from './dom';
 
 import { IDisposableDataProvider } from '../sharedInterfaces/dataProvider';
-import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
+// import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 	return {

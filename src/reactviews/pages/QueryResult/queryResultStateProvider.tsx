@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useContext } from 'react';
+import { ReactNode, createContext } from 'react';
 import * as qr from '../../../sharedInterfaces/queryResult';
 import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
 

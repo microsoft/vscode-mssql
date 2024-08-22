@@ -5,7 +5,7 @@
 
 // Adopted and converted to typescript from https://github.com/6pac/SlickGrid/blob/master/plugins/slick.rowselectionmodel.js
 // heavily modified
-import { KeyboardEvent } from 'react';
+// import { KeyboardEvent } from 'react';
 
 const defaultOptions: IRowSelectionModelOptions = {
 	selectActiveRow: true
@@ -31,8 +31,8 @@ export class RowSelectionModel<T extends Slick.SlickData> implements Slick.Selec
 		this._grid = grid;
 		this._handler
 			.subscribe(this._grid.onActiveCellChanged, (e: Event, data: Slick.OnActiveCellChangedEventArgs<T>) => this.handleActiveCellChange(e, data))
-			.subscribe(this._grid.onKeyDown, (e: DOMEvent) => console.log('keydown event', e)) //this.handleKeyDown(console.log('keydown event', e)))
-			.subscribe(this._grid.onClick, (e: DOMEvent) => this.handleClick(e as MouseEvent));
+			.subscribe(this._grid.onKeyDown, (e) => console.log('keydown event', e)) //this.handleKeyDown(console.log('keydown event', e)))
+			.subscribe(this._grid.onClick, (e) => this.handleClick(e as MouseEvent));
 	}
 
 	private rangesToRows(ranges: Slick.Range[]): number[] {
@@ -73,16 +73,16 @@ export class RowSelectionModel<T extends Slick.SlickData> implements Slick.Selec
 		return this._ranges;
 	}
 
-	private getRowsRange(from: number, to: number): number[] {
-		let i: number, rows: Array<number> = [];
-		for (i = from; i <= to; i++) {
-			rows.push(i);
-		}
-		for (i = to; i < from; i++) {
-			rows.push(i);
-		}
-		return rows;
-	}
+	// private getRowsRange(from: number, to: number): number[] {
+	// 	let i: number, rows: Array<number> = [];
+	// 	for (i = from; i <= to; i++) {
+	// 		rows.push(i);
+	// 	}
+	// 	for (i = to; i < from; i++) {
+	// 		rows.push(i);
+	// 	}
+	// 	return rows;
+	// }
 
 	private handleActiveCellChange(e: Event, data: Slick.OnActiveCellChangedEventArgs<T>): void {
 		if (this._options.selectActiveRow && data.row !== null) {
@@ -90,36 +90,36 @@ export class RowSelectionModel<T extends Slick.SlickData> implements Slick.Selec
 		}
 	}
 
-	private handleKeyDown(e: StandardKeyboardEvent): void {
-		const activeRow = this._grid.getActiveCell();
-		if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.keyCode === KeyCode.UpArrow || e.keyCode === KeyCode.DownArrow)) {
-			let selectedRows = this.getSelectedRows();
-			selectedRows.sort((x, y) => x - y);
+	// private handleKeyDown(e: StandardKeyboardEvent): void {
+	// 	const activeRow = this._grid.getActiveCell();
+	// 	if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.keyCode === KeyCode.UpArrow || e.keyCode === KeyCode.DownArrow)) {
+	// 		let selectedRows = this.getSelectedRows();
+	// 		selectedRows.sort((x, y) => x - y);
 
-			if (!selectedRows.length) {
-				selectedRows = [activeRow.row];
-			}
+	// 		if (!selectedRows.length) {
+	// 			selectedRows = [activeRow.row];
+	// 		}
 
-			let top = selectedRows[0];
-			let bottom = selectedRows[selectedRows.length - 1];
-			let active;
+	// 		let top = selectedRows[0];
+	// 		let bottom = selectedRows[selectedRows.length - 1];
+	// 		let active;
 
-			if (e.keyCode === KeyCode.DownArrow) {
-				active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
-			} else {
-				active = activeRow.row < bottom ? --bottom : --top;
-			}
+	// 		if (e.keyCode === KeyCode.DownArrow) {
+	// 			active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
+	// 		} else {
+	// 			active = activeRow.row < bottom ? --bottom : --top;
+	// 		}
 
-			if (active >= 0 && active < this._grid.getDataLength()) {
-				this._grid.scrollRowIntoView(active);
-				const tempRanges = this.rowsToRanges(this.getRowsRange(top, bottom));
-				this.setSelectedRanges(tempRanges);
-			}
+	// 		if (active >= 0 && active < this._grid.getDataLength()) {
+	// 			this._grid.scrollRowIntoView(active);
+	// 			const tempRanges = this.rowsToRanges(this.getRowsRange(top, bottom));
+	// 			this.setSelectedRanges(tempRanges);
+	// 		}
 
-			e.preventDefault();
-			e.stopPropagation();
-		}
-	}
+	// 		e.preventDefault();
+	// 		e.stopPropagation();
+	// 	}
+	// }
 
 	private handleClick(e: MouseEvent): boolean {
 		const cell = this._grid.getCellFromEvent(e);

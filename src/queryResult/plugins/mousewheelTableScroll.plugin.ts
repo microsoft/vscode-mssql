@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { PlatformInformation } from '../../models/platform';
 import * as DOM from '../dom';
 
 const SCROLL_WHEEL_SENSITIVITY = 50;
@@ -32,7 +31,6 @@ export class MouseWheelSupport implements Slick.Plugin<any> {
 	private viewport!: HTMLElement;
 	private canvas!: HTMLElement;
 	private options: IMouseWheelSupportOptions;
-	public platformInfo: PlatformInformation;
 
 	constructor() {
 		this.options = defaultOptions;
@@ -48,7 +46,6 @@ export class MouseWheelSupport implements Slick.Plugin<any> {
 		};
 		DOM.addDisposableListener(this.viewport, 'mousewheel', onMouseWheel);
 		DOM.addDisposableListener(this.viewport, 'DOMMouseScroll', onMouseWheel);
-		this.platformInfo = await PlatformInformation.getCurrent();
 	}
 
 	private _onMouseWheel(e: StandardWheelEvent) {
@@ -62,8 +59,7 @@ export class MouseWheelSupport implements Slick.Plugin<any> {
 
 			// Convert vertical scrolling to horizontal if shift is held, this
 			// is handled at a higher level on Mac
-			// use PlatformInformation
-			const shiftConvert = !this.platformInfo.isMacOS && e.browserEvent && e.browserEvent.shiftKey;
+			const shiftConvert = process.platform !== 'darwin' && e.browserEvent && e.browserEvent.shiftKey;
 			if (shiftConvert && !deltaX) {
 				deltaX = deltaY;
 				deltaY = 0;
@@ -170,7 +166,7 @@ export class StandardWheelEvent {
 
 				if (ev.deltaMode === ev.DOM_DELTA_LINE) {
 					// the deltas are expressed in lines
-					if (!platform.isMacOS) {
+					if (process.platform !== 'darwin') {
 						this.deltaY = -e.deltaY / 3;
 					} else {
 						this.deltaY = -e.deltaY;
@@ -182,7 +178,7 @@ export class StandardWheelEvent {
 
 			// horizontal delta scroll
 			if (typeof e1.wheelDeltaX !== 'undefined') {
-				if (platform.isWindows) {
+				if (process.platform === 'win32') {
 					this.deltaX = - (e1.wheelDeltaX / 120);
 				} else {
 					this.deltaX = e1.wheelDeltaX / 120;
@@ -196,7 +192,7 @@ export class StandardWheelEvent {
 
 				if (ev.deltaMode === ev.DOM_DELTA_LINE) {
 					// the deltas are expressed in lines
-					if (browser.isFirefox && !platform.isMacintosh) {
+					if (browser.isFirefox && process.platform !== 'darwin') {
 						this.deltaX = -e.deltaX / 3;
 					} else {
 						this.deltaX = -e.deltaX;
@@ -218,9 +214,5 @@ export class StandardWheelEvent {
 
 	public stopPropagation(): void {
 		this.browserEvent?.stopPropagation();
-	}
-
-	public async getPlatform(): Promise<PlatformInformation> {
-		return await PlatformInformation.getCurrent();
 	}
 }

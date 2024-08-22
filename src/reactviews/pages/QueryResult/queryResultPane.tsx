@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, CounterBadge, Divider, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
+import { Button, Divider, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
@@ -131,7 +131,7 @@ export const QueryResultPane = () => {
 				size='medium'
 				selectedValue={metadata.tabStates!.resultPaneTab}
 				onTabSelect={(_event, data) => {
-					state.provider.setResultTab(data.value as qr.QueryResultPaneTabs);
+					state?.provider.setResultTab(data.value as qr.QueryResultPaneTabs);
 				}}
 				className={classes.queryResultPaneTabs}
 			>

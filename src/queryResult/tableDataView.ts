@@ -207,7 +207,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
 		console.log(this._findArray.length);
 		// this._onFindCountChange.fire(this._findArray.length);
 		if (exp) {
-			return new Promise<IFindPosition>((resolve) => {
+			return new Promise<IFindPosition>(() => {
 				this._startSearch(exp, maxMatches);
 			});
 		} else {

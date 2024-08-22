@@ -238,7 +238,7 @@ export class PlatformInformation {
 	}
 
 	private static getWindowsArchitecture(): Promise<string> {
-		return new Promise<string>((resolve, reject) => {
+		return new Promise<string>((resolve) => {
 			if (process.env.PROCESSOR_ARCHITECTURE === 'ARM64') {
 				resolve('arm64');
 			} else if (process.env.PROCESSOR_ARCHITECTURE === 'x86' && process.env.PROCESSOR_ARCHITEW6432 === undefined) {
