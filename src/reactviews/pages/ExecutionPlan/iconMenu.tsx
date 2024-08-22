@@ -27,7 +27,9 @@ const useStyles = makeStyles({
 		marginBottom: "5px",
 	},
 	buttonImg: {
-		display: "block"
+		display: "block",
+		height: "15px",
+		width: "15px"
 	},
 	seperator: {
 		width: "100%",

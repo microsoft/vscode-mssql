@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner } from '@fluentui/react-components';
 import { ExecutionPlanGraph } from './executionPlanGraph';
@@ -27,7 +27,20 @@ const useStyles = makeStyles({
 export const ExecutionPlanPage = () => {
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
-	const executionPlanState = state?.state;
+	const [executionPlanState, setExecutionPlanState] = useState(state?.state);
+
+	useEffect(() => {
+		function checkIfStateIsLoaded() {
+			if (!executionPlanState && state?.state) {
+			  setExecutionPlanState(state.state);
+			}
+		}
+
+		// Check every 200 milliseconds
+		const intervalId = setInterval(checkIfStateIsLoaded, 200);
+
+		return () => clearInterval(intervalId);
+	  }, [executionPlanState, state]);
 
 	return (
 		<div className={classes.outerDiv}>

@@ -141,7 +141,7 @@
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
     "yargs": "^17.7.2",
-    "azdataGraph": "github:Microsoft/azdataGraph#0.0.66"
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.68"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
@@ -208,6 +208,19 @@
         }
       ]
     },
+    "customEditors": [
+        {
+          "viewType": "mssql.executionPlanView",
+          "displayName": "SQL Server Execution Plan",
+          "selector": [
+              {
+                  "filenamePattern": "*.sqlplan",
+                  "language": "sqlplan"
+              }
+          ],
+          "priority": "default"
+        }
+    ],
     "languages": [
       {
         "id": "sql",
@@ -247,11 +260,6 @@
         {
           "command": "mssql.runQuery",
           "when": "editorLangId == sql",
-          "group": "navigation@1"
-        },
-        {
-          "command": "mssql.openExecutionPlanFile",
-          "when": "editorLangId == sqlplan && config.mssql.enableExperimentalFeatures",
           "group": "navigation@1"
         },
         {
@@ -503,15 +511,6 @@
         "icon": {
           "dark": "media/changeConnection_inverse.svg",
           "light": "media/changeConnection.svg"
-        }
-      },
-      {
-        "command": "mssql.openExecutionPlanFile",
-        "title": "Open Execution Plan File",
-        "category": "MS SQL",
-        "icon": {
-          "dark": "media/executionPlan_inverse.svg",
-          "light": "media/executionPlan.svg"
         }
       },
       {

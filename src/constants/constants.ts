@@ -28,7 +28,6 @@ export const cmdChangeDatabase = 'mssql.changeDatabase';
 export const cmdChooseDatabase = 'mssql.chooseDatabase';
 export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
-export const cmdOpenExecutionPlanFile = 'mssql.openExecutionPlanFile';
 export const cmdShowGettingStarted = 'mssql.showGettingStarted';
 export const cmdRefreshQueryHistory = 'mssql.refreshQueryHistory';
 export const cmdClearAllQueryHistory = 'mssql.clearAllQueryHistory';

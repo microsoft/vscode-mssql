@@ -156,8 +156,6 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdChangeDatabase);
 			this._event.on(Constants.cmdChangeDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseDatabase);
-			this.registerCommand(Constants.cmdOpenExecutionPlanFile);
-			this._event.on(Constants.cmdOpenExecutionPlanFile, () => { this.onOpenExecutionPlanFile(); });
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
 			this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()); });
@@ -212,6 +210,9 @@ export default class MainController implements vscode.Disposable {
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
 			this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+
+			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService);
+			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -917,26 +918,6 @@ export default class MainController implements vscode.Disposable {
 		}
 	}
 
-	public async onOpenExecutionPlanFile() {
-		const planContents = vscode.window.activeTextEditor.document.getText();
-		// remove file extension from name
-		let docName = vscode.window.activeTextEditor.document.fileName;
-		let lastSlash = docName.lastIndexOf('\\');
-		if (lastSlash === -1) {
-			lastSlash = docName.lastIndexOf('/');
-		}
-		docName = docName.substring(lastSlash + 1, docName.lastIndexOf('.'));
-
-		const executionPlanPanel = new ExecutionPlanWebViewController(
-			this._context,
-			this.executionPlanService,
-			planContents,
-			docName
-		)
-
-		executionPlanPanel.revealToForeground();
-	}
-
 	/**
 	 * get the T-SQL query from the editor, run it and show output
 	 */
@@ -1437,4 +1418,38 @@ export default class MainController implements vscode.Disposable {
 	public onClearAzureTokenCache(): void {
 		this.connectionManager.onClearTokenCache();
 	}
+
+	private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
+		context: vscode.ExtensionContext;
+		service: any;
+        constructor(
+			context: vscode.ExtensionContext,
+			service: ExecutionPlanService,
+        ) {
+			this.context = context;
+			this.service = service;
+        }
+
+        public async resolveCustomTextEditor(
+            document: vscode.TextDocument
+        ): Promise<void> {
+			await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+			await this.onOpenExecutionPlanFile(document);
+        }
+
+		public async onOpenExecutionPlanFile(document: vscode.TextDocument) {
+			const planContents = document.getText();
+			let docName = document.fileName;
+			docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
+
+			const executionPlanPanel = new ExecutionPlanWebViewController(
+				this.context,
+				this.service,
+				planContents,
+				docName
+			)
+
+			executionPlanPanel.revealToForeground();
+		}
+    };
 }

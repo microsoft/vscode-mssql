@@ -25,7 +25,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ) {
     super(
       context,
-      `${xmlPlanFileName} ${LocalizedConstants.executionPlan}`,  // Sets the webview title
+      `${xmlPlanFileName}`,  // Sets the webview title
       WebviewRoute.executionPlanDocument,
       {},
       vscode.ViewColumn.Active,
