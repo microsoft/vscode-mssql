@@ -591,11 +591,5 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 			return state;
 		});
-
-		this.registerReducer('getAdvancedProperties', async (state) => {
-			const capabilities = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
-			console.log(capabilities);
-			return state;
-		});
 	}
 }

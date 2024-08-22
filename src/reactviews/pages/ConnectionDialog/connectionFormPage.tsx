@@ -36,13 +36,7 @@ export const ConnectionFormPage = () => {
 					);
 				})
 			}
-			<Button
-				onClick={(_event) => {
-					connectionDialogContext.getAdvancedProperties();
-				}}
-			>
-				Load advanced properties
-			</Button>
+
 			<Button
 				appearance="primary"
 				disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
