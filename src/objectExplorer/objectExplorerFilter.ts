@@ -25,13 +25,14 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 			},
 			vscode.ViewColumn.Beside,
 			{
-				light: vscode.Uri.file(context.asAbsolutePath('resources/light/filter.svg')),
-				dark: vscode.Uri.file(context.asAbsolutePath('resources/dark/filter.svg'))
+				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter_inverse.svg'),
+				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter.svg')
 			}
 		);
 
 		this.registerReducer('submit', (state, payload) => {
 			this._onSubmit.fire(payload.filters);
+			this.dispose();
 			return state;
 		});
 	}
@@ -48,7 +49,7 @@ export class ObjectExplorerFilter {
 
 	public static async getFilters(context: vscode.ExtensionContext, filterProperties: vscodeMssql.NodeFilterProperty[], existingFilters?: vscodeMssql.NodeFilter[]): Promise<vscodeMssql.NodeFilter[]> {
 		return await new Promise((resolve, reject) => {
-			if (!this._filterWebviewController) {
+			if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
 				this._filterWebviewController = new ObjectExplorerFilterReactWebviewController(
 					context
 				);
@@ -60,6 +61,14 @@ export class ObjectExplorerFilter {
 			this._filterWebviewController.revealToForeground();
 			this._filterWebviewController.onSubmit((e) => {
 				resolve(e);
+			});
+			this._filterWebviewController.onDisposed(() => {
+				//resolve(existingFilters ?? []);
+				resolve([{
+					name: 'Name',
+					value: 'aasim',
+					operator: 8
+				}]);
 			});
 		});
 	}

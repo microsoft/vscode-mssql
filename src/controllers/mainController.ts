@@ -44,6 +44,7 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { ObjectExplorerFilter } from '../objectExplorer/objectExplorerFilter';
 
 /**
  * The main controller class that initializes the extension
@@ -556,11 +557,38 @@ export default class MainController implements vscode.Disposable {
 						reactPanel.revealToForeground();
 					}));
 
+			const filterNode = async (node: TreeNodeInfo) => {
+				const filters = await ObjectExplorerFilter.getFilters(this._context, node.filterableProperties, node.filters);
+				if (filters) {
+					node.filters = filters;
+					if(node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
+						await this._objectExplorerProvider.refreshNode(node);
+					} else if (node.collapsibleState === vscode.TreeItemCollapsibleState.Expanded) {
+						await this._objectExplorerProvider.expandNode(node, node.sessionId, undefined);
+					}
+					await this.objectExplorerTree.reveal(node, {select: true, focus: true, expand: true});
+				} else {
+					return;
+				}
+			};
+
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
-					Constants.cmdFilterNodes, async (node: TreeNodeInfo) => {
-						console.log('Filter nodes', node);
-					}));
+					Constants.cmdFilterNode, filterNode));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdFilterNodeWithExistingFilters, filterNode));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdClearFilters, async(node: TreeNodeInfo) => {
+						node.filters = [];
+						await this._objectExplorerProvider.refreshNode(node);
+						await this.objectExplorerTree.reveal(node, {select: true, focus: true, expand: true});
+					})
+				);
+
 		}
 
 		// Initiate the scripting service
@@ -602,10 +630,10 @@ export default class MainController implements vscode.Disposable {
 			vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
 				let node = this._objectExplorerProvider.currentNode;
 				// Folder node
-				if (node.contextValue === Constants.folderLabel) {
+				if (node.context.type === Constants.folderLabel) {
 					return;
-				} else if (node.contextValue === Constants.serverLabel ||
-					node.contextValue === Constants.disconnectedServerLabel) {
+				} else if (node.context.type === Constants.serverLabel ||
+					node.context.type === Constants.disconnectedServerLabel) {
 					const label = typeof node.label === 'string' ? node.label : node.label.label;
 					await this._vscodeWrapper.clipboardWriteText(label);
 				} else {

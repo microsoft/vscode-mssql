@@ -22,11 +22,12 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 	private _parentNode: TreeNodeInfo;
 	private _connectionInfo: IConnectionInfo;
 	private _metadata: ObjectMetadata;
-	private _filterableProperties: vscodeMssql.NodeFilterProperty[]
+	private _filterableProperties: vscodeMssql.NodeFilterProperty[];
+	private _filters: vscodeMssql.NodeFilter[];
 
 	constructor(
 		label: string,
-		contextValue: string,
+		context: vscodeMssql.TreeNodeContextValue,
 		collapsibleState: vscode.TreeItemCollapsibleState,
 		nodePath: string,
 		nodeStatus: string,
@@ -36,9 +37,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		parentNode: TreeNodeInfo,
 		filterProperties: vscodeMssql.NodeFilterProperty[],
 		objectMetadata?: ObjectMetadata,
+		filters?: vscodeMssql.NodeFilter[]
 	) {
 		super(label, collapsibleState);
-		this.contextValue = contextValue;
+		this.context = context;
 		this._nodePath = nodePath;
 		this._nodeStatus = nodeStatus;
 		this._nodeType = nodeType;
@@ -47,6 +49,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		this._connectionInfo = connectionInfo;
 		this._filterableProperties = filterProperties;
 		this._metadata = objectMetadata;
+		this._filters = filters;
 		this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
 	}
 
@@ -59,14 +62,15 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		nodeType?: string): TreeNodeInfo {
 		let type = nodeType ? nodeType : nodeInfo.nodeType;
 
-		let contextValue = type;
-		if((nodeInfo as any).objectType === "Tables") {
-			contextValue = 'TablesFolder';
-		}
 
 		const treeNodeInfo = new TreeNodeInfo(
 			label ? label : nodeInfo.label,
-			contextValue,
+			{
+				type: type,
+				filterable: nodeInfo.filterableProperties?.length > 0,
+				hasFilters: false,
+				subType: nodeInfo.objectType
+			},
 			nodeInfo.isLeaf ? vscode.TreeItemCollapsibleState.None : (type === Constants.serverLabel ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed),
 			nodeInfo.nodePath,
 			nodeInfo.nodeStatus,
@@ -77,7 +81,6 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 			nodeInfo.filterableProperties,
 			nodeInfo.metadata
 		);
-		console.log(treeNodeInfo);
 		return treeNodeInfo;
 	}
 
@@ -130,6 +133,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		return this._convertToTreeNodeContext(this.contextValue);
 	}
 
+	public get filters(): vscodeMssql.NodeFilter[] {
+		return this._filters;
+	}
+
 	/** Setters */
 	public set nodePath(value: string) {
 		this._nodePath = value;
@@ -141,6 +148,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
 	public set nodeType(value: string) {
 		this._nodeType = value;
+		this._updateContextValue();
 	}
 
 	public set nodeSubType(value: string) {
@@ -169,10 +177,23 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
 	public set filterableProperties(value: vscodeMssql.NodeFilterProperty[]) {
 		this._filterableProperties = value;
+		this._updateContextValue();
+	}
+
+	public set filters(value: vscodeMssql.NodeFilter[]) {
+		this._filters = value;
+		this._updateContextValue();
 	}
 
 	public set context(value: vscodeMssql.TreeNodeContextValue)  {
 		this.contextValue = this._convertToContextValue(value);
+	}
+
+	private _updateContextValue() {
+		const contextValue = this.context;
+		contextValue.filterable = this.filterableProperties?.length > 0;
+		contextValue.hasFilters = this.filters?.length > 0;
+		this.context = contextValue;
 	}
 
 	//split the context value with, and is in the form of key=value and convert it to TreeNodeContextValue
@@ -181,7 +202,8 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		let context: vscodeMssql.TreeNodeContextValue = {
 			filterable: false,
 			hasFilters: false,
-			type: undefined
+			type: undefined,
+			subType: undefined
 		};
 		contextArray.forEach(element => {
 			let keyValuePair = element.split('=');
@@ -193,17 +215,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 	//convert TreeNodeContextValue to context value string
 	private _convertToContextValue(context: vscodeMssql.TreeNodeContextValue): string {
 		let contextValue = '';
-		if (context) {
-			if (context.filterable) {
-				contextValue += 'filterable=true,';
-			}
-			if (context.hasFilters) {
-				contextValue += 'hasFilters=true,';
-			}
-			if (context.type) {
-				contextValue += 'type=' + context.type + ',';
-			}
-		}
+		Object.keys(context).forEach(key => {
+			contextValue += key + '=' + context[key] + ',';
+		});
 		return contextValue;
 	}
 }

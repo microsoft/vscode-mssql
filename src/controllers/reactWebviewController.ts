@@ -22,6 +22,9 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
 	private _isFirstLoad: boolean = true;
 	private _loadStartTime: number = Date.now();
+	private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+	public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
+
 	/**
 	 * Creates a new ReactWebViewPanelController
 	 * @param _context The context of the extension
@@ -66,9 +69,9 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 				}
 			}
 		}));
-		this._panel.onDidDispose(() => {
+		this._disposables.push(this._panel.onDidDispose(() => {
 			this.dispose();
-		});
+		}));
 		this.setupTheming();
 		this._registerDefaultRequestHandlers();
 		this.state = initialData;
@@ -228,6 +231,7 @@ export class ReactWebViewPanelController<State, Reducers> implements vscode.Disp
 	public dispose() {
 		this._disposables.forEach(d => d.dispose());
 		this._isDisposed = true;
+		this._onDisposed.fire();
 	}
 }
 
