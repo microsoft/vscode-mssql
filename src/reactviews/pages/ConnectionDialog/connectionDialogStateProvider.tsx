@@ -37,6 +37,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 			},
 			connect: function (): void {
 				webViewState?.extensionRpc.action('connect');
+			},
+			getAdvancedProperties: function (): void {
+				webViewState?.extensionRpc.action('getAdvancedProperties');
 			}
 		}
 	}>{children}</ConnectionDialogContext.Provider>;

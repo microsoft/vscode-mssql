@@ -47,6 +47,7 @@ export interface ConnectionDialogContextProps extends FormContextProps<IConnecti
 	loadConnection: (connection: IConnectionDialogProfile) => void;
 	setFormTab: (tab: FormTabType) => void;
 	connect: () => void;
+	getAdvancedProperties: () => void;
 }
 
 /**
@@ -171,4 +172,5 @@ export interface ConnectionDialogReducers {
 		connection: IConnectionDialogProfile;
 	},
 	connect: {}
+	getAdvancedProperties: {}
 }

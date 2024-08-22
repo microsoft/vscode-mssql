@@ -5,13 +5,15 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { ApiStatus, AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTab, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { ApiStatus, AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
+import { GetCapabilitiesRequest } from '../models/contracts/connection';
+import { ConnectionOption } from 'azdata';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
@@ -174,8 +176,146 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		});
 	}
 
+	private convertToFormComponent(connOption: ConnectionOption): FormComponent {
+		switch (connOption.valueType) {
+			case 'boolean':
+				return {
+					propertyName: connOption.name as keyof IConnectionDialogProfile,
+					label: connOption.displayName,
+					required: connOption.isRequired,
+					type: FormComponentType.Checkbox,
+				};
+			case 'string':
+				return {
+					propertyName: connOption.name as keyof IConnectionDialogProfile,
+					label: connOption.displayName,
+					required: connOption.isRequired,
+					type: FormComponentType.Input,
+				};
+			case 'password':
+				return {
+				propertyName: connOption.name as keyof IConnectionDialogProfile,
+				label: connOption.displayName,
+				required: connOption.isRequired,
+				type: FormComponentType.Password,
+			};
+
+			case 'number':
+				return {
+					propertyName: connOption.name as keyof IConnectionDialogProfile,
+					label: connOption.displayName,
+					required: connOption.isRequired,
+					type: FormComponentType.Input,
+				};
+			case 'category':
+				return {
+					propertyName: connOption.name as keyof IConnectionDialogProfile,
+					label: connOption.displayName,
+					required: connOption.isRequired,
+					type: FormComponentType.Dropdown,
+					options: connOption.categoryValues.map(v => {
+						return {
+							displayName: v.displayName,
+							value: v.name
+						};
+					}),
+				};
+			default:
+				console.log(`Unhandled connection option type: ${connOption.valueType}`);
+			}
+	}
+
 	private async generateConnectionFormComponents(): Promise<FormComponent[]> {
-		return [
+		// get list of connection options from Tools Service
+		const result = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
+		const connectionOptions: ConnectionOption[] = result.capabilities.connectionProvider.options;
+
+		// convert connection options to form components
+		const allConnectionFormComponents = new Map<string, FormComponent>();
+
+		for (const option of connectionOptions) {
+			allConnectionFormComponents.set(option.name, this.convertToFormComponent(option));
+		}
+
+		// Add additional components that are not part of the connection options
+		allConnectionFormComponents.set('savePassword', {
+			propertyName: 'savePassword',
+			label: 'Save Password',
+			required: false,
+			type: FormComponentType.Checkbox,
+		});
+
+		allConnectionFormComponents.set('accountId', {
+				propertyName: 'accountId',
+				label: 'Azure Account',
+				required: true,
+				type: FormComponentType.Dropdown,
+				options: await this.getAccounts(),
+				placeholder: 'Select an account',
+				actionButtons: await this.getAzureActionButtons(),
+				validate: (value: string) => {
+					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+						return {
+							isValid: false,
+							validationMessage: 'Azure Account is required'
+						};
+					}
+					return {
+						isValid: true,
+						validationMessage: ''
+					};
+				},
+			});
+
+		allConnectionFormComponents.set('tenantId', {
+			propertyName: 'tenantId',
+			label: 'Tenant ID',
+			required: true,
+			type: FormComponentType.Dropdown,
+			options: [],
+			hidden: true,
+			placeholder: 'Select a tenant',
+			validate: (value: string) => {
+				if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+					return {
+						isValid: false,
+						validationMessage: 'Tenant ID is required'
+					};
+				}
+				return {
+					isValid: true,
+					validationMessage: ''
+				};
+			}
+		});
+
+		allConnectionFormComponents.set('profileName', {
+			propertyName: 'profileName',
+			label: 'Profile Name',
+			required: false,
+			type: FormComponentType.Input,
+		});
+
+		// isolate just the main components
+		const mainOptions = [
+			'server',
+			'authenticationType',
+			'user',
+			'password',
+			'savePassword',
+			'accountId',
+			'tenantId',
+			'database',
+			'trustServerCertificate',
+			'encrypt',
+			'profileName'
+		];
+
+		const mainComponents = mainOptions.map(o => allConnectionFormComponents.get(o));
+
+		return mainComponents;
+
+		[
 			{
 				type: FormComponentType.Input,
 				propertyName: 'server',
@@ -244,27 +384,6 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				label: 'Save Password',
 				required: false,
 				type: FormComponentType.Checkbox,
-			},
-			{
-				propertyName: 'accountId',
-				label: 'Azure Account',
-				required: true,
-				type: FormComponentType.Dropdown,
-				options: await this.getAccounts(),
-				placeholder: 'Select an account',
-				actionButtons: await this.getAzureActionButtons(),
-				validate: (value: string) => {
-					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
-						return {
-							isValid: false,
-							validationMessage: 'Azure Account is required'
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				},
 			},
 			{
 				propertyName: 'tenantId',
@@ -552,6 +671,12 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				this.state.connectionStatus = ApiStatus.Error;
 				return state;
 			}
+			return state;
+		});
+
+		this.registerReducer('getAdvancedProperties', async (state) => {
+			const capabilities = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
+			console.log(capabilities);
 			return state;
 		});
 	}
