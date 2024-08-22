@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { Input, Button, Textarea, Dropdown, Checkbox, Option, makeStyles, Field } from "@fluentui/react-components";
+import { Input, Button, Textarea, Dropdown, Checkbox, Option, makeStyles, Field, InfoLabel, LabelProps } from "@fluentui/react-components";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContextProps, FormComponent, FormComponentType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -83,7 +83,16 @@ export const FormField = ({connectionDialogContext, component, idx}: { connectio
 				orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
 				validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
 				required={component.required}
-				label={component.label}>
+				label={component.tooltip
+					? {
+						children: (_: unknown, slotProps: LabelProps) => (
+							<InfoLabel {...slotProps} info={component.tooltip}>
+								{ component.label }
+							</InfoLabel>
+						)
+					}
+					: component.label}
+			>
 				{ generateFormComponent(connectionDialogContext, component, idx) }
 			</Field>
 			{
