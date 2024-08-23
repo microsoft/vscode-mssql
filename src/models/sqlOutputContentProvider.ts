@@ -51,7 +51,8 @@ export class SqlOutputContentProvider {
 	constructor(
 		private context: vscode.ExtensionContext,
 		private _statusView: StatusView,
-		private _vscodeWrapper) {
+		private _vscodeWrapper,
+		private _queryResultWebviewController: QueryResultWebViewController) {
 		if (!_vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
@@ -190,11 +191,8 @@ export class SqlOutputContentProvider {
 			}
 		};
 		const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
-		const reactController = new QueryResultWebViewController(this.context);
-		this.context.subscriptions.push(
-			vscode.window.registerWebviewViewProvider("queryResult", reactController));
 		this._panels.set(uri, controller);
-		this._reactPanels.set(uri, reactController);
+		this._queryResultWebviewController.addQueryResultState(uri);
 		await controller.init();
 	}
 
@@ -223,9 +221,9 @@ export class SqlOutputContentProvider {
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
 				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
-				this._reactPanels.get(uri).state.value = resultSet.batchId + ' ' + resultSet.id;
+				this._queryResultWebviewController.getQueryResultState(uri).value = resultSet.batchId + ' ' + resultSet.id;
 				await this.rowRequestHandler(uri, resultSet.batchId, resultSet.id, 0, resultSet.rowCount).then((r) => {
-					this._reactPanels.get(uri).state.value = r.rowCount.toString();
+					this._queryResultWebviewController.state.value = r.rowCount.toString();
 					console.log(r.rows);
 				});
 			});
@@ -247,12 +245,13 @@ export class SqlOutputContentProvider {
 					}
 				};
 				this._panels.get(uri).proxy.sendEvent('message', message);
-				this._reactPanels.get(uri).state.messages.push({message: LocalizedConstants.runQueryBatchStartMessage, timestamp: time});
+				this._queryResultWebviewController.getQueryResultState(uri).messages.push({message: LocalizedConstants.runQueryBatchStartMessage, timestamp: time});
+				vscode.commands.executeCommand('queryResult.focus');
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
 				this._panels.get(uri).proxy.sendEvent('message', message);
 				console.log(message);
-				this._reactPanels.get(uri).state.messages.push({message: message.message, timestamp: new Date().toLocaleTimeString()});
+				this._queryResultWebviewController.getQueryResultState(uri).messages.push({message: message.message, timestamp: new Date().toLocaleTimeString()});
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
 				if (!isRefresh) {
@@ -260,6 +259,8 @@ export class SqlOutputContentProvider {
 					this._vscodeWrapper.executeCommand(Constants.cmdRefreshQueryHistory, uri, hasError);
 				}
 				this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
+				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+				vscode.commands.executeCommand('queryResult.focus');
 			});
 			this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
 		}

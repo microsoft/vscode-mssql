@@ -10,17 +10,16 @@ import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebViewViewController } from '../controllers/reactWebviewViewController';
 
 export class QueryResultWebViewController extends ReactWebViewViewController<qr.QueryResultWebViewState, qr.QueryResultReducers> {
+	private _queryResultStateMap: Map<string, qr.QueryResultWebViewState> = new Map<string, qr.QueryResultWebViewState>();
+
 	constructor(context: vscode.ExtensionContext,
 	) {
-		super(context, 'Query Result', WebviewRoute.queryResult, {
+		super(context, WebviewRoute.queryResult, {
 			value: '',
 			messages: [],
 			tabStates: {
 				resultPaneTab: qr.QueryResultPaneTabs.Messages
 			}
-		}, vscode.ViewColumn.Active, {
-			dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'tableDesignerEditor_inverse.svg'),
-			light: vscode.Uri.joinPath(context.extensionUri, 'media', 'tableDesignerEditor.svg')
 		});
 		this.initialize();
 	}
@@ -36,4 +35,17 @@ export class QueryResultWebViewController extends ReactWebViewViewController<qr.
 		});
 	}
 
+	public addQueryResultState(uri: string): void {
+		this._queryResultStateMap.set(uri, {
+			value: '',
+			messages: [],
+			tabStates: {
+				resultPaneTab: qr.QueryResultPaneTabs.Messages
+			}
+		});
+	}
+
+	public getQueryResultState(uri: string): qr.QueryResultWebViewState {
+		return this._queryResultStateMap.get(uri);
+	}
 }
