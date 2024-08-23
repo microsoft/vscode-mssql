@@ -78,7 +78,7 @@ export const ConnectionFormPage = () => {
                             .advancedComponents
                     ).map((group, groupIndex) => {
                         return (
-                            <div key={groupIndex} style={{margin: '20px 0px'}}>
+                            <div key={groupIndex} style={{ margin: "20px 0px" }}>
                                 <Divider>{group}</Divider>
                                 {connectionDialogContext.state.connectionFormComponents.advancedComponents[
                                     group
@@ -89,9 +89,7 @@ export const ConnectionFormPage = () => {
                                     return (
                                         <FormField
                                             key={idx}
-                                            connectionDialogContext={
-                                                connectionDialogContext
-                                            }
+                                            connectionDialogContext={connectionDialogContext}
                                             component={component}
                                             idx={idx}
                                         />
@@ -117,8 +115,7 @@ export const ConnectionFormPage = () => {
             <Button
                 appearance="primary"
                 disabled={
-                    connectionDialogContext.state.connectionStatus ===
-                    ApiStatus.Loading
+                    connectionDialogContext.state.connectionStatus === ApiStatus.Loading
                 }
                 shape="square"
                 onClick={(_event) => {
@@ -131,7 +128,7 @@ export const ConnectionFormPage = () => {
                 iconPosition="after"
                 icon={
                     connectionDialogContext.state.connectionStatus ===
-                    ApiStatus.Loading ? (
+                        ApiStatus.Loading ? (
                         <Spinner size="tiny" />
                     ) : undefined
                 }
