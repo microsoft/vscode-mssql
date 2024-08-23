@@ -10,14 +10,18 @@ import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
 import * as LocalizedConstants from "../constants/localizedConstants";
 import { homedir } from "os";
 import { fileExists } from "../utils/utils";
+import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
+import * as path from 'path';
 
 export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
   ep.ExecutionPlanReducers
 > {
+  themeChangeListener: vscode.Disposable;
   constructor(
     context: vscode.ExtensionContext,
     private executionPlanService: ep.ExecutionPlanService,
+    private untitledSqlDocumentService: UntitledSqlDocumentService,
     private executionPlanContents: string,
     // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
     // @ts-ignore
@@ -47,6 +51,10 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   }
 
   private async initialize() {
+    this.themeChangeListener = vscode.window.onDidChangeActiveColorTheme(() => {
+      this.onThemeChanged();
+    });
+
     this.state.sqlPlanContent = this.executionPlanContents;
 	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
     this.state.localizedConstants = LocalizedConstants;
@@ -68,23 +76,25 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       };
     });
     this.registerReducer("saveExecutionPlan", async (state, payload) => {
-      const homeDir = homedir();
-      const documentsFolder = vscode.Uri.file(`${homeDir}/Documents`);
+      let folder = vscode.Uri.file(homedir());
+      if (await fileExists(folder, 'Documents')) {
+        folder = vscode.Uri.file(path.join(folder.path, 'Documents'));
+      }
 
       let filename: vscode.Uri;
       let counter = 1;
-      if (await fileExists(documentsFolder, `plan.sqlplan`)) {
+      if (await fileExists(folder, `plan.sqlplan`)) {
         while (
-          await fileExists(documentsFolder, `plan${counter}.sqlplan`)
+          await fileExists(folder, `plan${counter}.sqlplan`)
         ) {
           counter += 1;
         }
         filename = vscode.Uri.joinPath(
-          documentsFolder,
+          folder,
           `plan${counter}.sqlplan`
         );
       } else {
-        filename = vscode.Uri.joinPath(documentsFolder, "plan.sqlplan");
+        filename = vscode.Uri.joinPath(folder, "plan.sqlplan");
       }
 
       // Show a save dialog to the user
@@ -116,12 +126,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       return state;
     });
     this.registerReducer("showQuery", async (state, payload) => {
-      const sqlDoc = await vscode.workspace.openTextDocument({
-        content: payload.query,
-        language: 'sql'
-      });
-
-      await vscode.window.showTextDocument(sqlDoc);
+      await this.untitledSqlDocumentService.newQuery(payload.query);
 
       return state;
     });
@@ -153,5 +158,9 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       sum += (graph.root.cost + graph.root.subTreeCost);
     }
     return sum;
+  }
+
+  private onThemeChanged(): void {
+    this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
   }
 }

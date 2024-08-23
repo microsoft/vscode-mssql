@@ -23,6 +23,6 @@ export async function fileExists(uri: vscode.Uri, filename: string): Promise<boo
     } catch {
       	return false;
     }
-  }
+}
 
 export class CancelError extends Error { }

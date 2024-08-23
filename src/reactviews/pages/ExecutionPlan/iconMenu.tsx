@@ -28,8 +28,8 @@ const useStyles = makeStyles({
 	},
 	buttonImg: {
 		display: "block",
-		height: "15px",
-		width: "15px"
+		height: "16px",
+		width: "16px"
 	},
 	seperator: {
 		width: "100%",

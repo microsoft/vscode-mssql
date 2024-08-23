@@ -211,7 +211,7 @@ export default class MainController implements vscode.Disposable {
 			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
 			this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
-			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService);
+			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService, this._untitledSqlDocumentService);
 			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);
 
 			// Add handlers for VS Code generated commands
@@ -1421,13 +1421,16 @@ export default class MainController implements vscode.Disposable {
 
 	private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
 		context: vscode.ExtensionContext;
-		service: any;
+		executionPlanService: ExecutionPlanService;
+		untitledSqlService: UntitledSqlDocumentService
         constructor(
 			context: vscode.ExtensionContext,
-			service: ExecutionPlanService,
+			executionPlanService: ExecutionPlanService,
+			untitledSqlService: UntitledSqlDocumentService
         ) {
 			this.context = context;
-			this.service = service;
+			this.executionPlanService = executionPlanService;
+			this.untitledSqlService = untitledSqlService;
         }
 
         public async resolveCustomTextEditor(
@@ -1444,7 +1447,8 @@ export default class MainController implements vscode.Disposable {
 
 			const executionPlanPanel = new ExecutionPlanWebViewController(
 				this.context,
-				this.service,
+				this.executionPlanService,
+				this.untitledSqlService,
 				planContents,
 				docName
 			)
