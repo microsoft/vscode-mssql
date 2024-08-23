@@ -678,7 +678,7 @@
             <source xml:lang="en">Query failed</source>
         </trans-unit>
         <trans-unit id="connectionDialog">
-            <source xml:lang="en">ConnectionDialog</source>
+            <source xml:lang="en">Connection Dialog</source>
         </trans-unit>
         <trans-unit id="azureAccount">
             <source xml:lang="en">Azure Account</source>
