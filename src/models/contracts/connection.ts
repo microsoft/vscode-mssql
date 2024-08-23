@@ -262,6 +262,9 @@ export namespace ClearPooledConnectionsRequest {
 
 //#region Connection capabilities
 
+/**
+ * Gets the capabilities of the data protocol server
+ */
 export namespace GetCapabilitiesRequest {
 	export const type = new RequestType<object, CapabilitiesResult, void, void>('capabilities/list');
 }

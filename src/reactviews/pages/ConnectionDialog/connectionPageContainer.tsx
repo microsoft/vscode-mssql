@@ -54,9 +54,6 @@ export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const classes = useStyles();
 
-	// TODO: if you want to generate components from a form spec, that's fine, but they shouldn't be part of the state.
-	// Refactor to bring the form spec here, and set the current connection profile in the state.
-
 	if (!connectionDialogContext?.state) {
 		return undefined;
 	}

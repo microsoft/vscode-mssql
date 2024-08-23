@@ -379,6 +379,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		await this.completeFormComponents(allConnectionFormComponents);
 
 		// organize the main components and advanced components
+		// main components are few-enough that there's no grouping, but advanced components get grouped by category
 		const mainComponents: FormComponent[] = [];
 		const advancedComponents: {[category: string]: FormComponent[]} = {};
 
