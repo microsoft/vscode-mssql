@@ -191,6 +191,8 @@ export class SqlOutputContentProvider {
 		};
 		const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
 		const reactController = new QueryResultWebViewController(this.context);
+		this.context.subscriptions.push(
+			vscode.window.registerWebviewViewProvider("queryResult", reactController));
 		this._panels.set(uri, controller);
 		this._reactPanels.set(uri, reactController);
 		await controller.init();
