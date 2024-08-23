@@ -677,6 +677,57 @@
         <trans-unit id="queryFailed">
             <source xml:lang="en">Query failed</source>
         </trans-unit>
+        <trans-unit id="connectionDialog">
+            <source xml:lang="en">ConnectionDialog</source>
+        </trans-unit>
+        <trans-unit id="azureAccount">
+            <source xml:lang="en">Azure Account</source>
+        </trans-unit>
+        <trans-unit id="azureAccountIsRequired">
+            <source xml:lang="en">Azure Account is required</source>
+        </trans-unit>
+        <trans-unit id="selectAnAccount">
+            <source xml:lang="en">Select an account</source>
+        </trans-unit>
+        <trans-unit id="savePassword">
+            <source xml:lang="en">Save Password</source>
+        </trans-unit>
+        <trans-unit id="tenantId">
+            <source xml:lang="en">Tenant ID</source>
+        </trans-unit>
+        <trans-unit id="selectATenant">
+            <source xml:lang="en">Select a tenant</source>
+        </trans-unit>
+        <trans-unit id="tenantIdIsRequired">
+            <source xml:lang="en">Tenant ID is required</source>
+        </trans-unit>
+        <trans-unit id="profileName">
+            <source xml:lang="en">Profile Name</source>
+        </trans-unit>
+        <trans-unit id="serverIsRequired">
+            <source xml:lang="en">Server is required</source>
+        </trans-unit>
+        <trans-unit id="usernameIsRequired">
+            <source xml:lang="en">User name is required</source>
+        </trans-unit>
+        <trans-unit id="connectionString">
+            <source xml:lang="en">Connection String</source>
+        </trans-unit>
+        <trans-unit id="connectionStringIsRequired">
+            <source xml:lang="en">Connection string is required</source>
+        </trans-unit>
+        <trans-unit id="signIn">
+            <source xml:lang="en">Sign in</source>
+        </trans-unit>
+        <trans-unit id="additionalParameters">
+            <source xml:lang="en">Additional parameters</source>
+        </trans-unit>
+        <trans-unit id="connect">
+            <source xml:lang="en">Connect</source>
+        </trans-unit>
+        <trans-unit id="parameters">
+            <source xml:lang="en">Parameters</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

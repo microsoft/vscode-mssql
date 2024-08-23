@@ -16,6 +16,7 @@ import { CapabilitiesResult, GetCapabilitiesRequest } from '../models/contracts/
 import { ConnectionOption } from 'azdata';
 import { Logger } from '../models/logger';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import * as LocalizedConstants from '../constants/localizedConstants';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
@@ -30,7 +31,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	) {
 		super(
 			context,
-			'Connection Dialog',
+			LocalizedConstants.connectionDialog,
 			WebviewRoute.connectionDialog,
 			{
 				connectionProfile: {} as IConnectionDialogProfile,
@@ -53,7 +54,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 		if (!ConnectionDialogWebViewController._logger) {
 			const vscodeWrapper = new VscodeWrapper();
-			const channel = vscodeWrapper.createOutputChannel('Connection Dialog');
+			const channel = vscodeWrapper.createOutputChannel(LocalizedConstants.connectionDialog);
 			ConnectionDialogWebViewController._logger = Logger.create(channel);
 		}
 
@@ -252,7 +253,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			option: undefined,
 			component: {
 				propertyName: 'savePassword',
-				label: 'Save Password',
+				label: LocalizedConstants.savePassword,
 				required: false,
 				type: FormComponentType.Checkbox,
 			}
@@ -262,17 +263,17 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			option: undefined,
 			component: {
 				propertyName: 'accountId',
-				label: 'Azure Account',
+				label: LocalizedConstants.azureAccount,
 				required: true,
 				type: FormComponentType.Dropdown,
 				options: await this.getAccounts(),
-				placeholder: 'Select an account',
+				placeholder: LocalizedConstants.selectAnAccount,
 				actionButtons: await this.getAzureActionButtons(),
 				validate: (value: string) => {
 					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
 						return {
 							isValid: false,
-							validationMessage: 'Azure Account is required'
+							validationMessage: LocalizedConstants.azureAccountIsRequired
 						};
 					}
 					return {
@@ -287,17 +288,17 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			option: undefined,
 			component: {
 				propertyName: 'tenantId',
-				label: 'Tenant ID',
+				label: LocalizedConstants.tenantId,
 				required: true,
 				type: FormComponentType.Dropdown,
 				options: [],
 				hidden: true,
-				placeholder: 'Select a tenant',
+				placeholder: LocalizedConstants.selectATenant,
 				validate: (value: string) => {
 					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
 						return {
 							isValid: false,
-							validationMessage: 'Tenant ID is required'
+							validationMessage: LocalizedConstants.tenantIdIsRequired
 						};
 					}
 					return {
@@ -312,7 +313,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			option: undefined,
 			component: {
 			propertyName: 'profileName',
-			label: 'Profile Name',
+			label: LocalizedConstants.profileName,
 			required: false,
 			type: FormComponentType.Input,
 			}
@@ -323,7 +324,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			if (this.state.selectedFormTab === FormTabType.Parameters && !value) {
 				return {
 					isValid: false,
-					validationMessage: 'Server is required'
+					validationMessage: LocalizedConstants.serverIsRequired
 				};
 			}
 			return {
@@ -336,20 +337,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
 				return {
 					isValid: false,
-					validationMessage: 'User name is required'
-				};
-			}
-			return {
-				isValid: true,
-				validationMessage: ''
-			};
-		};
-
-		components.get('tenantId')!.component.validate = (value: string) => {
-			if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
-				return {
-					isValid: false,
-					validationMessage: 'Tenant ID is required'
+					validationMessage: LocalizedConstants.usernameIsRequired
 				};
 			}
 			return {
@@ -415,13 +403,13 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			{
 				type: FormComponentType.TextArea,
 				propertyName: 'connectionString',
-				label: 'Connection String',
+				label: LocalizedConstants.connectionString,
 				required: true,
 				validate: (value: string) => {
 					if (this.state.selectedFormTab === FormTabType.ConnectionString && !value) {
 						return {
 							isValid: false,
-							validationMessage: 'Connection string is required'
+							validationMessage: LocalizedConstants.connectionStringIsRequired
 						};
 					}
 					return {
@@ -432,7 +420,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			},
 			{
 				propertyName: 'profileName',
-				label: 'Profile Name',
+				label: LocalizedConstants.profileName,
 				required: false,
 				type: FormComponentType.Input,
 			}
@@ -474,7 +462,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	private async getAzureActionButtons(): Promise<FormComponentActionButton[]> {
 		const actionButtons: FormComponentActionButton[] = [];
 		actionButtons.push({
-			label: 'Sign in',
+			label: LocalizedConstants.signIn,
 			id: 'azureSignIn',
 			callback: async () => {
 				const account = await this._mainController.azureAccountService.addAccount();
@@ -494,13 +482,13 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				const isTokenExpired = AzureController.isTokenInValid(session.token, session.expiresOn);
 				if (isTokenExpired) {
 					actionButtons.push({
-						label: 'Refresh Token',
+						label: LocalizedConstants.refreshTokenLabel,
 						id: 'refreshToken',
 						callback: async () => {
 							const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === this.state.connectionProfile.accountId);
 							if (account) {
 								const session = await this._mainController.azureAccountService.getAccountSecurityToken(account, undefined);
-								console.log('Token refreshed', session.expiresOn);
+								ConnectionDialogWebViewController._logger.log('Token refreshed', session.expiresOn);
 							}
 						}
 					});
