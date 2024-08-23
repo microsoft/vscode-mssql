@@ -14,9 +14,14 @@ import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { CapabilitiesResult, GetCapabilitiesRequest } from '../models/contracts/connection';
 import { ConnectionOption } from 'azdata';
+import { Logger } from '../models/logger';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
+
+	private static _logger: Logger;
+
 	constructor(
 		context: vscode.ExtensionContext,
 		private _mainController: MainController,
@@ -45,6 +50,13 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor.svg')
 			}
 		);
+
+		if (!ConnectionDialogWebViewController._logger) {
+			const vscodeWrapper = new VscodeWrapper();
+			const channel = vscodeWrapper.createOutputChannel('Connection Dialog');
+			ConnectionDialogWebViewController._logger = Logger.create(channel);
+		}
+
 		this.registerRpcHandlers();
 		this.initializeDialog().catch(err => vscode.window.showErrorMessage(err.toString()));
 	}
@@ -230,7 +242,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					}),
 				};
 			default:
-				console.log(`Unhandled connection option type: ${connOption.valueType}`);
+				ConnectionDialogWebViewController._logger.log(`Unhandled connection option type: ${connOption.valueType}`);
 			}
 	}
 
