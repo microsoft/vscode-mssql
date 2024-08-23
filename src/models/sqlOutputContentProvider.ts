@@ -191,6 +191,8 @@ export class SqlOutputContentProvider {
 		};
 		const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
 		const reactController = new QueryResultWebViewController(this.context);
+		this.context.subscriptions.push(
+			vscode.window.registerWebviewViewProvider("queryResult", reactController));
 		this._panels.set(uri, controller);
 		this._reactPanels.set(uri, reactController);
 		await controller.init();
@@ -245,9 +247,12 @@ export class SqlOutputContentProvider {
 					}
 				};
 				this._panels.get(uri).proxy.sendEvent('message', message);
+				this._reactPanels.get(uri).state.messages.push({message: LocalizedConstants.runQueryBatchStartMessage, timestamp: time});
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
 				this._panels.get(uri).proxy.sendEvent('message', message);
+				console.log(message);
+				this._reactPanels.get(uri).state.messages.push({message: message.message, timestamp: new Date().toLocaleTimeString()});
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
 				if (!isRefresh) {
