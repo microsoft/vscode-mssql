@@ -17,7 +17,6 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
   ep.ExecutionPlanReducers
 > {
-  themeChangeListener: vscode.Disposable;
   constructor(
     context: vscode.ExtensionContext,
     private executionPlanService: ep.ExecutionPlanService,
@@ -51,10 +50,6 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   }
 
   private async initialize() {
-    this.themeChangeListener = vscode.window.onDidChangeActiveColorTheme(() => {
-      this.onThemeChanged();
-    });
-
     this.state.sqlPlanContent = this.executionPlanContents;
 	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
     this.state.localizedConstants = LocalizedConstants;
@@ -158,9 +153,5 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       sum += (graph.root.cost + graph.root.subTreeCost);
     }
     return sum;
-  }
-
-  private onThemeChanged(): void {
-    this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
   }
 }
