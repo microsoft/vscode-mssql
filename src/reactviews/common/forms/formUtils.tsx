@@ -12,22 +12,22 @@ import { ConnectionDialogContext } from "../../pages/ConnectionDialog/connection
 
 export const FormInput = ({ value, target, type }: { value: string, target: keyof IConnectionDialogProfile, type: 'input' | 'password' | 'textarea' }) => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const [inputVal, setValueVal] = useState(value);
+	const [formInputValue, setFormInputValue] = useState(value);
 	const [showPassword, setShowPassword] = useState(false);
 
 	useEffect(() => {
-		setValueVal(value);
+		setFormInputValue(value);
 	}, [value]);
 
 	const handleChange = (data: string) => {
-		setValueVal(data);
+		setFormInputValue(data);
 	};
 
 	const handleBlur = () => {
 		connectionDialogContext?.formAction({
 			propertyName: target,
 			isAction: false,
-			value: inputVal
+			value: formInputValue
 		});
 	};
 
@@ -36,7 +36,7 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 			{
 				type === 'input' &&
 				<Input
-					value={inputVal}
+					value={formInputValue}
 					onChange={(_value, data) => handleChange(data.value)}
 					onBlur={handleBlur}
 					size="small"
@@ -46,7 +46,7 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 				type === 'password' &&
 				<Input
 					type={showPassword ? 'text' : 'password'}
-					value={inputVal}
+					value={formInputValue}
 					onChange={(_value, data) => handleChange(data.value)}
 					onBlur={handleBlur}
 					size="small"
@@ -63,7 +63,7 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 			{
 				type === 'textarea' &&
 				<Textarea
-				    value={inputVal}
+				    value={formInputValue}
 					size="small"
 					onChange={(_value, data) => handleChange(data.value)}
 					onBlur={handleBlur}
