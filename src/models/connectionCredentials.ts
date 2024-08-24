@@ -74,6 +74,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 		details.options['trustServerCertificate'] = credentials.trustServerCertificate;
 		details.options['hostNameInCertificate'] = credentials.hostNameInCertificate;
 		details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
+		details.options['columnEncryptionSetting'] = credentials.columnEncryptionSetting;
 		details.options['connectTimeout'] = credentials.connectTimeout;
 		details.options['commandTimeout'] = credentials.commandTimeout;
 		details.options['connectRetryCount'] = credentials.connectRetryCount;
