@@ -59,6 +59,7 @@ function createTestCredentials(): IConnectionInfo {
 		trustServerCertificate: false,
 		hostNameInCertificate: '',
 		persistSecurityInfo: false,
+		columnEncryptionSetting: 'enabled',
 		connectTimeout: 15,
 		commandTimeout: 30,
 		connectRetryCount: 0,
