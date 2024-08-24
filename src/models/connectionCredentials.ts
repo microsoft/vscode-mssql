@@ -28,6 +28,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public trustServerCertificate: boolean | undefined;
 	public hostNameInCertificate: string | undefined;
 	public persistSecurityInfo: boolean | undefined;
+	public columnEncryptionSetting: string | undefined;
 	public connectTimeout: number | undefined;
 	public commandTimeout: number | undefined;
 	public connectRetryCount: number | undefined;
