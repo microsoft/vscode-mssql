@@ -9,7 +9,7 @@ import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
 import * as LocalizedConstants from "../constants/localizedConstants";
 import { homedir } from "os";
-import { fileExists } from "../utils/utils";
+import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import * as path from 'path';
 
@@ -72,15 +72,15 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
     });
     this.registerReducer("saveExecutionPlan", async (state, payload) => {
       let folder = vscode.Uri.file(homedir());
-      if (await fileExists(folder, 'Documents')) {
+      if (await exists('Documents', folder)) {
         folder = vscode.Uri.file(path.join(folder.path, 'Documents'));
       }
 
       let filename: vscode.Uri;
       let counter = 1;
-      if (await fileExists(folder, `plan.sqlplan`)) {
+      if (await exists(`plan.sqlplan`, folder)) {
         while (
-          await fileExists(folder, `plan${counter}.sqlplan`)
+          await exists(`plan${counter}.sqlplan`, folder)
         ) {
           counter += 1;
         }

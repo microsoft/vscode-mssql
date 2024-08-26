@@ -1448,7 +1448,7 @@ export default class MainController implements vscode.Disposable {
 			let docName = document.fileName;
 			docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
 
-			const executionPlanPanel = new ExecutionPlanWebViewController(
+			const executionPlanController = new ExecutionPlanWebViewController(
 				this.context,
 				this.executionPlanService,
 				this.untitledSqlService,
@@ -1456,7 +1456,7 @@ export default class MainController implements vscode.Disposable {
 				docName
 			)
 
-			executionPlanPanel.revealToForeground();
+			executionPlanController.revealToForeground();
 		}
     };
 }
