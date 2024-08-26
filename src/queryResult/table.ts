@@ -58,9 +58,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 		this._tableContainer = document.createElement('div');
 		// this._tableContainer.className = //TODO: class name for styles
 		let gridParent = document.getElementById('grid-parent');
-		this._tableContainer.style.width = `${gridParent?.clientWidth.toString()}px`;
-		const height = gridParent?.clientHeight - 5;
-		this._tableContainer.style.height = `${height.toString()}px`;
+		if (gridParent) {
+			this._tableContainer.style.width = `${gridParent?.clientWidth.toString()}px`;
+			const height = gridParent?.clientHeight - 5;
+			this._tableContainer.style.height = `${height.toString()}px`;
+		}
 		this._container.appendChild(this._tableContainer);
 		this.styleElement = DOM.createStyleSheet(this._container);
 		this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
