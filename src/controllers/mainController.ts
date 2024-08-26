@@ -53,6 +53,7 @@ export default class MainController implements vscode.Disposable {
 	private _context: vscode.ExtensionContext;
 	private _event: events.EventEmitter = new events.EventEmitter();
 	private _outputContentProvider: SqlOutputContentProvider;
+	private _queryResultWebviewController: QueryResultWebViewController;
 	private _statusview: StatusView;
 	private _connectionMgr: ConnectionManager;
 	private _prompter: IPrompter;
@@ -314,8 +315,11 @@ export default class MainController implements vscode.Disposable {
 		// Init CodeAdapter for use when user response to questions is needed
 		this._prompter = new CodeAdapter(this._vscodeWrapper);
 
+		// Init
+		this._queryResultWebviewController = new QueryResultWebViewController(this._context);
+
 		// Init content provider for results pane
-		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper);
+		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper, this._queryResultWebviewController);
 
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
@@ -567,6 +571,8 @@ export default class MainController implements vscode.Disposable {
 						reactPanel.revealToForeground();
 					}));
 
+			this._context.subscriptions.push(
+				vscode.window.registerWebviewViewProvider("queryResult", this._queryResultWebviewController));
 		}
 
 		// Initiate the scripting service

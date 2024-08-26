@@ -28,14 +28,8 @@ export class ReactWebViewViewController<State, Reducers> extends ReactWebviewBas
 	 */
 	constructor(
 		_context: vscode.ExtensionContext,
-		title: string,
 		_route: WebviewRoute,
 		initialData: State,
-		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
-		private _iconPath?: vscode.Uri | {
-			readonly light: vscode.Uri;
-			readonly dark: vscode.Uri;
-		}
 	) {
 		super(_context, _route, initialData);
 	}
