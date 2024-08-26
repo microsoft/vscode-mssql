@@ -29,6 +29,8 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public hostNameInCertificate: string | undefined;
 	public persistSecurityInfo: boolean | undefined;
 	public columnEncryptionSetting: string | undefined;
+	public attestationProtocol: string | undefined;
+	public enclaveAttestationUrl: string | undefined;
 	public connectTimeout: number | undefined;
 	public commandTimeout: number | undefined;
 	public connectRetryCount: number | undefined;
@@ -76,6 +78,8 @@ export class ConnectionCredentials implements IConnectionInfo {
 		details.options['hostNameInCertificate'] = credentials.hostNameInCertificate;
 		details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
 		details.options['columnEncryptionSetting'] = credentials.columnEncryptionSetting;
+		details.options['attestationProtocol'] = credentials.attestationProtocol;
+		details.options['enclaveAttestationUrl'] = credentials.enclaveAttestationUrl;
 		details.options['connectTimeout'] = credentials.connectTimeout;
 		details.options['commandTimeout'] = credentials.commandTimeout;
 		details.options['connectRetryCount'] = credentials.connectRetryCount;

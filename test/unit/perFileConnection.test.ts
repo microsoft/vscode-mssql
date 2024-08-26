@@ -60,6 +60,8 @@ function createTestCredentials(): IConnectionInfo {
 		hostNameInCertificate: '',
 		persistSecurityInfo: false,
 		columnEncryptionSetting: 'enabled',
+		attestationProtocol: 'HGS',
+		enclaveAttestationUrl: 'https://attestationurl',
 		connectTimeout: 15,
 		commandTimeout: 30,
 		connectRetryCount: 0,
