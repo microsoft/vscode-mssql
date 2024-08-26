@@ -34,7 +34,7 @@ export const useStyles = makeStyles({
 	}
 });
 
-export const ObjectExplorerFilter = () => {
+export const ObjectExplorerFilterPage = () => {
 	const classes = useStyles();
 	const [open] = useState(true);
 	const provider = useContext(ObjectExplorerFilterContext);
@@ -48,7 +48,7 @@ export const ObjectExplorerFilter = () => {
 			};
 			return acc;
 		}, {} as Record<string, vscodeMssql.NodeFilter>) ?? {});
-
+	console.log('filters', filters);
 	function getFilterValue(name: string): string | number | boolean | string[] | number[] | undefined {
 		return filters[name]?.value;
 	}
@@ -169,11 +169,13 @@ export const ObjectExplorerFilter = () => {
 								return <Input size="small" className={classes.inputs} value={getFilterValue(item.name) as string} onChange={(_e, d) => {
 									filters[item.name].value = d.value;
 									setFilters(filters);
+									console.log('filter', filters);
 								}} />;
 							case NodeFilterPropertyDataType.Number:
 								return <Input size="small" type="number" className={classes.inputs} value={getFilterValue(item.name) as string} onChange={(_e, d) => {
 									filters[item.name].value = d.value;
 									setFilters(filters);
+									console.log('filter', filters);
 								}} />;
 							case NodeFilterPropertyDataType.Date:
 								return <Input size="small" type="date" className={classes.inputs} value={getFilterValue(item.name) as string} onChange={(_e, d) => {
@@ -200,9 +202,15 @@ export const ObjectExplorerFilter = () => {
 				{
 					columnId: 'clear',
 					renderHeaderCell: () => <>Clear</>,
-					renderCell: (_item) => {
+					renderCell: (item) => {
 						return <Tooltip content="Clear" relationship="label">
-							<Button size="small" icon={<EraserRegular />} />
+							<Button size="small" icon={<EraserRegular />} onClick={() => {
+								console.log('clear');
+								filters[item.name].value = '';
+								filters[item.name].operator = undefined;
+								setFilters(filters);
+								console.log('filter', filters);
+							}}/>
 						</Tooltip>;
 					}
 				}

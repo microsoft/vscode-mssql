@@ -12,7 +12,7 @@ import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ConnectionDialogStateProvider } from './pages/ConnectionDialog/connectionDialogStateProvider';
 import { ConnectionPage } from './pages/ConnectionDialog/connectionPage';
 import { ObjectExplorerFilterStateProvider } from './pages/ObjectExplorerFilter/ObjectExplorerFilterStateProvider';
-import { ObjectExplorerFilter } from './pages/ObjectExplorerFilter';
+import { ObjectExplorerFilterPage } from './pages/ObjectExplorerFilter/ObjectExplorerFilterPage';
 
 const Router = () => {
 	const vscodeWebviewState = useVscodeWebview<unknown, unknown>();
@@ -37,7 +37,7 @@ const Router = () => {
 		case WebviewRoute.objectExplorerFilter:
 			return (
 				<ObjectExplorerFilterStateProvider>
-					<ObjectExplorerFilter />
+					<ObjectExplorerFilterPage />
 				</ObjectExplorerFilterStateProvider>
 			);
 		default: (

@@ -312,18 +312,30 @@
         },
         {
           "command": "mssql.filterNode",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/ ",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
           "group": "inline@1"
         },
         {
           "command": "mssql.filterNodeWithExistingFilters",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/  ",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
           "group": "inline@1"
         },
         {
           "command": "mssql.clearFilters",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/  ",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
           "group": "inline@2"
+        },
+        {
+          "command": "mssql.filterNode",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/"
+        },
+        {
+          "command": "mssql.filterNodeWithExistingFilters",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
+        },
+        {
+          "command": "mssql.clearFilters",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
         },
         {
           "command": "mssql.removeObjectExplorerNode",
