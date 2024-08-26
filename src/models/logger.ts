@@ -6,6 +6,7 @@
 import * as os from 'os';
 import { ILogger } from './interfaces';
 import * as Utils from './utils';
+import { OutputChannel } from 'vscode';
 
 export enum LogLevel {
 	'Pii',
@@ -36,6 +37,13 @@ export class Logger implements ILogger {
 		this._logLevel = logLevel;
 		this._piiLogging = piiLogging;
 		this._prefix = prefix;
+	}
+
+	public static create(channel: OutputChannel){
+		const logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
+		const pii = Utils.getConfigPiiLogging();
+
+		return new Logger(text => channel.append(text), logLevel, pii);
 	}
 
 	/**

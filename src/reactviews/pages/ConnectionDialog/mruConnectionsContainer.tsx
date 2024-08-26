@@ -56,10 +56,10 @@ export const MruConnectionsContainer = () => {
 							<TreeItemLayout iconBefore={<ServerRegular />}>
 								{connection.profileName}
 							</TreeItemLayout>
-						</TreeItem>
+						</TreeItem>;
 					})
 				}
 			</Tree>
 		</div >
-	)
-}
+	);
+};
