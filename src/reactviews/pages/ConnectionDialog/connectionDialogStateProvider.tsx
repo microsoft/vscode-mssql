@@ -5,7 +5,7 @@
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebViewProvider";
-import { ConnectionDialogContextProps, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { ConnectionDialogContextProps, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -23,21 +23,21 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
 			loadConnection: function (connection: IConnectionDialogProfile): void {
 				webViewState?.extensionRpc.action('loadConnection', {
 					connection: connection,
-				 });
+				});
 			},
 			formAction: function (event): void {
 				webViewState?.extensionRpc.action('formAction', {
 					event: event
 				});
 			},
-			setFormTab: function (tab: FormTabs): void {
+			setFormTab: function (tab: FormTabType): void {
 				webViewState?.extensionRpc.action('setFormTab', {
 					tab: tab
 				});
 			},
 			connect: function (): void {
 				webViewState?.extensionRpc.action('connect');
-			}
+			},
 		}
 	}>{children}</ConnectionDialogContext.Provider>;
 };
