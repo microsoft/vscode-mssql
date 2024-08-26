@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
-import { getNonce } from '../reactviews/common/utils';
+import { getNonce } from '../utils/utils';
 
 /**
  * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides

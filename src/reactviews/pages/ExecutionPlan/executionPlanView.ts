@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getNonce } from '../../common/utils';
 import * as ep from './executionPlanInterfaces';
 
 export class ExecutionPlanView {
@@ -166,7 +165,7 @@ export class ExecutionPlanView {
 	}
 
 	private createGraphElementId(): string {
-		return `element-${getNonce()}`;
+		return `element-${this.getNonce()}`;
 	}
 
 	/**
@@ -407,5 +406,17 @@ export class ExecutionPlanView {
 
 	public calculateRelativeQueryCost(): number {
 		return (this._executionPlanRootNode.subTreeCost + this._executionPlanRootNode.cost)
+	}
+
+	/**
+	 * Generates a random nonce value that can be used in a webview
+	 */
+	private getNonce(): string {
+		let text = "";
+		const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		for (let i = 0; i < 32; i++) {
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+		}
+		return text;
 	}
 }

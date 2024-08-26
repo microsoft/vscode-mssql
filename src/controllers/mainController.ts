@@ -1256,6 +1256,10 @@ export default class MainController implements vscode.Disposable {
 			this._statusview.languageFlavorChanged(doc.uri.toString(true), Constants.mssqlProviderName);
 		}
 
+		if (doc && doc.languageId === Constants.sqlPlanLanguageId) {
+			vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+		}
+
 		// Setup properties incase of rename
 		this._lastOpenedTimer = new Utils.Timer();
 		this._lastOpenedTimer.start();
@@ -1436,7 +1440,6 @@ export default class MainController implements vscode.Disposable {
         public async resolveCustomTextEditor(
             document: vscode.TextDocument
         ): Promise<void> {
-			await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 			await this.onOpenExecutionPlanFile(document);
         }
 

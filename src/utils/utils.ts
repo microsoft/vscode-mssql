@@ -25,4 +25,16 @@ export async function fileExists(uri: vscode.Uri, filename: string): Promise<boo
     }
 }
 
+/**
+ * Generates a random nonce value that can be used in a webview
+ */
+export function getNonce(): string {
+	let text = "";
+	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}
+
 export class CancelError extends Error { }
