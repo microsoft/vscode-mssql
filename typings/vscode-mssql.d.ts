@@ -314,6 +314,21 @@ declare module 'vscode-mssql' {
 		persistSecurityInfo: boolean | undefined;
 
 		/**
+		 * Gets or sets a string value that specifies whether Always Encrypted is enabled or disabled for the connection.
+		 */
+		columnEncryptionSetting: string | undefined;
+
+		/**
+		 * Gets or sets a string value that specifies the protocol for attesting a server-side enclave used with Always Encrypted with secure enclaves.
+		 */
+		attestationProtocol: string | undefined;
+
+		/**
+		 * Gets or sets a string value that specifies the endpoint for attesting a server-side enclave used with Always Encrypted with secure enclaves.
+		 */
+		enclaveAttestationUrl: string | undefined;
+
+		/**
 		 * Gets or sets the length of time (in seconds) to wait for a connection to the server before terminating the attempt and generating an error.
 		 */
 		connectTimeout: number | undefined;

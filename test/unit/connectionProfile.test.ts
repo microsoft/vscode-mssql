@@ -39,6 +39,9 @@ function createTestCredentials(): IConnectionInfo {
 		trustServerCertificate: false,
 		hostNameInCertificate: '',
 		persistSecurityInfo: false,
+		columnEncryptionSetting: 'Enabled',
+		attestationProtocol: 'HGS',
+		enclaveAttestationUrl: 'https://attestationurl',
 		connectTimeout: 15,
 		commandTimeout: 30,
 		connectRetryCount: 0,
@@ -219,6 +222,9 @@ suite('Connection Profile tests', () => {
 		assert.notStrictEqual(typeof details.options['packetSize'], 'undefined');
 		assert.notStrictEqual(typeof details.options['password'], 'undefined');
 		assert.notStrictEqual(typeof details.options['persistSecurityInfo'], 'undefined');
+		assert.notStrictEqual(typeof details.options['columnEncryptionSetting'], 'undefined');
+		assert.notStrictEqual(typeof details.options['attestationProtocol'], 'undefined');
+		assert.notStrictEqual(typeof details.options['enclaveAttestationUrl'], 'undefined');
 		assert.notStrictEqual(typeof details.options['pooling'], 'undefined');
 		assert.notStrictEqual(typeof details.options['replication'], 'undefined');
 		assert.notStrictEqual(typeof details.options['server'], 'undefined');
