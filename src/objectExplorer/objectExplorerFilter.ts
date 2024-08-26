@@ -7,10 +7,15 @@ import { ReactWebViewPanelController } from "../controllers/reactWebviewControll
 import * as vscodeMssql from 'vscode-mssql';
 import * as vscode from 'vscode';
 import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
+import { TreeNodeInfo } from "./treeNodeInfo";
+import { ObjectExplorerFilterState, ObjectExplorerReducers } from "../sharedInterfaces/objectExplorerFilter";
 
 export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPanelController<ObjectExplorerFilterState, ObjectExplorerReducers> {
 	private _onSubmit: vscode.EventEmitter<vscodeMssql.NodeFilter[]> = new vscode.EventEmitter<vscodeMssql.NodeFilter[]>();
 	public readonly onSubmit: vscode.Event<vscodeMssql.NodeFilter[]> = this._onSubmit.event;
+
+	private _onCancel: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+	public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
 	constructor(
 		context: vscode.ExtensionContext
@@ -32,7 +37,13 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 
 		this.registerReducer('submit', (state, payload) => {
 			this._onSubmit.fire(payload.filters);
-			this.dispose();
+			this.panel.dispose();
+			return state;
+		});
+
+		this.registerReducer('cancel', (state) => {
+			this._onCancel.fire();
+			this.panel.dispose();
 			return state;
 		});
 	}
@@ -47,7 +58,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 export class ObjectExplorerFilter {
 	private static _filterWebviewController: ObjectExplorerFilterReactWebviewController;
 
-	public static async getFilters(context: vscode.ExtensionContext, filterProperties: vscodeMssql.NodeFilterProperty[], existingFilters?: vscodeMssql.NodeFilter[]): Promise<vscodeMssql.NodeFilter[]> {
+	public static async getFilters(context: vscode.ExtensionContext, treeNode: TreeNodeInfo): Promise<vscodeMssql.NodeFilter[]> {
 		return await new Promise((resolve, reject) => {
 			if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
 				this._filterWebviewController = new ObjectExplorerFilterReactWebviewController(
@@ -55,35 +66,20 @@ export class ObjectExplorerFilter {
 				);
 			}
 			this._filterWebviewController.loadData({
-				filterProperties: filterProperties,
-				existingFilters: existingFilters
+				filterProperties: treeNode.filterableProperties,
+				existingFilters: treeNode.filters,
+				nodePath: treeNode.nodePath
 			});
 			this._filterWebviewController.revealToForeground();
 			this._filterWebviewController.onSubmit((e) => {
 				resolve(e);
 			});
+			this._filterWebviewController.onCancel(() => {
+				resolve(treeNode.filters ?? []);
+			});
 			this._filterWebviewController.onDisposed(() => {
-				//resolve(existingFilters ?? []);
-				resolve([{
-					name: 'Name',
-					value: 'aasim',
-					operator: 8
-				}]);
+				resolve(treeNode.filters ?? []);
 			});
 		});
-	}
-}
-
-
-
-
-export interface ObjectExplorerFilterState {
-	filterProperties: vscodeMssql.NodeFilterProperty[];
-	existingFilters: vscodeMssql.NodeFilter[];
-}
-
-export interface ObjectExplorerReducers {
-	submit: {
-		filters: vscodeMssql.NodeFilter[];
 	}
 }

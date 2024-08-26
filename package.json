@@ -372,7 +372,7 @@
         },
         {
           "command": "mssql.newTable",
-        "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableExperimentalFeatures",
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableExperimentalFeatures",
           "group": "inline"
         },
         {

@@ -1494,6 +1494,30 @@ declare module 'vscode-mssql' {
 		description: string;
 	}
 
+	/**
+	 * NodeFilterChoiceProperty is used to define the choices for the filter property if the type is choice
+	 */
+	export interface NodeFilterChoiceProperty extends NodeFilterProperty {
+		/**
+		 * The list of choices for the filter property if the type is choice
+		 */
+		choices: NodeFilterChoicePropertyValue[];
+	}
+
+
+	export interface NodeFilterChoicePropertyValue {
+		/**
+		 * The value of the choice
+		 */
+		value: string;
+		/**
+		 * The display name of the choice
+		 * If not specified, the value will be used as the display name
+		 * If specified, the display name will be used in the dropdown
+		 */
+		displayName?: string;
+	}
+
 	export interface NodeFilter {
 		/**
 		 * The name of the filter property

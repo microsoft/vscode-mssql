@@ -11,6 +11,8 @@ import { TableDesigner } from './pages/TableDesigner/tableDesignerPage';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ConnectionDialogStateProvider } from './pages/ConnectionDialog/connectionDialogStateProvider';
 import { ConnectionPage } from './pages/ConnectionDialog/connectionPage';
+import { ObjectExplorerFilterStateProvider } from './pages/ObjectExplorerFilter/ObjectExplorerFilterStateProvider';
+import { ObjectExplorerFilter } from './pages/ObjectExplorerFilter';
 
 const Router = () => {
 	const vscodeWebviewState = useVscodeWebview<unknown, unknown>();
@@ -34,7 +36,9 @@ const Router = () => {
 			);
 		case WebviewRoute.objectExplorerFilter:
 			return (
-				<div>Object Explorer Filter</div>
+				<ObjectExplorerFilterStateProvider>
+					<ObjectExplorerFilter />
+				</ObjectExplorerFilterStateProvider>
 			);
 		default: (
 			<div>Route not found</div>

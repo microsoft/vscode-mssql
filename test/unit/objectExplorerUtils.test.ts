@@ -78,7 +78,7 @@ suite('Object Explorer Utils Tests', () => {
 		testProfile.database = 'test_database';
 		testProfile.user = 'test_user';
 		const serverTestNode = new TreeNodeInfo('serverTest', undefined, undefined, 'test_path',
-			undefined, 'Server', undefined, testProfile, undefined);
+			undefined, 'Server', undefined, testProfile, undefined, undefined);
 		let databaseMetatadata: ObjectMetadata = {
 			metadataType: undefined,
 			metadataTypeName: Constants.databaseString,
@@ -87,11 +87,11 @@ suite('Object Explorer Utils Tests', () => {
 			schema: undefined
 		};
 		const databaseTestNode = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
-			undefined, 'Database', undefined, undefined, serverTestNode, databaseMetatadata);
+			undefined, 'Database', undefined, undefined, serverTestNode, undefined,  databaseMetatadata);
 		const databaseTestNode2 = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
 			undefined, 'Database', undefined, undefined, serverTestNode, undefined);
 		const tableTestNode = new TreeNodeInfo('tableTest', undefined, undefined, 'test_path',
-			undefined, 'Table', undefined, undefined, databaseTestNode);
+			undefined, 'Table', undefined, undefined, databaseTestNode, undefined);
 		const testNodes = [serverTestNode, databaseTestNode, databaseTestNode2, tableTestNode];
 		const expectedDatabaseNames = ['test_database', 'databaseTest', '<default>', 'databaseTest'];
 		for (let i = 0; i < testNodes.length; i++) {

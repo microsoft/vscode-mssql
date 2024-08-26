@@ -558,8 +558,8 @@ export default class MainController implements vscode.Disposable {
 					}));
 
 			const filterNode = async (node: TreeNodeInfo) => {
-				const filters = await ObjectExplorerFilter.getFilters(this._context, node.filterableProperties, node.filters);
-				if (filters) {
+				const filters = await ObjectExplorerFilter.getFilters(this._context, node);
+				if (filters && filters.length > 0) {
 					node.filters = filters;
 					if(node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
 						await this._objectExplorerProvider.refreshNode(node);

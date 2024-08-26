@@ -9,6 +9,8 @@ import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import * as Constants from '../constants/constants';
 import { IConnectionInfo, ITreeNodeInfo, ObjectMetadata } from 'vscode-mssql';
+import * as Utils from '../models/utils';
+import * as LocalizedConstants from '../constants/localizedConstants';
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
@@ -24,6 +26,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 	private _metadata: ObjectMetadata;
 	private _filterableProperties: vscodeMssql.NodeFilterProperty[];
 	private _filters: vscodeMssql.NodeFilter[];
+	private _originalLabel: string;
 
 	constructor(
 		label: string,
@@ -40,6 +43,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 		filters?: vscodeMssql.NodeFilter[]
 	) {
 		super(label, collapsibleState);
+		this._originalLabel = label;
 		this.context = context;
 		this._nodePath = nodePath;
 		this._nodeStatus = nodeStatus;
@@ -183,6 +187,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 	public set filters(value: vscodeMssql.NodeFilter[]) {
 		this._filters = value;
 		this._updateContextValue();
+		this.label = value.length > 0 ? Utils.formatString(LocalizedConstants.filterLabel, this._originalLabel): this._originalLabel;
 	}
 
 	public set context(value: vscodeMssql.TreeNodeContextValue)  {
