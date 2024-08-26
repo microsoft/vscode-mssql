@@ -156,8 +156,8 @@ export const QueryResultPane = () => {
 		</div>
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
-				<div className={classes.queryResultContainer}>
-					<SlickGrid></SlickGrid>
+				<div id={'grid-parent'} className={classes.queryResultContainer}>
+					<SlickGrid />
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && <div className={classes.messagesContainer}>

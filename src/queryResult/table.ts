@@ -13,6 +13,8 @@ import * as DOM from './dom';
 
 import { IDisposableDataProvider } from '../sharedInterfaces/dataProvider';
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
+const ROW_HEIGHT = 29;
+
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 	return {
@@ -54,9 +56,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 		parent.appendChild(this._container);
 		this.styleElement = DOM.createStyleSheet(this._container);
 		this._tableContainer = document.createElement('div');
-		this._tableContainer.className = //TODO: class name for styles
-		this._tableContainer.style.width = '600px';
-		this._tableContainer.style.height = '500px';
+		// this._tableContainer.className = //TODO: class name for styles
+		let gridParent = document.getElementById('grid-parent');
+		this._tableContainer.style.width = `${gridParent?.clientWidth.toString()}px`;
+		const height = gridParent?.clientHeight - 5;
+		this._tableContainer.style.height = `${height.toString()}px`;
 		this._container.appendChild(this._tableContainer);
 		this.styleElement = DOM.createStyleSheet(this._container);
 		this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);

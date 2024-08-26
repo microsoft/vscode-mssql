@@ -19,9 +19,6 @@ require('slickgrid/slick.grid.js');
 //TODO: get hardcoded data & get gridpanel to render the hardcoded data
 // add console.log in the event handlers for example to onTableClick function
 
-// const ROW_HEIGHT = 29;
-
-
 declare global {
     interface Window {
         $: any;
@@ -57,8 +54,19 @@ export default function SlickGrid() {
             effortDriven: (i % 5 === 0)
         };
         }
+
+
         let div = document.createElement('div');
         div.id = 'grid';
+		div.className = 'grid-panel';
+		div.style.display = 'inline-block';
+
+        //TODO: eventually need to calculate snapshot button width and subtract
+		// let actionBarWidth = this.showActionBar ? ACTIONBAR_WIDTH : 0;
+		// this.tableContainer.style.width = `calc(100% - ${actionBarWidth}px)`;
+
+
+
         // let tableOptions: Slick.GridOptions<T> = {
 		// 	rowHeight: ROW_HEIGHT,
 		// 	showRowNumber: true,
@@ -75,7 +83,6 @@ export default function SlickGrid() {
         ref.current?.appendChild(elm);
     }, []);
 
-    return <div ref = {ref}>
-    </div>
+    return <div ref = {ref}></div>;
   }
 
