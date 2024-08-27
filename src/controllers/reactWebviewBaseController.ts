@@ -81,6 +81,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				</head>
 				<body>
 				  <div id="root"></div>
+				  <script>
+				 	const assetPathVscodeUri = "${this.resourceUrl(['']).toString()}";
+				  </script>
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>
@@ -125,6 +128,11 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				`);
 				this._isFirstLoad = false;
 			}
+		};
+		this._webViewRequestHandlers['getUri'] = async (path: string) => {
+			path = path.replace('./', '');
+			const result =  this.resourceUrl([path]).toString();
+			return result;
 		};
 	}
 
