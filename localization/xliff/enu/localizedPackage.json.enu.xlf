@@ -440,6 +440,9 @@
         </trans-unit id="mssql.openExecutionPlanFile">
             <source xml:lang="en">Open Execution Plan File</source>
         </trans-unit>
+        <trans-unit id="mssql.enableExperimentalFeatures.description">
+            <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
