@@ -6,6 +6,7 @@
 import { ReactNode, createContext } from 'react';
 import * as qr from '../../../sharedInterfaces/queryResult';
 import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
+import { ResultSetSubset } from '../../../models/contracts/queryExecute';
 
 export interface QueryResultState {
 	provider: qr.QueryResultReactProvider;
@@ -27,7 +28,6 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({ children 
 				setResultTab: function (tabId: qr.QueryResultPaneTabs): void {
 					webViewState?.extensionRpc.action('setResultTab', { tabId: tabId });
 				},
-
 			},
 			state: webViewState?.state as qr.QueryResultWebViewState
 		}

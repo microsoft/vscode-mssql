@@ -21,11 +21,11 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
 	private _isFirstLoad: boolean = true;
 	private _loadStartTime: number = Date.now();
-	protected _webviewMessageHandler = (message) => {
+	protected _webviewMessageHandler = async (message) => {
 		if (message.type === 'request') {
 			const handler = this._webViewRequestHandlers[message.method];
 			if (handler) {
-				const result = handler(message.params);
+				const result = await handler(message.params);
 				this.postMessage({ type: 'response', id: message.id, result });
 			} else {
 				throw new Error(`No handler registered for method ${message.method}`);

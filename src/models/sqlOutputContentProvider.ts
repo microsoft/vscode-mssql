@@ -221,11 +221,7 @@ export class SqlOutputContentProvider {
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
 				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
-				this._queryResultWebviewController.getQueryResultState(uri).value = resultSet.batchId + ' ' + resultSet.id;
-				await this.rowRequestHandler(uri, resultSet.batchId, resultSet.id, 0, resultSet.rowCount).then((r) => {
-					this._queryResultWebviewController.state.value = r.rowCount.toString();
-					console.log(r.rows);
-				});
+				this._queryResultWebviewController.getQueryResultState(uri).resultSetSummary = resultSet;
 			});
 			queryRunner.eventEmitter.on('batchStart', (batch) => {
 				let time = new Date().toLocaleTimeString();

@@ -151,7 +151,16 @@ export const QueryResultPane = () => {
 			}
 
 			{
-				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => console.log('todo: open in new tab')} title='Open in new tab'></Button>
+				<Button appearance="transparent" icon={<OpenFilled />} onClick={async () => {
+					console.log('todo: open in new tab');
+					const rows = await webViewState?.extensionRpc.call('getRows', {
+						uri: metadata.uri,
+						batchId: metadata.resultSetSummary.batchId,
+						resultId: metadata.resultSetSummary.id,
+						rowStart: 0,
+						numberOfRows: 10});
+					console.log(rows);
+				}} title='Open in new tab'></Button>
 			}
 		</div>
 		<div className={classes.tabContent}>

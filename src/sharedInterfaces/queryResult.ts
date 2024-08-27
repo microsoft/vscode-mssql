@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ResultSetSummary } from "../models/contracts/queryExecute";
+
 export enum QueryResultLoadState {
 	Loading = 'Loading',
 	Loaded = 'Loaded',
 	Error = 'Error'
-}
-
-export interface QueryResultReducers {
 }
 
 export interface QueryResultReactProvider {
@@ -26,6 +25,8 @@ export interface QueryResultTabStates {
 }
 
 export interface QueryResultWebViewState {
+	uri?: string;
+	resultSetSummary?: ResultSetSummary;
 	value?: string;
 	messages: QueryResultMessage[];
 	tabStates?: QueryResultTabStates;

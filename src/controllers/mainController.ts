@@ -315,11 +315,12 @@ export default class MainController implements vscode.Disposable {
 		// Init CodeAdapter for use when user response to questions is needed
 		this._prompter = new CodeAdapter(this._vscodeWrapper);
 
-		// Init
+		// Init Query Results Webview Controller
 		this._queryResultWebviewController = new QueryResultWebViewController(this._context);
 
 		// Init content provider for results pane
 		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper, this._queryResultWebviewController);
+		this._queryResultWebviewController.setSqlOutputContentProvider(this._outputContentProvider);
 
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
@@ -557,16 +558,6 @@ export default class MainController implements vscode.Disposable {
 							this._connectionMgr,
 							this._untitledSqlDocumentService,
 							node
-						);
-						reactPanel.revealToForeground();
-					}));
-
-			this._context.subscriptions.push(
-				vscode.commands.registerCommand(
-					Constants.cmdNewQuery2, async () => {
-						console.log("New Query 2");
-						const reactPanel = new QueryResultWebViewController(
-							this._context,
 						);
 						reactPanel.revealToForeground();
 					}));
