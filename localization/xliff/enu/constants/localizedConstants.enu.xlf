@@ -680,6 +680,129 @@
         <trans-unit id="filterLabel">
             <source xml:lang="en">{0} (filtered)</source>
         </trans-unit>
+        <trans-unit id="connectionDialog">
+            <source xml:lang="en">Connection Dialog</source>
+        </trans-unit>
+        <trans-unit id="azureAccount">
+            <source xml:lang="en">Azure Account</source>
+        </trans-unit>
+        <trans-unit id="azureAccountIsRequired">
+            <source xml:lang="en">Azure Account is required</source>
+        </trans-unit>
+        <trans-unit id="selectAnAccount">
+            <source xml:lang="en">Select an account</source>
+        </trans-unit>
+        <trans-unit id="savePassword">
+            <source xml:lang="en">Save Password</source>
+        </trans-unit>
+        <trans-unit id="tenantId">
+            <source xml:lang="en">Tenant ID</source>
+        </trans-unit>
+        <trans-unit id="selectATenant">
+            <source xml:lang="en">Select a tenant</source>
+        </trans-unit>
+        <trans-unit id="tenantIdIsRequired">
+            <source xml:lang="en">Tenant ID is required</source>
+        </trans-unit>
+        <trans-unit id="profileName">
+            <source xml:lang="en">Profile Name</source>
+        </trans-unit>
+        <trans-unit id="serverIsRequired">
+            <source xml:lang="en">Server is required</source>
+        </trans-unit>
+        <trans-unit id="usernameIsRequired">
+            <source xml:lang="en">User name is required</source>
+        </trans-unit>
+        <trans-unit id="connectionString">
+            <source xml:lang="en">Connection String</source>
+        </trans-unit>
+        <trans-unit id="connectionStringIsRequired">
+            <source xml:lang="en">Connection string is required</source>
+        </trans-unit>
+        <trans-unit id="signIn">
+            <source xml:lang="en">Sign in</source>
+        </trans-unit>
+        <trans-unit id="additionalParameters">
+            <source xml:lang="en">Additional parameters</source>
+        </trans-unit>
+        <trans-unit id="connect">
+            <source xml:lang="en">Connect</source>
+        </trans-unit>
+        <trans-unit id="parameters">
+            <source xml:lang="en">Parameters</source>
+        </trans-unit>
+        <trans-unit id="loading">
+            <source xml:lang="en">Loading</source>
+        </trans-unit>
+        <trans-unit id="queryCostHeader">
+            <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}</source>
+        </trans-unit>
+        <trans-unit id="metric">
+            <source xml:lang="en">Metric</source>
+        </trans-unit>
+        <trans-unit id="actualElapsedTime">
+            <source xml:lang="en">Actual Elapsed Time</source>
+        </trans-unit>
+        <trans-unit id="actualElapsedCpuTime">
+            <source xml:lang="en">Actual Elapsed CPU Time</source>
+        </trans-unit>
+        <trans-unit id="cost">
+            <source xml:lang="en">Cost</source>
+        </trans-unit>
+        <trans-unit id="subtreeCost">
+            <source xml:lang="en">Subtree Cost</source>
+        </trans-unit>
+        <trans-unit id="actualNumberOfRows">
+            <source xml:lang="en">Actual Number of Rows For All Executions</source>
+        </trans-unit>
+        <trans-unit id="numRowsRead">
+            <source xml:lang="en">Number of Rows Read</source>
+        </trans-unit>
+        <trans-unit id="off">
+            <source xml:lang="en">Off</source>
+        </trans-unit>
+        <trans-unit id="findNodes">
+            <source xml:lang="en">Find Nodes</source>
+        </trans-unit>
+        <trans-unit id="equals">
+            <source xml:lang="en">Equals</source>
+        </trans-unit>
+        <trans-unit id="contains">
+            <source xml:lang="en">Contains</source>
+        </trans-unit>
+        <trans-unit id="savePlan">
+            <source xml:lang="en">Save Plan</source>
+        </trans-unit>
+        <trans-unit id="openXml">
+            <source xml:lang="en">Open Xml</source>
+        </trans-unit>
+        <trans-unit id="openQuery">
+            <source xml:lang="en">Open Query</source>
+        </trans-unit>
+        <trans-unit id="zoomIn">
+            <source xml:lang="en">Zoom In</source>
+        </trans-unit>
+        <trans-unit id="zoomOut">
+            <source xml:lang="en">Zoom Out</source>
+        </trans-unit>
+        <trans-unit id="zoomToFit">
+            <source xml:lang="en">Zoom to Fit</source>
+        </trans-unit>
+        <trans-unit id="customZoom">
+            <source xml:lang="en">Custom Zoom</source>
+        </trans-unit>
+        <trans-unit id="findNode">
+            <source xml:lang="en">Find Node</source>
+        </trans-unit>
+        <trans-unit id="highlightOps">
+            <source xml:lang="en">Highlight Expensive Operation</source>
+        </trans-unit>
+        <trans-unit id="toggleTooltips">
+            <source xml:lang="en">Toggle Tooltips</source>
+        </trans-unit>
+        <trans-unit id="executionPlan">
+            <source xml:lang="en">Execution Plan</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

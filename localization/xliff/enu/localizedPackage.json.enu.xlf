@@ -443,6 +443,9 @@
         <trans-unit id="mssql.clearFilters">
             <source xml:lang="en">Clear Filters</source>
         </trans-unit>
+        </trans-unit id="mssql.openExecutionPlanFile">
+            <source xml:lang="en">Open Execution Plan File</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

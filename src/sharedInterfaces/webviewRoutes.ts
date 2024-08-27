@@ -7,4 +7,5 @@ export enum WebviewRoute {
 	tableDesigner = 'tableDesigner',
 	connectionDialog = 'connectionDialog',
 	objectExplorerFilter = 'objectExplorerFilter',
+	executionPlanDocument = 'executionPlanDocument'
 }

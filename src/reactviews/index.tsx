@@ -13,6 +13,8 @@ import { ConnectionDialogStateProvider } from './pages/ConnectionDialog/connecti
 import { ConnectionPage } from './pages/ConnectionDialog/connectionPage';
 import { ObjectExplorerFilterStateProvider } from './pages/ObjectExplorerFilter/ObjectExplorerFilterStateProvider';
 import { ObjectExplorerFilterPage } from './pages/ObjectExplorerFilter/ObjectExplorerFilterPage';
+import { ExecutionPlanPage } from './pages/ExecutionPlan/executionPlanPage';
+import { ExecutionPlanStateProvider } from './pages/ExecutionPlan/executionPlanStateProvider';
 
 const Router = () => {
 	const vscodeWebviewState = useVscodeWebview<unknown, unknown>();
@@ -39,6 +41,12 @@ const Router = () => {
 				<ObjectExplorerFilterStateProvider>
 					<ObjectExplorerFilterPage />
 				</ObjectExplorerFilterStateProvider>
+			);
+		case WebviewRoute.executionPlanDocument:
+			return (
+				<ExecutionPlanStateProvider>
+					<ExecutionPlanPage />
+				</ExecutionPlanStateProvider>
 			);
 		default: (
 			<div>Route not found</div>
