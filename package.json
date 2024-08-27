@@ -739,6 +739,12 @@
       "type": "object",
       "title": "%mssql.Configuration%",
       "properties": {
+        "mssql.enableExperimentalFeatures": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableExperimentalFeatures.description%",
+          "scope": "application"
+        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

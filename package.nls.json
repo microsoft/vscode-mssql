@@ -143,5 +143,6 @@
 "mssql.objectExplorer.expandTimeout":"The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.",
 "mssql.newTable":"New Table",
 "mssql.editTable":"Edit Table",
-"mssql.editConnection":"Edit Connection"
+"mssql.editConnection":"Edit Connection",
+"mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting."
 }
