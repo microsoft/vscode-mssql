@@ -5,6 +5,7 @@
 
 import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
+import { ApiStatus } from "./webview";
 
 export interface ConnectionDialogWebviewState {
 	selectedFormTab: FormTabType;
@@ -33,12 +34,7 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 	azureAuthType?: vscodeMssql.AzureAuthType;
 }
 
-export enum ApiStatus {
-	NotStarted = 'notStarted',
-	Loading = 'loading',
-	Loaded = 'loaded',
-	Error = 'error',
-}
+
 
 export interface FormContextProps<T> {
 	formAction: (event: FormEvent<T>) => void;

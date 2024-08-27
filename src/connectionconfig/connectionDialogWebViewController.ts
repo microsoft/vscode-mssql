@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { ApiStatus, AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -17,6 +17,7 @@ import { ConnectionOption } from 'azdata';
 import { Logger } from '../models/logger';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import { ApiStatus } from '../sharedInterfaces/webview';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
