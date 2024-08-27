@@ -8,8 +8,7 @@ import { useContext, useState } from "react";
 import { OpenFilled, ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
 import Editor from '@monaco-editor/react';
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "./tableDesignerInterfaces";
-import { VscodeWebviewContext } from "../../common/vscodeWebViewProvider";
+import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 
 const useStyles = makeStyles({
 	root: {
@@ -67,7 +66,6 @@ const useStyles = makeStyles({
 export const DesignerResultPane = () => {
 	const classes = useStyles();
 	const state = useContext(TableDesignerContext);
-	const webViewState = useContext(VscodeWebviewContext);
 	const metadata = state?.state;
 
 	const getVscodeTheme = (theme: Theme) => {
@@ -136,7 +134,7 @@ export const DesignerResultPane = () => {
 				size='medium'
 				selectedValue={metadata.tabStates!.resultPaneTab}
 				onTabSelect={(_event, data) => {
-					state.provider.setResultTab(data.value as string)
+					state.provider.setResultTab(data.value as DesignerResultPaneTabs);
 				}}
 				className={classes.designerResultPaneTabs}
 			>
@@ -171,7 +169,7 @@ export const DesignerResultPane = () => {
 						height={'100%'}
 						width={'100%'}
 						language="sql"
-						theme={getVscodeTheme(webViewState!.theme!)}
+						theme={getVscodeTheme(state!.theme!)}
 						value={(metadata?.model!['script'] as InputBoxProperties).value ?? ''}
 					>
 

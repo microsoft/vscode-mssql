@@ -6,7 +6,7 @@
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext } from "react";
-import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "./tableDesignerInterfaces";
+import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerInputBox } from "./designerInputBox";
 import { DesignerDropdown } from "./designerDropdown";

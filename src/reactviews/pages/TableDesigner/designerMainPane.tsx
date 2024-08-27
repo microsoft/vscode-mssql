@@ -7,7 +7,7 @@ import { Tab, TabList } from "@fluentui/react-tabs"
 import { CounterBadge, Text, makeStyles, shorthands } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext } from "react";
-import { InputBoxProperties } from "./tableDesignerInterfaces";
+import { DesignerMainPaneTabs, InputBoxProperties } from  "../../../sharedInterfaces/tableDesigner";
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
 
 const useStyles = makeStyles({
@@ -75,7 +75,7 @@ export const DesignerMainPane = () => {
             size="medium"
             selectedValue={metadata.tabStates?.mainPaneTab}
             onTabSelect={(_event, data) => {
-                state.provider.setTab(data.value as string)
+                state.provider.setTab(data.value as DesignerMainPaneTabs);
                 state.provider.setPropertiesComponents(undefined);
             }}
         >

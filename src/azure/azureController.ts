@@ -6,7 +6,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/locConstants';
-import * as utils from '../models/utils';
 import * as AzureConstants from './constants';
 import * as azureUtils from './utils';
 
@@ -17,7 +16,7 @@ import providerSettings from '../azure/providerSettings';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AzureAuthType, IAADResource, IAccount, IProviderSettings, ITenant, IToken } from '../models/contracts/azure';
-import { Logger, LogLevel } from '../models/logger';
+import { Logger } from '../models/logger';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { AccountStore } from './accountStore';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
@@ -39,10 +38,9 @@ export abstract class AzureController {
 		}
 
 		// Setup Logger
-		let logLevel: LogLevel = LogLevel[utils.getConfigTracingLevel() as keyof typeof LogLevel];
-		let pii = utils.getConfigPiiLogging();
-		let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
-		this.logger = new Logger(text => _channel.append(text), logLevel, pii);
+
+		let channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
+		this.logger = Logger.create(channel);
 
 		this._providerSettings = providerSettings;
 		vscode.workspace.onDidChangeConfiguration((changeEvent) => {

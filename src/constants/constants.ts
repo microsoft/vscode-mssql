@@ -42,7 +42,6 @@ export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
 export const cmdClearPooledConnections = 'mssql.clearPooledConnections';
 export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';
 export const cmdAddObjectExplorer = 'mssql.addObjectExplorer';
-export const cmdAddObjectExplorer2 = 'mssql.addObjectExplorer2';
 export const cmdObjectExplorerNewQuery = 'mssql.objectExplorerNewQuery';
 export const cmdRemoveObjectExplorerNode = 'mssql.removeObjectExplorerNode';
 export const cmdRefreshObjectExplorerNode = 'mssql.refreshObjectExplorerNode';
@@ -119,6 +118,7 @@ export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mss
 export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
+export const sqlPlanLanguageId = 'sqlplan';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 /**
  * Azure Firewall rule name convention is specified here:

@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea, DropDownProperties } from "./tableDesignerInterfaces";
+import { DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea, DropDownProperties } from "../../../sharedInterfaces/tableDesigner";
 import { Dropdown, useId, Option, Field, InfoLabel } from "@fluentui/react-components";
 
 export type DesignerDropdownProps = {
@@ -15,7 +15,7 @@ export type DesignerDropdownProps = {
     UiArea: DesignerUIArea,
     showLabel?: boolean
     showError?: boolean
-}
+};
 
 export const DesignerDropdown = ({
     component,
@@ -75,5 +75,5 @@ export const DesignerDropdown = ({
                 </Option>
             ))}
         </Dropdown>
-    </Field>
-}
+    </Field>;
+};

@@ -4,184 +4,78 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
+import { ReactWebviewBaseController } from './reactWebviewBaseController';
 
-export class ReactWebViewPanelController<T> implements vscode.Disposable {
+/**
+ * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides
+ * a way to communicate with it. It provides a way to register request handlers and reducers
+ * that can be called from the webview. It also provides a way to post notifications to the webview.
+ * @template State The type of the state object that the webview will use
+ * @template Reducers The type of the reducers that the webview will use
+ */
+export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> {
 	private _panel: vscode.WebviewPanel;
-	private _disposables: vscode.Disposable[] = [];
-	private _isDisposed: boolean = false;
-	private _state: T;
-	private _webViewRequestHandlers: { [key: string]: (params: any) => any } = {};
-	private _reducers: { [key: string]: (state: T, payload: any) => ReducerResponse<T> } = {};
 
+	/**
+	 * Creates a new ReactWebViewPanelController
+	 * @param _context The context of the extension
+	 * @param title The title of the webview panel
+	 * @param _route The route that the webview will use
+	 * @param initialData The initial state object that the webview will use
+	 * @param viewColumn The view column that the webview will be displayed in
+	 * @param _iconPath The icon path that the webview will use
+	 */
 	constructor(
-		protected _context: vscode.ExtensionContext,
+		_context: vscode.ExtensionContext,
 		title: string,
-		private _srcFile: string,
-		private _styleFile: string,
-		initialData: T,
+		_route: WebviewRoute,
+		initialData: State,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 		private _iconPath?: vscode.Uri | {
 			readonly light: vscode.Uri;
 			readonly dark: vscode.Uri;
 		}
 	) {
+		super(_context, _route, initialData);
 		this._panel = vscode.window.createWebviewPanel(
 			'mssql-react-webview',
 			title,
 			viewColumn,
 			{
 				enableScripts: true,
-			retainContextWhenHidden: true
+				retainContextWhenHidden: true,
+				localResourceRoots: [vscode.Uri.file(this._context.extensionPath)]
 			}
 		);
 
 		this._panel.webview.html = this._getHtmlTemplate();
 		this._panel.iconPath = this._iconPath;
-		this._disposables.push(this._panel.webview.onDidReceiveMessage((message) => {
-			if (message.type === 'request') {
-				const handler = this._webViewRequestHandlers[message.method];
-				if (handler) {
-					const result = handler(message.params);
-					this.postMessage({ type: 'response', id: message.id, result });
-				} else {
-					throw new Error(`No handler registered for method ${message.method}`);
-				}
-			}
-		}));
+		this.registerDisposable(this._panel.webview.onDidReceiveMessage(this._webviewMessageHandler));
 		this._panel.onDidDispose(() => {
 			this.dispose();
 		});
-		this.setupTheming();
-		this._registerDefaultRequestHandlers();
-		this.state =  initialData;
+
+		// This call sends messages to the Webview so it's called after the Webview creation.
+		this.initializeBase();
 	}
 
-	private setupTheming() {
-		this._disposables.push(vscode.window.onDidChangeActiveColorTheme((theme) => {
-			this.postNotification('onDidChangeTheme', theme.kind);
-		}));
-		this.postNotification('onDidChangeTheme', vscode.window.activeColorTheme.kind);
+	protected _getWebview(): vscode.Webview {
+		return this._panel.webview;
 	}
 
-	private _registerDefaultRequestHandlers() {
-		this._webViewRequestHandlers['getState'] = () => {
-			return this.state;
-		};
-		this._webViewRequestHandlers['getImageUrl'] = (path) => {
-			return this.resourceUrl(path).toString();
-		};
-		this._webViewRequestHandlers['action'] = async (action) => {
-			const reducer = this._reducers[action.type];
-			if (reducer) {
-				this.state =  await reducer(this.state, action.payload);
-			}
-			else {
-				throw new Error(`No reducer registered for action ${action.type}`);
-			}
-		}
-		this._webViewRequestHandlers['getTheme'] = () => {
-			return vscode.window.activeColorTheme.kind;
-		}
-	}
-
-	public registerRequestHandler(method: string, handler: (params: any) => any) {
-		this._webViewRequestHandlers[method] = handler;
-	}
-
-	public registerReducer(method: string, reducer: (state: T, payload: any) => ReducerResponse<T>) {
-		this._reducers[method] = reducer;
-	}
-
-	public registerReducers(reducers: { [key: string]: (state: T, payload: any) => ReducerResponse<T> }) {
-		for (const key in reducers) {
-			this.registerReducer(key, reducers[key]);
-		}
-	}
-
-	private _getHtmlTemplate() {
-		const nonce = getNonce();
-		const scriptUri = this.resourceUrl([this._srcFile]);
-		const styleUri = this.resourceUrl([this._styleFile]);
-		const extensionBundlePath = process.env['EXTENSION_BUNDLE_PATH'];
-		return `
-		<!DOCTYPE html>
-				<html lang="en">
-				<head>
-				  <meta charset="UTF-8">
-				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-				  <title>mssqlwebview</title>
-				  <link rel="stylesheet" href="${styleUri}">
-				  <style>
-					html, body {
-						margin: 0;
-						padding: 0px;
-  						width: 100%;
-  						height: 100%;
-					}
-				  </style>
-				</head>
-				<body>
-				  <div id="root"></div>
-				  <script>
-				  	var EXTENSION_BUNDLE_PATH = ${extensionBundlePath}
-				  </script>
-				  <script nonce="${nonce}" src="${scriptUri}"></script>
-				</body>
-				</html>
-		`;
-	}
-
-	public resourceUrl(path: string[]) {
-		return this._panel.webview.asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets', ...path));
-	}
-
+	/**
+	 * Gets the vscode.WebviewPanel that the controller is managing
+	 */
 	public get panel(): vscode.WebviewPanel {
 		return this._panel;
 	}
 
+	/**
+	 * Displays the webview in the foreground
+	 * @param viewColumn The view column that the webview will be displayed in
+	 */
 	public revealToForeground(viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): void {
 		this._panel.reveal(viewColumn, true);
 	}
-
-	public get state (): T {
-		return this._state;
-	}
-
-	public set state (value: T) {
-		this._state = value;
-		this.postNotification(DefaultWebViewNotifications.updateState, value);
-	}
-
-	public get isDisposed(): boolean {
-		return this._isDisposed;
-	}
-
-	public postNotification(method: string, params: any) {
-		this.postMessage({ type: 'notification', method, params });
-	}
-
-	public postMessage(message: any) {
-		this._panel.webview.postMessage(message);
-	}
-
-	dispose() {
-		this._disposables.forEach(d => d.dispose());
-		this._isDisposed = true;
-	}
 }
-
-export enum DefaultWebViewNotifications {
-	updateState = 'updateState',
-}
-
-export function getNonce(): string {
-	let text: string = "";
-	const possible: string =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
-}
-
-export type ReducerResponse<T> =  T | Promise<T>;

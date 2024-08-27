@@ -7,21 +7,22 @@ import * as vscode from 'vscode';
 import ConnectionManager from "../controllers/connectionManager";
 import { randomUUID } from "crypto";
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import * as designer from './tableDesignerInterfaces';
+import * as designer from '../sharedInterfaces/tableDesigner';
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import { getDesignerView } from './tableDesignerTabDefinition';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
+import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 
-export class TableDesignerWebViewController extends ReactWebViewPanelController<designer.TableDesignerWebViewState> {
+export class TableDesignerWebViewController extends ReactWebViewPanelController<designer.TableDesignerWebViewState, designer.TableDesignerReducers> {
 	private _isEdit: boolean = false;
 
 	constructor(context: vscode.ExtensionContext,
-		private _tableDesignerService: designer.TableDesignerProvider,
+		private _tableDesignerService: designer.ITableDesignerService,
 		private _connectionManager: ConnectionManager,
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
 		private _targetNode?: TreeNodeInfo
 	) {
-		super(context, 'Table Designer', 'tableDesigner.js', 'tableDesigner.css', {
+		super(context, 'Table Designer', WebviewRoute.tableDesigner, {
 			apiState: {
 				editState: designer.LoadState.NotStarted,
 				generateScriptState: designer.LoadState.NotStarted,
@@ -125,122 +126,121 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 	}
 
 	private registerRpcHandlers() {
-		this.registerReducers({
-			'processTableEdit': async (state, payload: {
-				table: designer.TableInfo,
-				tableChangeInfo: designer.DesignerEdit
-			}) => {
-				const editResponse = await this._tableDesignerService.processTableEdit(payload.table, payload.tableChangeInfo);
-				const afterEditState = {
-					...this.state,
-					view: editResponse.view ? getDesignerView(editResponse.view) : this.state.view,
-					model: editResponse.viewModel,
-					issues: editResponse.issues,
-					isValid: editResponse.isValid,
-					apiState: {
-						...this.state.apiState,
-						editState: designer.LoadState.Loaded
-					}
-				};
-				return afterEditState;
-			},
-			'publishChanges': async (state, payload: {
-				table: designer.TableInfo
-			}) => {
-				this.state = {
-					...this.state,
-					apiState: {
-						...this.state.apiState,
-						publishState: designer.LoadState.Loading
-					}
+		this.registerReducer('processTableEdit', async (state, payload) => {
+			const editResponse = await this._tableDesignerService.processTableEdit(payload.table, payload.tableChangeInfo);
+			const afterEditState = {
+				...this.state,
+				view: editResponse.view ? getDesignerView(editResponse.view) : this.state.view,
+				model: editResponse.viewModel,
+				issues: editResponse.issues,
+				isValid: editResponse.isValid,
+				apiState: {
+					...this.state.apiState,
+					editState: designer.LoadState.Loaded
 				}
-				const publishResponse = await this._tableDesignerService.publishChanges(payload.table);
-				state = {
-					...state,
-					tableInfo: publishResponse.newTableInfo,
-					view: getDesignerView(publishResponse.view),
-					model: publishResponse.viewModel,
-					apiState: {
-						...state.apiState,
-						publishState: designer.LoadState.Loaded,
-						previewState: designer.LoadState.NotStarted
-					},
-				};
-				this.panel.title = state.tableInfo.title;
-				return state;
-			},
-			'generateScript': async (state, payload: {
-				table: designer.TableInfo
-			}) => {
-				this.state = {
-					...this.state,
-					apiState: {
-						...this.state.apiState,
-						generateScriptState: designer.LoadState.Loading
-					}
+			};
+			return afterEditState;
+		});
+
+		this.registerReducer('publishChanges', async (state, payload) => {
+			this.state = {
+				...this.state,
+				apiState: {
+					...this.state.apiState,
+					publishState: designer.LoadState.Loading
 				}
-				const script = await this._tableDesignerService.generateScript(payload.table);
-				state = {
-					...state,
-					apiState: {
-						...state.apiState,
-						generateScriptState: designer.LoadState.Loaded,
-					}
+			};
+			const publishResponse = await this._tableDesignerService.publishChanges(payload.table);
+			state = {
+				...state,
+				tableInfo: publishResponse.newTableInfo,
+				view: getDesignerView(publishResponse.view),
+				model: publishResponse.viewModel,
+				apiState: {
+					...state.apiState,
+					publishState: designer.LoadState.Loaded,
+					previewState: designer.LoadState.NotStarted
+				},
+			};
+			this.panel.title = state.tableInfo.title;
+			return state;
+		});
+
+		this.registerReducer('generateScript', async (state, payload) => {
+			this.state = {
+				...this.state,
+				apiState: {
+					...this.state.apiState,
+					generateScriptState: designer.LoadState.Loading
 				}
-				this._untitledSqlDocumentService.newQuery(script);
-				return state;
-			},
-			'generatePreviewReport': async (state, payload: {
-				table: designer.TableInfo
-			}) => {
-				this.state = {
-					...this.state,
-					apiState: {
-						...this.state.apiState,
-						previewState: designer.LoadState.Loading
-					}
-				}
-				const previewReport = await this._tableDesignerService.generatePreviewReport(payload.table);
-				state = {
-					...state,
-					apiState: {
-						...state.apiState,
-						previewState: designer.LoadState.Loaded
-					},
-					generatePreviewReportResult: previewReport
-				}
-				return state;
-			},
-			'initializeTableDesigner': async (state, payload: {}) => {
-				await this.initialize();
-				return state;
-			},
-			'scriptAsCreate': async (state, payload: {}) => {
-				await this._untitledSqlDocumentService.newQuery(
-					(state.model['script'] as designer.InputBoxProperties).value ?? ''
-				);
-				return state;
-			},
-			'setTab': async (state, payload: { tabId: designer.DesignerMainPaneTabs }) => {
-				state.tabStates.mainPaneTab = payload.tabId;
-				return state;
-			},
-			'setPropertiesComponents': async (state, payload: { components: designer.PropertiesPaneData }) => {
-				state.propertiesPaneData = payload.components;
-				return state;
-			},
-			'setResultTab': async (state, payload: { tabId: designer.DesignerResultPaneTabs }) => {
-				state.tabStates.resultPaneTab = payload.tabId;
-				return state;
-			},
-			'closeDesigner': async (state, payload: {}) => {
-				this.panel.dispose();
-				return state;
-			},
-			'continueEditing': async (state, payload: {}) => {
-				this.state.apiState.publishState = designer.LoadState.NotStarted;
-				return state;
 			}
+			const script = await this._tableDesignerService.generateScript(payload.table);
+			state = {
+				...state,
+				apiState: {
+					...state.apiState,
+					generateScriptState: designer.LoadState.Loaded,
+				}
+			};
+			await this._untitledSqlDocumentService.newQuery(script);
+			return state;
+		});
+
+		this.registerReducer('generatePreviewReport', async (state, payload) => {
+			this.state = {
+				...this.state,
+				apiState: {
+					...this.state.apiState,
+					previewState: designer.LoadState.Loading
+				}
+			}
+			const previewReport = await this._tableDesignerService.generatePreviewReport(payload.table);
+			state = {
+				...state,
+				apiState: {
+					...state.apiState,
+					previewState: designer.LoadState.Loaded
+				},
+				generatePreviewReportResult: previewReport
+			};
+			return state;
+		});
+
+		this.registerReducer('initializeTableDesigner', async (state) => {
+			await this.initialize();
+			return state;
+		});
+
+		this.registerReducer('scriptAsCreate', async (state) => {
+			await this._untitledSqlDocumentService.newQuery(
+				(state.model['script'] as designer.InputBoxProperties).value ?? ''
+			);
+			return state;
+		});
+
+		this.registerReducer('setTab', async (state, payload) => {
+			state.tabStates.mainPaneTab = payload.tabId;
+			return state;
+		});
+
+		this.registerReducer('setPropertiesComponents', async (state, payload) => {
+			state.propertiesPaneData = payload.components;
+			return state;
+		});
+
+		this.registerReducer('setResultTab', async (state, payload) => {
+			state.tabStates.resultPaneTab = payload.tabId;
+			return state;
+		});
+
+		this.registerReducer('closeDesigner', async (state) => {
+			this.panel.dispose();
+			return state;
+		});
+
+		this.registerReducer('continueEditing', async (state) => {
+			this.state.apiState.publishState = designer.LoadState.NotStarted;
+			return state;
 		});
 	}
 }

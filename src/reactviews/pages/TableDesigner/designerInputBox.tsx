@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react"
 import { TableDesignerContext } from "./tableDesignerStateProvider"
-import { DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea, InputBoxProperties } from "./tableDesignerInterfaces"
+import { DesignerDataPropertyInfo, DesignerEditType, DesignerUIArea, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 import { Field, InfoLabel, Input, Textarea, useId } from "@fluentui/react-components"
 
 export type DesignerInputBoxProps = {

@@ -5,7 +5,7 @@
 
 import { Button, Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
-import * as td from './tableDesignerInterfaces';
+import * as designer from '../../../sharedInterfaces/tableDesigner';
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ResizableBox } from "react-resizable";
@@ -104,13 +104,13 @@ export const TableDesigner = () => {
 	return (
 		<div className={classes.root}>
 			{
-				tableDesignerState.apiState?.initializeState === td.LoadState.Loading &&
+				tableDesignerState.apiState?.initializeState === designer.LoadState.Loading &&
 				<div className={classes.pageContext}>
 					<Spinner label='Loading...' labelPosition="below" />
 				</div>
 			}
 			{
-				tableDesignerState.apiState?.initializeState === td.LoadState.Error &&
+				tableDesignerState.apiState?.initializeState === designer.LoadState.Error &&
 				<div className={classes.pageContext}>
 					<ErrorCircleRegular className={classes.errorIcon} />
                     <div>Error loading designer</div>
@@ -118,7 +118,7 @@ export const TableDesigner = () => {
 				</div>
 			}
 			{
-				tableDesignerState.apiState?.initializeState === td.LoadState.Loaded &&
+				tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded &&
 				<div className={classes.mainContent}>
                     <DesignerPageRibbon />
                     <div className={classes.editor}>

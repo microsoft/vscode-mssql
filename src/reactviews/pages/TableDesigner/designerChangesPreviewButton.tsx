@@ -11,8 +11,7 @@ import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { LoadState } from "./tableDesignerInterfaces";
-import * as l10n from '@vscode/l10n';
+import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 
 const useStyles = makeStyles({
     dialogContent: {
@@ -137,7 +136,7 @@ export const DesignerChangesPreviewButton = () => {
                 aria-label="Publish"
                 title="Publish"
                 icon={<DatabaseArrowDownRegular />}
-                onClick={() => {
+                onClick ={() => {
                     designerContext.provider.generatePreviewReport();
                 }}
                 disabled={(metadata?.issues?.length ?? 0) > 0}

@@ -3,9 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
 
-export enum FormTabs {
+export interface ConnectionDialogWebviewState {
+	selectedFormTab: FormTabType;
+	connectionFormComponents: {
+		mainComponents: FormComponent[];
+		advancedComponents: {[category: string]: FormComponent[]};
+	};
+	connectionStringComponents: FormComponent[];
+	recentConnections: IConnectionDialogProfile[];
+	connectionProfile: IConnectionDialogProfile;
+	connectionStatus: ApiStatus;
+	formError: string;
+}
+
+export enum FormTabType {
 	Parameters = 'parameter',
 	ConnectionString = 'connString'
 }
@@ -19,15 +33,6 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 	azureAuthType?: vscodeMssql.AzureAuthType;
 }
 
-export interface ConnectionDialogWebviewState {
-	selectedFormTab: FormTabs;
-	recentConnections: IConnectionDialogProfile[];
-	formComponents: FormComponent[];
-	connectionProfile: IConnectionDialogProfile;
-	connectionStatus: ApiStatus;
-	formError: string;
-}
-
 export enum ApiStatus {
 	NotStarted = 'notStarted',
 	Loading = 'loading',
@@ -35,11 +40,15 @@ export enum ApiStatus {
 	Error = 'error',
 }
 
-export interface ConnectionDialogContextProps {
+export interface FormContextProps<T> {
+	formAction: (event: FormEvent<T>) => void;
+}
+
+export interface ConnectionDialogContextProps extends FormContextProps<IConnectionDialogProfile> {
 	state: ConnectionDialogWebviewState;
+	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
-	formAction: (event: FormEvent) => void;
-	setFormTab: (tab: FormTabs) => void;
+	setFormTab: (tab: FormTabType) => void;
 	connect: () => void;
 }
 
@@ -120,11 +129,11 @@ export interface FormComponentOptions {
 /**
  * Interface for a form event
  */
-export interface FormEvent {
+export interface FormEvent<T> {
 	/**
 	 * The property name of the form component that triggered the event
 	 */
-	propertyName: keyof IConnectionDialogProfile;
+	propertyName: keyof T;
 	/**
 	 * Whether the event was triggered by an action button for the component
 	 */
@@ -152,4 +161,17 @@ export enum AuthenticationType {
 	SqlLogin = 'SqlLogin',
 	Integrated = 'Integrated',
 	AzureMFA = 'AzureMFA'
+}
+
+export interface ConnectionDialogReducers {
+	setFormTab: {
+		tab: FormTabType;
+	},
+	formAction: {
+		event: FormEvent<IConnectionDialogProfile>;
+	},
+	loadConnection: {
+		connection: IConnectionDialogProfile;
+	},
+	connect: {}
 }
