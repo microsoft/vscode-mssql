@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { FilterableColumn } from '../sharedInterfaces/interfaces';
-import { IDisposableDataProvider } from '../sharedInterfaces/dataProvider';
+import { FilterableColumn } from './interfaces';
+import { IDisposableDataProvider } from './dataProvider';
 
 export interface IFindPosition {
 	col: number;
@@ -73,12 +72,12 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
 	private _filterEnabled: boolean;
 	private _currentColumnFilters: FilterableColumn<T>[] = [];
 
+	// private _onFilterStateChange = new vscode.EventEmitter<void>();
+	// get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
 
-	private _onFilterStateChange = new vscode.EventEmitter<void>();
-	get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
+	// private _onSortComplete = new vscode.EventEmitter<Slick.OnSortEventArgs<T>>();
+	// get onSortComplete(): vscode.Event<Slick.OnSortEventArgs<T>> { return this._onSortComplete.event; }
 
-	private _onSortComplete = new vscode.EventEmitter<Slick.OnSortEventArgs<T>>();
-	get onSortComplete(): vscode.Event<Slick.OnSortEventArgs<T>> { return this._onSortComplete.event; }
 
 	constructor(
 		data?: Array<T>,

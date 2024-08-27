@@ -8,10 +8,10 @@
 // import 'media/slickColorTheme';
 
 import { TableDataView } from './tableDataView';
-import { ITableSorter, ITableConfiguration, ITableStyles } from '../sharedInterfaces/interfaces';
+import { ITableSorter, ITableConfiguration, ITableStyles } from './interfaces';
 import * as DOM from './dom';
 
-import { IDisposableDataProvider } from '../sharedInterfaces/dataProvider';
+import { IDisposableDataProvider } from './dataProvider';
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 const ROW_HEIGHT = 29;
 

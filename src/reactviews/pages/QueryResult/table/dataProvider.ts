@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-
 /**
  * Interface for table data providers
  */
@@ -38,12 +36,12 @@ export interface IDisposableDataProvider<T extends Slick.SlickData> extends Slic
 	/**
 	 * Event fired when the filters changed
 	 */
-	readonly onFilterStateChange: vscode.Event<void>;
+	// readonly onFilterStateChange: vscode.Event<void>;
 
 	/**
 	 * Event fired when the sorting is completed
 	 */
-	readonly onSortComplete: vscode.Event<Slick.OnSortEventArgs<T>>;
+	// readonly onSortComplete: vscode.Event<Slick.OnSortEventArgs<T>>;
 
 	/**
 	 * Gets a boolean value indicating whether the data is current in memory

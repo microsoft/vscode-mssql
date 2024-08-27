@@ -6,9 +6,9 @@
 import $ from 'jquery';
 import { useEffect, useRef } from 'react';
 import '../../../../media/slickgrid.css';
-import { Table } from '../../../queryResult/table';
-import { TableDataView } from '../../../queryResult/tableDataView';
-import { defaultTableStyles } from '../../../sharedInterfaces/interfaces';
+import { Table } from './table/table';
+import { TableDataView } from './table/tableDataView';
+import { defaultTableStyles } from './table/interfaces';
 
 window.jQuery = $ as any;
 require('slickgrid/lib/jquery.event.drag-2.3.0.js');
@@ -74,6 +74,7 @@ export default function SlickGrid() {
 		// 	defaultColumnWidth: 120
 		// };
 
+        //TODO: use hybriddataprovider here
         let tableData = new TableDataView(data);
 
         new Table(div, defaultTableStyles, { dataProvider: tableData, columns: columns });

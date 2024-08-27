@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-
 import { AsyncDataProvider, IObservableCollection } from './asyncDataView';
-import { IDisposableDataProvider } from '../sharedInterfaces/dataProvider';
-import { FilterableColumn } from '../sharedInterfaces/interfaces';
+import { IDisposableDataProvider } from './dataProvider';
+import { FilterableColumn } from './interfaces';
 import { TableDataView, TableFilterFunc, TableSortFunc, CellValueGetter } from './tableDataView';
 
 
@@ -25,11 +23,11 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
 	private _tableDataProvider: TableDataView<T>;
 	private _dataCached: boolean = false;
 
-	private _onFilterStateChange = new vscode.EventEmitter<void>();
-	get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
+	// private _onFilterStateChange = new vscode.EventEmitter<void>();
+	// get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
 
-	private _onSortComplete = new vscode.EventEmitter<Slick.OnSortEventArgs<T>>();
-	get onSortComplete(): vscode.Event<Slick.OnSortEventArgs<T>> { return this._onSortComplete.event; }
+	// private _onSortComplete = new vscode.EventEmitter<Slick.OnSortEventArgs<T>>();
+	// get onSortComplete(): vscode.Event<Slick.OnSortEventArgs<T>> { return this._onSortComplete.event; }
 
 	constructor(dataRows: IObservableCollection<T>,
 		private _loadDataFn: (offset: number, count: number) => Thenable<T[]>,
@@ -40,17 +38,17 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
 		this._asyncDataProvider = new AsyncDataProvider<T>(dataRows);
 		this._tableDataProvider = new TableDataView<T>(undefined, undefined, sortFn, filterFn, valueGetter);
 		this._asyncDataProvider.onFilterStateChange(() => {
-			this._onFilterStateChange.fire();
+			// this._onFilterStateChange.fire();
 		});
 		this._asyncDataProvider.onSortComplete((args) => {
-			this._onSortComplete.fire(args);
+			// this._onSortComplete.fire(args);
 		});
-		this._tableDataProvider.onFilterStateChange(() => {
-			this._onFilterStateChange.fire();
-		});
-		this._tableDataProvider.onSortComplete((args) => {
-			this._onSortComplete.fire(args);
-		});
+		// this._tableDataProvider.onFilterStateChange(() => {
+		// 	this._onFilterStateChange.fire();
+		// });
+		// this._tableDataProvider.onSortComplete((args) => {
+		// 	this._onSortComplete.fire(args);
+		// });
 	}
 
 	public get isDataInMemory(): boolean {
