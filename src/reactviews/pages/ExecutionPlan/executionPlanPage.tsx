@@ -7,8 +7,8 @@ import { useContext } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from '@fluentui/react-components';
 import { ExecutionPlanGraph } from './executionPlanGraph';
-import { ApiStatus } from '../../../sharedInterfaces/connectionDialog';
 import { ErrorCircleRegular } from "@fluentui/react-icons";
+import { ApiStatus } from '../../../sharedInterfaces/webview';
 
 const useStyles = makeStyles({
 	outerDiv: {

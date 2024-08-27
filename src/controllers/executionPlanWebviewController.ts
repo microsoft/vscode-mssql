@@ -12,7 +12,7 @@ import { homedir } from "os";
 import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import * as path from 'path';
-import { ApiStatus } from "../sharedInterfaces/connectionDialog";
+import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
