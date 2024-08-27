@@ -29,7 +29,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 	protected idPrefix: string;
 
 	protected _grid: Slick.Grid<T>;
-	// protected _columns: Slick.Column<T>[];
+	protected _columns: Slick.Column<T>[];
 	protected _data: IDisposableDataProvider<T>;
 	private _sorter?: ITableSorter<T>;
 
