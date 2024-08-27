@@ -3,14 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ApiStatus } from "../../../sharedInterfaces/connectionDialog";
+
 export interface ExecutionPlanWebViewState {
 	sqlPlanContent?: string;
 	executionPlan?: GetExecutionPlanResult;
 	executionPlanGraphs?: ExecutionPlanGraph[];
 	theme?: string;
 	totalCost?: number;
-	isLoading?: boolean;
+	loadState?: ApiStatus;
 	localizedConstants?: any;
+	errorMessage?: string;
 }
 
 export interface ExecutionPlanReducers {

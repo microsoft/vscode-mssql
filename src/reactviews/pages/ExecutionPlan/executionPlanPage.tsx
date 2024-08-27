@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import { makeStyles, Spinner } from '@fluentui/react-components';
+import { makeStyles, Spinner, Text } from '@fluentui/react-components';
 import { ExecutionPlanGraph } from './executionPlanGraph';
+import { ApiStatus } from '../../../sharedInterfaces/connectionDialog';
+import { ErrorCircleRegular } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
 	outerDiv: {
@@ -20,40 +22,53 @@ const useStyles = makeStyles({
 		width: "100%",
 		display: "flex",
 		justifyContent: "center",
-		alignItems: "center"
+		alignItems: "center",
+		flexDirection: "column",
+		padding: "20px"
+	},
+	errorIcon: {
+		fontSize: '100px',
+		opacity: 0.5
 	}
 })
 
 export const ExecutionPlanPage = () => {
 	const classes = useStyles();
-	const state = useContext(ExecutionPlanContext);
-	const [executionPlanState, setExecutionPlanState] = useState(state?.state);
-
-	useEffect(() => {
-		function checkIfStateIsLoaded() {
-			if (!executionPlanState && state?.state) {
-			  setExecutionPlanState(state.state);
-			}
+	const provider = useContext(ExecutionPlanContext);
+	const loadState = provider?.state?.loadState ?? ApiStatus.Loading;
+	const renderMainContent = () => {
+		switch (loadState) {
+			case ApiStatus.Loading:
+				return (
+					<div className={classes.spinnerDiv}>
+						<Spinner
+							label="Loading execution plan..."
+							labelPosition="below"
+						/>
+					</div>
+				);
+			case ApiStatus.Loaded:
+				const executionPlanGraphs = provider?.state?.executionPlanGraphs ?? [];
+				return (
+					executionPlanGraphs?.map((_, index) => (
+						<ExecutionPlanGraph key={index} graphIndex={index} />
+					))
+				);
+			case ApiStatus.Error:
+				return (
+					<div className={classes.spinnerDiv}>
+							<ErrorCircleRegular className={classes.errorIcon} />
+							<Text size={400}>{provider?.state?.errorMessage ?? ''}</Text>
+					</div>
+				);
 		}
-
-		// Check every 200 milliseconds
-		const intervalId = setInterval(checkIfStateIsLoaded, 200);
-
-		return () => clearInterval(intervalId);
-	  }, [executionPlanState, state]);
+	}
 
 	return (
 		<div className={classes.outerDiv}>
-			{executionPlanState && !executionPlanState.isLoading && executionPlanState.executionPlanGraphs ? (
-				executionPlanState.executionPlanGraphs.map((_, index) => (
-					<ExecutionPlanGraph key={index} graphIndex={index} />
-				))
-			) : (
-				// localize this
-				<div className={classes.spinnerDiv}>
-					<Spinner label="Loading..." labelPosition="below" />
-				</div>
-			)}
+			{
+				renderMainContent()
+			}
 		</div>
 	);
 };
