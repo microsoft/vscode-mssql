@@ -11,6 +11,8 @@ import { TableDesigner } from './pages/TableDesigner/tableDesignerPage';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ConnectionDialogStateProvider } from './pages/ConnectionDialog/connectionDialogStateProvider';
 import { ConnectionPage } from './pages/ConnectionDialog/connectionPage';
+import { ExecutionPlanPage } from './pages/ExecutionPlan/executionPlanPage';
+import { ExecutionPlanStateProvider } from './pages/ExecutionPlan/executionPlanStateProvider';
 
 const Router = () => {
 	const vscodeWebviewState = useVscodeWebview<unknown, unknown>();
@@ -31,6 +33,12 @@ const Router = () => {
 				<ConnectionDialogStateProvider>
 					<ConnectionPage />
 				</ConnectionDialogStateProvider>
+			);
+		case WebviewRoute.executionPlanDocument:
+			return (
+				<ExecutionPlanStateProvider>
+					<ExecutionPlanPage />
+				</ExecutionPlanStateProvider>
 			);
 		default: (
 			<div>Route not found</div>
