@@ -75,6 +75,26 @@ jobs:
           echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
           echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
           echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
+          webview_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "green"; fi)
+          echo "webview_text_color=$webview_text_color" >> $GITHUB_ENV
+          main_js_file=$(find ./main/out/src/reactviews/assets -name "*.js")
+          pr_js_file=$(find ./pr/out/src/reactviews/assets -name "*.js")
+          main_js_size=$(stat -c%s "$main_js_file")
+          pr_js_size=$(stat -c%s "$pr_js_file")
+          main_js_size=$((main_js_size / 1024))
+          pr_js_size=$((pr_js_size / 1024))
+          js_size_diff=$((pr_js_size - main_js_size))
+          js_percentage_change=$((100 * js_size_diff / main_js_size))
+          echo "Main branch JS bundle size: $main_js_size KB"
+          echo "PR branch JS bundle size: $pr_js_size KB"
+          echo "JS Size difference: $js_size_diff bytes"
+          echo "JS Percentage change: $js_percentage_change%"
+          echo "main_js_size=$main_js_size" >> $GITHUB_ENV
+          echo "pr_js_size=$pr_js_size" >> $GITHUB_ENV
+          echo "js_size_diff=$js_size_diff" >> $GITHUB_ENV
+          echo "js_percentage_change=$js_percentage_change" >> $GITHUB_ENV
+          js_text_color=$(if [ $js_percentage_change -gt 0 ]; then echo "red"; else echo "green"; fi)
+          echo "js_text_color=$js_text_color" >> $GITHUB_ENV
 
       - name: Calculate vsix file sizes
         run: |
@@ -94,17 +114,23 @@ jobs:
           echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
           echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+          vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "green"; fi)
+          echo "vsix_text_color=$vsix_text_color" >> $GITHUB_ENV
 
       - name: Write results as Markdown file
         run: |
           echo "### VSIX Size Comparison" > results.md
           echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} KB" >> results.md
           echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} KB" >> results.md
-          echo "- **Size difference**: ${{ env.vsix_size_diff }} KB (${{ env.vsix_percentage_change }}%)" >> results.md
+          echo "- **Size difference**: ${{ '\$\${\color{' }}${{env.vsix_text_color}}}  ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%)  ${{ '}\$\$' }}  " >> results.md
           echo "### React Webview Bundle Size Comparison" >> results.md
           echo "- **Main branch bundle size**: ${{ env.main_webview_bundle_size }} KB" >> results.md
           echo "- **PR branch bundle size**: ${{ env.pr_webview_bundle_size }} KB" >> results.md
-          echo "- **Size difference**: ${{ env.webview_size_diff }} KB (${{ env.webview_bundle_percentage_change }}%)" >> results.md
+          echo "- **Size difference**: ${{ '\$\${\color{' }}${{env.webview_text_color}}}  ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%)  ${{ '}\$\$' }}  " >> results.md
+          echo "### React Webview JS Size Comparison" >> results.md
+          echo "- **Main branch JS size**: ${{ env.main_js_size }} KB" >> results.md
+          echo "- **PR branch JS size**: ${{ env.pr_js_size }} KB" >> results.md
+          echo "- **Size difference**: ${{ '\$\${\color{' }}${{env.js_text_color}}}  ${{ env.js_size_diff }} KB \space (${{ env.js_percentage_change }}\\\\%)  ${{ '}\$\$' }}  " >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
@@ -138,6 +164,10 @@ jobs:
 
       - name: Fail if bundle size is increased by 5%
         if: ${{ env.webview_bundle_percentage_change > 5 }}
+        run: exit 1
+
+      - name: Fail if JS bundle size is increased by 5%
+        if: ${{ env.js_percentage_change > 5 }}
         run: exit 1
 
 
