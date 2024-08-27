@@ -144,6 +144,6 @@
 "mssql.newTable":"New Table",
 "mssql.editTable":"Edit Table",
 "mssql.editConnection":"Edit Connection",
-"mssql.filterNode":"Filter Node",
+"mssql.filterNode":"Filter",
 "mssql.clearFilters":"Clear Filters"
 }
