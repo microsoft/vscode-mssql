@@ -515,7 +515,10 @@
       {
         "command": "mssql.filterNode",
         "title": "%mssql.filterNode%",
-        "icon": "$(filter)"
+        "icon": {
+          "dark": "media/filter_inverse.svg",
+          "light": "media/filter.svg"
+        }
       },
       {
         "command": "mssql.clearFilters",
@@ -528,7 +531,10 @@
       {
         "command": "mssql.filterNodeWithExistingFilters",
         "title": "%mssql.filterNode%",
-        "icon": "$(filter-filled)"
+        "icon": {
+          "dark": "media/filter_filled_inverse.svg",
+          "light": "media/filter_filled.svg"
+        }
       },
       {
         "command": "mssql.changeDatabase",

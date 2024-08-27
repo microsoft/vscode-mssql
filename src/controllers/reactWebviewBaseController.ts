@@ -191,7 +191,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	 * @param message The message to post to the webview
 	 */
 	public postMessage(message: any) {
-		this._getWebview().postMessage(message);
+		if (!this._isDisposed) {
+			this._getWebview().postMessage(message);
+		}
 	}
 
 	/**

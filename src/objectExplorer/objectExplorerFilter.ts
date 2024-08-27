@@ -18,15 +18,17 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 	public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
 	constructor(
-		context: vscode.ExtensionContext
+		context: vscode.ExtensionContext,
+		data?: ObjectExplorerFilterState
 	) {
 		super(
 			context,
 			'Object Explorer Filter',
 			WebviewRoute.objectExplorerFilter,
-			{
+			data ?? {
 				filterProperties: [],
-				existingFilters: []
+				existingFilters: [],
+				nodePath: ''
 			},
 			vscode.ViewColumn.Beside,
 			{
@@ -59,17 +61,17 @@ export class ObjectExplorerFilter {
 	private static _filterWebviewController: ObjectExplorerFilterReactWebviewController;
 
 	public static async getFilters(context: vscode.ExtensionContext, treeNode: TreeNodeInfo): Promise<vscodeMssql.NodeFilter[]> {
-		return await new Promise((resolve, reject) => {
+		return await new Promise((resolve, _reject) => {
 			if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
 				this._filterWebviewController = new ObjectExplorerFilterReactWebviewController(
-					context
+					context,
+					{
+						filterProperties: treeNode.filterableProperties,
+						existingFilters: treeNode.filters,
+						nodePath: treeNode.nodePath
+					}
 				);
 			}
-			this._filterWebviewController.loadData({
-				filterProperties: treeNode.filterableProperties,
-				existingFilters: treeNode.filters,
-				nodePath: treeNode.nodePath
-			});
 			this._filterWebviewController.revealToForeground();
 			this._filterWebviewController.onSubmit((e) => {
 				resolve(e);

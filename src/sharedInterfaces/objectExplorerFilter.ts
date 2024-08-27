@@ -51,3 +51,18 @@ export enum NodeFilterOperator {
 	EndsWith = 12,
 	NotEndsWith = 13
 }
+
+export interface ObjectExplorerPageFilter {
+	index: number;
+	name: string;
+	displayName: string;
+	value: string | string[] | number | number[] | boolean | undefined;
+	type: NodeFilterPropertyDataType;
+	choices?: {
+		name: string,
+		displayName: string
+	}[];
+	operatorOptions: string[];
+	selectedOperator: string;
+	description: string;
+}

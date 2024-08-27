@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Body1Strong, Button, createTableColumn, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Dropdown, Input, makeStyles, Option, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Tooltip, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
+import { Body1Strong, Button, createTableColumn, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Dropdown, InfoLabel, Input, makeStyles, MessageBar, MessageBarBody, MessageBarTitle, Option, Table, TableBody, TableCell, TableColumnDefinition, TableColumnId, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Tooltip, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 import { ObjectExplorerFilterContext } from "./ObjectExplorerFilterStateProvider";
 import * as vscodeMssql from 'vscode-mssql';
 import { EraserRegular } from "@fluentui/react-icons";
-import { NodeFilterOperator, NodeFilterPropertyDataType } from "../../../sharedInterfaces/objectExplorerFilter";
+import { NodeFilterOperator, NodeFilterPropertyDataType, ObjectExplorerPageFilter } from "../../../sharedInterfaces/objectExplorerFilter";
 
 export const useStyles = makeStyles({
 	root: {
@@ -17,7 +17,8 @@ export const useStyles = makeStyles({
 		paddingTop: '10px',
 		paddingLeft: '10px',
 		'> *': {
-			margin: '5px',
+			marginTop: '5px',
+			marginBottom: '5px',
 		}
 	},
 	inputs: {
@@ -29,8 +30,17 @@ export const useStyles = makeStyles({
 		display: 'flex',
 		flexDirection: 'column',
 		'> *': {
-			margin: '5px',
+			marginTop: '5px',
+			marginBottom: '5px',
 		}
+	},
+	operatorOptions: {
+		maxWidth: "150px",
+		minWidth: "150px",
+		width: "150px",
+	},
+	andOrText: {
+		marginLeft: '10px'
 	}
 });
 
@@ -38,201 +48,196 @@ export const ObjectExplorerFilterPage = () => {
 	const classes = useStyles();
 	const [open] = useState(true);
 	const provider = useContext(ObjectExplorerFilterContext);
-	const [filters, setFilters] = useState<Record<string, vscodeMssql.NodeFilter>>(
-		provider?.state?.filterProperties?.reduce((acc, filter) => {
-			const existingFilter = provider?.state?.existingFilters?.find(f => f.name === filter.name);
-			acc[filter.name] = {
-				name: filter.name,
-				value: existingFilter?.value ?? undefined,
-				operator: existingFilter?.operator ?? undefined!
+	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+	const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>(
+		provider?.state?.filterProperties?.map((value, index) => {
+			const filter = provider?.state?.existingFilters?.find(f => f.name === value.name);
+			return {
+				index: index,
+				name: value.name,
+				displayName: value.displayName,
+				value: filter?.value ?? '',
+				type: value.type,
+				choices: getFilterChoices(value) ?? [],
+				operatorOptions: getFilterOperators(value),
+				selectedOperator: filter === undefined ? getFilterOperators(value)[0] : getFilterOperatorString(filter?.operator) ?? '',
+				description: value.description
 			};
-			return acc;
-		}, {} as Record<string, vscodeMssql.NodeFilter>) ?? {});
-	console.log('filters', filters);
-	function getFilterValue(name: string): string | number | boolean | string[] | number[] | undefined {
-		return filters[name]?.value;
+		}) ?? []);
+	function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
+		switch (columnId) {
+			case 'property':
+				return  <InfoLabel
+				size="small"
+				info={
+				  <>
+					{item.description}
+				  </>
+				}
+			  >
+				{item.displayName}
+			  </InfoLabel>;
+			case 'operator':
+				return <div className={classes.tableCell} >
+					<Dropdown
+						className={classes.operatorOptions}
+						size="small"
+						value={item.selectedOperator ?? ''}
+						selectedOptions={[item.selectedOperator]}
+						onOptionSelect={(_e, d) => {
+							uiFilters[item.index].selectedOperator = d.optionValue!;
+							// Check if the value is an array and set it to an empty array if it is
+							if (d.optionValue === BETWEEN || d.optionValue === NOT_BETWEEN) {
+								if (!Array.isArray(uiFilters[item.index].value)) {
+									uiFilters[item.index].value = [(uiFilters[item.index].value as string), ''];
+								}
+							} else {
+								if (Array.isArray(uiFilters[item.index].value)) {
+									uiFilters[item.index].value = (uiFilters[item.index].value as string[])[0];
+								}
+							}
+							setUiFilters([...uiFilters]);
+						}}
+					>
+						{item.operatorOptions.map((option) => {
+							return <Option key={option} value={option}>{option}</Option>;
+						})}
+					</Dropdown>
+					{
+						item.selectedOperator === BETWEEN || item.selectedOperator === NOT_BETWEEN &&
+						<Text className={classes.andOrText} size={200}>And</Text>
+					}
+				</div>;
+			case 'value':
+				switch (item.type) {
+					case NodeFilterPropertyDataType.Date:
+					case NodeFilterPropertyDataType.Number:
+					case NodeFilterPropertyDataType.String:
+						let inputType: 'text' | 'number' | 'date' = 'text';
+						switch (item.type) {
+							case NodeFilterPropertyDataType.Date:
+								inputType = 'date';
+								break;
+							case NodeFilterPropertyDataType.Number:
+								inputType = 'number';
+								break;
+							case NodeFilterPropertyDataType.String:
+								inputType = 'text';
+								break;
+						}
+						if (item.selectedOperator === BETWEEN || item.selectedOperator === NOT_BETWEEN) {
+							return (
+								<div className={classes.tableCell} >
+									<Input
+										size="small"
+										type={inputType}
+										className={classes.inputs}
+										value={(item.value as string[])[0]}
+										onChange={(_e, d) => {
+											(uiFilters[item.index].value as string[])[0] = d.value;
+											setUiFilters([...uiFilters]);
+										}} />
+									<Input
+										size="small"
+										type={inputType}
+										className={classes.inputs}
+										value={(item.value as string[])[1]}
+										onChange={(_e, d) => {
+											(uiFilters[item.index].value as string[])[1] = d.value;
+											setUiFilters([...uiFilters]);
+										}} />
+								</div>
+							);
+						} else {
+							return (
+								<Input
+									size="small"
+									type={inputType}
+									className={classes.inputs}
+									value={item.value as string}
+									onChange={(_e, d) => {
+										uiFilters[item.index].value = d.value;
+										setUiFilters([...uiFilters]);
+									}} />
+							);
+						}
+					case NodeFilterPropertyDataType.Choice:
+					case NodeFilterPropertyDataType.Boolean:
+						return (
+							<Dropdown size="small"
+								className={classes.inputs}
+								value={item.value as string}
+								onOptionSelect={(_e, d) => {
+									uiFilters[item.index].value = d.optionText ?? '';
+									setUiFilters([...uiFilters]);
+								}}>
+								{
+									item.choices!.map((choice) => {
+										return <Option key={choice.name} value={choice.name}>{choice.displayName}</Option>;
+									}
+									)}
+							</Dropdown>
+						);
+					default:
+						return undefined;
+				}
+			case 'clear':
+				return <Tooltip content="Clear" relationship="label">
+					<Button size="small" icon={<EraserRegular />} onClick={() => {
+						if (uiFilters[item.index].selectedOperator === BETWEEN || uiFilters[item.index].selectedOperator === NOT_BETWEEN) {
+							uiFilters[item.index].value = ['', ''];
+						} else {
+							uiFilters[item.index].value = '';
+						}
+						setUiFilters([...uiFilters]);
+					}} />
+				</Tooltip>;
+		}
 	}
 
-	function getFilterOperator(name: string): string | undefined {
-		return  getFilterOperatorString(filters[name]?.operator);
-	}
-
-
-	const columnsDef: TableColumnDefinition<vscodeMssql.NodeFilterProperty>[] =
+	const columnsDef: TableColumnDefinition<ObjectExplorerPageFilter>[] =
 		[
 			createTableColumn(
 				{
 					columnId: 'property',
 					renderHeaderCell: () => <>Property</>,
-					renderCell: (item) => {
-						return <Text size={200}>{item.displayName}</Text>;
-					}
 				}
 			),
 			createTableColumn(
 				{
 					columnId: 'operator',
 					renderHeaderCell: () => <>Operator</>,
-					renderCell: (item) => {
-						const datatype = item.type;
-						let options: string[] = [];
-						switch (datatype) {
-							case NodeFilterPropertyDataType.Boolean:
-								options = [
-									EQUALS,
-									NOT_EQUALS
-								];
-								break;
-							case NodeFilterPropertyDataType.String:
-								options = [
-									CONTAINS,
-									NOT_CONTAINS,
-									STARTS_WITH,
-									NOT_STARTS_WITH,
-									ENDS_WITH,
-									NOT_ENDS_WITH,
-									EQUALS,
-									NOT_EQUALS
-								];
-								break;
-							case NodeFilterPropertyDataType.Number:
-								options = [
-									EQUALS,
-									NOT_EQUALS,
-									LESS_THAN,
-									LESS_THAN_OR_EQUALS,
-									GREATER_THAN,
-									GREATER_THAN_OR_EQUALS,
-									BETWEEN,
-									NOT_BETWEEN
-								];
-								break;
-							case NodeFilterPropertyDataType.Date:
-								options = [
-									EQUALS,
-									NOT_EQUALS,
-									LESS_THAN,
-									LESS_THAN_OR_EQUALS,
-									GREATER_THAN,
-									GREATER_THAN_OR_EQUALS,
-									BETWEEN,
-									NOT_BETWEEN
-								];
-								break;
-							case NodeFilterPropertyDataType.Choice:
-								options = [
-									EQUALS,
-									NOT_EQUALS
-								];
-								break;
-						}
-
-						return <div className={classes.tableCell} >
-							<Dropdown style={{
-								maxWidth: '150px',
-								width: '150px',
-								minWidth: '150px',
-							}} size="small" defaultValue={getFilterOperator(item.name) ?? options[0]} value={getFilterOperator(item.name)}
-
-							onOptionSelect={(_e, d) => {
-								filters[item.name].operator = getFilterOperatorEnum(d.optionValue!);
-								setFilters(filters);
-							}}
-							>
-								{options.map((option) => {
-									return <Option key={option} value={option}>{option}</Option>;
-								})}
-							</Dropdown>
-							{
-								(getFilterOperator(item.name) === BETWEEN || getFilterOperator(item.name) === NOT_BETWEEN) &&
-								<Text size={200}>And</Text>
-							}
-						</div>;
-					}
 				}
 			),
 			createTableColumn(
 				{
 					columnId: 'value',
 					renderHeaderCell: () => <>Value</>,
-					renderCell: (item) => {
-						switch (item.type) {
-							case NodeFilterPropertyDataType.Boolean:
-								return <Dropdown size="small" className={classes.inputs} value={getFilterValue(item.name) as string} onOptionSelect={(_e, d) => {
-									filters[item.name].value = d.optionValue === 'true';
-									setFilters(filters);
-								}} >
-									<Option value="true">True</Option>
-									<Option value="false">False</Option>
-								</Dropdown>;
-							case NodeFilterPropertyDataType.String:
-								return <Input size="small" className={classes.inputs} value={getFilterValue(item.name) as string} onChange={(_e, d) => {
-									filters[item.name].value = d.value;
-									setFilters(filters);
-									console.log('filter', filters);
-								}} />;
-							case NodeFilterPropertyDataType.Number:
-								return <Input size="small" type="number" className={classes.inputs} value={getFilterValue(item.name) as string} onChange={(_e, d) => {
-									filters[item.name].value = d.value;
-									setFilters(filters);
-									console.log('filter', filters);
-								}} />;
-							case NodeFilterPropertyDataType.Date:
-								return <Input size="small" type="date" className={classes.inputs} value={getFilterValue(item.name) as string} onChange={(_e, d) => {
-									filters[item.name].value = d.value;
-									setFilters(filters);
-								}} />;
-							case NodeFilterPropertyDataType.Choice:
-								return <Dropdown size="small" className={classes.inputs} value={getFilterValue(item.name) as string} onOptionSelect={(_e, d) => {
-									filters[item.name].value = d.optionValue;
-									setFilters(filters);
-								}}>
-									{(item as vscodeMssql.NodeFilterChoiceProperty).choices.map((choice) => {
-										return <Option key={choice.value!} value={choice.value}>{choice.displayName ?? ''}</Option>;
-									}
-									)}
-								</Dropdown>;
-							default:
-								return <Input size="small" className={classes.inputs} />;
-						}
-					}
 				}
 			),
 			createTableColumn(
 				{
 					columnId: 'clear',
 					renderHeaderCell: () => <>Clear</>,
-					renderCell: (item) => {
-						return <Tooltip content="Clear" relationship="label">
-							<Button size="small" icon={<EraserRegular />} onClick={() => {
-								console.log('clear');
-								filters[item.name].value = '';
-								filters[item.name].operator = undefined;
-								setFilters(filters);
-								console.log('filter', filters);
-							}}/>
-						</Tooltip>;
-					}
 				}
 			)
 		];
 
-	const [columns] = useState<TableColumnDefinition<vscodeMssql.NodeFilterProperty>[]>(columnsDef);
-
+	const [columns] = useState<TableColumnDefinition<ObjectExplorerPageFilter>[]>(columnsDef);
 
 	const sizingOptions: TableColumnSizingOptions = {
 		'property': {
-			minWidth: 100,
-			idealWidth: 130,
-			defaultWidth: 130
+			minWidth: 140,
+			idealWidth: 140,
+			defaultWidth: 140
 		},
 		'operator': {
-			minWidth: 100,
+			minWidth: 140,
 			idealWidth: 140,
 			defaultWidth: 140
 		},
 		'value': {
-			minWidth: 100,
+			minWidth: 150,
 			idealWidth: 150,
 			defaultWidth: 150
 		},
@@ -244,9 +249,8 @@ export const ObjectExplorerFilterPage = () => {
 	};
 
 	const [columnSizingOptions] = useState<TableColumnSizingOptions>(sizingOptions);
-	const items = provider?.state?.filterProperties ?? [];
-
-	const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
+	const items = uiFilters ?? [];
+	const { getRows, columnSizing_unstable, tableRef } = useTableFeatures<ObjectExplorerPageFilter>(
 		{
 			columns,
 			items
@@ -255,7 +259,7 @@ export const ObjectExplorerFilterPage = () => {
 	);
 	const rows = getRows();
 	if (!provider) {
-		return null;
+		return undefined;
 	}
 	return (
 		<div className={classes.root}>
@@ -265,11 +269,20 @@ export const ObjectExplorerFilterPage = () => {
 				// this controls the dialog open state
 				open={open}
 			>
-				<DialogSurface style={{ margin: '0px auto', overflow:'scroll' }}>
-					<DialogBody style={{ minWidth:'560px', width:'560px', maxWidth:'560px', overflow: 'scroll' }}>
+				<DialogSurface style={{ margin: '0px auto', overflow: 'scroll' }}>
+					<DialogBody style={{ minWidth: '560px', width: '560px', maxWidth: '560px', overflow: 'scroll' }}>
 						<DialogTitle>Filter Settings</DialogTitle>
 						<DialogContent>
 							<Body1Strong>Path: {provider?.state?.nodePath}</Body1Strong>
+							{
+								(errorMessage && errorMessage !== '') &&
+								<MessageBar intent={'error'}>
+									<MessageBarBody>
+										<MessageBarTitle>Error</MessageBarTitle>
+										{errorMessage}
+									</MessageBarBody>
+								</MessageBar>
+							}
 							<Table
 								as="table"
 								size="small"
@@ -292,7 +305,7 @@ export const ObjectExplorerFilterPage = () => {
 								</TableHeader>
 								<TableBody>
 									{
-										rows.map((row, index) => {
+										rows.map((_row, index) => {
 											return <TableRow key={`row${index}`}>
 												{
 													columnsDef.map(column => {
@@ -300,7 +313,7 @@ export const ObjectExplorerFilterPage = () => {
 															key={column.columnId}
 															{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
 														>
-															{column.renderCell(row.item)}
+															{renderCell(column.columnId, uiFilters[index])}
 														</TableCell>;
 													})
 												}
@@ -312,24 +325,96 @@ export const ObjectExplorerFilterPage = () => {
 						</DialogContent>
 
 						<DialogActions>
-							<Button appearance="secondary">Clear All</Button>
+							<Button appearance="secondary" onClick={() => {
+								for (let filters of uiFilters) {
+									if (filters.selectedOperator === BETWEEN || filters.selectedOperator === NOT_BETWEEN) {
+										filters.value = ['', ''];
+									} else {
+										filters.value = '';
+									}
+								}
+								setUiFilters([...uiFilters]);
+							}}>Clear All</Button>
 							<Button appearance="secondary" onClick={() => {
 								provider.cancel();
 							}}>Close</Button>
 							<Button appearance="primary" onClick={() => {
-								provider.submit([]);
+
+								const filters: vscodeMssql.NodeFilter[] = uiFilters.map(f => {
+									let value = undefined;
+									switch (f.type) {
+										case NodeFilterPropertyDataType.Boolean:
+											if (f.value === '' || f.value === undefined) {
+												value = undefined;
+											} else {
+												value = f.choices?.find(c => c.displayName === f.value)?.name ?? undefined;
+											}
+											break;
+										case NodeFilterPropertyDataType.Number:
+											if (f.selectedOperator === BETWEEN || f.selectedOperator === NOT_BETWEEN) {
+												value = (f.value as string[]).map(v => Number(v));
+											} else {
+												value = Number(f.value);
+											}
+											break;
+										case NodeFilterPropertyDataType.String:
+										case NodeFilterPropertyDataType.Date:
+											value = f.value;
+											break;
+										case NodeFilterPropertyDataType.Choice:
+											if (f.value === '' || f.value === undefined) {
+												value = undefined;
+											} else {
+												value = f.choices?.find(c => c.displayName === f.value)?.name ?? undefined;
+											}
+											break;
+									}
+									return {
+										name: f.name,
+										value: value!,
+										operator: getFilterOperatorEnum(f.selectedOperator)
+									};
+								}).filter(f => {
+									if (f.operator === NodeFilterOperator.Between || f.operator === NodeFilterOperator.NotBetween) {
+										return (f.value as string[])[0] !== '' || (f.value as string[])[1] !== '';
+									}
+									return f.value !== '' && f.value !== undefined;
+								});
+
+								let errorText = '';
+								for (let filter of filters) {
+									if (filter.operator === NodeFilterOperator.Between || filter.operator === NodeFilterOperator.NotBetween) {
+										let value1 = (filter.value as string[] | number[])[0];
+										let value2 = (filter.value as string[]| number[])[1];
+										if (!value1 && value2) {
+											console.log(`The first value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
+											errorText = `The first value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
+										} else if (!value2 && value1) {
+											console.log(`The second value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
+											errorText = `The second value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
+										} else if (value1 > value2) {
+											console.log(`The first value must be less than the second value for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
+											errorText = `The first value must be less than the second value for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
+										}
+									}
+								}
+								if (errorText) {
+									setErrorMessage(errorText);
+									return;
+								}
+								provider.submit(filters);
 							}}>OK</Button>
 
 						</DialogActions>
 					</DialogBody>
 				</DialogSurface>
 			</Dialog>
-		</div>
+		</div >
 	);
 };
 
-function getFilterOperatorString(operator: NodeFilterOperator | undefined): string | undefined {
-	if(operator === undefined) {
+export function getFilterOperatorString(operator: NodeFilterOperator | undefined): string | undefined {
+	if (operator === undefined) {
 		return undefined;
 	}
 	switch (operator) {
@@ -366,7 +451,7 @@ function getFilterOperatorString(operator: NodeFilterOperator | undefined): stri
 	}
 }
 
-function getFilterOperatorEnum(operator: string): NodeFilterOperator {
+export function getFilterOperatorEnum(operator: string): NodeFilterOperator {
 	switch (operator) {
 		case CONTAINS:
 			return NodeFilterOperator.Contains;
@@ -415,3 +500,45 @@ const GREATER_THAN = 'Greater Than';
 const GREATER_THAN_OR_EQUALS = 'Greater Than Or Equals';
 const BETWEEN = 'Between';
 const NOT_BETWEEN = 'Not Between';
+
+export function getFilterChoices(property: vscodeMssql.NodeFilterChoiceProperty | vscodeMssql.NodeFilterProperty): {
+	name: string;
+	displayName: string;
+}[] | undefined {
+	switch (property.type) {
+		case NodeFilterPropertyDataType.Choice:
+			return (property as vscodeMssql.NodeFilterChoiceProperty).choices.map((choice) => {
+				return {
+					name: choice.value,
+					displayName: choice.displayName!
+				};
+			});
+		case NodeFilterPropertyDataType.Boolean:
+			return [{
+				name: 'true',
+				displayName: 'True'
+			}, {
+				name: 'false',
+				displayName: 'False'
+			}];
+		default:
+			return undefined;
+	}
+}
+
+export function getFilterOperators(property: vscodeMssql.NodeFilterProperty): string[] {
+	switch (property.type) {
+		case NodeFilterPropertyDataType.Boolean:
+			return [EQUALS, NOT_EQUALS];
+		case NodeFilterPropertyDataType.String:
+			return [CONTAINS, NOT_CONTAINS, STARTS_WITH, NOT_STARTS_WITH, ENDS_WITH, NOT_ENDS_WITH, EQUALS, NOT_EQUALS];
+		case NodeFilterPropertyDataType.Number:
+			return [EQUALS, NOT_EQUALS, LESS_THAN, LESS_THAN_OR_EQUALS, GREATER_THAN, GREATER_THAN_OR_EQUALS, BETWEEN, NOT_BETWEEN];
+		case NodeFilterPropertyDataType.Date:
+			return [EQUALS, NOT_EQUALS, LESS_THAN, LESS_THAN_OR_EQUALS, GREATER_THAN, GREATER_THAN_OR_EQUALS, BETWEEN, NOT_BETWEEN];
+		case NodeFilterPropertyDataType.Choice:
+			return [EQUALS, NOT_EQUALS];
+		default:
+			return [];
+	}
+}
