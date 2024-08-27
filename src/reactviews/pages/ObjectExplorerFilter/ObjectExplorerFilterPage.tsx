@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Body1Strong, Button, createTableColumn, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Dropdown, InfoLabel, Input, makeStyles, MessageBar, MessageBarBody, MessageBarTitle, Option, Table, TableBody, TableCell, TableColumnDefinition, TableColumnId, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Tooltip, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ObjectExplorerFilterContext } from "./ObjectExplorerFilterStateProvider";
 import * as vscodeMssql from 'vscode-mssql';
 import { EraserRegular } from "@fluentui/react-icons";
@@ -64,6 +64,15 @@ export const ObjectExplorerFilterPage = () => {
 				description: value.description
 			};
 		}) ?? []);
+	useEffect(() => {
+		function setIntialFocus(){
+			const input = document.getElementById('input-0');
+			if(input){
+				input.focus();
+			}
+		}
+		setIntialFocus();
+	});
 	function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
 		switch (columnId) {
 			case 'property':
@@ -80,6 +89,7 @@ export const ObjectExplorerFilterPage = () => {
 			case 'operator':
 				return <div className={classes.tableCell} >
 					<Dropdown
+						id = {`operator-${item.index}`}
 						className={classes.operatorOptions}
 						size="small"
 						value={item.selectedOperator ?? ''}
@@ -129,6 +139,7 @@ export const ObjectExplorerFilterPage = () => {
 							return (
 								<div className={classes.tableCell} >
 									<Input
+										id = {`input-${item.index}`}
 										size="small"
 										type={inputType}
 										className={classes.inputs}
@@ -151,6 +162,7 @@ export const ObjectExplorerFilterPage = () => {
 						} else {
 							return (
 								<Input
+									id = {`input-${item.index}`}
 									size="small"
 									type={inputType}
 									className={classes.inputs}
@@ -165,6 +177,7 @@ export const ObjectExplorerFilterPage = () => {
 					case NodeFilterPropertyDataType.Boolean:
 						return (
 							<Dropdown size="small"
+								id = {`input-${item.index}`}
 								className={classes.inputs}
 								value={item.value as string}
 								onOptionSelect={(_e, d) => {
