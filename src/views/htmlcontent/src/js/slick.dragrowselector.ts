@@ -5,12 +5,12 @@
 
 // Drag select selection model gist taken from https://gist.github.com/skoon/5312536
 // heavily modified
-declare let SlickGrid;
+declare let SlickDrag;
 
 (function ($: JQueryStatic): void {
 	// register namespace
 	$.extend(true, window, {
-		'Slick': {
+		'SlickDrag': {
 			'DragRowSelectionModel': dragRowSelectionModel
 		}
 	});
@@ -61,7 +61,7 @@ declare let SlickGrid;
 			let ranges = [];
 			let lastCell = _grid.getColumns().length - 1;
 			for (let i = 0; i < rows.length; i++) {
-				ranges.push(new SlickGrid.Range(rows[i], 0, rows[i], lastCell));
+				ranges.push(new SlickDrag.Range(rows[i], 0, rows[i], lastCell));
 			}
 			return ranges;
 		}
@@ -119,9 +119,9 @@ declare let SlickGrid;
 					let fromCell = Math.min(newRangeColumn, last.fromCell);
 					let toRow = Math.max(activeCell.row, last.toRow);
 					let toCell = Math.max(newRangeColumn, last.toCell);
-					_ranges = [new SlickGrid.Range(fromRow, fromCell, toRow, toCell)];
+					_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 				} else {
-					_ranges = [new SlickGrid.Range(activeCell.row, newRangeColumn, activeCell.row, newRangeColumn)];
+					_ranges = [new SlickDrag.Range(activeCell.row, newRangeColumn, activeCell.row, newRangeColumn)];
 				}
 
 				_grid.setActiveCell(activeCell.row, newActiveCellColumn);
@@ -147,9 +147,9 @@ declare let SlickGrid;
 					let toRow = Math.max(activeCell.row, last.toRow);
 					let toCell = Math.max(newRangeColumn, last.toCell);
 
-					_ranges = [new SlickGrid.Range(fromRow, fromCell, toRow, toCell)];
+					_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 				} else {
-					_ranges = [new SlickGrid.Range(activeCell.row, newRangeColumn, activeCell.row, newRangeColumn)];
+					_ranges = [new SlickDrag.Range(activeCell.row, newRangeColumn, activeCell.row, newRangeColumn)];
 				}
 				_grid.setActiveCell(activeCell.row, newActiveCellColumn);
 				setSelectedRanges(_ranges);
@@ -225,9 +225,9 @@ declare let SlickGrid;
 							let fromCell = Math.min(activeCell.cell, last.fromCell);
 							let toRow = Math.max(newRangeRow, last.toRow);
 							let toCell = Math.max(activeCell.cell, last.toCell);
-							_ranges = [new SlickGrid.Range(fromRow, fromCell, toRow, toCell)];
+							_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 						} else {
-							_ranges = [new SlickGrid.Range(activeCell.row - 1, activeCell.cell, activeCell.row - 1, activeCell.cell)];
+							_ranges = [new SlickDrag.Range(activeCell.row - 1, activeCell.cell, activeCell.row - 1, activeCell.cell)];
 						}
 						_grid.setActiveCell(activeCell.row - 1, activeCell.cell);
 						setSelectedRanges(_ranges);
@@ -248,9 +248,9 @@ declare let SlickGrid;
 							let fromCell = Math.min(activeCell.cell, last.fromCell);
 							let toRow = Math.max(activeCell.row + 1, last.toRow);
 							let toCell = Math.max(activeCell.cell, last.toCell);
-							_ranges = [new SlickGrid.Range(fromRow, fromCell, toRow, toCell)];
+							_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 						} else {
-							_ranges = [new SlickGrid.Range(activeCell.row + 1, activeCell.cell, activeCell.row + 1, activeCell.cell)];
+							_ranges = [new SlickDrag.Range(activeCell.row + 1, activeCell.cell, activeCell.row + 1, activeCell.cell)];
 						}
 						_grid.setActiveCell(activeCell.row + 1, activeCell.cell);
 						setSelectedRanges(_ranges);
@@ -289,10 +289,10 @@ declare let SlickGrid;
 			const newActiveColumn = columnIndex === 0 ? 1 : columnIndex;
 			// select all cells if row number header is clicked
 			if (columnIndex === 0) {
-				_ranges = [new SlickGrid.Range(0, 1, _grid.getDataLength() - 1, _grid.getColumns().length - 1)];
+				_ranges = [new SlickDrag.Range(0, 1, _grid.getDataLength() - 1, _grid.getColumns().length - 1)];
 			} else {
 				if (e.ctrlKey || e.metaKey) {
-					_ranges.push(new SlickGrid.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex));
+					_ranges.push(new SlickDrag.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex));
 				} else if (e.shiftKey && _ranges.length) {
 					let last = _ranges.pop().fromCell;
 					let from = Math.min(columnIndex, last);
@@ -300,12 +300,12 @@ declare let SlickGrid;
 					_ranges = [];
 					for (let i = from; i <= to; i++) {
 						if (i !== last) {
-							_ranges.push(new SlickGrid.Range(0, i, _grid.getDataLength() - 1, i));
+							_ranges.push(new SlickDrag.Range(0, i, _grid.getDataLength() - 1, i));
 						}
 					}
-					_ranges.push(new SlickGrid.Range(0, last, _grid.getDataLength() - 1, last));
+					_ranges.push(new SlickDrag.Range(0, last, _grid.getDataLength() - 1, last));
 				} else {
-					_ranges = [new SlickGrid.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex)];
+					_ranges = [new SlickDrag.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex)];
 				}
 			}
 			_grid.setActiveCell(newActiveRow, newActiveColumn);
@@ -328,21 +328,21 @@ declare let SlickGrid;
 
 			if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
 				if (cell.cell !== 0) {
-					_ranges = [new SlickGrid.Range(cell.row, cell.cell, cell.row, cell.cell)];
+					_ranges = [new SlickDrag.Range(cell.row, cell.cell, cell.row, cell.cell)];
 					setSelectedRanges(_ranges);
 					_grid.setActiveCell(cell.row, cell.cell);
 					return true;
 				} else {
-					_ranges = [new SlickGrid.Range(cell.row, 1, cell.row, _grid.getColumns().length - 1)];
+					_ranges = [new SlickDrag.Range(cell.row, 1, cell.row, _grid.getColumns().length - 1)];
 					setSelectedRanges(_ranges);
 					return true;
 				}
 			} else if (_grid.getOptions().multiSelect) {
 				if (e.ctrlKey || e.metaKey) {
 					if (cell.cell === 0) {
-						_ranges.push(new SlickGrid.Range(cell.row, 1, cell.row, _grid.getColumns().length - 1));
+						_ranges.push(new SlickDrag.Range(cell.row, 1, cell.row, _grid.getColumns().length - 1));
 					} else {
-						_ranges.push(new SlickGrid.Range(cell.row, cell.cell, cell.row, cell.cell));
+						_ranges.push(new SlickDrag.Range(cell.row, cell.cell, cell.row, cell.cell));
 						_grid.setActiveCell(cell.row, cell.cell);
 					}
 				} else if (_ranges.length && e.shiftKey) {
@@ -350,13 +350,13 @@ declare let SlickGrid;
 					if (cell.cell === 0) {
 						let fromRow = Math.min(cell.row, last.fromRow);
 						let toRow = Math.max(cell.row, last.fromRow);
-						_ranges = [new SlickGrid.Range(fromRow, 1, toRow, _grid.getColumns().length - 1)];
+						_ranges = [new SlickDrag.Range(fromRow, 1, toRow, _grid.getColumns().length - 1)];
 					} else {
 						let fromRow = Math.min(cell.row, last.fromRow);
 						let fromCell = Math.min(cell.cell, last.fromCell);
 						let toRow = Math.max(cell.row, last.toRow);
 						let toCell = Math.max(cell.cell, last.toCell);
-						_ranges = [new SlickGrid.Range(fromRow, fromCell, toRow, toCell)];
+						_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 					}
 				}
 			}
@@ -375,7 +375,7 @@ declare let SlickGrid;
 			e.stopImmediatePropagation();
 			_dragging = true;
 			if (e.ctrlKey || e.metaKey) {
-				_ranges.push(new SlickGrid.Range());
+				_ranges.push(new SlickDrag.Range());
 				_grid.setActiveCell(cell.row, cell.cell);
 			} else if (_ranges.length && e.shiftKey) {
 				let last = _ranges.pop();
@@ -383,9 +383,9 @@ declare let SlickGrid;
 				let fromCell = Math.min(cell.cell, last.fromCell);
 				let toRow = Math.max(cell.row, last.toRow);
 				let toCell = Math.max(cell.cell, last.toCell);
-				_ranges = [new SlickGrid.Range(fromRow, fromCell, toRow, toCell)];
+				_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 			} else {
-				_ranges = [new SlickGrid.Range()];
+				_ranges = [new SlickDrag.Range()];
 				_grid.setActiveCell(cell.row, cell.cell);
 			}
 			setSelectedRanges(_ranges);
@@ -406,13 +406,13 @@ declare let SlickGrid;
 					let lastCell = _grid.getColumns().length - 1;
 					let firstRow = Math.min(cell.row, activeCell.row);
 					let lastRow = Math.max(cell.row, activeCell.row);
-					_ranges.push(new SlickGrid.Range(firstRow, 1, lastRow, lastCell));
+					_ranges.push(new SlickDrag.Range(firstRow, 1, lastRow, lastCell));
 				} else {
 					let firstRow = Math.min(cell.row, activeCell.row);
 					let lastRow = Math.max(cell.row, activeCell.row);
 					let firstColumn = Math.min(cell.cell, activeCell.cell);
 					let lastColumn = Math.max(cell.cell, activeCell.cell);
-					_ranges.push(new SlickGrid.Range(firstRow, firstColumn, lastRow, lastColumn));
+					_ranges.push(new SlickDrag.Range(firstRow, firstColumn, lastRow, lastColumn));
 				}
 				setSelectedRanges(_ranges);
 			}
@@ -523,7 +523,7 @@ declare let SlickGrid;
 			'init': init,
 			'destroy': destroy,
 
-			'onSelectedRangesChanged': new SlickGrid.Event()
+			'onSelectedRangesChanged': new SlickDrag.Event()
 		});
 	}
 })($);
