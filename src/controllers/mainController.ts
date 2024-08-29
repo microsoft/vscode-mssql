@@ -44,6 +44,8 @@ import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfac
 import { TableDesignerService } from '../services/tableDesignerService';
 import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { ExecutionPlanService } from '../services/executionPlanService';
+import { ExecutionPlanWebViewController } from './executionPlanWebviewController';
 
 /**
  * The main controller class that initializes the extension
@@ -75,6 +77,7 @@ export default class MainController implements vscode.Disposable {
 	public tableDesignerService: TableDesignerService;
 	public configuration: vscode.WorkspaceConfiguration;
 	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
+	public executionPlanService: ExecutionPlanService;
 
 	/**
 	 * The main controller constructor
@@ -89,7 +92,7 @@ export default class MainController implements vscode.Disposable {
 		}
 		this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 		this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
-		this.configuration = vscode.workspace.getConfiguration(Constants.extensionName);
+		this.configuration = vscode.workspace.getConfiguration();
 	}
 
 	/**
@@ -206,6 +209,10 @@ export default class MainController implements vscode.Disposable {
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
+			this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+
+			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService, this._untitledSqlDocumentService);
+			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -1249,6 +1256,10 @@ export default class MainController implements vscode.Disposable {
 			this._statusview.languageFlavorChanged(doc.uri.toString(true), Constants.mssqlProviderName);
 		}
 
+		if (doc && doc.languageId === Constants.sqlPlanLanguageId) {
+			vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+		}
+
 		// Setup properties incase of rename
 		this._lastOpenedTimer = new Utils.Timer();
 		this._lastOpenedTimer.start();
@@ -1374,6 +1385,10 @@ export default class MainController implements vscode.Disposable {
 			if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
 				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
+
+			if(e.affectsConfiguration(Constants.configEnableExperimentalFeatures)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+			}
 		}
 	}
 
@@ -1411,4 +1426,41 @@ export default class MainController implements vscode.Disposable {
 	public onClearAzureTokenCache(): void {
 		this.connectionManager.onClearTokenCache();
 	}
+
+	private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
+		context: vscode.ExtensionContext;
+		executionPlanService: ExecutionPlanService;
+		untitledSqlService: UntitledSqlDocumentService
+        constructor(
+			context: vscode.ExtensionContext,
+			executionPlanService: ExecutionPlanService,
+			untitledSqlService: UntitledSqlDocumentService
+        ) {
+			this.context = context;
+			this.executionPlanService = executionPlanService;
+			this.untitledSqlService = untitledSqlService;
+        }
+
+        public async resolveCustomTextEditor(
+            document: vscode.TextDocument
+        ): Promise<void> {
+			await this.onOpenExecutionPlanFile(document);
+        }
+
+		public async onOpenExecutionPlanFile(document: vscode.TextDocument) {
+			const planContents = document.getText();
+			let docName = document.fileName;
+			docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
+
+			const executionPlanController = new ExecutionPlanWebViewController(
+				this.context,
+				this.executionPlanService,
+				this.untitledSqlService,
+				planContents,
+				docName
+			)
+
+			executionPlanController.revealToForeground();
+		}
+    };
 }

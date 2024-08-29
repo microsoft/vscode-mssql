@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.24.0",
+  "version": "1.25.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -140,7 +140,8 @@
     "typescript-eslint": "^7.13.1",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.68"
   },
   "dependencies": {
     "@azure/arm-resources": "^5.0.0",
@@ -207,6 +208,19 @@
         }
       ]
     },
+    "customEditors": [
+        {
+          "viewType": "mssql.executionPlanView",
+          "displayName": "SQL Server Execution Plan",
+          "selector": [
+              {
+                  "filenamePattern": "*.sqlplan",
+                  "language": "sqlplan"
+              }
+          ],
+          "priority": "default"
+        }
+    ],
     "languages": [
       {
         "id": "sql",
@@ -217,6 +231,15 @@
           "SQL"
         ],
         "configuration": "./syntaxes/sql.configuration.json"
+      },
+      {
+        "id": "sqlplan",
+        "extensions": [
+          ".sqlplan"
+        ],
+        "aliases": [
+          "SQL Server Execution Plan"
+        ]
       }
     ],
     "grammars": [
@@ -716,6 +739,12 @@
       "type": "object",
       "title": "%mssql.Configuration%",
       "properties": {
+        "mssql.enableExperimentalFeatures": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableExperimentalFeatures.description%",
+          "scope": "application"
+        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

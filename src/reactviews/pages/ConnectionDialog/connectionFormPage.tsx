@@ -17,8 +17,8 @@ import {
 import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { ApiStatus } from "../../../sharedInterfaces/connectionDialog";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);

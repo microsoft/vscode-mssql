@@ -118,6 +118,7 @@ export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mss
 export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
+export const sqlPlanLanguageId = 'sqlplan';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 /**
  * Azure Firewall rule name convention is specified here:
@@ -157,7 +158,7 @@ export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
 export const configEnableQueryHistoryFeature = 'enableQueryHistoryFeature';
-export const configEnableExperimentalFeatures = 'enableExperimentalFeatures';
+export const configEnableExperimentalFeatures = 'mssql.enableExperimentalFeatures';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';

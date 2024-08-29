@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
+import { getNonce } from '../utils/utils';
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -80,6 +81,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				</head>
 				<body>
 				  <div id="root"></div>
+				  <script>
+				 	const assetPathVscodeUri = "${this.resourceUrl(['']).toString()}";
+				  </script>
 				  <script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 				</html>
@@ -124,6 +128,11 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				`);
 				this._isFirstLoad = false;
 			}
+		};
+		this._webViewRequestHandlers['getUri'] = async (path: string) => {
+			path = path.replace('./', '');
+			const result =  this.resourceUrl([path]).toString();
+			return result;
 		};
 	}
 
@@ -204,18 +213,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 export enum DefaultWebViewNotifications {
 	updateState = 'updateState',
 	onDidChangeTheme = 'onDidChangeTheme'
-}
-
-/**
- * Generates a random nonce value that can be used in a webview
- */
-export function getNonce(): string {
-	let text = "";
-	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
 }
 
 export type ReducerResponse<T> = T | Promise<T>;

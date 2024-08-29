@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, MessageBar, Spinner } from "@fluentui/react-components";
-import { ApiStatus } from "../../../sharedInterfaces/connectionDialog";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
