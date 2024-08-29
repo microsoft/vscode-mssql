@@ -58,7 +58,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 
 	protected _getHtmlTemplate() {
 		const nonce = getNonce();
-		const baseUrl = this.resourceUrl([]).toString() + '/';
+		const baseUrl = this._getWebview().asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets')).toString() + '/';
 
 		return `
 		<!DOCTYPE html>
@@ -67,7 +67,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 					<meta charset="UTF-8">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>mssqlwebview</title>
-
 					<base href="${baseUrl}">
 				<style>
 					html, body {
@@ -123,15 +122,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				this._isFirstLoad = false;
 			}
 		};
-		this._webViewRequestHandlers['getUri'] = async (path: string) => {
-			path = path.replace('./', '');
-			const result = this.resourceUrl([path]).toString();
-			return result;
-		};
-	}
-
-	private resourceUrl(path: string[]) {
-		return this._getWebview().asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets', ...path));
 	}
 
 	/**
