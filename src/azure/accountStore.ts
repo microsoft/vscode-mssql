@@ -41,7 +41,13 @@ export class AccountStore {
 			this._logger.error('Azure Account key not received for removal request.');
 		}
 		let configValues = this.getAccounts();
-		configValues = configValues.filter(val => val.key.id !== key);
+		configValues = configValues.filter((val) => {
+			if (val.key) {
+				return val.key.id !== key;
+			} else {
+				return false;
+			}
+		});
 		this._context.globalState.update(Constants.configAzureAccount, configValues);
 		return;
 	}
