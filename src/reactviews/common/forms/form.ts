@@ -64,11 +64,11 @@ export interface FormItemSpec<TForm> {
 
 export interface FormItemValidationState {
 	/**
-	 * The validation state of the form component
+	 * The validation state of the form item
 	 */
 	isValid: boolean
 	/**
-	 * The validation message of the form component
+	 * The validation message of the form item
 	 */
 	validationMessage: string;
 }
@@ -90,22 +90,22 @@ export interface FormItemOptions {
  */
 export interface FormEvent<T> {
 	/**
-	 * The property name of the form component that triggered the event
+	 * The property name of the form item that triggered the event
 	 */
 	propertyName: keyof T;
 	/**
-	 * Whether the event was triggered by an action button for the component
+	 * Whether the event was triggered by an action button for the item
 	 */
 	isAction: boolean;
 	/**
-	 * Contains the updated value of the form component that triggered the event.
+	 * Contains the updated value of the form item that triggered the event.
 	 * In case of isAction being true, this will contain the id of the action button that was clicked
 	 */
 	value: string | boolean;
 }
 
 /**
- * Enum for the type of form component
+ * Enum for the input type of form item
  */
 export enum FormItemType {
 	Input = 'input',
