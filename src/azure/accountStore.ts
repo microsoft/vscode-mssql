@@ -41,13 +41,7 @@ export class AccountStore {
 			this._logger.error('Azure Account key not received for removal request.');
 		}
 		let configValues = this.getAccounts();
-		configValues = configValues.filter((val) => {
-			if (val.key) {
-				return val.key.id !== key;
-			} else {
-				return false;
-			}
-		});
+		configValues = configValues.filter(val => val.key.id !== key);
 		this._context.globalState.update(Constants.configAzureAccount, configValues);
 		return;
 	}
@@ -72,6 +66,19 @@ export class AccountStore {
 		} else {
 			this._logger.error('Empty Azure Account cannot be added to account store.');
 		}
+	}
+
+	public async pruneAccounts(): Promise<void> {
+		let configValues = this.getAccounts();
+		configValues = configValues.filter((val) => {
+			if (val.key) {
+				return true;
+			} else {
+				return false;
+			}
+		});
+		await this._context.globalState.update(Constants.configAzureAccount, configValues);
+		return;
 	}
 
 	public async clearAccounts(): Promise<void> {

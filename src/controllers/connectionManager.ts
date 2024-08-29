@@ -1156,9 +1156,14 @@ export default class ConnectionManager {
 			return prompter.prompt<IAccount>(questions, true).then(async answers => {
 				if (answers?.account) {
 					try {
-						this._accountStore.removeAccount(answers.account.key.id);
-						this.azureController.removeAccount(answers.account);
-						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
+						if (answers.account.key) {
+							this._accountStore.removeAccount(answers.account.key.id);
+							this.azureController.removeAccount(answers.account);
+							this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
+						} else {
+							await this._accountStore.pruneAccounts();
+						}
+
 					} catch (e) {
 						this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.accountRemovalFailed, e.message));
 					}
