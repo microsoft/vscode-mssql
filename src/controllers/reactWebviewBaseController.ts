@@ -67,7 +67,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 					<meta charset="UTF-8">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>mssqlwebview</title>
-					<base href="${baseUrl}">
+					<base href="${baseUrl}"> <!-- Required for loading relative resources in the webview -->
 				<style>
 					html, body {
 						margin: 0;
@@ -80,7 +80,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				<body>
 					<link rel="stylesheet" href="${this._sourceFile}.css">
 					<div id="root"></div>
-				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js"></script>
+				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js"></script> <!-- since our bundles are in esm format we need to use type="module" -->
 				</body>
 			</html>
 		`;
