@@ -15,7 +15,6 @@ export interface ConnectionDialogWebviewState extends FormState<IConnectionDialo
 		advancedComponents: {[category: string]: FormItemSpec<IConnectionDialogProfile>[]};
 	};
 	connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[];
-	formState: IConnectionDialogProfile;
 	recentConnections: IConnectionDialogProfile[];
 	connectionStatus: ApiStatus;
 	formError: string;
