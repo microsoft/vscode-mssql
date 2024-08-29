@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { ReactWebViewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
-import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
 import * as LocalizedConstants from "../constants/localizedConstants";
 import { homedir } from "os";
 import { exists } from "../utils/utils";
@@ -30,7 +29,7 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
     super(
       context,
       `${xmlPlanFileName}`,  // Sets the webview title
-      WebviewRoute.executionPlanDocument,
+      'executionPlan',
       {
         sqlPlanContent: executionPlanContents,
         theme: vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light",

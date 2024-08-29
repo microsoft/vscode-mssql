@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { loadImage } from "../../common/loadImage";
-
 const iterator_catch_all = require('./icons/iterator_catch_all.png');
 const cursor_catch_all = require('./icons/cursor_catch_all.png');
 const language_construct_catch_all = require('./icons/language_construct_catch_all.png');
@@ -135,8 +133,7 @@ const collapseButton = require('./icons/collapse.svg');
 
 export function getIconPaths() {
 
-	var iconPaths: Record<string, string> =
-	{
+	return {
 		// generic icons
 		iteratorCatchAll: iterator_catch_all,
 
@@ -379,94 +376,79 @@ export function getIconPaths() {
 
 		unionAll: unionAll
 	};
-
-	Object.keys(iconPaths).forEach(function (key) {
-		iconPaths[key] = loadImage(iconPaths[key]);
-	});
-	return iconPaths;
 }
 
 export function getBadgePaths() {
-	const badgePaths: Record<string, string> = {
+	return {
 		warning: warning,
 
 		criticalWarning: criticalWarning,
 
 		parallelism: parallelismBadge
 	};
-
-	Object.keys(badgePaths).forEach(function (key) {
-		badgePaths[key] = loadImage(badgePaths[key]);
-	});
-	return badgePaths;
 }
 
 export function getCollapseExpandPaths() {
-	const buttonIcons: Record<string, string> =  {
+	return  {
 		expand: expandButton,
 
 		collapse: collapseButton
 	};
-
-	Object.keys(buttonIcons).forEach(function (key) {
-		buttonIcons[key] = loadImage(buttonIcons[key]);
-	});
-	return buttonIcons;
 }
 
 export const save = (theme: string) => {
     const saveIcon =  theme === "dark" ? require('./icons/saveDark.svg') : require('./icons/save.svg');
-	return loadImage(saveIcon);
+	return saveIcon;
 };
 
 export const openPlanFile = (theme: string) => {
     const openPlanFileIcon =  theme === "dark" ? require('./icons/openPlanFileDark.svg') : require('./icons/openPlanFile.svg');
-	return loadImage(openPlanFileIcon);
+	return openPlanFileIcon;
 };
 
 export const openQuery = (theme: string) => {
     const openQueryIcon =  theme === "dark" ? require('./icons/openQueryDark.svg') : require('./icons/openQuery.svg');
-	return loadImage(openQueryIcon);
+	return openQueryIcon;
 };
 
 export const zoomIn = (theme: string) => {
     const zoomInIcon =  theme === "dark" ? require('./icons/zoomInDark.svg') : require('./icons/zoomIn.svg');
-	return loadImage(zoomInIcon);
+	return zoomInIcon;
 };
 
 export const zoomOut = (theme: string) => {
     const zoomOutIcon =  theme === "dark" ? require('./icons/zoomOutDark.svg') : require('./icons/zoomOut.svg');
-	return loadImage(zoomOutIcon);
+	return zoomOutIcon;
 };
 
 export const zoomToFit = (theme: string) => {
     const zoomToFitIcon = theme === "dark" ? require('./icons/zoomToFitDark.svg') : require('./icons/zoomToFit.svg');
-	return loadImage(zoomToFitIcon);
+	return zoomToFitIcon;
 };
 
 export const customZoom = (theme: string) => {
     const customZoomIcon =  theme === "dark" ? require('./icons/customZoomDark.svg') : require('./icons/customZoom.svg');
-	return loadImage(customZoomIcon);
+	return customZoomIcon;
 };
 
 export const search = (theme: string) => {
     const searchIcon =  theme === "dark" ? require('./icons/searchDark.svg') : require('./icons/search.svg');
-	return loadImage(searchIcon);
+	return searchIcon;
 };
 
 export const highlightOps = (theme: string) => {
     const highlightOpsIcon =  theme === "dark" ? require('./icons/highlightExpensiveOperationDark.svg') : require('./icons/highlightExpensiveOperation.svg');
-	return loadImage(highlightOpsIcon);
+	return highlightOpsIcon;
 };
 
 export const enableTooltip = (theme: string) => {
     const enableTooltipIcon =  theme === "dark" ? require('./icons/enableTooltipDark.svg') : require('./icons/enableTooltip.svg');
-	return loadImage(enableTooltipIcon);
+	return enableTooltipIcon;
 };
 
 export const disableTooltip = (theme: string) => {
     const disableTooltipIcon =  theme === "dark" ? require('./icons/disableTooltipDark.svg') : require('./icons/disableTooltip.svg');
-	return loadImage(disableTooltipIcon);
+	return disableTooltipIcon;
 };
 
 

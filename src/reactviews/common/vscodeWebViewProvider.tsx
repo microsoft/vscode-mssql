@@ -7,7 +7,6 @@ import { FluentProvider, Theme, teamsHighContrastTheme, webDarkTheme, webLightTh
 import { createContext, useContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
-import { WebviewRoute } from '../../sharedInterfaces/webviewRoutes';
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -31,10 +30,6 @@ interface VscodeWebviewContext<State, Reducers> {
 	 * Theme of the webview.
 	 */
 	theme: Theme;
-	/**
-	 * Routes for the webview.
-	 */
-	route: WebviewRoute;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
@@ -54,7 +49,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 	const vscodeApi = vscodeApiInstance;
 	const extensionRpc = new WebviewRpc<Reducers>(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);
-	const [route, setRoute] = useState<WebviewRoute>();
 	const [state, setState] = useState<State>();
 
 	useEffect(() => {
@@ -73,11 +67,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 			}
 		}
 
-		async function getRoute() {
-			const route = await extensionRpc.call('getRoute');
-			setRoute(route as WebviewRoute);
-		}
-
 		async function getState() {
 			const state = await extensionRpc.call('getState');
 			setState(state as State);
@@ -90,7 +79,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 		}
 
 		getTheme();
-		getRoute();
 		getState();
 		loadStats();
 	}, []);
@@ -119,7 +107,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 		extensionRpc: extensionRpc,
 		state: state,
 		theme: theme,
-		route: route!
 	}}>
 		<FluentProvider style={{
 			height: '100%',
