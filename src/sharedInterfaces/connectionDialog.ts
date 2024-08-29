@@ -8,16 +8,50 @@ import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormEvent, FormState } from "../reactviews/common/forms/form";
 import { ApiStatus } from "./webview";
 
-export interface ConnectionDialogWebviewState extends FormState<IConnectionDialogProfile> {
-	selectedFormTab: FormTabType;
-	connectionFormComponents: {
-		mainComponents: FormItemSpec<IConnectionDialogProfile>[];
-		advancedComponents: {[category: string]: FormItemSpec<IConnectionDialogProfile>[]};
-	};
-	connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[];
-	recentConnections: IConnectionDialogProfile[];
-	connectionStatus: ApiStatus;
-	formError: string;
+export class ConnectionDialogWebviewState implements FormState<IConnectionDialogProfile> {
+    /** the underlying connection profile for the form target; same as `connectionProfile` */
+    formState: IConnectionDialogProfile;
+    /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
+    get connectionProfile(): IConnectionDialogProfile { return this.formState; }
+    set connectionProfile(value: IConnectionDialogProfile) { this.formState = value; }
+    public selectedFormTab: FormTabType;
+    public connectionFormComponents: {
+        mainComponents: FormItemSpec<IConnectionDialogProfile>[],
+        advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
+    };
+    public connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[];
+    public recentConnections: IConnectionDialogProfile[];
+    public connectionStatus: ApiStatus;
+    public formError: string;
+
+    constructor({
+        connectionProfile,
+        selectedFormTab,
+        connectionFormComponents,
+        connectionStringComponents,
+        recentConnections,
+        connectionStatus,
+        formError
+    }: {
+        connectionProfile: IConnectionDialogProfile,
+        selectedFormTab: FormTabType,
+        connectionFormComponents: {
+            mainComponents: FormItemSpec<IConnectionDialogProfile>[],
+            advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
+        },
+        connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[],
+        recentConnections: IConnectionDialogProfile[],
+        connectionStatus: ApiStatus,
+        formError: string
+    }) {
+        this.formState = connectionProfile;
+        this.selectedFormTab = selectedFormTab;
+        this.connectionFormComponents = connectionFormComponents;
+        this.connectionStringComponents = connectionStringComponents;
+        this.recentConnections = recentConnections;
+        this.connectionStatus = connectionStatus;
+        this.formError = formError;
+    }
 }
 
 export enum FormTabType {
