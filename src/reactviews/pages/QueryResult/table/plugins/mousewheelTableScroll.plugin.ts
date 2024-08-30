@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../dom';
+import { mixin } from '../objects';
 
 const SCROLL_WHEEL_SENSITIVITY = 50;
 
@@ -32,8 +33,9 @@ export class MouseWheelSupport implements Slick.Plugin<any> {
 	private canvas!: HTMLElement;
 	private options: IMouseWheelSupportOptions;
 
-	constructor() {
+	constructor(options: IMouseWheelSupportOptions = {}) {
 		this.options = defaultOptions;
+		mixin(this.options, options);
 	}
 
 	public async init(grid: Slick.Grid<any>): Promise<void> {

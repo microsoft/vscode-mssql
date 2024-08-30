@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { mixin } from "../objects";
+
 // Adopted and converted to typescript from https://github.com/6pac/SlickGrid/blob/master/plugins/slick.rowselectionmodel.js
 // heavily modified
 // import { KeyboardEvent } from 'react';
@@ -23,8 +25,8 @@ export class RowSelectionModel<T extends Slick.SlickData> implements Slick.Selec
 
 	public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
-	constructor() {
-		this._options = defaultOptions;
+	constructor(options?: Slick.PluginOptions) {
+		this._options = mixin(options, defaultOptions, false);
 	}
 
 	public init(grid: Slick.Grid<T>) {

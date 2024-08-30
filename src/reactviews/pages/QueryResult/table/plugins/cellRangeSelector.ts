@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { mixin } from "../objects";
+
 const defaultOptions: ICellRangeSelectorOptions = {
 	selectionCss: {
 		'border': '2px dashed blue'
@@ -47,8 +49,8 @@ export class CellRangeSelector<T> implements ICellRangeSelector<T> {
 	public onAppendCellRangeSelected = new Slick.Event<Slick.Range>();
 
 	constructor(private options: ICellRangeSelectorOptions) {
+		this.options = mixin(this.options, defaultOptions, false);
 
-		this.options =  defaultOptions;
 	}
 
 	public init(grid: Slick.Grid<T>) {

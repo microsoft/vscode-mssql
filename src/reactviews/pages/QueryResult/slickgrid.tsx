@@ -15,6 +15,7 @@ require('slickgrid/lib/jquery.event.drag-2.3.0.js');
 require('slickgrid/lib/jquery-1.11.2.min.js');
 require('slickgrid/slick.core.js');
 require('slickgrid/slick.grid.js');
+require('slickgrid/plugins/slick.cellrangedecorator.js');
 
 //TODO: get hardcoded data & get gridpanel to render the hardcoded data
 // add console.log in the event handlers for example to onTableClick function
@@ -31,6 +32,7 @@ export default function SlickGrid() {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() =>{
+        const ROW_HEIGHT = 25;
         let columns = [
         {id: "title", name: "Title", field: "title"},
         {id: "duration", name: "Duration", field: "duration"},
@@ -67,12 +69,12 @@ export default function SlickGrid() {
 
 
 
-        // let tableOptions: Slick.GridOptions<T> = {
-		// 	rowHeight: ROW_HEIGHT,
-		// 	showRowNumber: true,
-		// 	forceFitColumns: false,
-		// 	defaultColumnWidth: 120
-		// };
+        let tableOptions: Slick.GridOptions<T> = {
+			rowHeight: ROW_HEIGHT,
+			showRowNumber: true,
+			forceFitColumns: false,
+			defaultColumnWidth: 120
+		};
 
         //TODO: use hybriddataprovider here
         let tableData = new TableDataView(data);

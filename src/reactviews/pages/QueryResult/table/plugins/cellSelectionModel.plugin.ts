@@ -7,10 +7,9 @@
 // heavily modified
 
 import { CellRangeSelector, ICellRangeSelector } from './cellRangeSelector';
-import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
-import { KeyCode } from 'vs/base/common/keyCodes';
-import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';
+// import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';
 import { isUndefinedOrNull } from '../tableDataView';
+import { mixin } from '../objects';
 
 export interface ICellSelectionModelOptions {
 	cellRangeSelector?: any;
@@ -37,15 +36,19 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 	public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
 	constructor(private options: ICellSelectionModelOptions = defaults) {
-		this.options = defaults;
-		// this is added by the node requires above
-		this.selector = new CellRangeSelector({ selectionCss: { 'border': '2px dashed grey' } });
+		this.options = mixin(this.options, defaults, false);
+		if (this.options.cellRangeSelector) {
+			this.selector = this.options.cellRangeSelector;
+		} else {
+			// this is added by the node requires above
+			this.selector = new CellRangeSelector({ selectionCss: { 'border': '2px dashed grey' } });
+		}
 	}
 
 	public init(grid: Slick.Grid<T>) {
 		this.grid = grid;
-		this._handler.subscribe(this.grid.onKeyDown, (e: DOMEvent) => this.handleKeyDown(convertJQueryKeyDownEvent(e)));
-		this._handler.subscribe(this.grid.onAfterKeyboardNavigation, (e: Event) => this.handleAfterKeyboardNavigationEvent());
+		// this._handler.subscribe(this.grid.onKeyDown, (e: DOMEvent) => this.handleKeyDown(convertJQueryKeyDownEvent(e)));
+		// this._handler.subscribe(this.grid.onAfterKeyboardNavigation, (e: Event) => this.handleAfterKeyboardNavigationEvent());
 		this._handler.subscribe(this.grid.onClick, (e: DOMEvent, args: Slick.OnClickEventArgs<T>) => this.handleCellClick(e as MouseEvent, args));
 		this._handler.subscribe(this.grid.onHeaderClick, (e: DOMEvent, args: Slick.OnHeaderClickEventArgs<T>) => this.handleHeaderClick(e as MouseEvent, args));
 		this.grid.registerPlugin(this.selector);
@@ -109,7 +112,7 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 	}
 
 	private isMultiSelection(e: MouseEvent): boolean {
-		return process.platform === 'darwin' ? e.metaKey : e.ctrlKey;
+		return false; //process.platform === 'darwin' ? e.metaKey : e.ctrlKey;
 	}
 
 	private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
@@ -273,61 +276,61 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 		this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
 	}
 
-	private handleKeyDown(e: StandardKeyboardEvent) {
-		let active = this.grid.getActiveCell();
-		let metaKey = e.ctrlKey || e.metaKey;
+	// private handleKeyDown(e: StandardKeyboardEvent) {
+	// 	let active = this.grid.getActiveCell();
+	// 	let metaKey = e.ctrlKey || e.metaKey;
 
-		if (active && e.shiftKey && !metaKey && !e.altKey &&
-			(e.keyCode === KeyCode.LeftArrow || e.keyCode === KeyCode.RightArrow || e.keyCode === KeyCode.UpArrow || e.keyCode === KeyCode.DownArrow)) {
-			let ranges = this.getSelectedRanges(), last: Slick.Range;
+	// 	if (active && e.shiftKey && !metaKey && !e.altKey &&
+	// 		(e.keyCode === KeyCode.LeftArrow || e.keyCode === KeyCode.RightArrow || e.keyCode === KeyCode.UpArrow || e.keyCode === KeyCode.DownArrow)) {
+	// 		let ranges = this.getSelectedRanges(), last: Slick.Range;
 
-			ranges = this.getSelectedRanges();
-			if (!ranges.length) {
-				ranges.push(new Slick.Range(active.row, active.cell));
-			}
+	// 		ranges = this.getSelectedRanges();
+	// 		if (!ranges.length) {
+	// 			ranges.push(new Slick.Range(active.row, active.cell));
+	// 		}
 
-			// keyboard can work with last range only
-			last = ranges.pop()!; // this is guarenteed since if ranges is empty we add one
+	// 		// keyboard can work with last range only
+	// 		last = ranges.pop()!; // this is guarenteed since if ranges is empty we add one
 
-			// can't handle selection out of active cell
-			if (!last.contains(active.row, active.cell)) {
-				last = new Slick.Range(active.row, active.cell);
-			}
+	// 		// can't handle selection out of active cell
+	// 		if (!last.contains(active.row, active.cell)) {
+	// 			last = new Slick.Range(active.row, active.cell);
+	// 		}
 
-			let dRow = last.toRow - last.fromRow,
-				dCell = last.toCell - last.fromCell,
-				// walking direction
-				dirRow = active.row === last.fromRow ? 1 : -1,
-				dirCell = active.cell === last.fromCell ? 1 : -1;
+	// 		let dRow = last.toRow - last.fromRow,
+	// 			dCell = last.toCell - last.fromCell,
+	// 			// walking direction
+	// 			dirRow = active.row === last.fromRow ? 1 : -1,
+	// 			dirCell = active.cell === last.fromCell ? 1 : -1;
 
-			if (e.keyCode === KeyCode.LeftArrow) {
-				dCell -= dirCell;
-			} else if (e.keyCode === KeyCode.RightArrow) {
-				dCell += dirCell;
-			} else if (e.keyCode === KeyCode.UpArrow) {
-				dRow -= dirRow;
-			} else if (e.keyCode === KeyCode.DownArrow) {
-				dRow += dirRow;
-			}
+	// 		if (e.keyCode === KeyCode.LeftArrow) {
+	// 			dCell -= dirCell;
+	// 		} else if (e.keyCode === KeyCode.RightArrow) {
+	// 			dCell += dirCell;
+	// 		} else if (e.keyCode === KeyCode.UpArrow) {
+	// 			dRow -= dirRow;
+	// 		} else if (e.keyCode === KeyCode.DownArrow) {
+	// 			dRow += dirRow;
+	// 		}
 
-			// define new selection range
-			let new_last = new Slick.Range(active.row, active.cell, active.row + dirRow * dRow, active.cell + dirCell * dCell);
-			if (this.removeInvalidRanges([new_last]).length) {
-				ranges.push(new_last);
-				let viewRow = dirRow > 0 ? new_last.toRow : new_last.fromRow;
-				let viewCell = dirCell > 0 ? new_last.toCell : new_last.fromCell;
-				this.grid.scrollRowIntoView(viewRow, false);
-				this.grid.scrollCellIntoView(viewRow, viewCell, false);
-			} else {
-				ranges.push(last);
-			}
+	// 		// define new selection range
+	// 		let new_last = new Slick.Range(active.row, active.cell, active.row + dirRow * dRow, active.cell + dirCell * dCell);
+	// 		if (this.removeInvalidRanges([new_last]).length) {
+	// 			ranges.push(new_last);
+	// 			let viewRow = dirRow > 0 ? new_last.toRow : new_last.fromRow;
+	// 			let viewCell = dirCell > 0 ? new_last.toCell : new_last.fromCell;
+	// 			this.grid.scrollRowIntoView(viewRow, false);
+	// 			this.grid.scrollCellIntoView(viewRow, viewCell, false);
+	// 		} else {
+	// 			ranges.push(last);
+	// 		}
 
-			this.setSelectedRanges(ranges);
+	// 		this.setSelectedRanges(ranges);
 
-			e.preventDefault();
-			e.stopPropagation();
-		}
-	}
+	// 		e.preventDefault();
+	// 		e.stopPropagation();
+	// 	}
+	// }
 
 	private handleAfterKeyboardNavigationEvent(): void {
 		const activeCell = this.grid.getActiveCell();

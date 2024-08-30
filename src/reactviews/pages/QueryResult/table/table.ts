@@ -12,8 +12,9 @@ import { ITableSorter, ITableConfiguration, ITableStyles } from './interfaces';
 import * as DOM from './dom';
 
 import { IDisposableDataProvider } from './dataProvider';
+import { CellSelectionModel } from './plugins/cellSelectionModel.plugin';
+import { mixin } from './objects';
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
-const ROW_HEIGHT = 29;
 
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -36,6 +37,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 	private _autoscroll?: boolean;
 	private _container: HTMLElement;
 	protected _tableContainer: HTMLElement;
+	private selectionModel = new CellSelectionModel<T>({ hasRowSelector: true});
 
 	constructor(
 		parent: HTMLElement,
@@ -84,6 +86,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 			});
 		}
 
+		this.setSelectionModel(this.selectionModel);
         this.mapMouseEvent(this._grid.onContextMenu);
 		this.mapMouseEvent(this._grid.onClick);
 		this.mapMouseEvent(this._grid.onHeaderClick);
@@ -373,45 +376,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 	public get container(): HTMLElement {
 		return this._tableContainer;
 	}
-}
-
-export function mixin(destination: any, source: any, overwrite: boolean = true): any {
-	if (!isObject(destination)) {
-		return source;
-	}
-
-	if (isObject(source)) {
-		Object.keys(source).forEach(key => {
-			if (key in destination) {
-				if (overwrite) {
-					if (isObject(destination[key]) && isObject(source[key])) {
-						mixin(destination[key], source[key], overwrite);
-					} else {
-						destination[key] = source[key];
-					}
-				}
-			} else {
-				destination[key] = source[key];
-			}
-		});
-	}
-	return destination;
-}
-
-
-/**
- * @returns whether the provided parameter is of type `object` but **not**
- *	`null`, an `array`, a `regexp`, nor a `date`.
- */
- export function isObject(obj: unknown): obj is Object {
-	// The method can't do a type cast since there are type (like strings) which
-	// are subclasses of any put not positvely matched by the function. Hence type
-	// narrowing results in wrong results.
-	return typeof obj === 'object'
-		&& obj !== null
-		&& !Array.isArray(obj)
-		&& !(obj instanceof RegExp)
-		&& !(obj instanceof Date);
 }
 
 export const enum Orientation {
