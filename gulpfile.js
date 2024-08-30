@@ -104,6 +104,7 @@ gulp.task('ext:copy-queryHistory-assets', (done) => {
 });
 
 async function generateExtensionBundle() {
+	const fs = require('fs').promises;
 	const ctx = await esbuild.context({
 		entryPoints: [
 			'src/extension.ts',
@@ -119,6 +120,7 @@ async function generateExtensionBundle() {
 		sourcesContent: false,
 		platform: 'node',
 		outdir: 'out/src',
+		metafile: true,
 		external: [
 			'vscode',
 		],
@@ -158,7 +160,14 @@ async function generateExtensionBundle() {
 		],
 	});
 
-	await ctx.rebuild();
+
+
+	const result = await ctx.rebuild();
+
+	if(result.metafile) {
+		await fs.writeFile('./extension-metafile.json', JSON.stringify(result.metafile));
+	}
+
 	await ctx.dispose();
 }
 
@@ -400,7 +409,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:copy-OE-assets', 'ext:copy-queryHistory-assets'));
+gulp.task('ext:compile', gulp.series('ext:bundle-src', 'ext:compile-tests', 'ext:copy-OE-assets', 'ext:copy-queryHistory-assets'));
 
 gulp.task('ext:copy-tests', () => {
 	return gulp.src(config.paths.project.root + '/test/resources/**/*')
@@ -456,7 +465,7 @@ gulp.task('clean', function (done) {
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
 gulp.task('watch-src', function () {
-	return gulp.watch('./src/**/*.ts', gulp.series('ext:compile-src'))
+	return gulp.watch('./src/**/*.ts', gulp.series('ext:bundle-src'))
 });
 
 gulp.task('watch-tests', function () {

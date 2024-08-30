@@ -27,3 +27,4 @@ package.nls.*.json
 /playwright/.cache/
 .env
 webviews-metafile.json
+extension-metafile.json

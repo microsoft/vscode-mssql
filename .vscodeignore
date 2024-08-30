@@ -24,3 +24,4 @@ tslint*.json
 **/*.map
 **/*.ts
 webviews-metafile.json
+extension-metafile.json
