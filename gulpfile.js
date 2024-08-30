@@ -156,7 +156,7 @@ async function generateExtensionBundle() {
 				],
 				resolveFrom: __dirname
 			}),
-			esbuildProblemMatcherPlugin('Extension')
+			//esbuildProblemMatcherPlugin('Extension')
 		],
 	});
 
