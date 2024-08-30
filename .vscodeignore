@@ -13,7 +13,6 @@ tasks
 test
 typings
 test-reports
-
 .gitignore
 .mention-bot
 coverconfig.json

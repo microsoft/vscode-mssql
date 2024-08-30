@@ -154,13 +154,11 @@ async function generateExtensionBundle() {
 						to: './out/config.json'
 					}
 				],
-				resolveFrom: __dirname
+				resolveFrom: __dirname,
 			}),
-			//esbuildProblemMatcherPlugin('Extension')
+			esbuildProblemMatcherPlugin('Extension'),
 		],
 	});
-
-
 
 	const result = await ctx.rebuild();
 
