@@ -1158,11 +1158,11 @@ export default class ConnectionManager {
 					try {
 						if (answers.account.key) {
 							this._accountStore.removeAccount(answers.account.key.id);
-							this.azureController.removeAccount(answers.account);
-							this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
 						} else {
 							await this._accountStore.pruneAccounts();
 						}
+						this.azureController.removeAccount(answers.account);
+						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
 
 					} catch (e) {
 						this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.accountRemovalFailed, e.message));
