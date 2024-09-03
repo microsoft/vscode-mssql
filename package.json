@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.24.0",
+  "version": "1.25.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -742,6 +742,12 @@
       "type": "object",
       "title": "%mssql.Configuration%",
       "properties": {
+        "mssql.enableExperimentalFeatures": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableExperimentalFeatures.description%",
+          "scope": "application"
+        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

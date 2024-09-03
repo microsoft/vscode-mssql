@@ -12,6 +12,7 @@ import { homedir } from "os";
 import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import * as path from 'path';
+import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
   ep.ExecutionPlanWebViewState,
@@ -30,7 +31,15 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       context,
       `${xmlPlanFileName}`,  // Sets the webview title
       WebviewRoute.executionPlanDocument,
-      {},
+      {
+        sqlPlanContent: executionPlanContents,
+        theme: vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light",
+        localizedConstants: LocalizedConstants,
+        loadState: ApiStatus.Loading,
+        executionPlan: undefined,
+        executionPlanGraphs: [],
+        totalCost: 0,
+      },
       vscode.ViewColumn.Active,
       {
         dark: vscode.Uri.joinPath(
@@ -45,25 +54,19 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
         ),
       }
     );
-    this.state.isLoading = true;
     this.initialize();
   }
 
   private async initialize() {
-    this.state.sqlPlanContent = this.executionPlanContents;
-	  this.state.theme = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light";
-    this.state.localizedConstants = LocalizedConstants;
-
+    this.state.loadState = ApiStatus.Loading;
+    this.updateState();
     await this.createExecutionPlanGraphs();
-    this.state.totalCost = this.calculateTotalCost();
     this.registerRpcHandlers();
-    this.state.isLoading = false;
   }
 
   private registerRpcHandlers() {
     this.registerReducer("getExecutionPlan", async (state, payload) => {
       await this.createExecutionPlanGraphs();
-
       return {
         ...state,
         executionPlan: this.state.executionPlan,
@@ -141,10 +144,18 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
         graphFileContent: this.executionPlanContents,
         graphFileType: ".sqlplan",
       };
-      this.state.executionPlan =
-        await this.executionPlanService.getExecutionPlan(planFile);
-      this.state.executionPlanGraphs = this.state.executionPlan.graphs;
+      try {
+        this.state.executionPlan =
+          await this.executionPlanService.getExecutionPlan(planFile);
+        this.state.executionPlanGraphs = this.state.executionPlan.graphs;
+        this.state.loadState = ApiStatus.Loaded;
+        this.state.totalCost = this.calculateTotalCost();
+      } catch (e) {
+        this.state.loadState = ApiStatus.Error;
+        this.state.errorMessage = e.toString();
+      }
     }
+    this.updateState();
   }
 
   private calculateTotalCost(): number {
@@ -153,5 +164,9 @@ export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
       sum += (graph.root.cost + graph.root.subTreeCost);
     }
     return sum;
+  }
+
+  private updateState() {
+    this.state = this.state;
   }
 }
