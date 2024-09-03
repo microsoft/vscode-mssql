@@ -4,7 +4,7 @@
 * Release date: September, 4, 2024
 * Release status: GA
 ### What's new in 1.24.0
-* Fix [Query messages lost switching tabs](https://github.com/microsoft/azuredatastudio/issues/25525) bug
+* Fix [Query messages lost switching tabs](https://github.com/microsoft/vscode-mssql/issues/1753) bug
 * Add `mssql.enableExperimentalFeatures` setting to enable early preview connection, query plan, and table design experiences
 * Fix several accessibility bugs
 
