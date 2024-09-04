@@ -1,4 +1,11 @@
 {
+  "Query {0}:  Query cost (relative to the script):  {1}/{0} is the query number{1} is the query cost": {
+    "message": "Query {0}:  Query cost (relative to the script):  {1}",
+    "comment": [
+      "{0} is the query number",
+      "{1} is the query cost"
+    ]
+  },
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {

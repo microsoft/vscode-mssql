@@ -1,0 +1,87 @@
+# Localization
+
+The extension has 2 main ways to localize the strings in the UI.
+
+## 1. Static contributions in `package.nls.json`
+
+The extension uses the `package.nls.json` file to localize the strings the contributions in the `package.json` file. The `package.nls.json` file is a simple JSON file that maps the keys to localized strings.
+
+Example of `package.nls.json`
+
+```json
+{
+  "mssql.key1": "Localized string 1",
+  "mssql.key2": "Localized string 2"
+}
+```
+
+Using in `package.json` to contribute to vscode extensibility points. For example: commands
+
+```json
+{
+  "commands": [
+    {
+      "command": "mssql.testCommand",
+      "title": "%mssql.key1%",
+      "icon": "$(debug-start)"
+    }
+  ]
+}
+```
+
+## 2. Dynamic contributions in `*.ts` and `*.tsx` files
+
+### Extension Code (excluding React webviews):
+
+If you need to localize strings in the extension code, you can use the directly use the l10n api provided by vscode.
+
+```ts
+import { l10n } from 'vscode';
+
+const test = l10n.t('Test loc');
+```
+
+After adding a new string to localize, you need to run `yarn localization` to update the xlf and l10n files.
+
+
+### React webviews:
+
+Since webviews do not have access to the vscode API, we need to use `@vscode/l10n` library to localize strings in the React components.
+
+```ts
+import * as l10n from '@vscode/l10n';
+
+const test = l10n.t(`Test loc`);
+```
+
+After adding a new string to localize, you need to run `yarn localization` to update the xlf and l10n files.
+
+
+## Localization Process Overview
+
+### Step 1: Extracting Localization Strings
+1. Run the command `yarn localization`.
+2. This triggers a Gulp task that scans all the source files for both the extension and webview.
+3. It extracts all `l10n.t` function calls and compiles them into a `bundle.l10n.json` file located in the `localization\l10n` folder.
+4. The task then reads this `bundle.l10n.json` file, along with the `package.nls.json` file, and updates the `enu.xliff` file found in the `localization\xliff` folder.
+
+### Step 2: Translating the XLIFF File
+- The `enu.xliff` file is sent to translators for translation.
+- After translation, the translated XLIFF files are placed back in the `localization\xliff` folder.
+
+### Step 3: Generating Localization Files
+1. As a part of build process we run the gulp task `ext:generate-runtime-localization-files`.
+2. This task reads the translated XLIFF files and generates localized JSON files:
+   - `bundle.l10n.{locale}.json` files are saved in the `localization\l10n` folder.
+   - `package.nls.{locale}.json` files are saved in the root folder.
+
+### Step 4: Using the Localization Files
+- The extension uses these generated JSON files to localize the strings in the user interface (UI). The root of the l10n is provided in the `package.json` file with `l10n` key. For now it is set to `localization/l10n`.
+
+## To test localization.
+
+1. Run `yarn gulp ext:generate-pseudo-loc` to generate pseudo localization files.
+2. This generates `bundle.l10n.qps-ploc.json` and `package.nls.qps-ploc.json` files in the `localization\l10n` and root folders respectively.
+3. Install the `Pseudo Language Language Pack` extension in VS Code.
+4. Set the display language to `Pseudo Language`.
+5. Reload vscode and test the extension to see the pseudo localized strings in the UI.

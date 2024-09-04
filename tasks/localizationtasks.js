@@ -39,6 +39,7 @@ const supportedLocLangs = [
 	'rus',
 ];
 
+// Method that extracts all l10n.t calls from the source files and returns the l10n JSON object.
 async function getL10nJson() {
 	const srcFiles = await fs.readdir('./src', {
 		recursive: true
@@ -61,13 +62,21 @@ async function getL10nJson() {
 	return result;
 }
 
-gulp.task('ext:generate-runtime-localization-files', async function () { // Generates the localization files for all supported languages to be used in the extension
-	for (const lang of supportedLocLangs) {
-		console.error('Processing', lang);
-		const xlifFile = await fs.readFile(`./localization/xliff/${lang}.xlf`, 'utf8');
+/**
+ * Generates all the runtime localization files from the xliff files.
+ * For each language, it reads the xliff file, extracts the strings and writes them to the respective l10n and nls files.
+ */
+gulp.task('ext:generate-runtime-localization-files', async function () {
+	const xliffFiles = (await fs.readdir('./localization/xliff')).filter(f => f.endsWith('.xlf'));
+	for (const xliffFile of xliffFiles) {
+		console.error('Processing', xliffFile);
+		if (xliffFile === 'enu.xlf') {
+			continue;
+		}
+		const xliffFileContents = await fs.readFile(path.resolve('./localization/xliff', xliffFile), 'utf8');
 		const l10nDir = path.resolve(__dirname, '..', 'localization', 'l10n');
 		const packageDir = path.resolve(__dirname, '..');
-		const l10nDetailsArrayFromXlf = await vscodel10n.getL10nFilesFromXlf(xlifFile);
+		const l10nDetailsArrayFromXlf = await vscodel10n.getL10nFilesFromXlf(xliffFileContents);
 		for (fileContent of l10nDetailsArrayFromXlf) {
 			console.log('Processing file', fileContent.name);
 			if (fileContent.name === 'bundle') {
@@ -77,21 +86,24 @@ gulp.task('ext:generate-runtime-localization-files', async function () { // Gene
 				}
 				const filePath = path.resolve(l10nDir, fileName);
 				console.log('Writing to', filePath);
-				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 4));
+				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
 			} else if (fileContent.name === 'package') {
-				const fileName = `package.nls.${fileContent.language}.json`;
-				if (fileContent.language === 'enu') {
-					fileName = 'package.nls.json';
+				if (fileContent.language === 'enu') { // We don't need the enu nls file as it is edited manually by us.
+					continue;
 				}
+				const fileName = `package.nls.${fileContent.language}.json`;
 				const filePath = path.resolve(packageDir, fileName);
 				console.log('Writing to', filePath);
-				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 4));
+				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
 			}
 		}
 	}
 });
 
-// Unused loc task that creates xliff files for all supported languages from the enu.xlf file
+/**
+ *  UNUSED task.
+ *  loc task that creates xliff files for all supported languages from the enu.xlf file
+ */
 gulp.task('ext:generate-xliff-files', async function () {
 	const enuXlifFile = await fs.readFile('./localization/xliff/enu.xlf', 'utf8');
 	const enuXlif = await xliff.xliff12ToJs(enuXlifFile);
@@ -121,16 +133,27 @@ gulp.task('ext:generate-xliff-files', async function () {
 	}
 });
 
+/**
+ * Generates the enu.xlf file from the l10n strings and package.nls.json.
+ * The file will be used to generate the xliff files for all the supported languages
+ * Must be run whenever there is a change in the l10n strings or package.nls.json
+ */
 gulp.task('ext:extract-localization-strings', async function () {
+	const bundleJSON = await getL10nJson();
 	const map = new Map();
 	map.set('package', JSON.parse(await fs.readFile(path.resolve('package.nls.json'), 'utf8')));
-	map.set('bundle', await getL10nJson());
-
+	map.set('bundle', bundleJSON);
+	const stringBundle = JSON.stringify(bundleJSON, null, 2);
+	await fs.writeFile('./localization/l10n/bundle.l10n.json', stringBundle);
 	const stringXLIFF = vscodel10n.getL10nXlf(map);
 	await fs.writeFile('./localization/xliff/enu.xlf', stringXLIFF);
 
 });
 
+/**
+ * UNUSED task.
+ * Generates the pseudo localized l10n and nls files. For testing if localization is working correctly.
+ */
 gulp.task('ext:generate-pseudo-loc', gulp.series(
 	'ext:extract-localization-strings',
 	async function () {
@@ -138,7 +161,7 @@ gulp.task('ext:generate-pseudo-loc', gulp.series(
 		const packageJson = await fs.readFile(path.resolve('package.nls.json'), 'utf8');
 		const pseudoLocBundle = await vscodel10n.getL10nPseudoLocalized(bundle);
 		const pseudoLocPackage = await vscodel10n.getL10nPseudoLocalized(JSON.parse(packageJson));
-		await fs.writeFile('./localization/l10n/bundle.l10n.qps-ploc.json', JSON.stringify(pseudoLocBundle, null, 4));
-		await fs.writeFile('./package.nls.qps-ploc.json', JSON.stringify(pseudoLocPackage, null, 4));
+		await fs.writeFile('./localization/l10n/bundle.l10n.qps-ploc.json', JSON.stringify(pseudoLocBundle, null, 2));
+		await fs.writeFile('./package.nls.qps-ploc.json', JSON.stringify(pseudoLocPackage, null, 2));
 	}
 ))
