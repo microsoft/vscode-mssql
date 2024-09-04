@@ -27,4 +27,3 @@ package.nls.*.json
 /playwright/.cache/
 .env
 webviews-metafile.json
-localization/l10n
