@@ -852,6 +852,7 @@
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source>View More</source>
+        <target>查看更多</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source>View mssql for Visual Studio Code release notes?</source>

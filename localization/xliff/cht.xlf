@@ -485,7 +485,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source>Line {0}</source>
-        <target>第 {0} 行</target>
+        <target>第 {0} 行開始查詢</target>
         <note>{0} is the line number</note>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
@@ -852,6 +852,7 @@
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source>View More</source>
+        <target>檢視更多內容</target>
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source>View mssql for Visual Studio Code release notes?</source>
