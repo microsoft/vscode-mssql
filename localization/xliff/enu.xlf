@@ -496,6 +496,11 @@
     <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
       <source xml:lang="en">Query succeeded</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff833ae4350e6cf5bc3d5df476a36393719be6350d9a39b7f701a7dc05279dd8">
+      <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}</source>
+      <note>{0} is the query number
+{1} is the query cost</note>
+    </trans-unit>
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
     </trans-unit>
