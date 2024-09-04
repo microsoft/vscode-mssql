@@ -16,7 +16,7 @@ import { CapabilitiesResult, GetCapabilitiesRequest } from '../models/contracts/
 import { ConnectionOption } from 'azdata';
 import { Logger } from '../models/logger';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import { ApiStatus } from '../sharedInterfaces/webview';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {

@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { ReactWebViewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
-import * as LocalizedConstants from "../constants/localizedConstants";
+import * as LocalizedConstants from "../constants/locConstants";
 import { homedir } from "os";
 import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
