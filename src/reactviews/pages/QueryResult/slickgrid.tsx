@@ -8,7 +8,8 @@ import { useEffect, useRef } from 'react';
 import '../../../../media/slickgrid.css';
 import { Table } from './table/table';
 import { TableDataView } from './table/tableDataView';
-import { defaultTableStyles } from './table/interfaces';
+import { defaultTableStyles, FilterableColumn } from './table/interfaces';
+import { RowNumberColumn } from './table/plugins/rowNumberColumn.plugin';
 
 window.jQuery = $ as any;
 require('slickgrid/lib/jquery.event.drag-2.3.0.js');
@@ -33,7 +34,7 @@ export default function SlickGrid() {
 
     useEffect(() =>{
         const ROW_HEIGHT = 25;
-        let columns = [
+        let columns: Slick.Column<Slick.SlickData>[] = [
         {id: "title", name: "Title", field: "title"},
         {id: "duration", name: "Duration", field: "duration"},
         {id: "%", name: "% Complete", field: "percentComplete"},
@@ -69,12 +70,14 @@ export default function SlickGrid() {
 
 
 
-        let tableOptions: Slick.GridOptions<T> = {
+        let tableOptions: Slick.GridOptions<Slick.SlickData> = {
 			rowHeight: ROW_HEIGHT,
 			showRowNumber: true,
 			forceFitColumns: false,
 			defaultColumnWidth: 120
 		};
+        let rowNumberColumn = new RowNumberColumn({ autoCellSelection: false });
+        columns.unshift(rowNumberColumn.getColumnDefinition());
 
         //TODO: use hybriddataprovider here
         let tableData = new TableDataView(data);
