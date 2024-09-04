@@ -1,0 +1,15 @@
+{
+	"Projects": [
+	  {
+		"LanguageSet": "AzureKatal_Languages",
+		"LocItems": [
+		  {
+			"SourceFile": "localization\\xliff\\enu.xlf",
+			"LclFile": "localization\\LCL\\{Lang}\\enu.xlf.lcl",
+			"CopyOption": "LangIDOnName",
+			"OutputPath": "localization\\xliff\\"
+		  }
+		]
+	  }
+	]
+  }
