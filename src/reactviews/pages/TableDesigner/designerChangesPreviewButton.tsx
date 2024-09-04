@@ -147,7 +147,7 @@ export const DesignerChangesPreviewButton = () => {
         <DialogSurface>
             <DialogBody>
                 <DialogTitle>
-                    {'Preview Database Updates'}
+                    Preview Database Updates
                 </DialogTitle>
                 {getDialogContent()}
             </DialogBody>
