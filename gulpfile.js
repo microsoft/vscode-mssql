@@ -243,11 +243,7 @@ async function generateReactWebviewsBundle() {
 
 // Compile react views
 gulp.task('ext:compile-reactviews',
-	gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
-		return transformExtensionLocalization([
-			'out/react-webviews/assets/*.js',
-		])
-	})
+	gulp.series(generateReactWebviewsBundle)
 );
 
 
@@ -398,7 +394,7 @@ gulp.task('ext:copy-js', () => {
 // Copy the files which aren't used in compilation
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:generate-runtime-localization-files', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];

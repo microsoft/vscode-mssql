@@ -2,10 +2,9 @@ var dom = require('@xmldom/xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
 var through = require('through2');
-var fs = require('fs');
 var path = require('path');
-var vscodel10n = require('@vscode/l10n-dev');
-
+const run = require('gulp-run-command').default;
+const vscodel10n = require('@vscode/l10n-dev');
 const iso639_3_to_2 = {
 	chs: 'zh-cn',
 	cht: 'zh-tw',
@@ -27,243 +26,49 @@ const iso639_3_to_2 = {
 	trk: 'tr'
 };
 
+const supportedLocLangs = [
+	'chs',
+	'cht',
+	'deu',
+	'esn',
+	'fra',
+	'ita',
+	'jpn',
+	'kor',
+	'ptb',
+	'rus',
+];
 
-// converts a json object into a plain text json
-function convertDictionaryToJson(dict) {
-	return JSON.stringify(dict, null, '\t') + '\n';
-}
+gulp.task('ext:extract-localization-strings', gulp.series(
+	run('npx @vscode/l10n-dev extract -o ./localization/l10n ./src'), // Extracts strings from the source code and writes them to the localization/l10n folder
+	run('npx @vscode/l10n-dev generate-xlf -o ./localization/xliff/enu.xlf ./localization/l10n/bundle.l10n.json ./package.nls.json') // Generates an XLF file from the extracted strings
+));
 
-// converts an xml file into a json object
-function convertXmlToDictionary(xmlInput, escapeChar = true) {
-	let xmlDom = new dom().parseFromString(xmlInput);
-	let transUnits = xmlDom.getElementsByTagName('trans-unit');
-	let dict = {};
-	for (var i = 0; i < transUnits.length; ++i) {
-		let unit = transUnits[i];
 
-		// Extract ID attribute
-		let id = unit.getAttribute('id');
-
-		// Extract source element if possible
-		let sourceElement = unit.getElementsByTagName('source');
-		let source = '';
-		if (sourceElement.length >= 1) {
-			source = escapeChars(sourceElement[0].textContent, escapeChar);
+gulp.task('ext:generate-runtime-localization-files', async function () { // Generates the localization files for all supported languages to be used in the extension
+	const fs = require('fs').promises;
+	for (const lang of supportedLocLangs) {
+		if (lang === 'enu') {
+			continue;
 		}
-
-		// Extract target element if possible
-		let targetElement = unit.getElementsByTagName('target');
-		let target = '';
-		if (targetElement.length >= 1) {
-			target = escapeChars(targetElement[0].textContent, escapeChar);
-		}
-
-		// Return json with {id:{target,source}} format
-		dict[id] = { 'source': source, 'target': target };
-	}
-
-	return dict;
-}
-
-// Escapes all characters which need to be escaped (')
-function escapeChars(input, escapeChar = true) {
-	if (escapeChar) {
-		return input.replace(/'/g, "\\'");
-	} else {
-		return input;
-	}
-}
-
-// export json files from *.xlf
-// mirrors the file paths and names
-gulp.task('ext:localization:xliff-to-json', function () {
-	return gulp.src([config.paths.project.localization + '/xliff/**/*.xlf', '!' + config.paths.project.localization + '/xliff/enu/**/*.xlf', '!' +
-		config.paths.project.localization + '/xliff/**/*localizedPackage.json.*.xlf'])
-		.pipe(through.obj(function (file, enc, callback) {
-
-			// convert xliff into json document
-			let dict = convertXmlToDictionary(String(file.contents));
-			Object.keys(dict).map(function (key, index) {
-				let target = dict[key]['target'];
-				if (target) {
-					dict[key] = target;
-				} else {
-					// Fall back to English
-					dict[key] = dict[key]['source'];
-				}
-			});
-			file.contents = Buffer.from(convertDictionaryToJson(dict));
-
-			// modify file extensions to follow proper convention
-			file.basename = file.basename.substr(0, file.basename.indexOf('.')) + '.i18n.json';
-
-			// callback to notify we have completed the current file
-			callback(null, file);
-		}))
-		.pipe(gulp.dest(config.paths.project.localization + '/i18n/'));
-});
-
-// Generates a localized constants file from the en xliff file
-gulp.task('ext:localization:xliff-to-ts', function () {
-	return gulp.src([config.paths.project.localization + '/xliff/enu/constants/localizedConstants.enu.xlf'])
-		.pipe(through.obj(function (file, enc, callback) {
-			// convert xliff into json document
-			let dict = convertXmlToDictionary(String(file.contents));
-			var contents = ['/* eslint-disable */',
-				'// THIS IS A COMPUTER GENERATED FILE. CHANGES IN THIS FILE WILL BE OVERWRITTEN.',
-				'// TO ADD LOCALIZED CONSTANTS, ADD YOUR CONSTANT TO THE ENU XLIFF FILE UNDER ~/localization/xliff/enu/constants/localizedConstants.enu.xlf AND REBUILD THE PROJECT',
-				'import * as nls from \'vscode-nls\';'];
-			for (var key in dict) {
-				if (dict.hasOwnProperty(key)) {
-					let instantiation = 'export let ' + key + ' = \'' + dict[key]['source'] + '\';';
-					contents.push(instantiation);
-				}
+		console.error('Processing', lang);
+		const xlifFile = await fs.readFile(`./localization/xliff/${lang}.xlf`, 'utf8');
+		const l10nDir = path.resolve(__dirname, '..', 'localization', 'l10n');
+		const packageDir = path.resolve(__dirname, '..');
+		const l10nDetailsArrayFromXlf = await vscodel10n.getL10nFilesFromXlf(xlifFile);
+		for (fileContent of l10nDetailsArrayFromXlf) {
+			console.log('Processing file', fileContent.name);
+			if (fileContent.name === 'bundle') {
+				const fileName = `bundle.l10n.${fileContent.language}.json`;
+				const filePath = path.resolve(l10nDir, fileName);
+				console.log('Writing to', filePath);
+				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 4));
+			} else if (fileContent.name === 'package') {
+				const fileName = `package.nls.${fileContent.language}.json`;
+				const filePath = path.resolve(packageDir, fileName);
+				console.log('Writing to', filePath);
+				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 4));
 			}
-
-			// add headers to export localization function
-			contents.push('export let loadLocalizedConstants = (locale: string) => {');
-			contents.push('\tlet localize = nls.config({ locale: locale })();');
-			// Re-export each constant
-			for (var key in dict) {
-				if (dict.hasOwnProperty(key)) {
-					let instantiation = '\t' + key + ' = localize(\'' + key + '\', \'' + dict[key]['source'] + '\');';
-					contents.push(instantiation);
-				}
-			}
-
-			contents.push('};');
-
-			// Join with new lines in between
-			let fullFileContents = contents.join('\r\n') + '\r\n';
-			file.contents = Buffer.from(fullFileContents);
-
-			// Name our file
-			file.basename = 'localizedConstants.ts';
-
-			// callback to notify we have completed the current file
-			callback(null, file);
-		}))
-		.pipe(gulp.dest(config.paths.project.root + '/src/constants/'));
-});
-
-// Main function used for creating the package.nls.json files, both the original English and localizedFiles.
-function dictionaryMapping(file, packageAllKeys = undefined) {
-	// convert xliff into json document (get the contents of the input XLF file)
-	let dict = convertXmlToDictionary(String(file.contents), false);
-
-	var contents = ['{'];
-	var regxForReplacingQuotes = new RegExp('"', 'g');
-
-	// If packageAllKeys is provided, that means we are updating a localized package.nls.*.json file.
-	let mainKeys = packageAllKeys ? packageAllKeys : dict;
-
-	// If running in English package.nls.json mode:
-
-	// Get keys from the XLF dictionary and use them directly for the file content.
-
-	// If running in Localized package.nls.*.json mode:
-
-	// Get all the keys from package.nls.json which is the English version and get the localized value from xlf
-	// Use the English value if not translated, right now there's no fall back to English if the text is not localized.
-	// So all the keys have to exist in all package.nls.*.json
-	Object.keys(mainKeys).forEach(key => {
-		let value = '';
-		if (contents.length >= 2) {
-			contents[contents.length - 1] += ',';
 		}
-		if (packageAllKeys && dict.hasOwnProperty(key)) {
-			//running in localized mode, use localized value.
-			value = dict[key]['target'];
-		}
-		else if (dict.hasOwnProperty(key)) {
-			//running in generation mode, use original source value.
-			value = dict[key]['source'];
-		}
-		if (packageAllKeys && value === '') {
-			// If localizing and value is not provided, use original English value.
-			value = packageAllKeys[key];
-		}
-
-		if (value && value.indexOf('"') >= 0) {
-			value = value.replace(regxForReplacingQuotes, '\'');
-		}
-		let instantiation = '"' + key + '":"' + value + '"';
-		contents.push(instantiation);
-
-	});
-
-	contents.push('}');
-
-	// Join with new lines in between
-	let fullFileContents = contents.join('\r\n') + '\r\n';
-	file.contents = Buffer.from(fullFileContents);
-
-	let indexToStart = 'localizedPackage.json.'.length + 1;
-	let languageIndex = file.basename.indexOf('.', indexToStart);
-	let language = file.basename.substr(indexToStart - 1, (languageIndex - indexToStart) + 1);
-
-	// Name our file
-	if (language === 'enu') {
-		file.basename = 'package.nls.json';
-	} else {
-		file.basename = 'package.nls.' + iso639_3_to_2[language] + '.json';
 	}
-
-	// Make the new file create on root.
-	// the original directory path was 'vscode-mssql\localization\xliff\<lang>'
-	file.dirname = replaceLastString(file.dirname, `${language}`);
-	file.dirname = replaceLastString(file.dirname, 'xliff');
-	file.dirname = replaceLastString(file.dirname, 'localization');
-}
-
-function replaceLastString(stringInput, stringToTrim) {
-	const index = stringInput.lastIndexOf(stringToTrim);
-	if (index < 0) {
-		return stringInput;
-	}
-
-	return stringInput.substr(0, index) + stringInput.substr(index + stringToTrim.length);
-}
-
-// Generates a package.nls.json file from localizedPackage.json.enu.xlf by using the
-// dictionaryMapping function to write the contents of the xlf file into package.nls.json.
-gulp.task('ext:localization:generate-eng-package.nls', function () {
-	return gulp.src([config.paths.project.localization + '/xliff/enu/localizedPackage.json.enu.xlf'], { base: '.' })
-		.pipe(through.obj(function (file, enc, callback) {
-			dictionaryMapping(file);
-			// callback to notify we have completed the current file
-			callback(null, file);
-		}))
-		.pipe(gulp.dest(config.paths.project.root));
-})
-
-// Generates a localized package.nls.*.json file from localizedPackage.json.*.xlf files by
-// using the dictionaryMapping function to replace contents of the package.nls.json file with
-// localized content if possible and write them to a new localized package.nls file.
-gulp.task('ext:localization:xliff-to-package.nls', function () {
-	return gulp.src([config.paths.project.localization + '/xliff/**/localizedPackage.json.*.xlf', '!' + config.paths.project.localization + '/xliff/enu/localizedPackage.json.enu.xlf'], { base: '.' })
-		.pipe(through.obj(function (file, enc, callback) {
-
-			// Get the latest changes from package.nls.json after being updated (base English strings).
-			var packageAllKeys = require('./../package.nls.json')
-			dictionaryMapping(file, packageAllKeys);
-			// callback to notify we have completed the current file
-			callback(null, file);
-		}))
-		.pipe(gulp.dest(config.paths.project.root));
-});
-
-
-gulp.task('ext:new-localization', function () {
-	return gulp.src([config.paths.extension.root + '/**/*.*'])
-	.pipe(through.obj(function (file, enc, callback) {
-		console.error('file: ' + file.path);
-		const f = fs.readFileSync(file.path, 'utf8');
-		const result = vscodel10n.getL10nJson([{
-			contents: f,
-			extension: path.basename(file.path),
-		}]);
-		console.error('file: ' + file.path, 'result: ' + JSON.stringify(result));
-		callback(null, file);
-	}));
 });
