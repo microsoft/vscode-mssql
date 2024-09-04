@@ -17,7 +17,7 @@ import {
 import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField, useFormStyles } from "../../common/forms/formUtils";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export const ConnectionFormPage = () => {
@@ -44,7 +44,7 @@ export const ConnectionFormPage = () => {
                     return (
                         <FormField
                             key={idx}
-                            connectionDialogContext={connectionDialogContext}
+                            context={connectionDialogContext}
                             component={component}
                             idx={idx}
                         />
@@ -89,7 +89,7 @@ export const ConnectionFormPage = () => {
                                     return (
                                         <FormField
                                             key={idx}
-                                            connectionDialogContext={connectionDialogContext}
+                                            context={connectionDialogContext}
                                             component={component}
                                             idx={idx}
                                         />
