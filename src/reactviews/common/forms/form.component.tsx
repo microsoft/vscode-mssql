@@ -3,15 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
-import { Input, Button, Textarea, Dropdown, Checkbox, Option, makeStyles, Field, InfoLabel, LabelProps } from "@fluentui/react-components";
+import { useEffect, useState } from "react";
+import { Input, Button, Textarea, makeStyles, Field, InfoLabel, LabelProps, Dropdown, Checkbox, Option } from "@fluentui/react-components";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
+import { FormItemSpec, FormItemType, FormContextProps, FormState } from "./form";
 
-import { ConnectionDialogContextProps, FormComponent, FormComponentType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
-import { ConnectionDialogContext } from "../../pages/ConnectionDialog/connectionDialogStateProvider";
-
-export const FormInput = ({ value, target, type }: { value: string, target: keyof IConnectionDialogProfile, type: 'input' | 'password' | 'textarea' }) => {
-	const connectionDialogContext = useContext(ConnectionDialogContext);
+export const FormInput = <TContext extends FormContextProps<TState, TForm>, TState extends FormState<TForm>, TForm>({ context, value, target, type }: { context: TContext, value: string, target: keyof TForm, type: 'input' | 'password' | 'textarea' }) => {
 	const [formInputValue, setFormInputValue] = useState(value);
 	const [showPassword, setShowPassword] = useState(false);
 
@@ -24,7 +21,7 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 	};
 
 	const handleBlur = () => {
-		connectionDialogContext?.formAction({
+		context?.formAction({
 			propertyName: target,
 			isAction: false,
 			value: formInputValue
@@ -63,7 +60,7 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 			{
 				type === 'textarea' &&
 				<Textarea
-				    value={formInputValue}
+					value={formInputValue}
 					size="small"
 					onChange={(_value, data) => handleChange(data.value)}
 					onBlur={handleBlur}
@@ -73,14 +70,14 @@ export const FormInput = ({ value, target, type }: { value: string, target: keyo
 	);
 };
 
-export const FormField = ({connectionDialogContext, component, idx}: { connectionDialogContext: ConnectionDialogContextProps, component: FormComponent, idx: number}) => {
+export const FormField = <TContext extends FormContextProps<TState, TForm>, TState extends FormState<TForm>, TForm>({context, component, idx}: { context: TContext, component: FormItemSpec<TForm>, idx: number}) => {
 	const formStyles = useFormStyles();
 
 	return (
 		<div className={formStyles.formComponentDiv} key={idx}>
 			<Field
 				validationMessage={component.validation?.validationMessage ?? ''}
-				orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
+				orientation={component.type === FormItemType.Checkbox ? 'horizontal' : 'vertical'}
 				validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
 				required={component.required}
 				// @ts-ignore there's a bug in the typings somewhere, so ignoring this line to avoid angering type-checker
@@ -95,7 +92,7 @@ export const FormField = ({connectionDialogContext, component, idx}: { connectio
 						}
 						: component.label}
 			>
-				{ generateFormComponent(connectionDialogContext, component, idx) }
+				{ generateFormComponent(context, component, idx) }
 			</Field>
 			{
 				component?.actionButtons?.length! > 0 &&
@@ -106,7 +103,7 @@ export const FormField = ({connectionDialogContext, component, idx}: { connectio
 								{
 									width: '120px'
 								}
-							} onClick={() => connectionDialogContext?.formAction({
+							} onClick={() => context?.formAction({
 								propertyName: component.propertyName,
 								isAction: true,
 								value: actionButton.id
@@ -119,60 +116,27 @@ export const FormField = ({connectionDialogContext, component, idx}: { connectio
 	);
 };
 
-export function generateFormField(connectionDialogContext: ConnectionDialogContextProps, component: FormComponent, idx: number, formStyles: Record<"formRoot" | "formDiv" | "formComponentDiv" | "formComponentActionDiv", string>) {
-	return (
-		<div className={formStyles.formComponentDiv} key={idx}>
-			<Field
-				validationMessage={component.validation?.validationMessage ?? ''}
-				orientation={component.type === FormComponentType.Checkbox ? 'horizontal' : 'vertical'}
-				validationState={component.validation ? (component.validation.isValid ? 'none' : 'error') : 'none'}
-				required={component.required}
-				label={component.label}>
-				{ generateFormComponent(connectionDialogContext, component, idx) }
-			</Field>
-			{
-				component?.actionButtons?.length! > 0 &&
-				<div className={formStyles.formComponentActionDiv}>
-					{
-						component.actionButtons?.map((actionButton, idx) => {
-							return <Button shape="square" key={idx + actionButton.id} appearance='outline' style={
-								{
-									width: '120px'
-								}
-							} onClick={() => connectionDialogContext?.formAction({
-								propertyName: component.propertyName,
-								isAction: true,
-								value: actionButton.id
-							})}>{actionButton.label}</Button>;
-						})
-					}
-				</div>
-			}
-		</div>
-	);
-}
-
-export function generateFormComponent(connectionDialogContext: ConnectionDialogContextProps, component: FormComponent,  _idx: number) {
-	const profile = connectionDialogContext.state.connectionProfile;
+export function generateFormComponent<TContext extends FormContextProps<TState, TForm>, TState extends FormState<TForm>, TForm>(context: TContext, component: FormItemSpec<TForm>,  _idx: number) {
+	const formState = context.state.formState;
 
 	switch (component.type) {
-		case FormComponentType.Input:
-			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
-		case FormComponentType.TextArea:
-			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='textarea' />;
-		case FormComponentType.Password:
-			return <FormInput value={profile[component.propertyName] as string ?? ''} target={component.propertyName} type='password' />;
-		case FormComponentType.Dropdown:
+		case FormItemType.Input:
+			return <FormInput<TContext, TState, TForm> context={context} value={formState[component.propertyName] as string ?? ''} target={component.propertyName} type='input' />;
+		case FormItemType.TextArea:
+			return <FormInput<TContext, TState, TForm> context={context} value={formState[component.propertyName] as string ?? ''} target={component.propertyName} type='textarea' />;
+		case FormItemType.Password:
+			return <FormInput<TContext, TState, TForm> context={context} value={formState[component.propertyName] as string ?? ''} target={component.propertyName} type='password' />;
+		case FormItemType.Dropdown:
 			if (component.options === undefined) {
 				throw new Error('Dropdown component must have options');
 			}
 			return <Dropdown
 				size="small"
 				placeholder={component.placeholder ?? ''}
-				value={component.options.find(option => option.value === profile[component.propertyName])?.displayName ?? ''}
-				selectedOptions={[profile[component.propertyName] as string]}
+				value={component.options.find(option => option.value === formState[component.propertyName])?.displayName ?? ''}
+				selectedOptions={[formState[component.propertyName] as string]}
 				onOptionSelect={(_event, data) => {
-					connectionDialogContext?.formAction({
+					context?.formAction({
 						propertyName: component.propertyName,
 						isAction: false,
 						value: data.optionValue as string
@@ -180,15 +144,15 @@ export function generateFormComponent(connectionDialogContext: ConnectionDialogC
 				}}>
 				{
 					component.options?.map((option, idx) => {
-						return <Option key={component.propertyName + idx} value={option.value}>{option.displayName}</Option>;
+						return <Option key={component.propertyName as string + idx} value={option.value}>{option.displayName}</Option>;
 					})
 				}
 			</Dropdown>;
-		case FormComponentType.Checkbox:
+		case FormItemType.Checkbox:
 			return <Checkbox
 				size="medium"
-				checked={profile[component.propertyName] as boolean ?? false}
-				onChange={(_value, data) => connectionDialogContext?.formAction({
+				checked={formState[component.propertyName] as boolean ?? false}
+				onChange={(_value, data) => context?.formAction({
 					propertyName: component.propertyName,
 					isAction: false,
 					value: data.checked

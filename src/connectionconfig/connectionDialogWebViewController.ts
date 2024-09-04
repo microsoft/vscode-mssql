@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormComponent, FormComponentActionButton, FormComponentOptions, FormComponentType, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -16,6 +16,7 @@ import { ConnectionOption } from 'azdata';
 import { Logger } from '../models/logger';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import { FormItemSpec, FormItemActionButton, FormItemOptions, FormItemType } from '../reactviews/common/forms/form';
 import { ApiStatus } from '../sharedInterfaces/webview';
 
 export class ConnectionDialogWebViewController extends ReactWebViewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
@@ -33,7 +34,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			context,
 			LocalizedConstants.connectionDialog,
 			'connectionDialog',
-			{
+			new ConnectionDialogWebviewState({
 				connectionProfile: {} as IConnectionDialogProfile,
 				recentConnections: [],
 				selectedFormTab: FormTabType.Parameters,
@@ -44,7 +45,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				connectionStringComponents: [],
 				connectionStatus: ApiStatus.NotStarted,
 				formError: ''
-			},
+			}),
 			vscode.ViewColumn.Active,
 			{
 				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor_inverse.svg'),
@@ -153,19 +154,19 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		}
 	}
 
-	private getActiveFormComponents(): FormComponent[] {
+	private getActiveFormComponents(): FormItemSpec<IConnectionDialogProfile>[] {
 		if (this.state.selectedFormTab === FormTabType.Parameters) {
 			return this.state.connectionFormComponents.mainComponents;
 		}
 		return this.state.connectionStringComponents;
 	}
 
-	private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormComponent | undefined {
+	private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItemSpec<IConnectionDialogProfile> | undefined {
 
 		return this.getActiveFormComponents().find(c => c.propertyName === propertyName);
 	}
 
-	private async getAccounts(): Promise<FormComponentOptions[]> {
+	private async getAccounts(): Promise<FormItemOptions[]> {
 		const accounts = await this._mainController.azureAccountService.getAccounts();
 		return accounts.map(account => {
 			return {
@@ -176,7 +177,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	}
 
-	private async getTenants(accountId: string): Promise<FormComponentOptions[]> {
+	private async getTenants(accountId: string): Promise<FormItemOptions[]> {
 		const account = (await this._mainController.azureAccountService.getAccounts()).find(account => account.displayInfo.userId === accountId);
 		if (!account) {
 			return [];
@@ -193,14 +194,14 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		});
 	}
 
-	private convertToFormComponent(connOption: ConnectionOption): FormComponent {
+	private convertToFormComponent(connOption: ConnectionOption): FormItemSpec<IConnectionDialogProfile> {
 		switch (connOption.valueType) {
 			case 'boolean':
 				return {
 					propertyName: connOption.name as keyof IConnectionDialogProfile,
 					label: connOption.displayName,
 					required: connOption.isRequired,
-					type: FormComponentType.Checkbox,
+					type: FormItemType.Checkbox,
 					tooltip: connOption.description,
 				};
 			case 'string':
@@ -208,7 +209,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					propertyName: connOption.name as keyof IConnectionDialogProfile,
 					label: connOption.displayName,
 					required: connOption.isRequired,
-					type: FormComponentType.Input,
+					type: FormItemType.Input,
 					tooltip: connOption.description,
 				};
 			case 'password':
@@ -216,7 +217,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: connOption.name as keyof IConnectionDialogProfile,
 				label: connOption.displayName,
 				required: connOption.isRequired,
-				type: FormComponentType.Password,
+				type: FormItemType.Password,
 				tooltip: connOption.description,
 			};
 
@@ -225,7 +226,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					propertyName: connOption.name as keyof IConnectionDialogProfile,
 					label: connOption.displayName,
 					required: connOption.isRequired,
-					type: FormComponentType.Input,
+					type: FormItemType.Input,
 					tooltip: connOption.description,
 				};
 			case 'category':
@@ -233,7 +234,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 					propertyName: connOption.name as keyof IConnectionDialogProfile,
 					label: connOption.displayName,
 					required: connOption.isRequired,
-					type: FormComponentType.Dropdown,
+					type: FormItemType.Dropdown,
 					tooltip: connOption.description,
 					options: connOption.categoryValues.map(v => {
 						return {
@@ -247,7 +248,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 	}
 
-	private async completeFormComponents(components: Map<string, {option: ConnectionOption, component: FormComponent}>) {
+	private async completeFormComponents(components: Map<string, {option: ConnectionOption, component: FormItemSpec<IConnectionDialogProfile>}>) {
 		// Add additional components that are not part of the connection options
 		components.set('savePassword', {
 			option: undefined,
@@ -255,7 +256,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: 'savePassword',
 				label: LocalizedConstants.savePassword,
 				required: false,
-				type: FormComponentType.Checkbox,
+				type: FormItemType.Checkbox,
 			}
 		});
 
@@ -265,7 +266,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: 'accountId',
 				label: LocalizedConstants.azureAccount,
 				required: true,
-				type: FormComponentType.Dropdown,
+				type: FormItemType.Dropdown,
 				options: await this.getAccounts(),
 				placeholder: LocalizedConstants.selectAnAccount,
 				actionButtons: await this.getAzureActionButtons(),
@@ -290,7 +291,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: 'tenantId',
 				label: LocalizedConstants.tenantId,
 				required: true,
-				type: FormComponentType.Dropdown,
+				type: FormItemType.Dropdown,
 				options: [],
 				hidden: true,
 				placeholder: LocalizedConstants.selectATenant,
@@ -315,7 +316,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			propertyName: 'profileName',
 			label: LocalizedConstants.profileName,
 			required: false,
-			type: FormComponentType.Input,
+			type: FormItemType.Input,
 			}
 		});
 
@@ -362,15 +363,15 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 	]);
 
 	private async generateConnectionFormComponents(): Promise<{
-		mainComponents: FormComponent[],
-		advancedComponents: {[category: string]: FormComponent[]}
+		mainComponents: FormItemSpec<IConnectionDialogProfile>[],
+		advancedComponents: {[category: string]: FormItemSpec<IConnectionDialogProfile>[]}
 	}> {
 		// get list of connection options from Tools Service
 		const result: CapabilitiesResult = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
 		const connectionOptions: ConnectionOption[] = result.capabilities.connectionProvider.options;
 
 		// convert connection options to form components
-		const allConnectionFormComponents = new Map<string, {option: ConnectionOption, component: FormComponent}>();
+		const allConnectionFormComponents = new Map<string, {option: ConnectionOption, component: FormItemSpec<IConnectionDialogProfile>}>();
 
 		for (const option of connectionOptions) {
 			allConnectionFormComponents.set(option.name, {option, component: this.convertToFormComponent(option)});
@@ -380,8 +381,8 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 		// organize the main components and advanced components
 		// main components are few-enough that there's no grouping, but advanced components get grouped by category
-		const mainComponents: FormComponent[] = [];
-		const advancedComponents: {[category: string]: FormComponent[]} = {};
+		const mainComponents: FormItemSpec<IConnectionDialogProfile>[] = [];
+		const advancedComponents: {[category: string]: FormItemSpec<IConnectionDialogProfile>[]} = {};
 
 		for (const [optionName, {option, component}] of allConnectionFormComponents) {
 			if (this._mainOptionNames.has(optionName)) {
@@ -398,10 +399,10 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return {mainComponents, advancedComponents};
 	}
 
-	private async generateConnectionStringComponents(): Promise<FormComponent[]> {
+	private async generateConnectionStringComponents(): Promise<FormItemSpec<IConnectionDialogProfile>[]> {
 		return [
 			{
-				type: FormComponentType.TextArea,
+				type: FormItemType.TextArea,
 				propertyName: 'connectionString',
 				label: LocalizedConstants.connectionString,
 				required: true,
@@ -422,7 +423,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 				propertyName: 'profileName',
 				label: LocalizedConstants.profileName,
 				required: false,
-				type: FormComponentType.Input,
+				type: FormItemType.Input,
 			}
 		];
 	}
@@ -459,8 +460,8 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		return errorCount;
 	}
 
-	private async getAzureActionButtons(): Promise<FormComponentActionButton[]> {
-		const actionButtons: FormComponentActionButton[] = [];
+	private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
+		const actionButtons: FormItemActionButton[] = [];
 		actionButtons.push({
 			label: LocalizedConstants.signIn,
 			id: 'azureSignIn',
@@ -506,7 +507,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			}
 			const accountComponent = this.getFormComponent('accountId');
 			const tenantComponent = this.getFormComponent('tenantId');
-			let tenants: FormComponentOptions[] = [];
+			let tenants: FormItemOptions[] = [];
 			switch (propertyName) {
 				case 'accountId':
 					tenants = await this.getTenants(this.state.connectionProfile.accountId);

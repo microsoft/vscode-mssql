@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluentui/react-components"
+import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluentui/react-components";
 import { ServerRegular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
