@@ -102,6 +102,10 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 					contents: fileContents
 				});
 			}
+			/**
+			 * This is a hack to force a re-render of the component when the localization filecontent
+			 * is received from the extension.
+			 */
 			setLocalization(true);
 		}
 
