@@ -8,6 +8,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import { WebviewRoute } from '../../sharedInterfaces/webviewRoutes';
+import * as l10n from '@vscode/l10n';
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -89,10 +90,20 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 			});
 		}
 
+		async function getLocalization() {
+			const fileContents = await extensionRpc.call('getLocalization') as string;
+			if (fileContents) {
+				await l10n.config({
+					contents: fileContents
+				});
+			}
+		}
+
 		getTheme();
 		getRoute();
 		getState();
 		loadStats();
+		getLocalization();
 	}, []);
 
 	extensionRpc.subscribe('onDidChangeTheme', (params) => {

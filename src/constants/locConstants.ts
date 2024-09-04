@@ -446,4 +446,3 @@ export let switchToMsal = l10n.t('Switch to MSAL');
 export let dismiss = l10n.t('Dismiss');
 export let querySuccess = l10n.t('Query succeeded');
 export let queryFailed = l10n.t('Query failed');
-

@@ -28,4 +28,3 @@ package.nls.*.json
 .env
 webviews-metafile.json
 localization/l10n
-! localization/l10n/bundle.l10n.json
