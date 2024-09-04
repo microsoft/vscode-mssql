@@ -15,7 +15,8 @@ const useStyles = makeStyles({
 		height: "100%",
 		width: "100%",
 		position: "relative",
-		overflowY: "auto"
+		overflowY: "auto",
+		overflowX: "unset"
 	},
 	spinnerDiv: {
 		height: "100%",

@@ -10,7 +10,7 @@ import * as azdataGraph from 'azdataGraph/dist/build';
 import 'azdataGraph/src/css/common.css';
 import 'azdataGraph/src/css/explorer.css';
 import './executionPlan.css';
-import { Button, Input, makeStyles } from '@fluentui/react-components';
+import { Button, Input, makeStyles, Popover } from '@fluentui/react-components';
 import { ExecutionPlanView } from "./executionPlanView";
 import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
@@ -23,7 +23,6 @@ const useStyles = makeStyles({
 		display: "flex",
 		flexDirection: "row",
 		width: "100%",
-		height: "100%",
 		position: "relative"
 	},
 	planContainer: {
@@ -161,19 +160,30 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 					{formatString(LocalizedConstants.queryCostHeader, graphIndex + 1, getQueryCostPercentage())}<br />{query}
 				</div>
 				<div id={`queryPlanParent${graphIndex + 1}`} className={classes.queryPlanParent}></div>
-				{customZoomClicked ? (
-					<div id="customZoomInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
-						<Input id="customZoomInputBox" type="number" min={1} defaultValue={Math.floor(zoomNumber).toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }}/>
-						<Button onClick={handleCustomZoomInput} icon={<Checkmark20Regular />} />
-						<Button icon={<Dismiss20Regular />} onClick={() => setCustomZoomClicked(false)}/>
-					</div>
-				) : null}
-				{findNodeClicked ? (
+					<Popover open={customZoomClicked}>
+						<div
+							id="customZoomInputContainer"
+							className={classes.inputContainer}
+							style={{ background: utils.iconBackground(executionPlanState!.theme!) }}
+						>
+							<Input
+								id="customZoomInputBox"
+								type="number"
+								min={1}
+								defaultValue={Math.floor(zoomNumber).toString()}
+								onChange={(e) => setZoomNumber(Number(e.target.value))}
+								style={{ width: "100px", height: "25px", fontSize: "12px" }}
+							/>
+							<Button onClick={handleCustomZoomInput} icon={<Checkmark20Regular />} />
+							<Button icon={<Dismiss20Regular />} onClick={() => setCustomZoomClicked(false)} />
+						</div>
+					</Popover>
+				<Popover open={findNodeClicked}>
 					<FindNode executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} findNodeOptions={findNodeOptions} setFindNodeClicked={setFindNodeClicked}/>
-				) : null}
-				{highlightOpsClicked ? (
+				</Popover>
+				<Popover open={highlightOpsClicked}>
 					<HighlightExpensiveOperations executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setHighlightOpsClicked={setHighlightOpsClicked}/>
-				) : null}
+				</Popover>
 			</div>
 			<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked} query={query}/>
 		</div>
