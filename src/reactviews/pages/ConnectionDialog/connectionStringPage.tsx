@@ -6,7 +6,7 @@
 import { Button, MessageBar, Spinner } from "@fluentui/react-components";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { generateFormField, useFormStyles } from "../../common/forms/formUtils";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export const ConnectionStringPage = () => {
@@ -26,11 +26,18 @@ export const ConnectionStringPage = () => {
 				</MessageBar>
 			}
 			{
-				connectionDialogContext.state.connectionStringComponents.map((component, idx) => {
-					if (component.hidden === true) {
+				connectionDialogContext.state.connectionStringComponents.map((spec, idx) => {
+					if (spec.hidden === true) {
 						return undefined;
 					}
-					return generateFormField(connectionDialogContext, component, idx, formStyles);
+					return (
+                        <FormField
+                            key={idx}
+                            context={connectionDialogContext}
+                            component={spec}
+                            idx={idx}
+                        />
+                    );
 				})
 			}
 			<Button
