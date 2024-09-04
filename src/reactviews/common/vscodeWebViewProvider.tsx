@@ -36,6 +36,10 @@ interface VscodeWebviewContext<State, Reducers> {
 	 * Routes for the webview.
 	 */
 	route: WebviewRoute;
+	/**
+	 * Localization status.
+	 */
+	localization: boolean;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
@@ -57,6 +61,7 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 	const [theme, setTheme] = useState(webLightTheme);
 	const [route, setRoute] = useState<WebviewRoute>();
 	const [state, setState] = useState<State>();
+	const [localization, setLocalization] = useState<boolean>(false);
 
 	useEffect(() => {
 		async function getTheme() {
@@ -97,6 +102,7 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 					contents: fileContents
 				});
 			}
+			setLocalization(true);
 		}
 
 		getTheme();
@@ -130,7 +136,8 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 		extensionRpc: extensionRpc,
 		state: state,
 		theme: theme,
-		route: route!
+		route: route!,
+		localization: localization
 	}}>
 		<FluentProvider style={{
 			height: '100%',

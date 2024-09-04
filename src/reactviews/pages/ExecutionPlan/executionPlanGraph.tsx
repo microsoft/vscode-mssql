@@ -16,7 +16,6 @@ import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
 import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
-import { formatString } from '../../common/utils';
 import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
