@@ -37,7 +37,8 @@ interface VscodeWebviewContext<State, Reducers> {
 	 */
 	route: WebviewRoute;
 	/**
-	 * Localization status.
+	 * Localization status. The value is true when the localization file content is received from the extension.
+	 * This is used to force a re-render of the component when the localization file content is received.
 	 */
 	localization: boolean;
 }
