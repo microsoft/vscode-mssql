@@ -33,7 +33,7 @@ Using in `package.json` to contribute to vscode extensibility points. For exampl
 
 ### Extension Code (excluding React webviews):
 
-If you need to localize strings in the extension code, you can use the directly use the l10n api provided by vscode.
+If you need to localize strings in the extension code, you can use the directly use the l10n api provided by vscode. To read more the l10n api, please refer to the [official documentation](https://code.visualstudio.com/api/references/vscode-api#l10n)
 
 ```ts
 import { l10n } from 'vscode';
