@@ -1122,7 +1122,7 @@ export default class ConnectionManager {
 					);
 					return;
 				} catch {
-					this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.msgRefreshTokenError));
+					this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgRefreshTokenError);
 				}
 			}
 			this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgRefreshTokenNotNeeded(profile.connectionId, uri));
