@@ -55,6 +55,13 @@ const test = l10n.t(`Test loc`);
 ```
 
 After adding a new string to localize, you need to run `yarn localization` to update the xlf and l10n files.
+NOTE: Please follow the exact syntax `l10n.t(<loc string>)` otherwise the localization extraction will not work.
+So things like this won't work.
+```ts
+import * as l10n from '@vscode/l10n';
+const { t } = l10n;
+const test = t(`Test loc`);
+```
 
 
 ## Localization Process Overview
@@ -83,5 +90,5 @@ After adding a new string to localize, you need to run `yarn localization` to up
 1. Run `yarn gulp ext:generate-pseudo-loc` to generate pseudo localization files.
 2. This generates `bundle.l10n.qps-ploc.json` and `package.nls.qps-ploc.json` files in the `localization\l10n` and root folders respectively.
 3. Install the `Pseudo Language Language Pack` extension in VS Code.
-4. Set the display language to `Pseudo Language`.
+4. Set the display language to `Pseudo Language` using `Configure Display Language` command in the command palette.
 5. Reload vscode and test the extension to see the pseudo localized strings in the UI.
