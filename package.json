@@ -39,7 +39,7 @@
     "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
-  "l10n": "./l10n",
+  "l10n": "./localization/l10n",
   "extensionDependencies": [
     "vscode.sql"
   ],
