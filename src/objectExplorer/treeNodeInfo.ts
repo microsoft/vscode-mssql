@@ -219,6 +219,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
 	//convert TreeNodeContextValue to context value string
 	private _convertToContextValue(context: vscodeMssql.TreeNodeContextValue): string {
+		if (context === undefined) {
+			return '';
+		}
 		let contextValue = '';
 		Object.keys(context).forEach(key => {
 			contextValue += key + '=' + context[key] + ',';
