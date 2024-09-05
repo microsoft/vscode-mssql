@@ -191,8 +191,9 @@ suite('Query Runner tests', () => {
 		queryRunner.eventEmitter = mockEventEmitter.object;
 		queryRunner.handleBatchStart(batchStart);
 
-		// Then: It should store the batch and emit a batch start
+		// Then: It should store the batch, messages and emit a batch start
 		assert.equal(queryRunner.batchSets.indexOf(batchStart.batchSummary), 0);
+		assert.ok(queryRunner.batchSetMessages[batchStart.batchSummary.id]);
 		mockEventEmitter.verify(x => x.emit('batchStart', TypeMoq.It.isAny()), TypeMoq.Times.once());
 	});
 
@@ -236,6 +237,8 @@ suite('Query Runner tests', () => {
 			selection: { startLine: 0, endLine: 0, startColumn: 3, endColumn: 3 },
 			resultSetSummaries: []
 		};
+		queryRunner.batchSetMessages[queryRunner.batchSets[0].id] = [];
+
 		let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
 		mockEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
 		mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny(), TypeMoq.It.isAny()));
@@ -249,6 +252,9 @@ suite('Query Runner tests', () => {
 		assert.equal(typeof (storedBatch.executionEnd), typeof (batchComplete.batchSummary.executionEnd));
 		assert.equal(typeof (storedBatch.executionStart), typeof (batchComplete.batchSummary.executionStart));
 		assert.equal(storedBatch.hasError, batchComplete.batchSummary.hasError);
+
+		// ... Messages should be empty since batch time messages are stored separately
+		assert.equal(queryRunner.batchSetMessages[queryRunner.batchSets[0].id].length, 0);
 
 		// ... Result sets should not be set by the batch complete notification
 		assert.equal(typeof (storedBatch.resultSetSummaries), typeof ([]));
@@ -381,6 +387,7 @@ suite('Query Runner tests', () => {
 			testStatusView.object, testSqlToolsServerClient.object,
 			testQueryNotificationHandler.object, testVscodeWrapper.object
 		);
+		queryRunner.batchSetMessages[message.message.batchId] = [];
 		queryRunner.eventEmitter = mockEventEmitter.object;
 
 		// ... And I ask to handle a message
@@ -388,6 +395,8 @@ suite('Query Runner tests', () => {
 
 		// Then: A message event should have been emitted
 		mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny()), TypeMoq.Times.once());
+		// ... Result set message cache contains one entry
+		assert.equal(queryRunner.batchSetMessages[message.message.batchId].length, 1);
 	});
 
 	test('Notification - Query complete', () => {

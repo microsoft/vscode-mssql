@@ -93,7 +93,7 @@ export default class MainController implements vscode.Disposable {
 		}
 		this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 		this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
-		this.configuration = vscode.workspace.getConfiguration(Constants.extensionName);
+		this.configuration = vscode.workspace.getConfiguration();
 	}
 
 	/**
@@ -1417,6 +1417,10 @@ export default class MainController implements vscode.Disposable {
 
 			// Prompt to reload VS Code when below settings are updated.
 			if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+			}
+
+			if(e.affectsConfiguration(Constants.configEnableExperimentalFeatures)) {
 				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
 		}
