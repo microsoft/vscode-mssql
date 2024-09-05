@@ -6,7 +6,6 @@
 import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import * as vscodeMssql from 'vscode-mssql';
 import * as vscode from 'vscode';
-import { WebviewRoute } from "../sharedInterfaces/webviewRoutes";
 import { TreeNodeInfo } from "./treeNodeInfo";
 import { ObjectExplorerFilterState, ObjectExplorerReducers } from "../sharedInterfaces/objectExplorerFilter";
 
@@ -24,7 +23,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 		super(
 			context,
 			'Object Explorer Filter',
-			WebviewRoute.objectExplorerFilter,
+			'objectExplorerFilter',
 			data ?? {
 				filterProperties: [],
 				existingFilters: [],
