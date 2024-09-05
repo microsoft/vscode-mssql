@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebViewProvider";
 import { ObjectExplorerFilterContextProps, ObjectExplorerFilterState, ObjectExplorerReducers } from "../../../sharedInterfaces/objectExplorerFilter";
 
@@ -16,6 +16,7 @@ interface ObjectExplorerFilterStateProviderProps {
 const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProviderProps> = ({ children }) => {
 	const webViewState = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
 	const objectExplorerFilterState = webViewState?.state;
+
 	return <ObjectExplorerFilterContext.Provider value={
 		{
 			state: objectExplorerFilterState,

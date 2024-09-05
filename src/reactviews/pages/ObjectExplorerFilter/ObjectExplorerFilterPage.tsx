@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Body1Strong, Button, createTableColumn, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Dropdown, InfoLabel, Input, makeStyles, MessageBar, MessageBarBody, MessageBarTitle, Option, Table, TableBody, TableCell, TableColumnDefinition, TableColumnId, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Tooltip, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
+import { Body1Strong, Button, createTableColumn, Dropdown, InfoLabel, Input, makeStyles, MessageBar, MessageBarBody, MessageBarTitle, Option, Table, TableBody, TableCell, TableColumnDefinition, TableColumnId, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Text, Tooltip, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
 import { useContext, useEffect, useState } from "react";
 import { ObjectExplorerFilterContext } from "./ObjectExplorerFilterStateProvider";
 import * as vscodeMssql from 'vscode-mssql';
@@ -46,50 +46,57 @@ export const useStyles = makeStyles({
 
 export const ObjectExplorerFilterPage = () => {
 	const classes = useStyles();
-	const [open] = useState(true);
 	const provider = useContext(ObjectExplorerFilterContext);
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-	const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>(
-		provider?.state?.filterProperties?.map((value, index) => {
-			const filter = provider?.state?.existingFilters?.find(f => f.name === value.name);
-			return {
-				index: index,
-				name: value.name,
-				displayName: value.displayName,
-				value: filter?.value ?? '',
-				type: value.type,
-				choices: getFilterChoices(value) ?? [],
-				operatorOptions: getFilterOperators(value),
-				selectedOperator: filter === undefined ? getFilterOperators(value)[0] : getFilterOperatorString(filter?.operator) ?? '',
-				description: value.description
-			};
-		}) ?? []);
+	const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
+
 	useEffect(() => {
-		function setIntialFocus(){
+		function setIntialFocus() {
 			const input = document.getElementById('input-0');
-			if(input){
+			if (input) {
 				input.focus();
 			}
 		}
+
+		const loadUiFilters = () => {
+			setUiFilters(provider?.state?.filterProperties?.map((value, index) => {
+				const filter = provider?.state?.existingFilters?.find(f => f.name === value.name);
+				return {
+					index: index,
+					name: value.name,
+					displayName: value.displayName,
+					value: filter?.value ?? '',
+					type: value.type,
+					choices: getFilterChoices(value) ?? [],
+					operatorOptions: getFilterOperators(value),
+					selectedOperator: filter === undefined ? getFilterOperators(value)[0] : getFilterOperatorString(filter?.operator) ?? '',
+					description: value.description
+				};
+			}) ?? []);
+		};
+
 		setIntialFocus();
-	});
+		loadUiFilters();
+		setErrorMessage(undefined);
+	}, [provider?.state?.filterProperties]);
+
 	function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
 		switch (columnId) {
 			case 'property':
-				return  <InfoLabel
-				size="small"
-				info={
-				  <>
-					{item.description}
-				  </>
-				}
-			  >
-				{item.displayName}
-			  </InfoLabel>;
+				return <InfoLabel
+					size="small"
+					info={
+						<>
+							{item.description}
+						</>
+					}
+				>
+					{item.displayName}
+				</InfoLabel>;
 			case 'operator':
 				return <div className={classes.tableCell} >
 					<Dropdown
-						id = {`operator-${item.index}`}
+						id={`operator-${item.index}`}
 						className={classes.operatorOptions}
 						size="small"
 						value={item.selectedOperator ?? ''}
@@ -139,7 +146,7 @@ export const ObjectExplorerFilterPage = () => {
 							return (
 								<div className={classes.tableCell} >
 									<Input
-										id = {`input-${item.index}`}
+										id={`input-${item.index}`}
 										size="small"
 										type={inputType}
 										className={classes.inputs}
@@ -162,7 +169,7 @@ export const ObjectExplorerFilterPage = () => {
 						} else {
 							return (
 								<Input
-									id = {`input-${item.index}`}
+									id={`input-${item.index}`}
 									size="small"
 									type={inputType}
 									className={classes.inputs}
@@ -177,7 +184,7 @@ export const ObjectExplorerFilterPage = () => {
 					case NodeFilterPropertyDataType.Boolean:
 						return (
 							<Dropdown size="small"
-								id = {`input-${item.index}`}
+								id={`input-${item.index}`}
 								className={classes.inputs}
 								value={item.value as string}
 								onOptionSelect={(_e, d) => {
@@ -240,9 +247,9 @@ export const ObjectExplorerFilterPage = () => {
 
 	const sizingOptions: TableColumnSizingOptions = {
 		'property': {
-			minWidth: 140,
-			idealWidth: 140,
-			defaultWidth: 140
+			minWidth: 150,
+			idealWidth: 200,
+			defaultWidth: 300
 		},
 		'operator': {
 			minWidth: 140,
@@ -262,11 +269,10 @@ export const ObjectExplorerFilterPage = () => {
 	};
 
 	const [columnSizingOptions] = useState<TableColumnSizingOptions>(sizingOptions);
-	const items = uiFilters ?? [];
 	const { getRows, columnSizing_unstable, tableRef } = useTableFeatures<ObjectExplorerPageFilter>(
 		{
-			columns,
-			items
+			columns: columns,
+			items: uiFilters
 		},
 		[useTableColumnSizing_unstable({ columnSizingOptions })]
 	);
@@ -276,152 +282,144 @@ export const ObjectExplorerFilterPage = () => {
 	}
 	return (
 		<div className={classes.root}>
-
-			<Dialog
-
-				// this controls the dialog open state
-				open={open}
+			<Text size={400}>Filter Settings</Text>
+			<Body1Strong>Path: {provider?.state?.nodePath}</Body1Strong>
+			{
+				(errorMessage && errorMessage !== '') &&
+				<MessageBar intent={'error'}>
+					<MessageBarBody>
+						<MessageBarTitle>Error</MessageBarTitle>
+						{errorMessage}
+					</MessageBarBody>
+				</MessageBar>
+			}
+			<Table
+				as="table"
+				size="small"
+				{...columnSizing_unstable.getTableProps()}
+				ref={tableRef}
 			>
-				<DialogSurface style={{ margin: '0px auto', overflow: 'scroll' }}>
-					<DialogBody style={{ minWidth: '560px', width: '560px', maxWidth: '560px', overflow: 'scroll' }}>
-						<DialogTitle>Filter Settings</DialogTitle>
-						<DialogContent>
-							<Body1Strong>Path: {provider?.state?.nodePath}</Body1Strong>
-							{
-								(errorMessage && errorMessage !== '') &&
-								<MessageBar intent={'error'}>
-									<MessageBarBody>
-										<MessageBarTitle>Error</MessageBarTitle>
-										{errorMessage}
-									</MessageBarBody>
-								</MessageBar>
+				<TableHeader>
+					<TableRow>
+						{
+							columns.map(column => {
+								return <TableHeaderCell
+									key={column.columnId}
+									{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+								>
+									{column.renderHeaderCell()}
+								</TableHeaderCell>;
+							})
+						}
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{
+						rows.map((_row, index) => {
+							return <TableRow key={`row${index}`}>
+								{
+									columnsDef.map(column => {
+										return <TableCell
+											key={column.columnId}
+											{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+										>
+											{renderCell(column.columnId, uiFilters[index])}
+										</TableCell>;
+									})
+								}
+							</TableRow>;
+						})
+					}
+				</TableBody>
+			</Table>
+			<div style={{
+				display: 'flex',
+				flexDirection: 'row',
+				justifyContent: 'space-between',
+				marginTop: '10px',
+				maxWidth: '300px'
+			}}>
+				<Button appearance="secondary" onClick={() => {
+					for (let filters of uiFilters) {
+						if (filters.selectedOperator === BETWEEN || filters.selectedOperator === NOT_BETWEEN) {
+							filters.value = ['', ''];
+						} else {
+							filters.value = '';
+						}
+					}
+					setUiFilters([...uiFilters]);
+				}}>Clear All</Button>
+				<Button appearance="secondary" onClick={() => {
+					provider.cancel();
+				}}>Close</Button>
+				<Button appearance="primary" onClick={() => {
+
+					const filters: vscodeMssql.NodeFilter[] = uiFilters.map(f => {
+						let value = undefined;
+						switch (f.type) {
+							case NodeFilterPropertyDataType.Boolean:
+								if (f.value === '' || f.value === undefined) {
+									value = undefined;
+								} else {
+									value = f.choices?.find(c => c.displayName === f.value)?.name ?? undefined;
+								}
+								break;
+							case NodeFilterPropertyDataType.Number:
+								if (f.selectedOperator === BETWEEN || f.selectedOperator === NOT_BETWEEN) {
+									value = (f.value as string[]).map(v => Number(v));
+								} else {
+									value = Number(f.value);
+								}
+								break;
+							case NodeFilterPropertyDataType.String:
+							case NodeFilterPropertyDataType.Date:
+								value = f.value;
+								break;
+							case NodeFilterPropertyDataType.Choice:
+								if (f.value === '' || f.value === undefined) {
+									value = undefined;
+								} else {
+									value = f.choices?.find(c => c.displayName === f.value)?.name ?? undefined;
+								}
+								break;
+						}
+						return {
+							name: f.name,
+							value: value!,
+							operator: getFilterOperatorEnum(f.selectedOperator)
+						};
+					}).filter(f => {
+						if (f.operator === NodeFilterOperator.Between || f.operator === NodeFilterOperator.NotBetween) {
+							return (f.value as string[])[0] !== '' || (f.value as string[])[1] !== '';
+						}
+						return f.value !== '' && f.value !== undefined;
+					});
+
+					let errorText = '';
+					for (let filter of filters) {
+						if (filter.operator === NodeFilterOperator.Between || filter.operator === NodeFilterOperator.NotBetween) {
+							let value1 = (filter.value as string[] | number[])[0];
+							let value2 = (filter.value as string[] | number[])[1];
+							if (!value1 && value2) {
+								console.log(`The first value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
+								errorText = `The first value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
+							} else if (!value2 && value1) {
+								console.log(`The second value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
+								errorText = `The second value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
+							} else if (value1 > value2) {
+								console.log(`The first value must be less than the second value for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
+								errorText = `The first value must be less than the second value for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
 							}
-							<Table
-								as="table"
-								size="small"
-								{...columnSizing_unstable.getTableProps()}
-								ref={tableRef}
-							>
-								<TableHeader>
-									<TableRow>
-										{
-											columns.map(column => {
-												return <TableHeaderCell
-													key={column.columnId}
-													{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-												>
-													{column.renderHeaderCell()}
-												</TableHeaderCell>;
-											})
-										}
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{
-										rows.map((_row, index) => {
-											return <TableRow key={`row${index}`}>
-												{
-													columnsDef.map(column => {
-														return <TableCell
-															key={column.columnId}
-															{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-														>
-															{renderCell(column.columnId, uiFilters[index])}
-														</TableCell>;
-													})
-												}
-											</TableRow>;
-										})
-									}
-								</TableBody>
-							</Table>
-						</DialogContent>
+						}
+					}
+					if (errorText) {
+						setErrorMessage(errorText);
+						return;
+					}
+					provider.submit(filters);
+				}}>OK</Button>
+			</div>
 
-						<DialogActions>
-							<Button appearance="secondary" onClick={() => {
-								for (let filters of uiFilters) {
-									if (filters.selectedOperator === BETWEEN || filters.selectedOperator === NOT_BETWEEN) {
-										filters.value = ['', ''];
-									} else {
-										filters.value = '';
-									}
-								}
-								setUiFilters([...uiFilters]);
-							}}>Clear All</Button>
-							<Button appearance="secondary" onClick={() => {
-								provider.cancel();
-							}}>Close</Button>
-							<Button appearance="primary" onClick={() => {
-
-								const filters: vscodeMssql.NodeFilter[] = uiFilters.map(f => {
-									let value = undefined;
-									switch (f.type) {
-										case NodeFilterPropertyDataType.Boolean:
-											if (f.value === '' || f.value === undefined) {
-												value = undefined;
-											} else {
-												value = f.choices?.find(c => c.displayName === f.value)?.name ?? undefined;
-											}
-											break;
-										case NodeFilterPropertyDataType.Number:
-											if (f.selectedOperator === BETWEEN || f.selectedOperator === NOT_BETWEEN) {
-												value = (f.value as string[]).map(v => Number(v));
-											} else {
-												value = Number(f.value);
-											}
-											break;
-										case NodeFilterPropertyDataType.String:
-										case NodeFilterPropertyDataType.Date:
-											value = f.value;
-											break;
-										case NodeFilterPropertyDataType.Choice:
-											if (f.value === '' || f.value === undefined) {
-												value = undefined;
-											} else {
-												value = f.choices?.find(c => c.displayName === f.value)?.name ?? undefined;
-											}
-											break;
-									}
-									return {
-										name: f.name,
-										value: value!,
-										operator: getFilterOperatorEnum(f.selectedOperator)
-									};
-								}).filter(f => {
-									if (f.operator === NodeFilterOperator.Between || f.operator === NodeFilterOperator.NotBetween) {
-										return (f.value as string[])[0] !== '' || (f.value as string[])[1] !== '';
-									}
-									return f.value !== '' && f.value !== undefined;
-								});
-
-								let errorText = '';
-								for (let filter of filters) {
-									if (filter.operator === NodeFilterOperator.Between || filter.operator === NodeFilterOperator.NotBetween) {
-										let value1 = (filter.value as string[] | number[])[0];
-										let value2 = (filter.value as string[]| number[])[1];
-										if (!value1 && value2) {
-											console.log(`The first value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
-											errorText = `The first value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
-										} else if (!value2 && value1) {
-											console.log(`The second value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
-											errorText = `The second value must be set for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
-										} else if (value1 > value2) {
-											console.log(`The first value must be less than the second value for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`);
-											errorText = `The first value must be less than the second value for the ${getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
-										}
-									}
-								}
-								if (errorText) {
-									setErrorMessage(errorText);
-									return;
-								}
-								provider.submit(filters);
-							}}>OK</Button>
-
-						</DialogActions>
-					</DialogBody>
-				</DialogSurface>
-			</Dialog>
 		</div >
 	);
 };

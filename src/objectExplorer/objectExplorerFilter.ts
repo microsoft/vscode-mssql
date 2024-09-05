@@ -53,8 +53,6 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 	public loadData(data: ObjectExplorerFilterState): void {
 		this.state = data;
 	}
-
-
 }
 
 export class ObjectExplorerFilter {
@@ -71,6 +69,12 @@ export class ObjectExplorerFilter {
 						nodePath: treeNode.nodePath
 					}
 				);
+			} else {
+				this._filterWebviewController.loadData({
+					filterProperties: treeNode.filterableProperties,
+					existingFilters: treeNode.filters,
+					nodePath: treeNode.nodePath
+				});
 			}
 			this._filterWebviewController.revealToForeground();
 			this._filterWebviewController.onSubmit((e) => {
