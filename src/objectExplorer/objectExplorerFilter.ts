@@ -56,8 +56,13 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 
 export class ObjectExplorerFilter {
 	private static _filterWebviewController: ObjectExplorerFilterReactWebviewController;
-
-	public static async getFilters(context: vscode.ExtensionContext, treeNode: TreeNodeInfo): Promise<vscodeMssql.NodeFilter[]> {
+	/**
+	 * This method is used to get the filters from the user for the given treeNode.
+	 * @param context The extension context
+	 * @param treeNode The treeNode for which the filters are needed
+	 * @returns The filters that the user has selected or undefined if the user has cancelled the operation.
+	 */
+	public static async getFilters(context: vscode.ExtensionContext, treeNode: TreeNodeInfo): Promise<vscodeMssql.NodeFilter[] | undefined> {
 		return await new Promise((resolve, _reject) => {
 			if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
 				this._filterWebviewController = new ObjectExplorerFilterReactWebviewController(
@@ -80,10 +85,10 @@ export class ObjectExplorerFilter {
 				resolve(e);
 			});
 			this._filterWebviewController.onCancel(() => {
-				resolve(treeNode.filters ?? []);
+				resolve(undefined);
 			});
 			this._filterWebviewController.onDisposed(() => {
-				resolve(treeNode.filters ?? []);
+				resolve(undefined);
 			});
 		});
 	}
