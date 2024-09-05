@@ -32,6 +32,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		LocalizedConstants.loadLocalizedConstants(vscode.env.language);
 	}
 
+	const uriHandler: vscode.UriHandler = {
+		handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+			vscode.window.showInformationMessage(`URI handled: ${uri.toString()}`);
+		}
+	};
+	context.subscriptions.push(vscode.window.registerUriHandler(uriHandler));
+
 	// Exposed for testing purposes
 	vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
 	await controller.activate();

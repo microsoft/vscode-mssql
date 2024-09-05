@@ -36,6 +36,7 @@
     "multi-root ready"
   ],
   "activationEvents": [
+    "onUri",
     "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
@@ -472,6 +473,11 @@
       ]
     },
     "commands": [
+      {
+        "command": "mssql.handleUri",
+        "title": "%mssql.handleUri%",
+        "category": "MS SQL"
+      },
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",

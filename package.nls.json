@@ -144,5 +144,6 @@
 "mssql.newTable":"New Table",
 "mssql.editTable":"Edit Table",
 "mssql.editConnection":"Edit Connection",
-"mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting."
+"mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
+"mssql.handleUri":"Handle URI"
 }
