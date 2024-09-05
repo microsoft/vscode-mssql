@@ -5,6 +5,7 @@
 
 import { NodeInfo } from './nodeInfo';
 import { RequestType, NotificationType } from 'vscode-languageclient';
+import * as vscodeMssql from 'vscode-mssql';
 
 // ------------------------------- < Expand Node Response > ----------------------------------------------
 
@@ -48,6 +49,11 @@ export class ExpandParams {
 	 * Path identifying the node to expand.
 	 */
 	public nodePath: string;
+
+	/**
+	 * Filters to apply to the child nodes being returned
+	 */
+	filters? : vscodeMssql.NodeFilter[];
 }
 
 // ------------------------------- < Expand Node Request > ----------------------------------------------

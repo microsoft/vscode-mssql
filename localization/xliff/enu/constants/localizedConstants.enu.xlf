@@ -677,6 +677,9 @@
         <trans-unit id="queryFailed">
             <source xml:lang="en">Query failed</source>
         </trans-unit>
+        <trans-unit id="filterLabel">
+            <source xml:lang="en">{0} (filtered)</source>
+        </trans-unit>
         <trans-unit id="connectionDialog">
             <source xml:lang="en">Connection Dialog</source>
         </trans-unit>

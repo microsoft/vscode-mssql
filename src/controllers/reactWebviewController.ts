@@ -51,9 +51,9 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 		this._panel.webview.html = this._getHtmlTemplate();
 		this._panel.iconPath = this._iconPath;
 		this.registerDisposable(this._panel.webview.onDidReceiveMessage(this._webviewMessageHandler));
-		this._panel.onDidDispose(() => {
+		this.registerDisposable(this._panel.onDidDispose(() => {
 			this.dispose();
-		});
+		}));
 
 		// This call sends messages to the Webview so it's called after the Webview creation.
 		this.initializeBase();

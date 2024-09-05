@@ -21,6 +21,8 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
 	private _isFirstLoad: boolean = true;
 	private _loadStartTime: number = Date.now();
+	private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+	public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
 	protected _webviewMessageHandler = (message) => {
 		if (message.type === 'request') {
 			const handler = this._webViewRequestHandlers[message.method];
@@ -182,13 +184,16 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	 * @param message The message to post to the webview
 	 */
 	public postMessage(message: any) {
-		this._getWebview().postMessage(message);
+		if (!this._isDisposed) {
+			this._getWebview().postMessage(message);
+		}
 	}
 
 	/**
 	 * Disposes the controller
 	 */
 	public dispose() {
+		this._onDisposed.fire();
 		this._disposables.forEach(d => d.dispose());
 		this._isDisposed = true;
 	}

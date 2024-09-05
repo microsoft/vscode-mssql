@@ -223,6 +223,7 @@ async function generateReactWebviewsBundle() {
 			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
 			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
 			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
+			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',

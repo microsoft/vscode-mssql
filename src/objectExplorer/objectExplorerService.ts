@@ -247,7 +247,8 @@ export class ObjectExplorerService {
 	public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean | undefined> {
 		const expandParams: ExpandParams = {
 			sessionId: sessionId,
-			nodePath: node.nodePath
+			nodePath: node.nodePath,
+			filters: node.filters
 		};
 		this._expandParamsToPromiseMap.set(expandParams, promise);
 		this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
@@ -322,10 +323,15 @@ export class ObjectExplorerService {
 				getConnectionDisplayName(conn.connectionCreds) : conn.label;
 			this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
 			let node = new TreeNodeInfo(nodeLabel,
-				Constants.disconnectedServerLabel,
+				{
+					type: Constants.disconnectedServerLabel,
+					filterable: false,
+					hasFilters: false,
+					subType: ''
+				},
 				TreeItemCollapsibleState.Collapsed,
 				undefined, undefined, Constants.disconnectedServerLabel,
-				undefined, conn.connectionCreds, undefined);
+				undefined, conn.connectionCreds, undefined, undefined);
 			this._rootTreeNodeArray.push(node);
 		}
 	}
@@ -581,16 +587,27 @@ export class ObjectExplorerService {
 
 		} else {
 			node.nodeType = Constants.disconnectedServerLabel;
-			node.contextValue = Constants.disconnectedServerLabel;
+			node.context = {
+				type: Constants.disconnectedServerLabel,
+				filterable: false,
+				hasFilters: false,
+				subType: ''
+			};
 			node.sessionId = undefined;
 			if (!(<IConnectionProfile>node.connectionInfo).savePassword) {
 				node.connectionInfo.password = '';
 			}
 			const label = typeof node.label === 'string' ? node.label : node.label.label;
 			// make a new node to show disconnected behavior
-			let disconnectedNode = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
+			let disconnectedNode = new TreeNodeInfo(label,
+				{
+				type: Constants.disconnectedServerLabel,
+				filterable: false,
+				hasFilters: false,
+				subType: ''
+				},
 				node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
-				undefined, node.connectionInfo, node.parentNode);
+				undefined, node.connectionInfo, node.parentNode, undefined);
 
 			this.updateNode(disconnectedNode);
 			this._currentNode = disconnectedNode;
@@ -623,7 +640,8 @@ export class ObjectExplorerService {
 	public async refreshNode(node: TreeNodeInfo): Promise<void> {
 		const refreshParams: RefreshParams = {
 			sessionId: node.sessionId,
-			nodePath: node.nodePath
+			nodePath: node.nodePath,
+			filters: node.filters
 		};
 		let response = await this._connectionManager.client.sendRequest(RefreshRequest.type, refreshParams);
 		if (response) {
@@ -652,10 +670,15 @@ export class ObjectExplorerService {
 		const label = (<IConnectionProfile>connectionCredentials).profileName ?
 			(<IConnectionProfile>connectionCredentials).profileName :
 			getConnectionDisplayName(connectionCredentials);
-		const node = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
+		const node = new TreeNodeInfo(label, {
+			type: Constants.disconnectedServerLabel,
+			filterable: false,
+			hasFilters: false,
+			subType: ''
+			},
 			vscode.TreeItemCollapsibleState.Collapsed, undefined, undefined,
 			Constants.disconnectedServerLabel, undefined, connectionCredentials,
-			undefined);
+			undefined, undefined);
 		this.updateNode(node);
 	}
 
