@@ -474,11 +474,6 @@
     },
     "commands": [
       {
-        "command": "mssql.handleUri",
-        "title": "%mssql.handleUri%",
-        "category": "MS SQL"
-      },
-      {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
         "category": "MS SQL",
