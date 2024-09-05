@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
+import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
 import * as vscodeMssql from 'vscode-mssql';
 import * as vscode from 'vscode';
 import { TreeNodeInfo } from "./treeNodeInfo";
 import { ObjectExplorerFilterState, ObjectExplorerReducers } from "../sharedInterfaces/objectExplorerFilter";
 
-export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPanelController<ObjectExplorerFilterState, ObjectExplorerReducers> {
+export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPanelController<ObjectExplorerFilterState, ObjectExplorerReducers> {
 	private _onSubmit: vscode.EventEmitter<vscodeMssql.NodeFilter[]> = new vscode.EventEmitter<vscodeMssql.NodeFilter[]>();
 	public readonly onSubmit: vscode.Event<vscodeMssql.NodeFilter[]> = this._onSubmit.event;
 

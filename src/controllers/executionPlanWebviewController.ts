@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebViewPanelController } from "./reactWebviewController";
+import { ReactWebviewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import * as LocalizedConstants from "../constants/localizedConstants";
 import { homedir } from "os";
@@ -13,8 +13,8 @@ import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentServic
 import * as path from 'path';
 import { ApiStatus } from "../sharedInterfaces/webview";
 
-export class ExecutionPlanWebViewController extends ReactWebViewPanelController<
-  ep.ExecutionPlanWebViewState,
+export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
+  ep.ExecutionPlanWebviewState,
   ep.ExecutionPlanReducers
 > {
   constructor(
