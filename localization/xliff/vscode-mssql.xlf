@@ -501,6 +501,9 @@
     <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
       <source xml:lang="en">Number of Rows Read</source>
     </trans-unit>
+    <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
+      <source xml:lang="en">Object Explorer Filter</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
     </trans-unit>

@@ -6,6 +6,7 @@
       "{1} is the query cost"
     ]
   },
+  "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
