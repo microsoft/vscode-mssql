@@ -575,7 +575,9 @@ export default class MainController implements vscode.Disposable {
 					}
 					await this.objectExplorerTree.reveal(node, {select: true, focus: true, expand: true});
 				} else {
-					return; // User cancelled the operation. Do nothing.
+					// User cancelled the operation. Do nothing and focus on the node
+					await this.objectExplorerTree.reveal(node, {select: true, focus: true});
+					return;
 				}
 			};
 
