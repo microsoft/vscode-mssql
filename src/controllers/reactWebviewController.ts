@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebviewBaseController } from './reactWebviewBaseController';
 
 /**
@@ -21,7 +20,7 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 	 * Creates a new ReactWebViewPanelController
 	 * @param _context The context of the extension
 	 * @param title The title of the webview panel
-	 * @param _route The route that the webview will use
+	 * @param sourceFile The source file that the webview will use
 	 * @param initialData The initial state object that the webview will use
 	 * @param viewColumn The view column that the webview will be displayed in
 	 * @param _iconPath The icon path that the webview will use
@@ -29,7 +28,7 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 	constructor(
 		_context: vscode.ExtensionContext,
 		title: string,
-		_route: WebviewRoute,
+		sourceFile: string,
 		initialData: State,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 		private _iconPath?: vscode.Uri | {
@@ -37,7 +36,7 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 			readonly dark: vscode.Uri;
 		}
 	) {
-		super(_context, _route, initialData);
+		super(_context, sourceFile, initialData);
 		this._panel = vscode.window.createWebviewPanel(
 			'mssql-react-webview',
 			title,
