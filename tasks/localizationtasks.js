@@ -70,7 +70,7 @@ gulp.task('ext:generate-runtime-localization-files', async function () {
 	const xliffFiles = (await fs.readdir('./localization/xliff')).filter(f => f.endsWith('.xlf'));
 	for (const xliffFile of xliffFiles) {
 		console.error('Processing', xliffFile);
-		if (xliffFile === 'enu.xlf') {
+		if (xliffFile === 'vscode-mssql.xlf') {
 			continue;
 		}
 		const xliffFileContents = await fs.readFile(path.resolve('./localization/xliff', xliffFile), 'utf8');
@@ -146,7 +146,7 @@ gulp.task('ext:extract-localization-strings', async function () {
 	const stringBundle = JSON.stringify(bundleJSON, null, 2);
 	await fs.writeFile('./localization/l10n/bundle.l10n.json', stringBundle);
 	const stringXLIFF = vscodel10n.getL10nXlf(map);
-	await fs.writeFile('./localization/xliff/enu.xlf', stringXLIFF);
+	await fs.writeFile('./localization/xliff/vscode-mssql.xlf', stringXLIFF);
 
 });
 

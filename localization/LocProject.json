@@ -4,8 +4,8 @@
 		"LanguageSet": "AzureKatal_Languages",
 		"LocItems": [
 		  {
-			"SourceFile": "localization\\xliff\\enu.xlf",
-			"LclFile": "localization\\LCL\\{Lang}\\enu.xlf.lcl",
+			"SourceFile": "localization\\xliff\\vscode-mssql.xlf",
+			"LclFile": "localization\\LCL\\{Lang}\\vscode-mssql.xlf.lcl",
 			"CopyOption": "LangIDOnName",
 			"OutputPath": "localization\\xliff\\"
 		  }
