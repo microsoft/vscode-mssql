@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useState } from "react";
+import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebViewProvider";
 import { ObjectExplorerFilterContextProps, ObjectExplorerFilterState, ObjectExplorerReducers } from "../../../sharedInterfaces/objectExplorerFilter";
 
