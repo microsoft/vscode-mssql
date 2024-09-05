@@ -479,5 +479,5 @@ export const iconBackground = (theme:string) => {
 }
 
 export const seperator = (theme:string) => {
-	return theme === "dark" ? '#161E1E' : "#F2F2F2";
+	return theme === "dark" ? '#7C7C7C' : "#D6D6D6";
 }

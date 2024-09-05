@@ -7,7 +7,7 @@ import { useContext, useState } from 'react';
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import * as utils from './queryPlanSetup';
 import './executionPlan.css';
-import { makeStyles } from '@fluentui/react-components';
+import { makeStyles, Toolbar, ToolbarButton } from '@fluentui/react-components';
 
 const useStyles = makeStyles({
 	iconStack: {
@@ -19,12 +19,10 @@ const useStyles = makeStyles({
 		opacity: 1,
 		zIndex: "1",
 		position: "absolute",
-		height: "100%"
+		height: "100%",
 	},
 	button: {
-		cursor: "pointer",
-		marginTop: "5px",
-		marginBottom: "5px",
+		cursor: "pointer"
 	},
 	buttonImg: {
 		display: "block",
@@ -131,43 +129,161 @@ export const IconStack : React.FC<IconStackProps> = ({
 	}
 
 	return (
-		<div id="iconStack" className={classes.iconStack} style={{outline: `2px solid ${utils.seperator(executionPlanState!.theme!)}`, background:`${utils.background(executionPlanState!.theme!)}`}}>
-			<div id="saveButton" className={classes.button} onClick={handleSavePlan} tabIndex={0} title={LocalizedConstants.savePlan} aria-label={LocalizedConstants.savePlan}>
-				<img className={classes.buttonImg} src={utils.save(executionPlanState!.theme!)} alt={LocalizedConstants.savePlan} width="20" height="20" />
-			</div>
-			<div id="showXmlButton" className={classes.button} onClick={handleShowXml} tabIndex={0} title={LocalizedConstants.openXml} aria-label={LocalizedConstants.openXml}>
-				<img className={classes.buttonImg} src={utils.openPlanFile(executionPlanState!.theme!)} alt={LocalizedConstants.openXml} width="20" height="20" />
-			</div>
-			<div id="showQueryButton" className={classes.button} onClick={handleShowQuery} tabIndex={0} title={LocalizedConstants.openQuery} aria-label={LocalizedConstants.openQuery}>
-				<img className={classes.buttonImg} src={utils.openQuery(executionPlanState!.theme!)} alt={LocalizedConstants.openQuery}width="20" height="20" />
-			</div>
+		<Toolbar
+		  className={classes.iconStack}
+		  style={{
+			background: `${utils.background(executionPlanState!.theme!)}`,
+		  }}
+		  vertical
+		>
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.save(executionPlanState!.theme!)}
+				alt={LocalizedConstants.savePlan}
+			  />
+			}
+			onClick={handleSavePlan}
+			title={LocalizedConstants.savePlan}
+			aria-label={LocalizedConstants.savePlan}
+		  />
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.openPlanFile(executionPlanState!.theme!)}
+				alt={LocalizedConstants.openXml}
+			  />
+			}
+			onClick={handleShowXml}
+			title={LocalizedConstants.openXml}
+			aria-label={LocalizedConstants.openXml}
+		  />
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.openQuery(executionPlanState!.theme!)}
+				alt={LocalizedConstants.openQuery}
+			  />
+			}
+			onClick={handleShowQuery}
+			title={LocalizedConstants.openQuery}
+			aria-label={LocalizedConstants.openQuery}
+		  />
+		<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
+		<ToolbarButton
+			className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.zoomIn(executionPlanState!.theme!)}
+				alt={LocalizedConstants.zoomIn}
+			  />
+			}
+			onClick={handleZoomIn}
+			title={LocalizedConstants.zoomIn}
+			aria-label={LocalizedConstants.zoomIn}
+		  />
+		  <ToolbarButton
+		 	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.zoomOut(executionPlanState!.theme!)}
+				alt={LocalizedConstants.zoomOut}
+			  />
+			}
+			onClick={handleZoomOut}
+			title={LocalizedConstants.zoomOut}
+			aria-label={LocalizedConstants.zoomOut}
+		  />
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.zoomToFit(executionPlanState!.theme!)}
+				alt={LocalizedConstants.zoomToFit}
+			  />
+			}
+			onClick={handleZoomToFit}
+			title={LocalizedConstants.zoomToFit}
+			aria-label={LocalizedConstants.zoomToFit}
+		  />
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.customZoom(executionPlanState!.theme!)}
+				alt={LocalizedConstants.customZoom}
+			  />
+			}
+			onClick={() => setInputContainer(InputEnum.CustomZoom)}
+			title={LocalizedConstants.customZoom}
+			aria-label={LocalizedConstants.customZoom}
+		  />
 			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-			<div id="zoomInButton" className={classes.button} onClick={handleZoomIn} tabIndex={0} title={LocalizedConstants.zoomIn} aria-label={LocalizedConstants.zoomIn}>
-				<img className={classes.buttonImg} src={utils.zoomIn(executionPlanState!.theme!)} alt={LocalizedConstants.zoomIn} width="20" height="20" />
-			</div>
-			<div id="zoomOutButton" className={classes.button} onClick={handleZoomOut} tabIndex={0} title={LocalizedConstants.zoomOut} aria-label={LocalizedConstants.zoomOut}>
-				<img className={classes.buttonImg} src={utils.zoomOut(executionPlanState!.theme!)} alt={LocalizedConstants.zoomOut} width="20" height="20" />
-			</div>
-			<div id="zoomToFitButton" className={classes.button} onClick={handleZoomToFit} tabIndex={0} title={LocalizedConstants.zoomToFit} aria-label={LocalizedConstants.zoomToFit}>
-				<img className={classes.buttonImg} src={utils.zoomToFit(executionPlanState!.theme!)} alt={LocalizedConstants.zoomToFit} width="20" height="20" />
-			</div>
-			<div id="customZoomButton" className={classes.button} onClick={() => setInputContainer(InputEnum.CustomZoom)} tabIndex={0} title={LocalizedConstants.customZoom} aria-label={LocalizedConstants.customZoom}>
-				<img className={classes.buttonImg} src={utils.customZoom(executionPlanState!.theme!)} alt={LocalizedConstants.customZoom} width="20" height="20" />
-			</div>
-			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-			<div id="findNodeButton" className={classes.button} onClick={() => setInputContainer(InputEnum.FindNode)} tabIndex={0} title={LocalizedConstants.findNode} aria-label={LocalizedConstants.findNode}>
-				<img className={classes.buttonImg} src={utils.search(executionPlanState!.theme!)} alt={LocalizedConstants.findNode} width="20" height="20" />
-			</div>
-			<div id="highlightOpsButton" className={classes.button} onClick={() => setInputContainer(InputEnum.HighlightOps)} tabIndex={0} title={LocalizedConstants.highlightOps} aria-label={LocalizedConstants.highlightOps}>
-				<img className={classes.buttonImg} src={utils.highlightOps(executionPlanState!.theme!)} alt={LocalizedConstants.highlightOps} width="20" height="20" />
-			</div>
-			<div id="tooltipsButton" className={classes.button} onClick={handleToggleTooltips} tabIndex={0} title={LocalizedConstants.toggleTooltips}  aria-label={LocalizedConstants.toggleTooltips}>
-			{tooltipsEnabled ? (
-					<img className={classes.buttonImg} src={utils.enableTooltip(executionPlanState!.theme!)} alt={LocalizedConstants.toggleTooltips} width="20" height="20" />
-				):
-					<img className={classes.buttonImg} src={utils.disableTooltip(executionPlanState!.theme!)} alt={LocalizedConstants.toggleTooltips} width="20" height="20" />
+			<ToolbarButton
+			className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.search(executionPlanState!.theme!)}
+				alt={LocalizedConstants.findNode}
+			  />
+			}
+			onClick={() => setInputContainer(InputEnum.FindNode)}
+			title={LocalizedConstants.findNode}
+			aria-label={LocalizedConstants.findNode}
+		  />
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.highlightOps(executionPlanState!.theme!)}
+				alt={LocalizedConstants.highlightOps}
+			  />
+			}
+			onClick={() => setInputContainer(InputEnum.HighlightOps)}
+			title={LocalizedConstants.highlightOps}
+			aria-label={LocalizedConstants.highlightOps}
+			role="button"
+		  />
+		  <ToolbarButton
+		  	className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={
+				  tooltipsEnabled
+					? utils.enableTooltip(executionPlanState!.theme!)
+					: utils.disableTooltip(executionPlanState!.theme!)
 				}
-			</div>
-		</div>
+				alt={LocalizedConstants.toggleTooltips}
+			  />
+			}
+			onClick={handleToggleTooltips}
+			title={LocalizedConstants.toggleTooltips}
+			aria-label={LocalizedConstants.toggleTooltips}
+			role="button"
+		  />
+		</Toolbar>
 	);
 };

@@ -23,7 +23,8 @@ const useStyles = makeStyles({
 		display: "flex",
 		flexDirection: "row",
 		width: "100%",
-		position: "relative"
+		position: "relative",
+		height: "500px"
 	},
 	planContainer: {
 		display: "flex",
