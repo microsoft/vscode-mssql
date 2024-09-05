@@ -6,6 +6,7 @@
       "{1} is the query cost"
     ]
   },
+  "{0} (filtered)": "{0} (filtered)",
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {

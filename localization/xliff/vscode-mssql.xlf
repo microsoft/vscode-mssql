@@ -830,6 +830,9 @@
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
     </trans-unit>
+    <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
+      <source xml:lang="en">{0} (filtered)</source>
+    </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>
       <note>{0} is the status
@@ -877,6 +880,9 @@
     </trans-unit>
     <trans-unit id="mssql.clearAllQueryHistory">
       <source xml:lang="en">Clear All Query History</source>
+    </trans-unit>
+    <trans-unit id="mssql.clearFilters">
+      <source xml:lang="en">Clear Filters</source>
     </trans-unit>
     <trans-unit id="mssql.clearAzureAccountTokenCache">
       <source xml:lang="en">Clear Microsoft Entra account token cache</source>
@@ -994,6 +1000,9 @@
     </trans-unit>
     <trans-unit id="mssql.runQuery">
       <source xml:lang="en">Execute Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.filterNode">
+      <source xml:lang="en">Filter</source>
     </trans-unit>
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>

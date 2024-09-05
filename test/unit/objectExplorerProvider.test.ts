@@ -53,7 +53,7 @@ suite('Object Explorer Provider Tests', () => {
 					undefined, undefined,
 					undefined, undefined,
 					undefined, undefined,
-					undefined));
+					undefined, undefined));
 			});
 		});
 		objectExplorerProvider.createSession(promise, undefined).then(async () => {
@@ -102,15 +102,15 @@ suite('Object Explorer Provider Tests', () => {
 
 	test('Test server nodes sorting mechanism', (done) => {
 		const testNode = new TreeNodeInfo('testNode', undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 		const serverTestNode = new TreeNodeInfo('serverTestNode', undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 		const testNode2 = new TreeNodeInfo('TESTNODE', undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 		const testNode3 = new TreeNodeInfo('', undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 		const testNode4 = new TreeNodeInfo('1234', undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 		objectExplorerService.setup(s => s.rootTreeNodeArray).returns(() => [testNode, serverTestNode, testNode2, testNode3, testNode4]);
 		objectExplorerService.setup(s => s.sortByServerName(objectExplorerService.object.rootTreeNodeArray)).returns(() => {
 			const sortedNodeArray = objectExplorerService.object.rootTreeNodeArray.sort((a, b) => {
@@ -199,7 +199,7 @@ suite('Object Explorer Node Types Test', () => {
 
 	test('Test Account Sign In Tree Node', () => {
 		const parentTreeNode = new TreeNodeInfo('parent', undefined, undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined);
 		const accountSignInNode = new AccountSignInTreeNode(parentTreeNode);
 		expect(accountSignInNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgConnect);
 		expect(accountSignInNode.command, 'Account Sign In Node has a dedicated command').is.not.equal(undefined);
@@ -210,7 +210,7 @@ suite('Object Explorer Node Types Test', () => {
 
 	test('Test Connect Tree Node', () => {
 		const parentTreeNode = new TreeNodeInfo('parent', undefined, undefined, undefined,
-			undefined, undefined, undefined, undefined, undefined);
+			undefined, undefined, undefined, undefined, undefined, undefined);
 		const connectNode = new ConnectTreeNode(parentTreeNode);
 		expect(connectNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgConnect);
 		expect(connectNode.command, 'Connect Node has a dedicated command').is.not.equal(undefined);
@@ -220,8 +220,13 @@ suite('Object Explorer Node Types Test', () => {
 	});
 
 	test('Test getters and setters for Tree Node', () => {
-		const treeNode = new TreeNodeInfo('test', 'test_value', vscode.TreeItemCollapsibleState.Collapsed, 'test_path',
-			'test_status', 'Server', 'test_session', undefined, undefined);
+		const treeNode = new TreeNodeInfo('test', {
+			type: 'test_value',
+			filterable: false,
+			hasFilters: false,
+			subType: ''
+		} , vscode.TreeItemCollapsibleState.Collapsed, 'test_path',
+			'test_status', 'Server', 'test_session', undefined, undefined, undefined, undefined);
 		treeNode.nodePath = treeNode.nodePath;
 		expect(treeNode.nodePath, 'Node path should be equal to expected value').is.equal('test_path');
 		treeNode.nodeStatus = treeNode.nodeStatus;

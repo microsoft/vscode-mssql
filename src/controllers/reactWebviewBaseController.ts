@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { getNonce } from '../utils/utils';
 
 /**
@@ -22,6 +21,8 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
 	private _isFirstLoad: boolean = true;
 	private _loadStartTime: number = Date.now();
+	private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+	public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
 	protected _webviewMessageHandler = async(message) => {
 		if (message.type === 'request') {
 			const handler = this._webViewRequestHandlers[message.method];
@@ -37,13 +38,12 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	/**
 	 * Creates a new ReactWebViewPanelController
 	 * @param _context The context of the extension
-	 * @param title The title of the webview panel
-	 * @param _route The route that the webview will use
+	 * @param _sourceFile The source file that the webview will use
 	 * @param _initialData The initial state object that the webview will use
 	 */
 	constructor(
 		protected _context: vscode.ExtensionContext,
-		private _route: WebviewRoute,
+		private _sourceFile: string,
 		private _initialData: State,
 	) {
 	}
@@ -60,33 +60,31 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 
 	protected _getHtmlTemplate() {
 		const nonce = getNonce();
-		const scriptUri = this.resourceUrl(['mssqlwebview.js']);
-		const styleUri = this.resourceUrl(['mssqlwebview.css']);
+		const baseUrl = this._getWebview().asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets')).toString() + '/';
+
 		return `
 		<!DOCTYPE html>
-				<html lang="en">
+			<html lang="en">
 				<head>
-				  <meta charset="UTF-8">
-				  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-				  <title>mssqlwebview</title>
-				  <link rel="stylesheet" href="${styleUri}">
-				  <style>
+					<meta charset="UTF-8">
+					<meta name="viewport" content="width=device-width, initial-scale=1.0">
+					<title>mssqlwebview</title>
+					<base href="${baseUrl}"> <!-- Required for loading relative resources in the webview -->
+				<style>
 					html, body {
 						margin: 0;
 						padding: 0px;
   						width: 100%;
   						height: 100%;
 					}
-				  </style>
+				</style>
 				</head>
 				<body>
-				  <div id="root"></div>
-				  <script>
-				 	const assetPathVscodeUri = "${this.resourceUrl(['']).toString()}";
-				  </script>
-				  <script nonce="${nonce}" src="${scriptUri}"></script>
+					<link rel="stylesheet" href="${this._sourceFile}.css">
+					<div id="root"></div>
+				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js"></script> <!-- since our bundles are in esm format we need to use type="module" -->
 				</body>
-				</html>
+			</html>
 		`;
 	}
 
@@ -115,24 +113,16 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 		this._webViewRequestHandlers['getTheme'] = () => {
 			return vscode.window.activeColorTheme.kind;
 		};
-		this._webViewRequestHandlers['getRoute'] = () => {
-			return this._route;
-		};
 		this._webViewRequestHandlers['loadStats'] = (message) => {
 			const timeStamp = message.loadCompleteTimeStamp;
 			const timeToLoad = timeStamp - this._loadStartTime;
 			if (this._isFirstLoad) {
 				console.log(`
-					Load stats for ${this._route}
+					Load stats for ${this._sourceFile}
 					Total time: ${timeToLoad} ms
 				`);
 				this._isFirstLoad = false;
 			}
-		};
-		this._webViewRequestHandlers['getUri'] = async (path: string) => {
-			path = path.replace('./', '');
-			const result =  this.resourceUrl([path]).toString();
-			return result;
 		};
 		this._webViewRequestHandlers['getLocalization'] = async () => {
 			if (vscode.l10n.uri?.fsPath) {
@@ -143,10 +133,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				return undefined;
 			}
 		};
-	}
-
-	private resourceUrl(path: string[]) {
-		return this._getWebview().asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets', ...path));
 	}
 
 	/**
@@ -207,13 +193,16 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	 * @param message The message to post to the webview
 	 */
 	public postMessage(message: any) {
-		this._getWebview().postMessage(message);
+		if (!this._isDisposed) {
+			this._getWebview().postMessage(message);
+		}
 	}
 
 	/**
 	 * Disposes the controller
 	 */
 	public dispose() {
+		this._onDisposed.fire();
 		this._disposables.forEach(d => d.dispose());
 		this._isDisposed = true;
 	}

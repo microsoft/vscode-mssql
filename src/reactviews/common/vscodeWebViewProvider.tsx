@@ -7,7 +7,6 @@ import { FluentProvider, Theme, teamsHighContrastTheme, webDarkTheme, webLightTh
 import { createContext, useContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
-import { WebviewRoute } from '../../sharedInterfaces/webviewRoutes';
 import * as l10n from '@vscode/l10n';
 
 /**
@@ -33,10 +32,6 @@ interface VscodeWebviewContext<State, Reducers> {
 	 */
 	theme: Theme;
 	/**
-	 * Routes for the webview.
-	 */
-	route: WebviewRoute;
-	/**
 	 * Localization status. The value is true when the localization file content is received from the extension.
 	 * This is used to force a re-render of the component when the localization file content is received.
 	 */
@@ -60,7 +55,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 	const vscodeApi = vscodeApiInstance;
 	const extensionRpc = new WebviewRpc<Reducers>(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);
-	const [route, setRoute] = useState<WebviewRoute>();
 	const [state, setState] = useState<State>();
 	const [localization, setLocalization] = useState<boolean>(false);
 
@@ -78,11 +72,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 					setTheme(webLightTheme);
 					break;
 			}
-		}
-
-		async function getRoute() {
-			const route = await extensionRpc.call('getRoute');
-			setRoute(route as WebviewRoute);
 		}
 
 		async function getState() {
@@ -111,7 +100,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 		}
 
 		getTheme();
-		getRoute();
 		getState();
 		loadStats();
 		getLocalization();
@@ -141,7 +129,6 @@ export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebVi
 		extensionRpc: extensionRpc,
 		state: state,
 		theme: theme,
-		route: route!,
 		localization: localization
 	}}>
 		<FluentProvider style={{

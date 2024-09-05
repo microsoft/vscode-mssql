@@ -11,7 +11,6 @@ import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
 import { AzureController } from '../azure/azureController';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { CapabilitiesResult, GetCapabilitiesRequest } from '../models/contracts/connection';
 import { ConnectionOption } from 'azdata';
 import { Logger } from '../models/logger';
@@ -34,7 +33,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		super(
 			context,
 			LocalizedConstants.connectionDialog,
-			WebviewRoute.connectionDialog,
+			'connectionDialog',
 			new ConnectionDialogWebviewState({
 				connectionProfile: {} as IConnectionDialogProfile,
 				recentConnections: [],

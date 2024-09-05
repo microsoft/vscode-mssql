@@ -334,53 +334,94 @@
       "view/item/context": [
         {
           "command": "mssql.objectExplorerNewQuery",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server|Database)$/",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
           "group": "MS_SQL@1"
         },
         {
+          "command": "mssql.filterNode",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
+          "group": "inline@1"
+        },
+        {
+          "command": "mssql.filterNodeWithExistingFilters",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+          "group": "inline@1"
+        },
+        {
+          "command": "mssql.clearFilters",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+          "group": "inline@2"
+        },
+        {
+          "command": "mssql.filterNode",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/"
+        },
+        {
+          "command": "mssql.filterNodeWithExistingFilters",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
+        },
+        {
+          "command": "mssql.clearFilters",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
+        },
+        {
           "command": "mssql.removeObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
           "group": "MS_SQL@4"
         },
         {
           "command": "mssql.editConnection",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /^(disconnectedServer|Server)$/",
+          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
           "group": "inline"
         },
         {
           "command": "mssql.refreshObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem != disconnectedServer",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
           "group": "MS_SQL@10"
         },
         {
           "command": "mssql.disconnectObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem == Server",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
           "group": "MS_SQL@3"
         },
         {
           "command": "mssql.scriptSelect",
-          "when": "view == objectExplorer && viewItem =~ /^(Table|View)$/",
+          "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
           "group": "MS_SQL@1"
         },
         {
           "command": "mssql.scriptCreate",
-          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)$/",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
           "group": "MS_SQL@2"
         },
         {
           "command": "mssql.scriptDelete",
-          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)$/",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
           "group": "MS_SQL@3"
         },
         {
           "command": "mssql.scriptExecute",
-          "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(StoredProcedure)\\b/",
           "group": "MS_SQL@5"
         },
         {
           "command": "mssql.scriptAlter",
-          "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/",
           "group": "MS_SQL@4"
+        },
+        {
+          "command": "mssql.newTable",
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableExperimentalFeatures",
+          "group": "inline"
+        },
+        {
+          "command": "mssql.editTable",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableExperimentalFeatures",
+          "group": "inline"
+        },
+        {
+          "command": "mssql.copyObjectName",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
         },
         {
           "command": "mssql.openQueryHistory",
@@ -396,54 +437,44 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
-        },
-        {
-          "command": "mssql.newTable",
-          "when": "view == objectExplorer && viewItem == TablesFolder && config.mssql.enableExperimentalFeatures",
-          "group": "inline"
-        },
-        {
-          "command": "mssql.editTable",
-          "when": "view == objectExplorer && viewItem == Table && config.mssql.enableExperimentalFeatures",
-          "group": "inline"
         }
       ],
       "commandPalette": [
         {
           "command": "mssql.objectExplorerNewQuery",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server|Database)$/"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
         },
         {
           "command": "mssql.removeObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/"
         },
         {
           "command": "mssql.refreshObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem != disconnectedServer"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/"
         },
         {
           "command": "mssql.scriptSelect",
-          "when": "view == objectExplorer && viewItem =~ /^(Table|View)$/"
+          "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/"
         },
         {
           "command": "mssql.scriptCreate",
-          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
         },
         {
           "command": "mssql.scriptDelete",
-          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/"
         },
         {
           "command": "mssql.scriptExecute",
-          "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(StoredProcedure)\\b/"
         },
         {
           "command": "mssql.scriptAlter",
-          "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/"
         },
         {
           "command": "mssql.disconnectObjectExplorerNode",
-          "when": "view == objectExplorer && viewItem == Server"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/"
         },
         {
           "command": "mssql.toggleSqlCmd",
@@ -459,7 +490,7 @@
         },
         {
           "command": "mssql.copyObjectName",
-          "when": "view == objectExplorer && viewItem != Folder"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
         },
         {
           "command": "mssql.runQueryHistory",
@@ -467,11 +498,11 @@
         },
         {
           "command": "mssql.newTable",
-          "when": "view == objectExplorer && viewItem == TablesFolder"
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableExperimentalFeatures"
         },
         {
           "command": "mssql.editTable",
-          "when": "view == objectExplorer && viewItem == Table"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableExperimentalFeatures"
         }
       ]
     },
@@ -507,6 +538,24 @@
         "title": "%mssql.disconnect%",
         "category": "MS SQL",
         "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "mssql.filterNode",
+        "title": "%mssql.filterNode%",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "mssql.clearFilters",
+        "title": "%mssql.clearFilters%",
+        "icon": {
+          "dark": "media/removeFilter_inverse.svg",
+          "light": "media/removeFilter.svg"
+        }
+      },
+      {
+        "command": "mssql.filterNodeWithExistingFilters",
+        "title": "%mssql.filterNode%",
+        "icon": "$(filter-filled)"
       },
       {
         "command": "mssql.changeDatabase",

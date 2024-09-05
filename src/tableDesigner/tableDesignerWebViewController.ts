@@ -11,7 +11,6 @@ import * as designer from '../sharedInterfaces/tableDesigner';
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import { getDesignerView } from './tableDesignerTabDefinition';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 
 export class TableDesignerWebViewController extends ReactWebViewPanelController<designer.TableDesignerWebViewState, designer.TableDesignerReducers> {
 	private _isEdit: boolean = false;
@@ -22,7 +21,7 @@ export class TableDesignerWebViewController extends ReactWebViewPanelController<
 		private _untitledSqlDocumentService: UntitledSqlDocumentService,
 		private _targetNode?: TreeNodeInfo
 	) {
-		super(context, 'Table Designer', WebviewRoute.tableDesigner, {
+		super(context, 'Table Designer', 'tableDesigner', {
 			apiState: {
 				editState: designer.LoadState.NotStarted,
 				generateScriptState: designer.LoadState.NotStarted,

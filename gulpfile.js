@@ -183,7 +183,7 @@ gulp.task('ext:compile-src', (done) => {
 
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
-	return gulp.src([
+return gulp.src([
 		config.paths.project.root + '/src/views/htmlcontent/**/*.ts',
 		config.paths.project.root + '/typings/**/*.d.ts'])
 		.pipe(srcmap.init())
@@ -199,7 +199,10 @@ async function generateReactWebviewsBundle() {
 		 * for each entry point, to be used by the webview's HTML content.
 		 */
 		entryPoints: {
-			mssqlwebview: 'src/reactviews/index.tsx'
+			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
+			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
+			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
+			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
@@ -219,24 +222,25 @@ async function generateReactWebviewsBundle() {
 			typecheckPlugin()
 		],
 		sourcemap: prod ? false : 'inline',
-		metafile: !prod,
+		metafile: true,
 		minify: prod,
 		minifyWhitespace: prod,
 		minifyIdentifiers: prod,
+		format: 'esm',
+		splitting: true,
 	});
 
 	const result = await ctx.rebuild();
 
-	if (!prod) {
-		/**
-		 * Generating esbuild metafile for webviews. You can analyze the metafile https://esbuild.github.io/analyze/
-		 * to see the bundle size and other details.
-		 */
-		const fs = require('fs').promises;
-		if (result.metafile) {
-			await fs.writeFile('./webviews-metafile.json', JSON.stringify(result.metafile));
-		}
+	/**
+	 * Generating esbuild metafile for webviews. You can analyze the metafile https://esbuild.github.io/analyze/
+	 * to see the bundle size and other details.
+	 */
+	const fs = require('fs').promises;
+	if (result.metafile) {
+		await fs.writeFile('./webviews-metafile.json', JSON.stringify(result.metafile));
 	}
+
 
 	await ctx.dispose();
 }
