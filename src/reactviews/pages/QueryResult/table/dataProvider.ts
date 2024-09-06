@@ -6,7 +6,7 @@
 /**
  * Interface for table data providers
  */
-export interface IDisposableDataProvider<T extends Slick.SlickData> extends Slick.DataProvider<T> {
+export interface IDataProvider<T extends Slick.SlickData> extends Slick.DataProvider<T> {
 
 	/**
 	 * Gets the rows of the giving range
@@ -47,4 +47,12 @@ export interface IDisposableDataProvider<T extends Slick.SlickData> extends Slic
 	 * Gets a boolean value indicating whether the data is current in memory
 	 */
 	readonly isDataInMemory: boolean;
+}
+
+/**
+ * Check whether the object is an instance of IDataProvider
+ */
+export function instanceOfIDataProvider<T>(obj: any): obj is IDataProvider<T> {
+	const provider = obj as IDataProvider<T>;
+	return obj && provider.sort && provider.isDataInMemory !== undefined;
 }

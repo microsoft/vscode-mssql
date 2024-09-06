@@ -11,7 +11,7 @@ import { TableDataView } from './tableDataView';
 import { ITableSorter, ITableConfiguration, ITableStyles } from './interfaces';
 import * as DOM from './dom';
 
-import { IDisposableDataProvider } from './dataProvider';
+import { IDataProvider } from './dataProvider';
 import { CellSelectionModel } from './plugins/cellSelectionModel.plugin';
 import { mixin } from './objects';
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
@@ -31,7 +31,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
 	protected _grid: Slick.Grid<T>;
 	protected _columns: Slick.Column<T>[];
-	protected _data: IDisposableDataProvider<T>;
+	protected _data: IDataProvider<T>;
 	private _sorter?: ITableSorter<T>;
 
 	private _autoscroll?: boolean;
@@ -153,7 +153,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 		this.updateRowCount();
 	}
 
-	getData(): IDisposableDataProvider<T> {
+	getData(): IDataProvider<T> {
 		return this._data;
 	}
 

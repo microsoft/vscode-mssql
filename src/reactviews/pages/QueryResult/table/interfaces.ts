@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDisposableDataProvider } from "./dataProvider";
+import { IDataProvider } from "./dataProvider";
 
 export interface ITableMouseEvent {
 	anchor: HTMLElement | { x: number, y: number };
@@ -36,7 +36,7 @@ export interface ITableSorter<T extends Slick.SlickData> {
 }
 
 export interface ITableConfiguration<T extends Slick.SlickData> {
-	dataProvider?: IDisposableDataProvider<T> | Array<T>;
+	dataProvider?: IDataProvider<T> | Array<T>;
 	columns?: Slick.Column<T>[];
 	sorter?: ITableSorter<T>;
 }

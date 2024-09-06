@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AsyncDataProvider, IObservableCollection } from './asyncDataView';
-import { IDisposableDataProvider } from './dataProvider';
+import { IDataProvider } from './dataProvider';
 import { FilterableColumn } from './interfaces';
 import { TableDataView, TableFilterFunc, TableSortFunc, CellValueGetter } from './tableDataView';
 
@@ -18,7 +18,7 @@ export interface HybridDataProviderOptions {
  * Used to abstract the underlying data provider, based on the options, if we are allowing in-memory data processing and the threshold is not reached the
  * a TableDataView will be used to provide in memory data source, otherwise it will be using the async data provider.
  */
-export class HybridDataProvider<T extends Slick.SlickData> implements IDisposableDataProvider<T> {
+export class HybridDataProvider<T extends Slick.SlickData> implements IDataProvider<T> {
 	private _asyncDataProvider: AsyncDataProvider<T>;
 	private _tableDataProvider: TableDataView<T>;
 	private _dataCached: boolean = false;
@@ -106,7 +106,7 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
 		return this._options.inMemoryDataCountThreshold !== undefined && this.length > this._options.inMemoryDataCountThreshold;
 	}
 
-	private get provider(): IDisposableDataProvider<T> {
+	private get provider(): IDataProvider<T> {
 		return this._dataCached ? this._tableDataProvider : this._asyncDataProvider;
 	}
 

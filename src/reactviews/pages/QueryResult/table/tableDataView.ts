@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FilterableColumn } from './interfaces';
-import { IDisposableDataProvider } from './dataProvider';
+import { IDataProvider } from './dataProvider';
 
 export interface IFindPosition {
 	col: number;
@@ -62,7 +62,7 @@ export function defaultFilter<T extends Slick.SlickData>(data: T[], columns: Fil
 	return filteredData;
 }
 
-export class TableDataView<T extends Slick.SlickData> implements IDisposableDataProvider<T> {
+export class TableDataView<T extends Slick.SlickData> implements IDataProvider<T> {
 	//The data exposed publicly, when filter is enabled, _data holds the filtered data.
 	private _data: Array<T>;
 	//Used when filtering is enabled, _allData holds the complete set of data.

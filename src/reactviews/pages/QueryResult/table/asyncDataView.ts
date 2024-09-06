@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IDisposableDataProvider } from './dataProvider';
+import { IDataProvider } from './dataProvider';
 
 export interface IObservableCollection<T> {
 	getLength(): number;
@@ -193,7 +193,7 @@ export class VirtualizedCollection<T extends Slick.SlickData> extends Disposable
 	}
 }
 
-export class AsyncDataProvider<T extends Slick.SlickData> implements IDisposableDataProvider<T> {
+export class AsyncDataProvider<T extends Slick.SlickData> implements IDataProvider<T> {
 
 	private _onFilterStateChange = new vscode.EventEmitter<void>();
 	get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
