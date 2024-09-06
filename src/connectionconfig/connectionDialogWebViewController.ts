@@ -139,8 +139,8 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		}
 
 		const dialogConnection = connection as IConnectionDialogProfile;
-		// Set the profile name
-		dialogConnection.profileName = dialogConnection.profileName ?? getConnectionDisplayName(connection);
+		// Set the display name
+		dialogConnection.displayName = dialogConnection.profileName ? dialogConnection.profileName : getConnectionDisplayName(connection);
 		return dialogConnection;
 	}
 
