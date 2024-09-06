@@ -11,35 +11,7 @@ import './sqlServerRotation.css';
 import { ConnectionHeader } from "./connectionHeader";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
-
-const useStyles = makeStyles({
-	formRoot: {
-		display: 'flex',
-		flexDirection: 'column',
-		height: '100%',
-	},
-	formDiv: {
-		padding: '10px',
-		maxWidth: '500px',
-		display: 'flex',
-		flexDirection: 'column',
-		'> *': {
-			margin: '5px',
-		}
-	},
-	formComponentDiv: {
-		'> *': {
-			margin: '5px',
-		}
-	},
-	formComponentActionDiv: {
-		display: 'flex',
-		flexDirection: 'row',
-		'> *': {
-			margin: '5px',
-		}
-	}
-});
+import { useFormStyles } from "../../common/forms/form.component";
 
 function renderTab(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
 	switch (connectionDialogContext?.state.selectedFormTab) {
@@ -52,14 +24,14 @@ function renderTab(connectionDialogContext: ConnectionDialogContextProps): React
 
 export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const classes = useStyles();
+	const formStyles = useFormStyles();
 
 	if (!connectionDialogContext?.state) {
 		return undefined;
 	}
 
 	return (
-		<div className={classes.formRoot}>
+		<div className={formStyles.formRoot}>
 			<ConnectionHeader />
 			<TabList
 				selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters}
