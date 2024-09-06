@@ -31,8 +31,8 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebViewPane
 			},
 			vscode.ViewColumn.Beside,
 			{
-				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter_inverse.svg'),
-				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter.svg')
+				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter_dark.svg'),
+				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'filter_light.svg')
 			}
 		);
 
