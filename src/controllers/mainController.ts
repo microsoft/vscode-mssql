@@ -46,6 +46,7 @@ import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWe
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 import { ExecutionPlanService } from '../services/executionPlanService';
 import { ExecutionPlanWebViewController } from './executionPlanWebviewController';
+import { MssqlProtocolHandler } from '../mssqlProtocolHandler';
 
 /**
  * The main controller class that initializes the extension
@@ -213,6 +214,14 @@ export default class MainController implements vscode.Disposable {
 
 			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService, this._untitledSqlDocumentService);
 			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);
+
+			const uriHandler: vscode.UriHandler = {
+				handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+					const mssqlProtocolHandler = new MssqlProtocolHandler();
+					mssqlProtocolHandler.handleUri(uri);
+				}
+			};
+			vscode.window.registerUriHandler(uriHandler);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
