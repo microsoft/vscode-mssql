@@ -82,7 +82,7 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 
 	private async loadRecentConnections() {
 		const recentConnections = this._mainController.connectionManager.connectionStore.loadAllConnections(true).map(c => c.connectionCreds);
-		const dialogConnections = [];
+		const dialogConnections: IConnectionDialogProfile[] = [];
 		for (let i = 0; i < recentConnections.length; i++) {
 			dialogConnections.push(await this.initializeConnectionForDialog(recentConnections[i]));
 		}
@@ -106,25 +106,38 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 		this.state.connectionProfile = emptyConnection;
 	}
 
-	private async initializeConnectionForDialog(connection: IConnectionInfo) {
+	private async initializeConnectionForDialog(connection: IConnectionInfo): Promise<IConnectionDialogProfile> {
 		// Load the password if it's saved
 		const isConnectionStringConnection = connection.connectionString !== undefined && connection.connectionString !== '';
-		const password = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
 		if (!isConnectionStringConnection) {
+			const password = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
 			connection.password = password;
 		} else {
-			connection.connectionString = '';
-			// extract password from connection string it starts after 'Password=' and ends before ';'
-			const passwordIndex = password.indexOf('Password=') === -1 ? password.indexOf('password=') : password.indexOf('Password=');
-			if (passwordIndex !== -1) {
-				const passwordStart = passwordIndex + 'Password='.length;
-				const passwordEnd = password.indexOf(';', passwordStart);
-				if (passwordEnd !== -1) {
-					connection.password = password.substring(passwordStart, passwordEnd);
+			// If the connection is a connection string connection with SQL Auth:
+			//   * the full connection string is stored as the "password" in the credential store
+			//   * we need to extract the password from the connection string
+			// If the connection is a connection string connection with a different auth type, then there's nothing in the credential store.
+
+			const connectionString = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
+
+			if (connectionString) {
+				const passwordIndex = connectionString.indexOf('Password=') === -1 ? connectionString.indexOf('password=') : connectionString.indexOf('Password=');
+
+				if (passwordIndex !== -1) {
+					// extract password from connection string; found between 'Password=' and the next ';'
+					const passwordStart = passwordIndex + 'Password='.length;
+					const passwordEnd = connectionString.indexOf(';', passwordStart);
+					if (passwordEnd !== -1) {
+						connection.password = connectionString.substring(passwordStart, passwordEnd);
+					}
+
+					// clear the connection string from the IConnectionDialogProfile so that the ugly connection string key
+					// that's used to look up the actual connection string (with password) isn't displayed
+					connection.connectionString = '';
 				}
 			}
-
 		}
+
 		const dialogConnection = connection as IConnectionDialogProfile;
 		// Set the profile name
 		dialogConnection.profileName = dialogConnection.profileName ?? getConnectionDisplayName(connection);
