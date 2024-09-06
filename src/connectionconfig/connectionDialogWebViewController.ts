@@ -121,11 +121,11 @@ export class ConnectionDialogWebViewController extends ReactWebViewPanelControll
 			const connectionString = await this._mainController.connectionManager.connectionStore.lookupPassword(connection, isConnectionStringConnection);
 
 			if (connectionString) {
-				const passwordIndex = connectionString.indexOf('Password=') === -1 ? connectionString.indexOf('password=') : connectionString.indexOf('Password=');
+				const passwordIndex = connectionString.toLowerCase().indexOf('password=');
 
 				if (passwordIndex !== -1) {
 					// extract password from connection string; found between 'Password=' and the next ';'
-					const passwordStart = passwordIndex + 'Password='.length;
+					const passwordStart = passwordIndex + 'password='.length;
 					const passwordEnd = connectionString.indexOf(';', passwordStart);
 					if (passwordEnd !== -1) {
 						connection.password = connectionString.substring(passwordStart, passwordEnd);
