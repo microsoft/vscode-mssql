@@ -14,6 +14,7 @@ import * as DOM from './dom';
 import { IDataProvider } from './dataProvider';
 import { CellSelectionModel } from './plugins/cellSelectionModel.plugin';
 import { mixin } from './objects';
+import { HeaderFilter } from './plugins/headerFilter.plugin';
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 
@@ -68,6 +69,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 		this._container.appendChild(this._tableContainer);
 		this.styleElement = DOM.createStyleSheet(this._container);
 		this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
+		this.registerPlugin(new HeaderFilter());
 
 		if (configuration && configuration.columns) {
 			this.columns = configuration.columns;

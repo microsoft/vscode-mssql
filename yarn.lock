@@ -1335,6 +1335,17 @@
   dependencies:
     "@swc/helpers" "^0.5.1"
 
+"@fluentui/web-components@^2.6.1":
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/@fluentui/web-components/-/web-components-2.6.1.tgz#49c8776d10bb25605ebb239fee8f3c7aec65a3ba"
+  integrity sha512-coyV+QZBVqcrJbncR2iyL0ZMXGFRJmP+JYUlewkYBt8bgmTMIwKBdUX0cN9S6KUp8JHoC2OSRqL8MYgT3T+YLQ==
+  dependencies:
+    "@microsoft/fast-colors" "^5.3.0"
+    "@microsoft/fast-element" "^1.13.0"
+    "@microsoft/fast-foundation" "^2.49.6"
+    "@microsoft/fast-web-utilities" "^5.4.0"
+    tslib "^2.1.0"
+
 "@griffel/core@^1.16.0", "@griffel/core@^1.17.0":
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/@griffel/core/-/core-1.17.0.tgz#34ecd744d5ad3ab6a59f5e0b2d9ef485ae39b510"
@@ -1398,6 +1409,33 @@
   integrity sha512-h0ZLCMw3I/wcQWofr25MPSdYDd6CBwPG3XSJdgDwNdlVKUTSGL3QoBxspxtgF33yH5Zod7s+l/g7exbldDhY0Q==
   dependencies:
     "@vscode/extension-telemetry" "0.6.1"
+
+"@microsoft/fast-colors@^5.3.0":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/fast-colors/-/fast-colors-5.3.1.tgz#defc59874176e42316be7e6d24c31885ead8ca56"
+  integrity sha512-72RZXVfCbwQzvo5sXXkuLXLT7rMeYaSf5r/6ewQiv/trBtqpWRm4DEH2EilHw/iWTBKOXs1qZNQndgUMa5n4LA==
+
+"@microsoft/fast-element@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@microsoft/fast-element/-/fast-element-1.13.0.tgz#d390ff13697064a48dc6ad6bb332a5f5489f73f8"
+  integrity sha512-iFhzKbbD0cFRo9cEzLS3Tdo9BYuatdxmCEKCpZs1Cro/93zNMpZ/Y9/Z7SknmW6fhDZbpBvtO8lLh9TFEcNVAQ==
+
+"@microsoft/fast-foundation@^2.49.6":
+  version "2.49.6"
+  resolved "https://registry.yarnpkg.com/@microsoft/fast-foundation/-/fast-foundation-2.49.6.tgz#0bdee7d28dcf93918075618359b083a676d2891c"
+  integrity sha512-DZVr+J/NIoskFC1Y6xnAowrMkdbf2d5o7UyWK6gW5AiQ6S386Ql8dw4KcC4kHaeE1yL2CKvweE79cj6ZhJhTvA==
+  dependencies:
+    "@microsoft/fast-element" "^1.13.0"
+    "@microsoft/fast-web-utilities" "^5.4.1"
+    tabbable "^5.2.0"
+    tslib "^1.13.0"
+
+"@microsoft/fast-web-utilities@^5.4.0", "@microsoft/fast-web-utilities@^5.4.1":
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/fast-web-utilities/-/fast-web-utilities-5.4.1.tgz#8e3082ee2ff2b5467f17e7cb1fb01b0e4906b71f"
+  integrity sha512-ReWYncndjV3c8D8iq9tp7NcFNc1vbVHvcBFPME2nNFKNbS1XCesYZGlIlf3ot5EmuOXPlrzUHOWzQ2vFpIkqDg==
+  dependencies:
+    exenv-es6 "^1.1.1"
 
 "@monaco-editor/loader@^1.4.0":
   version "1.4.0"
@@ -4216,6 +4254,11 @@ event-stream@^3.3.2:
     split "^1.0.1"
     stream-combiner "^0.2.2"
     through "^2.3.8"
+
+exenv-es6@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/exenv-es6/-/exenv-es6-1.1.1.tgz#80b7a8c5af24d53331f755bac07e84abb1f6de67"
+  integrity sha512-vlVu3N8d6yEMpMsEm+7sUBAI81aqYYuEvfK0jNqmdb/OPXzzH7QWDDnVjMvDSY47JdHEqx/dfC/q8WkfoTmpGQ==
 
 expand-brackets@^2.1.4:
   version "2.1.4"
@@ -9352,6 +9395,11 @@ systemjs@^0.19.43:
   dependencies:
     when "^3.7.5"
 
+tabbable@^5.2.0:
+  version "5.3.3"
+  resolved "https://registry.yarnpkg.com/tabbable/-/tabbable-5.3.3.tgz#aac0ff88c73b22d6c3c5a50b1586310006b47fbf"
+  integrity sha512-QD9qKY3StfbZqWOPLp0++pOrAVb/HbUi5xCc8cUo4XjP19808oaMiDzn0leBY5mCespIBM0CIZePzZjgzR83kA==
+
 tabster@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/tabster/-/tabster-8.0.0.tgz#a4412ab92643a70ff6c4f20fc82b04602fb63949"
@@ -9609,7 +9657,7 @@ ts-api-utils@^1.3.0:
   resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-1.3.0.tgz#4b490e27129f1e8e686b45cc4ab63714dc60eea1"
   integrity sha512-UQMIo7pb8WRomKR1/+MFVLTroIvDVtMX3K6OUir8ynLyzB8Jeriont2bTAtmNPa1ekAgN7YPDyf6V+ygrdU+eQ==
 
-tslib@^1.9.3:
+tslib@^1.13.0, tslib@^1.9.3:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
