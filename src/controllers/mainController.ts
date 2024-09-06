@@ -42,11 +42,11 @@ import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { TableDesignerService } from '../services/tableDesignerService';
-import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
-import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { TableDesignerWebviewController } from '../tableDesigner/tableDesignerWebviewController';
+import { ConnectionDialogWebviewController } from '../connectionconfig/connectionDialogWebviewController';
 import { ObjectExplorerFilter } from '../objectExplorer/objectExplorerFilter';
 import { ExecutionPlanService } from '../services/executionPlanService';
-import { ExecutionPlanWebViewController } from './executionPlanWebviewController';
+import { ExecutionPlanWebviewController } from './executionPlanWebviewController';
 
 /**
  * The main controller class that initializes the extension
@@ -452,7 +452,7 @@ export default class MainController implements vscode.Disposable {
 				}
 				await self.createObjectExplorerSession();
 			} else {
-				const connDialog = new ConnectionDialogWebViewController(
+				const connDialog = new ConnectionDialogWebviewController(
 					this._context,
 					this,
 					this._objectExplorerProvider
@@ -528,7 +528,7 @@ export default class MainController implements vscode.Disposable {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdEditConnection, async (node: TreeNodeInfo) => {
-						const connDialog = new ConnectionDialogWebViewController(
+						const connDialog = new ConnectionDialogWebviewController(
 							this._context,
 							this,
 							this._objectExplorerProvider,
@@ -541,7 +541,7 @@ export default class MainController implements vscode.Disposable {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdNewTable, async (node: TreeNodeInfo) => {
-						const reactPanel = new TableDesignerWebViewController(
+						const reactPanel = new TableDesignerWebviewController(
 							this._context,
 							this.tableDesignerService,
 							this._connectionMgr,
@@ -554,7 +554,7 @@ export default class MainController implements vscode.Disposable {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdEditTable, async (node: TreeNodeInfo) => {
-						const reactPanel = new TableDesignerWebViewController(
+						const reactPanel = new TableDesignerWebviewController(
 							this._context,
 							this.tableDesignerService,
 							this._connectionMgr,
@@ -1488,7 +1488,7 @@ export default class MainController implements vscode.Disposable {
 			let docName = document.fileName;
 			docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
 
-			const executionPlanController = new ExecutionPlanWebViewController(
+			const executionPlanController = new ExecutionPlanWebviewController(
 				this.context,
 				this.executionPlanService,
 				this.untitledSqlService,

@@ -17,7 +17,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	private _disposables: vscode.Disposable[] = [];
 	private _isDisposed: boolean = false;
 	private _state: State;
-	private _webViewRequestHandlers: { [key: string]: (params: any) => any } = {};
+	private _webviewRequestHandlers: { [key: string]: (params: any) => any } = {};
 	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
 	private _isFirstLoad: boolean = true;
 	private _loadStartTime: number = Date.now();
@@ -25,7 +25,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
 	protected _webviewMessageHandler = (message) => {
 		if (message.type === 'request') {
-			const handler = this._webViewRequestHandlers[message.method];
+			const handler = this._webviewRequestHandlers[message.method];
 			if (handler) {
 				const result = handler(message.params);
 				this.postMessage({ type: 'response', id: message.id, result });
@@ -36,7 +36,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	};
 
 	/**
-	 * Creates a new ReactWebViewPanelController
+	 * Creates a new ReactWebviewPanelController
 	 * @param _context The context of the extension
 	 * @param _sourceFile The source file that the webview will use
 	 * @param _initialData The initial state object that the webview will use
@@ -92,16 +92,16 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 
 	protected setupTheming() {
 		this._disposables.push(vscode.window.onDidChangeActiveColorTheme((theme) => {
-			this.postNotification(DefaultWebViewNotifications.onDidChangeTheme, theme.kind);
+			this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, theme.kind);
 		}));
-		this.postNotification(DefaultWebViewNotifications.onDidChangeTheme, vscode.window.activeColorTheme.kind);
+		this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, vscode.window.activeColorTheme.kind);
 	}
 
 	private _registerDefaultRequestHandlers() {
-		this._webViewRequestHandlers['getState'] = () => {
+		this._webviewRequestHandlers['getState'] = () => {
 			return this.state;
 		};
-		this._webViewRequestHandlers['action'] = async (action) => {
+		this._webviewRequestHandlers['action'] = async (action) => {
 			const reducer = this._reducers[action.type];
 			if (reducer) {
 				this.state = await reducer(this.state, action.payload);
@@ -110,10 +110,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				throw new Error(`No reducer registered for action ${action.type}`);
 			}
 		};
-		this._webViewRequestHandlers['getTheme'] = () => {
+		this._webviewRequestHandlers['getTheme'] = () => {
 			return vscode.window.activeColorTheme.kind;
 		};
-		this._webViewRequestHandlers['loadStats'] = (message) => {
+		this._webviewRequestHandlers['loadStats'] = (message) => {
 			const timeStamp = message.loadCompleteTimeStamp;
 			const timeToLoad = timeStamp - this._loadStartTime;
 			if (this._isFirstLoad) {
@@ -132,7 +132,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	 * @param handler The handler that will be called when the method is called
 	 */
 	public registerRequestHandler(method: string, handler: (params: any) => any) {
-		this._webViewRequestHandlers[method] = handler;
+		this._webviewRequestHandlers[method] = handler;
 	}
 
 	/**
@@ -160,7 +160,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	 */
 	public set state(value: State) {
 		this._state = value;
-		this.postNotification(DefaultWebViewNotifications.updateState, value);
+		this.postNotification(DefaultWebviewNotifications.updateState, value);
 	}
 
 	/**
@@ -199,7 +199,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 	}
 }
 
-export enum DefaultWebViewNotifications {
+export enum DefaultWebviewNotifications {
 	updateState = 'updateState',
 	onDidChangeTheme = 'onDidChangeTheme'
 }

@@ -36,7 +36,7 @@ const vscodeApiInstance = acquireVsCodeApi<unknown>();
 
 const VscodeWebviewContext = createContext<VscodeWebviewContext<unknown, unknown> | undefined>(undefined);
 
-interface VscodeWebViewProviderProps {
+interface VscodeWebviewProviderProps {
 	children: React.ReactNode;
 }
 
@@ -45,7 +45,7 @@ interface VscodeWebViewProviderProps {
  * theming, state management, rpc and vscode api.
  * @param param0 child components
  */
-export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebViewProviderProps) {
+export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebviewProviderProps) {
 	const vscodeApi = vscodeApiInstance;
 	const extensionRpc = new WebviewRpc<Reducers>(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);

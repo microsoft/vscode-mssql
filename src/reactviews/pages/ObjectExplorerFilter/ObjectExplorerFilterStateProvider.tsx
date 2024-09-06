@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebViewProvider";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ObjectExplorerFilterContextProps, ObjectExplorerFilterState, ObjectExplorerReducers } from "../../../sharedInterfaces/objectExplorerFilter";
 
 const ObjectExplorerFilterContext = createContext<ObjectExplorerFilterContextProps | undefined>(undefined);
@@ -14,22 +14,22 @@ interface ObjectExplorerFilterStateProviderProps {
 }
 
 const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProviderProps> = ({ children }) => {
-	const webViewState = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
-	const objectExplorerFilterState = webViewState?.state;
+	const webviewState = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
+	const objectExplorerFilterState = webviewState?.state;
 
 	return <ObjectExplorerFilterContext.Provider value={
 		{
 			state: objectExplorerFilterState,
-			theme: webViewState?.theme,
+			theme: webviewState?.theme,
 			submit: function (filters): void {
-				webViewState?.extensionRpc.action('submit', {
+				webviewState?.extensionRpc.action('submit', {
 					filters: filters
 				});
 			},
 			clearAllFilters: function (): void {
 			},
 			cancel: function (): void {
-				webViewState?.extensionRpc.action('cancel', {});
+				webviewState?.extensionRpc.action('cancel', {});
 			}
 		}
 	}>{children}</ObjectExplorerFilterContext.Provider>;

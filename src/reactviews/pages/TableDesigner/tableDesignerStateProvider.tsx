@@ -5,12 +5,12 @@
 
 import { ReactNode, createContext } from 'react';
 import * as designer from '../../../sharedInterfaces/tableDesigner';
-import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
+import { useVscodeWebview } from '../../common/vscodeWebviewProvider';
 import { Theme } from '@fluentui/react-components';
 
 export interface TableDesignerState {
 	provider: designer.TableDesignerReactProvider;
-	state: designer.TableDesignerWebViewState;
+	state: designer.TableDesignerWebviewState;
 	theme: Theme;
 }
 
@@ -21,34 +21,34 @@ interface TableDesignerContextProps {
 }
 
 const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ children }) => {
-	const webViewState = useVscodeWebview<designer.TableDesignerWebViewState, designer.TableDesignerReducers>();
-	const tableState = webViewState?.state;
+	const webviewState = useVscodeWebview<designer.TableDesignerWebviewState, designer.TableDesignerReducers>();
+	const tableState = webviewState?.state;
 	return <TableDesignerContext.Provider value={
 		{
 			provider: {
 				processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
-					webViewState?.extensionRpc.action('processTableEdit', {
+					webviewState?.extensionRpc.action('processTableEdit', {
 						table: tableState.tableInfo!,
 						tableChangeInfo: tableChangeInfo,
 					});
 				},
 				publishChanges: function (): void {
-					webViewState?.extensionRpc.action('publishChanges', { table: tableState.tableInfo! });
+					webviewState?.extensionRpc.action('publishChanges', { table: tableState.tableInfo! });
 				},
 				generateScript: function (): void {
-					webViewState?.extensionRpc.action('generateScript', { table: tableState.tableInfo! });
+					webviewState?.extensionRpc.action('generateScript', { table: tableState.tableInfo! });
 				},
 				generatePreviewReport: function (): void {
-					webViewState?.extensionRpc.action('generatePreviewReport', { table: tableState.tableInfo! });
+					webviewState?.extensionRpc.action('generatePreviewReport', { table: tableState.tableInfo! });
 				},
 				initializeTableDesigner: function (): void {
-					webViewState?.extensionRpc.action('initializeTableDesigner', { table: tableState.tableInfo! });
+					webviewState?.extensionRpc.action('initializeTableDesigner', { table: tableState.tableInfo! });
 				},
 				scriptAsCreate: function (): void {
-					webViewState?.extensionRpc.action('scriptAsCreate', {});
+					webviewState?.extensionRpc.action('scriptAsCreate', {});
 				},
 				setTab: function (tabId: designer.DesignerMainPaneTabs): void {
-					webViewState?.extensionRpc.action('setTab', { tabId: tabId });
+					webviewState?.extensionRpc.action('setTab', { tabId: tabId });
 				},
 				getComponentId: function (componentPath: (string | number)[]): string {
 					return `${tableState.tableInfo?.id}_${componentPath.join('_')}`;
@@ -70,20 +70,20 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({ child
 					return result.join('\n') ?? '';
 				},
 				setPropertiesComponents: function (components: designer.PropertiesPaneData | undefined): void {
-					webViewState?.extensionRpc.action('setPropertiesComponents', { components: components! });
+					webviewState?.extensionRpc.action('setPropertiesComponents', { components: components! });
 				},
 				setResultTab: function (tabId: designer.DesignerResultPaneTabs): void {
-					webViewState?.extensionRpc.action('setResultTab', { tabId: tabId });
+					webviewState?.extensionRpc.action('setResultTab', { tabId: tabId });
 				},
 				closeDesigner: function (): void {
-					webViewState?.extensionRpc.action('closeDesigner', {});
+					webviewState?.extensionRpc.action('closeDesigner', {});
 				},
 				continueEditing: function (): void {
-					webViewState?.extensionRpc.action('continueEditing', {});
+					webviewState?.extensionRpc.action('continueEditing', {});
 				}
 			},
-			state: webViewState?.state as designer.TableDesignerWebViewState,
-			theme: webViewState?.theme
+			state: webviewState?.state as designer.TableDesignerWebviewState,
+			theme: webviewState?.theme
 		}
 	}>{children}</TableDesignerContext.Provider>;
 };
