@@ -7,8 +7,8 @@ import { useContext } from "react";
 import { Text, Image, webLightTheme } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 
-const sqlServerImage = require('../../../../media/sqlServer.svg');
-const sqlServerImageDark = require('../../../../media/sqlServer_inverse.svg');
+const sqlServerImage = require('../../../../media/sqlServer_light.svg');
+const sqlServerImageDark = require('../../../../media/sqlServer_dark.svg');
 
 export const ConnectionHeader = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);

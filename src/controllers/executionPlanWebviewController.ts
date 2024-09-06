@@ -44,12 +44,12 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         dark: vscode.Uri.joinPath(
           context.extensionUri,
           "media",
-          "executionPlan_inverse.svg"
+          "executionPlan_dark.svg"
         ),
         light: vscode.Uri.joinPath(
           context.extensionUri,
           "media",
-          "executionPlan.svg"
+          "executionPlan_light.svg"
         ),
       }
     );

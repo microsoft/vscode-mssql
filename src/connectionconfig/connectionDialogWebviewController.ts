@@ -48,8 +48,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}),
 			vscode.ViewColumn.Active,
 			{
-				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor_inverse.svg'),
-				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor.svg')
+				dark: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor_dark.svg'),
+				light: vscode.Uri.joinPath(context.extensionUri, 'media', 'connectionDialogEditor_light.svg')
 			}
 		);
 
