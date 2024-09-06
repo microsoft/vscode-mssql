@@ -45,7 +45,6 @@ export class SqlOutputContentProvider {
 	// MEMBER VARIABLES ////////////////////////////////////////////////////
 	private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
 	private _panels = new Map<string, WebviewPanelController>();
-	private _reactPanels = new Map<string, QueryResultWebViewController>();
 
 	// CONSTRUCTOR /////////////////////////////////////////////////////////
 	constructor(

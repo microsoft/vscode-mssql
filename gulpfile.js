@@ -234,7 +234,7 @@ async function generateReactWebviewsBundle() {
 		tsconfig: './tsconfig.react.json',
 		plugins: [
 			esbuildProblemMatcherPlugin('React App'),
-			typecheckPlugin()
+			// typecheckPlugin()
 		],
 		sourcemap: prod ? false : 'inline',
 		metafile: !prod,

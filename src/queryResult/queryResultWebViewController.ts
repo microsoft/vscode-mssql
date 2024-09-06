@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { ReactWebViewPanelController } from "../controllers/reactWebviewController";
 import * as qr from '../sharedInterfaces/queryResult';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebViewViewController } from '../controllers/reactWebviewViewController';

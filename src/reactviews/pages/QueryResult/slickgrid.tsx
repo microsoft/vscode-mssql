@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import $ from 'jquery';
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import '../../../../media/slickgrid.css';
 import { Table } from './table/table';
 import { TableDataView } from './table/tableDataView';
@@ -28,10 +28,23 @@ declare global {
     }
 }
 
-export default function SlickGrid() {
+export interface SlickGridProps {
+    test: string;
+    x: number;
+    loadFunc: (offset: number, count: number) => Thenable<any[]>;
+}
 
-    const ref = useRef<HTMLDivElement>(null);
+export interface SlickGridHandle {
+    refreshGrid: () => void;
+}
 
+const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridProps, ref) => {
+
+    const gridContainerRef = useRef<HTMLDivElement>(null);
+    const [refreshkey, setRefreshKey] = useState(0);
+    const refreshGrid = () => {
+        setRefreshKey(prev => prev + 1);
+    };
     useEffect(() =>{
         const ROW_HEIGHT = 25;
         let columns: Slick.Column<Slick.SlickData>[] = [
@@ -86,9 +99,16 @@ export default function SlickGrid() {
         let grid = document.body.appendChild(div);
         const elm = document.getElementById('grid')!;
         document.body.removeChild(grid);
-        ref.current?.appendChild(elm);
-    }, []);
+        gridContainerRef.current?.appendChild(elm);
+    }, [refreshkey]);
 
-    return <div ref = {ref}></div>;
-  }
+    useImperativeHandle(ref, () => ({
+        refreshGrid,
+    }));
+
+    return <div ref = {gridContainerRef}></div>;
+  });
+
+SlickGrid.displayName = 'SlickGrid';
+export default SlickGrid;
 

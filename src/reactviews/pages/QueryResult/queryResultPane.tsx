@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Divider, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
 import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
-import SlickGrid from "./slickgrid";
+import SlickGrid, { SlickGridHandle } from "./slickgrid";
+import { ResultSetSubset } from "../../../models/interfaces";
 
 const useStyles = makeStyles({
 	root: {
@@ -125,6 +126,8 @@ export const QueryResultPane = () => {
 		return null;
 	}
 
+	const gridRef = useRef<SlickGridHandle>(null);
+
 	return <div className={classes.root}>
 		<div className={classes.ribbon}>
 			<TabList
@@ -160,13 +163,46 @@ export const QueryResultPane = () => {
 						rowStart: 0,
 						numberOfRows: 10});
 					console.log(rows);
+						gridRef.current.refreshGrid();
 				}} title='Open in new tab'></Button>
 			}
 		</div>
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div id={'grid-parent'} className={classes.queryResultContainer}>
-					<SlickGrid />
+					<SlickGrid test={'fdas'} x={1} loadFunc={(offset: number, count: number): Thenable<any[]> => {
+						console.log('loadFunc');
+						return Promise.resolve([[{displayValue: 'test', isNull: false},]]);
+		return webViewState?.extensionRpc.call('getRows', {
+			uri: metadata.uri,
+			batchId: metadata.resultSetSummary.batchId,
+			resultId: metadata.resultSetSummary.id,
+			rowStart: offset,
+			numberOfRows: count}).then(response => {
+				console.log(response);
+				console.log('response');
+			if (!response) {
+				return [];
+			}
+			let r = response as ResultSetSubset;
+			return r.rows.map(r => {
+				let dataWithSchema = {};
+				// skip the first column since its a number column
+				for (let i = 1; i < 2; i++) {
+					const displayValue = r[i - 1].displayValue ?? '';
+					const ariaLabel = (displayValue);
+					dataWithSchema['name'] = {
+						displayValue: displayValue,
+						ariaLabel: ariaLabel,
+						isNull: r[i - 1].isNull,
+						invariantCultureDisplayValue: displayValue
+					};
+				}
+				return dataWithSchema;
+			});
+		});
+
+					}} ref={gridRef} />
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && <div className={classes.messagesContainer}>
