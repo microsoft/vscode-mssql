@@ -7,17 +7,17 @@ import * as vscode from 'vscode';
 import { ReactWebviewBaseController } from './reactWebviewBaseController';
 
 /**
- * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides
+ * ReactWebviewPanelController is a class that manages a vscode.WebviewPanel and provides
  * a way to communicate with it. It provides a way to register request handlers and reducers
  * that can be called from the webview. It also provides a way to post notifications to the webview.
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> {
+export class ReactWebviewPanelController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> {
 	private _panel: vscode.WebviewPanel;
 
 	/**
-	 * Creates a new ReactWebViewPanelController
+	 * Creates a new ReactWebviewPanelController
 	 * @param _context The context of the extension
 	 * @param title The title of the webview panel
 	 * @param sourceFile The source file that the webview will use

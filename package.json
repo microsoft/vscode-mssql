@@ -195,7 +195,7 @@
         {
           "id": "objectExplorer",
           "title": "SQL Server",
-          "icon": "./images/server_page_inverse.svg"
+          "icon": "./images/server_page_dark.svg"
         }
       ]
     },
@@ -529,8 +529,8 @@
         "title": "%mssql.connect%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/connect_inverse.svg",
-          "light": "media/connect.svg"
+          "dark": "media/connect_dark.svg",
+          "light": "media/connect_light.svg"
         }
       },
       {
@@ -548,8 +548,8 @@
         "command": "mssql.clearFilters",
         "title": "%mssql.clearFilters%",
         "icon": {
-          "dark": "media/removeFilter_inverse.svg",
-          "light": "media/removeFilter.svg"
+          "dark": "media/removeFilter_dark.svg",
+          "light": "media/removeFilter_light.svg"
         }
       },
       {
@@ -562,8 +562,8 @@
         "title": "%mssql.changeDatabase%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/changeConnection_inverse.svg",
-          "light": "media/changeConnection.svg"
+          "dark": "media/changeConnection_dark.svg",
+          "light": "media/changeConnection_light.svg"
         }
       },
       {
@@ -617,8 +617,8 @@
         "title": "%mssql.objectExplorer.enableGroupBySchema%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/groupBySchemaEnabled_inverse.svg",
-          "light": "media/groupBySchemaEnabled.svg"
+          "dark": "media/groupBySchemaEnabled_dark.svg",
+          "light": "media/groupBySchemaEnabled_light.svg"
         }
       },
       {
@@ -626,8 +626,8 @@
         "title": "%mssql.objectExplorer.disableGroupBySchema%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/groupBySchemaDisabled_inverse.svg",
-          "light": "media/groupBySchemaDisabled.svg"
+          "dark": "media/groupBySchemaDisabled_dark.svg",
+          "light": "media/groupBySchemaDisabled_light.svg"
         }
       },
       {
@@ -681,8 +681,8 @@
         "title": "%mssql.newTable%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/newTable_inverse.svg",
-          "light": "media/newTable.svg"
+          "dark": "media/newTable_dark.svg",
+          "light": "media/newTable_light.svg"
         }
       },
       {
@@ -690,8 +690,8 @@
         "title": "%mssql.editTable%",
         "category": "MS SQL",
         "icon": {
-          "dark": "media/editTable_inverse.svg",
-          "light": "media/editTable.svg"
+          "dark": "media/editTable_dark.svg",
+          "light": "media/editTable_light.svg"
         }
       },
       {

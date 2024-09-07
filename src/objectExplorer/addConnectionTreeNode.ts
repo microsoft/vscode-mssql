@@ -18,8 +18,8 @@ export class AddConnectionTreeNode extends vscode.TreeItem {
 			command: Constants.cmdAddObjectExplorer
 		};
 		this.iconPath = {
-			light: path.join(ObjectExplorerUtils.rootPath, 'add.svg'),
-			dark: path.join(ObjectExplorerUtils.rootPath, 'add_inverse.svg')
+			light: path.join(ObjectExplorerUtils.rootPath, 'add_light.svg'),
+			dark: path.join(ObjectExplorerUtils.rootPath, 'add_dark.svg')
 		};
 	}
 }
