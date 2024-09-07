@@ -14,7 +14,8 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
     /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
     get connectionProfile(): IConnectionDialogProfile { return this.formState; }
     set connectionProfile(value: IConnectionDialogProfile) { this.formState = value; }
-    public selectedFormTab: FormTabType;
+    public selectedInputMode: ConnectionInputMode;
+    public connectionComponents: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>;
     public connectionFormComponents: {
         mainComponents: FormItemSpec<IConnectionDialogProfile>[],
         advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
@@ -26,7 +27,8 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
 
     constructor({
         connectionProfile,
-        selectedFormTab,
+        selectedInputMode,
+        connectionComponents,
         connectionFormComponents,
         connectionStringComponents,
         recentConnections,
@@ -34,7 +36,8 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         formError
     }: {
         connectionProfile: IConnectionDialogProfile,
-        selectedFormTab: FormTabType,
+        selectedInputMode: ConnectionInputMode,
+        connectionComponents: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>,
         connectionFormComponents: {
             mainComponents: FormItemSpec<IConnectionDialogProfile>[],
             advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
@@ -45,7 +48,8 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         formError: string
     }) {
         this.formState = connectionProfile;
-        this.selectedFormTab = selectedFormTab;
+        this.selectedInputMode = selectedInputMode;
+        this.connectionComponents = connectionComponents;
         this.connectionFormComponents = connectionFormComponents;
         this.connectionStringComponents = connectionStringComponents;
         this.recentConnections = recentConnections;
@@ -54,9 +58,15 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
     }
 }
 
-export enum FormTabType {
-	Parameters = 'parameter',
-	ConnectionString = 'connString'
+export interface ConnectionDialogFormItemSpec extends FormItemSpec<IConnectionDialogProfile> {
+    isAdvancedOption: boolean;
+    optionCategory?: string;
+}
+
+export enum ConnectionInputMode {
+    Parameters = 'parameters',
+    ConnectionString = 'connectionString',
+    AzureBrowse = 'azureBrowse'
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional
@@ -68,12 +78,10 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 	azureAuthType?: vscodeMssql.AzureAuthType;
 }
 
-
-
 export interface ConnectionDialogContextProps extends FormContextProps<ConnectionDialogWebviewState, IConnectionDialogProfile> {
 	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
-	setFormTab: (tab: FormTabType) => void;
+	setConnectionInputType: (inputType: ConnectionInputMode) => void;
 	connect: () => void;
 }
 
@@ -84,8 +92,8 @@ export enum AuthenticationType {
 }
 
 export interface ConnectionDialogReducers {
-	setFormTab: {
-		tab: FormTabType;
+	setConnectionInputType: {
+		inputMode: ConnectionInputMode;
 	},
 	formAction: {
 		event: FormEvent<IConnectionDialogProfile>;

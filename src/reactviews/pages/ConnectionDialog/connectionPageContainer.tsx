@@ -5,19 +5,21 @@
 
 import { ReactNode, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Tab, TabList, makeStyles } from "@fluentui/react-components";
-import { ConnectionDialogContextProps, FormTabType } from "../../../sharedInterfaces/connectionDialog";
+import { Button, Field, MessageBar, Radio, RadioGroup, Spinner } from "@fluentui/react-components";
+import { ConnectionDialogContextProps, IConnectionDialogProfile, ConnectionInputMode } from "../../../sharedInterfaces/connectionDialog";
 import './sqlServerRotation.css';
 import { ConnectionHeader } from "./connectionHeader";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
-import { useFormStyles } from "../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormItemSpec } from "../../common/forms/form";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 function renderTab(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
-	switch (connectionDialogContext?.state.selectedFormTab) {
-		case FormTabType.Parameters:
+	switch (connectionDialogContext?.state.selectedInputMode) {
+		case ConnectionInputMode.Parameters:
 			return <ConnectionFormPage />;
-		case FormTabType.ConnectionString:
+		case ConnectionInputMode.ConnectionString:
 			return <ConnectionStringPage />;
 	}
 }
@@ -33,15 +35,51 @@ export const ConnectionInfoFormContainer = () => {
 	return (
 		<div className={formStyles.formRoot}>
 			<ConnectionHeader />
-			<TabList
-				selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters}
-				onTabSelect={(_event, data) => { connectionDialogContext?.setFormTab(data.value as FormTabType); }}
-			>
-				<Tab value={FormTabType.Parameters}>Parameters</Tab>
-				<Tab value={FormTabType.ConnectionString}>Connection String</Tab>
-			</TabList>
-			<div style={ { overflow: 'auto' } }>
-				{ renderTab(connectionDialogContext) }
+
+			<div className={formStyles.formDiv}>
+				{
+					connectionDialogContext?.state.formError &&
+					<MessageBar intent="error">
+						{connectionDialogContext.state.formError}
+					</MessageBar>
+				}
+				<FormField
+					context={connectionDialogContext}
+					component={connectionDialogContext.state.connectionComponents['profileName'] as FormItemSpec<IConnectionDialogProfile>}
+					idx={0}
+					props={{ orientation: 'horizontal' }}
+				/>
+
+				<div className={formStyles.formComponentDiv}>
+					<Field label="Input type" orientation="horizontal">
+						<RadioGroup
+							onChange={(_, data) => { connectionDialogContext.setConnectionInputType(data.value as ConnectionInputMode); }}
+							value={connectionDialogContext.state.selectedInputMode}
+						>
+							<Radio value={ConnectionInputMode.Parameters} label="Parameters" />
+							<Radio value={ConnectionInputMode.ConnectionString} label="Connection String" />
+							<Radio value={ConnectionInputMode.AzureBrowse} label="Browse Azure" />
+						</RadioGroup>
+					</Field>
+				</div>
+				<div style={{ overflow: 'auto' }}>
+					{renderTab(connectionDialogContext)}
+				</div>
+				<Button
+					appearance="primary"
+					disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
+					shape="square"
+					onClick={(_event) => { connectionDialogContext.connect(); }}
+					style={
+						{
+							width: '200px',
+							alignSelf: 'center'
+						}
+					}
+					iconPosition="after"
+					icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
+						Connect
+				</Button>
 			</div>
 		</div>
 	);

@@ -19,6 +19,8 @@ import { Dismiss24Regular } from "@fluentui/react-icons";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { FormItemSpec } from "../../common/forms/form";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
 export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -36,21 +38,30 @@ export const ConnectionFormPage = () => {
                     {connectionDialogContext.state.formError}
                 </MessageBar>
             )}
-            {connectionDialogContext.state.connectionFormComponents.mainComponents.map(
-                (component, idx) => {
-                    if (component.hidden === true) {
-                        return undefined;
-                    }
+            {([
+                'server',
+                'trustServerCertificate',
+                'authenticationType',
+                'user',
+                'password',
+                'savePassword',
+                'accountId',
+                'tenantId',
+                'database',
+                'encrypt'
+            ]).map(
+                (key, idx) => {
                     return (
                         <FormField
                             key={idx}
                             context={connectionDialogContext}
-                            component={component}
+                            component={connectionDialogContext.state.connectionComponents[key as keyof IConnectionDialogProfile] as FormItemSpec<IConnectionDialogProfile>}
                             idx={idx}
                         />
                     );
                 }
             )}
+
             <OverlayDrawer
                 position="end"
                 size="medium"
@@ -111,29 +122,6 @@ export const ConnectionFormPage = () => {
                 }}
             >
                 Advanced
-            </Button>
-            <Button
-                appearance="primary"
-                disabled={
-                    connectionDialogContext.state.connectionStatus === ApiStatus.Loading
-                }
-                shape="square"
-                onClick={(_event) => {
-                    connectionDialogContext.connect();
-                }}
-                style={{
-                    width: "200px",
-                    alignSelf: "center",
-                }}
-                iconPosition="after"
-                icon={
-                    connectionDialogContext.state.connectionStatus ===
-                        ApiStatus.Loading ? (
-                        <Spinner size="tiny" />
-                    ) : undefined
-                }
-            >
-                Connect
             </Button>
         </div>
     );

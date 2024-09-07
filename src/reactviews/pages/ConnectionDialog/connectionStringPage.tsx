@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, MessageBar, Spinner } from "@fluentui/react-components";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { FormItemSpec } from "../../common/forms/form";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -16,46 +16,15 @@ export const ConnectionStringPage = () => {
 	if (connectionDialogContext === undefined) {
 		return undefined;
 	}
-
+	let index = 0;
 	return (
 		<div className={formStyles.formDiv}>
-			{
-				connectionDialogContext?.state.formError &&
-				<MessageBar intent="error">
-					{connectionDialogContext.state.formError}
-				</MessageBar>
-			}
-			{
-				connectionDialogContext.state.connectionStringComponents.map((spec, idx) => {
-					if (spec.hidden === true) {
-						return undefined;
-					}
-					return (
-                        <FormField
-                            key={idx}
-                            context={connectionDialogContext}
-                            component={spec}
-                            idx={idx}
-                        />
-                    );
-				})
-			}
-			<Button
-				appearance="primary"
-				disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
-				shape="square"
-				onClick={(_event) => {
-					connectionDialogContext.connect();
-				}} style={
-					{
-						width: '200px',
-						alignSelf: 'center'
-					}
-				}
-				iconPosition="after"
-				icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-					Connect
-			</Button>
+			<FormField
+				key={index++}
+				context={connectionDialogContext}
+				component={connectionDialogContext.state.connectionComponents['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
+				idx={index}
+			/>
 		</div>
 	);
 };
