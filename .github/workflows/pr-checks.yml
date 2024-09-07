@@ -175,12 +175,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-          # Updates to localized strings required
-            Please update the localized strings in the PR with following steps:
-            1. Run `yarn localization` in the PR branch.
-            1. Based on the changes,
-                * If there are changes in localized strings in source code, make sure that `src/localization/xliff/vscode-mssql.xlf` and `src/l10n/bundle.l10n.json` files are updated.
-                * If there are changes in localized strings in `package.nls.json`, make sure that `src/localization/xliff/vscode-mssql.xlf` is updated.
+            # Updates to localized strings required
+              Please update the localized strings in the PR with following steps:
+              1. Run `yarn localization` in the PR branch.
+              1. Based on the changes,
+                  * If there are changes in localized strings in source code, make sure that `src/localization/xliff/vscode-mssql.xlf` and `src/l10n/bundle.l10n.json` files are updated.
+                  * If there are changes in localized strings in `package.nls.json`, make sure that `src/localization/xliff/vscode-mssql.xlf` is updated.
           edit-mode: replace
 
       - name: Delete comment
