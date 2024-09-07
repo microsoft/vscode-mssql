@@ -1,7 +1,9 @@
-name: File Size Check
-# Trigger the workflow on PRs to the main branch. It builds the extension in prod mode and checks the size of the
-# vsix file and webview bundle file and compares it with the main branch. It fails if the size has increased by more than 10%.
-# For vsix, we also check if the size is greater than 25MB.
+name: PR Checks
+# Trigger the workflow on PRs to the main branch.
+# It performs the following checks:
+# 1. Calculate the size difference between the webview bundles of the main branch and the PR branch.
+# 2. Calculate the size difference between the VSIX files of the main branch and the PR branch.
+# 3. Does a check if the PR has properly localized strings.
 
 on:
   pull_request:
@@ -119,21 +121,14 @@ jobs:
           body-includes: |
             ### VSIX Size Comparison
 
-      - name: Create comment
+      - name: Create or update comment
         if: steps.fc.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body-path: ./results.md
-
-      - name: Update comment
-        if: steps.fc.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
-          body-path: ./results.md
           edit-mode: replace
 
       - name: Fail if vsix size is increased by 5% or size is above 25mb
@@ -142,6 +137,63 @@ jobs:
 
       - name: Fail if bundle size is increased by 5%
         if: ${{ env.webview_bundle_percentage_change > 5 }}
+        run: exit 1
+
+      - name: Check for localized strings
+        run: |
+          cd pr
+          yarn localization
+
+      # Check if there are git changes in english xlf files
+      - name: Check for changes in english xlf files
+        run: |
+          cd pr
+          if git diff --exit-code --name-only origin/main -- src/localization/xliff/vscode-mssql.xlf
+          then
+            echo "No changes in english xlf files"
+            echo "loc_check=true" >> $GITHUB_ENV
+          else
+            echo "Changes in english xlf files"
+            echo "loc_check=false" >> $GITHUB_ENV
+          fi
+
+      - name: Find comment
+        if: ${{ env.loc_check == 'false' }}
+        uses: peter-evans/find-comment@v3
+        id: loc-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: |
+            ### Updates to localized strings required
+
+      - name: Create or update comment
+        if: ${{ env.loc_check == 'false' }} && steps.loc-comment.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.loc-comment.outputs.comment-id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+          # Updates to localized strings required
+            Please update the localized strings in the PR with following steps:
+            1. Run `yarn localization` in the PR branch.
+            1. Based on the changes,
+                * If there are changes in localized strings in source code, make sure that `src/localization/xliff/vscode-mssql.xlf` and `src/l10n/bundle.l10n.json` files are updated.
+                * If there are changes in localized strings in `package.nls.json`, make sure that `src/localization/xliff/vscode-mssql.xlf` is updated.
+          edit-mode: replace
+
+      - name: Delete comment
+        if: ${{ env.loc_check == 'true' }} && steps.loc-comment.outputs.comment-id != ''
+        run: |
+          curl -X DELETE \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
+
+
+      - name: Fail if there are changes in english xlf files
+        if: ${{ env.loc_check == 'false' }}
         run: exit 1
 
 
