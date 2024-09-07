@@ -149,15 +149,14 @@ jobs:
         run: |
           cd pr
           if git diff --quiet --exit-code src/localization/xliff/vscode-mssql.xlf; then
-            echo "No changes in english xlf files"
-            echo "loc_check=true" >> $GITHUB_ENV
+            echo "Changes found in english xlf files"
+            echo "loc_update_required=true" >> $GITHUB_ENV
           else
-            echo "Changes in english xlf files"
-            echo "loc_check=false" >> $GITHUB_ENV
+            echo "Changes not found in english xlf files"
+            echo "loc_update_required=false" >> $GITHUB_ENV
           fi
 
       - name: Find comment
-        if: ${{ env.loc_check == 'false' }}
         uses: peter-evans/find-comment@v3
         id: loc-comment
         with:
@@ -167,7 +166,7 @@ jobs:
             ### Updates to localized strings required
 
       - name: Create or update comment
-        if: ${{ env.loc_check == 'false' }} && steps.loc-comment.outputs.comment-id == ''
+        if: ${{ env.loc_update_required == 'true' }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
@@ -183,7 +182,7 @@ jobs:
           edit-mode: replace
 
       - name: Delete comment
-        if: ${{ env.loc_check == 'true' }} && steps.loc-comment.outputs.comment-id != ''
+        if: ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != ''
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -191,8 +190,8 @@ jobs:
           https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
 
 
-      - name: Fail if there are changes in english xlf files
-        if: ${{ env.loc_check == 'false' }}
+      - name: Fail if there are changes required in english xlf files
+        if: ${{ env.loc_update_required == 'true' }}
         run: exit 1
 
 
