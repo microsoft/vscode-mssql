@@ -148,8 +148,7 @@ jobs:
       - name: Check for changes in english xlf files
         run: |
           cd pr
-          if git diff --exit-code --name-only origin/main -- src/localization/xliff/vscode-mssql.xlf
-          then
+          if git diff --quiet --exit-code src/localization/xliff/vscode-mssql.xlf; then
             echo "No changes in english xlf files"
             echo "loc_check=true" >> $GITHUB_ENV
           else
