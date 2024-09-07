@@ -8,7 +8,7 @@ import { IAccount, IConnectionInfo, ITenant } from 'vscode-mssql';
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import * as constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import ConnectionManager from '../controllers/connectionManager';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionCredentials } from '../models/connectionCredentials';
@@ -696,7 +696,7 @@ export class ConnectionUI {
 
 	private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
 		let result = await this._vscodeWrapper.showInformationMessage(
-			Utils.formatString(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, ipAddress, serverName),
+			LocalizedConstants.msgPromptRetryFirewallRuleSignedIn(ipAddress, serverName),
 			LocalizedConstants.createFirewallRuleLabel);
 		if (result === LocalizedConstants.createFirewallRuleLabel) {
 			const firewallService = this.connectionManager.firewallService;

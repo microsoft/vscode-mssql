@@ -16,7 +16,7 @@ import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
 import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
-import { formatString } from '../../common/utils';
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
 	panelContainer: {
@@ -77,7 +77,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	const [findNodeClicked, setFindNodeClicked] = useState(false);
 	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
 	const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
-	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -154,11 +153,17 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
   		return percentage.toFixed(2) + '%';
 	};
 
+	const queryCostHeader = l10n.t({
+		message: 'Query {0}:  Query cost (relative to the script):  {1}',
+		args: [graphIndex + 1, getQueryCostPercentage()],
+		comment: ['{0} is the query number', '{1} is the query cost']
+	});
+
 	return (
 		<div id="panelContainer" className={classes.panelContainer}>
 			<div id="planContainer" className={classes.planContainer}>
 				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>
-					{formatString(LocalizedConstants.queryCostHeader, graphIndex + 1, getQueryCostPercentage())}<br />{query}
+					{queryCostHeader}<br />{query}
 				</div>
 				<div id={`queryPlanParent${graphIndex + 1}`} className={classes.queryPlanParent}></div>
 				{customZoomClicked ? (

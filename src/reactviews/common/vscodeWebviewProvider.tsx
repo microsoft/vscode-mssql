@@ -7,6 +7,7 @@ import { FluentProvider, Theme, teamsHighContrastTheme, webDarkTheme, webLightTh
 import { createContext, useContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
+import * as l10n from '@vscode/l10n';
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -30,6 +31,11 @@ interface VscodeWebviewContext<State, Reducers> {
 	 * Theme of the webview.
 	 */
 	theme: Theme;
+	/**
+	 * Localization status. The value is true when the localization file content is received from the extension.
+	 * This is used to force a re-render of the component when the localization file content is received.
+	 */
+	localization: boolean;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
@@ -50,6 +56,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 	const extensionRpc = new WebviewRpc<Reducers>(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);
 	const [state, setState] = useState<State>();
+	const [localization, setLocalization] = useState<boolean>(false);
 
 	useEffect(() => {
 		async function getTheme() {
@@ -78,9 +85,24 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 			});
 		}
 
+		async function getLocalization() {
+			const fileContents = await extensionRpc.call('getLocalization') as string;
+			if (fileContents) {
+				await l10n.config({
+					contents: fileContents
+				});
+			}
+			/**
+			 * This is a hack to force a re-render of the component when the localization filecontent
+			 * is received from the extension.
+			 */
+			setLocalization(true);
+		}
+
 		getTheme();
 		getState();
 		loadStats();
+		getLocalization();
 	}, []);
 
 	extensionRpc.subscribe('onDidChangeTheme', (params) => {
@@ -107,6 +129,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 		extensionRpc: extensionRpc,
 		state: state,
 		theme: theme,
+		localization: localization
 	}}>
 		<FluentProvider style={{
 			height: '100%',

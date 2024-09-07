@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as Interfaces from './interfaces';
 import * as path from 'path';
 import { RequestType } from 'vscode-languageclient';

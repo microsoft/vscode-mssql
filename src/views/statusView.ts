@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as ConnInfo from '../models/connectionInfo';
 import * as ConnectionContracts from '../models/contracts/connection';

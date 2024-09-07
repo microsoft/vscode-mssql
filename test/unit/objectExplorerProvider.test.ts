@@ -13,7 +13,7 @@ import { expect, assert } from 'chai';
 import { TreeNodeInfo } from '../../src/objectExplorer/treeNodeInfo';
 import { ConnectionCredentials } from '../../src/models/connectionCredentials';
 import { AddConnectionTreeNode } from '../../src/objectExplorer/addConnectionTreeNode';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import { AccountSignInTreeNode } from '../../src/objectExplorer/accountSignInTreeNode';
 import { ConnectTreeNode } from '../../src/objectExplorer/connectTreeNode';
 import { NodeInfo } from '../../src/models/contracts/objectExplorer/nodeInfo';

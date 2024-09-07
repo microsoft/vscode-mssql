@@ -22,7 +22,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
 	) {
 		super(
 			context,
-			'Object Explorer Filter',
+			vscode.l10n.t('Object Explorer Filter'),
 			'objectExplorerFilter',
 			data ?? {
 				filterProperties: [],

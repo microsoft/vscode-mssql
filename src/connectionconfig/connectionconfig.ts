@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as Utils from '../models/utils';
 import { IConnectionProfile } from '../models/interfaces';
 import { IConnectionConfig } from './iconnectionconfig';
