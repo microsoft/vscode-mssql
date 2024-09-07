@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  size-check:
+  pr-checks:
     runs-on: ubuntu-latest
     permissions:
       contents: read
