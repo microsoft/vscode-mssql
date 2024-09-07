@@ -4,7 +4,7 @@ The extension has 2 main ways to localize the strings in the UI.
 
 ## 1. Static contributions in `package.nls.json`
 
-The extension uses the `package.nls.json` file to localize the strings the contributions in the `package.json` file. The `package.nls.json` file is a simple JSON file that maps the keys to localized strings.
+The extension utilizes the package.nls.json file to localize strings within the contributions specified in the package.json file. This package.nls.json file is a straightforward JSON file that maps keys to their corresponding localized strings.
 
 Example of `package.nls.json`
 
