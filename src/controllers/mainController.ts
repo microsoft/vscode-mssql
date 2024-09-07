@@ -46,6 +46,7 @@ import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWe
 import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
 import { ExecutionPlanService } from '../services/executionPlanService';
 import { ExecutionPlanWebViewController } from './executionPlanWebviewController';
+import { CopilotService } from '../services/copilotService';
 
 /**
  * The main controller class that initializes the extension
@@ -75,6 +76,7 @@ export default class MainController implements vscode.Disposable {
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
 	public tableDesignerService: TableDesignerService;
+	public copilotService: CopilotService;
 	public configuration: vscode.WorkspaceConfiguration;
 	public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
 	public executionPlanService: ExecutionPlanService;
@@ -210,6 +212,7 @@ export default class MainController implements vscode.Disposable {
 			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 			this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
 			this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+			this.copilotService = new CopilotService(SqlToolsServerClient.instance);
 
 			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService, this._untitledSqlDocumentService);
 			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);

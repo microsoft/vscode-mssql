@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.83.1"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Programming Languages",
@@ -88,7 +88,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "1.83.1",
+    "@types/vscode": "^1.86.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",
@@ -208,6 +208,23 @@
         }
       ]
     },
+    "chatParticipants": [
+      {
+        "id": "mssql.agent",
+        "name": "mssql",
+        "description": "SQL Server Copilot agent",
+        "commands": [
+          {
+            "name": "show",
+            "description": "Shows all tables."
+          },
+          {
+            "name": "alter",
+            "description": "Alter table"
+          }
+        ]
+      }
+    ],
     "customEditors": [
         {
           "viewType": "mssql.executionPlanView",

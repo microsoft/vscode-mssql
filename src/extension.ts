@@ -17,13 +17,13 @@ import SqlToolsServerClient from './languageservice/serviceclient';
 import { ConnectionProfile } from './models/connectionProfile';
 import { FirewallRuleError } from './languageservice/interfaces';
 import { RequestType } from 'vscode-languageclient';
+import { createSqlAgentRequestHandler } from './chat/sqlAgentRequestHandler';
 
 let controller: MainController = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
 	let vscodeWrapper = new VscodeWrapper();
 	controller = new MainController(context, undefined, vscodeWrapper);
-	context.subscriptions.push(controller);
 
 	// Checking if localization should be applied
 	let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
@@ -35,6 +35,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 	// Exposed for testing purposes
 	vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
 	await controller.activate();
+
+	const participant = vscode.chat.createChatParticipant('mssql.agent', createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper));
+	context.subscriptions.push(controller, participant);
+
 	return {
 		sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
 		promptForConnection: (ignoreFocusOut?: boolean) => {
