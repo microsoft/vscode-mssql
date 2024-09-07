@@ -124,7 +124,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				this._isFirstLoad = false;
 			}
 		};
-		this._webViewRequestHandlers['getLocalization'] = async () => {
+		this._webviewRequestHandlers['getLocalization'] = async () => {
 			if (vscode.l10n.uri?.fsPath) {
 				const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
 				const fileContents = Buffer.from(file).toString();
