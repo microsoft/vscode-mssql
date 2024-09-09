@@ -5,8 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
-import * as Utils from './utils';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as Interfaces from './interfaces';
 import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from '../models/resultsSerializer';
@@ -232,7 +231,7 @@ export class SqlOutputContentProvider {
 					isError: false,
 					time: time,
 					link: {
-						text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1)
+						text: LocalizedConstants.runQueryBatchStartLine(batch.selection.startLine + 1)
 					}
 				};
 				this._panels.get(uri).proxy.sendEvent('message', message);
@@ -277,7 +276,7 @@ export class SqlOutputContentProvider {
 		// Cancel the query
 		queryRunner.cancel().then(success => undefined, error => {
 			// On error, show error message
-			self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error.message));
+			self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgCancelQueryFailed(error.message));
 		});
 	}
 

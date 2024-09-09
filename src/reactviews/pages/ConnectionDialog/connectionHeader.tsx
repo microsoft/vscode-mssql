@@ -6,10 +6,9 @@
 import { useContext } from "react";
 import { Text, Image, webLightTheme } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { loadImage } from "../../common/loadImage";
 
-const sqlServerImage = require('../../../../media/sqlServer.svg');
-const sqlServerImageDark = require('../../../../media/sqlServer_inverse.svg');
+const sqlServerImage = require('../../../../media/sqlServer_light.svg');
+const sqlServerImageDark = require('../../../../media/sqlServer_dark.svg');
 
 export const ConnectionHeader = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -27,7 +26,7 @@ export const ConnectionHeader = () => {
 					padding: '10px',
 				}
 			}
-				src={connectionDialogContext?.theme === webLightTheme ? loadImage(sqlServerImage) : loadImage(sqlServerImageDark)} alt='SQL Server' height={60} width={60} />
+				src={connectionDialogContext?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
 			<Text size={500} style={
 				{
 					lineHeight: '60px'

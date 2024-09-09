@@ -7,7 +7,7 @@ import * as TypeMoq from 'typemoq';
 import * as vscode from 'vscode';
 import * as utils from '../../src/models/utils';
 import * as Constants from '../../src/constants/constants';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import * as stubs from './stubs';
 import * as interfaces from '../../src/models/interfaces';
 import { ConnectionProfile } from '../../src/models/connectionProfile';

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ObjectMetadata } from 'vscode-mssql';
+import * as vscodeMssql from 'vscode-mssql';
 
 /**
  * Information describing a Node in the Object Explorer tree.
@@ -54,5 +54,20 @@ export class NodeInfo {
 	/**
 	 * Object metadata about the node
 	 */
-	public metadata: ObjectMetadata;
+	public metadata: vscodeMssql.ObjectMetadata;
+
+	/**
+	 * Filterable properties that this node supports
+	 */
+	filterableProperties?: vscodeMssql.NodeFilterProperty[];
+
+	/**
+	 * Object type of the node. In case of folder nodes, this will be the type of objects that are present in the folder
+	 */
+	objectType?: string;
+
+	/**
+	 * Parent node path. This is used to identify the parent node of the current node
+	 */
+	parentNodePath?: string;
 }

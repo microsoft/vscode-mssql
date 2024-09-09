@@ -27,7 +27,7 @@ import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/que
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
@@ -195,7 +195,7 @@ export default class QueryRunner {
 
 	// Pulls the query text from the current document/selection and initiates the query
 	private async doRunQuery(selection: ISelectionData, queryCallback: any): Promise<void> {
-		this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
+		this._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgStartedExecute(this._ownerUri));
 
 		// Update internal state to show that we're executing the query
 		this._resultLineOffset = selection ? selection.startLine : 0;
@@ -231,7 +231,7 @@ export default class QueryRunner {
 
 	// handle the result of the notification
 	public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-		this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._ownerUri));
+		this._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
 		// Store the batch sets we got back as a source of "truth"
 		this._isExecuting = false;
@@ -587,7 +587,7 @@ export default class QueryRunner {
 		if (showBatchTime) {
 			let message: IResultMessage = {
 				batchId: batchId,
-				message: Utils.formatString(LocalizedConstants.elapsedBatchTime, executionTime),
+				message: LocalizedConstants.elapsedBatchTime(executionTime),
 				time: undefined,
 				isError: false
 			};

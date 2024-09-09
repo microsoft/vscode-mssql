@@ -5,8 +5,6 @@
 
 import * as vscode from 'vscode';
 import * as vscodeMssql from 'vscode-mssql';
-import * as Constants from './constants/constants';
-import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
 import { ConnectionDetails, IConnectionInfo, IExtension } from 'vscode-mssql';
@@ -26,11 +24,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 	context.subscriptions.push(controller);
 
 	// Checking if localization should be applied
-	let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-	let applyLocalization = config[Constants.configApplyLocalization];
-	if (applyLocalization) {
-		LocalizedConstants.loadLocalizedConstants(vscode.env.language);
-	}
+	//let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+	//let applyLocalization = config[Constants.configApplyLocalization];
+	// if (applyLocalization) {
+	// 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
+	// }
 
 	// Exposed for testing purposes
 	vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);

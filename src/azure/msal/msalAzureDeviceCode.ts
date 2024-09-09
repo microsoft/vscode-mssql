@@ -5,7 +5,7 @@
 
 import { AuthenticationResult, DeviceCodeRequest, PublicClientApplication } from '@azure/msal-node';
 import * as vscode from 'vscode';
-import * as LocalizedConstants from '../../constants/localizedConstants';
+import * as LocalizedConstants from '../../constants/locConstants';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
 import { AzureAuthType, IProviderSettings, ITenant } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
