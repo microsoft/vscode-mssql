@@ -15,7 +15,7 @@ import { CapabilitiesResult, GetCapabilitiesRequest } from '../models/contracts/
 import { ConnectionOption } from 'azdata';
 import { Logger } from '../models/logger';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import { FormItemSpec, FormItemActionButton, FormItemOptions, FormItemType } from '../reactviews/common/forms/form';
 import { ApiStatus } from '../sharedInterfaces/webview';
 
