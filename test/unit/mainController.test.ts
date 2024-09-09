@@ -10,7 +10,7 @@ import ConnectionManager from '../../src/controllers/connectionManager';
 import UntitledSqlDocumentService from '../../src/controllers/untitledSqlDocumentService';
 import * as Extension from '../../src/extension';
 import * as Constants from '../../src/constants/constants';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import VscodeWrapper from '../../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';
 import * as assert from 'assert';

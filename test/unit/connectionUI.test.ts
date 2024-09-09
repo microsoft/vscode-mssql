@@ -13,7 +13,7 @@ import ConnectionManager from '../../src/controllers/connectionManager';
 import { IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../../src/models/interfaces';
 import { ConnectionProfile } from '../../src/models/connectionProfile';
 import { ConnectionCredentials } from '../../src/models/connectionCredentials';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import { AccountStore } from '../../src/azure/accountStore';
 import { Logger } from '../../src/models/logger';
 

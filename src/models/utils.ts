@@ -11,7 +11,7 @@ import * as findRemoveSync from 'find-remove';
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as fs from 'fs';
 import { AzureAuthType } from './contracts/azure';
 import { IConnectionInfo } from 'vscode-mssql';
