@@ -66,9 +66,9 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 	savePassword?: boolean;
 	emptyPasswordInput?: boolean;
 	azureAuthType?: vscodeMssql.AzureAuthType;
+    /** display name for the MRU pane; should be set to the profileName if available, otherwise generated from connection details */
+    displayName?: string;
 }
-
-
 
 export interface ConnectionDialogContextProps extends FormContextProps<ConnectionDialogWebviewState, IConnectionDialogProfile> {
 	theme: Theme;
