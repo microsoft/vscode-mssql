@@ -10,6 +10,10 @@ import * as vscodeMssql from 'vscode-mssql';
 import { AzureAuthType } from './contracts/azure';
 
 // interfaces
+export interface IntelliSenseConfig {
+	enableIntelliSense: boolean;
+}
+
 export enum ContentType {
 	Root = 0,
 	Messages = 1,
