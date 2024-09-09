@@ -12,13 +12,11 @@ import {
     DrawerHeaderTitle,
     MessageBar,
     OverlayDrawer,
-    Spinner,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 

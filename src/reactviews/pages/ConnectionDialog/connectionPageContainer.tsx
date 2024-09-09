@@ -15,7 +15,7 @@ import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
-function renderTab(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
+function renderInputs(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
 	switch (connectionDialogContext?.state.selectedInputMode) {
 		case ConnectionInputMode.Parameters:
 			return <ConnectionFormPage />;
@@ -63,7 +63,7 @@ export const ConnectionInfoFormContainer = () => {
 					</Field>
 				</div>
 				<div style={{ overflow: 'auto' }}>
-					{renderTab(connectionDialogContext)}
+					{renderInputs(connectionDialogContext)}
 				</div>
 				<Button
 					appearance="primary"
