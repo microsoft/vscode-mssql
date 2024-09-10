@@ -880,12 +880,13 @@ export default class ConnectionManager {
 					this.statusView.connecting(fileUri, connectionCreds);
 					this.statusView.languageFlavorChanged(fileUri, flavor);
 
+					// Notify the language service that the editor with the specified URI doesn't have a language flavor to avoid error squiggles
 					if (flavor === Constants.noneProviderName) {
 						SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
 							<LanguageServiceContracts.DidChangeLanguageFlavorParams>{
 								uri: fileUri,
 								language: 'sql',
-								flavor: flavor
+								flavor: Constants.noneProviderName
 							})
 					}
 				}
