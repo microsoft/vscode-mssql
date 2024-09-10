@@ -35,7 +35,7 @@ import { SqlProjectsService } from '../services/sqlProjectsService';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import StatusView from '../views/statusView';
-import { IConnectionProfile, ISelectionData } from './../models/interfaces';
+import { IConnectionProfile, IntelliSenseConfig, ISelectionData } from './../models/interfaces';
 import ConnectionManager from './connectionManager';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
@@ -1288,8 +1288,9 @@ export default class MainController implements vscode.Disposable {
 		this._connectionMgr.onDidOpenTextDocument(doc);
 
 		if (doc && doc.languageId === Constants.languageId) {
-			const isQueryEditorLanguageDefaultNone = this.configuration.get('mssql.intelliSense.defaultQueryEditorLanguageToNone');
-			const flavor = isQueryEditorLanguageDefaultNone ? Constants.noneProviderName : Constants.mssqlProviderName;
+			const configuration = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+			const intelliSenseConfig = configuration.get<IntelliSenseConfig>(Constants.configIntelliSense);
+			const flavor = intelliSenseConfig.defaultQueryEditorLanguageToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
 			// set encoding to false
 			this._statusview.languageFlavorChanged(doc.uri.toString(true), flavor);
 
