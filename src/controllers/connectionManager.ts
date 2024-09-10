@@ -882,11 +882,11 @@ export default class ConnectionManager {
 					// Notify the language service that the editor with the specified URI doesn't have a language flavor to avoid error squiggles
 					if (flavor === Constants.noneProviderName) {
 						SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
-							<LanguageServiceContracts.DidChangeLanguageFlavorParams>{
+							{
 								uri: fileUri,
 								language: 'sql',
 								flavor: Constants.noneProviderName
-							});
+							} as LanguageServiceContracts.DidChangeLanguageFlavorParams);
 					}
 				}
 				this.vscodeWrapper.logToOutputChannel(

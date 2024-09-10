@@ -1297,11 +1297,11 @@ export default class MainController implements vscode.Disposable {
 			// Notify the language service that the editor with the specified URI doesn't have a language flavor to avoid error squiggles.
 			if (flavor === Constants.noneProviderName) {
 				SqlToolsServerClient.instance.sendNotification(LanguageFlavorChangedNotification.type,
-					<DidChangeLanguageFlavorParams>{
+					{
 						uri: doc.uri.toString(true),
 						language: 'sql',
 						flavor: Constants.noneProviderName
-					});
+					} as DidChangeLanguageFlavorParams);
 			}
 		}
 
