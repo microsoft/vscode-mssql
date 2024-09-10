@@ -23,7 +23,7 @@ import { IAccount } from '../models/contracts/azure';
 import * as ConnectionContracts from '../models/contracts/connection';
 import { ClearPooledConnectionsRequest, ConnectionSummary } from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
-import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions, IConnectionProfile, IntelliSenseConfig } from '../models/interfaces';
 import { PlatformInformation, Runtime } from '../models/platform';
 import * as Utils from '../models/utils';
 import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
@@ -872,9 +872,22 @@ export default class ConnectionManager {
 
 				// Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
 				if (this.statusView) {
-					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+					const configuration = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+					const intelliSenseConfig = configuration.get<IntelliSenseConfig>(Constants.configIntelliSense);
+					const flavor = intelliSenseConfig.setQueryEditorLanguageToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
+					this.statusView.languageFlavorChanged(fileUri, flavor);
 					this.statusView.connecting(fileUri, connectionCreds);
-					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+					this.statusView.languageFlavorChanged(fileUri, flavor);
+
+					// Notify the language service that the editor with the specified URI doesn't have a language flavor to avoid error squiggles
+					if (flavor === Constants.noneProviderName) {
+						SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
+							<LanguageServiceContracts.DidChangeLanguageFlavorParams>{
+								uri: fileUri,
+								language: 'sql',
+								flavor: Constants.noneProviderName
+							});
+					}
 				}
 				this.vscodeWrapper.logToOutputChannel(
 					LocalizedConstants.msgConnecting(connectionCreds.server, fileUri)
