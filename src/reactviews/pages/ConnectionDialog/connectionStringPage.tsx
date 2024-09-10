@@ -22,7 +22,7 @@ export const ConnectionStringPage = () => {
 			<FormField
 				key={index++}
 				context={connectionDialogContext}
-				component={connectionDialogContext.state.connectionComponents['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
+				component={connectionDialogContext.state.connectionComponents.components['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
 				idx={index}
 			/>
 		</div>

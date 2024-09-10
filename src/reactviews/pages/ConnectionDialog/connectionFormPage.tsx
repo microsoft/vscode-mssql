@@ -31,29 +31,18 @@ export const ConnectionFormPage = () => {
 
     return (
         <div className={formStyles.formDiv}>
-            {connectionDialogContext?.state.formError && (
+            {connectionDialogContext.state.formError && (
                 <MessageBar intent="error">
                     {connectionDialogContext.state.formError}
                 </MessageBar>
             )}
-            {([
-                'server',
-                'trustServerCertificate',
-                'authenticationType',
-                'user',
-                'password',
-                'savePassword',
-                'accountId',
-                'tenantId',
-                'database',
-                'encrypt'
-            ]).map(
-                (key, idx) => {
+            {(connectionDialogContext.state.connectionComponents.mainOptions).map(
+                (inputName, idx) => {
                     return (
                         <FormField
                             key={idx}
                             context={connectionDialogContext}
-                            component={connectionDialogContext.state.connectionComponents[key as keyof IConnectionDialogProfile] as FormItemSpec<IConnectionDialogProfile>}
+                            component={connectionDialogContext.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile] as FormItemSpec<IConnectionDialogProfile>}
                             idx={idx}
                         />
                     );
@@ -82,24 +71,31 @@ export const ConnectionFormPage = () => {
                 </DrawerHeader>
 
                 <DrawerBody>
-                    {Object.keys(
-                        connectionDialogContext.state.connectionFormComponents
-                            .advancedComponents
-                    ).map((group, groupIndex) => {
+                    {
+                        connectionDialogContext.state.connectionComponents.topAdvancedOptions.map((optionName, idx) => {
+                            return (
+                                <FormField
+                                    key={idx}
+                                    context={connectionDialogContext}
+                                    component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
+                                    idx={idx}
+                                />
+                            );
+                        })
+                    }
+                    {Object.keys(connectionDialogContext.state.connectionComponents.groupedAdvancedOptions).map((group, groupIndex) => {
                         return (
                             <div key={groupIndex} style={{ margin: "20px 0px" }}>
                                 <Divider>{group}</Divider>
-                                {connectionDialogContext.state.connectionFormComponents.advancedComponents[
-                                    group
-                                ].map((component, idx) => {
-                                    if (component.hidden === true) {
+                                {connectionDialogContext.state.connectionComponents.groupedAdvancedOptions[group].map((optionName, idx) => {
+                                    if (connectionDialogContext.state.connectionComponents.components[optionName].hidden === true) {
                                         return undefined;
                                     }
                                     return (
                                         <FormField
                                             key={idx}
                                             context={connectionDialogContext}
-                                            component={component}
+                                            component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
                                             idx={idx}
                                         />
                                     );

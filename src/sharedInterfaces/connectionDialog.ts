@@ -15,12 +15,12 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
     get connectionProfile(): IConnectionDialogProfile { return this.formState; }
     set connectionProfile(value: IConnectionDialogProfile) { this.formState = value; }
     public selectedInputMode: ConnectionInputMode;
-    public connectionComponents: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>;
-    public connectionFormComponents: {
-        mainComponents: FormItemSpec<IConnectionDialogProfile>[],
-        advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
+    public connectionComponents: {
+        components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
+        mainOptions: (keyof IConnectionDialogProfile)[],
+        topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+        groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>
     };
-    public connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
@@ -29,20 +29,18 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         connectionProfile,
         selectedInputMode,
         connectionComponents,
-        connectionFormComponents,
-        connectionStringComponents,
         recentConnections,
         connectionStatus,
         formError
     }: {
         connectionProfile: IConnectionDialogProfile,
         selectedInputMode: ConnectionInputMode,
-        connectionComponents: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>,
-        connectionFormComponents: {
-            mainComponents: FormItemSpec<IConnectionDialogProfile>[],
-            advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
+        connectionComponents: {
+            components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
+            mainOptions: (keyof IConnectionDialogProfile)[],
+            topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+            groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>;
         },
-        connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[],
         recentConnections: IConnectionDialogProfile[],
         connectionStatus: ApiStatus,
         formError: string
@@ -50,8 +48,6 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
         this.connectionComponents = connectionComponents;
-        this.connectionFormComponents = connectionFormComponents;
-        this.connectionStringComponents = connectionStringComponents;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;

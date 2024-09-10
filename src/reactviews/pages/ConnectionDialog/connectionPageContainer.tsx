@@ -45,7 +45,7 @@ export const ConnectionInfoFormContainer = () => {
 				}
 				<FormField
 					context={connectionDialogContext}
-					component={connectionDialogContext.state.connectionComponents['profileName'] as FormItemSpec<IConnectionDialogProfile>}
+					component={connectionDialogContext.state.connectionComponents.components['profileName'] as FormItemSpec<IConnectionDialogProfile>}
 					idx={0}
 					props={{ orientation: 'horizontal' }}
 				/>

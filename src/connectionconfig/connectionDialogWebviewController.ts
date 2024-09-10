@@ -38,12 +38,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 				connectionProfile: {} as IConnectionDialogProfile,
 				recentConnections: [],
 				selectedInputMode: ConnectionInputMode.Parameters,
-				connectionComponents: {},
-				connectionFormComponents: {
-					mainComponents: [],
-					advancedComponents: {}
+				connectionComponents: {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					components: {} as any, // force empty record for intial blank state
+					mainOptions: [],
+					topAdvancedOptions: [],
+					groupedAdvancedOptions: {}
 				},
-				connectionStringComponents: [],
 				connectionStatus: ApiStatus.NotStarted,
 				formError: ''
 			}),
@@ -72,10 +73,32 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			await this.loadEmptyConnection();
 		}
 
-		this.state.connectionComponents = await this.generateConnectionComponents();
+		this.state.connectionComponents = {
+			components:  await this.generateConnectionComponents(),
+			mainOptions: [
+                'server',
+                'trustServerCertificate',
+                'authenticationType',
+                'user',
+                'password',
+                'savePassword',
+                'accountId',
+                'tenantId',
+                'database',
+                'encrypt'
+            ],
+			topAdvancedOptions: [
+				'port',
+				'connectTimeout',
+				// TODO: 'autoDisconnect',
+				// TODO: 'sslConfiguration',
+				'applicationName',
+				'replication'
+			],
+			groupedAdvancedOptions: {} // computed below
+		};
 
-		this.state.connectionFormComponents = await this.generateConnectionFormComponents();
-		this.state.connectionStringComponents = await this.generateConnectionStringComponents();
+		this.state.connectionComponents.groupedAdvancedOptions = this.groupAdvancedOptions(this.state.connectionComponents);
 
 		await this.updateItemVisibility();
 		this.state = this.state;
@@ -151,21 +174,20 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}
 		}
 
-		for (const component of this.state.connectionFormComponents.mainComponents) {
+		for (const component of Object.values(this.state.connectionComponents.components)) {
 				component.hidden = hiddenProperties.includes(component.propertyName);
 		}
 	}
 
-	private getActiveFormComponents(): FormItemSpec<IConnectionDialogProfile>[] {
+	private getActiveFormComponents(): (keyof IConnectionDialogProfile)[] {
 		if (this.state.selectedInputMode === ConnectionInputMode.Parameters) {
-			return this.state.connectionFormComponents.mainComponents;
+			return this.state.connectionComponents.mainOptions;
 		}
-		return this.state.connectionStringComponents;
+		return ['connectionString', 'profileName'];
 	}
 
 	private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItemSpec<IConnectionDialogProfile> | undefined {
-
-		return this.getActiveFormComponents().find(c => c.propertyName === propertyName);
+		return this.getActiveFormComponents().includes(propertyName) ? this.state.connectionComponents.components[propertyName] : undefined;
 	}
 
 	private async getAccounts(): Promise<FormItemOptions[]> {
@@ -462,12 +484,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 		};
 	}
 
-	private async generateConnectionComponents(): Promise<Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>> {
+	private async generateConnectionComponents(): Promise<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> {
 		// get list of connection options from Tools Service
 		const capabilitiesResult: CapabilitiesResult = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
 		const connectionOptions: ConnectionOption[] = capabilitiesResult.capabilities.connectionProvider.options;
 
-		const result: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> = {};
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const result: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec> = {} as any; // force empty record for intial blank state
 
 		for (const option of connectionOptions) {
 			result[option.name as keyof IConnectionDialogProfile] = {
@@ -478,6 +501,26 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 		}
 
 		await this.completeFormComponents2(result);
+
+		return result;
+	}
+
+	private groupAdvancedOptions({components, mainOptions, topAdvancedOptions}: {
+		components: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>;
+        mainOptions: (keyof IConnectionDialogProfile)[],
+        topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+	}): Record<string, (keyof IConnectionDialogProfile)[]> {
+		const result = {};
+
+		for (const component of Object.values(components)) {
+			if (component.isAdvancedOption && !mainOptions.includes(component.propertyName) && !topAdvancedOptions.includes(component.propertyName)) {
+				if (!result[component.optionCategory]) {
+					result[component.optionCategory] = [component.propertyName];
+				} else {
+					result[component.optionCategory].push(component.propertyName);
+				}
+			}
+		}
 
 		return result;
 	}
@@ -574,7 +617,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}
 		}
 		else {
-			this.getActiveFormComponents().forEach(c => {
+			this.getActiveFormComponents().map(x => this.state.connectionComponents[x]).forEach(c => {
 				if (c.hidden) {
 					c.validation = {
 						isValid: true,
@@ -675,7 +718,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
 	private clearFormError() {
 		this.state.formError = '';
-		for (const component of this.getActiveFormComponents()) {
+		for (const component of this.getActiveFormComponents().map(x => this.state.connectionComponents[x])) {
 			component.validation = undefined;
 		}
 	}
@@ -721,23 +764,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			this.state.formError = '';
 			this.state = this.state;
 
-			const usedFields = new Set<keyof IConnectionDialogProfile>(this.getActiveFormComponents().filter(c => !c.hidden).map(c => c.propertyName));
-
-			Object.keys(this.state.connectionFormComponents.advancedComponents).forEach(group => {
-				this.state.connectionFormComponents.advancedComponents[group].forEach(c => {
-					if (!c.hidden) {
-						usedFields.add(c.propertyName);
-					}
-				});
-			});
-
-			// Clear unused fields (anything that isn't visible due to form selections and isn't an advanced option)
-			Object.keys(this.state.connectionProfile).forEach(optionName => {
-				if (!usedFields.has(optionName as keyof IConnectionDialogProfile)) {
+			// Clear the options that aren't being used (due to form selections, like authType)
+			for (const option of Object.values(this.state.connectionComponents.components)) {
+				if (option.hidden) {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(this.state.connectionProfile[optionName as keyof IConnectionDialogProfile] as any) = undefined;
+					(this.state.connectionProfile[option.propertyName as keyof IConnectionDialogProfile] as any) = undefined;
 				}
-			});
+			}
 
 			// Perform final validation of all inputs
 			const errorCount = await this.validateFormComponents();
