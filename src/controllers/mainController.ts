@@ -13,7 +13,7 @@ import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/locConstants';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as ConnInfo from '../models/connectionInfo';
-import { CompletionExtensionParams, CompletionExtLoadRequest, DidChangeLanguageFlavorParams, LanguageFlavorChangedNotification, RebuildIntelliSenseNotification } from '../models/contracts/languageService';
+import { CompletionExtensionParams, CompletionExtLoadRequest, RebuildIntelliSenseNotification } from '../models/contracts/languageService';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import * as Utils from '../models/utils';
@@ -1288,20 +1288,8 @@ export default class MainController implements vscode.Disposable {
 		this._connectionMgr.onDidOpenTextDocument(doc);
 
 		if (doc && doc.languageId === Constants.languageId) {
-			const isLanguageSetToNone = this.configuration.get('mssql.intelliSense.setQueryEditorLanguageToNone');
-			const flavor = isLanguageSetToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
 			// set encoding to false
-			this._statusview.languageFlavorChanged(doc.uri.toString(true), flavor);
-
-			// Notify the language service that the editor with the specified URI doesn't have a language flavor to avoid error squiggles.
-			if (flavor === Constants.noneProviderName) {
-				SqlToolsServerClient.instance.sendNotification(LanguageFlavorChangedNotification.type,
-					<DidChangeLanguageFlavorParams>{
-						uri: doc.uri.toString(true),
-						language: 'sql',
-						flavor: Constants.noneProviderName
-					});
-			}
+			this._statusview.languageFlavorChanged(doc.uri.toString(true), Constants.mssqlProviderName);
 		}
 
 		if (doc && doc.languageId === Constants.sqlPlanLanguageId) {
