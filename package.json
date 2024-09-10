@@ -1197,10 +1197,10 @@
           "description": "%mssql.intelliSense.lowerCaseSuggestions%",
           "scope": "window"
         },
-		"mssql.intelliSense.setQueryEditorLanguageToNone": {
+        "mssql.intelliSense.defaultQueryEditorLanguageToNone": {
           "type": "boolean",
           "default": false,
-          "description": "%mssql.intelliSense.setQueryEditorLanguageToNone%",
+          "description": "%mssql.intelliSense.defaultQueryEditorLanguageToNone%",
           "scope": "window"
         },
         "mssql.persistQueryResultTabs": {

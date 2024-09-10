@@ -1288,8 +1288,8 @@ export default class MainController implements vscode.Disposable {
 		this._connectionMgr.onDidOpenTextDocument(doc);
 
 		if (doc && doc.languageId === Constants.languageId) {
-			const isLanguageSetToNone = this.configuration.get('mssql.intelliSense.setQueryEditorLanguageToNone');
-			const flavor = isLanguageSetToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
+			const isQueryEditorLanguageDefaultNone = this.configuration.get('mssql.intelliSense.defaultQueryEditorLanguageToNone');
+			const flavor = isQueryEditorLanguageDefaultNone ? Constants.noneProviderName : Constants.mssqlProviderName;
 			// set encoding to false
 			this._statusview.languageFlavorChanged(doc.uri.toString(true), flavor);
 

@@ -874,7 +874,7 @@ export default class ConnectionManager {
 				if (this.statusView) {
 					const configuration = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 					const intelliSenseConfig = configuration.get<IntelliSenseConfig>(Constants.configIntelliSense);
-					const flavor = intelliSenseConfig.setQueryEditorLanguageToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
+					const flavor = intelliSenseConfig.defaultQueryEditorLanguageToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
 					this.statusView.languageFlavorChanged(fileUri, flavor);
 					this.statusView.connecting(fileUri, connectionCreds);
 					this.statusView.languageFlavorChanged(fileUri, flavor);

@@ -11,7 +11,7 @@ import { AzureAuthType } from './contracts/azure';
 
 // interfaces
 export interface IntelliSenseConfig {
-	setQueryEditorLanguageToNone: boolean;
+	defaultQueryEditorLanguageToNone: boolean;
 }
 
 export enum ContentType {

@@ -101,7 +101,7 @@
 "mssql.enableQueryHistoryFeature":"Should Query History feature be enabled",
 "mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
 "mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
-"mssql.intelliSense.setQueryEditorLanguageToNone":"Should the editor language be set to None when a query editor is opened.",
+"mssql.intelliSense.defaultQueryEditorLanguageToNone":"Should the default editor language be set to None when a query editor is opened.",
 "mssql.queryHistoryLimit":"Number of query history entries to show in the Query History view",
 "mssql.createAzureFunction":"Create Azure Function with SQL binding",
 "mssql.query.maxXmlCharsToStore":"Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.",
