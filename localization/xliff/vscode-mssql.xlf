@@ -1142,6 +1142,9 @@
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
     </trans-unit>
+    <trans-unit id="mssql.intelliSense.defaultQueryEditorLanguageToNone">
+      <source xml:lang="en">Should the default editor language be set to None when a query editor is opened.</source>
+    </trans-unit>
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
