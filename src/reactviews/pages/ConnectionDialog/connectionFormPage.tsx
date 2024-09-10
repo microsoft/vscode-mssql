@@ -44,6 +44,7 @@ export const ConnectionFormPage = () => {
                             context={connectionDialogContext}
                             component={connectionDialogContext.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile] as FormItemSpec<IConnectionDialogProfile>}
                             idx={idx}
+                            props={{ orientation: 'horizontal' }}
                         />
                     );
                 }

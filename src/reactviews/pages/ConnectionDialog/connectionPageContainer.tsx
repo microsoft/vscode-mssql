@@ -5,7 +5,7 @@
 
 import { ReactNode, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Button, Field, MessageBar, Radio, RadioGroup, Spinner } from "@fluentui/react-components";
+import { Field, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
 import { ConnectionDialogContextProps, IConnectionDialogProfile, ConnectionInputMode } from "../../../sharedInterfaces/connectionDialog";
 import './sqlServerRotation.css';
 import { ConnectionHeader } from "./connectionHeader";
@@ -13,7 +13,7 @@ import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ConnectButton } from "./connectButton";
 
 function renderInputs(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
 	switch (connectionDialogContext?.state.selectedInputMode) {
@@ -65,21 +65,7 @@ export const ConnectionInfoFormContainer = () => {
 				<div style={{ overflow: 'auto' }}>
 					{renderInputs(connectionDialogContext)}
 				</div>
-				<Button
-					appearance="primary"
-					disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
-					shape="square"
-					onClick={(_event) => { connectionDialogContext.connect(); }}
-					style={
-						{
-							width: '200px',
-							alignSelf: 'center'
-						}
-					}
-					iconPosition="after"
-					icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-						Connect
-				</Button>
+				<ConnectButton style={{alignSelf: 'stretch'}} />
 			</div>
 		</div>
 	);

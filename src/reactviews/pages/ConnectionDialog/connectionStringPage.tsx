@@ -24,6 +24,7 @@ export const ConnectionStringPage = () => {
 				context={connectionDialogContext}
 				component={connectionDialogContext.state.connectionComponents.components['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
 				idx={index}
+				props={{ orientation: 'horizontal' }}
 			/>
 		</div>
 	);
