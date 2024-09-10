@@ -8,7 +8,7 @@ import { CSSProperties, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
-export const ConnectButton = ({style}: {style: CSSProperties}) => {
+export const ConnectButton = ({style}: {style?: CSSProperties}) => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 
 	if (!connectionDialogContext) {

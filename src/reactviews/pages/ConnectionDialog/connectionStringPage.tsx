@@ -5,20 +5,20 @@
 
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormField } from "../../common/forms/form.component";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { FormItemSpec } from "../../common/forms/form";
+import { ConnectButton } from "./connectButton";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const formStyles = useFormStyles();
 
 	if (connectionDialogContext === undefined) {
 		return undefined;
 	}
 	let index = 0;
 	return (
-		<div className={formStyles.formDiv}>
+		<div>
 			<FormField
 				key={index++}
 				context={connectionDialogContext}
@@ -26,6 +26,8 @@ export const ConnectionStringPage = () => {
 				idx={index}
 				props={{ orientation: 'horizontal' }}
 			/>
+
+            <ConnectButton />
 		</div>
 	);
 };

@@ -10,19 +10,18 @@ import {
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
-    MessageBar,
     OverlayDrawer,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormField } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { ConnectButton } from "./connectButton";
 
 export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
-    const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     if (connectionDialogContext === undefined) {
@@ -30,12 +29,7 @@ export const ConnectionFormPage = () => {
     }
 
     return (
-        <div className={formStyles.formDiv}>
-            {connectionDialogContext.state.formError && (
-                <MessageBar intent="error">
-                    {connectionDialogContext.state.formError}
-                </MessageBar>
-            )}
+        <div>
             {(connectionDialogContext.state.connectionComponents.mainOptions).map(
                 (inputName, idx) => {
                     return (
@@ -118,6 +112,19 @@ export const ConnectionFormPage = () => {
             >
                 Advanced
             </Button>
+            <Button
+                shape="square"
+                onClick={(_event) => {
+                    //connectionDialogContext.testConnection();
+                }}
+                style={{
+                    width: "200px",
+                    alignSelf: "center",
+                }}
+            >
+                Test Connection
+            </Button>
+            <ConnectButton />
         </div>
     );
 };
