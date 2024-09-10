@@ -52,7 +52,7 @@ interface VscodeWebViewProviderProps {
  */
 export function VscodeWebViewProvider<State, Reducers>({ children }: VscodeWebViewProviderProps) {
 	const vscodeApi = vscodeApiInstance;
-	const extensionRpc = new WebviewRpc<Reducers>(vscodeApi);
+	const extensionRpc = WebviewRpc.getInstance<Reducers>(vscodeApi);
 	const [theme, setTheme] = useState(webLightTheme);
 	const [route, setRoute] = useState<WebviewRoute>();
 	const [state, setState] = useState<State>();

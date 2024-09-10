@@ -37,12 +37,12 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
 		private readonly _options: HybridDataProviderOptions) {
 		this._asyncDataProvider = new AsyncDataProvider<T>(dataRows);
 		this._tableDataProvider = new TableDataView<T>(undefined, undefined, sortFn, filterFn, valueGetter);
-		this._asyncDataProvider.onFilterStateChange(() => {
-			// this._onFilterStateChange.fire();
-		});
-		this._asyncDataProvider.onSortComplete((args) => {
-			// this._onSortComplete.fire(args);
-		});
+		// this._asyncDataProvider.onFilterStateChange(() => {
+		// 	// this._onFilterStateChange.fire();
+		// });
+		// this._asyncDataProvider.onSortComplete((args) => {
+		// 	// this._onSortComplete.fire(args);
+		// });
 		// this._tableDataProvider.onFilterStateChange(() => {
 		// 	this._onFilterStateChange.fire();
 		// });

@@ -6,10 +6,14 @@
 import $ from 'jquery';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import '../../../../media/slickgrid.css';
-import { Table } from './table/table';
+import { range, Table } from './table/table';
 import { TableDataView } from './table/tableDataView';
 import { defaultTableStyles, FilterableColumn } from './table/interfaces';
 import { RowNumberColumn } from './table/plugins/rowNumberColumn.plugin';
+import { VirtualizedCollection } from './table/asyncDataView';
+import { HybridDataProvider } from './table/hybridDataProvider';
+import { DbCellValue, ResultSetSummary } from '../../../models/contracts/queryExecute';
+import { hyperLinkFormatter, textFormatter, DBCellValue } from './table/formatters';
 
 window.jQuery = $ as any;
 require('slickgrid/lib/jquery.event.drag-2.3.0.js');
@@ -32,6 +36,7 @@ export interface SlickGridProps {
     test: string;
     x: number;
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
+    resultSetSummary: ResultSetSummary;
 }
 
 export interface SlickGridHandle {
@@ -45,57 +50,89 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
     const refreshGrid = () => {
         setRefreshKey(prev => prev + 1);
     };
-    useEffect(() =>{
+    useEffect(() => {
         const ROW_HEIGHT = 25;
-        let columns: Slick.Column<Slick.SlickData>[] = [
-        {id: "title", name: "Title", field: "title"},
-        {id: "duration", name: "Duration", field: "duration"},
-        {id: "%", name: "% Complete", field: "percentComplete"},
-        {id: "start", name: "Start", field: "start"},
-        {id: "finish", name: "Finish", field: "finish"},
-        {id: "effort-driven", name: "Effort Driven", field: "effortDriven"}
-        ];
+
+        let columns: Slick.Column<Slick.SlickData>[] = props.resultSetSummary.columnInfo.map((c, i) => {
+			return {
+				id: i.toString(),
+				name: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
+					? "TODO loc - Showplan XML"
+					: escape(c.columnName),
+				field: i.toString(),
+				formatter: c.isXml || c.isJson ? hyperLinkFormatter : (row: number | undefined, cell: any | undefined, value: DbCellValue, columnDef: any | undefined, dataContext: any | undefined): string | { text: string, addClasses: string } => {
+					if (isXmlCell(value)) {
+						props.resultSetSummary.columnInfo[i].isXml = true;
+						return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
+					} else if (isJsonCell(value)) {
+                        //TODO use showJsonAsLink config
+						props.resultSetSummary.columnInfo[i].isJson = true;
+						return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
+					} else {
+						return textFormatter(row, cell, value, columnDef, dataContext, (DBCellValue.isDBCellValue(value) && value.isNull) ? NULL_CELL_CSS_CLASS : undefined);
+					}
+				},
+				// width: this.state.columnSizes && this.state.columnSizes[i] ? this.state.columnSizes[i] : undefined
+			};
+		});
         // let options = {
         //     enableCellNavigation: true,
         //     enableColumnReorder: false
         // };
-        let data = [];
-        for (var i = 0; i < 500; i++) {
-            data[i] = {
-                title: "Task " + i,
-                duration: "5 days",
-                percentComplete: Math.round(Math.random() * 100),
-                start: "01/01/2009",
-                finish: "01/05/2009",
-                effortDriven: (i % 5 === 0)
-            };
-        }
-
 
         let div = document.createElement('div');
         div.id = 'grid';
-		div.className = 'grid-panel';
-		div.style.display = 'inline-block';
+        div.className = 'grid-panel';
+        div.style.display = 'inline-block';
 
         //TODO: eventually need to calculate snapshot button width and subtract
-		// let actionBarWidth = this.showActionBar ? ACTIONBAR_WIDTH : 0;
-		// this.tableContainer.style.width = `calc(100% - ${actionBarWidth}px)`;
+        // let actionBarWidth = this.showActionBar ? ACTIONBAR_WIDTH : 0;
+        // this.tableContainer.style.width = `calc(100% - ${actionBarWidth}px)`;
 
 
 
         let tableOptions: Slick.GridOptions<Slick.SlickData> = {
-			rowHeight: ROW_HEIGHT,
-			showRowNumber: true,
-			forceFitColumns: false,
-			defaultColumnWidth: 120
-		};
+            rowHeight: ROW_HEIGHT,
+            showRowNumber: true,
+            forceFitColumns: false,
+            defaultColumnWidth: 120
+        };
         let rowNumberColumn = new RowNumberColumn({ autoCellSelection: false });
         columns.unshift(rowNumberColumn.getColumnDefinition());
 
-        //TODO: use hybriddataprovider here
-        let tableData = new TableDataView(data);
+        let collection = new VirtualizedCollection<any>(
+            50,
+            index => { },
+            props.resultSetSummary.rowCount,
+            props.loadFunc
+        );
 
-        new Table(div, defaultTableStyles, { dataProvider: tableData, columns: columns });
+        let dataProvider = new HybridDataProvider(collection,
+            (offset, count) => {
+                console.log('loadFunc2');
+                return Promise.resolve([[{ title: 'test' }]])
+            },
+            undefined,
+            undefined,
+            (data: DbCellValue) => {
+                if (!data || data.isNull) {
+                    return undefined;
+                }
+                // If the string only contains whitespaces, it will be treated as empty string to make the filtering easier.
+                // Note: this is the display string and does not impact the export/copy features.
+                return data.displayValue.trim() === '' ? '' : data.displayValue;
+            },
+            {
+                inMemoryDataProcessing: true,
+            });
+        var table = new Table(div, defaultTableStyles, { dataProvider: dataProvider, columns: columns });
+
+        collection.setCollectionChangedCallback((startIndex, count) => {
+            let refreshedRows = range(startIndex, startIndex + count);
+            table.invalidateRows(refreshedRows, true);
+        });
+        table.updateRowCount();
+
         let grid = document.body.appendChild(div);
         const elm = document.getElementById('grid')!;
         document.body.removeChild(grid);
@@ -106,8 +143,42 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
         refreshGrid,
     }));
 
-    return <div ref = {gridContainerRef}></div>;
-  });
+    return <div ref={gridContainerRef}></div>;
+});
+
+function isJsonCell(value: DbCellValue): boolean {
+    return !!(value && !value.isNull && value.displayValue?.match(IsJsonRegex));
+}
+
+function isXmlCell(value: DBCellValue): boolean {
+    let isXML = false;
+    try {
+        if (value && !value.isNull && value.displayValue.trim() !== '') {
+            var parser = new DOMParser();
+            // Script elements if any are not evaluated during parsing
+            var doc = parser.parseFromString(value.displayValue, 'text/xml');
+            // For non-xmls, parsererror element is present in body element.
+            var parserErrors = doc.body?.getElementsByTagName('parsererror') ?? [];
+            isXML = parserErrors?.length === 0;
+        }
+    } catch (e) {
+        // Ignore errors when parsing cell content, log and continue
+        this.logService.debug(`An error occurred when parsing data as XML: ${e}`);
+    }
+    return isXML;
+}
+
+// The regex to check whether a string is a valid JSON string. It is used to determine:
+// 1. whether the cell should be rendered as a hyperlink.
+// 2. when user clicks a cell, whether the cell content should be displayed in a new text editor as json.
+// Based on the requirements, the solution doesn't need to be very accurate, a simple regex is enough since it is more
+// performant than trying to parse the string to object.
+// Regex explaination: after removing the trailing whitespaces and line breaks, the string must start with '[' (to support arrays)
+// or '{', and there must be a '}' or ']' to close it.
+const IsJsonRegex = /^\s*[\{|\[][\S\s]*[\}\]]\s*$/g;
+
+// The css class for null cell
+const NULL_CELL_CSS_CLASS = 'cell-null';
 
 SlickGrid.displayName = 'SlickGrid';
 export default SlickGrid;

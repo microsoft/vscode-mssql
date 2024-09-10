@@ -156,14 +156,7 @@ export const QueryResultPane = () => {
 			{
 				<Button appearance="transparent" icon={<OpenFilled />} onClick={async () => {
 					console.log('todo: open in new tab');
-					const rows = await webViewState?.extensionRpc.call('getRows', {
-						uri: metadata.uri,
-						batchId: metadata.resultSetSummary.batchId,
-						resultId: metadata.resultSetSummary.id,
-						rowStart: 0,
-						numberOfRows: 10});
-					console.log(rows);
-						gridRef.current.refreshGrid();
+					// gridRef.current.refreshGrid();
 				}} title='Open in new tab'></Button>
 			}
 		</div>
@@ -171,43 +164,41 @@ export const QueryResultPane = () => {
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div id={'grid-parent'} className={classes.queryResultContainer}>
 					<SlickGrid test={'fdas'} x={1} loadFunc={(offset: number, count: number): Thenable<any[]> => {
-						console.log('loadFunc');
-						return Promise.resolve([[{displayValue: 'test', isNull: false},]]);
-		return webViewState?.extensionRpc.call('getRows', {
-			uri: metadata.uri,
-			batchId: metadata.resultSetSummary.batchId,
-			resultId: metadata.resultSetSummary.id,
-			rowStart: offset,
-			numberOfRows: count}).then(response => {
-				console.log(response);
-				console.log('response');
-			if (!response) {
-				return [];
-			}
-			let r = response as ResultSetSubset;
-			return r.rows.map(r => {
-				let dataWithSchema = {};
-				// skip the first column since its a number column
-				for (let i = 1; i < 2; i++) {
-					const displayValue = r[i - 1].displayValue ?? '';
-					const ariaLabel = (displayValue);
-					dataWithSchema['name'] = {
-						displayValue: displayValue,
-						ariaLabel: ariaLabel,
-						isNull: r[i - 1].isNull,
-						invariantCultureDisplayValue: displayValue
-					};
-				}
-				return dataWithSchema;
-			});
-		});
+						return webViewState.extensionRpc.call('getRows', {
+							uri: metadata.uri,
+							batchId: metadata.resultSetSummary.batchId,
+							resultId: metadata.resultSetSummary.id,
+							rowStart: offset,
+							numberOfRows: count
+						}).then(response => {
+							console.log('HAIDEBUG response' + JSON.stringify(response));
+							if (!response) {
+								return [];
+							}
+							let r = response as ResultSetSubset;
+							return r.rows.map(r => {
+								let dataWithSchema = {};
+								// skip the first column since its a number column
+								for (let i = 1; i < metadata.resultSetSummary.columnInfo.length + 1; i++) {
+									const displayValue = r[i - 1].displayValue ?? '';
+									const ariaLabel = (displayValue);
+									dataWithSchema[(i-1).toString()] = {
+										displayValue: displayValue,
+										ariaLabel: ariaLabel,
+										isNull: r[i - 1].isNull,
+										invariantCultureDisplayValue: displayValue
+									};
+								}
+								return dataWithSchema;
+							});
+						});
 
-					}} ref={gridRef} />
+					}} ref={gridRef} resultSetSummary={metadata.resultSetSummary} />
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && <div className={classes.messagesContainer}>
 				<Table size="small"
-					as = "table"
+					as="table"
 					{...columnSizing_unstable.getTableProps()}
 					ref={tableRef}
 				>
@@ -230,8 +221,8 @@ export const QueryResultPane = () => {
 								return <TableRow key={index}>
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('timestamp')}
-										>{row.item.timestamp}</TableCell>
-										<TableCell
+									>{row.item.timestamp}</TableCell>
+									<TableCell
 										{...columnSizing_unstable.getTableCellProps('description')}
 									>{row.item.message}</TableCell>
 								</TableRow>
