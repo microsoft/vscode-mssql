@@ -54,7 +54,7 @@ export const MruConnectionsContainer = () => {
 							connectionDialogContext.loadConnection(connection);
 						}}>
 							<TreeItemLayout iconBefore={<ServerRegular />}>
-								{connection.profileName}
+								{connection.displayName}
 							</TreeItemLayout>
 						</TreeItem>;
 					})
