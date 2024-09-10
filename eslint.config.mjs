@@ -110,7 +110,6 @@ const commonRules = {
 
 export default [
   react.configs.recommended,
-  //reactHooks.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],
     ignores: ['src/prompts/**/*.ts', '**/*.d.ts'],  // Ignore prompts files as they are copied from other repos
@@ -128,10 +127,27 @@ export default [
       ["deprecation"]: fixupPluginRules(deprecationPlugin),
       react,
     },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
     rules: {
-      'react/react-in-jsx-scope': 'off',
+      "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
+      "react/jsx-closing-bracket-location": ["error", "line-aligned"],
+      "react/jsx-closing-tag-location": ["error", "line-aligned"],
+      "react/self-closing-comp": "error",
+      "react/jsx-wrap-multilines": "error",
+      "react/jsx-boolean-value": "error",
+      "react/jsx-curly-spacing": "error",
+      "react/jsx-tag-spacing": "error",
+      "no-multi-spaces": "error",
+      "jsx-quotes": "error",
+      "react/jsx-newline": "error",
+      "react/jsx-indent-props": "error",
+      "react/jsx-indent": "error",
       ...commonRules
-    }
+    },
   }
 ];

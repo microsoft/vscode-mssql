@@ -72,6 +72,7 @@ const cssLoaderPlugin = {
 };
 
 gulp.task('ext:lint', () => {
+	const fix = (argv.fix === undefined) ? false : true;
 	return gulp.src([
 		'./src/**/*.ts',
 		'./src/**/*.tsx',
@@ -80,10 +81,12 @@ gulp.task('ext:lint', () => {
 		'!./src/views/htmlcontent/**/*'
 	])
 		.pipe(gulpESLintNew({
-			quiet: true
+			quiet: true,
+			fix: fix
 		}))
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
-		.pipe(gulpESLintNew.failAfterError());
+		.pipe(gulpESLintNew.failAfterError())
+		.pipe(gulpESLintNew.fix());
 });
 
 // Copy icons for OE
@@ -183,7 +186,7 @@ gulp.task('ext:compile-src', (done) => {
 
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
-return gulp.src([
+	return gulp.src([
 		config.paths.project.root + '/src/views/htmlcontent/**/*.ts',
 		config.paths.project.root + '/typings/**/*.d.ts'])
 		.pipe(srcmap.init())
