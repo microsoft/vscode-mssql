@@ -875,7 +875,7 @@ export default class ConnectionManager {
 					 // lewissanchez flag: May need to check intellisense enabled setting here
 					const configuration = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 					const intelliSenseConfig = configuration.get<IntelliSenseConfig>(Constants.configIntelliSense);
-					const flavor = intelliSenseConfig.enableIntelliSense ? Constants.mssqlProviderName : Constants.noneProviderName;
+					const flavor = intelliSenseConfig.setQueryEditorLanguageToNone ? Constants.noneProviderName : Constants.mssqlProviderName;
 					this.statusView.languageFlavorChanged(fileUri, flavor);
 					this.statusView.connecting(fileUri, connectionCreds);
 					this.statusView.languageFlavorChanged(fileUri, flavor);
