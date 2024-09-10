@@ -1046,6 +1046,9 @@
     <trans-unit id="mssql.queryHistoryLimit">
       <source xml:lang="en">Number of query history entries to show in the Query History view</source>
     </trans-unit>
+    <trans-unit id="mssql.openExecutionPlanFile">
+      <source xml:lang="en">Open Execution Plan File</source>
+    </trans-unit>
     <trans-unit id="mssql.openQueryHistory">
       <source xml:lang="en">Open Query</source>
     </trans-unit>
