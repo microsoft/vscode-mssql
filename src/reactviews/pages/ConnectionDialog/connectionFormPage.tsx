@@ -5,8 +5,11 @@
 
 import { useContext, useState } from "react";
 import {
+    Accordion,
+    AccordionHeader,
+    AccordionItem,
+    AccordionPanel,
     Button,
-    Divider,
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
@@ -66,38 +69,44 @@ export const ConnectionFormPage = () => {
                 </DrawerHeader>
 
                 <DrawerBody>
-                    {
-                        connectionDialogContext.state.connectionComponents.topAdvancedOptions.map((optionName, idx) => {
+                    <div style={{ margin: "20px 0px" }}>
+                        {
+                            connectionDialogContext.state.connectionComponents.topAdvancedOptions.map((optionName, idx) => {
+                                return (
+                                    <FormField
+                                        key={idx}
+                                        context={connectionDialogContext}
+                                        component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
+                                        idx={idx}
+                                    />
+                                );
+                            })
+                        }
+                    </div>
+                    <Accordion multiple collapsible>
+                        {Object.keys(connectionDialogContext.state.connectionComponents.groupedAdvancedOptions).map((group, groupIndex) => {
                             return (
-                                <FormField
-                                    key={idx}
-                                    context={connectionDialogContext}
-                                    component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
-                                    idx={idx}
-                                />
+                                    <AccordionItem value={group} key={groupIndex}>
+                                        <AccordionHeader>{group}</AccordionHeader>
+                                            <AccordionPanel>
+                                                {connectionDialogContext.state.connectionComponents.groupedAdvancedOptions[group].map((optionName, idx) => {
+                                                if (connectionDialogContext.state.connectionComponents.components[optionName].hidden === true) {
+                                                    return undefined;
+                                                }
+                                                return (
+                                                    <FormField
+                                                        key={idx}
+                                                        context={connectionDialogContext}
+                                                        component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
+                                                        idx={idx}
+                                                    />
+                                                );
+                                            })}
+                                        </AccordionPanel>
+                                </AccordionItem>
                             );
-                        })
-                    }
-                    {Object.keys(connectionDialogContext.state.connectionComponents.groupedAdvancedOptions).map((group, groupIndex) => {
-                        return (
-                            <div key={groupIndex} style={{ margin: "20px 0px" }}>
-                                <Divider>{group}</Divider>
-                                {connectionDialogContext.state.connectionComponents.groupedAdvancedOptions[group].map((optionName, idx) => {
-                                    if (connectionDialogContext.state.connectionComponents.components[optionName].hidden === true) {
-                                        return undefined;
-                                    }
-                                    return (
-                                        <FormField
-                                            key={idx}
-                                            context={connectionDialogContext}
-                                            component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
-                                            idx={idx}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        );
-                    })}
+                        })}
+                    </Accordion>
                 </DrawerBody>
             </OverlayDrawer>
             <Button
