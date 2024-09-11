@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
     dialogContent: {
@@ -47,12 +48,26 @@ export const DesignerChangesPreviewButton = () => {
 
     const metadata = designerContext.state;
 
+    // contant strings
+    const PUBLISHING_CHANGES = l10n.t('Publishing Changes');
+    const CHANGES_PUBLISHED_SUCCESSFULLY = l10n.t('Changes published successfully');
+    const CLOSE_DESIGNER = l10n.t('Close Designer');
+    const CONTINUE_EDITING = l10n.t('Continue Editing');
+    const LOADING_TABLE_DESIGNER = l10n.t('Loading Table Designer');
+    const ERROR_LOADING_PREVIEW = l10n.t('Error loading preview');
+    const RETRY = l10n.t('Retry');
+    const UPDATE_DATABASE = l10n.t('Update Database');
+    const GENERATE_SCRIPT = l10n.t('Generate Script');
+    const CLOSE = l10n.t('Close');
+    const PUBLISH = l10n.t('Publish');
+    const PREVIEW_DATABASE_UPDATES = l10n.t('Preview Database Updates');
+
     const generateScriptIcon = () => {
         switch (metadata?.apiState?.generateScriptState) {
             case LoadState.Loading:
-                return <Spinner size='extra-small' />
+                return <Spinner size='extra-small' />;
             case LoadState.Error:
-                return <ErrorCircleRegular />
+                return <ErrorCircleRegular />;
             default:
                 return undefined;
         }
@@ -60,97 +75,109 @@ export const DesignerChangesPreviewButton = () => {
 
     const getDialogContent = () => {
         if (metadata?.apiState?.publishState === LoadState.Loading) {
-            return <>
-                <DialogContent className={classes.dialogContent}>
-                    <Spinner label="Publishing Changes" labelPosition='below' />
-                </DialogContent>
-            </>;
+            return (
+                <>
+                    <DialogContent className={classes.dialogContent}>
+                        <Spinner label={PUBLISHING_CHANGES} labelPosition='below' />
+                    </DialogContent>
+                </>
+            );
         }
         if (metadata?.apiState?.publishState === LoadState.Loaded) {
-            return <>
-                <DialogContent className={classes.dialogContent}>
-                    <div>Changes published successfully</div>
-                </DialogContent>
-                <DialogActions>
-                    <Button size="medium" appearance="primary" onClick={designerContext.provider.closeDesigner}>Close Designer</Button>
-                    <DialogTrigger action="close">
-                        <Button size="medium" appearance="secondary" onClick={designerContext.provider.continueEditing}>Continue Editing</Button>
-                    </DialogTrigger>
-                </DialogActions>
-            </>;
+            return (
+                <>
+                    <DialogContent className={classes.dialogContent}>
+                        <div>{CHANGES_PUBLISHED_SUCCESSFULLY}</div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button size="medium" appearance="primary" onClick={designerContext.provider.closeDesigner}>{CLOSE_DESIGNER}</Button>
+                        <DialogTrigger action="close">
+                            <Button size="medium" appearance="secondary" onClick={designerContext.provider.continueEditing}>{CONTINUE_EDITING}</Button>
+                        </DialogTrigger>
+                    </DialogActions>
+                </>
+            );
         }
         if (metadata?.apiState?.previewState === LoadState.Loading) {
-            return <>
-                <DialogContent className={classes.dialogContent}>
-                    <Spinner label="Loading" labelPosition='below' />
-                </DialogContent>
-            </>;
+            return (
+                <>
+                    <DialogContent className={classes.dialogContent}>
+                        <Spinner label={LOADING_TABLE_DESIGNER} labelPosition='below' />
+                    </DialogContent>
+                </>
+            );
         }
         if (metadata?.apiState?.previewState === LoadState.Error) {
-            return <>
-                <DialogContent className={classes.dialogContent}>
-                    <ErrorCircleRegular className={classes.errorIcon} />
-                    <div>Error loading preview</div>
-                    <Button className={classes.retryButton} onClick={() => {
-                        designerContext.provider.generatePreviewReport();
-                    }}>Retry</Button>
-                </DialogContent>
-            </>;
+            return (
+                <>
+                    <DialogContent className={classes.dialogContent}>
+                        <ErrorCircleRegular className={classes.errorIcon} />
+                        <div>{ERROR_LOADING_PREVIEW}</div>
+                        <Button className={classes.retryButton} onClick={() => {
+                            designerContext.provider.generatePreviewReport();
+                        }}>{RETRY}</Button>
+                    </DialogContent>
+                </>
+            );
         }
         if (metadata?.apiState?.previewState === LoadState.Loaded) {
-            return <>
-                <DialogContent>
-                    <div style={
-                        {
-                            width: '98%',
-                            height: '100%',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderTop: '1px solid #e0e0e0',
-                            borderBottom: '1px solid #e0e0e0',
-                            overflow: 'auto',
-                        }
-                    }>
-                        <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
-                    </div>
-                </DialogContent>
-                <DialogActions>
-                    <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
-                        designerContext.provider.publishChanges();
-                    }} >Update Database</Button>
-                    <DialogTrigger action="close">
-                        <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={designerContext.provider.generateScript} >Generate Script</Button>
-                    </DialogTrigger>
-                    <DialogTrigger disableButtonEnhancement>
-                        <Button size="medium" appearance="secondary">Close</Button>
-                    </DialogTrigger>
-                </DialogActions>
-            </>;
+            return (
+                <>
+                    <DialogContent>
+                        <div style={
+                            {
+                                width: '98%',
+                                height: '100%',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderTop: '1px solid #e0e0e0',
+                                borderBottom: '1px solid #e0e0e0',
+                                overflow: 'auto',
+                            }
+                        }>
+                            <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
+                            designerContext.provider.publishChanges();
+                        }} >{UPDATE_DATABASE}</Button>
+                        <DialogTrigger action="close">
+                            <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={designerContext.provider.generateScript} >{GENERATE_SCRIPT}</Button>
+                        </DialogTrigger>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button size="medium" appearance="secondary">{CLOSE}</Button>
+                        </DialogTrigger>
+                    </DialogActions>
+                </>
+            );
         }
 
     };
 
-    return <Dialog inertTrapFocus={true}>
-        <DialogTrigger disableButtonEnhancement>
-            <ToolbarButton
-                aria-label="Publish"
-                title="Publish"
-                icon={<DatabaseArrowDownRegular />}
-                onClick ={() => {
-                    designerContext.provider.generatePreviewReport();
-                }}
-                disabled={(metadata?.issues?.length ?? 0) > 0}
-            >
-                Publish
-            </ToolbarButton>
-        </DialogTrigger>
-        <DialogSurface>
-            <DialogBody>
-                <DialogTitle>
-                    Preview Database Updates
-                </DialogTitle>
-                {getDialogContent()}
-            </DialogBody>
-        </DialogSurface>
-    </Dialog>
+    return (
+        <Dialog inertTrapFocus={true}>
+            <DialogTrigger disableButtonEnhancement>
+                <ToolbarButton
+                    aria-label={PUBLISH}
+                    title={PUBLISH}
+                    icon={<DatabaseArrowDownRegular />}
+                    onClick={() => {
+                        designerContext.provider.generatePreviewReport();
+                    }}
+                    disabled={(metadata?.issues?.length ?? 0) > 0}
+                >
+                    {PUBLISH}
+                </ToolbarButton>
+            </DialogTrigger>
+            <DialogSurface>
+                <DialogBody>
+                    <DialogTitle>
+                        {PREVIEW_DATABASE_UPDATES}
+                    </DialogTitle>
+                    {getDialogContent()}
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
+    );
 }
