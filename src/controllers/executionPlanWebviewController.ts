@@ -9,8 +9,8 @@ import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { homedir } from "os";
 import { exists } from "../utils/utils";
-import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
-import * as path from 'path';
+import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import * as path from "path";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
@@ -24,15 +24,18 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     private executionPlanContents: string,
     // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
     // @ts-ignore
-    private xmlPlanFileName: string
+    private xmlPlanFileName: string,
   ) {
     super(
       context,
-      `${xmlPlanFileName}`,  // Sets the webview title
-      'executionPlan',
+      `${xmlPlanFileName}`, // Sets the webview title
+      "executionPlan",
       {
         sqlPlanContent: executionPlanContents,
-        theme: vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light",
+        theme:
+          vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
+            ? "dark"
+            : "light",
         localizedConstants: LocalizedConstants,
         loadState: ApiStatus.Loading,
         executionPlan: undefined,
@@ -44,14 +47,14 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         dark: vscode.Uri.joinPath(
           context.extensionUri,
           "media",
-          "executionPlan_dark.svg"
+          "executionPlan_dark.svg",
         ),
         light: vscode.Uri.joinPath(
           context.extensionUri,
           "media",
-          "executionPlan_light.svg"
+          "executionPlan_light.svg",
         ),
-      }
+      },
     );
     this.initialize();
   }
@@ -69,27 +72,22 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
       return {
         ...state,
         executionPlan: this.state.executionPlan,
-        executionPlanGraphs: this.state.executionPlanGraphs
+        executionPlanGraphs: this.state.executionPlanGraphs,
       };
     });
     this.registerReducer("saveExecutionPlan", async (state, payload) => {
       let folder = vscode.Uri.file(homedir());
-      if (await exists('Documents', folder)) {
-        folder = vscode.Uri.file(path.join(folder.path, 'Documents'));
+      if (await exists("Documents", folder)) {
+        folder = vscode.Uri.file(path.join(folder.path, "Documents"));
       }
 
       let filename: vscode.Uri;
       let counter = 1;
       if (await exists(`plan.sqlplan`, folder)) {
-        while (
-          await exists(`plan${counter}.sqlplan`, folder)
-        ) {
+        while (await exists(`plan${counter}.sqlplan`, folder)) {
           counter += 1;
         }
-        filename = vscode.Uri.joinPath(
-          folder,
-          `plan${counter}.sqlplan`
-        );
+        filename = vscode.Uri.joinPath(folder, `plan${counter}.sqlplan`);
       } else {
         filename = vscode.Uri.joinPath(folder, "plan.sqlplan");
       }
@@ -106,7 +104,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         // Write the content to the new file
         await vscode.workspace.fs.writeFile(
           saveUri,
-          Buffer.from(payload.sqlPlanContent)
+          Buffer.from(payload.sqlPlanContent),
         );
       }
 
@@ -115,7 +113,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     this.registerReducer("showPlanXml", async (state, payload) => {
       const planXmlDoc = await vscode.workspace.openTextDocument({
         content: payload.sqlPlanContent,
-        language: 'xml'
+        language: "xml",
       });
 
       await vscode.window.showTextDocument(planXmlDoc);
@@ -132,7 +130,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
 
       return {
         ...state,
-        totalCost: this.state.totalCost
+        totalCost: this.state.totalCost,
       };
     });
   }
@@ -160,7 +158,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
   private calculateTotalCost(): number {
     let sum = 0;
     for (const graph of this.state.executionPlanGraphs!) {
-      sum += (graph.root.cost + graph.root.subTreeCost);
+      sum += graph.root.cost + graph.root.subTreeCost;
     }
     return sum;
   }
