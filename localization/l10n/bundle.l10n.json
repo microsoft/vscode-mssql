@@ -1,4 +1,17 @@
 {
+  "Publishing Changes": "Publishing Changes",
+  "Changes published successfully": "Changes published successfully",
+  "Close Designer": "Close Designer",
+  "Continue Editing": "Continue Editing",
+  "Loading Table Designer": "Loading Table Designer",
+  "Error loading preview": "Error loading preview",
+  "Retry": "Retry",
+  "Update Database": "Update Database",
+  "Generate Script": "Generate Script",
+  "Close": "Close",
+  "Publish": "Publish",
+  "Preview Database Updates": "Preview Database Updates",
+  "Script As Create": "Script As Create",
   "Query {0}:  Query cost (relative to the script):  {1}/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}",
     "comment": [
@@ -215,7 +228,6 @@
   "Invalid IP Address": "Invalid IP Address",
   "Invalid Firewall rule name": "Invalid Firewall rule name",
   "No Queries Available": "No Queries Available",
-  "Retry": "Retry",
   "Create Firewall Rule": "Create Firewall Rule",
   "Connecting to server \"{0}\" on document \"{1}\"./{0} is the server name{1} is the document name": {
     "message": "Connecting to server \"{0}\" on document \"{1}\".",

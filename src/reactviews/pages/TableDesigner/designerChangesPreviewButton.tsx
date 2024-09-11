@@ -7,7 +7,7 @@ import { Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, Dialog
 import { ToolbarButton } from "@fluentui/react-toolbar";
 import { DatabaseArrowDownRegular, ErrorCircleRegular } from "@fluentui/react-icons";
 import { Button } from "@fluentui/react-button";
-import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
+import { Spinner, makeStyles } from "@fluentui/react-components";
 import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -17,7 +17,7 @@ import * as l10n from '@vscode/l10n';
 const useStyles = makeStyles({
     dialogContent: {
         height: '300px',
-        ...shorthands.overflow('auto'),
+        overflow: 'auto',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -46,9 +46,6 @@ export const DesignerChangesPreviewButton = () => {
         return null;
     }
 
-    const metadata = designerContext.state;
-
-    // contant strings
     const PUBLISHING_CHANGES = l10n.t('Publishing Changes');
     const CHANGES_PUBLISHED_SUCCESSFULLY = l10n.t('Changes published successfully');
     const CLOSE_DESIGNER = l10n.t('Close Designer');
@@ -61,6 +58,8 @@ export const DesignerChangesPreviewButton = () => {
     const CLOSE = l10n.t('Close');
     const PUBLISH = l10n.t('Publish');
     const PREVIEW_DATABASE_UPDATES = l10n.t('Preview Database Updates');
+
+    const metadata = designerContext.state;
 
     const generateScriptIcon = () => {
         switch (metadata?.apiState?.generateScriptState) {

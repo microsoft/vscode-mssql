@@ -128,6 +128,9 @@
 {1} is the server name
 {2} is the document name</note>
     </trans-unit>
+    <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
+      <source xml:lang="en">Changes published successfully</source>
+    </trans-unit>
     <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
       <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
       <note>{0} is the database name
@@ -160,6 +163,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
+      <source xml:lang="en">Close</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
+      <source xml:lang="en">Close Designer</source>
     </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
@@ -214,6 +223,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
       <source xml:lang="en">Contains</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
+      <source xml:lang="en">Continue Editing</source>
     </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
@@ -302,6 +314,9 @@
     <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
       <source xml:lang="en">Error connecting to: </source>
     </trans-unit>
+    <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
+      <source xml:lang="en">Error loading preview</source>
+    </trans-unit>
     <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
       <source xml:lang="en">Error occurred opening content in editor.</source>
     </trans-unit>
@@ -389,6 +404,9 @@
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
+      <source xml:lang="en">Generate Script</source>
+    </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
@@ -428,6 +446,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
+      <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -537,6 +558,9 @@
     <trans-unit id="++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588">
       <source xml:lang="en">Password (SQL Login)</source>
     </trans-unit>
+    <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
+      <source xml:lang="en">Preview Database Updates</source>
+    </trans-unit>
     <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
       <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
       <note>{0} is the uri
@@ -561,6 +585,12 @@
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
+    </trans-unit>
+    <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
+      <source xml:lang="en">Publish</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
+      <source xml:lang="en">Publishing Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
@@ -629,6 +659,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
+      <source xml:lang="en">Script As Create</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
@@ -748,6 +781,9 @@
     </trans-unit>
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
+      <source xml:lang="en">Update Database</source>
     </trans-unit>
     <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
       <source xml:lang="en">Updating IntelliSense...</source>
