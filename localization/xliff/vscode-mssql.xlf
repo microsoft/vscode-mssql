@@ -732,6 +732,9 @@
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
+    <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
+      <source xml:lang="en">Open in new tab</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
     </trans-unit>

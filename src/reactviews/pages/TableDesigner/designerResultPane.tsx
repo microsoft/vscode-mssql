@@ -77,6 +77,7 @@ export const DesignerResultPane = () => {
 	};
 	const ISSUES = l10n.t('Issues');
 	const GO_THERE = l10n.t('Go there');
+	const OPEN_IN_NEW_TAB = l10n.t('Open in new tab');
 
 	const getVscodeTheme = (theme: Theme) => {
 		switch (theme) {
@@ -168,7 +169,7 @@ export const DesignerResultPane = () => {
 
 			{
 				metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script &&
-				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title='Open in new tab'></Button>
+				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title={OPEN_IN_NEW_TAB}></Button>
 			}
 		</div>
 		<div className={classes.tabContent}>
