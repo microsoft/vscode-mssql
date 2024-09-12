@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useEffect, useState } from "react";
-import { Input, Button, Textarea, makeStyles, Field, InfoLabel, LabelProps, Dropdown, Checkbox, Option } from "@fluentui/react-components";
+import { Input, Button, Textarea, makeStyles, Field, InfoLabel, LabelProps, Dropdown, Checkbox, Option, FieldProps } from "@fluentui/react-components";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import { FormItemSpec, FormItemType, FormContextProps, FormState } from "./form";
 
@@ -70,7 +70,12 @@ export const FormInput = <TContext extends FormContextProps<TState, TForm>, TSta
 	);
 };
 
-export const FormField = <TContext extends FormContextProps<TState, TForm>, TState extends FormState<TForm>, TForm>({context, component, idx}: { context: TContext, component: FormItemSpec<TForm>, idx: number}) => {
+export const FormField = <TContext extends FormContextProps<TState, TForm>, TState extends FormState<TForm>, TForm>({context, component, idx, props}: { context: TContext, component: FormItemSpec<TForm>, idx: number, props?: FieldProps}) => {
+	if (!component) {
+		console.error('Form component is undefined');
+		return undefined;
+	}
+
 	const formStyles = useFormStyles();
 
 	return (
@@ -85,12 +90,14 @@ export const FormField = <TContext extends FormContextProps<TState, TForm>, TSta
 					component.tooltip
 						? {
 							children: (_: unknown, slotProps: LabelProps) => (
-								<InfoLabel {...slotProps} info={component.tooltip}>
+								<InfoLabel {...slotProps} info={component.tooltip} >
 									{ component.label }
 								</InfoLabel>
 							)
 						}
 						: component.label}
+				{...props}
+				style={{color: context.theme.colorNeutralForeground1}}
 			>
 				{ generateFormComponent(context, component, idx) }
 			</Field>
@@ -170,7 +177,7 @@ export const useFormStyles = makeStyles({
 	},
 	formDiv: {
 		padding: '10px',
-		maxWidth: '500px',
+		maxWidth: '600px',
 		display: 'flex',
 		flexDirection: 'column',
 		'> *': {
@@ -180,7 +187,7 @@ export const useFormStyles = makeStyles({
 	formComponentDiv: {
 		'> *': {
 			margin: '5px',
-		}
+		},
 	},
 	formComponentActionDiv: {
 		display: 'flex',

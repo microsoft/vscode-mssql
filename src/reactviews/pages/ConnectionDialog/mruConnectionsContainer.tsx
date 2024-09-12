@@ -52,13 +52,15 @@ export const MruConnectionsContainer = () => {
 			<Tree >
 				{
 					connectionDialogContext?.state?.recentConnections?.map((connection, index) => {
-						return <TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
-							connectionDialogContext.loadConnection(connection);
-						}}>
-							<TreeItemLayout iconBefore={<ServerRegular />}>
-								{connection.displayName}
-							</TreeItemLayout>
-						</TreeItem>;
+						return (
+							<TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
+								connectionDialogContext.loadConnection(connection);
+							}}>
+								<TreeItemLayout iconBefore={<ServerRegular />}>
+									{connection.displayName}
+								</TreeItemLayout>
+							</TreeItem>
+						);
 					})
 				}
 			</Tree>

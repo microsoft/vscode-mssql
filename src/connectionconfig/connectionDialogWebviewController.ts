@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabType, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { AuthenticationType, ConnectionDialogFormItemSpec, ConnectionDialogReducers, ConnectionDialogWebviewState, ConnectionInputMode, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -37,12 +37,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			new ConnectionDialogWebviewState({
 				connectionProfile: {} as IConnectionDialogProfile,
 				recentConnections: [],
-				selectedFormTab: FormTabType.Parameters,
-				connectionFormComponents: {
-					mainComponents: [],
-					advancedComponents: {}
+				selectedInputMode: ConnectionInputMode.Parameters,
+				connectionComponents: {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					components: {} as any, // force empty record for intial blank state
+					mainOptions: [],
+					topAdvancedOptions: [],
+					groupedAdvancedOptions: {}
 				},
-				connectionStringComponents: [],
 				connectionStatus: ApiStatus.NotStarted,
 				formError: ''
 			}),
@@ -71,9 +73,32 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			await this.loadEmptyConnection();
 		}
 
+		this.state.connectionComponents = {
+			components:  await this.generateConnectionComponents(),
+			mainOptions: [
+                'server',
+                'trustServerCertificate',
+                'authenticationType',
+                'user',
+                'password',
+                'savePassword',
+                'accountId',
+                'tenantId',
+                'database',
+                'encrypt'
+            ],
+			topAdvancedOptions: [
+				'port',
+				'connectTimeout',
+				// TODO: 'autoDisconnect',
+				// TODO: 'sslConfiguration',
+				'applicationName',
+				'replication'
+			],
+			groupedAdvancedOptions: {} // computed below
+		};
 
-		this.state.connectionFormComponents = await this.generateConnectionFormComponents();
-		this.state.connectionStringComponents = await this.generateConnectionStringComponents();
+		this.state.connectionComponents.groupedAdvancedOptions = this.groupAdvancedOptions(this.state.connectionComponents);
 
 		await this.updateItemVisibility();
 		this.state = this.state;
@@ -144,9 +169,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 	}
 
 	private async updateItemVisibility() {
-		const selectedTab = this.state.selectedFormTab;
+		const selectedTab = this.state.selectedInputMode;
 		let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
-		if (selectedTab === FormTabType.Parameters) {
+		if (selectedTab === ConnectionInputMode.Parameters) {
 			if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
 				hiddenProperties.push('user', 'password', 'savePassword');
 			}
@@ -162,22 +187,21 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}
 		}
 
-		for (const component of this.state.connectionFormComponents.mainComponents) {
-				component.hidden = hiddenProperties.includes(component.propertyName);
-		}
+		for (const component of Object.values(this.state.connectionComponents.components)) {
+			component.hidden = hiddenProperties.includes(component.propertyName);
 	}
+}
 
-	private getActiveFormComponents(): FormItemSpec<IConnectionDialogProfile>[] {
-		if (this.state.selectedFormTab === FormTabType.Parameters) {
-			return this.state.connectionFormComponents.mainComponents;
-		}
-		return this.state.connectionStringComponents;
+private getActiveFormComponents(): (keyof IConnectionDialogProfile)[] {
+	if (this.state.selectedInputMode === ConnectionInputMode.Parameters) {
+		return this.state.connectionComponents.mainOptions;
 	}
+	return ['connectionString', 'profileName'];
+}
 
-	private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItemSpec<IConnectionDialogProfile> | undefined {
-
-		return this.getActiveFormComponents().find(c => c.propertyName === propertyName);
-	}
+private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItemSpec<IConnectionDialogProfile> | undefined {
+	return this.getActiveFormComponents().includes(propertyName) ? this.state.connectionComponents.components[propertyName] : undefined;
+}
 
 	private async getAccounts(): Promise<FormItemOptions[]> {
 		const accounts = await this._mainController.azureAccountService.getAccounts();
@@ -261,93 +285,92 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}
 	}
 
-	private async completeFormComponents(components: Map<string, {option: ConnectionOption, component: FormItemSpec<IConnectionDialogProfile>}>) {
+	private async completeFormComponents(components: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>) {
 		// Add additional components that are not part of the connection options
-		components.set('savePassword', {
-			option: undefined,
-			component: {
-				propertyName: 'savePassword',
-				label: LocalizedConstants.savePassword,
-				required: false,
-				type: FormItemType.Checkbox,
-			}
-		});
-
-		components.set('accountId', {
-			option: undefined,
-			component: {
-				propertyName: 'accountId',
-				label: LocalizedConstants.azureAccount,
-				required: true,
-				type: FormItemType.Dropdown,
-				options: await this.getAccounts(),
-				placeholder: LocalizedConstants.selectAnAccount,
-				actionButtons: await this.getAzureActionButtons(),
-				validate: (value: string) => {
-					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
-						return {
-							isValid: false,
-							validationMessage: LocalizedConstants.azureAccountIsRequired
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				},
-			}
-		});
-
-		components.set('tenantId', {
-			option: undefined,
-			component: {
-				propertyName: 'tenantId',
-				label: LocalizedConstants.tenantId,
-				required: true,
-				type: FormItemType.Dropdown,
-				options: [],
-				hidden: true,
-				placeholder: LocalizedConstants.selectATenant,
-				validate: (value: string) => {
-					if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
-						return {
-							isValid: false,
-							validationMessage: LocalizedConstants.tenantIdIsRequired
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				}
-			}
-		});
-
-		components.set('profileName', {
-			option: undefined,
-			component: {
+		components['profileName'] = {
 			propertyName: 'profileName',
 			label: LocalizedConstants.profileName,
 			required: false,
 			type: FormItemType.Input,
-			}
-		});
-
-		// add missing validation functions for generated components
-		components.get('server')!.component.validate = (value: string) => {
-			if (this.state.selectedFormTab === FormTabType.Parameters && !value) {
-				return {
-					isValid: false,
-					validationMessage: LocalizedConstants.serverIsRequired
-				};
-			}
-			return {
-				isValid: true,
-				validationMessage: ''
-			};
+			isAdvancedOption: false
 		};
 
-		components.get('user')!.component.validate = (value: string) => {
+		components['savePassword'] = {
+			propertyName: 'savePassword',
+			label: LocalizedConstants.savePassword,
+			required: false,
+			type: FormItemType.Checkbox,
+			isAdvancedOption: false
+		};
+
+		components['accountId'] = {
+			propertyName: 'accountId',
+			label: LocalizedConstants.azureAccount,
+			required: true,
+			type: FormItemType.Dropdown,
+			options: await this.getAccounts(),
+			placeholder: LocalizedConstants.selectAnAccount,
+			actionButtons: await this.getAzureActionButtons(),
+			validate: (value: string) => {
+				if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+					return {
+						isValid: false,
+						validationMessage: LocalizedConstants.azureAccountIsRequired
+					};
+				}
+				return {
+					isValid: true,
+					validationMessage: ''
+				};
+			},
+			isAdvancedOption: false
+		};
+
+		components['tenantId'] = {
+			propertyName: 'tenantId',
+			label: LocalizedConstants.tenantId,
+			required: true,
+			type: FormItemType.Dropdown,
+			options: [],
+			hidden: true,
+			placeholder: LocalizedConstants.selectATenant,
+			validate: (value: string) => {
+				if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA && !value) {
+					return {
+						isValid: false,
+						validationMessage: LocalizedConstants.tenantIdIsRequired
+					};
+				}
+				return {
+					isValid: true,
+					validationMessage: ''
+				};
+			},
+			isAdvancedOption: false
+		};
+
+		components['connectionString'] = {
+			type: FormItemType.TextArea,
+			propertyName: 'connectionString',
+			label: LocalizedConstants.connectionString,
+			required: true,
+			validate: (value: string) => {
+				if (this.state.selectedInputMode === ConnectionInputMode.ConnectionString && !value) {
+					return {
+						isValid: false,
+						validationMessage: LocalizedConstants.connectionStringIsRequired
+					};
+				}
+				return {
+					isValid: true,
+					validationMessage: ''
+				};
+			},
+			isAdvancedOption: false
+		};
+
+		// add missing validation functions for generated components
+		components['server'].validate = (value: string) => {
 			if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
 				return {
 					isValid: false,
@@ -359,6 +382,60 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 				validationMessage: ''
 			};
 		};
+
+		components['user'].validate = (value: string) => {
+			if (this.state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
+				return {
+					isValid: false,
+					validationMessage: LocalizedConstants.usernameIsRequired
+				};
+			}
+			return {
+				isValid: true,
+				validationMessage: ''
+			};
+		};
+	}
+
+	private async generateConnectionComponents(): Promise<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> {
+		// get list of connection options from Tools Service
+		const capabilitiesResult: CapabilitiesResult = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
+		const connectionOptions: ConnectionOption[] = capabilitiesResult.capabilities.connectionProvider.options;
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const result: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec> = {} as any; // force empty record for intial blank state
+
+		for (const option of connectionOptions) {
+			result[option.name as keyof IConnectionDialogProfile] = {
+				...this.convertToFormComponent(option),
+				isAdvancedOption: !this._mainOptionNames.has(option.name),
+				optionCategory: option.groupName
+			};
+		}
+
+		await this.completeFormComponents(result);
+
+		return result;
+	}
+
+	private groupAdvancedOptions({components, mainOptions, topAdvancedOptions}: {
+		components: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>;
+        mainOptions: (keyof IConnectionDialogProfile)[],
+        topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+	}): Record<string, (keyof IConnectionDialogProfile)[]> {
+		const result = {};
+
+		for (const component of Object.values(components)) {
+			if (component.isAdvancedOption && !mainOptions.includes(component.propertyName) && !topAdvancedOptions.includes(component.propertyName)) {
+				if (!result[component.optionCategory]) {
+					result[component.optionCategory] = [component.propertyName];
+				} else {
+					result[component.optionCategory].push(component.propertyName);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	private _mainOptionNames = new Set<string>([
@@ -375,72 +452,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 		'profileName'
 	]);
 
-	private async generateConnectionFormComponents(): Promise<{
-		mainComponents: FormItemSpec<IConnectionDialogProfile>[],
-		advancedComponents: {[category: string]: FormItemSpec<IConnectionDialogProfile>[]}
-	}> {
-		// get list of connection options from Tools Service
-		const result: CapabilitiesResult = await this._mainController.connectionManager.client.sendRequest(GetCapabilitiesRequest.type, {});
-		const connectionOptions: ConnectionOption[] = result.capabilities.connectionProvider.options;
-
-		// convert connection options to form components
-		const allConnectionFormComponents = new Map<string, {option: ConnectionOption, component: FormItemSpec<IConnectionDialogProfile>}>();
-
-		for (const option of connectionOptions) {
-			allConnectionFormComponents.set(option.name, {option, component: this.convertToFormComponent(option)});
-		}
-
-		await this.completeFormComponents(allConnectionFormComponents);
-
-		// organize the main components and advanced components
-		// main components are few-enough that there's no grouping, but advanced components get grouped by category
-		const mainComponents: FormItemSpec<IConnectionDialogProfile>[] = [];
-		const advancedComponents: {[category: string]: FormItemSpec<IConnectionDialogProfile>[]} = {};
-
-		for (const [optionName, {option, component}] of allConnectionFormComponents) {
-			if (this._mainOptionNames.has(optionName)) {
-				mainComponents.push(component);
-			} else {
-				if (!advancedComponents[option.groupName]) {
-					advancedComponents[option.groupName] = [component];
-				} else {
-					advancedComponents[option.groupName].push(component);
-				}
-			}
-		}
-
-		return {mainComponents, advancedComponents};
-	}
-
-	private async generateConnectionStringComponents(): Promise<FormItemSpec<IConnectionDialogProfile>[]> {
-		return [
-			{
-				type: FormItemType.TextArea,
-				propertyName: 'connectionString',
-				label: LocalizedConstants.connectionString,
-				required: true,
-				validate: (value: string) => {
-					if (this.state.selectedFormTab === FormTabType.ConnectionString && !value) {
-						return {
-							isValid: false,
-							validationMessage: LocalizedConstants.connectionStringIsRequired
-						};
-					}
-					return {
-						isValid: true,
-						validationMessage: ''
-					};
-				}
-			},
-			{
-				propertyName: 'profileName',
-				label: LocalizedConstants.profileName,
-				required: false,
-				type: FormItemType.Input,
-			}
-		];
-	}
-
 	private async validateFormComponents(propertyName?: keyof IConnectionDialogProfile): Promise<number> {
 		let errorCount = 0;
 		if (propertyName) {
@@ -453,7 +464,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}
 		}
 		else {
-			this.getActiveFormComponents().forEach(c => {
+			this.getActiveFormComponents().map(x => this.state.connectionComponents.components[x]).forEach(c => {
 				if (c.hidden) {
 					c.validation = {
 						isValid: true,
@@ -554,14 +565,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
 	private clearFormError() {
 		this.state.formError = '';
-		for (const component of this.getActiveFormComponents()) {
+		for (const component of this.getActiveFormComponents().map(x => this.state.connectionComponents.components[x])) {
 			component.validation = undefined;
 		}
 	}
 
 	private registerRpcHandlers() {
-		this.registerReducer('setFormTab', async (state, payload) => {
-			this.state.selectedFormTab = payload.tab;
+		this.registerReducer('setConnectionInputType', async (state, payload) => {
+			this.state.selectedInputMode = payload.inputMode;
 			await this.updateItemVisibility();
 			return state;
 		});
@@ -576,6 +587,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 					}
 				}
 			} else {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(this.state.connectionProfile[payload.event.propertyName] as any) = payload.event.value;
 				await this.validateFormComponents(payload.event.propertyName);
 				await this.handleAzureMFAEdits(payload.event.propertyName);
@@ -600,23 +612,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			this.state.formError = '';
 			this.state = this.state;
 
-			const usedFields = new Set<keyof IConnectionDialogProfile>(this.getActiveFormComponents().filter(c => !c.hidden).map(c => c.propertyName));
-
-			Object.keys(this.state.connectionFormComponents.advancedComponents).forEach(group => {
-				this.state.connectionFormComponents.advancedComponents[group].forEach(c => {
-					if (!c.hidden) {
-						usedFields.add(c.propertyName);
-					}
-				});
-			});
-
-			// Clear unused fields (anything that isn't visible due to form selections and isn't an advanced option)
-			Object.keys(this.state.connectionProfile).forEach(optionName => {
-				if (!usedFields.has(optionName as keyof IConnectionDialogProfile)) {
+			// Clear the options that aren't being used (due to form selections, like authType)
+			for (const option of Object.values(this.state.connectionComponents.components)) {
+				if (option.hidden) {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(this.state.connectionProfile[optionName as keyof IConnectionDialogProfile] as any) = undefined;
+					(this.state.connectionProfile[option.propertyName as keyof IConnectionDialogProfile] as any) = undefined;
 				}
-			});
+			}
 
 			// Perform final validation of all inputs
 			const errorCount = await this.validateFormComponents();
@@ -626,6 +628,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 			}
 
 			try {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
 				if (result?.errorMessage) {
 					this.state.formError = result.errorMessage;
@@ -635,9 +638,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 				if (this._connectionToEditCopy) {
 					await this._mainController.connectionManager.getUriForConnection(this._connectionToEditCopy);
 					await this._objectExplorerProvider.removeConnectionNodes([this._connectionToEditCopy]);
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					await this._mainController.connectionManager.connectionStore.removeProfile(this._connectionToEditCopy as any);
 					await this._objectExplorerProvider.refresh(undefined);
 				}
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				await this._mainController.connectionManager.connectionUI.saveProfile(this.state.connectionProfile as any);
 				const node = await this._mainController.createObjectExplorerSessionFromDialog(this.state.connectionProfile);
 				await this._objectExplorerProvider.refresh(undefined);

@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormEvent, FormState } from "../reactviews/common/forms/form";
 import { ApiStatus } from "./webview";
@@ -14,49 +13,55 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
     /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
     get connectionProfile(): IConnectionDialogProfile { return this.formState; }
     set connectionProfile(value: IConnectionDialogProfile) { this.formState = value; }
-    public selectedFormTab: FormTabType;
-    public connectionFormComponents: {
-        mainComponents: FormItemSpec<IConnectionDialogProfile>[],
-        advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
+    public selectedInputMode: ConnectionInputMode;
+    public connectionComponents: {
+        components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
+        mainOptions: (keyof IConnectionDialogProfile)[],
+        topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+        groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>
     };
-    public connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
 
     constructor({
         connectionProfile,
-        selectedFormTab,
-        connectionFormComponents,
-        connectionStringComponents,
+        selectedInputMode,
+        connectionComponents,
         recentConnections,
         connectionStatus,
         formError
     }: {
         connectionProfile: IConnectionDialogProfile,
-        selectedFormTab: FormTabType,
-        connectionFormComponents: {
-            mainComponents: FormItemSpec<IConnectionDialogProfile>[],
-            advancedComponents: { [category: string]: FormItemSpec<IConnectionDialogProfile>[] }
+        selectedInputMode: ConnectionInputMode,
+        connectionComponents: {
+            components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
+            mainOptions: (keyof IConnectionDialogProfile)[],
+            topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+            groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>;
         },
-        connectionStringComponents: FormItemSpec<IConnectionDialogProfile>[],
         recentConnections: IConnectionDialogProfile[],
         connectionStatus: ApiStatus,
         formError: string
     }) {
         this.formState = connectionProfile;
-        this.selectedFormTab = selectedFormTab;
-        this.connectionFormComponents = connectionFormComponents;
-        this.connectionStringComponents = connectionStringComponents;
+        this.selectedInputMode = selectedInputMode;
+        this.connectionComponents = connectionComponents;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;
     }
 }
 
-export enum FormTabType {
-	Parameters = 'parameter',
-	ConnectionString = 'connString'
+export interface ConnectionDialogFormItemSpec extends FormItemSpec<IConnectionDialogProfile> {
+    isAdvancedOption: boolean;
+    optionCategory?: string;
+}
+
+export enum ConnectionInputMode {
+    Parameters = 'parameters',
+    ConnectionString = 'connectionString',
+    AzureBrowse = 'azureBrowse'
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional
@@ -71,9 +76,8 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 }
 
 export interface ConnectionDialogContextProps extends FormContextProps<ConnectionDialogWebviewState, IConnectionDialogProfile> {
-	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
-	setFormTab: (tab: FormTabType) => void;
+	setConnectionInputType: (inputType: ConnectionInputMode) => void;
 	connect: () => void;
 }
 
@@ -84,8 +88,8 @@ export enum AuthenticationType {
 }
 
 export interface ConnectionDialogReducers {
-	setFormTab: {
-		tab: FormTabType;
+	setConnectionInputType: {
+		inputMode: ConnectionInputMode;
 	},
 	formAction: {
 		event: FormEvent<IConnectionDialogProfile>;

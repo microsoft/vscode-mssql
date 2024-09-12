@@ -3,62 +3,32 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, MessageBar, Spinner } from "@fluentui/react-components";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import * as l10n from '@vscode/l10n';
+import { FormField } from "../../common/forms/form.component";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { FormItemSpec } from "../../common/forms/form";
+import { ConnectButton } from "./connectButton";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const formStyles = useFormStyles();
-
-	const CONNECT = l10n.t("Connect");
 
 	if (connectionDialogContext === undefined) {
 		return undefined;
 	}
 
+	let index = 0;
 	return (
-		<div className={formStyles.formDiv}>
-			{
-				connectionDialogContext?.state.formError &&
-				<MessageBar intent="error">
-					{connectionDialogContext.state.formError}
-				</MessageBar>
-			}
-			{
-				connectionDialogContext.state.connectionStringComponents.map((spec, idx) => {
-					if (spec.hidden === true) {
-						return undefined;
-					}
-					return (
-                        <FormField
-                            key={idx}
-                            context={connectionDialogContext}
-                            component={spec}
-                            idx={idx}
-                        />
-                    );
-				})
-			}
-			<Button
-				appearance="primary"
-				disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
-				shape="square"
-				onClick={(_event) => {
-					connectionDialogContext.connect();
-				}} style={
-					{
-						width: '200px',
-						alignSelf: 'center'
-					}
-				}
-				iconPosition="after"
-				icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-					{CONNECT}
-			</Button>
+		<div>
+			<FormField
+				key={index++}
+				context={connectionDialogContext}
+				component={connectionDialogContext.state.connectionComponents.components['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
+				idx={index}
+				props={{ orientation: 'horizontal' }}
+			/>
+
+            <ConnectButton />
 		</div>
 	);
 };

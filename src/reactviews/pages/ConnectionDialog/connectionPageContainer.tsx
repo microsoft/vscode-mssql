@@ -5,75 +5,70 @@
 
 import { ReactNode, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Tab, TabList, makeStyles } from "@fluentui/react-components";
-import { ConnectionDialogContextProps, FormTabType } from "../../../sharedInterfaces/connectionDialog";
+import { Field, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
+import { ConnectionDialogContextProps, IConnectionDialogProfile, ConnectionInputMode } from "../../../sharedInterfaces/connectionDialog";
 import './sqlServerRotation.css';
 import { ConnectionHeader } from "./connectionHeader";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
 import * as l10n from '@vscode/l10n';
+import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormItemSpec } from "../../common/forms/form";
 
-const useStyles = makeStyles({
-	formRoot: {
-		display: 'flex',
-		flexDirection: 'column',
-		height: '100%',
-	},
-	formDiv: {
-		padding: '10px',
-		maxWidth: '500px',
-		display: 'flex',
-		flexDirection: 'column',
-		'> *': {
-			margin: '5px',
-		}
-	},
-	formComponentDiv: {
-		'> *': {
-			margin: '5px',
-		}
-	},
-	formComponentActionDiv: {
-		display: 'flex',
-		flexDirection: 'row',
-		'> *': {
-			margin: '5px',
-		}
-	}
-});
-
-function renderTab(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
-	switch (connectionDialogContext?.state.selectedFormTab) {
-		case FormTabType.Parameters:
+function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
+	switch (connectionDialogContext?.state.selectedInputMode) {
+		case ConnectionInputMode.Parameters:
 			return <ConnectionFormPage />;
-		case FormTabType.ConnectionString:
+		case ConnectionInputMode.ConnectionString:
 			return <ConnectionStringPage />;
 	}
 }
 
 export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const classes = useStyles();
+	const formStyles = useFormStyles();
 
 	const PARAMETERS = l10n.t("Parameters");
 	const CONNECTION_STRING = l10n.t("Connection String");
+	const BROWSE_AZURE = l10n.t("Browse Azure");
 
 	if (!connectionDialogContext?.state) {
 		return undefined;
 	}
 
 	return (
-		<div className={classes.formRoot}>
+		<div className={formStyles.formRoot}>
 			<ConnectionHeader />
-			<TabList
-				selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters}
-				onTabSelect={(_event, data) => { connectionDialogContext?.setFormTab(data.value as FormTabType); }}
-			>
-				<Tab value={FormTabType.Parameters}>{PARAMETERS}</Tab>
-				<Tab value={FormTabType.ConnectionString}>{CONNECTION_STRING}</Tab>
-			</TabList>
-			<div style={ { overflow: 'auto' } }>
-				{ renderTab(connectionDialogContext) }
+
+			<div className={formStyles.formDiv}>
+				{
+					connectionDialogContext?.state.formError &&
+					<MessageBar intent="error">
+						{connectionDialogContext.state.formError}
+					</MessageBar>
+				}
+				<FormField
+					context={connectionDialogContext}
+					component={connectionDialogContext.state.connectionComponents.components['profileName'] as FormItemSpec<IConnectionDialogProfile>}
+					idx={0}
+					props={{ orientation: 'horizontal' }}
+				/>
+
+				<div className={formStyles.formComponentDiv}>
+					<Field label="Input type" orientation="horizontal">
+						<RadioGroup
+							onChange={(_, data) => { connectionDialogContext.setConnectionInputType(data.value as ConnectionInputMode); }}
+							value={connectionDialogContext.state.selectedInputMode}
+						>
+							<Radio value={ConnectionInputMode.Parameters} label={PARAMETERS} />
+							<Radio value={ConnectionInputMode.ConnectionString} label={CONNECTION_STRING} />
+							<Radio value={ConnectionInputMode.AzureBrowse} label={BROWSE_AZURE} />
+						</RadioGroup>
+					</Field>
+				</div>
+				<div style={{ overflow: 'auto' }}>
+					{renderContent(connectionDialogContext)}
+				</div>
 			</div>
 		</div>
 	);
