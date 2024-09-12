@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.90.0"
+      "vscode": "^1.93.0"
   },
   "categories": [
     "Programming Languages",
@@ -37,6 +37,11 @@
   ],
   "activationEvents": [
     "onCommand:mssql.loadCompletionExtension"
+  ],
+  "enabledApiProposals": [
+      "chatVariableResolver",
+      "chatParticipantAdditions",
+      "lmTools"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -88,7 +93,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "^1.86.0",
+    "@types/vscode": "^1.90.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",
@@ -225,6 +230,25 @@
         ]
       }
     ],
+    "languageModelTools": [
+      {
+          "id": "chat-sample_tabCount",
+          "name": "tabCount",
+          "displayName": "Tab Count",
+          "modelDescription": "The number of active tabs in a tab group",
+          "icon": "$(files)",
+          "canBeInvokedManually": true,
+          "parametersSchema": {
+              "type": "object",
+              "properties": {
+                  "tabGroup": {
+                      "type": "number",
+                      "description": "The index of the tab group to check. This is optional- if not specified, the active tab group will be checked.",
+                      "default": 0
+                  }
+              }
+          }
+      }],
     "customEditors": [
         {
           "viewType": "mssql.executionPlanView",

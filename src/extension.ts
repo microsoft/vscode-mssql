@@ -36,8 +36,50 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 	vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
 	await controller.activate();
 
-	const participant = vscode.chat.createChatParticipant('mssql.agent', createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper));
+	const participant = vscode.chat.createChatParticipant('mssql.agent',
+		createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context));
 	context.subscriptions.push(controller, participant);
+
+	interface ITabCountParameters {
+        tabGroup?: number;
+    }
+	context.subscriptions.push(vscode.lm.registerTool('chat-sample_tabCount', {
+        async invoke(options, token) {
+            return {
+                toString() {
+                    const params = options.parameters as ITabCountParameters;
+                    if (typeof params.tabGroup === 'number') {
+                        const group = vscode.window.tabGroups.all[Math.max(params.tabGroup - 1, 0)];
+                        const nth = params.tabGroup === 1 ? '1st' : params.tabGroup === 2 ? '2nd' : params.tabGroup === 3 ? '3rd' : `${params.tabGroup}th`;
+                        return `There are ${group.tabs.length} tabs open in the ${nth} tab group.`;
+                    } else {
+                        const group = vscode.window.tabGroups.activeTabGroup;
+                        return `There are ${group.tabs.length} tabs open.`;
+                    }
+                },
+            };
+        },
+    }));
+
+	// context.subscriptions.push(vscode.lm.registerTool('SqlExecAndParse-ReadSystemMetadata', {
+    //     async invoke(_options, _token) {
+    //         return {
+    //             toString() {
+    //                 return "ReadSystemMetadata";
+    //             },
+    //         };
+    //     },
+    // }));
+
+	// context.subscriptions.push(vscode.lm.registerTool('SchemaExploration-GetTableNames', {
+    //     async invoke(_options, _token) {
+    //         return {
+    //             toString() {
+    //                 return "GetTableNames";
+    //             },
+    //         };
+    //     },
+    // }));
 
 	return {
 		sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
