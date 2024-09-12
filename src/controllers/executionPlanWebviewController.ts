@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
-import * as LocalizedConstants from "../constants/locConstants";
 import { homedir } from "os";
 import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
@@ -33,7 +32,6 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
       {
         sqlPlanContent: executionPlanContents,
         theme: vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ? "dark" : "light",
-        localizedConstants: LocalizedConstants,
         loadState: ApiStatus.Loading,
         executionPlan: undefined,
         executionPlanGraphs: [],

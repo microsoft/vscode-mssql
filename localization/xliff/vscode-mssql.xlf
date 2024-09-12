@@ -51,6 +51,12 @@
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
     </trans-unit>
+    <trans-unit id="++CODE++9f088dbebd6c3c70a5ddbc2c943b11e4ca9acea5757b0b4f2b32479f0dbb747e">
+      <source xml:lang="en">Advanced</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
+      <source xml:lang="en">Advanced Connection Settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
       <source xml:lang="en">Advanced Type</source>
     </trans-unit>
@@ -226,6 +232,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
       <source xml:lang="en">Connect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
+      <source xml:lang="en">Connect to SQL Server</source>
     </trans-unit>
     <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
       <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
@@ -720,8 +729,8 @@
     <trans-unit id="++CODE++404eb1204c0e313b45f63c32657b2cabf3f3930b7a731969c82b5bc3061311ff">
       <source xml:lang="en">Open Query History</source>
     </trans-unit>
-    <trans-unit id="++CODE++944c9ff52cb5d872b8765cfd8e22debf3ca4b887a094ed5bce64cd783279951f">
-      <source xml:lang="en">Open Xml</source>
+    <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
+      <source xml:lang="en">Open XML</source>
     </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -813,6 +822,9 @@
     </trans-unit>
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
+    </trans-unit>
+    <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
+      <source xml:lang="en">Recent Connections</source>
     </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>

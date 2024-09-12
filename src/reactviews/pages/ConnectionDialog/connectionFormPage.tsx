@@ -15,6 +15,7 @@ import {
     Spinner,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
+import * as l10n from '@vscode/l10n';
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -24,6 +25,10 @@ export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
     const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+
+    const ADVANCED_CONNECTION_SETTINGS = l10n.t("Advanced Connection Settings");
+    const ADVANCED = l10n.t("Advanced");
+    const CONNECT = l10n.t("Connect");
 
     if (connectionDialogContext === undefined) {
         return undefined;
@@ -68,7 +73,7 @@ export const ConnectionFormPage = () => {
                             />
                         }
                     >
-                        Advanced Connection Settings
+                        {ADVANCED_CONNECTION_SETTINGS}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
 
@@ -110,7 +115,7 @@ export const ConnectionFormPage = () => {
                     alignSelf: "center",
                 }}
             >
-                Advanced
+                {ADVANCED}
             </Button>
             <Button
                 appearance="primary"
@@ -133,7 +138,7 @@ export const ConnectionFormPage = () => {
                     ) : undefined
                 }
             >
-                Connect
+                {CONNECT}
             </Button>
         </div>
     );

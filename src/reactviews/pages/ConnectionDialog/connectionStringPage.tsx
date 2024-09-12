@@ -8,10 +8,13 @@ import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import * as l10n from '@vscode/l10n';
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const formStyles = useFormStyles();
+
+	const CONNECT = l10n.t("Connect");
 
 	if (connectionDialogContext === undefined) {
 		return undefined;
@@ -54,7 +57,7 @@ export const ConnectionStringPage = () => {
 				}
 				iconPosition="after"
 				icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-					Connect
+					{CONNECT}
 			</Button>
 		</div>
 	);

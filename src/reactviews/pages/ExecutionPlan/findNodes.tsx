@@ -10,6 +10,7 @@ import './executionPlan.css';
 import { Button, Combobox, Dropdown, Input, Option, makeStyles } from '@fluentui/react-components';
 import { ArrowUp20Regular, ArrowDown20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import * as ep from './executionPlanInterfaces';
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
 	inputContainer: {
@@ -53,9 +54,12 @@ export const FindNode : React.FC<FindNodeProps> = ({
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
-	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
-	const findNodeComparisonOptions: string[] = [LocalizedConstants.equals, LocalizedConstants.contains,">","<",">=","<=","<>"];
+	const EQUALS = l10n.t("Equals");
+	const CONTAINS = l10n.t("Contains");
+	const FIND_NODES = l10n.t("Find Nodes");
+
+	const findNodeComparisonOptions: string[] = [EQUALS, CONTAINS,">","<",">=","<=","<>"];
 	const findNodeEnum: ep.SearchType[] = [ep.SearchType.Equals, ep.SearchType.Contains, ep.SearchType.GreaterThan, ep.SearchType.LesserThan,
 		ep.SearchType.GreaterThanEqualTo, ep.SearchType.LesserThanEqualTo, ep.SearchType.LesserAndGreaterThan];
 
@@ -102,7 +106,7 @@ export const FindNode : React.FC<FindNodeProps> = ({
 
 	return (
 		<div id="findNodeInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
-			<div>{LocalizedConstants.findNodes}</div>
+			<div>{FIND_NODES}</div>
 			<Combobox id="findNodeDropdown" className={classes.combobox} defaultValue={findNodeOptions[0]} onOptionSelect={(_, data) => {setFindNodeSelection(data.optionText ?? findNodeOptions[0]); setFindNodeResultsIndex(-1); setFindNodeResults([])}}>
 				<div style={{maxHeight:"250px", maxWidth:"100px"}}>
 				{findNodeOptions.map((option) => (

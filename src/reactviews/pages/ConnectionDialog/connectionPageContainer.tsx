@@ -11,6 +11,7 @@ import './sqlServerRotation.css';
 import { ConnectionHeader } from "./connectionHeader";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
 	formRoot: {
@@ -54,6 +55,9 @@ export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const classes = useStyles();
 
+	const PARAMETERS = l10n.t("Parameters");
+	const CONNECTION_STRING = l10n.t("Connection String");
+
 	if (!connectionDialogContext?.state) {
 		return undefined;
 	}
@@ -65,8 +69,8 @@ export const ConnectionInfoFormContainer = () => {
 				selectedValue={connectionDialogContext?.state?.selectedFormTab ?? FormTabType.Parameters}
 				onTabSelect={(_event, data) => { connectionDialogContext?.setFormTab(data.value as FormTabType); }}
 			>
-				<Tab value={FormTabType.Parameters}>Parameters</Tab>
-				<Tab value={FormTabType.ConnectionString}>Connection String</Tab>
+				<Tab value={FormTabType.Parameters}>{PARAMETERS}</Tab>
+				<Tab value={FormTabType.ConnectionString}>{CONNECTION_STRING}</Tab>
 			</TabList>
 			<div style={ { overflow: 'auto' } }>
 				{ renderTab(connectionDialogContext) }

@@ -10,6 +10,7 @@ import './executionPlan.css';
 import { Button, Combobox, makeStyles, Option } from '@fluentui/react-components';
 import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import * as ep from './executionPlanInterfaces';
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
 	inputContainer: {
@@ -44,12 +45,20 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
-	const LocalizedConstants = executionPlanState!.localizedConstants!;
 	const [highlightMetricSelected, setHighlightMetricSelected] = useState('');
 
+	const ACTUAL_ELAPSED_TIME = l10n.t("Actual Elapsed Time");
+	const ACTUAL_ELAPSED_CPU_TIME = l10n.t("Actual Elapsed CPU Time");
+	const COST = l10n.t("Cost");
+	const SUBTREE_COST = l10n.t("Subtree Cost");
+	const ACTUAL_NUMBER_OF_ROWS = l10n.t("Actual Number of Rows For All Executions");
+	const NUM_ROWS_READ = l10n.t("Number of Rows Read");
+	const OFF = l10n.t("Off");
+	const METRIC = l10n.t("Metric");
+
 	const highlightMetricOptions: string[] =
-		[LocalizedConstants.actualElapsedTime, LocalizedConstants.actualElapsedCpuTime, LocalizedConstants.cost, LocalizedConstants.subtreeCost,
-			LocalizedConstants.actualNumberOfRows, LocalizedConstants.numRowsRead, LocalizedConstants.off];
+		[ACTUAL_ELAPSED_TIME, ACTUAL_ELAPSED_CPU_TIME, COST, SUBTREE_COST,
+			ACTUAL_NUMBER_OF_ROWS, NUM_ROWS_READ, OFF];
 	const highlightMetricOptionsEnum: ep.ExpensiveMetricType[] =
 	 [ep.ExpensiveMetricType.ActualElapsedTime, ep.ExpensiveMetricType.ActualElapsedCpuTime, ep.ExpensiveMetricType.Cost, ep.ExpensiveMetricType.SubtreeCost, ep.ExpensiveMetricType.ActualNumberOfRowsForAllExecutions, ep.ExpensiveMetricType.NumberOfRowsRead, ep.ExpensiveMetricType.Off];
 
@@ -77,7 +86,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 
 	return (
 		<div id="highlightExpensiveOpsContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
-			<div>{LocalizedConstants.metric}</div>
+			<div>{METRIC}</div>
 			<Combobox id="highlightExpensiveOpsDropdown" onOptionSelect={(_, data) => setHighlightMetricSelected(data.optionText ?? '')}>
 				<div style={{maxHeight:"250px"}}>
 				{highlightMetricOptions.map((option) => (

@@ -7,6 +7,7 @@ import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluen
 import { ServerRegular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import * as l10n from '@vscode/l10n';
 
 const useStyles = makeStyles({
 	paneTitle: {
@@ -41,11 +42,12 @@ const useStyles = makeStyles({
 export const MruConnectionsContainer = () => {
 	const styles = useStyles();
 	const connectionDialogContext = useContext(ConnectionDialogContext);
+	const RECENT_CONNECTIONS = l10n.t("Recent Connections");
 
 	return (
 		<div>
 			<div className={styles.paneTitle}>
-				<Text weight="semibold" className={styles.paneTitle}>Recent Connections</Text>
+				<Text weight="semibold" className={styles.paneTitle}>{RECENT_CONNECTIONS}</Text>
 			</div>
 			<Tree >
 				{

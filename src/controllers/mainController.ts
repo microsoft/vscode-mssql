@@ -1494,7 +1494,7 @@ export default class MainController implements vscode.Disposable {
 				this.untitledSqlService,
 				planContents,
 				docName
-			)
+			);
 
 			executionPlanController.revealToForeground();
 		}
