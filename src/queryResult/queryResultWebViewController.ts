@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import * as qr from '../sharedInterfaces/queryResult';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebViewViewController } from '../controllers/reactWebviewViewController';
 
 export class QueryResultWebViewController extends ReactWebViewViewController<qr.QueryResultWebViewState, qr.QueryResultReducers> {
@@ -14,7 +13,7 @@ export class QueryResultWebViewController extends ReactWebViewViewController<qr.
 
 	constructor(context: vscode.ExtensionContext,
 	) {
-		super(context, WebviewRoute.queryResult, {
+		super(context, 'queryResult', {
 			value: '',
 			messages: [],
 			tabStates: {

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebviewBaseController } from './reactWebviewBaseController';
 
 /**
@@ -21,17 +20,17 @@ export class ReactWebViewViewController<State, Reducers> extends ReactWebviewBas
 	 * Creates a new ReactWebViewPanelController
 	 * @param _context The context of the extension
 	 * @param title The title of the webview panel
-	 * @param _route The route that the webview will use
+	 * @param sourceFile The source file that the webview will use
 	 * @param initialData The initial state object that the webview will use
 	 * @param viewColumn The view column that the webview will be displayed in
 	 * @param _iconPath The icon path that the webview will use
 	 */
 	constructor(
 		_context: vscode.ExtensionContext,
-		_route: WebviewRoute,
+		_sourceFile: string,
 		initialData: State,
 	) {
-		super(_context, _route, initialData);
+		super(_context, _sourceFile, initialData);
 	}
 
 
