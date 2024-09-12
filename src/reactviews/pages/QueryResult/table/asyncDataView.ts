@@ -14,7 +14,7 @@ export interface IObservableCollection<T> {
 	setLength(length: number): void;
 }
 
-export interface ISlickColumn<T> extends Slick.Column<T> {
+export interface ISlickColumn<T extends Slick.SlickData> extends Slick.Column<T> {
 	isEditable?: boolean;
 }
 
@@ -207,19 +207,19 @@ export class AsyncDataProvider<T extends Slick.SlickData> implements IDisposable
 		return false;
 	}
 
-	getRangeAsync(startIndex: number, length: number): Promise<T[]> {
+	getRangeAsync(_startIndex: number, _length: number): Promise<T[]> {
 		throw new Error('Method not implemented.');
 	}
 
-	getColumnValues(column: Slick.Column<T>): Promise<string[]> {
+	getColumnValues(_column: Slick.Column<T>): Promise<string[]> {
 		throw new Error('Method not implemented.');
 	}
 
-	sort(options: Slick.OnSortEventArgs<T>): Promise<void> {
+	sort(_options: Slick.OnSortEventArgs<T>): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 
-	filter(columns?: Slick.Column<T>[]): Promise<void> {
+	filter(_columns?: Slick.Column<T>[]): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 

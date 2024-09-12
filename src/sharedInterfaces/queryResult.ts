@@ -22,7 +22,7 @@ export interface QueryResultTabStates {
 	resultPaneTab: QueryResultPaneTabs;
 }
 
-export interface QueryResultWebViewState {
+export interface QueryResultWebviewState {
 	uri?: string;
 	resultSetSummary?: ResultSetSummary;
 	value?: string;

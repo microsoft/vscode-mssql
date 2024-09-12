@@ -17,7 +17,7 @@ import { IServerProxy, Deferred } from '../protocol';
 import { ResultSetSubset, ResultSetSummary } from './contracts/queryExecute';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
-import { QueryResultWebViewController } from '../queryResult/queryResultWebViewController';
+import { QueryResultWebviewController } from '../queryResult/queryResultWebViewController';
 import { QueryResultPaneTabs } from '../sharedInterfaces/queryResult';
 // tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
@@ -45,16 +45,20 @@ export class SqlOutputContentProvider {
 	// MEMBER VARIABLES ////////////////////////////////////////////////////
 	private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
 	private _panels = new Map<string, WebviewPanelController>();
+	private _queryResultWebviewController: QueryResultWebviewController;
 
 	// CONSTRUCTOR /////////////////////////////////////////////////////////
 	constructor(
 		private context: vscode.ExtensionContext,
 		private _statusView: StatusView,
-		private _vscodeWrapper,
-		private _queryResultWebviewController: QueryResultWebViewController) {
+		private _vscodeWrapper) {
 		if (!_vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
+	}
+
+	public setQueryResultWebviewController(queryResultWebviewController: QueryResultWebviewController): void {
+		this._queryResultWebviewController = queryResultWebviewController;
 	}
 
 	public rowRequestHandler(uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset> {

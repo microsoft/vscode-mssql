@@ -47,7 +47,7 @@ import { ConnectionDialogWebviewController } from '../connectionconfig/connectio
 import { ObjectExplorerFilter } from '../objectExplorer/objectExplorerFilter';
 import { ExecutionPlanService } from '../services/executionPlanService';
 import { ExecutionPlanWebviewController } from './executionPlanWebviewController';
-import { QueryResultWebViewController } from '../queryResult/queryResultWebViewController';
+import { QueryResultWebviewController } from '../queryResult/queryResultWebViewController';
 
 
 /**
@@ -57,7 +57,7 @@ export default class MainController implements vscode.Disposable {
 	private _context: vscode.ExtensionContext;
 	private _event: events.EventEmitter = new events.EventEmitter();
 	private _outputContentProvider: SqlOutputContentProvider;
-	private _queryResultWebviewController: QueryResultWebViewController;
+	private _queryResultWebviewController: QueryResultWebviewController;
 	private _statusview: StatusView;
 	private _connectionMgr: ConnectionManager;
 	private _prompter: IPrompter;
@@ -325,10 +325,11 @@ export default class MainController implements vscode.Disposable {
 		this._prompter = new CodeAdapter(this._vscodeWrapper);
 
 		// Init Query Results Webview Controller
-		this._queryResultWebviewController = new QueryResultWebViewController(this._context);
+		this._queryResultWebviewController = new QueryResultWebviewController(this._context);
 
 		// Init content provider for results pane
-		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper, this._queryResultWebviewController);
+		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper);
+		this._outputContentProvider.setQueryResultWebviewController(this._queryResultWebviewController);
 		this._queryResultWebviewController.setRowRequestHandler((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => this._outputContentProvider.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows));
 
 		// Init connection manager and connection MRU

@@ -30,7 +30,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 	protected idPrefix: string;
 
 	protected _grid: Slick.Grid<T>;
-	protected _columns: Slick.Column<T>[];
+	// protected _columns: Slick.Column<T>[];
 	protected _data: IDisposableDataProvider<T>;
 	private _sorter?: ITableSorter<T>;
 
@@ -79,7 +79,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 		this._container.classList.add(this.idPrefix);
 		if (configuration && configuration.sorter) {
 			this._sorter = configuration.sorter;
-			this._grid.onSort.subscribe((e, args) => {
+			this._grid.onSort.subscribe((_e, args) => {
 				this._sorter!(args);
 				this._grid.invalidate();
 				this._grid.render();
@@ -174,7 +174,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 	}
 
 	onSelectedRowsChanged(fn: (e: Slick.EventData, data: Slick.OnSelectedRowsChangedEventArgs<T>) => any): void;
-	// onSelectedRowsChanged(fn: (e: DOMEvent, data: Slick.OnSelectedRowsChangedEventArgs<T>) => any): vscode.Disposable;
+	// onSelectedRowsChanged(fn: (e: Slick.DOMEvent, data: Slick.OnSelectedRowsChangedEventArgs<T>) => any): vscode.Disposable;
 	onSelectedRowsChanged(fn: any): void {
 		this._grid.onSelectedRowsChanged.subscribe(fn);
 		console.log('onselectedrowschanged');

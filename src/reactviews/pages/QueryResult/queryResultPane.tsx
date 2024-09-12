@@ -8,7 +8,7 @@ import { useContext, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
-import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
+import { useVscodeWebview } from '../../common/vscodeWebviewProvider';
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
 
 const useStyles = makeStyles({
@@ -67,7 +67,7 @@ const useStyles = makeStyles({
 export const QueryResultPane = () => {
 	const classes = useStyles();
 	const state = useContext(QueryResultContext);
-	const webViewState = useVscodeWebview<qr.QueryResultWebViewState, qr.QueryResultReducers>();
+	const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
 	webViewState;
 	var metadata = state?.state;
 
@@ -162,23 +162,23 @@ export const QueryResultPane = () => {
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div id={'grid-parent'} className={classes.queryResultContainer}>
-					<SlickGrid test={'fdas'} x={1} loadFunc={(offset: number, count: number): Thenable<any[]> => {
+					<SlickGrid loadFunc={(offset: number, count: number): Thenable<any[]> => {
 						return webViewState.extensionRpc.call('getRows', {
-							uri: metadata.uri,
-							batchId: metadata.resultSetSummary.batchId,
-							resultId: metadata.resultSetSummary.id,
+							uri: metadata?.uri,
+							batchId: metadata?.resultSetSummary?.batchId,
+							resultId: metadata?.resultSetSummary?.id,
 							rowStart: offset,
 							numberOfRows: count
 						}).then(response => {
-							console.log('HAIDEBUG response' + JSON.stringify(response));
 							if (!response) {
 								return [];
 							}
 							let r = response as qr.ResultSetSubset;
+							var columnLength = metadata?.resultSetSummary?.columnInfo?.length;
 							return r.rows.map(r => {
-								let dataWithSchema = {};
+								let dataWithSchema: { [key: string]: any } = {};
 								// skip the first column since its a number column
-								for (let i = 1; i < metadata.resultSetSummary.columnInfo.length + 1; i++) {
+								for (let i = 1; columnLength && i < (columnLength + 1); i++) {
 									const displayValue = r[i - 1].displayValue ?? '';
 									const ariaLabel = (displayValue);
 									dataWithSchema[(i - 1).toString()] = {
@@ -225,7 +225,7 @@ export const QueryResultPane = () => {
 										{...columnSizing_unstable.getTableCellProps('message')}
 									>{row.item.message}
 										{row.item.link?.text && row.item.selection && (
-											<>{' '}<Link onClick={(e) => { console.log('TODO open link'); }}>{row.item?.link?.text}</Link></>
+											<>{' '}<Link onClick={() => { console.log('TODO open link'); }}>{row.item?.link?.text}</Link></>
 										)}
 									</TableCell>
 								</TableRow>;
@@ -236,5 +236,5 @@ export const QueryResultPane = () => {
 			</div>
 			}
 		</div>
-	</div>
-}
+	</div>;
+};

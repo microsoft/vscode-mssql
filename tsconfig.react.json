@@ -28,7 +28,6 @@
     "src/reactviews",
     "typings",
     "src/sharedInterfaces",
-    "src/queryResult",
     "media"
   ],
 }

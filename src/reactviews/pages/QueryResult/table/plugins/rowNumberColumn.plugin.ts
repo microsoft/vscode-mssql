@@ -19,7 +19,7 @@ const defaultOptions: IRowNumberColumnOptions = {
 	autoCellSelection: true
 };
 
-export class RowNumberColumn<T> implements Slick.Plugin<T> {
+export class RowNumberColumn<T extends Slick.SlickData> implements Slick.Plugin<T> {
 	private handler = new Slick.EventHandler();
 	private grid!: Slick.Grid<T>;
 
@@ -30,16 +30,16 @@ export class RowNumberColumn<T> implements Slick.Plugin<T> {
 	public init(grid: Slick.Grid<T>) {
 		this.grid = grid;
 		this.handler
-			.subscribe(this.grid.onClick, (e: DOMEvent, args: Slick.OnClickEventArgs<T>) => this.handleClick(e as MouseEvent, args))
-			.subscribe(this.grid.onHeaderClick, (e: DOMEvent, args: Slick.OnHeaderClickEventArgs<T>) => this.handleHeaderClick(e as MouseEvent, args));
+			.subscribe(this.grid.onClick, (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) => this.handleClick(e as MouseEvent, args))
+			.subscribe(this.grid.onHeaderClick, (e: Slick.DOMEvent, args: Slick.OnHeaderClickEventArgs<T>) => this.handleHeaderClick(e as MouseEvent, args));
 	}
 
 	public destroy() {
 		this.handler.unsubscribeAll();
 	}
 
-	private handleClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>): void {
-		if (this.grid.getColumns()[args.cell].id === 'rowNumber' && this.options.autoCellSelection) {
+	private handleClick(_e: MouseEvent, args: Slick.OnClickEventArgs<T>): void {
+		if (this.grid.getColumns()[args.cell].id === 'rowNumber' && this.options?.autoCellSelection) {
 			this.grid.setActiveCell(args.row, 1);
 			if (this.grid.getSelectionModel()) {
 				this.grid.setSelectedRows([args.row]);
@@ -47,8 +47,8 @@ export class RowNumberColumn<T> implements Slick.Plugin<T> {
 		}
 	}
 
-	private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>): void {
-		if (args.column.id === 'rowNumber' && this.options.autoCellSelection) {
+	private handleHeaderClick(_e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>): void {
+		if (args.column.id === 'rowNumber' && this.options?.autoCellSelection) {
 			this.grid.setActiveCell(this.grid.getViewport()?.top ?? 0, 1);
 			let selectionModel = this.grid.getSelectionModel();
 			if (selectionModel) {
@@ -65,7 +65,7 @@ export class RowNumberColumn<T> implements Slick.Plugin<T> {
 			field: 'rowNumber',
 			width: 22,
 			resizable: true,
-			cssClass: this.options.cssClass,
+			cssClass: this.options?.cssClass,
 			focusable: false,
 			selectable: false,
 			filterable: false,

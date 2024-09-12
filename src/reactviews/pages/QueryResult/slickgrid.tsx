@@ -32,10 +32,8 @@ declare global {
 }
 
 export interface SlickGridProps {
-    test: string;
-    x: number;
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
-    resultSetSummary: ResultSetSummary;
+    resultSetSummary?: ResultSetSummary;
 }
 
 export interface SlickGridHandle {
@@ -51,6 +49,9 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
     };
     useEffect(() => {
         const ROW_HEIGHT = 25;
+        if (!props.resultSetSummary) {
+            return;
+        }
 
         let columns: Slick.Column<Slick.SlickData>[] = props.resultSetSummary.columnInfo.map((c, i) => {
 			return {
@@ -60,10 +61,10 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
 					: escape(c.columnName),
 				field: i.toString(),
 				formatter: c.isXml || c.isJson ? hyperLinkFormatter : (row: number | undefined, cell: any | undefined, value: DbCellValue, columnDef: any | undefined, dataContext: any | undefined): string | { text: string, addClasses: string } => {
-					if (isXmlCell(value)) {
+					if (isXmlCell(value) && props.resultSetSummary) {
 						props.resultSetSummary.columnInfo[i].isXml = true;
 						return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
-					} else if (isJsonCell(value)) {
+					} else if (isJsonCell(value) && props.resultSetSummary) {
                         //TODO use showJsonAsLink config
 						props.resultSetSummary.columnInfo[i].isJson = true;
 						return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
@@ -96,23 +97,18 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
             forceFitColumns: false,
             defaultColumnWidth: 120
         };
-        let rowNumberColumn = new RowNumberColumn({ autoCellSelection: false });
+        let rowNumberColumn = new RowNumberColumn<Slick.SlickData>({ autoCellSelection: false });
         columns.unshift(rowNumberColumn.getColumnDefinition());
 
         let collection = new VirtualizedCollection<any>(
             50,
-            index => { },
-            props.resultSetSummary.rowCount,
+            _index => { },
+            props.resultSetSummary?.rowCount ?? 0,
             props.loadFunc
         );
 
         let dataProvider = new HybridDataProvider(collection,
-            (offset, count) => {
-                console.log('loadFunc2');
-                return Promise.resolve([[{ title: 'test' }]])
-            },
-            undefined,
-            undefined,
+            (_startIndex, _count) => Promise.resolve([]),
             (data: DbCellValue) => {
                 if (!data || data.isNull) {
                     return undefined;
@@ -123,8 +119,10 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
             },
             {
                 inMemoryDataProcessing: true,
-            });
-        var table = new Table(div, defaultTableStyles, { dataProvider: dataProvider, columns: columns });
+            },
+            undefined,
+            undefined);
+        var table = new Table(div, defaultTableStyles, { dataProvider: dataProvider, columns: columns }, tableOptions);
 
         collection.setCollectionChangedCallback((startIndex, count) => {
             let refreshedRows = range(startIndex, startIndex + count);
@@ -162,7 +160,7 @@ function isXmlCell(value: DBCellValue): boolean {
         }
     } catch (e) {
         // Ignore errors when parsing cell content, log and continue
-        this.logService.debug(`An error occurred when parsing data as XML: ${e}`);
+        console.log(`An error occurred when parsing data as XML: ${e}`);
     }
     return isXML;
 }

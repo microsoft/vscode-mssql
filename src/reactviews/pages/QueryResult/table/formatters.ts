@@ -60,7 +60,7 @@ export function isCssIconCellValue(obj: any | undefined): obj is CssIconCellValu
 /**
  * Format xml field into a hyperlink and performs HTML entity encoding
  */
-export function hyperLinkFormatter(row: number | undefined, cell: any | undefined, value: any, columnDef: any | undefined, dataContext: any | undefined): string {
+export function hyperLinkFormatter(_row: number | undefined, _cell: any | undefined, value: any, _columnDef: any | undefined, _dataContext: any | undefined): string {
 	let cellClasses = 'grid-cell-value-container';
 	let valueToDisplay: string = '';
 	let isHyperlink: boolean = false;
@@ -87,7 +87,7 @@ export function hyperLinkFormatter(row: number | undefined, cell: any | undefine
 /**
  * Format all text to replace all new lines with spaces and performs HTML entity encoding
  */
-export function textFormatter(row: number | undefined, cell: any | undefined, value: any, columnDef: any | undefined, dataContext: any | undefined, addClasses?: string): string | { text: string, addClasses: string } {
+export function textFormatter(_row: number | undefined, _cell: any | undefined, value: any, _columnDef: any | undefined, _dataContext: any | undefined, addClasses?: string): string | { text: string, addClasses: string } {
 	let cellClasses = 'grid-cell-value-container';
 	let valueToDisplay = '';
 	let titleValue = '';
@@ -148,7 +148,7 @@ export function iconCssFormatter(row: number | undefined, cell: any | undefined,
 	return textFormatter(row, cell, value, columnDef, dataContext);
 }
 
-export function imageFormatter(row: number | undefined, cell: any | undefined, value: any, columnDef: any | undefined, dataContext: any | undefined): string {
+export function imageFormatter(_row: number | undefined, _cell: any | undefined, value: any, _columnDef: any | undefined, _dataContext: any | undefined): string {
 	return `<img src="${value.text}" />`;
 }
 
@@ -191,27 +191,6 @@ export function slickGridDataItemColumnValueWithNoData(value: any, columnDef: an
 	return {
 		text: displayValue,
 		ariaLabel: displayValue ? escape(displayValue) : ((displayValue !== undefined) ? "TODO loc No Value" : displayValue)
-	};
-}
-
-/**
- * Creates a formatter for the first column of the treegrid. The created formatter will wrap the output of the provided formatter with a level based indentation and a chevron icon for tree grid parents that indicates their expand/collapse state.
- */
-export function createTreeGridExpandableColumnFormatter<T>(formattingFunction: Slick.Formatter<T>): Slick.Formatter<T> {
-	return (row: number | undefined, cell: any | undefined, value: any, columnDef: any | undefined, dataContext: any | undefined): string => {
-		const spacer = `<span style='display:inline-block;height:1px;width:${(15 * (dataContext['level'] - 1))}px'></span>`;
-
-		const innerCellContent = formattingFunction(row, cell, value, columnDef, dataContext);
-
-		if (dataContext['isParent']) {
-			if (dataContext.expanded) {
-				return `<div>${spacer}<span class='codicon codicon-chevron-down toggle' style='font-weight:bold;'></span>&nbsp; ${innerCellContent}</div>`;
-			} else {
-				return `<div>${spacer}<span class='codicon codicon-chevron-right toggle' style='font-weight:bold;'></span>&nbsp; ${innerCellContent}</div>`;
-			}
-		} else {
-			return `${spacer}${innerCellContent}`;
-		}
 	};
 }
 

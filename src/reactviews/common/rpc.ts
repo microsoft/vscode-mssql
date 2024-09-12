@@ -53,7 +53,6 @@ export class WebviewRpc<Reducers> {
 	 */
 	public call(method: string, params?: unknown): Promise<unknown> {
 		const id = this._rpcRequestId++;
-		console.log(`HAIDEBUG Request: ${id} with method: ${method} and params: ${JSON.stringify(params)}`);
 		this._vscodeApi.postMessage({ type: 'request', id, method, params });
 		return new Promise((resolve, reject) => {
 			this._rpcHandlers[id] = { resolve, reject };

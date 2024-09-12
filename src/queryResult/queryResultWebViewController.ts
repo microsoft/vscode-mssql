@@ -5,10 +5,10 @@
 
 import * as vscode from 'vscode';
 import * as qr from '../sharedInterfaces/queryResult';
-import { ReactWebViewViewController } from '../controllers/reactWebviewViewController';
+import { ReactWebviewViewController } from '../controllers/reactWebviewViewController';
 
-export class QueryResultWebViewController extends ReactWebViewViewController<qr.QueryResultWebViewState, qr.QueryResultReducers> {
-	private _queryResultStateMap: Map<string, qr.QueryResultWebViewState> = new Map<string, qr.QueryResultWebViewState>();
+export class QueryResultWebviewController extends ReactWebviewViewController<qr.QueryResultWebviewState, qr.QueryResultReducers> {
+	private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> = new Map<string, qr.QueryResultWebviewState>();
 	private _rowRequestHandler: ((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => Promise<qr.ResultSetSubset>) | undefined;
 
 	constructor(context: vscode.ExtensionContext,
@@ -48,8 +48,13 @@ export class QueryResultWebViewController extends ReactWebViewViewController<qr.
 		});
 	}
 
-	public getQueryResultState(uri: string): qr.QueryResultWebViewState {
-		return this._queryResultStateMap.get(uri);
+	public getQueryResultState(uri: string): qr.QueryResultWebviewState {
+		var res = this._queryResultStateMap.get(uri);
+		if (!res) {
+			// This should never happen
+			throw new Error(`No query result state found for uri ${uri}`);
+		}
+		return res;
 	}
 
 	public setRowRequestHandler(handler: (uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number)=> Promise<qr.ResultSetSubset>): void {
