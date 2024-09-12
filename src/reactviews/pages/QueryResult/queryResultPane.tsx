@@ -3,14 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Divider, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
+import { Button, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
 import { useContext, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
 import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
-import { ResultSetSubset } from "../../../models/interfaces";
 
 const useStyles = makeStyles({
 	root: {
@@ -86,9 +85,9 @@ export const QueryResultPane = () => {
 
 	getVscodeTheme;
 
-	const columnsDef: TableColumnDefinition<qr.QueryResultMessage>[] = [
+	const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
 		createTableColumn({
-			columnId: 'timestamp',
+			columnId: 'time',
 			renderHeaderCell: () => <>Timestamp</>
 		}),
 		createTableColumn({
@@ -96,11 +95,11 @@ export const QueryResultPane = () => {
 			renderHeaderCell: () => <>Message</>
 		}),
 	];
-	const [columns] = useState<TableColumnDefinition<qr.QueryResultMessage>[]>(columnsDef);
+	const [columns] = useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
 	const items = metadata?.messages ?? [];
 
 	const sizingOptions: TableColumnSizingOptions = {
-		'timestamp': {
+		'time': {
 			minWidth: 50,
 			idealWidth: 50,
 			defaultWidth: 50
@@ -175,14 +174,14 @@ export const QueryResultPane = () => {
 							if (!response) {
 								return [];
 							}
-							let r = response as ResultSetSubset;
+							let r = response as qr.ResultSetSubset;
 							return r.rows.map(r => {
 								let dataWithSchema = {};
 								// skip the first column since its a number column
 								for (let i = 1; i < metadata.resultSetSummary.columnInfo.length + 1; i++) {
 									const displayValue = r[i - 1].displayValue ?? '';
 									const ariaLabel = (displayValue);
-									dataWithSchema[(i-1).toString()] = {
+									dataWithSchema[(i - 1).toString()] = {
 										displayValue: displayValue,
 										ariaLabel: ariaLabel,
 										isNull: r[i - 1].isNull,
@@ -220,12 +219,16 @@ export const QueryResultPane = () => {
 							rows.map((row, index) => {
 								return <TableRow key={index}>
 									<TableCell
-										{...columnSizing_unstable.getTableCellProps('timestamp')}
-									>{row.item.timestamp}</TableCell>
+										{...columnSizing_unstable.getTableCellProps('time')}
+									>{row.item.time}</TableCell>
 									<TableCell
-										{...columnSizing_unstable.getTableCellProps('description')}
-									>{row.item.message}</TableCell>
-								</TableRow>
+										{...columnSizing_unstable.getTableCellProps('message')}
+									>{row.item.message}
+										{row.item.link?.text && row.item.selection && (
+											<>{' '}<Link onClick={(e) => { console.log('TODO open link'); }}>{row.item?.link?.text}</Link></>
+										)}
+									</TableCell>
+								</TableRow>;
 							})
 						}
 					</TableBody>

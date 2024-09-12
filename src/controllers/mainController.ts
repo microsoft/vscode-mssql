@@ -320,7 +320,7 @@ export default class MainController implements vscode.Disposable {
 
 		// Init content provider for results pane
 		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper, this._queryResultWebviewController);
-		this._queryResultWebviewController.setSqlOutputContentProvider(this._outputContentProvider);
+		this._queryResultWebviewController.setRowRequestHandler((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => this._outputContentProvider.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows));
 
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);

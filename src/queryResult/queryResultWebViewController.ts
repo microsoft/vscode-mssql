@@ -7,11 +7,10 @@ import * as vscode from 'vscode';
 import * as qr from '../sharedInterfaces/queryResult';
 import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebViewViewController } from '../controllers/reactWebviewViewController';
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 
 export class QueryResultWebViewController extends ReactWebViewViewController<qr.QueryResultWebViewState, qr.QueryResultReducers> {
 	private _queryResultStateMap: Map<string, qr.QueryResultWebViewState> = new Map<string, qr.QueryResultWebViewState>();
-	private _outputContentProvider: SqlOutputContentProvider;
+	private _rowRequestHandler: ((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => Promise<qr.ResultSetSubset>) | undefined;
 
 	constructor(context: vscode.ExtensionContext,
 	) {
@@ -31,7 +30,7 @@ export class QueryResultWebViewController extends ReactWebViewViewController<qr.
 
 	private registerRpcHandlers() {
 		this.registerRequestHandler('getRows', async (message) => {
-			return await this._outputContentProvider.rowRequestHandler(message.uri, message.batchId, message.resultId, message.rowStart, message.numberOfRows)
+			return await this._rowRequestHandler(message.uri, message.batchId, message.resultId, message.rowStart, message.numberOfRows);
 		});
 		this.registerReducer('setResultTab', async (state, payload) => {
 			state.tabStates.resultPaneTab = payload.tabId;
@@ -54,7 +53,8 @@ export class QueryResultWebViewController extends ReactWebViewViewController<qr.
 		return this._queryResultStateMap.get(uri);
 	}
 
-	public setSqlOutputContentProvider(provider: SqlOutputContentProvider): void {
-		this._outputContentProvider = provider;
+	public setRowRequestHandler(handler: (uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number)=> Promise<qr.ResultSetSubset>): void {
+
+		this._rowRequestHandler = handler;
 	}
 }

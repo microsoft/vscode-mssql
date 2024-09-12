@@ -7,13 +7,12 @@ import $ from 'jquery';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import '../../../../media/slickgrid.css';
 import { range, Table } from './table/table';
-import { TableDataView } from './table/tableDataView';
-import { defaultTableStyles, FilterableColumn } from './table/interfaces';
+import { defaultTableStyles } from './table/interfaces';
 import { RowNumberColumn } from './table/plugins/rowNumberColumn.plugin';
 import { VirtualizedCollection } from './table/asyncDataView';
 import { HybridDataProvider } from './table/hybridDataProvider';
-import { DbCellValue, ResultSetSummary } from '../../../models/contracts/queryExecute';
-import { hyperLinkFormatter, textFormatter, DBCellValue } from './table/formatters';
+import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from './table/formatters';
+import { DbCellValue, ResultSetSummary } from '../../../sharedInterfaces/queryResult';
 
 window.jQuery = $ as any;
 require('slickgrid/lib/jquery.event.drag-2.3.0.js');

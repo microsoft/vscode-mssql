@@ -19,6 +19,7 @@ import { ResultSetSubset, ResultSetSummary } from './contracts/queryExecute';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { QueryResultWebViewController } from '../queryResult/queryResultWebViewController';
+import { QueryResultPaneTabs } from '../sharedInterfaces/queryResult';
 // tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
 
@@ -217,6 +218,7 @@ export class SqlOutputContentProvider {
 			queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 			queryRunner.eventEmitter.on('start', (panelUri) => {
 				this._panels.get(uri).proxy.sendEvent('start', panelUri);
+				this._queryResultWebviewController.addQueryResultState(uri);
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
 				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
@@ -240,13 +242,13 @@ export class SqlOutputContentProvider {
 					}
 				};
 				this._panels.get(uri).proxy.sendEvent('message', message);
-				this._queryResultWebviewController.getQueryResultState(uri).messages.push({message: LocalizedConstants.runQueryBatchStartMessage, timestamp: time});
+				this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
 				vscode.commands.executeCommand('queryResult.focus');
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
 				this._panels.get(uri).proxy.sendEvent('message', message);
 				console.log(message);
-				this._queryResultWebviewController.getQueryResultState(uri).messages.push({message: message.message, timestamp: new Date().toLocaleTimeString()});
+				this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
 				if (!isRefresh) {
@@ -255,6 +257,7 @@ export class SqlOutputContentProvider {
 				}
 				this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
 				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+				this._queryResultWebviewController.state.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
 				vscode.commands.executeCommand('queryResult.focus');
 			});
 			this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
