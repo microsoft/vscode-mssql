@@ -112,10 +112,6 @@
   "Move Down": "Move Down",
   "Error loading designer": "Error loading designer",
   "Loading table designer": "Loading table designer",
-  "Property": "Property",
-  "Operator": "Operator",
-  "Value": "Value",
-  "Clear": "Clear",
   "Filter Settings": "Filter Settings",
   "Path: {0}/{0} is the path of the node in the object explorer": {
     "message": "Path: {0}",
@@ -162,6 +158,10 @@
   "Greater Than Or Equals": "Greater Than Or Equals",
   "Between": "Between",
   "Not Between": "Not Between",
+  "Property": "Property",
+  "Operator": "Operator",
+  "Value": "Value",
+  "Clear": "Clear",
   "Query {0}:  Query cost (relative to the script):  {1}/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}",
     "comment": [

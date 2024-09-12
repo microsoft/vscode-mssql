@@ -50,11 +50,6 @@ export const ObjectExplorerFilterPage = () => {
 	const provider = useContext(ObjectExplorerFilterContext);
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 	const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
-
-	const PROPERTY = l10n.t('Property');
-	const OPERATOR = l10n.t('Operator');
-	const VALUE = l10n.t('Value');
-	const CLEAR = l10n.t('Clear');
 	const FILTER_SETTINGS = l10n.t('Filter Settings');
 	const PATH = l10n.t({
 		message: 'Path: {0}',
@@ -248,9 +243,6 @@ export const ObjectExplorerFilterPage = () => {
 		setErrorMessage(undefined);
 	}, [provider?.state?.filterProperties]);
 
-	useEffect(() => {
-
-	}, [provider?.isLocalizationLoaded]);
 
 	function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
 		switch (columnId) {
@@ -392,25 +384,37 @@ export const ObjectExplorerFilterPage = () => {
 			createTableColumn(
 				{
 					columnId: 'property',
-					renderHeaderCell: () => <>{PROPERTY}</>,
+					renderHeaderCell: () => {
+						const PROPERTY = l10n.t('Property');
+						return <>{PROPERTY}</>;
+					}
 				}
 			),
 			createTableColumn(
 				{
 					columnId: 'operator',
-					renderHeaderCell: () => <>{OPERATOR}</>,
+					renderHeaderCell: () => {
+						const OPERATOR = l10n.t('Operator');
+						return <>{OPERATOR}</>;
+					},
 				}
 			),
 			createTableColumn(
 				{
 					columnId: 'value',
-					renderHeaderCell: () => <>{VALUE}</>,
+					renderHeaderCell: () => {
+						const VALUE = l10n.t('Value');
+						return <>{VALUE}</>;
+					},
 				}
 			),
 			createTableColumn(
 				{
 					columnId: 'clear',
-					renderHeaderCell: () => <>{CLEAR}</>,
+					renderHeaderCell: () => {
+						const CLEAR = l10n.t('Clear');
+						return <>{CLEAR}</>;
+					}
 				}
 			)
 		];
