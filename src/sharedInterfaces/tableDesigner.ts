@@ -664,7 +664,7 @@ export interface PropertiesPaneData {
 	model: DesignerTableProperties;
 }
 
-export interface TableDesignerWebViewState {
+export interface TableDesignerWebviewState {
 	tableInfo?: TableInfo;
 	view?: DesignerView;
 	model?: DesignerViewModel;

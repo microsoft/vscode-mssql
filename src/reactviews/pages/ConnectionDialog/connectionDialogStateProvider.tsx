@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebViewProvider";
-import { ConnectionDialogContextProps, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabs, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { ConnectionDialogContextProps, ConnectionDialogReducers, ConnectionDialogWebviewState, FormTabType, IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -14,30 +14,30 @@ interface ConnectionDialogProviderProps {
 }
 
 const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
-	const webViewState = useVscodeWebview<ConnectionDialogWebviewState, ConnectionDialogReducers>();
-	const connectionDialogState = webViewState?.state;
+	const webviewState = useVscodeWebview<ConnectionDialogWebviewState, ConnectionDialogReducers>();
+	const connectionDialogState = webviewState?.state;
 	return <ConnectionDialogContext.Provider value={
 		{
 			state: connectionDialogState,
-			theme: webViewState?.theme,
+			theme: webviewState?.theme,
 			loadConnection: function (connection: IConnectionDialogProfile): void {
-				webViewState?.extensionRpc.action('loadConnection', {
+				webviewState?.extensionRpc.action('loadConnection', {
 					connection: connection,
-				 });
+				});
 			},
 			formAction: function (event): void {
-				webViewState?.extensionRpc.action('formAction', {
+				webviewState?.extensionRpc.action('formAction', {
 					event: event
 				});
 			},
-			setFormTab: function (tab: FormTabs): void {
-				webViewState?.extensionRpc.action('setFormTab', {
+			setFormTab: function (tab: FormTabType): void {
+				webviewState?.extensionRpc.action('setFormTab', {
 					tab: tab
 				});
 			},
 			connect: function (): void {
-				webViewState?.extensionRpc.action('connect');
-			}
+				webviewState?.extensionRpc.action('connect');
+			},
 		}
 	}>{children}</ConnectionDialogContext.Provider>;
 };

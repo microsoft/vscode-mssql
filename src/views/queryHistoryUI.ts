@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import * as Utils from '../models/utils';
 import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 
 
 export enum QueryHistoryAction {

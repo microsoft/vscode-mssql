@@ -6,7 +6,7 @@
 import { ClientAuthError, ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
 import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
-import * as LocalizedConstants from '../../constants/localizedConstants';
+import * as LocalizedConstants from '../../constants/locConstants';
 import { ConnectionProfile } from '../../models/connectionProfile';
 import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/contracts/azure';
 import { AccountStore } from '../accountStore';

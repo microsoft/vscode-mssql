@@ -6,7 +6,7 @@
 import * as os from 'os';
 import * as crypto from 'crypto';
 import * as vscode from 'vscode';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { DidChangeEncryptionIVKeyParams, EncryptionKeysChangedNotification } from '../models/contracts/connection';

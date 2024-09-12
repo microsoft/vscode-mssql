@@ -12,7 +12,7 @@ import {
 import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
-import { Logger, LogLevel } from '../models/logger';
+import { Logger } from '../models/logger';
 import * as Constants from '../constants/constants';
 import ServerProvider from './server';
 import ServiceDownloadProvider from './serviceDownloadProvider';
@@ -156,10 +156,10 @@ export default class SqlToolsServiceClient {
 		if (SqlToolsServiceClient._instance === undefined) {
 			let config = new ExtConfig();
 			let vscodeWrapper = new VscodeWrapper();
-			let logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
-			let pii = Utils.getConfigPiiLogging();
+
 			_channel = vscodeWrapper.createOutputChannel(Constants.serviceInitializingOutputChannelName);
-			let logger = new Logger(text => _channel.append(text), logLevel, pii);
+			let logger = Logger.create(_channel);
+
 			let serverStatusView = new ServerStatusView();
 			let httpClient = new HttpClient();
 			let decompressProvider = new DecompressProvider();

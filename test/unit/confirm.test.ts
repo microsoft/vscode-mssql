@@ -5,7 +5,7 @@
 
 import * as TypeMoq from 'typemoq';
 import VscodeWrapper from '../../src/controllers/vscodeWrapper';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import ConfirmPrompt from '../../src/prompts/confirm';
 
 // @cssuh 10/22 - commented this test because it was throwing some random undefined errors

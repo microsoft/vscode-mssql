@@ -100,7 +100,7 @@ export const DesignerChangesPreviewButton = () => {
         if (metadata?.apiState?.previewState === LoadState.Loaded) {
             return <>
                 <DialogContent>
-                    <div style = {
+                    <div style={
                         {
                             width: '98%',
                             height: '100%',
@@ -111,7 +111,7 @@ export const DesignerChangesPreviewButton = () => {
                             overflow: 'auto',
                         }
                     }>
-                    <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
+                        <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
                     </div>
                 </DialogContent>
                 <DialogActions>
@@ -136,7 +136,7 @@ export const DesignerChangesPreviewButton = () => {
                 aria-label="Publish"
                 title="Publish"
                 icon={<DatabaseArrowDownRegular />}
-                onClick={() => {
+                onClick ={() => {
                     designerContext.provider.generatePreviewReport();
                 }}
                 disabled={(metadata?.issues?.length ?? 0) > 0}

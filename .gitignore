@@ -18,7 +18,6 @@ coverage
 coverage-remapped
 test-reports
 .vscode-test
-localization/i18n/
 src/constants/localizedConstants.ts
 package.nls.*.json
 /test-results/
@@ -27,3 +26,5 @@ package.nls.*.json
 /playwright/.cache/
 .env
 webviews-metafile.json
+/localization/l10n/
+! /localization/l10n/bundle.l10n.json
