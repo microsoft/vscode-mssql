@@ -14,7 +14,7 @@ export default [
   eslintPluginPrettierRecommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
-    ignores: ["src/prompts/**/*.ts", "**/*.d.ts"], // Ignore prompts files as they are copied from other repos
+    ignores: ["src/prompts/**/*.ts", "**/*.d.ts", "src/reactviews/pages/ExecutionPlan/**/*"], // Ignore prompts files as they are copied from other repos
     languageOptions: {
       ...reactRecommended.languageOptions,
       ecmaVersion: "latest",

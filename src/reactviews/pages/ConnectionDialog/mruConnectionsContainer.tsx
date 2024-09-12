@@ -49,26 +49,33 @@ export const MruConnectionsContainer = () => {
   const styles = useStyles();
   const connectionDialogContext = useContext(ConnectionDialogContext);
 
-	return (
-		<div>
-			<div className={styles.paneTitle}>
-				<Text weight="semibold" className={styles.paneTitle}>Recent Connections</Text>
-			</div>
-			<Tree >
-				{
-					connectionDialogContext?.state?.recentConnections?.map((connection, index) => {
-						return (
-							<TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
-								connectionDialogContext.loadConnection(connection);
-							}}>
-								<TreeItemLayout iconBefore={<ServerRegular />}>
-									{connection.displayName}
-								</TreeItemLayout>
-							</TreeItem>
-						);
-					})
-				}
-			</Tree>
-		</div >
-	);
+  return (
+    <div>
+      <div className={styles.paneTitle}>
+        <Text weight="semibold" className={styles.paneTitle}>
+          Recent Connections
+        </Text>
+      </div>
+      <Tree>
+        {connectionDialogContext?.state?.recentConnections?.map(
+          (connection, index) => {
+            return (
+              <TreeItem
+                itemType="leaf"
+                key={"mru" + index}
+                className={styles.card}
+                onClick={() => {
+                  connectionDialogContext.loadConnection(connection);
+                }}
+              >
+                <TreeItemLayout iconBefore={<ServerRegular />}>
+                  {connection.displayName}
+                </TreeItemLayout>
+              </TreeItem>
+            );
+          },
+        )}
+      </Tree>
+    </div>
+  );
 };

@@ -39,30 +39,31 @@ export const useStyles = makeStyles({
 });
 
 export const ConnectionPage = () => {
-	const classes = useStyles();
-	return (
-		<div className={classes.root}>
-			<div className={classes.mainContainer}>
-				<ConnectionInfoFormContainer />
-			</div>
-			<Divider style={
-				{
-					width: '5px',
-					height: '100%',
-					flex: 0
-				}
-			} vertical />
-			<ResizableBox
-				className={classes.mruContainer}
-				width={350}
-				height={Infinity}
-				maxConstraints={[800, Infinity]}
-				minConstraints={[300, Infinity]}
-				resizeHandles={['w']}
-				handle={<div className={classes.mruPaneHandle} />}
-			>
-				<MruConnectionsContainer />
-			</ResizableBox>
-		</div>
-	);
+  const classes = useStyles();
+  return (
+    <div className={classes.root}>
+      <div className={classes.mainContainer}>
+        <ConnectionInfoFormContainer />
+      </div>
+      <Divider
+        style={{
+          width: "5px",
+          height: "100%",
+          flex: 0,
+        }}
+        vertical
+      />
+      <ResizableBox
+        className={classes.mruContainer}
+        width={350}
+        height={Infinity}
+        maxConstraints={[800, Infinity]}
+        minConstraints={[300, Infinity]}
+        resizeHandles={["w"]}
+        handle={<div className={classes.mruPaneHandle} />}
+      >
+        <MruConnectionsContainer />
+      </ResizableBox>
+    </div>
+  );
 };
