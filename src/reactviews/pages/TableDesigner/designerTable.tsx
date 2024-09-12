@@ -65,7 +65,10 @@ export const DesignerTable = ({
 	if (tableProps.canRemoveRows) {
 		columnsDef.push(fluentui.createTableColumn({
 			columnId: 'remove',
-			renderHeaderCell: () => <>Delete</>
+			renderHeaderCell: () => {
+				const DELETE = l10n.t('Delete');
+				return <>{DELETE}</>;
+			}
 		}));
 	}
 
@@ -276,7 +279,7 @@ export const DesignerTable = ({
 
 		</fluentui.Toolbar>
 		<fluentui.Table
-			as = "table"
+			as="table"
 			size="small"
 			{...columnSizing_unstable.getTableProps()}
 			ref={tableRef}

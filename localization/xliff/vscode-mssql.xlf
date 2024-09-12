@@ -311,6 +311,9 @@
     <trans-unit id="++CODE++fe0ec38fb92c70d80fd5a36ff72c37cb3ed759bba91373c96a21bde631e03db3">
       <source xml:lang="en">DefinitionRequested</source>
     </trans-unit>
+    <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
+      <source xml:lang="en">Delete</source>
+    </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
     </trans-unit>
