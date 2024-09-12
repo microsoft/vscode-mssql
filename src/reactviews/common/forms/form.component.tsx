@@ -90,7 +90,7 @@ export const FormField = <TContext extends FormContextProps<TState, TForm>, TSta
 					component.tooltip
 						? {
 							children: (_: unknown, slotProps: LabelProps) => (
-								<InfoLabel {...slotProps} info={component.tooltip}>
+								<InfoLabel {...slotProps} info={component.tooltip} >
 									{ component.label }
 								</InfoLabel>
 							)
@@ -176,7 +176,7 @@ export const useFormStyles = makeStyles({
 	},
 	formDiv: {
 		padding: '10px',
-		maxWidth: '500px',
+		maxWidth: '600px',
 		display: 'flex',
 		flexDirection: 'column',
 		'> *': {
@@ -186,7 +186,7 @@ export const useFormStyles = makeStyles({
 	formComponentDiv: {
 		'> *': {
 			margin: '5px',
-		}
+		},
 	},
 	formComponentActionDiv: {
 		display: 'flex',

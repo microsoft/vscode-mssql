@@ -35,11 +35,16 @@ export const ConnectionFormPage = () => {
         <div>
             {(connectionDialogContext.state.connectionComponents.mainOptions).map(
                 (inputName, idx) => {
+                    const component = connectionDialogContext.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
+                    if (component.hidden === true) {
+                        return undefined;
+                    }
+
                     return (
                         <FormField
                             key={idx}
                             context={connectionDialogContext}
-                            component={connectionDialogContext.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile] as FormItemSpec<IConnectionDialogProfile>}
+                            component={component as FormItemSpec<IConnectionDialogProfile>}
                             idx={idx}
                             props={{ orientation: 'horizontal' }}
                         />
@@ -109,31 +114,41 @@ export const ConnectionFormPage = () => {
                     </Accordion>
                 </DrawerBody>
             </OverlayDrawer>
-            <Button
-                shape="square"
-                onClick={(_event) => {
-                    setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                }}
-                style={{
-                    width: "200px",
-                    alignSelf: "center",
-                }}
-            >
-                Advanced
-            </Button>
-            <Button
-                shape="square"
-                onClick={(_event) => {
-                    //connectionDialogContext.testConnection();
-                }}
-                style={{
-                    width: "200px",
-                    alignSelf: "center",
-                }}
-            >
-                Test Connection
-            </Button>
-            <ConnectButton />
+            <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+            }}>
+                <Button
+                    shape="square"
+                    onClick={(_event) => {
+                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                    }}
+                    style={{
+                        width: "150px",
+                        alignSelf: "center",
+                        margin: "0px 10px",
+                    }}
+                >
+                    Advanced
+                </Button>
+                <div style={{ display: "flex", marginLeft: "auto" }}>
+                <Button
+                    shape="square"
+                    onClick={(_event) => {
+                        // TODO: connectionDialogContext.testConnection();
+                    }}
+                    style={{
+                        width: "150px",
+                        alignSelf: "center",
+                        margin: "0px 10px",
+                    }}
+                >
+                    Test Connection
+                </Button>
+                <ConnectButton />
+                </div>
+            </div>
         </div>
     );
 };

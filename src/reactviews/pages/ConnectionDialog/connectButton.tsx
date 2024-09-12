@@ -23,8 +23,9 @@ export const ConnectButton = ({style}: {style?: CSSProperties}) => {
 			onClick={(_event) => { connectionDialogContext.connect(); }}
 			style={
 				{
-					width: '200px',
+					width: '150px',
 					alignSelf: 'center',
+                    margin: "0px 10px",
 					...style
 				}
 			}
