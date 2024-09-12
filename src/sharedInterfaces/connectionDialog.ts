@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormEvent, FormState } from "../reactviews/common/forms/form";
 import { ApiStatus } from "./webview";
@@ -77,7 +76,6 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 }
 
 export interface ConnectionDialogContextProps extends FormContextProps<ConnectionDialogWebviewState, IConnectionDialogProfile> {
-	theme: Theme;
 	loadConnection: (connection: IConnectionDialogProfile) => void;
 	setConnectionInputType: (inputType: ConnectionInputMode) => void;
 	connect: () => void;

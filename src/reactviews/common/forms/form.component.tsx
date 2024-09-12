@@ -97,6 +97,7 @@ export const FormField = <TContext extends FormContextProps<TState, TForm>, TSta
 						}
 						: component.label}
 				{...props}
+				style={{color: context.theme.colorNeutralForeground1}}
 			>
 				{ generateFormComponent(context, component, idx) }
 			</Field>
