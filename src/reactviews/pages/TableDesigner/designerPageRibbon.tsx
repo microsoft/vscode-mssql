@@ -10,7 +10,7 @@ import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
-import { getLocString } from "../../common/locConstants";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
 	separator: {
@@ -27,12 +27,15 @@ export const DesignerPageRibbon = () => {
 		return null;
 	}
 
+	const GENERATE_SCRIPT = l10n.t('Generate Script');
+	const SCRIPT_AS_CREATE = l10n.t('Script As Create');
+
 	return (
 		<div>
 			<Toolbar size="small">
 				<ToolbarButton
-					aria-label={getLocString('GENERATE_SCRIPT')}
-					title={getLocString('GENERATE_SCRIPT')}
+					aria-label={GENERATE_SCRIPT}
+					title={GENERATE_SCRIPT}
 					icon={<DocumentChevronDoubleRegular />}
 					onClick={
 						() => {
@@ -41,19 +44,19 @@ export const DesignerPageRibbon = () => {
 					}
 					disabled={(designerContext.state.issues?.length ?? 0) > 0}
 				>
-					{getLocString('GENERATE_SCRIPT')} {designerContext.state.apiState?.generateScriptState === LoadState.Loading && <Spinner style={{
+					{GENERATE_SCRIPT} {designerContext.state.apiState?.generateScriptState === LoadState.Loading && <Spinner style={{
 						marginLeft: '5px'
 					}} size='extra-small' />}
 				</ToolbarButton>
 				<ToolbarButton
-					aria-label={getLocString('SCRIPT_AS_CREATE')}
-					title={getLocString('SCRIPT_AS_CREATE')}
+					aria-label={SCRIPT_AS_CREATE}
+					title={SCRIPT_AS_CREATE}
 					icon={<DocumentChevronDoubleRegular />}
 					onClick={() => {
 						designerContext.provider.scriptAsCreate();
 					}}
 				>
-					{getLocString('SCRIPT_AS_CREATE')}
+					{SCRIPT_AS_CREATE}
 				</ToolbarButton>
 				<DesignerChangesPreviewButton />
 			</Toolbar>

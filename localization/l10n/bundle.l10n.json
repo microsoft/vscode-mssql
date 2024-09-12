@@ -1,4 +1,66 @@
 {
+  "The name of the table object.": "The name of the table object.",
+  "Table name": "Table name",
+  "The schema that contains the table.": "The schema that contains the table.",
+  "Schema": "Schema",
+  "Description for the table.": "Description for the table.",
+  "Description": "Description",
+  "The name of the column object.": "The name of the column object.",
+  "Name": "Name",
+  "Displays the description of the column": "Displays the description of the column",
+  "Displays the unified data type (including length, scale and precision) for the column": "Displays the unified data type (including length, scale and precision) for the column",
+  "Advanced Type": "Advanced Type",
+  "Displays the data type name for the column": "Displays the data type name for the column",
+  "Type": "Type",
+  "The maximum length (in characters) that can be stored in this database object.": "The maximum length (in characters) that can be stored in this database object.",
+  "Length": "Length",
+  "A predefined global default value for the column or binding.": "A predefined global default value for the column or binding.",
+  "Default Value": "Default Value",
+  "Specifies whether the column may have a NULL value.": "Specifies whether the column may have a NULL value.",
+  "Allow Nulls": "Allow Nulls",
+  "Specifies whether the column is included in the primary key for the table.": "Specifies whether the column is included in the primary key for the table.",
+  "Primary Key": "Primary Key",
+  "For numeric data, the maximum number of decimal digits that can be stored in this database object.": "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
+  "Precision": "Precision",
+  "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.": "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
+  "Scale": "Scale",
+  "Columns": "Columns",
+  "Column": "Column",
+  "New Column": "New Column",
+  "The name of the column.": "The name of the column.",
+  "Name of the primary key.": "Name of the primary key.",
+  "The description of the primary key.": "The description of the primary key.",
+  "Columns in the primary key.": "Columns in the primary key.",
+  "Primary Key Columns": "Primary Key Columns",
+  "Add Column": "Add Column",
+  "The name of the index.": "The name of the index.",
+  "The description of the index.": "The description of the index.",
+  "The columns of the index.": "The columns of the index.",
+  "Indexes": "Indexes",
+  "Index": "Index",
+  "New Index": "New Index",
+  "Foreign Column": "Foreign Column",
+  "The name of the foreign key.": "The name of the foreign key.",
+  "The description of the foreign key.": "The description of the foreign key.",
+  "The table which contains the primary or unique key column.": "The table which contains the primary or unique key column.",
+  "Foreign Table": "Foreign Table",
+  "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.": "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
+  "On Update Action": "On Update Action",
+  "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.": "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
+  "On Delete Action": "On Delete Action",
+  "The mapping between foreign key columns and primary key columns.": "The mapping between foreign key columns and primary key columns.",
+  "New Column Mapping": "New Column Mapping",
+  "Foreign Keys": "Foreign Keys",
+  "Foreign Key": "Foreign Key",
+  "New Foreign Key": "New Foreign Key",
+  "The name of the check constraint.": "The name of the check constraint.",
+  "The description of the check constraint.": "The description of the check constraint.",
+  "The expression defining the check constraint.": "The expression defining the check constraint.",
+  "Expression": "Expression",
+  "Check Constraints": "Check Constraints",
+  "Check Constraint": "Check Constraint",
+  "New Check Constraint": "New Check Constraint",
+  "About table": "About table",
   "Publishing Changes": "Publishing Changes",
   "Changes published successfully": "Changes published successfully",
   "Close Designer": "Close Designer",
@@ -11,7 +73,95 @@
   "Close": "Close",
   "Publish": "Publish",
   "Preview Database Updates": "Preview Database Updates",
+  "{0} issue/{0} is the number of issues": {
+    "message": "{0} issue",
+    "comment": [
+      "{0} is the number of issues"
+    ]
+  },
+  "{0} issues/{0} is the number of issues": {
+    "message": "{0} issues",
+    "comment": [
+      "{0} is the number of issues"
+    ]
+  },
+  "{0} {1} issue/{0} is the tab name{1} is the number of issues": {
+    "message": "{0} {1} issue",
+    "comment": [
+      "{0} is the tab name",
+      "{1} is the number of issues"
+    ]
+  },
+  "{0} {1} issues/{0} is the tab name{1} is the number of issues": {
+    "message": "{0} {1} issues",
+    "comment": [
+      "{0} is the tab name",
+      "{1} is the number of issues"
+    ]
+  },
   "Script As Create": "Script As Create",
+  "Properties": "Properties",
+  "No data": "No data",
+  "Severity": "Severity",
+  "Script as CREATE": "Script as CREATE",
+  "1 issue": "1 issue",
+  "{0} issues": "{0} issues",
+  "Issues": "Issues",
+  "Go there": "Go there",
+  "Move Up": "Move Up",
+  "Move Down": "Move Down",
+  "Error loading designer": "Error loading designer",
+  "Loading table designer": "Loading table designer",
+  "Property": "Property",
+  "Operator": "Operator",
+  "Value": "Value",
+  "Clear": "Clear",
+  "Filter Settings": "Filter Settings",
+  "Path: {0}/{0} is the path of the node in the object explorer": {
+    "message": "Path: {0}",
+    "comment": [
+      "{0} is the path of the node in the object explorer"
+    ]
+  },
+  "The first value must be set for the {0} operator in the {1} filter/{0} is the operator for the filter{1} is the name of the filter": {
+    "message": "The first value must be set for the {0} operator in the {1} filter",
+    "comment": [
+      "{0} is the operator for the filter",
+      "{1} is the name of the filter"
+    ]
+  },
+  "The second value must be set for the {0} operator in the {1} filter/{0} is the operator for the filter{1} is the name of the filter": {
+    "message": "The second value must be set for the {0} operator in the {1} filter",
+    "comment": [
+      "{0} is the operator for the filter",
+      "{1} is the name of the filter"
+    ]
+  },
+  "The first value must be less than the second value for the {0} operator in the {1} filter/{0} is the operator for the filter{1} is the name of the filter": {
+    "message": "The first value must be less than the second value for the {0} operator in the {1} filter",
+    "comment": [
+      "{0} is the operator for the filter",
+      "{1} is the name of the filter"
+    ]
+  },
+  "Error": "Error",
+  "Clear All": "Clear All",
+  "OK": "OK",
+  "And": "And",
+  "Contains": "Contains",
+  "Not Contains": "Not Contains",
+  "Starts With": "Starts With",
+  "Not Starts With": "Not Starts With",
+  "Ends With": "Ends With",
+  "Not Ends With": "Not Ends With",
+  "Equals": "Equals",
+  "Not Equals": "Not Equals",
+  "Less Than": "Less Than",
+  "Less Than Or Equals": "Less Than Or Equals",
+  "Greater Than": "Greater Than",
+  "Greater Than Or Equals": "Greater Than Or Equals",
+  "Between": "Between",
+  "Not Between": "Not Between",
   "Query {0}:  Query cost (relative to the script):  {1}/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}",
     "comment": [
@@ -468,8 +618,6 @@
   "Number of Rows Read": "Number of Rows Read",
   "Off": "Off",
   "Find Nodes": "Find Nodes",
-  "Equals": "Equals",
-  "Contains": "Contains",
   "Save Plan": "Save Plan",
   "Open Xml": "Open Xml",
   "Open Query": "Open Query",
