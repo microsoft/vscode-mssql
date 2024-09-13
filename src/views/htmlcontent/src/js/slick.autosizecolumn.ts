@@ -7,7 +7,7 @@
 (function ($: JQueryStatic): void {
 
 	$.extend(true, window, {
-		'SlickDrag': {
+		'Slick': {
 			'AutoColumnSize': autoColumnSize
 		}
 	});

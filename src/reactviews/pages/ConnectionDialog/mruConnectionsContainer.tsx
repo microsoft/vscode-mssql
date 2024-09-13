@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluentui/react-components"
+import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluentui/react-components";
 import { ServerRegular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
@@ -50,16 +50,18 @@ export const MruConnectionsContainer = () => {
 			<Tree >
 				{
 					connectionDialogContext?.state?.recentConnections?.map((connection, index) => {
-						return <TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
-							connectionDialogContext.loadConnection(connection);
-						}}>
-							<TreeItemLayout iconBefore={<ServerRegular />}>
-								{connection.profileName}
-							</TreeItemLayout>
-						</TreeItem>
+						return (
+							<TreeItem itemType='leaf' key={'mru' + index} className={styles.card} onClick={() => {
+								connectionDialogContext.loadConnection(connection);
+							}}>
+								<TreeItemLayout iconBefore={<ServerRegular />}>
+									{connection.displayName}
+								</TreeItemLayout>
+							</TreeItem>
+						);
 					})
 				}
 			</Tree>
 		</div >
-	)
-}
+	);
+};

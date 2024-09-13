@@ -5,8 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
-import * as Utils from './utils';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as Interfaces from './interfaces';
 import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from '../models/resultsSerializer';
@@ -18,7 +17,8 @@ import { IServerProxy, Deferred } from '../protocol';
 import { ResultSetSubset, ResultSetSummary } from './contracts/queryExecute';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
-import { QueryResultWebViewController } from '../queryResult/queryResultWebViewController';
+import { QueryResultWebviewController } from '../queryResult/queryResultWebViewController';
+import { QueryResultPaneTabs } from '../sharedInterfaces/queryResult';
 // tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
 
@@ -45,17 +45,20 @@ export class SqlOutputContentProvider {
 	// MEMBER VARIABLES ////////////////////////////////////////////////////
 	private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
 	private _panels = new Map<string, WebviewPanelController>();
-	private _reactPanels = new Map<string, QueryResultWebViewController>();
+	private _queryResultWebviewController: QueryResultWebviewController;
 
 	// CONSTRUCTOR /////////////////////////////////////////////////////////
 	constructor(
 		private context: vscode.ExtensionContext,
 		private _statusView: StatusView,
-		private _vscodeWrapper,
-		private _queryResultWebviewController: QueryResultWebViewController) {
+		private _vscodeWrapper) {
 		if (!_vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
+	}
+
+	public setQueryResultWebviewController(queryResultWebviewController: QueryResultWebviewController): void {
+		this._queryResultWebviewController = queryResultWebviewController;
 	}
 
 	public rowRequestHandler(uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset> {
@@ -218,6 +221,7 @@ export class SqlOutputContentProvider {
 			queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 			queryRunner.eventEmitter.on('start', (panelUri) => {
 				this._panels.get(uri).proxy.sendEvent('start', panelUri);
+				this._queryResultWebviewController.addQueryResultState(uri);
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
 				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
@@ -237,17 +241,17 @@ export class SqlOutputContentProvider {
 					isError: false,
 					time: time,
 					link: {
-						text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1)
+						text: LocalizedConstants.runQueryBatchStartLine(batch.selection.startLine + 1)
 					}
 				};
 				this._panels.get(uri).proxy.sendEvent('message', message);
-				this._queryResultWebviewController.getQueryResultState(uri).messages.push({message: LocalizedConstants.runQueryBatchStartMessage, timestamp: time});
+				this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
 				vscode.commands.executeCommand('queryResult.focus');
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
 				this._panels.get(uri).proxy.sendEvent('message', message);
 				console.log(message);
-				this._queryResultWebviewController.getQueryResultState(uri).messages.push({message: message.message, timestamp: new Date().toLocaleTimeString()});
+				this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
 				if (!isRefresh) {
@@ -256,6 +260,7 @@ export class SqlOutputContentProvider {
 				}
 				this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
 				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+				this._queryResultWebviewController.state.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
 				vscode.commands.executeCommand('queryResult.focus');
 			});
 			this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
@@ -288,7 +293,7 @@ export class SqlOutputContentProvider {
 		// Cancel the query
 		queryRunner.cancel().then(success => undefined, error => {
 			// On error, show error message
-			self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error.message));
+			self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgCancelQueryFailed(error.message));
 		});
 	}
 

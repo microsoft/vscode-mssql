@@ -27,7 +27,7 @@ import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/que
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
@@ -46,6 +46,7 @@ export interface IResultSet {
 export default class QueryRunner {
 	// MEMBER VARIABLES ////////////////////////////////////////////////////
 	private _batchSets: BatchSummary[] = [];
+	private _batchSetMessages: { [batchId: number] : IResultMessage[]; } = {};
 	private _isExecuting: boolean;
 	private _resultLineOffset: number;
 	private _totalElapsedMilliseconds: number;
@@ -109,12 +110,12 @@ export default class QueryRunner {
 		this._batchSets = batchSets;
 	}
 
-	get isExecutingQuery(): boolean {
-		return this._isExecuting;
+	get batchSetMessages(): { [batchId: number] : IResultMessage[]; }  {
+		return this._batchSetMessages;
 	}
 
-	get hasCompleted(): boolean {
-		return this._hasCompleted;
+	get isExecutingQuery(): boolean {
+		return this._isExecuting;
 	}
 
 	get isSqlCmd(): boolean {
@@ -123,6 +124,10 @@ export default class QueryRunner {
 
 	set isSqlCmd(value: boolean) {
 		this._isSqlCmd = value;
+	}
+
+	get hasCompleted(): boolean {
+		return this._hasCompleted;
 	}
 
 	set hasCompleted(value: boolean) {
@@ -190,7 +195,7 @@ export default class QueryRunner {
 
 	// Pulls the query text from the current document/selection and initiates the query
 	private async doRunQuery(selection: ISelectionData, queryCallback: any): Promise<void> {
-		this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
+		this._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgStartedExecute(this._ownerUri));
 
 		// Update internal state to show that we're executing the query
 		this._resultLineOffset = selection ? selection.startLine : 0;
@@ -226,7 +231,7 @@ export default class QueryRunner {
 
 	// handle the result of the notification
 	public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-		this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._ownerUri));
+		this._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgFinishedExecute(this._ownerUri));
 
 		// Store the batch sets we got back as a source of "truth"
 		this._isExecuting = false;
@@ -279,6 +284,9 @@ export default class QueryRunner {
 		// Set the result sets as an empty array so that as result sets complete we can add to the list
 		batch.resultSetSummaries = [];
 
+		// Set the batch messages to an empty array
+		this._batchSetMessages[batch.id] = [];
+
 		// Store the batch
 		this._batchSets[batch.id] = batch;
 		this.eventEmitter.emit('batchStart', batch);
@@ -312,6 +320,16 @@ export default class QueryRunner {
 				// send a time message in the format used for query complete
 				this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
 			}
+
+			// replay the messages for the current batch
+			const messages = this._batchSetMessages[batchId];
+			if (messages !== undefined) {
+				for (let messageId = 0; messageId < messages.length; ++messageId) {
+					// Send the message to the results pane
+					this.eventEmitter.emit('message', messages[messageId]);
+				}
+			}
+
 			this.eventEmitter.emit('batchComplete', batchSet);
 			for (let resultSetId = 0; resultSetId < batchSet.resultSetSummaries.length; resultSetId++) {
 				let resultSet = batchSet.resultSetSummaries[resultSetId];
@@ -338,6 +356,11 @@ export default class QueryRunner {
 	public handleMessage(obj: QueryExecuteMessageParams): void {
 		let message = obj.message;
 		message.time = new Date(message.time).toLocaleTimeString();
+
+		// save the message into the batch summary so it can be restored on view refresh
+		if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
+			this._batchSetMessages[message.batchId].push(message);
+		}
 
 		// Send the message to the results pane
 		this.eventEmitter.emit('message', message);
@@ -564,7 +587,7 @@ export default class QueryRunner {
 		if (showBatchTime) {
 			let message: IResultMessage = {
 				batchId: batchId,
-				message: Utils.formatString(LocalizedConstants.elapsedBatchTime, executionTime),
+				message: LocalizedConstants.elapsedBatchTime(executionTime),
 				time: undefined,
 				isError: false
 			};

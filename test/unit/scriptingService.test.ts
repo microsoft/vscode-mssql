@@ -56,7 +56,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_table'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'Table', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		const expectedScriptingObject: IScriptingObject = {
 			type: testNodeMetadata.metadataTypeName,
@@ -78,7 +78,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_table'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'Table', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		let scriptingParams = scriptingService.createScriptingParams(testNode, 'test_uri', ScriptOperation.Select);
 		const scriptingObject = scriptingService.getObjectFromNode(testNode);
@@ -99,7 +99,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_table'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'Table', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Select);
 		assert.notEqual(script, undefined);
@@ -114,7 +114,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_table'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'Table', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Create);
 		assert.notEqual(script, undefined);
@@ -129,7 +129,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_proc'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'Table', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Execute);
 		assert.notEqual(script, undefined);
@@ -144,7 +144,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_table'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'Table', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Delete);
 		assert.notEqual(script, undefined);
@@ -159,7 +159,7 @@ suite('Scripting Service Tests', () => {
 			name: 'test_sproc'
 		};
 		const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-			undefined, undefined, 'StoredProcedure', undefined, undefined, undefined, testNodeMetadata);
+			undefined, undefined, 'StoredProcedure', undefined, undefined, undefined, undefined, testNodeMetadata);
 		scriptingService = new ScriptingService(connectionManager.object);
 		const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Alter);
 		assert.notEqual(script, undefined);

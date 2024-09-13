@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -111,7 +111,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 						try {
 							profile = await azureController.populateAccountProperties(profile, accountStore, providerSettings.resources.databaseResource);
 							if (profile) {
-								vscode.window.showInformationMessage(utils.formatString(LocalizedConstants.accountAddedSuccessfully, profile.email));
+								vscode.window.showInformationMessage(LocalizedConstants.accountAddedSuccessfully(profile.email));
 							}
 						} catch (e) {
 							console.error(`Could not add account: ${e}`);

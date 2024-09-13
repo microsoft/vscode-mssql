@@ -31,18 +31,18 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDataProvi
 
 	constructor(dataRows: IObservableCollection<T>,
 		private _loadDataFn: (offset: number, count: number) => Thenable<T[]>,
-		filterFn: TableFilterFunc<T>,
-		sortFn: TableSortFunc<T>,
 		valueGetter: CellValueGetter,
-		private readonly _options: HybridDataProviderOptions) {
+		private readonly _options: HybridDataProviderOptions,
+		filterFn?: TableFilterFunc<T>,
+		sortFn?: TableSortFunc<T>) {
 		this._asyncDataProvider = new AsyncDataProvider<T>(dataRows);
 		this._tableDataProvider = new TableDataView<T>(undefined, undefined, sortFn, filterFn, valueGetter);
-		this._asyncDataProvider.onFilterStateChange(() => {
-			// this._onFilterStateChange.fire();
-		});
-		this._asyncDataProvider.onSortComplete((args) => {
-			// this._onSortComplete.fire(args);
-		});
+		// this._asyncDataProvider.onFilterStateChange(() => {
+		// 	// this._onFilterStateChange.fire();
+		// });
+		// this._asyncDataProvider.onSortComplete((args) => {
+		// 	// this._onSortComplete.fire(args);
+		// });
 		// this._tableDataProvider.onFilterStateChange(() => {
 		// 	this._onFilterStateChange.fire();
 		// });

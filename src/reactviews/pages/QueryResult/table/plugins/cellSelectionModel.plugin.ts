@@ -27,7 +27,7 @@ interface EventTargetWithClassName extends EventTarget {
 	className: string | undefined;
 }
 
-export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slick.Range>> {
+export class CellSelectionModel<T extends Slick.SlickData> implements Slick.SelectionModel<T, Array<Slick.Range>> {
 	private grid!: Slick.Grid<T>;
 	private selector: ICellRangeSelector<T>;
 	private ranges: Array<Slick.Range> = [];
@@ -47,10 +47,10 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 
 	public init(grid: Slick.Grid<T>) {
 		this.grid = grid;
-		// this._handler.subscribe(this.grid.onKeyDown, (e: DOMEvent) => this.handleKeyDown(convertJQueryKeyDownEvent(e)));
-		// this._handler.subscribe(this.grid.onAfterKeyboardNavigation, (e: Event) => this.handleAfterKeyboardNavigationEvent());
-		this._handler.subscribe(this.grid.onClick, (e: DOMEvent, args: Slick.OnClickEventArgs<T>) => this.handleCellClick(e as MouseEvent, args));
-		this._handler.subscribe(this.grid.onHeaderClick, (e: DOMEvent, args: Slick.OnHeaderClickEventArgs<T>) => this.handleHeaderClick(e as MouseEvent, args));
+		// this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) => this.handleKeyDown(convertJQueryKeyDownEvent(e)));
+		this._handler.subscribe(this.grid.onAfterKeyboardNavigation, (_e: Event) => this.handleAfterKeyboardNavigationEvent());
+		this._handler.subscribe(this.grid.onClick, (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) => this.handleCellClick(e as MouseEvent, args));
+		this._handler.subscribe(this.grid.onHeaderClick, (e: Slick.DOMEvent, args: Slick.OnHeaderClickEventArgs<T>) => this.handleHeaderClick(e as MouseEvent, args));
 		this.grid.registerPlugin(this.selector);
 		this._handler.subscribe(this.selector.onCellRangeSelected, (e: Event, range: Slick.Range) => this.handleCellRangeSelected(e, range, false));
 		this._handler.subscribe(this.selector.onAppendCellRangeSelected, (e: Event, range: Slick.Range) => this.handleCellRangeSelected(e, range, true));
@@ -93,7 +93,7 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 		return this.ranges;
 	}
 
-	private handleBeforeCellRangeSelected(e: Event, args: Slick.Cell) {
+	private handleBeforeCellRangeSelected(e: Event, _args: Slick.Cell) {
 		if (this.grid.getEditorLock().isActive()) {
 			e.stopPropagation();
 			return false;
@@ -101,7 +101,7 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 		return true;
 	}
 
-	private handleCellRangeSelected(e: Event, range: Slick.Range, append: boolean) {
+	private handleCellRangeSelected(_e: Event, range: Slick.Range, append: boolean) {
 		this.grid.setActiveCell(range.fromRow, range.fromCell, false, false, true);
 
 		if (append) {
@@ -111,7 +111,7 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 		}
 	}
 
-	private isMultiSelection(e: MouseEvent): boolean {
+	private isMultiSelection(_e: MouseEvent): boolean {
 		return false; //process.platform === 'darwin' ? e.metaKey : e.ctrlKey;
 	}
 
@@ -124,7 +124,7 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 			const rowCount = this.grid.getDataLength();
 			const columnCount = this.grid.getColumns().length;
 			const currentActiveCell = this.grid.getActiveCell();
-			let newActiveCell: Slick.Cell;
+			let newActiveCell: Slick.Cell | undefined = undefined;
 			if (this.options.hasRowSelector && columnIndex === 0) {
 				// When the row selector's header is clicked, all cells should be selected
 				this.setSelectedRanges([new Slick.Range(0, 1, rowCount - 1, columnCount - 1)]);
@@ -248,7 +248,7 @@ export class CellSelectionModel<T> implements Slick.SelectionModel<T, Array<Slic
 	private handleCellClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
 		const activeCell = this.grid.getActiveCell();
 		const columns = this.grid.getColumns();
-		const isRowSelectorClicked: boolean = this.options.hasRowSelector && args.cell === 0;
+		const isRowSelectorClicked: boolean | undefined = this.options.hasRowSelector && args.cell === 0;
 
 		let newlySelectedRange: Slick.Range;
 		// The selection is a range when there is an active cell and the SHIFT key is pressed.

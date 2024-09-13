@@ -5,12 +5,11 @@
 
 import { ReactNode, createContext } from 'react';
 import * as qr from '../../../sharedInterfaces/queryResult';
-import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
-import { ResultSetSubset } from '../../../models/contracts/queryExecute';
+import { useVscodeWebview } from '../../common/vscodeWebviewProvider';
 
 export interface QueryResultState {
 	provider: qr.QueryResultReactProvider;
-	state: qr.QueryResultWebViewState;
+	state: qr.QueryResultWebviewState;
 }
 
 const QueryResultContext = createContext<QueryResultState | undefined>(undefined);
@@ -20,8 +19,8 @@ interface QueryResultContextProps {
 }
 
 const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({ children }) => {
-	const webViewState = useVscodeWebview<qr.QueryResultWebViewState, qr.QueryResultReducers>();
-	// const queryResultState = webViewState?.state as qr.QueryResultWebViewState;
+	const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
+	// const queryResultState = webViewState?.state as qr.QueryResultWebviewState;
 	return <QueryResultContext.Provider value={
 		{
 			provider: {
@@ -29,7 +28,7 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({ children 
 					webViewState?.extensionRpc.action('setResultTab', { tabId: tabId });
 				},
 			},
-			state: webViewState?.state as qr.QueryResultWebViewState
+			state: webViewState?.state as qr.QueryResultWebviewState
 		}
 	}>{children}</QueryResultContext.Provider>;
 };

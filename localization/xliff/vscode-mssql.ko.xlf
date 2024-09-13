@@ -1,0 +1,1537 @@
+<xliff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd" xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="bundle" datatype="plaintext" source-language="en" target-language="ko">
+    <body>
+      <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
+        <source> is required.</source>
+        <target>은(는) 필수입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
+        <source>&lt;default&gt;</source>
+        <target>&lt;default&gt;</target>
+      </trans-unit>
+      <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
+        <source>A SQL editor must have focus before executing this command</source>
+        <target>이 명령을 실행하기 전에 SQL 편집기에 포커스가 있어야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
+        <source>A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
+        <target>이 편집기 세션에서 쿼리가 이미 실행 중입니다. 이 쿼리를 취소하거나 완료될 때까지 기다리세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
+        <source>Access token expired for connection {0} with uri {1}</source>
+        <target>{1} URI와의 {0} 연결에 대한 액세스 토큰이 만료되었습니다.</target>
+        <note>{0} is the connection id
+{1} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
+        <source>Account not found</source>
+        <target>계정을 찾을 수 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d72d67f0f765e5584e6db8bd1e591a84914d23ff29e9f5b20d8b39125091fca0">
+        <source>Add Connection</source>
+        <target>연결 추가</target>
+      </trans-unit>
+      <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
+        <source>Add a Microsoft Entra account...</source>
+        <target>Microsoft Entra 계정 추가...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d4fd4b3da177dfc06dbcde0a7f62d637dbf3d90298fdc9b6aeba4f9230441e1f">
+        <source>An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
+        <target>노드를 새로 고치는 동안 오류가 발생했습니다. 자세한 내용은 MSSQL 출력 채널을 참조하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8cf147a84fa5b378df2fb1c8d2001b12404768f0de0871a152ed488136a3b350">
+        <source>An error occurred while removing Microsoft Entra account: {0}</source>
+        <target>Microsoft Entra 계정을 제거하는 동안 오류가 발생했습니다. {0}</target>
+        <note>{0} is the error message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
+        <source>Are you sure you want to disconnect?</source>
+        <target>연결을 끊으시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
+        <source>Authentication Library has changed, please reload Visual Studio Code.</source>
+        <target>인증 라이브러리가 변경되었습니다. Visual Studio Code를 다시 로드하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++53c90adec54ba3992244fa9a6edbef327f573af7d2c99f2a110ba57949283b38">
+        <source>Authentication Type</source>
+        <target>인증 유형</target>
+      </trans-unit>
+      <trans-unit id="++CODE++439a99b0935fb17d372edb14b699ddd05330257d8c40b464365c1129bdf94d6a">
+        <source>Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
+        <target>nonce 불일치로 인해 인증에 실패했습니다. Azure Data Studio를 닫고 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
+        <source>Authentication failed due to a state mismatch, please close ADS and try again.</source>
+        <target>상태 불일치로 인해 인증에 실패했습니다. ADS를 닫고 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
+        <source>Azure Code Grant</source>
+        <target>Azure 코드 부여</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
+        <source>Azure Device Code</source>
+        <target>Azure 디바이스 코드</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dd0c9a87e191fd735e4b79b2006a4804b2190b078a05aff1ea23945f37b309c2">
+        <source>Azure Logs</source>
+        <target>Azure 로그</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
+        <source>Azure token cache cleared successfully.</source>
+        <target>Azure 토큰 캐시를 지웠습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f71dfcecebed757febe54c711e436e17521c71da90d4c5cc61ef6717918173a4">
+        <source>Azure: Sign In</source>
+        <target>Azure: 로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e23a962d1e7c0f13d0ebf6da9eb0d8bf43afcb391bcbb9227c3939d932219dad">
+        <source>Azure: Sign In to Azure Cloud</source>
+        <target>Azure: Azure Cloud에 로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29852e83a6613ccf439cb69654f96550fd0ce1de27609b5167992cef02a9ea55">
+        <source>Azure: Sign In with Device Code</source>
+        <target>Azure: 디바이스 코드로 로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
+        <source>Batch execution time: {0}</source>
+        <target>일괄 처리 실행 시간: {0}</target>
+        <note>{0} is the batch time</note>
+      </trans-unit>
+      <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
+        <source>CSV</source>
+        <target>CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
+        <source>Cancel</source>
+        <target>취소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++13ca2ee2499310d97a5515fb5fd80b75da66f4cf2775273658eb2b3fdcd3bd3d">
+        <source>Canceled</source>
+        <target>취소됨</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0f958e0da473b18b76ef9febe543579a601b532c9acd58ddab45f2d6549a3b3">
+        <source>Canceling</source>
+        <target>취소 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e98afd3714a8d3c15f84793e425b681975e26f06503850e4122965ee9825e907">
+        <source>Canceling query </source>
+        <target>쿼리 취소 중 </target>
+      </trans-unit>
+      <trans-unit id="++CODE++a3b871209f5c0ce02e28669f9d6aeb1bd614ecdbd7e18a413fcc9a40e666fa59">
+        <source>Canceling the query failed: {0}</source>
+        <target>쿼리 취소 실패: {0}</target>
+        <note>{0} is the error message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
+        <source>Cannot cancel query as no query is running.</source>
+        <target>실행 중인 쿼리가 없으므로 쿼리를 취소할 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++78caadaa3d12c39131d70d9b85b2aa5b4fdc874138c7fa884349a843312e02c7">
+        <source>Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
+        <target>만료된 토큰으로 인해 연결할 수 없습니다. 다시 인증하고 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ba2dfc2755e1d829986d3bf36cdea9fc88fa8c16d079b7d0f6a6309e8e67a6a">
+        <source>Changed database context to "{0}" for document "{1}"</source>
+        <target>문서 "{1}"에 대해 데이터베이스 컨텍스트를 "{0}"(으)로 변경함</target>
+        <note>{0} is the database name
+{1} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++88dcff06d01faeaf2253a502d07b9358b907ef3497a0f69c2f6546ffdc06b7b7">
+        <source>Changed database context to "{0}" on server "{1}" on document "{2}".</source>
+        <target>데이터베이스 컨텍스트를 문서 {2}에서 서버 {1}의 {0}(으)로 변경했습니다.</target>
+        <note>{0} is the database name
+{1} is the server name
+{2} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
+        <source>Changing database context to "{0}" on server "{1}" on document "{2}".</source>
+        <target>데이터베이스 컨텍스트를 문서 {2}에서 서버 {1}의 {0}(으)로 변경하는 중입니다.</target>
+        <note>{0} is the database name
+{1} is the server name
+{2} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
+        <source>Choose An Action</source>
+        <target>작업 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++61f2371ac2547488417f83422706e0e6c12b3c12f5f3595e90da91cbb167c174">
+        <source>Choose Query History</source>
+        <target>쿼리 기록 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a1578b6089ec41921bc4a70b05ca1b1171199d5d5fea6ac6c345cba9b29a83ef">
+        <source>Choose SQL Language</source>
+        <target>SQL 언어 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcee789e6048807617a646e20bfba75832b8e459fdd8a9e41c08665ee4d8d36a">
+        <source>Choose a Microsoft Entra account</source>
+        <target>Microsoft Entra 계정 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a89bad7e873f85fc6867185da8c42b2743f3264bf2df68800c16c23a20e1a9cf">
+        <source>Choose a Microsoft Entra tenant</source>
+        <target>Microsoft Entra 테넌트 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b05ab4483a5949bf2effb49592a7bb9dceafedb9a3c6aae12a32341025fc1511">
+        <source>Choose a connection profile from the list below</source>
+        <target>아래 목록에서 연결 프로필을 선택하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
+        <source>Choose a database from the list below</source>
+        <target>아래 목록에서 데이터베이스 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
+        <source>Clear Recent Connections List</source>
+        <target>최근 연결 목록 삭제</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
+        <source>Click to connect to a database</source>
+        <target>데이터베이스에 연결하려면 클릭</target>
+      </trans-unit>
+      <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
+        <source>Close the current connection</source>
+        <target>현재 연결 닫기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
+        <source>Confirm to clear recent connections list</source>
+        <target>최근 연결 목록 삭제 확인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++99fb39ba4e498877a20049303aa3318b2004884dab008c65a3b5dd48f47cdd04">
+        <source>Confirm to remove this profile.</source>
+        <target>이 프로필을 제거할지 확인합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
+        <source>Connect</source>
+        <target>연결</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
+        <source>Connected to server "{0}" on document "{1}". Server information: {2}</source>
+        <target>문서 "{1}"에서 서버 "{0}"에 연결했습니다. 서버 정보: {2}</target>
+        <note>{0} is the server name
+{1} is the document name
+{2} is the server info</note>
+      </trans-unit>
+      <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
+        <source>Connecting</source>
+        <target>연결 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
+        <source>Connecting to server "{0}" on document "{1}".</source>
+        <target>문서 "{1}"에서 서버 "{0}"에 연결하는 중입니다.</target>
+        <note>{0} is the server name
+{1} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
+        <source>Connecting to: </source>
+        <target>다음에 연결 중: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++52d8d284995954ca5f68adbc705bb4ff2a930cc1ff2a3885a1002ff477394eee">
+        <source>Connection Errors</source>
+        <target>연결 오류</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
+        <source>Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
+        <target>연결 프로필을 업데이트할 수 없습니다. settings.json에서 연결 세부 정보를 수동으로 수정하고 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
+        <source>Connection error</source>
+        <target>연결 오류</target>
+      </trans-unit>
+      <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
+        <source>Connection not found for uri "{0}".</source>
+        <target>"{0}" URI에 대한 연결을 찾지 못했습니다.</target>
+        <note>{0} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
+        <source>Copy</source>
+        <target>복사</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
+        <source>Copy code and open webpage</source>
+        <target>코드 복사 및 웹 페이지 열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
+        <source>Copy with Headers</source>
+        <target>복사(머리글 포함)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
+        <source>Create</source>
+        <target>만들기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
+        <source>Create Connection Profile</source>
+        <target>연결 프로필 만들기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
+        <source>Create Firewall Rule</source>
+        <target>방화벽 규칙 만들기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
+        <source>Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
+        <target>자격 증명 오류: 계정 자격 증명을 새로 고치는 동안 오류가 발생했습니다. 다시 인증하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
+        <source>Database name</source>
+        <target>데이터베이스 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
+        <source>DefinitionRequestCompleted</source>
+        <target>DefinitionRequestCompleted</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe0ec38fb92c70d80fd5a36ff72c37cb3ed759bba91373c96a21bde631e03db3">
+        <source>DefinitionRequested</source>
+        <target>DefinitionRequested</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
+        <source>Disable intellisense and syntax error checking on current document</source>
+        <target>현재 문서에서 IntelliSense 및 구문 오류 검사 사용 안 함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
+        <source>Disconnect</source>
+        <target>연결 끊기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++04dfac3671b494ad53fcd152f7a14511bfb35747278aad8ce254a0d6e4ba4718">
+        <source>Disconnected</source>
+        <target>연결 끊김</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
+        <source>Disconnected on document "{0}"</source>
+        <target>문서 "{0}"에서 연결을 끊음</target>
+        <note>{0} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
+        <source>Dismiss</source>
+        <target>해제</target>
+      </trans-unit>
+      <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
+        <source>Edit</source>
+        <target>편집</target>
+      </trans-unit>
+      <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
+        <source>Enable Trust Server Certificate</source>
+        <target>서버 인증서 신뢰 활성화</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
+        <source>Encrypt</source>
+        <target>암호화</target>
+      </trans-unit>
+      <trans-unit id="++CODE++476c508b94c7f515d2276689b1eb5c8d1eb0d109b274cced59a3e1a1e3a247c9">
+        <source>Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
+        <target>이 연결에서 암호화가 사용 설정되었습니다. 대상 SQL Server의 SSL 및 인증서 구성을 검토하거나 설정 파일에서 '서버 인증서 신뢰'를 'true'로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에서는 권장되지 않습니다. 이 연결에서 '서버 인증서 신뢰'를 활성화하고 다시 시도하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
+        <source>End IP Address</source>
+        <target>끝 IP 주소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
+        <source>Enter new column width</source>
+        <target>새 열 너비 입력</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
+        <source>Error Message: </source>
+        <target>오류 메시지: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++d0778b9c6b80f4a1e5c99227f273ca819714dbc51f673a92c354874eaa4a3f7c">
+        <source>Error code: </source>
+        <target>오류 코드: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++609a5b573e17dee5039d1039c26a1601bb44dd596695c7767c81877925759cd7">
+        <source>Error connecting to server "{0}". Details: {1}</source>
+        <target>서버 "{0}"에 연결하는 동안 오류가 발생했습니다. 세부 정보: {1}</target>
+        <note>{0} is the server name
+{1} is the error message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
+        <source>Error connecting to: </source>
+        <target>다음에 연결하는 중 오류 발생: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
+        <source>Error occurred opening content in editor.</source>
+        <target>편집기에서 콘텐츠를 여는 동안 오류가 발생했습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
+        <source>Error when refreshing token</source>
+        <target>토큰을 새로 고치는 동안 오류 발생</target>
+      </trans-unit>
+      <trans-unit id="++CODE++126ac0f6a36d10138034e44aae3e764f15c8eabba9192445716609b37d21bda9">
+        <source>Error {0}: {1}</source>
+        <target>오류 {0}: {1}</target>
+        <note>{0} is the error number
+{1} is the error message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++ff26e86bb0cdcae6cd4f1dcfbf7c61047f96a2ae5cdbd9fe0111ed6bd95b2193">
+        <source>Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
+        <target>오류 {0}: {1} 다른 사용자로 로그인한 다음, ALTER LOGIN을 사용하여 암호를 변경하세요.</target>
+        <note>{0} is the error number
+{1} is the error message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++8eecdde079a9092758e271d5a21f28eadbeedb35716353e07cfeb33f52e8005c">
+        <source>Error: </source>
+        <target>오류: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++6c1ebcf47761be137441b5293902752b802776fa5edd4ebf0193950f1adff0e8">
+        <source>Error: Login failed. Retry using different credentials?</source>
+        <target>오류: 로그인하지 못했습니다. 다른 자격 증명을 사용하여 다시 시도하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
+        <source>Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+        <target>오류: 제공된 연결 정보로 연결할 수 없습니다. 프로필을 다시 만드시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
+        <source>Excel</source>
+        <target>Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
+        <source>Executing query...</source>
+        <target>쿼리를 실행하는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
+        <source>Failed</source>
+        <target>실패함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
+        <source>Failed to connect: {0}</source>
+        <target>연결 실패: {0}</target>
+        <note>{0} is the error message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
+        <source>Failed to delete credential with id: {0}. {1}</source>
+        <target>ID가 {0}인 자격 증명을 삭제하지 못했습니다. {1}</target>
+        <note>{0} is the id
+{1} is the error</note>
+      </trans-unit>
+      <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
+        <source>Failed to fetch user tokens.</source>
+        <target>사용자 토큰을 가져오지 못했습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
+        <source>Failed to get authentication method, please remove and re-add the account.</source>
+        <target>인증 방법을 가져오지 못했습니다. 계정을 제거하고 다시 추가하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
+        <source>Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
+        <target>{1} URI와의 ${0} 연결을 새로 고치지 못했습니다. 잘못된 연결이 발생했습니다.</target>
+        <note>{0} is the connection id
+{1} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
+        <source>Failed to save results. </source>
+        <target>결과를 저장하지 못했습니다. </target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
+        <source>Finished query execution for document "{0}"</source>
+        <target>문서 "{0}"에 대한 쿼리 실행을 완료함</target>
+        <note>{0} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++8a9ba2938bc6bfe8f093b2168aeb656e1be8e1792c61db93cb074a6e32300b1b">
+        <source>Firewall rule name</source>
+        <target>방화벽 규칙 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++69564d37d68e80fe6d9e0507695069d1393632c9f82f5587b79f980436d9cb00">
+        <source>Firewall rule successfully added. Retry profile creation? </source>
+        <target>방화벽 규칙을 추가했습니다. 프로필을 다시 만드시겠습니까? </target>
+      </trans-unit>
+      <trans-unit id="++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b">
+        <source>Firewall rule successfully created.</source>
+        <target>방화벽 규칙을 만들었습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
+        <source>Found pending reconnect promise for uri {0}, failed.</source>
+        <target>{0} URI의 보류 중인 다시 연결 프라미스를 찾았으며, 실패했습니다.</target>
+        <note>{0} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++463124bedefc986e5dc0c3e34607c881ba0337297037552decc1df70945e57e8">
+        <source>Found pending reconnect promise for uri {0}, waiting.</source>
+        <target>{0} URI의 보류 중인 다시 연결 프라미스를 찾았으며, 현재 대기 중입니다.</target>
+        <note>{0} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
+        <source>Getting definition ...</source>
+        <target>정의를 가져오는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
+        <source>Help</source>
+        <target>도움말</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
+        <source>Ignore Tenant</source>
+        <target>테넌트 무시</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
+        <source>In progress</source>
+        <target>진행 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
+        <source>Integrated</source>
+        <target>통합</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
+        <source>Invalid Firewall rule name</source>
+        <target>잘못된 방화벽 규칙 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
+        <source>Invalid IP Address</source>
+        <target>잘못된 IP 주소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
+        <source>Invalid column width</source>
+        <target>잘못된 열 너비</target>
+      </trans-unit>
+      <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
+        <source>JSON</source>
+        <target>JSON</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
+        <source>Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target>토큰 캐시용 키를 자격 증명 저장소에 저장할 수 없습니다. 이로 인해 Microsoft Entra ID 액세스 토큰 지속성 문제 및 연결이 불안정해질 수 있습니다. SqlTools가 Windows의 자격 증명 저장 한도에 도달했을 가능성이 높습니다. Windows 자격 증명 관리자에서 "Microsoft.SqlTools|"로 시작하는 자격 증명을 2개 이상 지우고 다시 로드하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
+        <source>Line {0}</source>
+        <target>줄 {0}</target>
+        <note>{0} is the line number</note>
+      </trans-unit>
+      <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
+        <source>MSSQL</source>
+        <target>MSSQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
+        <source>Manage Connection Profiles</source>
+        <target>연결 프로필 관리</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
+        <source>Mandatory (Recommended)</source>
+        <target>필수(권장)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
+        <source>Mandatory (True)</source>
+        <target>필수(True)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
+        <source>Maximize</source>
+        <target>최대화</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
+        <source>Message</source>
+        <target>메시지</target>
+      </trans-unit>
+      <trans-unit id="++CODE++04d7b48339271ea67d3c8493e07e90bc68dc565485eebe5e0b67c21c1586e3c0">
+        <source>Messages</source>
+        <target>메시지</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8055a31cb4833efbf1b76994151d8256bfc8500f2985d3d0ab1cf222dd91a043">
+        <source>Microsoft Corp</source>
+        <target>Microsoft Corp</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109">
+        <source>Microsoft Entra Account</source>
+        <target>Microsoft Entra 계정</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4cca27a3569729f8e3fa178db33f438eaa136c7491a5c3d26c807c876a02c292">
+        <source>Microsoft Entra Id</source>
+        <target>Microsoft Entra ID</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
+        <source>Microsoft Entra Id - Universal w/ MFA Support</source>
+        <target>Microsoft Entra ID - MFA 지원 포함 유니버설</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d">
+        <source>Microsoft Entra account {0} successfully added.</source>
+        <target>Microsoft Entra 계정 {0}이(가) 추가되었습니다.</target>
+        <note>{0} is the account name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
+        <source>New Microsoft Entra account could not be added.</source>
+        <target>새 Microsoft Entra 계정을 추가할 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
+        <source>No</source>
+        <target>아니요</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
+        <source>No Microsoft Entra account can be found for removal.</source>
+        <target>제거할 Microsoft Entra 계정을 찾을 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
+        <source>No Queries Available</source>
+        <target>사용 가능한 쿼리 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
+        <source>No connection profile to remove.</source>
+        <target>제거할 연결 프로필이 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
+        <source>No connection was found. Please connect to a server first.</source>
+        <target>연결을 찾을 수 없습니다. 먼저 서버에 연결하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
+        <source>No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
+        <target>{0} URI와의 {1} 연결에 대한 Microsoft Entra 계정 토큰을 새로 고치지 않아도 됩니다.</target>
+        <note>{0} is the connection id
+{1} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
+        <source>None</source>
+        <target>없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
+        <source>Not started</source>
+        <target>시작되지 않음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
+        <source>Open</source>
+        <target>열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++404eb1204c0e313b45f63c32657b2cabf3f3930b7a731969c82b5bc3061311ff">
+        <source>Open Query History</source>
+        <target>쿼리 기록 열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
+        <source>OpenSSL version &gt;=1.0.1 is required to connect.</source>
+        <target>연결하려면 OpenSSL 버전 1.0.1 이상이 필요합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
+        <source>Optional (False)</source>
+        <target>선택 사항(False)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
+        <source>Parent node was not TreeNodeInfo.</source>
+        <target>부모 노드가 TreeNodeInfo가 아닙니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
+        <source>Password</source>
+        <target>암호</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588">
+        <source>Password (SQL Login)</source>
+        <target>암호(SQL 로그인)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
+        <source>Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
+        <target>{0} URI의 이전에 보류 중이었던 다시 연결 프라미스가 {1} 오류가 발생하여 거부되었습니다. 필요한 경우 다시 연결을 시도합니다.</target>
+        <note>{0} is the uri
+{1} is the error</note>
+      </trans-unit>
+      <trans-unit id="++CODE++74ddf875033fe6ed895f48a8abc4373883fb876b36dfa7614f3f130ceee1ab20">
+        <source>Previous pending reconnection for uri {0}, succeeded.</source>
+        <target>이전에 보류 중이었던 {0} URI 연결에 성공했습니다.</target>
+        <note>{0} is the uri</note>
+      </trans-unit>
+      <trans-unit id="++CODE++a423b47777783386516c79baa19b0dfcd12cb40e4fba79348ad14ab0169402cd">
+        <source>Profile Name</source>
+        <target>프로필 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f7821e5b83af275fa9638d6840dc6edd1e7c8179f566d99cb2fd713ca13e9e3c">
+        <source>Profile created and connected</source>
+        <target>프로필을 만들고 연결함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
+        <source>Profile created successfully</source>
+        <target>프로필을 생성함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
+        <source>Profile removed successfully</source>
+        <target>프로필을 제거함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
+        <source>Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
+        <target>'{0}' 공급자에 정의된 Microsoft 리소스 엔드포인트가 없습니다.</target>
+        <note>{0} is the provider</note>
+      </trans-unit>
+      <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
+        <source>Query executed</source>
+        <target>쿼리 실행됨</target>
+      </trans-unit>
+      <trans-unit id="++CODE++222d8657e6ce5036c2c4e9baf67ab52aeb5b35c12ff05d913296ea5cefad1f9c">
+        <source>Query failed</source>
+      </trans-unit>
+      <trans-unit id="++CODE++9bb19ac86101a6dfe00ba121dc8fab54c216992ef8d061c9cf27bd93a4424a91">
+        <source>Query succeeded</source>
+      </trans-unit>
+      <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
+        <source>Read more</source>
+        <target>자세히 알아보기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
+        <source>Recent connections list cleared</source>
+        <target>최근 연결 목록을 삭제함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0">
+        <source>Refresh Credentials</source>
+        <target>자격 증명 새로 고침</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
+        <source>Reload Visual Studio Code</source>
+        <target>Visual Studio Code 다시 로드</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
+        <source>Remove</source>
+        <target>제거</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
+        <source>Restore</source>
+        <target>복원</target>
+      </trans-unit>
+      <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
+        <source>Results</source>
+        <target>결과</target>
+      </trans-unit>
+      <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
+        <source>Retry</source>
+        <target>다시 시도</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
+        <source>Run Query History</source>
+        <target>쿼리 기록 실행</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
+        <source>Running query is not supported when the editor is in multiple selection mode.</source>
+        <target>편집기가 다중 선택 모드에 있는 경우 쿼리 실행이 지원되지 않습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
+        <source>SQL Login</source>
+        <target>SQL 로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++77252dc87eec71818cc0b5c0bc0e82792f92540faad923e81c6d5dcd3119e31a">
+        <source>Save Password? If 'No', password will be required each time you connect</source>
+        <target>암호를 저장하시겠습니까? '아니요'를 선택하면 연결할 때마다 암호를 입력해야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
+        <source>Save as CSV</source>
+        <target>CSV로 저장</target>
+      </trans-unit>
+      <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
+        <source>Save as Excel</source>
+        <target>Excel로 저장</target>
+      </trans-unit>
+      <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
+        <source>Save as JSON</source>
+        <target>JSON으로 저장</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
+        <source>Save results command cannot be used with multiple selections.</source>
+        <target>결과 저장 명령에서는 여러 항목을 선택할 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
+        <source>Select all</source>
+        <target>모두 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
+        <source>Select profile to remove</source>
+        <target>제거할 프로필 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
+        <source>Selected Microsoft Entra account removed successfully.</source>
+        <target>선택한 Microsoft Entra 계정을 제거했습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
+        <source>Server connection in progress. Do you want to cancel?</source>
+        <target>서버에 연결하는 중입니다. 취소하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e4e1940a01194f83f42724f0cc4b353c0219980452af7e69e597ca63229531d9">
+        <source>Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.</source>
+        <target>서버를 시작할 수 없습니다. 시스템의 권한 오류 또는 비호환성 문제일 수 있습니다. 설정에서 디바이스 코드 인증을 사용하도록 설정할 수 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++10b48e930a5a1d6459b0bd050ae37f39e969abb8db827d083d31f62f0ed6b014">
+        <source>Server name not received.</source>
+        <target>서버 이름을 받지 못했습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
+        <source>Server name or ADO.NET connection string</source>
+        <target>서버 이름 또는 ADO.NET 연결 문자열</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
+        <source>Show MSSQL output</source>
+        <target>MSSQL 출력 표시</target>
+      </trans-unit>
+      <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
+        <source>Sign in to your Azure subscription</source>
+        <target>Azure 구독에 로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++53b8195b6ec261723d1abe7f4b25c502724154c01b39ddf9998426be6d346c66">
+        <source>Sign in to your Azure subscription in one of the sovereign clouds.</source>
+        <target>소버린 클라우드 중 하나에서 Azure 구독에 로그인합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a2c6072cca49b7f2056d66f738d53593bce3004d1291d736ea9a69e58babae8">
+        <source>Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
+        <target>디바이스 코드를 사용해서 Azure 구독에 로그인합니다. 설정에서 로그인 명령이 작동하지 않을 때 이 코드를 사용합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
+        <source>Start IP Address</source>
+        <target>시작 IP 주소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
+        <source>Started executing query at </source>
+        <target>다음에서 쿼리 실행 시작: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a5901a3ef8ce653c646a8ff72117555ad46803721be5b957ca9e799be6e7d20">
+        <source>Started query execution for document "{0}"</source>
+        <target>문서 "{0}"에 대한 쿼리 실행을 시작함</target>
+        <note>{0} is the document name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
+        <source>Started saving results to </source>
+        <target>다음 위치에 결과 저장 시작: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++6d9a6f97a5fdaf3b90a0cf02e0b43d8b7ec1d05c0e4718e02ddd1c5b450e5b39">
+        <source>Succeeded</source>
+        <target>성공함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5443b1422a140475d5703c916c7686007233ea92292881588670e73409a7f1cd">
+        <source>Succeeded with warning</source>
+        <target>성공(경고 발생)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0266af4455c8f348df74a77502b563a575637604e905429b302d78ec39c00e4">
+        <source>Successfully refreshed token for connection {0} with uri {1}, {2}</source>
+        <target>{1} URI와의 {0} 연결 토큰을 새로 고쳤습니다. {2}</target>
+        <note>{0} is the connection id
+{1} is the uri
+{2} is the message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
+        <source>Successfully saved results to </source>
+        <target>다음 위치에 결과 저장 완료: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
+        <source>Switch to MSAL</source>
+        <target>MSAL로 전환</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
+        <source>Tenant</source>
+        <target>테넌트</target>
+      </trans-unit>
+      <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
+        <source>Testing connection profile...</source>
+        <target>연결 프로필을 테스트하는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
+        <source>The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+        <target>최근 연결 목록이 지워졌지만 연결된 일부 자격 증명을 삭제하는 동안 오류가 발생했습니다. MSSQL 출력 채널에서 오류를 확인하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2b8198974f44b4a37d366cb6535153e3646f2c9de308f0ca05bf90513b0a4630">
+        <source>This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target>이 설정을 사용하려면 Visual Studio Code를 다시 시작해야 합니다. Visual Studio Code를 다시 로드하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
+        <source>Timestamp</source>
+        <target>타임스탬프</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
+        <source>To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
+        <target>이 명령을 사용하려면 .sql 파일을 열거나, 편집기 언어를 "SQL"로 변경하거나, 현재 SQL 편집기에서 T-SQL 텍스트를 선택하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4">
+        <source>To use this command, you must set the language to "SQL". Confirm to change language mode.</source>
+        <target>이 명령을 사용하려면 언어를 "SQL"로 설정해야 합니다. 언어 모드를 변경할지 확인합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
+        <source>Total execution time: {0}</source>
+        <target>총 실행 시간: {0}</target>
+        <note>{0} is the elapsed time</note>
+      </trans-unit>
+      <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
+        <source>Unable to execute the command while the extension is initializing. Please try again later.</source>
+        <target>확장을 초기화하는 동안 명령을 실행할 수 없습니다. 나중에 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
+        <source>Unable to expand. Please check logs for more information.</source>
+        <target>확장할 수 없습니다. 자세한 내용은 로그를 확인하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
+        <source>Updating IntelliSense...</source>
+        <target>IntelliSense 업데이트 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
+        <source>Use T-SQL intellisense and syntax error checking on current document</source>
+        <target>현재 문서에서 T-SQL IntelliSense 및 구문 오류 검사 사용</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
+        <source>User name</source>
+        <target>사용자 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d67e96ac435b6d4a9b9aedc12377ba5da6778e010fa1bd7e2942ed221ab16a4f">
+        <source>User name (SQL Login)</source>
+        <target>사용자 이름(SQL 로그인)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
+        <source>View More</source>
+        <target>자세히 보기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
+        <source>View mssql for Visual Studio Code release notes?</source>
+        <target>Visual Studio Code용 mssql 릴리스 정보를 보시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
+        <source>Width cannot be 0 or negative</source>
+        <target>너비는 0 또는 음수일 수 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
+        <source>Yes</source>
+        <target>예</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
+        <source>Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
+        <target>{0} 리소스에 액세스하려면 계정을 다시 인증해야 합니다. 열기를 눌러 인증 프로세스를 시작하세요.</target>
+        <note>{0} is the resource</note>
+      </trans-unit>
+      <trans-unit id="++CODE++cae61ae576cc3d82cec2579b9ac71b72196f7ff3f543408342b416c4877cce4e">
+        <source>Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
+        <target>'{0}' 클라이언트 IP 주소에서 연결하려는 '{1}' 서버에 액세스할 수 없습니다. 새 방화벽 규칙을 만드시겠습니까?</target>
+        <note>{0} is the client IP address
+{1} is the server name</note>
+      </trans-unit>
+      <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
+        <source>Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+        <target>클라이언트 IP 주소에서 서버에 액세스할 수 없습니다. Microsoft Entra 계정을 추가하고 액세스를 허용하는 새 방화벽 규칙을 만드세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5dc504d43e14657bd7f0298bc51688ba1bb0b809a8060f3b9106ca9411db9cd4">
+        <source>Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
+        <target>'{0}({1})' 테넌트에서는 {2} 리소스에 액세스하려면 다시 재인증해야 합니다. [열기]를 눌러 인증 프로세스를 시작합니다.</target>
+        <note>{0} is the tenant name
+{1} is the tenant id
+{2} is the resource</note>
+      </trans-unit>
+      <trans-unit id="++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee">
+        <source>[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
+        <target>[옵션] 연결할 데이터베이스(&lt;default&gt; 데이터베이스에 연결하려면 Enter 키 누름)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++48a9c1333b8297748a7cf4f38e479f6d1722302a0ce72f8516d8a749fe49d752">
+        <source>[Optional] Enter a display name for this connection profile</source>
+        <target>[옵션] 이 연결 프로필의 표시 이름 입력</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
+        <source>authenticationType</source>
+        <target>authenticationType</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
+        <source>encrypt</source>
+        <target>암호화</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
+        <source>hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
+      </trans-unit>
+      <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
+        <source>intelliSenseUpdated</source>
+        <target>intelliSenseUpdated</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
+        <source>macOS Sierra or newer is required to use this feature.</source>
+        <target>이 기능을 사용하려면 macOS Sierra 이상이 필요합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
+        <source>test</source>
+        <target>테스트</target>
+      </trans-unit>
+      <trans-unit id="++CODE++630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc">
+        <source>untitled</source>
+        <target>제목 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
+        <source>updatingIntelliSense</source>
+        <target>updatingIntelliSense</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
+        <source>{0}. {1}</source>
+        <note>{0} is the status
+{1} is the message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
+        <source>{0}: {1}</source>
+        <target>{0}: {1}</target>
+        <note>{0} is the task name
+{1} is the status</note>
+      </trans-unit>
+      <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
+        <source>{0}: {1}. {2}</source>
+        <target>{0}: {1}. {2}</target>
+        <note>{0} is the task name
+{1} is the status
+{2} is the message</note>
+      </trans-unit>
+      <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
+        <source>{{put-server-name-here}}</source>
+        <target>{{put-server-name-here}}</target>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="package" datatype="plaintext" source-language="en" target-language="ko">
+    <body>
+      <trans-unit id="mssql.addObjectExplorer">
+        <source>Add Connection</source>
+        <target>연결 추가</target>
+      </trans-unit>
+      <trans-unit id="mssql.addAadAccount">
+        <source>Add Microsoft Entra Account</source>
+        <target>Microsoft Entra 계정 추가</target>
+      </trans-unit>
+      <trans-unit id="mssql.deviceCode.description">
+        <source>Allows users to sign in to input-constrained devices.</source>
+        <target>사용자가 입력이 제한된 디바이스에 로그인할 수 있도록 허용합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.executionTimeout">
+        <source>An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
+        <target>실행 시간 제한이 0이면 무제한 대기(시간 제한 없음)를 나타냅니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.cancelQuery">
+        <source>Cancel Query</source>
+        <target>쿼리 취소</target>
+      </trans-unit>
+      <trans-unit id="mssql.changeDatabase">
+        <source>Change Database</source>
+      </trans-unit>
+      <trans-unit id="mssql.chooseLanguageFlavor">
+        <source>Choose SQL handler for this file</source>
+        <target>이 파일에 대한 SQL 처리기 선택</target>
+      </trans-unit>
+      <trans-unit id="mssql.chooseAuthMethod">
+        <source>Chooses which Authentication method to use</source>
+        <target>사용할 인증 방법을 선택합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearAllQueryHistory">
+        <source>Clear All Query History</source>
+        <target>모든 쿼리 기록 지우기</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearAzureAccountTokenCache">
+        <source>Clear Microsoft Entra account token cache</source>
+        <target>Microsoft Entra 계정 토큰 캐시 지우기</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearPooledConnections">
+        <source>Clear Pooled Connections</source>
+        <target>풀된 연결 지우기</target>
+      </trans-unit>
+      <trans-unit id="mssql.connect">
+        <source>Connect</source>
+        <target>연결</target>
+      </trans-unit>
+      <trans-unit id="mssql.connections">
+        <source>Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
+        <target>'사용자 설정'에 정의된 연결 프로필은 명령 팔레트의 'MS SQL: Connect' 명령에서 확인할 수 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="extension.connections">
+        <source>Connections</source>
+        <target>연결</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyObjectName">
+        <source>Copy Object Name</source>
+        <target>개체 이름 복사</target>
+      </trans-unit>
+      <trans-unit id="mssql.createAzureFunction">
+        <source>Create Azure Function with SQL binding</source>
+        <target>SQL 입력 바인딩으로 Azure 함수 만들기</target>
+      </trans-unit>
+      <trans-unit id="mssql.deleteQueryHistory">
+        <source>Delete</source>
+        <target>삭제</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
+        <source>Disable Group By Schema</source>
+        <target>스키마별 그룹화 사용 안 함</target>
+      </trans-unit>
+      <trans-unit id="mssql.disconnect">
+        <source>Disconnect</source>
+        <target>연결 끊기</target>
+      </trans-unit>
+      <trans-unit id="mssql.editConnection">
+        <source>Edit Connection</source>
+      </trans-unit>
+      <trans-unit id="mssql.editTable">
+        <source>Edit Table</source>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
+        <source>Enable Group By Schema</source>
+        <target>스키마별 그룹화 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.alwaysEncryptedParameterization">
+        <source>Enable Parameterization for Always Encrypted</source>
+        <target>Always Encrypted에 매개 변수화 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryCapture">
+        <source>Enable Query History Capture</source>
+        <target>쿼리 기록 캡처 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiDefaults">
+        <source>Enable SET ANSI_DEFAULTS</source>
+        <target>SET ANSI_DEFAULTS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNulls">
+        <source>Enable SET ANSI_NULLS</source>
+        <target>SET ANSI_NULLS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNullDefaultOn">
+        <source>Enable SET ANSI_NULL_DFLT_ON</source>
+        <target>SET ANSI_NULL_DFLT_ON 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiPadding">
+        <source>Enable SET ANSI_PADDING</source>
+        <target>SET ANSI_PADDING 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiWarnings">
+        <source>Enable SET ANSI_WARNINGS</source>
+        <target>SET ANSI_WARNINGS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.arithAbort">
+        <source>Enable SET ARITHABORT option</source>
+        <target>SET ARITHABORT 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.cursorCloseOnCommit">
+        <source>Enable SET CURSOR_CLOSE_ON_COMMIT</source>
+        <target>SET CURSOR_CLOSE_ON_COMMIT 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.deadlockPriority">
+        <source>Enable SET DEADLOCK_PRIORITY option</source>
+        <target>SET DEADLOCK_PRIORITY 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.implicitTransactions">
+        <source>Enable SET IMPLICIT_TRANSACTIONS</source>
+        <target>SET IMPLICIT_TRANSACTIONS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.lockTimeout">
+        <source>Enable SET LOCK TIMEOUT option (in milliseconds)</source>
+        <target>SET LOCK TIMEOUT 옵션 사용(밀리초)</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noCount">
+        <source>Enable SET NOCOUNT option</source>
+        <target>SET NOCOUNT 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noExec">
+        <source>Enable SET NOEXEC option</source>
+        <target>SET NOEXEC 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.parseOnly">
+        <source>Enable SET PARSEONLY option</source>
+        <target>SET PARSEONLY 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.queryGovernorCostLimit">
+        <source>Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
+        <target>SET QUERY_GOVERNOR_COST_LIMIT 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.quotedIdentifier">
+        <source>Enable SET QUOTED_IDENTIFIER</source>
+        <target>SET QUOTED_IDENTIFIER 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsIO">
+        <source>Enable SET STATISTICS IO option</source>
+        <target>SET STATISTICS IO 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsTime">
+        <source>Enable SET STATISTICS TIME option</source>
+        <target>SET STATISTICS TIME 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.transactionIsolationLevel">
+        <source>Enable SET TRANSACTION ISOLATION LEVEL option</source>
+        <target>SET TRANSACTION ISOLATION LEVEL 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.xactAbortOn">
+        <source>Enable SET XACT_ABORT ON option</source>
+        <target>SET XACT_ABORT ON 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableConnectionPooling">
+        <source>Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
+        <target>연결 풀링을 사용하여 전반적인 연결 성능을 향상시킵니다. 이 설정은 기본적으로 사용하도록 설정되어 있습니다. 값이 변경되면 Visual Studio Code를 다시 시작해야 합니다. 풀된 연결을 지우려면 'MS SQL: 풀된 연결 지우기' 명령을 실행하세요.</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableExperimentalFeatures.description">
+        <source>Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+      </trans-unit>
+      <trans-unit id="mssql.enableSqlAuthenticationProvider">
+        <source>Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target>사용자가 'AzureMFA' 인증을 선택할 때 'Microsoft Entra ID Interactive' 인증 모드에서 SQL 인증 공급자를 사용하도록 설정합니다. 이를 통해 액세스 토큰을 가져올 때 서버 쪽 리소스 엔드포인트 통합을 사용할 수 있습니다. 이 옵션은 'MSAL' 인증 라이브러리에 대해서만 지원됩니다. 이 옵션을 변경한 후 Visual Studio Code를 다시 시작하세요.</target>
+      </trans-unit>
+      <trans-unit id="mssql.runCurrentStatement">
+        <source>Execute Current Statement</source>
+        <target>현재 문 실행</target>
+      </trans-unit>
+      <trans-unit id="mssql.runQuery">
+        <source>Execute Query</source>
+        <target>쿼리 실행</target>
+      </trans-unit>
+      <trans-unit id="mssql.showGettingStarted">
+        <source>Getting Started Guide</source>
+        <target>시작 가이드</target>
+      </trans-unit>
+      <trans-unit id="mssql.Configuration">
+        <source>MSSQL configuration</source>
+        <target>MSSQL 구성</target>
+      </trans-unit>
+      <trans-unit id="mssql.manageProfiles">
+        <source>Manage Connection Profiles</source>
+        <target>연결 프로필 관리</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxXmlCharsToStore">
+        <source>Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
+        <target>쿼리를 실행한 후 XML 열의 각 값에 대해 저장할 최대 문자 수입니다. 기본값: 2,097,152. 유효한 값 범위: 1 ~007E; 2,147,483,647.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxCharsToStore">
+        <source>Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+        <target>쿼리를 실행한 후 문자/이진 열의 각 값에 대해 저장할 최대 문자/바이트 수입니다. 기본값: 65,535. 유효한 값 범위: 1 ~007E; 2,147,483,647.</target>
+      </trans-unit>
+      <trans-unit id="mssql.logFilesRemovalLimit">
+        <source>Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
+        <target>시작 시 제거하려고 하며 mssql.logRetentionMinutes가 만료된 이전 파일의 최대 수입니다. 이 제한으로 인해 정리되지 않은 파일은 다음에 Azure Data Studio를 시작할 때 정리됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.setRowCount">
+        <source>Maximum number of rows to return before the server stops processing your query.</source>
+        <target>서버가 쿼리 처리를 중지하기 전에 반환할 최대 행 수입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.textSize">
+        <source>Maximum size of text and ntext data returned from a SELECT statement</source>
+        <target>SELECT 문에서 반환되는 text 및 ntext 데이터의 최대 크기</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerNewQuery">
+        <source>New Query</source>
+        <target>새 쿼리</target>
+      </trans-unit>
+      <trans-unit id="mssql.newQuery">
+        <source>New Query</source>
+        <target>새 쿼리</target>
+      </trans-unit>
+      <trans-unit id="mssql.newTable">
+        <source>New Table</source>
+      </trans-unit>
+      <trans-unit id="mssql.logRetentionMinutes">
+        <source>Number of minutes to retain log files for backend services. Default is 1 week.</source>
+        <target>백 엔드 서비스의 로그 파일을 유지하는 시간(분)입니다. 기본값은 1주일입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.queryHistoryLimit">
+        <source>Number of query history entries to show in the Query History view</source>
+        <target>쿼리 기록 보기에 표시할 쿼리 기록 항목 수</target>
+      </trans-unit>
+      <trans-unit id="mssql.openQueryHistory">
+        <source>Open Query</source>
+        <target>쿼리 열기</target>
+      </trans-unit>
+      <trans-unit id="mssql.commandPaletteQueryHistory">
+        <source>Open Query History in Command Palette</source>
+        <target>명령 팔레트에서 쿼리 기록 열기</target>
+      </trans-unit>
+      <trans-unit id="mssql.pauseQueryHistoryCapture">
+        <source>Pause Query History Capture</source>
+        <target>쿼리 기록 캡처 일시 중지</target>
+      </trans-unit>
+      <trans-unit id="mssql.authCodeGrant.description">
+        <source>Prompts users to sign in using their browser.</source>
+        <target>사용자에게 브라우저를 사용하여 로그인하라는 메시지를 표시합니다.</target>
+      </trans-unit>
+      <trans-unit id="extension.queryHistory">
+        <source>Query History</source>
+        <target>쿼리 기록</target>
+      </trans-unit>
+      <trans-unit id="mssql.refreshObjectExplorerNode">
+        <source>Refresh</source>
+        <target>새로 고침</target>
+      </trans-unit>
+      <trans-unit id="mssql.rebuildIntelliSenseCache">
+        <source>Refresh IntelliSense Cache</source>
+        <target>IntelliSense 캐시 새로 고침</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeObjectExplorerNode">
+        <source>Remove</source>
+        <target>제거</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeAadAccount">
+        <source>Remove Microsoft Entra Account</source>
+        <target>Microsoft Entra 테넌트 제거</target>
+      </trans-unit>
+      <trans-unit id="mssql.runQueryHistory">
+        <source>Run Query</source>
+        <target>쿼리 실행</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptAlter">
+        <source>Script as Alter</source>
+        <target>Alter로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptCreate">
+        <source>Script as Create</source>
+        <target>Create로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptDelete">
+        <source>Script as Drop</source>
+        <target>Drop으로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptExecute">
+        <source>Script as Execute</source>
+        <target>Execute로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptSelect">
+        <source>Select Top 1000</source>
+        <target>상위 1,000개 선택</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsFontFamily">
+        <source>Set the font family for the results grid; set to blank to use the editor font</source>
+        <target>결과 그리드의 글꼴 패밀리를 설정합니다. 편집기의 글꼴을 사용하려면 빈 값으로 설정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsFontSize">
+        <source>Set the font size for the results grid; set to blank to use the editor size</source>
+        <target>결과 그리드의 글꼴 크기를 설정합니다. 편집기 크기를 사용하려면 빈 값으로 설정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.shortcuts">
+        <source>Shortcuts related to the results window</source>
+        <target>결과 창과 관련된 바로 가기</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.displayBitAsNumber">
+        <source>Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'</source>
+        <target>BIT 열을 숫자(1 또는 0)로 표시할지 여부. False이면 BIT 열을 'true' 또는 'false'로 표시합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.intelliSense.enableIntelliSense">
+        <source>Should IntelliSense be enabled</source>
+        <target>IntelliSense 사용 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.intelliSense.enableErrorChecking">
+        <source>Should IntelliSense error checking be enabled</source>
+        <target>IntelliSense 오류 검사 사용 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.intelliSense.enableQuickInfo">
+        <source>Should IntelliSense quick info be enabled</source>
+        <target>IntelliSense 빠른 정보 사용 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.intelliSense.enableSuggestions">
+        <source>Should IntelliSense suggestions be enabled</source>
+        <target>IntelliSense 제안 사용 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
+        <source>Should IntelliSense suggestions be lowercase</source>
+        <target>IntelliSense 제안을 소문자로 표시할지 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.piiLogging">
+        <source>Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
+        <target>개인 식별 정보(PII)는 Azure Logs 출력 채널 및 출력 채널 로그 파일에 기록되어야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryFeature">
+        <source>Should Query History feature be enabled</source>
+        <target>쿼리 기록 기능을 사용해야 할지 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
+        <source>Should column definitions be aligned?</source>
+        <target>열 정의 정렬 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.datatypeCasing">
+        <source>Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+        <target>데이터 형식을 대문자, 소문자 또는 없음(서식 없음)으로 지정할지 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.keywordCasing">
+        <source>Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+        <target>키워드를 대문자, 소문자 또는 없음(서식 없음)으로 지정할지 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.persistQueryResultTabs">
+        <source>Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
+        <target>탭 전환 시, 선택한 쿼리 결과와 스크롤 위치를 저장할지 여부(성능에 영향을 미칠 수 있음)</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
+        <source>Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
+        <target>Select 문에서 개체에 대한 참조를 별도 줄에 분할할지 여부(예: 'SELECT C1, C2 FROM T1'의 경우 C1 및 C2를 별도의 줄에 표시함)</target>
+      </trans-unit>
+      <trans-unit id="mssql.startQueryHistoryCapture">
+        <source>Start Query History Capture</source>
+        <target>쿼리 기록 캡처 시작</target>
+      </trans-unit>
+      <trans-unit id="mssql.maxRecentConnections">
+        <source>The maximum number of recently used connections to store in the connection list.</source>
+        <target>연결 목록에 저장할 최근에 사용한 최대 연결 수입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.expandTimeout">
+        <source>The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+        <target>개체 탐색기 노드를 확장하기 위한 시간 제한(초)입니다. 기본값은 45초입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.toggleSqlCmd">
+        <source>Toggle SQLCMD Mode</source>
+        <target>SQLCMD 모드 토글</target>
+      </trans-unit>
+      <trans-unit id="mssql.messagesDefaultOpen">
+        <source>True for the messages pane to be open by default; false for closed</source>
+        <target>메시지 창을 기본적으로 열어 두려면 True이고 닫으려면 false</target>
+      </trans-unit>
+      <trans-unit id="mssql.chooseDatabase">
+        <source>Use Database</source>
+        <target>데이터베이스 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.groupBySchema">
+        <source>When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+        <target>사용하도록 설정하면 개체 탐색기의 데이터베이스 개체가 스키마로 분류됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.saveAsCsv.textIdentifier">
+        <source>[Optional] Character used for enclosing text fields when saving results as CSV</source>
+        <target>[옵션] 결과를 CSV로 저장할 때 텍스트 필드를 묶는 데 사용하는 문자</target>
+      </trans-unit>
+      <trans-unit id="mssql.saveAsCsv.lineSeparator">
+        <source>[Optional] Character(s) used for separating rows when saving results as CSV</source>
+        <target>[옵션] 결과를 CSV로 저장할 때 행을 분리하는 데 사용하는 문자</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyRemoveNewLine">
+        <source>[Optional] Configuration options for copying multi-line results from the Results View</source>
+        <target>[옵션] 결과 뷰에서 여러 줄 결과를 복사하기 위한 구성 옵션</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyIncludeHeaders">
+        <source>[Optional] Configuration options for copying results from the Results View</source>
+        <target>[옵션] 결과 뷰에서 결과를 복사하기 위한 구성 옵션</target>
+      </trans-unit>
+      <trans-unit id="mssql.applyLocalization">
+        <source>[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
+        <target>[옵션] VSCode의 구성된 로캘로 지역화하기 위한 구성 옵션(설정을 적용하려면 VSCode를 다시 시작해야 함)</target>
+      </trans-unit>
+      <trans-unit id="mssql.splitPaneSelection">
+        <source>[Optional] Configuration options for which column new result panes should open in</source>
+        <target>[옵션] 새 결과 창이 열리는 열의 구성 옵션</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.applicationIntent">
+        <source>[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
+        <target>[옵션] SQL Server에 연결할 때 ReadWrite 또는 ReadOnly와 같은 애플리케이션 워크로드 유형을 선언합니다. 자세한 내용은 SQL Server AlwaysOn를 참조하세요.</target>
+      </trans-unit>
+      <trans-unit id="mssql.saveAsCsv.delimiter">
+        <source>[Optional] Delimiter for separating data items when saving results as CSV</source>
+        <target>[옵션] 결과를 CSV로 저장할 경우 데이터 항목을 분리하기 위한 구분 기호</target>
+      </trans-unit>
+      <trans-unit id="mssql.ignorePlatformWarning">
+        <source>[Optional] Do not show unsupported platform warnings</source>
+        <target>[옵션] 지원되지 않는 플랫폼 경고 표시 안 함</target>
+      </trans-unit>
+      <trans-unit id="mssql.saveAsCsv.encoding">
+        <source>[Optional] File encoding used when saving results as CSV</source>
+        <target>[옵션] 결과를 CSV로 저장할 때 사용되는 파일 인코딩</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.currentLanguage">
+        <source>[Optional] Indicates the SQL Server language settings.</source>
+        <target>[옵션] SQL Server 언어 설정을 나타냅니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.emptyPasswordInput">
+        <source>[Optional] Indicates whether this profile has an empty password explicitly set</source>
+        <target>[옵션] 이 프로필에 명시적으로 빈 암호가 설정되었는지 여부를 나타냅니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.typeSystemVersion">
+        <source>[Optional] Indicates which server type the provider will expose through the DataReader.</source>
+        <target>[옵션] 공급자가 DataReader를 통해 표시할 서버 유형을 나타냅니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.logDebugInfo">
+        <source>[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source>
+        <target>[옵션] VS Code 콘솔에 디버그 출력 로깅(도움말 -&gt; 개발자 도구 토글)</target>
+      </trans-unit>
+      <trans-unit id="mssql.tracingLevel">
+        <source>[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
+        <target>[옵션] 백 엔드 서비스의 로그 수준입니다. Azure Data Studio는 시작할 때마다 파일 이름을 생성하며 파일이 이미 있으면 로그 항목이 해당 파일에 추가됩니다. 이전 로그 파일을 정리하려면 logRetentionMinutes 및 logFilesRemovalLimit 설정을 참조하세요. 기본 tracingLevel에서는 많은 양의 로그가 기록되지 않습니다. 세부 정보 표시를 변경하면 로깅이 광범위해지고 로그의 디스크 공간 요구 사항이 커질 수 있습니다. 오류이면 중요가 포함되고 경고이면 오류가 포함되고 정보이면 경고가 포함되고 세부 정보 표시이면 정보가 포함됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.showBatchTime">
+        <source>[Optional] Should execution time be shown for individual batches</source>
+        <target>[옵션] 개별 일괄 처리에 대한 실행 시간 표시 여부</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.profileName">
+        <source>[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
+        <target>[옵션] Visual Studio Code의 명령 팔레트에서 쉽게 찾아보고 검색할 수 있도록 이 연결 프로필의 사용자 지정 이름을 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.authenticationType">
+        <source>[Optional] Specify the SQL Server authentication type.</source>
+        <target>[옵션] SQL Server 인증 유형을 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.database">
+        <source>[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
+        <target>[옵션] 연결할 데이터베이스 이름을 지정합니다. 데이터베이스를 지정하지 않으면 일반적으로 'master'인 기본 사용자 데이터베이스 설정이 사용됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.connectRetryInterval">
+        <source>[Optional] Specify the delay between attempts to restore connection.</source>
+        <target>[옵션] 연결 복원 시도 간 간격을 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source>[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target>[선택 사항] 시도를 종료하고 오류를 생성하기 전에 명령 실행을 기다리는 시간(초)을 지정합니다. 기본값은 30초입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.connectTimeout">
+        <source>[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target>[선택 사항] 연결 시도를 종료하고 오류를 생성하기 전에 서버에 대한 연결을 기다리는 시간(초)을 지정합니다. 기본값은 온-프레미스의 경우 15초, Azure SQL Database 연결의 경우 30초입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.maxPoolSize">
+        <source>[Optional] Specify the maximum number of connections allowed in the pool.</source>
+        <target>[옵션] 풀에서 허용된 최대 연결 수를 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.loadBalanceTimeout">
+        <source>[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source>
+        <target>[옵션] 연결을 풀에서 제거/삭제하기 전에 풀에서 생존하는 최소 시간(초)을 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.minPoolSize">
+        <source>[Optional] Specify the minimum number of connections allowed in the pool.</source>
+        <target>[옵션] 풀에서 허용된 최소 연결 수를 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.applicationName">
+        <source>[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').</source>
+        <target>[옵션] SQL Server가 로깅에 사용할 애플리케이션의 이름을 지정합니다(기본값: 'vscode-mssql').</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.attachDbFilename">
+        <source>[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source>
+        <target>[옵션] 연결 가능한 데이터베이스의 전체 경로명을 포함하는 기본 파일의 이름을 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.workstationId">
+        <source>[Optional] Specify the name of the workstation connecting to SQL Server.</source>
+        <target>[옵션] SQL Server에 연결하려는 워크스테이션의 이름을 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.failoverPartner">
+        <source>[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner.</source>
+        <target>[옵션] 장애 조치(failover) 파트너 역할을 하는 SQL Server 인스턴스의 이름이나 네트워크 주소를 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.connectRetryCount">
+        <source>[Optional] Specify the number of attempts to restore connection.</source>
+        <target>[옵션] 연결 복원 시도 횟수를 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.password">
+        <source>[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.</source>
+        <target>[옵션] SQL Server 인증을 위한 암호를 지정합니다. 연결할 때 암호를 지정하지 않으면 다시 지정하도록 요구됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.port">
+        <source>[Optional] Specify the port number to connect to.</source>
+        <target>[옵션] 연결할 포트 번호를 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.packetSize">
+        <source>[Optional] Specify the size in bytes of the network packets to communicate with SQL Server.</source>
+        <target>[옵션] SQL Server와 통신하는 네트워크 패킷의 크기(바이트)를 지정합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.user">
+        <source>[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.</source>
+        <target>[옵션] SQL Server 인증을 위한 사용자 이름을 지정합니다. 연결할 때 사용자 이름을 지정하지 않으면 다시 지정하도록 요구됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.connectionString">
+        <source>[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection.</source>
+        <target>[옵션] 연결에 사용할 ADO.NET 연결 문자열입니다. 이 연결에 제공된 다른 옵션은 무시합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.replication">
+        <source>[Optional] Used by SQL Server in replication.</source>
+        <target>[옵션] SQL Server 복제에 사용합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.encrypt">
+        <source>[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.</source>
+        <target>[선택적] 'Mandatory' 또는 'Strict'로 설정하면 SQL Server는 인증서가 설치된 경우 클라이언트와 서버 간의 모든 데이터 전송에 SSL 암호화를 사용합니다. 'Strict'로 설정하면 SQL Server는 클라이언트와 서버 간의 모든 데이터 전송에 TDS 8.0을 사용합니다. 'Strict'는 SQL Server 2022 이상에서 지원됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.multipleActiveResultSets">
+        <source>[Optional] When set to 'true', multiple result sets can be returned and read from on connection.</source>
+        <target>[옵션] 'true'로 설정하면 다중 결과 집합이 반환되고 연결에서 읽을 수 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.trustServerCertificate">
+        <source>[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
+        <target>[옵션] 'true'로 설정하면 SQL Server SSL 인증서는 통신 계층이 SSL을 사용해서 암호화될 경우 자동으로 신뢰할 수 있게 됩니다. Azure SQL Database 연결에 대해서는 'true'로 설정하세요.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.pooling">
+        <source>[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
+        <target>[옵션] 'true'로 설정하면 연결 개체를 적절한 풀에서 가져오거나, 필요한 경우 새로 만든 후 해당 풀에 추가합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.multiSubnetFailover">
+        <source>[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
+        <target>[옵션] 'true'로 설정하면 AlwaysOn 가용성 그룹이 다른 서브넷에 구성된 경우 활성 서버의 감지 및 연결이 더 빨라집니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.savePassword">
+        <source>[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.</source>
+        <target>[옵션] 'true'로 설정하면, SQL Server 인증의 암호가 MacOS의 키 집합이나 Windows의 Secure Store 같은 운영 체제의 보안 저장소에 저장됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.persistSecurityInfo">
+        <source>[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
+        <target>[옵션] 'false'로 설정하면, 연결이 열렸거나 계속 열린 상태를 유지할 경우 암호와 같은 보안에 민감한 정보가 연결 정보의 일부로 반환되지 않습니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.hostNameInCertificate">
+        <source>[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
+        <target>[선택 사항] 지정한 경우(또한 encrypt=필수 및 trustServerCertificate=false) SQL Server에서 서버 인증서와의 트러스트 유효성을 검사하기 위해 제공된 호스트 이름을 사용합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.saveAsCsv.includeHeaders">
+        <source>[Optional] When true, column headers are included when saving results as CSV</source>
+        <target>[옵션] true로 설정하면, 결과를 CSV로 저장할 때 열 머리글이 포함됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.server">
+        <source>[Required] Specify the server name to connect to. Use 'hostname instance' or '&lt;server&gt;.database.windows.net' for Azure SQL Database.</source>
+        <target>[필수] 연결할 서버 이름을 지정합니다. Azure SQL Database에는 'hostname instance' 또는 '&lt;server&gt;.database.windows.net'을 사용합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
+        <source>should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
+        <target>목록의 각 문 앞에 쉼표를 표시할지 여부(예: 끝에 'mycolumn1' 대신 ', mycolumn2' 사용)</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

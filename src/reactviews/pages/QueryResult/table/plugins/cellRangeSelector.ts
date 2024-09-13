@@ -25,7 +25,7 @@ export interface ICellRangeSelectorOptions {
 	dragClass?: string;
 }
 
-export interface ICellRangeSelector<T> extends Slick.Plugin<T> {
+export interface ICellRangeSelector<T extends Slick.SlickData> extends Slick.Plugin<T> {
 	onCellRangeSelected: Slick.Event<Slick.Range>;
 	onBeforeCellRangeSelected: Slick.Event<Slick.Cell>;
 	onAppendCellRangeSelected: Slick.Event<Slick.Range>;
@@ -36,7 +36,7 @@ export interface ICellRangeDecorator {
 	hide(): void;
 }
 
-export class CellRangeSelector<T> implements ICellRangeSelector<T> {
+export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeSelector<T> {
 	private grid!: Slick.Grid<T>;
 	private dragging?: boolean;
 	private handler = new Slick.EventHandler();
@@ -59,9 +59,9 @@ export class CellRangeSelector<T> implements ICellRangeSelector<T> {
 		this.canvas = this.grid.getCanvasNode();
 		this.handler
 			.subscribe(this.grid.onDragInit, e => this.handleDragInit(e))
-			.subscribe(this.grid.onDragStart, (e: DOMEvent, dd) => this.handleDragStart(e as MouseEvent, dd))
-			.subscribe(this.grid.onDrag, (e: DOMEvent, dd) => this.handleDrag(e as MouseEvent, dd))
-			.subscribe(this.grid.onDragEnd, (e: DOMEvent, dd) => this.handleDragEnd(e as MouseEvent, dd));
+			.subscribe(this.grid.onDragStart, (e: Slick.DOMEvent, dd) => this.handleDragStart(e as MouseEvent, dd))
+			.subscribe(this.grid.onDrag, (e: Slick.DOMEvent, dd) => this.handleDrag(e as MouseEvent, dd))
+			.subscribe(this.grid.onDragEnd, (e: Slick.DOMEvent, dd) => this.handleDragEnd(e as MouseEvent, dd));
 	}
 
 	public destroy() {
@@ -76,7 +76,7 @@ export class CellRangeSelector<T> implements ICellRangeSelector<T> {
 		return this.currentlySelectedRange;
 	}
 
-	private handleDragInit(e: DOMEvent) {
+	private handleDragInit(e: Slick.DOMEvent) {
 		// prevent the grid from cancelling drag'n'drop by default
 		e.stopImmediatePropagation();
 	}
@@ -98,8 +98,8 @@ export class CellRangeSelector<T> implements ICellRangeSelector<T> {
 		this.grid.setActiveCell(cell.row, cell.cell);
 
 		let start = this.grid.getCellFromPoint(
-			dd.startX - jQuery(this.canvas).offset().left,
-			dd.startY - jQuery(this.canvas).offset().top);
+			dd.startX - (jQuery(this.canvas).offset()?.left ?? 0),
+			dd.startY - (jQuery(this.canvas).offset()?.top ?? 0));
 
 		dd.range = { start: start, end: undefined };
 		this.currentlySelectedRange = dd.range;
@@ -114,8 +114,8 @@ export class CellRangeSelector<T> implements ICellRangeSelector<T> {
 		e.stopImmediatePropagation();
 
 		let end = this.grid.getCellFromPoint(
-			e.pageX - jQuery(this.canvas).offset().left,
-			e.pageY - jQuery(this.canvas).offset().top);
+			e.pageX - (jQuery(this.canvas).offset()?.left ?? 0),
+			e.pageY - (jQuery(this.canvas).offset()?.top ?? 0));
 
 		if (!this.grid.canCellBeSelected(end.row, end.cell)) {
 			return;

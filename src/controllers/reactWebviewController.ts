@@ -4,24 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
 import { ReactWebviewBaseController } from './reactWebviewBaseController';
 
 /**
- * ReactWebViewPanelController is a class that manages a vscode.WebviewPanel and provides
+ * ReactWebviewPanelController is a class that manages a vscode.WebviewPanel and provides
  * a way to communicate with it. It provides a way to register request handlers and reducers
  * that can be called from the webview. It also provides a way to post notifications to the webview.
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> {
+export class ReactWebviewPanelController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> {
 	private _panel: vscode.WebviewPanel;
 
 	/**
-	 * Creates a new ReactWebViewPanelController
+	 * Creates a new ReactWebviewPanelController
 	 * @param _context The context of the extension
 	 * @param title The title of the webview panel
-	 * @param _route The route that the webview will use
+	 * @param sourceFile The source file that the webview will use
 	 * @param initialData The initial state object that the webview will use
 	 * @param viewColumn The view column that the webview will be displayed in
 	 * @param _iconPath The icon path that the webview will use
@@ -29,7 +28,7 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 	constructor(
 		_context: vscode.ExtensionContext,
 		title: string,
-		_route: WebviewRoute,
+		sourceFile: string,
 		initialData: State,
 		viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
 		private _iconPath?: vscode.Uri | {
@@ -37,7 +36,7 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 			readonly dark: vscode.Uri;
 		}
 	) {
-		super(_context, _route, initialData);
+		super(_context, sourceFile, initialData);
 		this._panel = vscode.window.createWebviewPanel(
 			'mssql-react-webview',
 			title,
@@ -52,9 +51,9 @@ export class ReactWebViewPanelController<State, Reducers> extends ReactWebviewBa
 		this._panel.webview.html = this._getHtmlTemplate();
 		this._panel.iconPath = this._iconPath;
 		this.registerDisposable(this._panel.webview.onDidReceiveMessage(this._webviewMessageHandler));
-		this._panel.onDidDispose(() => {
+		this.registerDisposable(this._panel.onDidDispose(() => {
 			this.dispose();
-		});
+		}));
 
 		// This call sends messages to the Webview so it's called after the Webview creation.
 		this.initializeBase();

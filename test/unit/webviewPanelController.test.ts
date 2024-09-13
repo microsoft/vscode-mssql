@@ -37,7 +37,7 @@ suite('Webview Panel Controller Tests', () => {
 		done();
 	});
 
-	test('Closing the WebView Panel should dispose the webview', (done) => {
+	test('Closing the Webview Panel should dispose the webview', (done) => {
 		mockWebviewPanelController.object.init();
 		assert.notEqual(webviewPanel, undefined);
 		assert.equal(mockWebviewPanelController.object.isDisposed, false);

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
+// import * as vscode from 'vscode';
 import { IDataProvider } from './dataProvider';
 
 export interface IObservableCollection<T> {
@@ -14,7 +14,7 @@ export interface IObservableCollection<T> {
 	setLength(length: number): void;
 }
 
-export interface ISlickColumn<T> extends Slick.Column<T> {
+export interface ISlickColumn<T extends Slick.SlickData> extends Slick.Column<T> {
 	isEditable?: boolean;
 }
 
@@ -23,7 +23,7 @@ class DataWindow<T> {
 	private _length: number = 0;
 	private _offsetFromDataSource: number = -1;
 
-	private cancellationToken = new CancellationTokenSource();
+	// private cancellationToken = new CancellationTokenSource();
 
 	constructor(
 		private loadFunction: (offset: number, count: number) => Thenable<T[]>,
@@ -33,7 +33,7 @@ class DataWindow<T> {
 
 	dispose() {
 		this._data = undefined;
-		this.cancellationToken.cancel();
+		// this.cancellationToken.cancel();
 	}
 
 	public getStartIndex(): number {
@@ -60,24 +60,24 @@ class DataWindow<T> {
 		this._length = length;
 		this._data = undefined;
 
-		this.cancellationToken.cancel();
-		this.cancellationToken = new CancellationTokenSource();
-		const currentCancellation = this.cancellationToken;
+		// this.cancellationToken.cancel();
+		// this.cancellationToken = new CancellationTokenSource();
+		// const currentCancellation = this.cancellationToken;
 
 		if (length === 0) {
 			return;
 		}
 
 		this.loadFunction(offset, length).then(data => {
-			if (!currentCancellation.token.isCancellationRequested) {
+			// if (!currentCancellation.token.isCancellationRequested) {
 				this._data = data;
 				this.loadCompleteCallback(this._offsetFromDataSource, this._offsetFromDataSource + this._length);
-			}
+			// }
 		});
 	}
 }
 
-export class VirtualizedCollection<T extends Slick.SlickData> extends Disposable implements IObservableCollection<T> {
+export class VirtualizedCollection<T extends Slick.SlickData> implements IObservableCollection<T> {
 	private _bufferWindowBefore: DataWindow<T>;
 	private _window: DataWindow<T>;
 	private _bufferWindowAfter: DataWindow<T>;
@@ -91,16 +91,15 @@ export class VirtualizedCollection<T extends Slick.SlickData> extends Disposable
 		private length: number,
 		loadFn: (offset: number, count: number) => Thenable<T[]>
 	) {
-		super();
 		let loadCompleteCallback = (start: number, end: number) => {
 			if (this.collectionChangedCallback) {
 				this.collectionChangedCallback(start, end - start);
 			}
 		};
 
-		this._bufferWindowBefore = this._register(new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback));
-		this._window = this._register(new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback));
-		this._bufferWindowAfter = this._register(new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback));
+		this._bufferWindowBefore = (new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback));
+		this._window = (new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback));
+		this._bufferWindowAfter = (new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback));
 	}
 
 	public setCollectionChangedCallback(callback: (startIndex: number, count: number) => void): void {
@@ -195,11 +194,11 @@ export class VirtualizedCollection<T extends Slick.SlickData> extends Disposable
 
 export class AsyncDataProvider<T extends Slick.SlickData> implements IDataProvider<T> {
 
-	private _onFilterStateChange = new vscode.EventEmitter<void>();
-	get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
+	// private _onFilterStateChange = new vscode.EventEmitter<void>();
+	// get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
 
-	private _onSortComplete = new vscode.EventEmitter<Slick.OnSortEventArgs<T>>();
-	get onSortComplete(): vscode.Event<Slick.OnSortEventArgs<T>> { return this._onSortComplete.event; }
+	// private _onSortComplete = new vscode.EventEmitter<Slick.OnSortEventArgs<T>>();
+	// get onSortComplete(): vscode.Event<Slick.OnSortEventArgs<T>> { return this._onSortComplete.event; }
 
 	constructor(public dataRows: IObservableCollection<T>) {
 	}
@@ -208,19 +207,19 @@ export class AsyncDataProvider<T extends Slick.SlickData> implements IDataProvid
 		return false;
 	}
 
-	getRangeAsync(startIndex: number, length: number): Promise<T[]> {
+	getRangeAsync(_startIndex: number, _length: number): Promise<T[]> {
 		throw new Error('Method not implemented.');
 	}
 
-	getColumnValues(column: Slick.Column<T>): Promise<string[]> {
+	getColumnValues(_column: Slick.Column<T>): Promise<string[]> {
 		throw new Error('Method not implemented.');
 	}
 
-	sort(options: Slick.OnSortEventArgs<T>): Promise<void> {
+	sort(_options: Slick.OnSortEventArgs<T>): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 
-	filter(columns?: Slick.Column<T>[]): Promise<void> {
+	filter(_columns?: Slick.Column<T>[]): Promise<void> {
 		throw new Error('Method not implemented.');
 	}
 

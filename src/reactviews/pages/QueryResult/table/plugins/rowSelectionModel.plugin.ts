@@ -86,7 +86,7 @@ export class RowSelectionModel<T extends Slick.SlickData> implements Slick.Selec
 	// 	return rows;
 	// }
 
-	private handleActiveCellChange(e: Event, data: Slick.OnActiveCellChangedEventArgs<T>): void {
+	private handleActiveCellChange(_e: Event, data: Slick.OnActiveCellChangedEventArgs<T>): void {
 		if (this._options.selectActiveRow && data.row !== null) {
 			this.setSelectedRanges([new Slick.Range(data.row, 0, data.row, this._grid.getColumns().length - 1)]);
 		}
@@ -175,6 +175,6 @@ export class RowSelectionModel<T extends Slick.SlickData> implements Slick.Selec
 // /**
 //  * Convert the SlickGrid's keydown event to VSCode standard keyboard event.
 //  */
-// export function convertJQueryKeyDownEvent(e: DOMEvent): KeyboardEvent {
+// export function convertJQueryKeyDownEvent(e: Slick.DOMEvent): KeyboardEvent {
 // 	return new StandardKeyboardEvent((<any>e as JQuery.KeyDownEvent).originalEvent);
 // }

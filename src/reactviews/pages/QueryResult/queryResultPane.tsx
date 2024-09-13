@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Divider, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
-import { useContext, useState } from "react";
+import { Button, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
+import { useContext, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
-import { useVscodeWebview } from '../../common/vscodeWebViewProvider';
-import SlickGrid from "./slickgrid";
+import { useVscodeWebview } from '../../common/vscodeWebviewProvider';
+import SlickGrid, { SlickGridHandle } from "./slickgrid";
 
 const useStyles = makeStyles({
 	root: {
@@ -67,7 +67,7 @@ const useStyles = makeStyles({
 export const QueryResultPane = () => {
 	const classes = useStyles();
 	const state = useContext(QueryResultContext);
-	const webViewState = useVscodeWebview<qr.QueryResultWebViewState, qr.QueryResultReducers>();
+	const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
 	webViewState;
 	var metadata = state?.state;
 
@@ -85,9 +85,9 @@ export const QueryResultPane = () => {
 
 	getVscodeTheme;
 
-	const columnsDef: TableColumnDefinition<qr.QueryResultMessage>[] = [
+	const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
 		createTableColumn({
-			columnId: 'timestamp',
+			columnId: 'time',
 			renderHeaderCell: () => <>Timestamp</>
 		}),
 		createTableColumn({
@@ -95,11 +95,11 @@ export const QueryResultPane = () => {
 			renderHeaderCell: () => <>Message</>
 		}),
 	];
-	const [columns] = useState<TableColumnDefinition<qr.QueryResultMessage>[]>(columnsDef);
+	const [columns] = useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
 	const items = metadata?.messages ?? [];
 
 	const sizingOptions: TableColumnSizingOptions = {
-		'timestamp': {
+		'time': {
 			minWidth: 50,
 			idealWidth: 50,
 			defaultWidth: 50
@@ -124,6 +124,8 @@ export const QueryResultPane = () => {
 	if (!metadata) {
 		return null;
 	}
+
+	const gridRef = useRef<SlickGridHandle>(null);
 
 	return <div className={classes.root}>
 		<div className={classes.ribbon}>
@@ -153,25 +155,49 @@ export const QueryResultPane = () => {
 			{
 				<Button appearance="transparent" icon={<OpenFilled />} onClick={async () => {
 					console.log('todo: open in new tab');
-					const rows = await webViewState?.extensionRpc.call('getRows', {
-						uri: metadata.uri,
-						batchId: metadata.resultSetSummary.batchId,
-						resultId: metadata.resultSetSummary.id,
-						rowStart: 0,
-						numberOfRows: 10});
-					console.log(rows);
+					// gridRef.current.refreshGrid();
 				}} title='Open in new tab'></Button>
 			}
 		</div>
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
 				<div id={'grid-parent'} className={classes.queryResultContainer}>
-					<SlickGrid />
+					<SlickGrid loadFunc={(offset: number, count: number): Thenable<any[]> => {
+						return webViewState.extensionRpc.call('getRows', {
+							uri: metadata?.uri,
+							batchId: metadata?.resultSetSummary?.batchId,
+							resultId: metadata?.resultSetSummary?.id,
+							rowStart: offset,
+							numberOfRows: count
+						}).then(response => {
+							if (!response) {
+								return [];
+							}
+							let r = response as qr.ResultSetSubset;
+							var columnLength = metadata?.resultSetSummary?.columnInfo?.length;
+							return r.rows.map(r => {
+								let dataWithSchema: { [key: string]: any } = {};
+								// skip the first column since its a number column
+								for (let i = 1; columnLength && i < (columnLength + 1); i++) {
+									const displayValue = r[i - 1].displayValue ?? '';
+									const ariaLabel = (displayValue);
+									dataWithSchema[(i - 1).toString()] = {
+										displayValue: displayValue,
+										ariaLabel: ariaLabel,
+										isNull: r[i - 1].isNull,
+										invariantCultureDisplayValue: displayValue
+									};
+								}
+								return dataWithSchema;
+							});
+						});
+
+					}} ref={gridRef} resultSetSummary={metadata.resultSetSummary} />
 				</div>
 			}
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && <div className={classes.messagesContainer}>
 				<Table size="small"
-					as = "table"
+					as="table"
 					{...columnSizing_unstable.getTableProps()}
 					ref={tableRef}
 				>
@@ -193,12 +219,16 @@ export const QueryResultPane = () => {
 							rows.map((row, index) => {
 								return <TableRow key={index}>
 									<TableCell
-										{...columnSizing_unstable.getTableCellProps('timestamp')}
-										>{row.item.timestamp}</TableCell>
-										<TableCell
-										{...columnSizing_unstable.getTableCellProps('description')}
-									>{row.item.message}</TableCell>
-								</TableRow>
+										{...columnSizing_unstable.getTableCellProps('time')}
+									>{row.item.time}</TableCell>
+									<TableCell
+										{...columnSizing_unstable.getTableCellProps('message')}
+									>{row.item.message}
+										{row.item.link?.text && row.item.selection && (
+											<>{' '}<Link onClick={() => { console.log('TODO open link'); }}>{row.item?.link?.text}</Link></>
+										)}
+									</TableCell>
+								</TableRow>;
 							})
 						}
 					</TableBody>
@@ -206,5 +236,5 @@ export const QueryResultPane = () => {
 			</div>
 			}
 		</div>
-	</div>
-}
+	</div>;
+};
