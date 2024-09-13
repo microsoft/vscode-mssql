@@ -49,7 +49,6 @@ import { ExecutionPlanService } from '../services/executionPlanService';
 import { ExecutionPlanWebviewController } from './executionPlanWebviewController';
 import { QueryResultWebviewController } from '../queryResult/queryResultWebViewController';
 
-
 /**
  * The main controller class that initializes the extension
  */
