@@ -137,9 +137,9 @@ export const QueryResultPane = () => {
 				}}
 				className={classes.queryResultPaneTabs}
 			>
-				<Tab value={qr.QueryResultPaneTabs.Results} key={qr.QueryResultPaneTabs.Results}>
+				{metadata.resultSetSummary && <Tab value={qr.QueryResultPaneTabs.Results} key={qr.QueryResultPaneTabs.Results}>
 					Results
-				</Tab>
+				</Tab>}
 				<Tab value={qr.QueryResultPaneTabs.Messages} key={qr.QueryResultPaneTabs.Messages}
 				>
 					Messages
@@ -161,6 +161,7 @@ export const QueryResultPane = () => {
 		</div>
 		<div className={classes.tabContent}>
 			{metadata.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
+				metadata.resultSetSummary &&
 				<div id={'grid-parent'} className={classes.queryResultContainer}>
 					<SlickGrid loadFunc={(offset: number, count: number): Thenable<any[]> => {
 						return webViewState.extensionRpc.call('getRows', {

@@ -259,9 +259,11 @@ export class SqlOutputContentProvider {
 					this._vscodeWrapper.executeCommand(Constants.cmdRefreshQueryHistory, uri, hasError);
 				}
 				this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
+				this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
 				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
-				this._queryResultWebviewController.state.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
 				vscode.commands.executeCommand('queryResult.focus');
+				this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
 			});
 			this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
 		}
