@@ -16,7 +16,7 @@ import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
 import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
-import * as l10n from '@vscode/l10n';
+import { locConstants } from '../../common/locConstants';
 
 const useStyles = makeStyles({
 	panelContainer: {
@@ -64,7 +64,7 @@ interface ExecutionPlanGraphProps {
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	graphIndex
-  }) => {
+}) => {
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
@@ -150,37 +150,33 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 
 	const getQueryCostPercentage = () => {
 		const percentage = (cost / executionPlanState!.totalCost!) * 100;
-  		return percentage.toFixed(2) + '%';
+		return percentage.toFixed(2);
 	};
-
-	const queryCostHeader = l10n.t({
-		message: 'Query {0}:  Query cost (relative to the script):  {1}',
-		args: [graphIndex + 1, getQueryCostPercentage()],
-		comment: ['{0} is the query number', '{1} is the query cost']
-	});
 
 	return (
 		<div id="panelContainer" className={classes.panelContainer}>
 			<div id="planContainer" className={classes.planContainer}>
-				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>
-					{queryCostHeader}<br />{query}
+				<div id="queryCostContainer" className={classes.queryCostContainer} style={{ background: utils.background(executionPlanState!.theme!) }}>
+					{
+						locConstants.executionPlan.queryCostRelativeToScript(graphIndex + 1, getQueryCostPercentage())
+					}<br />{query}
 				</div>
 				<div id={`queryPlanParent${graphIndex + 1}`} className={classes.queryPlanParent}></div>
 				{customZoomClicked ? (
-					<div id="customZoomInputContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
-						<Input id="customZoomInputBox" type="number" min={1} defaultValue={Math.floor(zoomNumber).toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }}/>
+					<div id="customZoomInputContainer" className={classes.inputContainer} style={{ background: utils.iconBackground(executionPlanState!.theme!) }}>
+						<Input id="customZoomInputBox" type="number" min={1} defaultValue={Math.floor(zoomNumber).toString()} onChange={(e) => setZoomNumber(Number(e.target.value))} style={{ width: '100px', height: '25px', fontSize: '12px' }} />
 						<Button onClick={handleCustomZoomInput} icon={<Checkmark20Regular />} />
-						<Button icon={<Dismiss20Regular />} onClick={() => setCustomZoomClicked(false)}/>
+						<Button icon={<Dismiss20Regular />} onClick={() => setCustomZoomClicked(false)} />
 					</div>
 				) : null}
 				{findNodeClicked ? (
-					<FindNode executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} findNodeOptions={findNodeOptions} setFindNodeClicked={setFindNodeClicked}/>
+					<FindNode executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} findNodeOptions={findNodeOptions} setFindNodeClicked={setFindNodeClicked} />
 				) : null}
 				{highlightOpsClicked ? (
-					<HighlightExpensiveOperations executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setHighlightOpsClicked={setHighlightOpsClicked}/>
+					<HighlightExpensiveOperations executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setHighlightOpsClicked={setHighlightOpsClicked} />
 				) : null}
 			</div>
-			<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked} query={query}/>
+			<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked} query={query} />
 		</div>
 	);
 };

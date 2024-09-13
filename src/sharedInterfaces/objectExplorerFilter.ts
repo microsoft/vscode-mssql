@@ -20,6 +20,7 @@ export interface ObjectExplorerReducers {
 }
 
 export interface ObjectExplorerFilterContextProps {
+	isLocalizationLoaded: boolean;
 	state: ObjectExplorerFilterState | undefined;
 	theme: Theme;
 	submit: (filters: vscodeMssql.NodeFilter[]) => void;

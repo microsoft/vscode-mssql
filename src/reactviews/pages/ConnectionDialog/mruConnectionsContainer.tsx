@@ -7,6 +7,7 @@ import { Text, Tree, TreeItem, TreeItemLayout, makeStyles, tokens } from "@fluen
 import { ServerRegular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
 	paneTitle: {
@@ -45,7 +46,7 @@ export const MruConnectionsContainer = () => {
 	return (
 		<div>
 			<div className={styles.paneTitle}>
-				<Text weight="semibold" className={styles.paneTitle}>Recent Connections</Text>
+				<Text weight="semibold" className={styles.paneTitle}>{locConstants.connectionDialog.recentConnections}</Text>
 			</div>
 			<Tree >
 				{

@@ -12,6 +12,7 @@ import { DesignerDropdown } from "./designerDropdown";
 import { DesignerTable } from "./designerTable";
 import { CheckBoxProperties, DesignerTableProperties, DropDownProperties, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerCollapsibleDiv } from "./designerCollapsibleDiv";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
 	root: {
@@ -59,19 +60,22 @@ export const DesignerPropertiesPane = () => {
 	const groups = Array.from(new Set(parentTableProperties.itemProperties?.filter(i => i.group).map(i => i.group)));
 	groups?.unshift('General');
 
+	const PROPERTIES = l10n.t('Properties');
+	const NO_DATA = l10n.t('No data');
+
 	if (!data) {
 		return <div className={classes.root}>
-			<Text className={classes.title} size={500}>Properties</Text>
+			<Text className={classes.title} size={500}>{PROPERTIES}</Text>
 			<div
 				className={classes.stack}
 			>
-				<Text>No data</Text>
+				<Text>{NO_DATA}</Text>
 			</div>
-		</div>
+		</div>;
 	}
 
 	return <div className={classes.root}>
-		<Text className={classes.title} size={500}>Properties</Text>
+		<Text className={classes.title} size={500}>{PROPERTIES}</Text>
 		<div
 			className={classes.stack}
 		>
@@ -131,9 +135,9 @@ export const DesignerPropertiesPane = () => {
 								}
 							</div>
 						}
-					></DesignerCollapsibleDiv>
+					></DesignerCollapsibleDiv>;
 				})
 			}
 		</div>
-	</div>
+	</div>;
 }

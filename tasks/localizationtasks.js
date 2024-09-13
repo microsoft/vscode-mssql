@@ -50,13 +50,16 @@ async function getL10nJson() {
 	for (const file of tsFiles) {
 		const content = await fs.readFile(path.resolve('./src', file), 'utf8');
 		if (content) {
-			fileContents.push(content);
+			fileContents.push({
+				contents: content,
+				extension: file.endsWith('.tsx') ? '.tsx' : '.ts'
+			});
 		}
 	}
 	const result = await vscodel10n.getL10nJson(fileContents.map(f => {
 		return {
-			contents: f,
-			extension: '.ts'
+			contents: f.contents,
+			extension: f.extension
 		};
 	}));
 	return result;

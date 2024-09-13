@@ -13,6 +13,7 @@ import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
+import * as l10n from "@vscode/l10n";
 
 export type DesignerTableProps = {
 	component: designer.DesignerDataPropertyInfo,
@@ -33,8 +34,6 @@ const useStyles = fluentui.makeStyles({
 	}
 });
 
-// Hello
-
 export const DesignerTable = ({
 	component,
 	model,
@@ -45,6 +44,10 @@ export const DesignerTable = ({
 	const tableProps = component.componentProperties as designer.DesignerTableProperties;
 	const state = useContext(TableDesignerContext);
 	const classes = useStyles();
+
+	const MOVE_UP = l10n.t('Move Up');
+	const MOVE_DOWN = l10n.t('Move Down');
+
 	const columnsDef: fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[] = tableProps.columns!.map((column) => {
 		const colProps = tableProps.itemProperties?.find(item => item.propertyName === column);
 		return fluentui.createTableColumn(
@@ -62,7 +65,10 @@ export const DesignerTable = ({
 	if (tableProps.canRemoveRows) {
 		columnsDef.push(fluentui.createTableColumn({
 			columnId: 'remove',
-			renderHeaderCell: () => <>Delete</>
+			renderHeaderCell: () => {
+				const DELETE = l10n.t('Delete');
+				return <>{DELETE}</>;
+			}
 		}));
 	}
 
@@ -254,7 +260,7 @@ export const DesignerTable = ({
 					}}
 					disabled={focusedRowId === undefined || focusedRowId === 0}
 				>
-					Move Up
+					{MOVE_UP}
 				</fluentui.ToolbarButton>
 			}
 			{
@@ -267,13 +273,13 @@ export const DesignerTable = ({
 					}}
 					disabled={focusedRowId === undefined || focusedRowId === rows.length - 1}
 				>
-					Move Down
+					{MOVE_DOWN}
 				</fluentui.ToolbarButton>
 			}
 
 		</fluentui.Toolbar>
 		<fluentui.Table
-			as = "table"
+			as="table"
 			size="small"
 			{...columnSizing_unstable.getTableProps()}
 			ref={tableRef}
