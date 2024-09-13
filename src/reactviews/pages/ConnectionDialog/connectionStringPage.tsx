@@ -16,6 +16,7 @@ export const ConnectionStringPage = () => {
 	if (connectionDialogContext === undefined) {
 		return undefined;
 	}
+
 	let index = 0;
 	return (
 		<div>

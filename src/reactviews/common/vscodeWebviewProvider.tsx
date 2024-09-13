@@ -8,6 +8,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import * as l10n from '@vscode/l10n';
+import { LocConstants } from "./locConstants";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -91,6 +92,9 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 				await l10n.config({
 					contents: fileContents
 				});
+				//delay 100ms to make sure the l10n is initialized before the component is rendered
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				LocConstants.createInstance();
 			}
 			/**
 			 * This is a hack to force a re-render of the component when the localization filecontent

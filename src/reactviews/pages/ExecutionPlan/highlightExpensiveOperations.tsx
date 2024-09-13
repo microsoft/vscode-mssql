@@ -10,6 +10,7 @@ import './executionPlan.css';
 import { Button, Combobox, makeStyles, Option } from '@fluentui/react-components';
 import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import * as ep from './executionPlanInterfaces';
+import { locConstants } from '../../common/locConstants';
 
 const useStyles = makeStyles({
 	inputContainer: {
@@ -44,12 +45,18 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
-	const LocalizedConstants = executionPlanState!.localizedConstants!;
 	const [highlightMetricSelected, setHighlightMetricSelected] = useState('');
 
 	const highlightMetricOptions: string[] =
-		[LocalizedConstants.actualElapsedTime, LocalizedConstants.actualElapsedCpuTime, LocalizedConstants.cost, LocalizedConstants.subtreeCost,
-			LocalizedConstants.actualNumberOfRows, LocalizedConstants.numRowsRead, LocalizedConstants.off];
+		[
+			locConstants.executionPlan.actualElapsedTime,
+			locConstants.executionPlan.actualElapsedCpuTime,
+			locConstants.executionPlan.cost,
+			locConstants.executionPlan.subtreeCost,
+			locConstants.executionPlan.actualNumberOfRowsForAllExecutions,
+			locConstants.executionPlan.numberOfRowsRead,
+			locConstants.executionPlan.off
+		];
 	const highlightMetricOptionsEnum: ep.ExpensiveMetricType[] =
 	 [ep.ExpensiveMetricType.ActualElapsedTime, ep.ExpensiveMetricType.ActualElapsedCpuTime, ep.ExpensiveMetricType.Cost, ep.ExpensiveMetricType.SubtreeCost, ep.ExpensiveMetricType.ActualNumberOfRowsForAllExecutions, ep.ExpensiveMetricType.NumberOfRowsRead, ep.ExpensiveMetricType.Off];
 
@@ -77,7 +84,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 
 	return (
 		<div id="highlightExpensiveOpsContainer" className={classes.inputContainer} style={{background:utils.iconBackground(executionPlanState!.theme!)}}>
-			<div>{LocalizedConstants.metric}</div>
+			<div>{locConstants.executionPlan.metric}</div>
 			<Combobox id="highlightExpensiveOpsDropdown" onOptionSelect={(_, data) => setHighlightMetricSelected(data.optionText ?? '')}>
 				<div style={{maxHeight:"250px"}}>
 				{highlightMetricOptions.map((option) => (

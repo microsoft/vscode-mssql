@@ -13,6 +13,7 @@ import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
+import { locConstants } from "../../common/locConstants";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
 	switch (connectionDialogContext?.state.selectedInputMode) {
@@ -55,9 +56,9 @@ export const ConnectionInfoFormContainer = () => {
 							onChange={(_, data) => { connectionDialogContext.setConnectionInputType(data.value as ConnectionInputMode); }}
 							value={connectionDialogContext.state.selectedInputMode}
 						>
-							<Radio value={ConnectionInputMode.Parameters} label="Parameters" />
-							<Radio value={ConnectionInputMode.ConnectionString} label="Connection String" />
-							<Radio value={ConnectionInputMode.AzureBrowse} label="Browse Azure" />
+							<Radio value={ConnectionInputMode.Parameters} label={locConstants.connectionDialog.parameters} />
+							<Radio value={ConnectionInputMode.ConnectionString} label={locConstants.connectionDialog.connectionString} />
+							<Radio value={ConnectionInputMode.AzureBrowse} label={locConstants.connectionDialog.browseAzure} />
 						</RadioGroup>
 					</Field>
 				</div>

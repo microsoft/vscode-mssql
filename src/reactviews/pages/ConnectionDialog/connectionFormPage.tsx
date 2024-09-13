@@ -16,12 +16,12 @@ import {
     OverlayDrawer,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
-
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { ConnectButton } from "./connectButton";
+import { locConstants } from "../../common/locConstants";
 
 export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -69,7 +69,7 @@ export const ConnectionFormPage = () => {
                             />
                         }
                     >
-                        Advanced Connection Settings
+                        {locConstants.connectionDialog.advancedConnectionSettings}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
 
@@ -130,7 +130,7 @@ export const ConnectionFormPage = () => {
                         margin: "0px 10px",
                     }}
                 >
-                    Advanced
+                    {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div style={{ display: "flex", marginLeft: "auto" }}>
                 <Button
@@ -144,7 +144,7 @@ export const ConnectionFormPage = () => {
                         margin: "0px 10px",
                     }}
                 >
-                    Test Connection
+                    {locConstants.connectionDialog.testConnection}
                 </Button>
                 <ConnectButton />
                 </div>

@@ -12,7 +12,6 @@ export interface ExecutionPlanWebviewState {
 	theme?: string;
 	totalCost?: number;
 	loadState?: ApiStatus;
-	localizedConstants?: any;
 	errorMessage?: string;
 }
 
