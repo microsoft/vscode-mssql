@@ -162,6 +162,8 @@ export class SqlOutputContentProvider {
 			} else {
 				await this.createWebviewController(uri, title, queryRunner);
 			}
+		} else {
+			this._queryResultWebviewController.addQueryResultState(uri);
 		}
 		if (queryRunner) {
 			queryCallback(queryRunner);
@@ -205,7 +207,6 @@ export class SqlOutputContentProvider {
 		};
 		const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
 		this._panels.set(uri, controller);
-		this._queryResultWebviewController.addQueryResultState(uri);
 		await controller.init();
 	}
 
