@@ -230,14 +230,13 @@ export class SqlOutputContentProvider {
 			// We do not have a query runner for this editor, so create a new one
 			// and map it to the results uri
 			queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
-			queryRunner.eventEmitter.on('start', (panelUri) => {
+			queryRunner.eventEmitter.on('start', async (panelUri) => {
 				if (!this.isNewQueryResultFeatureEnabled) {
 					this._panels.get(uri).proxy.sendEvent('start', panelUri);
 				} else {
-					vscode.commands.executeCommand('queryResult.focus');
+					await vscode.commands.executeCommand('queryResult.focus');
 					this._queryResultWebviewController.addQueryResultState(uri);
 					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-					this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
 				}
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
