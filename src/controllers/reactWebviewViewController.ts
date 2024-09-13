@@ -16,7 +16,6 @@ import { ReactWebviewBaseController } from './reactWebviewBaseController';
 export class ReactWebviewViewController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> implements vscode.WebviewViewProvider{
 	private _webviewView: vscode.WebviewView;
 
-
 	/**
 	 * Creates a new ReactWebviewViewController
 	 * @param _context Extension context
@@ -30,7 +29,6 @@ export class ReactWebviewViewController<State, Reducers> extends ReactWebviewBas
 	) {
 		super(_context, _sourceFile, initialData);
 	}
-
 
 	protected _getWebview(): vscode.Webview {
 		return this._webviewView.webview;

@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
+import { Button, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, createTableColumn, makeStyles, shorthands, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
 import { useContext, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
 import { useVscodeWebview } from '../../common/vscodeWebviewProvider';
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
 	root: {
@@ -64,35 +65,26 @@ const useStyles = makeStyles({
 	}
 });
 
+const RESULTS = l10n.t('Results');
+const MESSAGES = l10n.t('Messages');
+const TIMESTAMP = l10n.t('Timestamp');
+const MESSAGE = l10n.t('Message');
+const OPEN_SNAPSHOT_IN_NEW_TAB = l10n.t('Open snapshot in new tab');
+
 export const QueryResultPane = () => {
 	const classes = useStyles();
 	const state = useContext(QueryResultContext);
 	const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
 	webViewState;
 	var metadata = state?.state;
-
-	const getVscodeTheme = (theme: Theme) => {
-
-		switch (theme) {
-			case webDarkTheme:
-				return 'vs-dark';
-			case teamsHighContrastTheme:
-				return 'hc-black';
-			default:
-				return 'light';
-		}
-	};
-
-	getVscodeTheme;
-
 	const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
 		createTableColumn({
 			columnId: 'time',
-			renderHeaderCell: () => <>Timestamp</>
+			renderHeaderCell: () => <>{TIMESTAMP}</>
 		}),
 		createTableColumn({
 			columnId: 'message',
-			renderHeaderCell: () => <>Message</>
+			renderHeaderCell: () => <>{MESSAGE}</>
 		}),
 	];
 	const [columns] = useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
@@ -138,11 +130,11 @@ export const QueryResultPane = () => {
 				className={classes.queryResultPaneTabs}
 			>
 				{metadata.resultSetSummary && <Tab value={qr.QueryResultPaneTabs.Results} key={qr.QueryResultPaneTabs.Results}>
-					Results
+					{RESULTS}
 				</Tab>}
 				<Tab value={qr.QueryResultPaneTabs.Messages} key={qr.QueryResultPaneTabs.Messages}
 				>
-					Messages
+					{MESSAGES}
 				</Tab>
 			</TabList>
 			{
@@ -156,7 +148,7 @@ export const QueryResultPane = () => {
 				<Button appearance="transparent" icon={<OpenFilled />} onClick={async () => {
 					console.log('todo: open in new tab');
 					// gridRef.current.refreshGrid();
-				}} title='Open in new tab'></Button>
+				}} title={OPEN_SNAPSHOT_IN_NEW_TAB}></Button>
 			}
 		</div>
 		<div className={classes.tabContent}>
