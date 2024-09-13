@@ -16,21 +16,16 @@ import {
     OverlayDrawer,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
-import * as l10n from '@vscode/l10n';
-
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { ConnectButton } from "./connectButton";
+import { locConstants } from "../../common/locConstants";
 
 export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-
-    const ADVANCED_CONNECTION_SETTINGS = l10n.t("Advanced Connection Settings");
-    const ADVANCED = l10n.t("Advanced");
-    const TEST_CONNECTION = l10n.t("Test Connection");
 
     if (connectionDialogContext === undefined) {
         return undefined;
@@ -74,7 +69,7 @@ export const ConnectionFormPage = () => {
                             />
                         }
                     >
-                        {ADVANCED_CONNECTION_SETTINGS}
+                        {locConstants.connectionDialog.advancedConnectionSettings}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
 
@@ -135,7 +130,7 @@ export const ConnectionFormPage = () => {
                         margin: "0px 10px",
                     }}
                 >
-                    {ADVANCED}
+                    {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div style={{ display: "flex", marginLeft: "auto" }}>
                 <Button
@@ -149,7 +144,7 @@ export const ConnectionFormPage = () => {
                         margin: "0px 10px",
                     }}
                 >
-                    {TEST_CONNECTION}
+                    {locConstants.connectionDialog.testConnection}
                 </Button>
                 <ConnectButton />
                 </div>

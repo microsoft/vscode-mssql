@@ -11,9 +11,9 @@ import './sqlServerRotation.css';
 import { ConnectionHeader } from "./connectionHeader";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
-import * as l10n from '@vscode/l10n';
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
+import { locConstants } from "../../common/locConstants";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
 	switch (connectionDialogContext?.state.selectedInputMode) {
@@ -27,10 +27,6 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
 export const ConnectionInfoFormContainer = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
 	const formStyles = useFormStyles();
-
-	const PARAMETERS = l10n.t("Parameters");
-	const CONNECTION_STRING = l10n.t("Connection String");
-	const BROWSE_AZURE = l10n.t("Browse Azure");
 
 	if (!connectionDialogContext?.state) {
 		return undefined;
@@ -60,9 +56,9 @@ export const ConnectionInfoFormContainer = () => {
 							onChange={(_, data) => { connectionDialogContext.setConnectionInputType(data.value as ConnectionInputMode); }}
 							value={connectionDialogContext.state.selectedInputMode}
 						>
-							<Radio value={ConnectionInputMode.Parameters} label={PARAMETERS} />
-							<Radio value={ConnectionInputMode.ConnectionString} label={CONNECTION_STRING} />
-							<Radio value={ConnectionInputMode.AzureBrowse} label={BROWSE_AZURE} />
+							<Radio value={ConnectionInputMode.Parameters} label={locConstants.connectionDialog.parameters} />
+							<Radio value={ConnectionInputMode.ConnectionString} label={locConstants.connectionDialog.connectionString} />
+							<Radio value={ConnectionInputMode.AzureBrowse} label={locConstants.connectionDialog.browseAzure} />
 						</RadioGroup>
 					</Field>
 				</div>

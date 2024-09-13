@@ -12,7 +12,7 @@ import ReactMarkdown from 'react-markdown'
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
-import * as l10n from '@vscode/l10n';
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     dialogContent: {
@@ -46,19 +46,6 @@ export const DesignerChangesPreviewButton = () => {
         return null;
     }
 
-    const PUBLISHING_CHANGES = l10n.t('Publishing Changes');
-    const CHANGES_PUBLISHED_SUCCESSFULLY = l10n.t('Changes published successfully');
-    const CLOSE_DESIGNER = l10n.t('Close Designer');
-    const CONTINUE_EDITING = l10n.t('Continue Editing');
-    const LOADING_TABLE_DESIGNER = l10n.t('Loading Table Designer');
-    const ERROR_LOADING_PREVIEW = l10n.t('Error loading preview');
-    const RETRY = l10n.t('Retry');
-    const UPDATE_DATABASE = l10n.t('Update Database');
-    const GENERATE_SCRIPT = l10n.t('Generate Script');
-    const CLOSE = l10n.t('Close');
-    const PUBLISH = l10n.t('Publish');
-    const PREVIEW_DATABASE_UPDATES = l10n.t('Preview Database Updates');
-
     const metadata = designerContext.state;
 
     const generateScriptIcon = () => {
@@ -77,7 +64,7 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent className={classes.dialogContent}>
-                        <Spinner label={PUBLISHING_CHANGES} labelPosition='below' />
+                        <Spinner label={locConstants.tableDesigner.publishingChanges} labelPosition='below' />
                     </DialogContent>
                 </>
             );
@@ -86,12 +73,12 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent className={classes.dialogContent}>
-                        <div>{CHANGES_PUBLISHED_SUCCESSFULLY}</div>
+                        <div>{locConstants.tableDesigner.changesPublishedSuccessfully}</div>
                     </DialogContent>
                     <DialogActions>
-                        <Button size="medium" appearance="primary" onClick={designerContext.provider.closeDesigner}>{CLOSE_DESIGNER}</Button>
+                        <Button size="medium" appearance="primary" onClick={designerContext.provider.closeDesigner}>{locConstants.tableDesigner.closeDesigner}</Button>
                         <DialogTrigger action="close">
-                            <Button size="medium" appearance="secondary" onClick={designerContext.provider.continueEditing}>{CONTINUE_EDITING}</Button>
+                            <Button size="medium" appearance="secondary" onClick={designerContext.provider.continueEditing}>{locConstants.tableDesigner.continueEditing}</Button>
                         </DialogTrigger>
                     </DialogActions>
                 </>
@@ -101,7 +88,7 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent className={classes.dialogContent}>
-                        <Spinner label={LOADING_TABLE_DESIGNER} labelPosition='below' />
+                        <Spinner label={locConstants.tableDesigner.loadingTableDesigner} labelPosition='below' />
                     </DialogContent>
                 </>
             );
@@ -111,10 +98,10 @@ export const DesignerChangesPreviewButton = () => {
                 <>
                     <DialogContent className={classes.dialogContent}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <div>{ERROR_LOADING_PREVIEW}</div>
+                        <div>{locConstants.tableDesigner.errorLoadingPreview}</div>
                         <Button className={classes.retryButton} onClick={() => {
                             designerContext.provider.generatePreviewReport();
-                        }}>{RETRY}</Button>
+                        }}>{locConstants.tableDesigner.retry}</Button>
                     </DialogContent>
                 </>
             );
@@ -140,12 +127,12 @@ export const DesignerChangesPreviewButton = () => {
                     <DialogActions>
                         <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
                             designerContext.provider.publishChanges();
-                        }} >{UPDATE_DATABASE}</Button>
+                        }} >{locConstants.tableDesigner.updateDatabase}</Button>
                         <DialogTrigger action="close">
-                            <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={designerContext.provider.generateScript} >{GENERATE_SCRIPT}</Button>
+                            <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={designerContext.provider.generateScript} >{locConstants.tableDesigner.generateScript}</Button>
                         </DialogTrigger>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button size="medium" appearance="secondary">{CLOSE}</Button>
+                            <Button size="medium" appearance="secondary">{locConstants.tableDesigner.close}</Button>
                         </DialogTrigger>
                     </DialogActions>
                 </>
@@ -158,21 +145,21 @@ export const DesignerChangesPreviewButton = () => {
         <Dialog inertTrapFocus={true}>
             <DialogTrigger disableButtonEnhancement>
                 <ToolbarButton
-                    aria-label={PUBLISH}
-                    title={PUBLISH}
+                    aria-label={locConstants.tableDesigner.publish}
+                    title={locConstants.tableDesigner.publish}
                     icon={<DatabaseArrowDownRegular />}
                     onClick={() => {
                         designerContext.provider.generatePreviewReport();
                     }}
                     disabled={(metadata?.issues?.length ?? 0) > 0}
                 >
-                    {PUBLISH}
+                    {locConstants.tableDesigner.publish}
                 </ToolbarButton>
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle>
-                        {PREVIEW_DATABASE_UPDATES}
+                        {locConstants.tableDesigner.previewDatabaseUpdates}
                     </DialogTitle>
                     {getDialogContent()}
                 </DialogBody>

@@ -6,14 +6,13 @@
 import { useContext } from "react";
 import { Text, Image, webLightTheme } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import * as l10n from '@vscode/l10n';
+import { locConstants } from "../../common/locConstants";
 
 const sqlServerImage = require('../../../../media/sqlServer_light.svg');
 const sqlServerImageDark = require('../../../../media/sqlServer_dark.svg');
 
 export const ConnectionHeader = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const CONNECT_TO_SQL_SERVER = l10n.t("Connect to SQL Server");
 	return (
 		<div style={
 			{
@@ -32,7 +31,7 @@ export const ConnectionHeader = () => {
 				{
 					lineHeight: '60px'
 				}
-			} weight='medium'>{CONNECT_TO_SQL_SERVER}</Text>
+			} weight='medium'>{locConstants.connectionDialog.connectToSQLServer}</Text>
 		</div>
 	);
 };

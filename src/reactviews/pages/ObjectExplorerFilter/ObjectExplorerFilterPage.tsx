@@ -10,6 +10,7 @@ import * as vscodeMssql from 'vscode-mssql';
 import { EraserRegular } from "@fluentui/react-icons";
 import { NodeFilterOperator, NodeFilterPropertyDataType, ObjectExplorerPageFilter } from "../../../sharedInterfaces/objectExplorerFilter";
 import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 export const useStyles = makeStyles({
 	root: {
@@ -50,53 +51,22 @@ export const ObjectExplorerFilterPage = () => {
 	const provider = useContext(ObjectExplorerFilterContext);
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 	const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
-	const FILTER_SETTINGS = l10n.t('Filter Settings');
-	const PATH = l10n.t({
-		message: 'Path: {0}',
-		args: [provider?.state?.nodePath!],
-		comment: ['{0} is the path of the node in the object explorer']
-	});
-	function FIRST_VALUE_EMPTY_ERROR(operator: string, filterName: string): string {
-		return l10n.t({
-			message: 'The first value must be set for the {0} operator in the {1} filter',
-			args: [operator, filterName],
-			comment: ['{0} is the operator for the filter', '{1} is the name of the filter']
-		});
-	};
-	function SECOND_VALUE_EMPTY_ERROR(operator: string, filterName: string): string {
-		return l10n.t({
-			message: 'The second value must be set for the {0} operator in the {1} filter',
-			args: [operator, filterName],
-			comment: ['{0} is the operator for the filter', '{1} is the name of the filter']
-		});
-	}
-	function FIRST_VALUE_LESS_THAN_SECOND_ERROR(operator: string, filterName: string): string {
-		return l10n.t({
-			message: 'The first value must be less than the second value for the {0} operator in the {1} filter',
-			args: [operator, filterName],
-			comment: ['{0} is the operator for the filter', '{1} is the name of the filter']
-		});
-	}
 
-	const ERROR = l10n.t('Error');
-	const CLEAR_ALL = l10n.t('Clear All');
-	const CLOSE = l10n.t('Close');
-	const OK = l10n.t('OK');
-	const AND = l10n.t('And');
-	const CONTAINS = l10n.t('Contains');
-	const NOT_CONTAINS = l10n.t('Not Contains');
-	const STARTS_WITH = l10n.t('Starts With');
-	const NOT_STARTS_WITH = l10n.t('Not Starts With');
-	const ENDS_WITH = l10n.t('Ends With');
-	const NOT_ENDS_WITH = l10n.t('Not Ends With');
-	const EQUALS = l10n.t('Equals');
-	const NOT_EQUALS = l10n.t('Not Equals');
-	const LESS_THAN = l10n.t('Less Than');
-	const LESS_THAN_OR_EQUALS = l10n.t('Less Than Or Equals');
-	const GREATER_THAN = l10n.t('Greater Than');
-	const GREATER_THAN_OR_EQUALS = l10n.t('Greater Than Or Equals');
-	const BETWEEN = l10n.t('Between');
-	const NOT_BETWEEN = l10n.t('Not Between');
+	const AND = locConstants.objectExplorerFiltering.and;
+	const CONTAINS = locConstants.objectExplorerFiltering.contains;
+	const NOT_CONTAINS = locConstants.objectExplorerFiltering.notContains;
+	const STARTS_WITH = locConstants.objectExplorerFiltering.startsWith;
+	const NOT_STARTS_WITH = locConstants.objectExplorerFiltering.notStartsWith;
+	const ENDS_WITH = locConstants.objectExplorerFiltering.endsWith;
+	const NOT_ENDS_WITH = locConstants.objectExplorerFiltering.notEndsWith;
+	const EQUALS = locConstants.objectExplorerFiltering.equals;
+	const NOT_EQUALS = locConstants.objectExplorerFiltering.notEquals;
+	const LESS_THAN = locConstants.objectExplorerFiltering.lessThan;
+	const LESS_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.lessThanOrEquals;
+	const GREATER_THAN = locConstants.objectExplorerFiltering.greaterThan;
+	const GREATER_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.greaterThanOrEquals;
+	const BETWEEN = locConstants.objectExplorerFiltering.between;
+	const NOT_BETWEEN = locConstants.objectExplorerFiltering.notBetween;
 
 	function getFilterOperatorString(operator: NodeFilterOperator | undefined): string | undefined {
 		if (operator === undefined) {
@@ -385,8 +355,7 @@ export const ObjectExplorerFilterPage = () => {
 				{
 					columnId: 'property',
 					renderHeaderCell: () => {
-						const PROPERTY = l10n.t('Property');
-						return <>{PROPERTY}</>;
+						return <>{locConstants.objectExplorerFiltering.property}</>;
 					}
 				}
 			),
@@ -394,8 +363,7 @@ export const ObjectExplorerFilterPage = () => {
 				{
 					columnId: 'operator',
 					renderHeaderCell: () => {
-						const OPERATOR = l10n.t('Operator');
-						return <>{OPERATOR}</>;
+						return <>{locConstants.objectExplorerFiltering.operator}</>;
 					},
 				}
 			),
@@ -403,8 +371,7 @@ export const ObjectExplorerFilterPage = () => {
 				{
 					columnId: 'value',
 					renderHeaderCell: () => {
-						const VALUE = l10n.t('Value');
-						return <>{VALUE}</>;
+						return <>{locConstants.objectExplorerFiltering.value}</>;
 					},
 				}
 			),
@@ -412,8 +379,7 @@ export const ObjectExplorerFilterPage = () => {
 				{
 					columnId: 'clear',
 					renderHeaderCell: () => {
-						const CLEAR = l10n.t('Clear');
-						return <>{CLEAR}</>;
+						return <>{locConstants.objectExplorerFiltering.clear}</>;
 					}
 				}
 			)
@@ -458,13 +424,13 @@ export const ObjectExplorerFilterPage = () => {
 	}
 	return (
 		<div className={classes.root}>
-			<Text size={400}>{FILTER_SETTINGS}</Text>
-			<Body1Strong>{PATH}</Body1Strong>
+			<Text size={400}>{l10n.t('Filter Settings')}</Text>
+			<Body1Strong>{locConstants.objectExplorerFiltering.path(provider?.state?.nodePath!)}</Body1Strong>
 			{
 				(errorMessage && errorMessage !== '') &&
 				<MessageBar intent={'error'}>
 					<MessageBarBody>
-						<MessageBarTitle>{ERROR}</MessageBarTitle>
+						<MessageBarTitle>{locConstants.objectExplorerFiltering.error}</MessageBarTitle>
 						{errorMessage}
 					</MessageBarBody>
 				</MessageBar>
@@ -524,10 +490,10 @@ export const ObjectExplorerFilterPage = () => {
 						}
 					}
 					setUiFilters([...uiFilters]);
-				}}>{CLEAR_ALL}</Button>
+				}}>{locConstants.objectExplorerFiltering.clearAll}</Button>
 				<Button appearance="secondary" onClick={() => {
 					provider.cancel();
-				}}>{CLOSE}</Button>
+				}}>{locConstants.objectExplorerFiltering.close}</Button>
 				<Button appearance="primary" onClick={() => {
 
 					const filters: vscodeMssql.NodeFilter[] = uiFilters.map(f => {
@@ -577,11 +543,11 @@ export const ObjectExplorerFilterPage = () => {
 							let value1 = (filter.value as string[] | number[])[0];
 							let value2 = (filter.value as string[] | number[])[1];
 							if (!value1 && value2) {
-								errorText = FIRST_VALUE_EMPTY_ERROR(getFilterOperatorString(filter.operator)!, filter.name);
+								errorText = locConstants.objectExplorerFiltering.firstValueEmptyError(getFilterOperatorString(filter.operator)!, filter.name);
 							} else if (!value2 && value1) {
-								errorText = SECOND_VALUE_EMPTY_ERROR(getFilterOperatorString(filter.operator)!, filter.name);
+								errorText = locConstants.objectExplorerFiltering.secondValueEmptyError(getFilterOperatorString(filter.operator)!, filter.name);
 							} else if (value1 > value2) {
-								errorText = FIRST_VALUE_LESS_THAN_SECOND_ERROR(getFilterOperatorString(filter.operator)!, filter.name);
+								errorText = locConstants.objectExplorerFiltering.firstValueLessThanSecondError(getFilterOperatorString(filter.operator)!, filter.name);
 							}
 						}
 					}
@@ -590,7 +556,7 @@ export const ObjectExplorerFilterPage = () => {
 						return;
 					}
 					provider.submit(filters);
-				}}>{OK}</Button>
+				}}>{locConstants.objectExplorerFiltering.ok}</Button>
 			</div>
 		</div >
 	);

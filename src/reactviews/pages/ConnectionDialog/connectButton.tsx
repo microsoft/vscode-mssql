@@ -7,7 +7,7 @@ import { Button, Spinner } from "@fluentui/react-components";
 import { CSSProperties, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import * as l10n from '@vscode/l10n';
+import { locConstants } from "../../common/locConstants";
 
 export const ConnectButton = ({style}: {style?: CSSProperties}) => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -15,8 +15,6 @@ export const ConnectButton = ({style}: {style?: CSSProperties}) => {
 	if (!connectionDialogContext) {
 		return undefined;
 	}
-
-	const CONNECT = l10n.t("Connect");
 
 	return (
 		<Button
@@ -34,7 +32,7 @@ export const ConnectButton = ({style}: {style?: CSSProperties}) => {
 			}
 			iconPosition="after"
 			icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-				{CONNECT}
+				{locConstants.connectionDialog.connect}
 		</Button>
 	);
 };

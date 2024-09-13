@@ -8,7 +8,7 @@ import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import * as utils from './queryPlanSetup';
 import './executionPlan.css';
 import { makeStyles } from '@fluentui/react-components';
-import * as l10n from '@vscode/l10n';
+import { locConstants } from '../../common/locConstants';
 
 const useStyles = makeStyles({
 	iconStack: {
@@ -68,16 +68,16 @@ export const IconStack : React.FC<IconStackProps> = ({
 		HighlightOps
 	}
 
-	const SAVE_PLAN = l10n.t('Save Plan');
-	const OPEN_XML = l10n.t('Open XML');
-	const OPEN_QUERY = l10n.t('Open Query');
-	const ZOOM_IN = l10n.t('Zoom In');
-	const ZOOM_OUT = l10n.t('Zoom Out');
-	const ZOOM_TO_FIT = l10n.t('Zoom to Fit');
-	const CUSTOM_ZOOM = l10n.t('Custom Zoom');
-	const FIND_NODE = l10n.t('Find Node');
-	const HIGHLIGHT_OPS = l10n.t('Highlight Expensive Operation');
-	const TOGGLE_TOOLTIPS = l10n.t('Toggle Tooltips');
+	const SAVE_PLAN = locConstants.executionPlan.savePlan;
+	const OPEN_XML = locConstants.executionPlan.openXml;
+	const OPEN_QUERY = locConstants.executionPlan.openQuery;
+	const ZOOM_IN = locConstants.executionPlan.zoomIn;
+	const ZOOM_OUT = locConstants.executionPlan.zoomOut;
+	const ZOOM_TO_FIT = locConstants.executionPlan.zoomToFit;
+	const CUSTOM_ZOOM = locConstants.executionPlan.customZoom;
+	const FIND_NODE = locConstants.executionPlan.findNode;
+	const HIGHLIGHT_OPS = locConstants.executionPlan.highlightExpensiveOperation;
+	const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
 
 	const handleSavePlan = async () => {
 		await state!.provider.saveExecutionPlan(executionPlanState!.sqlPlanContent!);
