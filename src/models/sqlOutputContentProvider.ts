@@ -233,7 +233,10 @@ export class SqlOutputContentProvider {
 				if (!this.isNewQueryResultFeatureEnabled) {
 					this._panels.get(uri).proxy.sendEvent('start', panelUri);
 				} else {
+					vscode.commands.executeCommand('queryResult.focus');
 					this._queryResultWebviewController.addQueryResultState(uri);
+					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+					this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
 				}
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
@@ -264,14 +267,19 @@ export class SqlOutputContentProvider {
 					this._panels.get(uri).proxy.sendEvent('message', message);
 				} else {
 					this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
+					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+					this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
 					vscode.commands.executeCommand('queryResult.focus');
-					}
+				}
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
 				if (!this.isNewQueryResultFeatureEnabled) {
 					this._panels.get(uri).proxy.sendEvent('message', message);
 				} else {
 					this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
+					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+					this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+					vscode.commands.executeCommand('queryResult.focus');
 				}
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
