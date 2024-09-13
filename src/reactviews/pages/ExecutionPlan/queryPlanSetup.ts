@@ -454,6 +454,11 @@ export const search = (theme: string) => {
 	return loadImage(searchIcon);
 };
 
+export const properties = (theme: string) => {
+    const propertiesIcon =  theme === "dark" ? require('./icons/openPropertiesDark.svg') : require('./icons/openProperties.svg');
+	return loadImage(propertiesIcon);
+};
+
 export const highlightOps = (theme: string) => {
     const highlightOpsIcon =  theme === "dark" ? require('./icons/highlightExpensiveOperationDark.svg') : require('./icons/highlightExpensiveOperation.svg');
 	return loadImage(highlightOpsIcon);

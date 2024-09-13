@@ -761,6 +761,9 @@
         <trans-unit id="findNodes">
             <source xml:lang="en">Find Nodes</source>
         </trans-unit>
+        <trans-unit id="properties">
+            <source xml:lang="en">Properties</source>
+        </trans-unit>
         <trans-unit id="equals">
             <source xml:lang="en">Equals</source>
         </trans-unit>

@@ -17,6 +17,7 @@ import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
 import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
 import { formatString } from '../../common/utils';
+import { PropertiesPane } from './properties';
 
 const useStyles = makeStyles({
 	panelContainer: {
@@ -24,7 +25,6 @@ const useStyles = makeStyles({
 		flexDirection: "row",
 		width: "100%",
 		position: "relative",
-		height: "500px"
 	},
 	planContainer: {
 		display: "flex",
@@ -77,6 +77,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	const [findNodeClicked, setFindNodeClicked] = useState(false);
 	const [findNodeOptions, setFindNodeOptions] = useState<string[]>([]);
 	const [highlightOpsClicked, setHighlightOpsClicked] = useState(false);
+	const [propertiesClicked, setPropertiesClicked] = useState(false);
 	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
 	useEffect(() => {
@@ -155,7 +156,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	};
 
 	return (
-		<div id="panelContainer" className={classes.panelContainer}>
+		<div id="panelContainer" className={classes.panelContainer} style={{
+			height: executionPlanState!.executionPlanGraphs!.length > 1 ? "500px" : "100%"
+		  }}>
 			<div id="planContainer" className={classes.planContainer}>
 				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>
 					{formatString(LocalizedConstants.queryCostHeader, graphIndex + 1, getQueryCostPercentage())}<br />{query}
@@ -185,8 +188,11 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 				<Popover open={highlightOpsClicked}>
 					<HighlightExpensiveOperations executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setHighlightOpsClicked={setHighlightOpsClicked}/>
 				</Popover>
+				<Popover open={propertiesClicked}>
+					<PropertiesPane executionPlanView={executionPlanView} />
+				</Popover>
 			</div>
-			<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked} query={query}/>
+			<IconStack executionPlanView={executionPlanView} setExecutionPlanView={setExecutionPlanView} setZoomNumber={setZoomNumber} setCustomZoomClicked={setCustomZoomClicked} setFindNodeClicked={setFindNodeClicked} setHighlightOpsClicked={setHighlightOpsClicked} setPropertiesClicked={setPropertiesClicked} query={query}/>
 		</div>
 	);
 };

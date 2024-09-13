@@ -43,6 +43,7 @@ interface IconStackProps {
 	setCustomZoomClicked: any;
 	setFindNodeClicked: any;
 	setHighlightOpsClicked:any;
+	setPropertiesClicked: any;
 	query: any;
 }
 
@@ -53,6 +54,7 @@ export const IconStack : React.FC<IconStackProps> = ({
 	setCustomZoomClicked,
 	setFindNodeClicked,
 	setHighlightOpsClicked,
+	setPropertiesClicked,
 	query
   }) => {
 	const classes = useStyles();
@@ -63,7 +65,8 @@ export const IconStack : React.FC<IconStackProps> = ({
 	enum InputEnum {
 		CustomZoom,
 		FindNode,
-		HighlightOps
+		HighlightOps,
+		Properties
 	}
 
 	const handleSavePlan = async () => {
@@ -114,17 +117,26 @@ export const IconStack : React.FC<IconStackProps> = ({
 		if (inputType == InputEnum.CustomZoom) {
 			setFindNodeClicked(false);
 			setHighlightOpsClicked(false);
+			setPropertiesClicked(false);
 			setCustomZoomClicked(true);
 		}
 		else if (inputType == InputEnum.FindNode) {
 			setFindNodeClicked(true);
 			setHighlightOpsClicked(false);
 			setCustomZoomClicked(false);
+			setPropertiesClicked(false);
 		}
-		else {
+		else if (inputType == InputEnum.HighlightOps) {
 			setFindNodeClicked(false);
 			setHighlightOpsClicked(true);
 			setCustomZoomClicked(false);
+			setPropertiesClicked(false);
+		}
+		else {
+			setFindNodeClicked(false);
+			setHighlightOpsClicked(false);
+			setCustomZoomClicked(false);
+			setPropertiesClicked(true);
 		}
 	}
 
@@ -178,8 +190,8 @@ export const IconStack : React.FC<IconStackProps> = ({
 			title={LocalizedConstants.openQuery}
 			aria-label={LocalizedConstants.openQuery}
 		  />
-		<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-		<ToolbarButton
+		  <hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
+		  <ToolbarButton
 			className={classes.button}
 			tabIndex={0}
 			icon={
@@ -235,8 +247,8 @@ export const IconStack : React.FC<IconStackProps> = ({
 			title={LocalizedConstants.customZoom}
 			aria-label={LocalizedConstants.customZoom}
 		  />
-			<hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
-			<ToolbarButton
+		  <hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
+		  <ToolbarButton
 			className={classes.button}
 			tabIndex={0}
 			icon={
@@ -249,6 +261,20 @@ export const IconStack : React.FC<IconStackProps> = ({
 			onClick={() => setInputContainer(InputEnum.FindNode)}
 			title={LocalizedConstants.findNode}
 			aria-label={LocalizedConstants.findNode}
+		  />
+		  <ToolbarButton
+			className={classes.button}
+			tabIndex={0}
+			icon={
+			  <img
+				className={classes.buttonImg}
+				src={utils.properties(executionPlanState!.theme!)}
+				alt={LocalizedConstants.properties}
+			  />
+			}
+			onClick={() => setInputContainer(InputEnum.Properties)}
+			title={LocalizedConstants.properties}
+			aria-label={LocalizedConstants.properties}
 		  />
 		  <ToolbarButton
 		  	className={classes.button}

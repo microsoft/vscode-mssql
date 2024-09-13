@@ -198,6 +198,18 @@ export class ExecutionPlanView {
 	}
 
 	/**
+	 * Returns the currently selected graph element.
+	 */
+	public getSelectedElement(): ep.InternalExecutionPlanElement | undefined {
+		const cell = this._diagram.graph.getSelectionCell();
+		if (cell?.id) {
+			return this.getElementById(cell.id);
+		}
+
+		return undefined;
+	}
+
+	/**
 	 * Zooms in to the diagram.
 	 */
 	public zoomIn(): void {

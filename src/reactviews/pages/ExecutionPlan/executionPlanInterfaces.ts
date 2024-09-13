@@ -499,3 +499,29 @@ export interface SearchQuery {
 	 */
 	searchType: SearchType
 }
+
+export interface ExecutionPlanEdge {
+	/**
+	 * Count of the rows returned by the subtree of the edge.
+	 */
+	rowCount: number;
+	/**
+	 * Size of the rows returned by the subtree of the edge.
+	 */
+	rowSize: number;
+	/**
+	 * Edge properties to be shown in the tooltip.
+	 */
+	properties: ExecutionPlanGraphElementProperty[]
+}
+
+export interface ExecutionPlanPropertyTableItem {
+	id: number;
+    name: string;
+    value: string;
+	children: number[];
+	displayOrder: number;
+	isExpanded: boolean;
+	isChild: boolean;
+	level: number;
+};
