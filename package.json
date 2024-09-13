@@ -195,7 +195,7 @@
         {
           "id": "objectExplorer",
           "title": "SQL Server",
-          "icon": "./images/server_page_dark.svg"
+          "icon": "media/server_page_dark.svg"
         }
       ]
     },
