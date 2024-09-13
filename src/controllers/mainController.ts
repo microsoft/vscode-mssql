@@ -137,6 +137,12 @@ export default class MainController implements vscode.Disposable {
 		return this.configuration.get(Constants.configEnableExperimentalFeatures);
 	}
 
+	// Use a separate flag so it won't be enabled with the experimental features flag
+	public get isNewQueryResultFeatureEnabled(): boolean {
+		let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+		return config.get(Constants.configEnableNewQueryResultFeature);
+	}
+
 	/**
 	 * Initializes the extension
 	 */
@@ -572,9 +578,6 @@ export default class MainController implements vscode.Disposable {
 						reactPanel.revealToForeground();
 					}));
 
-			this._context.subscriptions.push(
-				vscode.window.registerWebviewViewProvider("queryResult", this._queryResultWebviewController));
-
 			const filterNode = async (node: TreeNodeInfo) => {
 				const filters = await ObjectExplorerFilter.getFilters(this._context, node);
 				if (filters) {
@@ -609,6 +612,11 @@ export default class MainController implements vscode.Disposable {
 					})
 				);
 
+		}
+
+		if (this.isNewQueryResultFeatureEnabled) {
+			this._context.subscriptions.push(
+				vscode.window.registerWebviewViewProvider("queryResult", this._queryResultWebviewController));
 		}
 
 		// Initiate the scripting service

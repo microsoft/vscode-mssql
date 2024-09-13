@@ -211,7 +211,8 @@
 				{
 					"type": "webview",
 					"id": "queryResult",
-					"name": "AAAAA"
+					"name": "%extension.queryResult%",
+          "when": "config.mssql.enableNewQueryResultFeature"
 				}
 			],
       "objectExplorer": [

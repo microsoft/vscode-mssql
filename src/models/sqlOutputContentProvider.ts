@@ -115,9 +115,11 @@ export class SqlOutputContentProvider {
 		await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
 			async (queryRunner: QueryRunner) => {
 				if (queryRunner) {
-					// if the panel isn't active and exists
-					if (this._panels.get(uri).isActive === false) {
-						this._panels.get(uri).revealToForeground(uri);
+					if (!this.isNewQueryResultFeatureEnabled) {
+						// if the panel isn't active and exists
+						if (this._panels.get(uri).isActive === false) {
+							this._panels.get(uri).revealToForeground(uri);
+						}
 					}
 					await queryRunner.runQuery(selection, promise);
 
@@ -137,21 +139,29 @@ export class SqlOutputContentProvider {
 			});
 	}
 
+	// Use a separate flag so it won't be enabled with the experimental features flag
+	private get isNewQueryResultFeatureEnabled(): boolean {
+		let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+		return config.get(Constants.configEnableNewQueryResultFeature);
+	}
+
 	private async runQueryCallback(
 		statusView: StatusView, uri: string, title: string,
 		queryCallback: any): Promise<void> {
 		let queryRunner = await this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
-		if (this._panels.has(uri)) {
-			let panelController = this._panels.get(uri);
-			if (panelController.isDisposed) {
-				this._panels.delete(uri);
-				await this.createWebviewController(uri, title, queryRunner);
+		if (!this.isNewQueryResultFeatureEnabled) {
+			if (this._panels.has(uri)) {
+				let panelController = this._panels.get(uri);
+				if (panelController.isDisposed) {
+					this._panels.delete(uri);
+					await this.createWebviewController(uri, title, queryRunner);
+				} else {
+					queryCallback(queryRunner);
+					return;
+				}
 			} else {
-				queryCallback(queryRunner);
-				return;
+				await this.createWebviewController(uri, title, queryRunner);
 			}
-		} else {
-			await this.createWebviewController(uri, title, queryRunner);
 		}
 		if (queryRunner) {
 			queryCallback(queryRunner);
@@ -189,7 +199,7 @@ export class SqlOutputContentProvider {
 				});
 				return val === undefined ? undefined : parseInt(val, 10);
 			},
-			sendActionEvent: (view: TelemetryViews, action: TelemetryActions, properties?: { [key: string]: string }, measurement?: {[key: string]: number}) => {
+			sendActionEvent: (view: TelemetryViews, action: TelemetryActions, properties?: { [key: string]: string }, measurement?: { [key: string]: number }) => {
 				sendActionEvent(view, action, properties, measurement);
 			}
 		};
@@ -220,12 +230,18 @@ export class SqlOutputContentProvider {
 			// and map it to the results uri
 			queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 			queryRunner.eventEmitter.on('start', (panelUri) => {
-				this._panels.get(uri).proxy.sendEvent('start', panelUri);
-				this._queryResultWebviewController.addQueryResultState(uri);
+				if (!this.isNewQueryResultFeatureEnabled) {
+					this._panels.get(uri).proxy.sendEvent('start', panelUri);
+				} else {
+					this._queryResultWebviewController.addQueryResultState(uri);
+				}
 			});
 			queryRunner.eventEmitter.on('resultSet', async (resultSet: ResultSetSummary) => {
-				this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
-				this._queryResultWebviewController.getQueryResultState(uri).resultSetSummary = resultSet;
+				if (!this.isNewQueryResultFeatureEnabled) {
+					this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
+				} else {
+					this._queryResultWebviewController.getQueryResultState(uri).resultSetSummary = resultSet;
+				}
 			});
 			queryRunner.eventEmitter.on('batchStart', (batch) => {
 				let time = new Date().toLocaleTimeString();
@@ -244,26 +260,34 @@ export class SqlOutputContentProvider {
 						text: LocalizedConstants.runQueryBatchStartLine(batch.selection.startLine + 1)
 					}
 				};
-				this._panels.get(uri).proxy.sendEvent('message', message);
-				this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
-				vscode.commands.executeCommand('queryResult.focus');
+				if (!this.isNewQueryResultFeatureEnabled) {
+					this._panels.get(uri).proxy.sendEvent('message', message);
+				} else {
+					this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
+					vscode.commands.executeCommand('queryResult.focus');
+					}
 			});
 			queryRunner.eventEmitter.on('message', (message) => {
-				this._panels.get(uri).proxy.sendEvent('message', message);
-				console.log(message);
-				this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
+				if (!this.isNewQueryResultFeatureEnabled) {
+					this._panels.get(uri).proxy.sendEvent('message', message);
+				} else {
+					this._queryResultWebviewController.getQueryResultState(uri).messages.push(message);
+				}
 			});
 			queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
 				if (!isRefresh) {
 					// only update query history with new queries
 					this._vscodeWrapper.executeCommand(Constants.cmdRefreshQueryHistory, uri, hasError);
 				}
-				this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
-				this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
-				vscode.commands.executeCommand('queryResult.focus');
-				this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Results;
-				this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+				if (!this.isNewQueryResultFeatureEnabled) {
+					this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
+				} else {
+					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+					this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+					vscode.commands.executeCommand('queryResult.focus');
+					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+					this._queryResultWebviewController.state = this._queryResultWebviewController.getQueryResultState(uri);
+				}
 			});
 			this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
 		}

@@ -21,6 +21,7 @@
 "mssql.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",
 "extension.queryHistory":"Query History",
+"extension.queryResult":"Query Result",
 "mssql.connect":"Connect",
 "mssql.disconnect":"Disconnect",
 "mssql.manageProfiles":"Manage Connection Profiles",
