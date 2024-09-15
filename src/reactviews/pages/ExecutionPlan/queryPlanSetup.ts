@@ -474,6 +474,35 @@ export const disableTooltip = (theme: string) => {
 	return loadImage(disableTooltipIcon);
 };
 
+export const sortByImportance = (theme: string) => {
+    const sortByImportanceIcon =  theme === "dark" ? require('./icons/sortByDisplayOrderDark.svg') : require('./icons/sortByDisplayOrder.svg');
+	return loadImage(sortByImportanceIcon);
+};
+
+export const sortAlphabetically = (theme: string) => {
+    const sortAlphabeticallyIcon =  theme === "dark" ? require('./icons/sortAlphabeticallyDark.svg') : require('./icons/sortAlphabetically.svg');
+	return loadImage(sortAlphabeticallyIcon);
+};
+
+export const sortReverseAlphabetically = (theme: string) => {
+    const sortReverseAlphabeticallyIcon =  theme === "dark" ? require('./icons/sortReverseAlphabeticallyDark.svg') : require('./icons/sortReverseAlphabetically.svg');
+	return loadImage(sortReverseAlphabeticallyIcon);
+};
+
+export const filterIcon = (theme: string) => {
+    const filterIcon =  theme === "dark" ? require('./icons/filterDark.svg') : require('./icons/filter.svg');
+	return loadImage(filterIcon);
+};
+
+export const expandAll = (theme: string) => {
+    const expandAllIcon =  theme === "dark" ? require('./icons/expandAllDark.svg') : require('./icons/expandAll.svg');
+	return loadImage(expandAllIcon);
+};
+
+export const collapseAll= (theme: string) => {
+    const collapseAllIcon =  theme === "dark" ? require('./icons/collapseAllDark.svg') : require('./icons/collapseAll.svg');
+	return loadImage(collapseAllIcon);
+};
 
 export const background = (theme:string) => {
 	return theme === "dark" ? '#1E1E1E' : "#F2F2F2";

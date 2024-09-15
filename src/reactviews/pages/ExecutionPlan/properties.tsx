@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import * as utils from "./queryPlanSetup";
 import {
@@ -18,6 +18,8 @@ import {
   TableCellLayout,
   TableColumnDefinition,
   Button,
+  Toolbar,
+  ToolbarButton,
 } from "@fluentui/react-components";
 import { ChevronDown20Regular, ChevronRight20Regular } from '@fluentui/react-icons';
 import * as ep from "./executionPlanInterfaces";
@@ -40,6 +42,24 @@ const useStyles = makeStyles({
     border: 'none',
     backgroundColor: 'transparent',
     boxShadow: 'none',
+  },
+  button: {
+		cursor: "pointer"
+	},
+	buttonImg: {
+		display: "block",
+		height: "16px",
+		width: "16px"
+	},
+  propertiesHeader: {
+    fontWeight: "bold",
+    fontSize: "12px",
+    width: "100%",
+    opacity: 1
+  },
+  tableHeader: {
+    fontWeight: "bold",
+    border: "1px solid #bbbbbb",
   },
   tableRow: {
     height: "25px",
@@ -66,14 +86,22 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   const executionPlanState = state?.state;
   const [shownChildren, setShownChildren] = useState<number[]>([]);
   const [openedButtons, setOpenedButtons] = useState<string[]>([]);
+  const [items, setItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
 
   const element: ep.ExecutionPlanNode =
     executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
 
-  // Define the row data
-  const items: ep.ExecutionPlanPropertyTableItem[] = mapPropertiesToItems(element.properties, 0, 0, false);
+  enum SortOption {
+    Alphabetical = 0,
+    ReverseAlphabetical = 1,
+    Importance = 2
+  }
 
-  console.log(items);
+  useEffect(() => {
+    if (!items.length) {
+      setItems(mapPropertiesToItems(element.properties, 0, 0, false));
+    }
+	}, [items]);
 
   // Define the columns
   const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] = [
@@ -120,15 +148,110 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     }
   };
 
+  const handleSort = async (sortOption: SortOption) => {
+    let parentList: ep.ExecutionPlanPropertyTableItem[] = [];
+
+    if (sortOption == SortOption.Alphabetical) {
+      parentList = items.filter(item => !item.isChild)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+    else if (sortOption == SortOption.ReverseAlphabetical) {
+      parentList = items.filter(item => !item.isChild)
+        .sort((a, b) => b.name.localeCompare(a.name));
+    }
+    else if (sortOption == SortOption.Importance) {
+      parentList = items.filter(item => !item.isChild)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+
+    const sortedList = buildItemsFromParentList(parentList, items);
+    console.log(sortedList);
+    setItems(sortedList);
+	};
+
   return (
     <div
       id="propertiesPanelContainer"
       className={classes.paneContainer}
       style={{ background: utils.background(executionPlanState!.theme!) }}
     >
-	    Properties
+	    <div className={classes.propertiesHeader} style={{background:utils.background(executionPlanState!.theme!)}}>
+        Properties
+      </div>
       <br/>
       {element.name}
+      <Toolbar>
+        <ToolbarButton
+          className={classes.button}
+          tabIndex={0}
+          icon={
+            <img
+            className={classes.buttonImg}
+            src={utils.sortByImportance(executionPlanState!.theme!)}
+            alt={"Sort by importance"}
+            />
+          }
+          onClick={() => handleSort(SortOption.Importance)}
+          title={"Importance"}
+          aria-label={"Sort By Importance"}
+        />
+        <ToolbarButton
+          className={classes.button}
+          tabIndex={0}
+          icon={
+            <img
+            className={classes.buttonImg}
+            src={utils.sortAlphabetically(executionPlanState!.theme!)}
+            alt={"Sort alphabetically"}
+            />
+          }
+          onClick={() => handleSort(SortOption.Alphabetical)}
+          title={"Alphabetical"}
+          aria-label={"Sort alphabetically"}
+        />
+        <ToolbarButton
+          className={classes.button}
+          tabIndex={0}
+          icon={
+            <img
+            className={classes.buttonImg}
+            src={utils.sortReverseAlphabetically(executionPlanState!.theme!)}
+            alt={"Sort reverse alphabetically"}
+            />
+          }
+          onClick={() => handleSort(SortOption.ReverseAlphabetical)}
+          title={"Reverse Alphabetical"}
+          aria-label={"Sort reverse alphabetically"}
+        />
+        <ToolbarButton
+          className={classes.button}
+          tabIndex={0}
+          icon={
+            <img
+            className={classes.buttonImg}
+            src={utils.expandAll(executionPlanState!.theme!)}
+            alt={"Expand All"}
+            />
+          }
+          onClick={() => {console.log("Expand All")}}
+          title={"Expand All"}
+          aria-label={"Expand All"}
+        />
+        <ToolbarButton
+          className={classes.button}
+          tabIndex={0}
+          icon={
+            <img
+            className={classes.buttonImg}
+            src={utils.collapseAll(executionPlanState!.theme!)}
+            alt={"Collapse All"}
+            />
+          }
+          onClick={() => {console.log("Collapse All")}}
+          title={"Collapse All"}
+          aria-label={"Collapse All"}
+        />
+      </Toolbar>
       <DataGrid
         items={items}
         columns={columns}
@@ -137,10 +260,10 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 		resizableColumns={true}
 		resizableColumnsOptions={{autoFitColumns:true}}
       >
-        <DataGridHeader>
+        <DataGridHeader className={classes.tableHeader}>
           <DataGridRow className={classes.tableRow}>
             {({ renderHeaderCell }) => (
-              <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+              <DataGridHeaderCell className={classes.tableHeader}>{renderHeaderCell()}</DataGridHeaderCell>
             )}
           </DataGridRow>
         </DataGridHeader>
@@ -196,4 +319,27 @@ function mapPropertiesToItems(properties: ep.ExecutionPlanGraphElementProperty[]
 		currentLength += (childrenItems.length+1);
 	}
 	return items;
+}
+
+function buildItemsFromParentList(parentList: ep.ExecutionPlanPropertyTableItem[], itemList: ep.ExecutionPlanPropertyTableItem[]): ep.ExecutionPlanPropertyTableItem[] {
+  let fullItemList: ep.ExecutionPlanPropertyTableItem[] = [];
+
+  for (const parent of parentList) {
+    fullItemList.push(parent);
+    if (parent.children.length) {
+      let childItemList: ep.ExecutionPlanPropertyTableItem[] = [];
+
+      for (const childId of parent.children) {
+        const childItem = itemList.find(item => childId === item.id);
+        if (childItem) {
+          childItemList.push(childItem);
+        }
+      }
+
+      const childList = buildItemsFromParentList(childItemList, itemList);
+      fullItemList = fullItemList.concat(childList);
+    }
+  }
+
+  return fullItemList;
 }
