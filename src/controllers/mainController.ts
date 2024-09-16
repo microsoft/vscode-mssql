@@ -227,9 +227,9 @@ export default class MainController implements vscode.Disposable {
 			const uriHandler: vscode.UriHandler = {
 				handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
 					const mssqlProtocolHandler = new MssqlProtocolHandler();
-					mssqlProtocolHandler.handleUri(uri);
+					const parsedArgs = mssqlProtocolHandler.handleUri(uri);
 
-					vscode.commands.executeCommand('mssql.addObjectExplorer');
+					vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, parsedArgs);
 				}
 			};
 			vscode.window.registerUriHandler(uriHandler);
@@ -468,8 +468,9 @@ export default class MainController implements vscode.Disposable {
 		// Old style Add connection when experimental features are not enabled
 
 		// Add Object Explorer Node
-		this.registerCommand(Constants.cmdAddObjectExplorer);
-		this._event.on(Constants.cmdAddObjectExplorer, async () => {
+		this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
+		this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
+			console.log(args);
 			if (!this.isExperimentalEnabled) {
 				if (!self._objectExplorerProvider.objectExplorerExists) {
 					self._objectExplorerProvider.objectExplorerExists = true;
