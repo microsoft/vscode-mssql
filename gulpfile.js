@@ -203,6 +203,7 @@ async function generateReactWebviewsBundle() {
 			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
 			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
 			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
+			'queryResult': 'src/reactviews/pages/QueryResult/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',

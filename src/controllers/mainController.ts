@@ -47,6 +47,7 @@ import { ConnectionDialogWebviewController } from '../connectionconfig/connectio
 import { ObjectExplorerFilter } from '../objectExplorer/objectExplorerFilter';
 import { ExecutionPlanService } from '../services/executionPlanService';
 import { ExecutionPlanWebviewController } from './executionPlanWebviewController';
+import { QueryResultWebviewController } from '../queryResult/queryResultWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -55,6 +56,7 @@ export default class MainController implements vscode.Disposable {
 	private _context: vscode.ExtensionContext;
 	private _event: events.EventEmitter = new events.EventEmitter();
 	private _outputContentProvider: SqlOutputContentProvider;
+	private _queryResultWebviewController: QueryResultWebviewController;
 	private _statusview: StatusView;
 	private _connectionMgr: ConnectionManager;
 	private _prompter: IPrompter;
@@ -132,6 +134,12 @@ export default class MainController implements vscode.Disposable {
 
 	public get isExperimentalEnabled(): boolean {
 		return this.configuration.get(Constants.configEnableExperimentalFeatures);
+	}
+
+	// Use a separate flag so it won't be enabled with the experimental features flag
+	public get isNewQueryResultFeatureEnabled(): boolean {
+		let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+		return config.get(Constants.configEnableNewQueryResultFeature);
 	}
 
 	/**
@@ -321,8 +329,13 @@ export default class MainController implements vscode.Disposable {
 		// Init CodeAdapter for use when user response to questions is needed
 		this._prompter = new CodeAdapter(this._vscodeWrapper);
 
+		// Init Query Results Webview Controller
+		this._queryResultWebviewController = new QueryResultWebviewController(this._context);
+
 		// Init content provider for results pane
 		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper);
+		this._outputContentProvider.setQueryResultWebviewController(this._queryResultWebviewController);
+		this._queryResultWebviewController.setRowRequestHandler((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => this._outputContentProvider.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows));
 
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
@@ -598,6 +611,11 @@ export default class MainController implements vscode.Disposable {
 					})
 				);
 
+		}
+
+		if (this.isNewQueryResultFeatureEnabled) {
+			this._context.subscriptions.push(
+				vscode.window.registerWebviewViewProvider("queryResult", this._queryResultWebviewController));
 		}
 
 		// Initiate the scripting service

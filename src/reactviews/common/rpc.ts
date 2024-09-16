@@ -13,8 +13,15 @@ export class WebviewRpc<Reducers> {
 	private _rpcRequestId = 0;
 	private _rpcHandlers: { [id: number]: { resolve: (result: unknown) => void, reject: (error: unknown) => void } } = {};
 	private _methodSubscriptions: { [method: string]: ((params: unknown) => void)[] } = {};
+	private static _instance: WebviewRpc<any>;
+	public static getInstance<Reducers>(vscodeApi: WebviewApi<unknown>): WebviewRpc<Reducers> {
+		if (!WebviewRpc._instance) {
+			WebviewRpc._instance = new WebviewRpc<Reducers>(vscodeApi);
+		}
+		return WebviewRpc._instance;
+	}
 
-	constructor(private _vscodeApi: WebviewApi<unknown>) {
+	private constructor(private _vscodeApi: WebviewApi<unknown>) {
 		window.addEventListener('message', (event) => {
 			const message = event.data;
             if (message.type === 'response') {
