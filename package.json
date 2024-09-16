@@ -153,6 +153,7 @@
     "@azure/arm-subscriptions": "^5.0.0",
     "@azure/msal-common": "^14.14.0",
     "@azure/msal-node": "^2.12.0",
+    "@fluentui/web-components": "^2.6.1",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
     "axios": "^1.7.4",
     "core-js": "^2.4.1",
@@ -198,23 +199,23 @@
           "icon": "media/server_page_dark.svg"
         }
       ],
-			"panel": [
-				{
-					"id": "queryResult",
-					"title": "Query Result",
-					"icon": "media/SignIn.svg"
-				}
-			]
+      "panel": [
+        {
+          "id": "queryResult",
+          "title": "Query Result",
+          "icon": "media/SignIn.svg"
+        }
+      ]
     },
     "views": {
-			"queryResult": [
-				{
-					"type": "webview",
-					"id": "queryResult",
-					"name": "%extension.queryResult%",
+      "queryResult": [
+        {
+          "type": "webview",
+          "id": "queryResult",
+          "name": "%extension.queryResult%",
           "when": "config.mssql.enableNewQueryResultFeature"
-				}
-			],
+        }
+      ],
       "objectExplorer": [
         {
           "id": "objectExplorer",
