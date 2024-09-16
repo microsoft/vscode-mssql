@@ -519,9 +519,16 @@ export interface ExecutionPlanPropertyTableItem {
 	id: number;
     name: string;
     value: string;
+	parent: number;
 	children: number[];
 	displayOrder: number;
 	isExpanded: boolean;
 	isChild: boolean;
 	level: number;
 };
+
+export enum SortOption {
+    Alphabetical,
+    ReverseAlphabetical,
+    Importance
+}
