@@ -75,32 +75,33 @@ export class MssqlProtocolHandler {
 
 	}
 
-	public handleUri(uri: vscode.Uri): void {
+	public handleUri(uri: vscode.Uri): NativeParsedArgs | undefined {
 		Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
 
 		switch (uri.path) {
 			case Command.connect:
-				this.connect(uri);
-			break;
+				return this.connect(uri);
+
 			case Command.openConnectionDialog:
 				this.openConnectionDialog(uri);
-				break;
+				return undefined;
+
 			default:
 				Utils.logDebug(`[MssqlProtocolHandler][handleUri] Unknown URI path: ${uri.path}`);
-				break;
+				return undefined;
 		}
 	}
 
-	private connect(uri: vscode.Uri): void {
+	private connect(uri: vscode.Uri): NativeParsedArgs {
 		vscode.window.showInformationMessage(`URI handled: ${uri.toString()}`);
-		this.readProfileFromArgs(uri.query);
+		return this.readProfileFromArgs(uri.query);
 	}
 
 	private openConnectionDialog(uri: vscode.Uri): void {
 		vscode.window.showInformationMessage(`URI handled: ${uri.toString()}`);
 	}
 
-	private readProfileFromArgs(query: string): void {
+	private readProfileFromArgs(query: string): NativeParsedArgs {
 		const args = new URLSearchParams(query);
 		const provider = args.get('provider');
 		const server = args.get('server');
@@ -123,5 +124,14 @@ export class MssqlProtocolHandler {
 							'Integrated';
 
 		const applicationName = args.get('applicationName') ? `${args.get('applicationName')}-azdata` : 'azdata';
+
+		return {
+			provider: provider,
+			server: server,
+			database: database,
+			user: userName,
+			authenticationType: authenticationType,
+			applicationName: applicationName,
+		} as NativeParsedArgs;
 	}
 }

@@ -218,7 +218,9 @@ export default class MainController implements vscode.Disposable {
 			const uriHandler: vscode.UriHandler = {
 				handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
 					const mssqlProtocolHandler = new MssqlProtocolHandler();
-					mssqlProtocolHandler.handleUri(uri);
+					const parsedArgs = mssqlProtocolHandler.handleUri(uri);
+
+					vscode.commands.executeCommand('mssql.addObjectExplorer');
 				}
 			};
 			vscode.window.registerUriHandler(uriHandler);
