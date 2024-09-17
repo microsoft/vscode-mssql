@@ -116,22 +116,31 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   const executionPlanState = state?.state;
   const [shownChildren, setShownChildren] = useState<number[]>([]);
   const [openedButtons, setOpenedButtons] = useState<string[]>([]);
+  const [name, setName] = useState<string>("");
   const [items, setItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
   const [isFiltered, setIsFiltered] = useState<boolean>(false);
   const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
   const [numItems, setNumItems] = useState<number>(0);
   const [inputValue, setInputValue] = useState<string>("");
 
-  const element: ep.ExecutionPlanNode =
-    executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
-
   useEffect(() => {
-    if (!items.length && !isFiltered) {
-      const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
-      setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
-      setNumItems(unsortedItems.length);
-    }
-	}, [items, isFiltered]);
+    const intervalId = setInterval(() => {
+      const element = executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
+
+      // Check if the element's name has changed
+      if (element.name !== name) {
+        setName(element.name);
+
+        // Process the properties and update state accordingly
+        const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
+        setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
+        setNumItems(unsortedItems.length);
+      }
+    }, 1000); // Poll every second
+
+    // Clean up the interval on unmount
+    return () => clearInterval(intervalId);
+  });
 
   const handleShowChildrenClick = async (buttonName: string, children: number[]) => {
     if (shownChildren.includes(children[0])) {
@@ -250,7 +259,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         <div><Button className={classes.dismissButton} style={{background:utils.background(executionPlanState!.theme!)}} onClick={() => setPropertiesClicked(false)} icon={<Dismiss12Regular />} /></div>
       </div>
       <div className={classes.nameContainer} style={{background:utils.tableBackground(executionPlanState!.theme!)}}>
-        {element.name}
+        {name}
       </div>
       <Toolbar className={classes.toolbar}>
         <div>

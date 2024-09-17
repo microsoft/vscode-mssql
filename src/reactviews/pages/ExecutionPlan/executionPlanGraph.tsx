@@ -101,7 +101,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
  	const resizableRef = useRef<HTMLDivElement>(null);
 	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
-
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
 
