@@ -477,10 +477,18 @@ export default class MainController implements vscode.Disposable {
 				}
 				await self.createObjectExplorerSession();
 			} else {
+				const connectionInfo = {
+					server: args.server,
+					database: args.database,
+					user: '',
+					password: '',
+				} as IConnectionInfo;
+
 				const connDialog = new ConnectionDialogWebviewController(
 					this._context,
 					this,
-					this._objectExplorerProvider
+					this._objectExplorerProvider,
+					connectionInfo
 				);
 				connDialog.revealToForeground();
 			}
