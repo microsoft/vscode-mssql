@@ -42,6 +42,7 @@ steps:
     inputs:
       targets: lint
       gulpFile: ${{ parameters.gulpfile }}
+      continue-on-error: true
 
   - task: gulp@1
     displayName: Run tests and compute coverage

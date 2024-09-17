@@ -11,10 +11,13 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default [
-  eslintPluginPrettierRecommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
-    ignores: ["src/prompts/**/*.ts", "**/*.d.ts", "src/reactviews/pages/ExecutionPlan/**/*"], // Ignore prompts files as they are copied from other repos
+    ignores: [
+      "src/prompts/**/*.ts",
+      "**/*.d.ts",
+      "src/reactviews/pages/ExecutionPlan/**/*",
+    ], // Ignore prompts files as they are copied from other repos
     languageOptions: {
       ...reactRecommended.languageOptions,
       ecmaVersion: "latest",
@@ -35,6 +38,7 @@ export default [
       ["deprecation"]: fixupPluginRules(deprecationPlugin),
       react,
       "jsx-a11y": jsxA11y,
+      ...eslintPluginPrettierRecommended.plugins
     },
     settings: {
       react: {
@@ -42,6 +46,7 @@ export default [
       },
     },
     rules: {
+      ...eslintPluginPrettierRecommended.rules,
       "notice/notice": [
         "error",
         {
