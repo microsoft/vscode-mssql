@@ -3,14 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-languageclient";
-import * as mssql from "vscode-mssql";
+export const mssqlActivityBarButton =
+  'a[class^="action-label activity-workbench-view-extension-objectExplorer"]';
 
-export namespace SchemaCompareGetDefaultOptionsRequest {
-  export const type = new RequestType<
-    mssql.SchemaCompareGetOptionsParams,
-    mssql.SchemaCompareOptionsResult,
-    void,
-    void
-  >("schemaCompare/getDefaultOptions");
-}
+export const addConnectionButton = 'div[aria-label="Add Connection"]';
