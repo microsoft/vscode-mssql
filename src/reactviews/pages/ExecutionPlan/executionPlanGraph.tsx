@@ -177,6 +177,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
   		return percentage.toFixed(2);
 	};
 
+	// this is for resizing the properties panel
 	const onMouseDown = (e: any) => {
 		e.preventDefault();
 		const startX = e.pageX;

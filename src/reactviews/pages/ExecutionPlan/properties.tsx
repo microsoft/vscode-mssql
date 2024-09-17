@@ -136,47 +136,50 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   const COLLAPSE_ALL = locConstants.executionPlan.collapseAll;
   const FILTER_ANY_FIELD = locConstants.executionPlan.filterAnyField;
 
-  // set initial items
+  // this sets the items list on the initial load, so there isn't a delay
   useEffect(() => {
+    // check whether items is actively filtered so it doesn't rerender if there
+    // are no filter results
     if (!items.length && !isFiltered) {
       const element: ep.ExecutionPlanNode = executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
-      setId(element.id);
-      setName(element.name);
-
-      const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
-      setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
-      setNumItems(unsortedItems.length);
+      loadItems(element);
     }
 	}, [items, isFiltered]);
 
   useEffect(() => {
+    // poll for whether there has been a new element selected in the graph
     const intervalId = setInterval(() => {
       const element: ep.ExecutionPlanNode = executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
 
-      // Check if the element's name has changed
+      // Check if the element has changed, if so, reload items based on new element
       if (element.id !== id) {
-        setName(element.name);
-        setId(element.id);
-
-        // Process the properties and update state accordingly
-        const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
-        setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
-        setNumItems(unsortedItems.length);
+        loadItems(element);
       }
     }, 1000);
 
     return () => clearInterval(intervalId);
   });
 
+  function loadItems(element: ep.ExecutionPlanNode) {
+    setName(element.name);
+    setId(element.id);
+
+    // make items list, and sort it based on importance
+    const unsortedItems = buildItemListFromProperties(element.properties, 0, 0, false, -1);
+    setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
+    setNumItems(unsortedItems.length);
+  }
+
   const handleShowChildrenClick = async (buttonName: string, children: number[]) => {
     if (shownChildren.includes(children[0])) {
-      // If the first child is in shownChildren, remove all children
+      // If the first child is in shownChildren, this means it is collapsing,
+      // so remove all children passed in and change the button icon
       setShownChildren((prevShownChildren) =>
         prevShownChildren.filter((child) => !children.includes(child))
       );
       setOpenedButtons(openedButtons.filter(button => button !== buttonName));
     } else {
-      // Otherwise, add all children
+      // Otherwise, it is expanding, so add all children, and change button icon
       setShownChildren((prevShownChildren) => [
         ...prevShownChildren,
         ...children,
@@ -185,6 +188,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     }
   };
 
+  // ads removes filters before carrying out any of the toolbar actions
   const handleSort = async (sortOption: ep.SortOption) => {
     const currentItems = resetFiltering();
     setItems(recursiveSort(currentItems, currentItems.filter(item => !item.isChild), sortOption));
@@ -202,12 +206,9 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     setShownChildren([]);
 	};
 
-  const handleInputChange = async (currentInputValue: string) => {
-    setInputValue(currentInputValue);
-    handleFilter(currentInputValue);
-	};
-
   const handleFilter = async (searchValue: string) => {
+    // on starting filtering, save the current items so that when filtering stops
+    // we can reset the items
     let firstFilter = false;
     if (items.length === numItems) {
       setUnfilteredItems(items);
@@ -249,6 +250,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         columnId: "name",
         renderHeaderCell: () => NAME,
         renderCell: (item) =>
+        // Add tabbing based on the "level" of the item in the table,
+        // and add expand button based on whether the item has children
         <TableCellLayout truncate className={classes.textContainer}>
             {`\u200b\t`.repeat(item.level * 6)}
             {item.children.length > 0 && (
@@ -368,14 +371,10 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <img
             src={utils.filterIcon(executionPlanState!.theme!)}
             alt={FILTER_ANY_FIELD}
-            style={{
-              width: "20px",
-              height: "20px",
-              overflow: "visible"
-            }}
+            style={{ width: "20px", height: "20px" }}
             />
           }
-          onChange={(e) => {handleInputChange(e.target.value);}}
+          onChange={(e) => {setInputValue(e.target.value);handleFilter(e.target.value)}}
         />
         </div>
       </Toolbar>
@@ -412,13 +411,13 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   );
 };
 
-function mapPropertiesToItems(properties: ep.ExecutionPlanGraphElementProperty[], currentLength: number, level: number, isChild: boolean, parent: number):  ep.ExecutionPlanPropertyTableItem[] {
+function buildItemListFromProperties(properties: ep.ExecutionPlanGraphElementProperty[], currentLength: number, level: number, isChild: boolean, parent: number):  ep.ExecutionPlanPropertyTableItem[] {
 	let items: ep.ExecutionPlanPropertyTableItem[] = [];
 	for (const property of properties) {
 		let children: number[] = [];
 		let childrenItems: ep.ExecutionPlanPropertyTableItem[] = [];
 		if (typeof property.value !== 'string') {
-			childrenItems = mapPropertiesToItems(property.value, currentLength+1, level+1, true, currentLength);
+			childrenItems = buildItemListFromProperties(property.value, currentLength+1, level+1, true, currentLength);
 
 			children = childrenItems
 				.map((item, index) => {
