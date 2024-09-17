@@ -472,7 +472,6 @@ export default class MainController implements vscode.Disposable {
 		// Add Object Explorer Node
 		this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
 		this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-			console.log(args);
 			if (!this.isExperimentalEnabled) {
 				if (!self._objectExplorerProvider.objectExplorerExists) {
 					self._objectExplorerProvider.objectExplorerExists = true;
