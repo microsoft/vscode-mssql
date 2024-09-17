@@ -22,19 +22,14 @@ import {
   ToolbarButton,
   Input,
 } from "@fluentui/react-components";
-import { ChevronDown20Regular, ChevronRight20Regular } from '@fluentui/react-icons';
+import { ChevronDown20Regular, ChevronRight20Regular, Dismiss12Regular } from '@fluentui/react-icons';
 import * as ep from "./executionPlanInterfaces";
 import "./executionPlan.css";
 
 const useStyles = makeStyles({
   paneContainer: {
-    position: "absolute",
-    top: 0,
-    right: "35px",
-    opacity: 1,
     height: "100%",
-    width: "500px",
-	overflow: "auto"
+	  overflowY: "scroll"
   },
   chevronButton: {
     padding: 0,
@@ -57,7 +52,10 @@ const useStyles = makeStyles({
     fontSize: "12px",
     width: "100%",
     padding: "4px",
-    opacity: 1
+    opacity: 1,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
   nameContainer: {
     fontWeight: "bold",
@@ -85,23 +83,33 @@ const useStyles = makeStyles({
 	inputbox: {
 		minWidth: "50px",
 		width: "100px",
-		maxWidth: "100px",
+		maxWidth: "300px",
 		overflow: "hidden",
-    right: 0
+    right: 0,
+    fontSize: "12px"
 	},
   toolbar: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center"
   },
+  dismissButton: {
+    width: "12px",
+    height:"12px",
+    border: 'none',
+    outline: 'none',
+    marginRight: "4px"
+  }
 });
 
 interface PropertiesPaneProps {
   executionPlanView: any;
+  setPropertiesClicked: any;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   executionPlanView,
+  setPropertiesClicked
 }) => {
   const classes = useStyles();
   const state = useContext(ExecutionPlanContext);
@@ -178,9 +186,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       let filteredItems = currentItems.filter(item =>
         item.name.includes(searchValue) || item.value.includes(searchValue)
       );
-      const temp = buildFilteredItemsFromChildList(filteredItems, currentItems);
-      console.log(temp);
-      setItems(temp);
+
+      setItems(buildFilteredItemsFromChildList(filteredItems, currentItems));
       setIsFiltered(true);
     }
     // filtering is removed
@@ -208,7 +215,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         renderHeaderCell: () => "Name",
         renderCell: (item) =>
         <TableCellLayout>
-          <div style={{textOverflow: "ellipsis", whiteSpace: "nowrap"}}>
+          <div style={{textOverflow: "ellipsis", whiteSpace: "nowrap", overflow:"hidden"}}>
+            {`\u200b\t`.repeat(item.level * 6)}
             {item.children.length > 0 && (
               <Button
                 size="small"
@@ -238,7 +246,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       }}
     >
 	    <div className={classes.propertiesHeader} style={{background:utils.background(executionPlanState!.theme!)}}>
-        Properties
+        <div>Properties</div>
+        <div><Button className={classes.dismissButton} style={{background:utils.background(executionPlanState!.theme!)}} onClick={() => setPropertiesClicked(false)} icon={<Dismiss12Regular />} /></div>
       </div>
       <div className={classes.nameContainer} style={{background:utils.tableBackground(executionPlanState!.theme!)}}>
         {element.name}
@@ -321,13 +330,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
           type="text"
           className={classes.inputbox}
           value={inputValue}
+          placeholder="Filter for any field..."
           contentBefore={
             <img
             src={utils.filterIcon(executionPlanState!.theme!)}
             alt={"Filter"}
             style={{
-              width: "24px",
-              height: "100%",
+              width: "20px",
+              height: "20px",
               overflow: "visible"
             }}
             />
