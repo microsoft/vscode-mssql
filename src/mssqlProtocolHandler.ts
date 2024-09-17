@@ -34,15 +34,19 @@ export class MssqlProtocolHandler {
 		}
 	}
 
-	private connect(uri: vscode.Uri): IConnectionInfo {
+	private connect(uri: vscode.Uri): IConnectionInfo | undefined {
 		return this.readProfileFromArgs(uri.query);
 	}
 
-	private readProfileFromArgs(query: string): IConnectionInfo {
+	private readProfileFromArgs(query: string): IConnectionInfo | undefined {
+		if (!query) {
+			return undefined;
+		}
+
 		const args = new URLSearchParams(query);
-		const server = args.get('server');
-		const database = args.get('database');
-		const user = args.get('user');
+		const server = args.get('server') ?? '';
+		const database = args.get('database') ?? '';
+		const user = args.get('user') ?? '';
 		/*
 			Authentication Type:
 			1. Take --authenticationType, if not
