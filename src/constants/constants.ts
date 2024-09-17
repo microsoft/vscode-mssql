@@ -46,19 +46,19 @@ export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdRemoveObjectExplorerNode = "mssql.removeObjectExplorerNode";
 export const cmdRefreshObjectExplorerNode = "mssql.refreshObjectExplorerNode";
 export const cmdDisconnectObjectExplorerNode =
-  "mssql.disconnectObjectExplorerNode";
+    "mssql.disconnectObjectExplorerNode";
 export const cmdObjectExplorerNodeSignIn = "mssql.objectExplorerNodeSignIn";
 export const cmdConnectObjectExplorerNode = "mssql.connectObjectExplorerNode";
 export const cmdConnectObjectExplorerProfile =
-  "mssql.connectObjectExplorerProfile";
+    "mssql.connectObjectExplorerProfile";
 export const cmdOpenObjectExplorerCommand =
-  "workbench.view.extension.objectExplorer";
+    "workbench.view.extension.objectExplorer";
 export const cmdObjectExplorerGroupBySchemaFlagName =
-  "mssql.objectExplorer.groupBySchema";
+    "mssql.objectExplorer.groupBySchema";
 export const cmdObjectExplorerEnableGroupBySchemaCommand =
-  "mssql.objectExplorer.enableGroupBySchema";
+    "mssql.objectExplorer.enableGroupBySchema";
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
-  "mssql.objectExplorer.disableGroupBySchema";
+    "mssql.objectExplorer.disableGroupBySchema";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
@@ -68,7 +68,7 @@ export const cmdToggleSqlCmd = "mssql.toggleSqlCmd";
 export const cmdCopyObjectName = "mssql.copyObjectName";
 export const cmdFilterNode = "mssql.filterNode";
 export const cmdFilterNodeWithExistingFilters =
-  "mssql.filterNodeWithExistingFilters";
+    "mssql.filterNodeWithExistingFilters";
 export const cmdClearFilters = "mssql.clearFilters";
 export const cmdOpenExtension = "extension.open";
 export const cmdLoadCompletionExtension = "mssql.loadCompletionExtension";
@@ -84,7 +84,7 @@ export const cmdEditConnection = "mssql.editConnection";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider =
-  "mssql.enableSqlAuthenticationProvider";
+    "mssql.enableSqlAuthenticationProvider";
 export const enableConnectionPooling = "mssql.enableConnectionPooling";
 export const sqlDbPrefix = ".database.windows.net";
 export const defaultConnectionTimeout = 15;
@@ -121,20 +121,20 @@ export const untitledSaveTimeThreshold = 10.0;
 export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink =
-  "https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration";
+    "https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration";
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink =
-  "https://aka.ms/vscode-mssql-integratedauth";
+    "https://aka.ms/vscode-mssql-integratedauth";
 export const sqlToolsServiceCrashLink =
-  "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
+    "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const databaseString = "Database";
 export const localizedTexts = "localizedTexts";
 export const sqlPlanLanguageId = "sqlplan";
 export const ipAddressRegex =
-  /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+    /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 /**
  * Azure Firewall rule name convention is specified here:
  * https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.Firewall.Name/
@@ -148,7 +148,7 @@ export const ipAddressRegex =
 export const ruleNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$/;
 export const configAzureAccount = "azureAccount";
 export const azureAccountProviderCredentials =
-  "azureAccountProviderCredentials";
+    "azureAccountProviderCredentials";
 export const msalCacheFileName = "accessTokenCache";
 
 // Configuration Constants
@@ -164,10 +164,10 @@ export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
 export const extConfigResultKeys = [
-  "shortcuts",
-  "messagesDefaultOpen",
-  "resultsFontSize",
-  "resultsFontFamily",
+    "shortcuts",
+    "messagesDefaultOpen",
+    "resultsFontSize",
+    "resultsFontFamily",
 ];
 export const sqlToolsServiceInstallDirConfigKey = "installDir";
 export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
@@ -180,7 +180,7 @@ export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures =
-  "mssql.enableExperimentalFeatures";
+    "mssql.enableExperimentalFeatures";
 export const configEnableNewQueryResultFeature = "enableNewQueryResultFeature";
 
 // ToolsService Constants
@@ -190,14 +190,14 @@ export const serviceDownloading = "Downloading";
 export const serviceInstalled = "Sql Tools Service installed";
 export const serviceInstallationFailed = "Failed to install Sql Tools Service";
 export const sqlToolsServiceCrashMessage =
-  "SQL Tools Service component could not start.";
+    "SQL Tools Service component could not start.";
 export const sqlToolsServiceCrashButton = "View Known Issues";
 export const serviceInitializingOutputChannelName =
-  "SqlToolsService Initialization";
+    "SqlToolsService Initialization";
 export const serviceInitializing =
-  "Initializing SQL tools service for the mssql extension.";
+    "Initializing SQL tools service for the mssql extension.";
 export const commandsNotAvailableWhileInstallingTheService =
-  "Note: mssql commands will be available after installing the service.";
+    "Note: mssql commands will be available after installing the service.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
@@ -212,7 +212,7 @@ export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 
 export enum Platform {
-  Windows = "win32",
-  Mac = "darwin",
-  Linux = "linux",
+    Windows = "win32",
+    Mac = "darwin",
+    Linux = "linux",
 }

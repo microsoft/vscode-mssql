@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import AdsTelemetryReporter, {
-  TelemetryEventMeasures,
-  TelemetryEventProperties,
+    TelemetryEventMeasures,
+    TelemetryEventProperties,
 } from "@microsoft/ads-extension-telemetry";
 import * as vscodeMssql from "vscode-mssql";
 import { IConnectionProfile } from "../models/interfaces";
@@ -13,18 +13,18 @@ import * as vscode from "vscode";
 import { TelemetryActions, TelemetryViews } from "./telemetryInterfaces";
 
 const packageJson = vscode.extensions.getExtension(
-  vscodeMssql.extension.name,
+    vscodeMssql.extension.name,
 ).packageJSON;
 
 let packageInfo = {
-  name: "vscode-mssql", // Differentiate this from the mssql extension in ADS
-  version: packageJson.version,
-  aiKey: packageJson.aiKey,
+    name: "vscode-mssql", // Differentiate this from the mssql extension in ADS
+    version: packageJson.version,
+    aiKey: packageJson.aiKey,
 };
 
 const telemetryReporter = new AdsTelemetryReporter<
-  TelemetryViews | string,
-  TelemetryActions | string
+    TelemetryViews | string,
+    TelemetryActions | string
 >(packageInfo.name, packageInfo.version, packageInfo.aiKey);
 
 /**
@@ -37,27 +37,27 @@ const telemetryReporter = new AdsTelemetryReporter<
  * @param serverInfo serverInfo for the event
  */
 export function sendActionEvent(
-  telemetryView: TelemetryViews,
-  telemetryAction: TelemetryActions,
-  additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-  additionalMeasurements:
-    | TelemetryEventMeasures
-    | { [key: string]: number } = {},
-  connectionInfo?: IConnectionProfile,
-  serverInfo?: vscodeMssql.IServerInfo,
+    telemetryView: TelemetryViews,
+    telemetryAction: TelemetryActions,
+    additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
+    additionalMeasurements:
+        | TelemetryEventMeasures
+        | { [key: string]: number } = {},
+    connectionInfo?: IConnectionProfile,
+    serverInfo?: vscodeMssql.IServerInfo,
 ): void {
-  let actionEvent = telemetryReporter
-    .createActionEvent(telemetryView, telemetryAction)
-    .withAdditionalProperties(additionalProps)
-    .withAdditionalMeasurements(additionalMeasurements);
+    let actionEvent = telemetryReporter
+        .createActionEvent(telemetryView, telemetryAction)
+        .withAdditionalProperties(additionalProps)
+        .withAdditionalMeasurements(additionalMeasurements);
 
-  if (connectionInfo) {
-    actionEvent = actionEvent.withConnectionInfo(connectionInfo);
-  }
-  if (serverInfo) {
-    actionEvent = actionEvent.withServerInfo(serverInfo);
-  }
-  actionEvent.send();
+    if (connectionInfo) {
+        actionEvent = actionEvent.withConnectionInfo(connectionInfo);
+    }
+    if (serverInfo) {
+        actionEvent = actionEvent.withServerInfo(serverInfo);
+    }
+    actionEvent.send();
 }
 
 /**
@@ -74,36 +74,36 @@ export function sendActionEvent(
  * @param serverInfo serverInfo for the error
  */
 export function sendErrorEvent(
-  telemetryView: TelemetryViews,
-  telemetryAction: TelemetryActions,
-  error: Error,
-  includeErrorMessage: boolean = false,
-  errorCode?: string,
-  errorType?: string,
-  additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-  additionalMeasurements:
-    | TelemetryEventMeasures
-    | { [key: string]: number } = {},
-  connectionInfo?: IConnectionProfile,
-  serverInfo?: vscodeMssql.IServerInfo,
+    telemetryView: TelemetryViews,
+    telemetryAction: TelemetryActions,
+    error: Error,
+    includeErrorMessage: boolean = false,
+    errorCode?: string,
+    errorType?: string,
+    additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
+    additionalMeasurements:
+        | TelemetryEventMeasures
+        | { [key: string]: number } = {},
+    connectionInfo?: IConnectionProfile,
+    serverInfo?: vscodeMssql.IServerInfo,
 ): void {
-  let errorEvent = telemetryReporter
-    .createErrorEvent2(
-      telemetryView,
-      telemetryAction,
-      error,
-      includeErrorMessage,
-      errorCode,
-      errorType,
-    )
-    .withAdditionalProperties(additionalProps)
-    .withAdditionalMeasurements(additionalMeasurements);
+    let errorEvent = telemetryReporter
+        .createErrorEvent2(
+            telemetryView,
+            telemetryAction,
+            error,
+            includeErrorMessage,
+            errorCode,
+            errorType,
+        )
+        .withAdditionalProperties(additionalProps)
+        .withAdditionalMeasurements(additionalMeasurements);
 
-  if (connectionInfo) {
-    errorEvent = errorEvent.withConnectionInfo(connectionInfo);
-  }
-  if (serverInfo) {
-    errorEvent = errorEvent.withServerInfo(serverInfo);
-  }
-  errorEvent.send();
+    if (connectionInfo) {
+        errorEvent = errorEvent.withConnectionInfo(connectionInfo);
+    }
+    if (serverInfo) {
+        errorEvent = errorEvent.withServerInfo(serverInfo);
+    }
+    errorEvent.send();
 }

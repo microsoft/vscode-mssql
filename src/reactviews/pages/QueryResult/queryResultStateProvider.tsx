@@ -8,40 +8,44 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 export interface QueryResultState {
-  provider: qr.QueryResultReactProvider;
-  state: qr.QueryResultWebviewState;
+    provider: qr.QueryResultReactProvider;
+    state: qr.QueryResultWebviewState;
 }
 
 const QueryResultContext = createContext<QueryResultState | undefined>(
-  undefined,
+    undefined,
 );
 
 interface QueryResultContextProps {
-  children: ReactNode;
+    children: ReactNode;
 }
 
 const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
-  children,
+    children,
 }) => {
-  const webViewState = useVscodeWebview<
-    qr.QueryResultWebviewState,
-    qr.QueryResultReducers
-  >();
-  // const queryResultState = webViewState?.state as qr.QueryResultWebviewState;
-  return (
-    <QueryResultContext.Provider
-      value={{
-        provider: {
-          setResultTab: function (tabId: qr.QueryResultPaneTabs): void {
-            webViewState?.extensionRpc.action("setResultTab", { tabId: tabId });
-          },
-        },
-        state: webViewState?.state as qr.QueryResultWebviewState,
-      }}
-    >
-      {children}
-    </QueryResultContext.Provider>
-  );
+    const webViewState = useVscodeWebview<
+        qr.QueryResultWebviewState,
+        qr.QueryResultReducers
+    >();
+    // const queryResultState = webViewState?.state as qr.QueryResultWebviewState;
+    return (
+        <QueryResultContext.Provider
+            value={{
+                provider: {
+                    setResultTab: function (
+                        tabId: qr.QueryResultPaneTabs,
+                    ): void {
+                        webViewState?.extensionRpc.action("setResultTab", {
+                            tabId: tabId,
+                        });
+                    },
+                },
+                state: webViewState?.state as qr.QueryResultWebviewState,
+            }}
+        >
+            {children}
+        </QueryResultContext.Provider>
+    );
 };
 
 export { QueryResultContext, QueryResultStateProvider };

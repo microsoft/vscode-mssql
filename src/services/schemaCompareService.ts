@@ -8,13 +8,13 @@ import * as schemaCompareContracts from "../models/contracts/schemaCompare/schem
 import * as mssql from "vscode-mssql";
 
 export class SchemaCompareService implements mssql.ISchemaCompareService {
-  constructor(private _client: SqlToolsServiceClient) {}
+    constructor(private _client: SqlToolsServiceClient) {}
 
-  public schemaCompareGetDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
-    const params: mssql.SchemaCompareGetOptionsParams = {};
-    return this._client.sendRequest(
-      schemaCompareContracts.SchemaCompareGetDefaultOptionsRequest.type,
-      params,
-    );
-  }
+    public schemaCompareGetDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
+        const params: mssql.SchemaCompareGetOptionsParams = {};
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareGetDefaultOptionsRequest.type,
+            params,
+        );
+    }
 }

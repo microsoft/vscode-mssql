@@ -10,9 +10,9 @@ import { QueryResultStateProvider } from "./queryResultStateProvider";
 import { QueryResult } from "./queryResultPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <VscodeWebviewProvider>
-    <QueryResultStateProvider>
-      <QueryResult />
-    </QueryResultStateProvider>
-  </VscodeWebviewProvider>,
+    <VscodeWebviewProvider>
+        <QueryResultStateProvider>
+            <QueryResult />
+        </QueryResultStateProvider>
+    </VscodeWebviewProvider>,
 );

@@ -10,18 +10,18 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
-  constructor() {
-    super(
-      LocalizedConstants.msgAddConnection,
-      vscode.TreeItemCollapsibleState.None,
-    );
-    this.command = {
-      title: LocalizedConstants.msgAddConnection,
-      command: Constants.cmdAddObjectExplorer,
-    };
-    this.iconPath = {
-      light: path.join(ObjectExplorerUtils.rootPath, "add_light.svg"),
-      dark: path.join(ObjectExplorerUtils.rootPath, "add_dark.svg"),
-    };
-  }
+    constructor() {
+        super(
+            LocalizedConstants.msgAddConnection,
+            vscode.TreeItemCollapsibleState.None,
+        );
+        this.command = {
+            title: LocalizedConstants.msgAddConnection,
+            command: Constants.cmdAddObjectExplorer,
+        };
+        this.iconPath = {
+            light: path.join(ObjectExplorerUtils.rootPath, "add_light.svg"),
+            dark: path.join(ObjectExplorerUtils.rootPath, "add_dark.svg"),
+        };
+    }
 }

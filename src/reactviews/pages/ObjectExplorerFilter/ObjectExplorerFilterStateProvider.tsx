@@ -6,48 +6,48 @@
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
-  ObjectExplorerFilterContextProps,
-  ObjectExplorerFilterState,
-  ObjectExplorerReducers,
+    ObjectExplorerFilterContextProps,
+    ObjectExplorerFilterState,
+    ObjectExplorerReducers,
 } from "../../../sharedInterfaces/objectExplorerFilter";
 
 const ObjectExplorerFilterContext = createContext<
-  ObjectExplorerFilterContextProps | undefined
+    ObjectExplorerFilterContextProps | undefined
 >(undefined);
 
 interface ObjectExplorerFilterStateProviderProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 const ObjectExplorerFilterStateProvider: React.FC<
-  ObjectExplorerFilterStateProviderProps
+    ObjectExplorerFilterStateProviderProps
 > = ({ children }) => {
-  const webviewState = useVscodeWebview<
-    ObjectExplorerFilterState,
-    ObjectExplorerReducers
-  >();
-  const objectExplorerFilterState = webviewState?.state;
+    const webviewState = useVscodeWebview<
+        ObjectExplorerFilterState,
+        ObjectExplorerReducers
+    >();
+    const objectExplorerFilterState = webviewState?.state;
 
-  return (
-    <ObjectExplorerFilterContext.Provider
-      value={{
-        isLocalizationLoaded: webviewState?.localization,
-        state: objectExplorerFilterState,
-        theme: webviewState?.theme,
-        submit: function (filters): void {
-          webviewState?.extensionRpc.action("submit", {
-            filters: filters,
-          });
-        },
-        clearAllFilters: function (): void {},
-        cancel: function (): void {
-          webviewState?.extensionRpc.action("cancel", {});
-        },
-      }}
-    >
-      {children}
-    </ObjectExplorerFilterContext.Provider>
-  );
+    return (
+        <ObjectExplorerFilterContext.Provider
+            value={{
+                isLocalizationLoaded: webviewState?.localization,
+                state: objectExplorerFilterState,
+                theme: webviewState?.theme,
+                submit: function (filters): void {
+                    webviewState?.extensionRpc.action("submit", {
+                        filters: filters,
+                    });
+                },
+                clearAllFilters: function (): void {},
+                cancel: function (): void {
+                    webviewState?.extensionRpc.action("cancel", {});
+                },
+            }}
+        >
+            {children}
+        </ObjectExplorerFilterContext.Provider>
+    );
 };
 
 export { ObjectExplorerFilterContext, ObjectExplorerFilterStateProvider };

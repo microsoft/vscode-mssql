@@ -5,27 +5,27 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
-  GetExecutionPlanRequest,
-  GetExecutionPlanParams,
+    GetExecutionPlanRequest,
+    GetExecutionPlanParams,
 } from "../models/contracts/executionPlan";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
 export class ExecutionPlanService implements ep.ExecutionPlanService {
-  constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
-  async getExecutionPlan(
-    planFile: ep.ExecutionPlanGraphInfo,
-  ): Promise<ep.GetExecutionPlanResult> {
-    try {
-      let params: GetExecutionPlanParams = {
-        graphInfo: planFile,
-      };
-      return await this._sqlToolsClient.sendRequest(
-        GetExecutionPlanRequest.type,
-        params,
-      );
-    } catch (e) {
-      this._sqlToolsClient.logger.error(e);
-      throw e;
+    constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
+    async getExecutionPlan(
+        planFile: ep.ExecutionPlanGraphInfo,
+    ): Promise<ep.GetExecutionPlanResult> {
+        try {
+            let params: GetExecutionPlanParams = {
+                graphInfo: planFile,
+            };
+            return await this._sqlToolsClient.sendRequest(
+                GetExecutionPlanRequest.type,
+                params,
+            );
+        } catch (e) {
+            this._sqlToolsClient.logger.error(e);
+            throw e;
+        }
     }
-  }
 }
