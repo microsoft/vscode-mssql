@@ -99,6 +99,11 @@ const useStyles = makeStyles({
     border: 'none',
     outline: 'none',
     marginRight: "4px"
+  },
+  textContainer: {
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    overflow:"hidden",
   }
 });
 
@@ -117,28 +122,47 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   const [shownChildren, setShownChildren] = useState<number[]>([]);
   const [openedButtons, setOpenedButtons] = useState<string[]>([]);
   const [name, setName] = useState<string>("");
+  const [id, setId] = useState<string>("");
   const [items, setItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
   const [isFiltered, setIsFiltered] = useState<boolean>(false);
   const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
   const [numItems, setNumItems] = useState<number>(0);
+  const [columnWidths, setColumnWidths] = useState(
+    {
+      "name": 150,
+      "value": 200
+    });
   const [inputValue, setInputValue] = useState<string>("");
+
+  // set initial items
+  useEffect(() => {
+    if (!items.length && !isFiltered) {
+      const element: ep.ExecutionPlanNode = executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
+      setId(element.id);
+      setName(element.name);
+
+      const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
+      setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
+      setNumItems(unsortedItems.length);
+    }
+	}, [items, isFiltered]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      const element = executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
+      const element: ep.ExecutionPlanNode = executionPlanView.getSelectedElement() ?? executionPlanView.getRoot();
 
       // Check if the element's name has changed
-      if (element.name !== name) {
+      if (element.id !== id) {
         setName(element.name);
+        setId(element.id);
 
         // Process the properties and update state accordingly
         const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
         setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
         setNumItems(unsortedItems.length);
       }
-    }, 1000); // Poll every second
+    }, 1000);
 
-    // Clean up the interval on unmount
     return () => clearInterval(intervalId);
   });
 
@@ -205,6 +229,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     }
 	};
 
+  const handleColumnResize = async (columnId: string, width: number) =>{
+    setColumnWidths(prevWidths => ({
+      ...prevWidths,
+      [columnId]: width,
+    }));
+    setItems(items);
+  }
+
   function resetFiltering(): ep.ExecutionPlanPropertyTableItem[] {
     // react updates state asynchronously, so if the state of unfiltered
     // items hasn't been updated yet, ie. sorting while actively filtering,
@@ -224,7 +256,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         renderHeaderCell: () => "Name",
         renderCell: (item) =>
         <TableCellLayout>
-          <div style={{textOverflow: "ellipsis", whiteSpace: "nowrap", overflow:"hidden"}}>
+          <div className={classes.textContainer} style={{width: `${columnWidths["name"]}px`}}>
             {`\u200b\t`.repeat(item.level * 6)}
             {item.children.length > 0 && (
               <Button
@@ -241,7 +273,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       createTableColumn<ep.ExecutionPlanPropertyTableItem>({
         columnId: "value",
         renderHeaderCell: () => "Value",
-        renderCell: (item) => <TableCellLayout><div className="text" style={{textOverflow: "ellipsis"}}>{item.value}</div></TableCellLayout>,
+        renderCell: (item) => <TableCellLayout><div className={classes.textContainer} style={{width: `${columnWidths["value"]}px`}}>{item.value}</div></TableCellLayout>,
       }),
   ];
 
@@ -359,8 +391,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         items={items}
         columns={columns}
         focusMode="composite"
-        style={{ minWidth: "250px"}}
 		    resizableColumns={true}
+        onColumnResize={(_, data) => handleColumnResize(data.columnId.toString(), data.width)}
       >
         <DataGridHeader className={classes.tableHeader} style={{ background: utils.tableBackground(executionPlanState!.theme!) }}>
           <DataGridRow className={classes.tableRow}>
