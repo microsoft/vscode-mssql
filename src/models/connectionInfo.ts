@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
-import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/locConstants';
-import { EncryptOptions } from '../models/interfaces';
-import * as Interfaces from './interfaces';
-import * as Utils from './utils';
+import { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
+import { EncryptOptions } from "../models/interfaces";
+import * as Interfaces from "./interfaces";
+import * as Utils from "./utils";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -18,71 +18,76 @@ import * as Utils from './utils';
  * @param connCreds connection to be fixed up
  * @returns the updated connection
  */
-export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnectionInfo {
-	if (!connCreds.server) {
-		connCreds.server = '';
-	}
+export function fixupConnectionCredentials(
+    connCreds: IConnectionInfo,
+): IConnectionInfo {
+    if (!connCreds.server) {
+        connCreds.server = "";
+    }
 
-	if (!connCreds.database) {
-		connCreds.database = '';
-	}
+    if (!connCreds.database) {
+        connCreds.database = "";
+    }
 
-	if (!connCreds.user) {
-		connCreds.user = '';
-	}
+    if (!connCreds.user) {
+        connCreds.user = "";
+    }
 
-	if (!connCreds.password) {
-		connCreds.password = '';
-	}
+    if (!connCreds.password) {
+        connCreds.password = "";
+    }
 
-	if (!connCreds.connectTimeout) {
-		connCreds.connectTimeout = Constants.defaultConnectionTimeout;
-	}
+    if (!connCreds.connectTimeout) {
+        connCreds.connectTimeout = Constants.defaultConnectionTimeout;
+    }
 
-	if (!connCreds.commandTimeout) {
-		connCreds.commandTimeout = Constants.defaultCommandTimeout;
-	}
+    if (!connCreds.commandTimeout) {
+        connCreds.commandTimeout = Constants.defaultCommandTimeout;
+    }
 
-	// default value for encrypt
-	if (connCreds.encrypt === '' || connCreds.encrypt === true) {
-		connCreds.encrypt = EncryptOptions.Mandatory;
-	} else if (connCreds.encrypt === false) {
-		connCreds.encrypt = EncryptOptions.Optional;
-	}
+    // default value for encrypt
+    if (connCreds.encrypt === "" || connCreds.encrypt === true) {
+        connCreds.encrypt = EncryptOptions.Mandatory;
+    } else if (connCreds.encrypt === false) {
+        connCreds.encrypt = EncryptOptions.Optional;
+    }
 
-	// default value for appName
-	if (!connCreds.applicationName) {
-		connCreds.applicationName = Constants.connectionApplicationName;
-	}
+    // default value for appName
+    if (!connCreds.applicationName) {
+        connCreds.applicationName = Constants.connectionApplicationName;
+    }
 
-	if (isAzureDatabase(connCreds.server)) {
-		// always encrypt connection when connecting to Azure SQL
-		connCreds.encrypt = EncryptOptions.Mandatory;
+    if (isAzureDatabase(connCreds.server)) {
+        // always encrypt connection when connecting to Azure SQL
+        connCreds.encrypt = EncryptOptions.Mandatory;
 
-		// Ensure minumum connection timeout when connecting to Azure SQL
-		if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
-			connCreds.connectTimeout = Constants.azureSqlDbConnectionTimeout;
-		}
-	}
-	return connCreds;
+        // Ensure minumum connection timeout when connecting to Azure SQL
+        if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
+            connCreds.connectTimeout = Constants.azureSqlDbConnectionTimeout;
+        }
+    }
+    return connCreds;
 }
 
-export function updateEncrypt(connection: IConnectionInfo): { connection: IConnectionInfo, updateStatus: boolean } {
-	let updatePerformed = true;
-	let resultConnection = Object.assign({}, connection);
-	if (connection.encrypt === true) {
-		resultConnection.encrypt = EncryptOptions.Mandatory;
-	} else if (connection.encrypt === false) {
-		resultConnection.encrypt = EncryptOptions.Optional;
-	} else {
-		updatePerformed = false;
-	}
-	return { connection: resultConnection, updateStatus: updatePerformed };
+export function updateEncrypt(connection: IConnectionInfo): {
+    connection: IConnectionInfo;
+    updateStatus: boolean;
+} {
+    let updatePerformed = true;
+    let resultConnection = Object.assign({}, connection);
+    if (connection.encrypt === true) {
+        resultConnection.encrypt = EncryptOptions.Mandatory;
+    } else if (connection.encrypt === false) {
+        resultConnection.encrypt = EncryptOptions.Optional;
+    } else {
+        updatePerformed = false;
+    }
+    return { connection: resultConnection, updateStatus: updatePerformed };
 }
 
 // return true if server name ends with '.database.windows.net'
 function isAzureDatabase(server: string): boolean {
-	return (server ? server.endsWith(Constants.sqlDbPrefix) : false);
+    return server ? server.endsWith(Constants.sqlDbPrefix) : false;
 }
 
 /**
@@ -93,14 +98,19 @@ function isAzureDatabase(server: string): boolean {
  * @param itemType type of quickpick item to display - this influences the icon shown to the user
  * @returns user readable label
  */
-export function getPicklistLabel(connCreds: IConnectionInfo, itemType: Interfaces.CredentialsQuickPickItemType): string {
-	let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile>connCreds;
+export function getPicklistLabel(
+    connCreds: IConnectionInfo,
+    itemType: Interfaces.CredentialsQuickPickItemType,
+): string {
+    let profile: Interfaces.IConnectionProfile = <
+        Interfaces.IConnectionProfile
+    >connCreds;
 
-	if (profile.profileName) {
-		return profile.profileName;
-	} else {
-		return connCreds.server ? connCreds.server : connCreds.connectionString;
-	}
+    if (profile.profileName) {
+        return profile.profileName;
+    } else {
+        return connCreds.server ? connCreds.server : connCreds.connectionString;
+    }
 }
 
 /**
@@ -111,8 +121,8 @@ export function getPicklistLabel(connCreds: IConnectionInfo, itemType: Interface
  * @returns description
  */
 export function getPicklistDescription(connCreds: IConnectionInfo): string {
-	let desc: string = `[${getConnectionDisplayString(connCreds)}]`;
-	return desc;
+    let desc = `[${getConnectionDisplayString(connCreds)}]`;
+    return desc;
 }
 
 /**
@@ -123,8 +133,8 @@ export function getPicklistDescription(connCreds: IConnectionInfo): string {
  * @returns details
  */
 export function getPicklistDetails(connCreds: IConnectionInfo): string {
-	// In the current spec this is left empty intentionally. Leaving the method as this may change in the future
-	return undefined;
+    // In the current spec this is left empty intentionally. Leaving the method as this may change in the future
+    return undefined;
 }
 
 /**
@@ -136,30 +146,30 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @returns display string that can be used in status view or other locations
  */
 export function getConnectionDisplayString(creds: IConnectionInfo): string {
-	// Update the connection text
-	let text: string = creds.server;
-	if (creds.database !== '') {
-		text = appendIfNotEmpty(text, creds.database);
-	} else {
-		text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
-	}
-	let user: string = getUserNameOrDomainLogin(creds);
-	text = appendIfNotEmpty(text, user);
+    // Update the connection text
+    let text: string = creds.server;
+    if (creds.database !== "") {
+        text = appendIfNotEmpty(text, creds.database);
+    } else {
+        text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
+    }
+    let user: string = getUserNameOrDomainLogin(creds);
+    text = appendIfNotEmpty(text, user);
 
-	// Limit the maximum length of displayed text
-	if (text && text.length > Constants.maxDisplayedStatusTextLength) {
-		text = text.substr(0, Constants.maxDisplayedStatusTextLength);
-		text += ' \u2026'; // Ellipsis character (...)
-	}
+    // Limit the maximum length of displayed text
+    if (text && text.length > Constants.maxDisplayedStatusTextLength) {
+        text = text.substr(0, Constants.maxDisplayedStatusTextLength);
+        text += " \u2026"; // Ellipsis character (...)
+    }
 
-	return text;
+    return text;
 }
 
 function appendIfNotEmpty(connectionText: string, value: string): string {
-	if (Utils.isNotEmpty(value)) {
-		connectionText += ` : ${value}`;
-	}
-	return connectionText;
+    if (Utils.isNotEmpty(value)) {
+        connectionText += ` : ${value}`;
+    }
+    return connectionText;
 }
 
 /**
@@ -170,16 +180,26 @@ function appendIfNotEmpty(connectionText: string, value: string): string {
  * @param [defaultValue] optional default value to use if username is empty and this is not an Integrated auth profile
  * @returns
  */
-export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: string): string {
-	if (!defaultValue) {
-		defaultValue = '';
-	}
+export function getUserNameOrDomainLogin(
+    creds: IConnectionInfo,
+    defaultValue?: string,
+): string {
+    if (!defaultValue) {
+        defaultValue = "";
+    }
 
-	if (creds.authenticationType === Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]) {
-		return (process.platform === 'win32') ? process.env.USERDOMAIN + '\\' + process.env.USERNAME : '';
-	} else {
-		return creds.user ? creds.user : defaultValue;
-	}
+    if (
+        creds.authenticationType ===
+        Interfaces.AuthenticationTypes[
+            Interfaces.AuthenticationTypes.Integrated
+        ]
+    ) {
+        return process.platform === "win32"
+            ? process.env.USERDOMAIN + "\\" + process.env.USERNAME
+            : "";
+    } else {
+        return creds.user ? creds.user : defaultValue;
+    }
 }
 
 /**
@@ -189,58 +209,70 @@ export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: 
  * @param connCreds connection
  * @returns tooltip
  */
-export function getTooltip(connCreds: IConnectionInfo, serverInfo?: IServerInfo): string {
+export function getTooltip(
+    connCreds: IConnectionInfo,
+    serverInfo?: IServerInfo,
+): string {
+    let tooltip: string = connCreds.connectionString
+        ? "Connection string: " + connCreds.connectionString + "\r\n"
+        : "Server: " +
+          connCreds.server +
+          "\r\n" +
+          "Database: " +
+          (connCreds.database ? connCreds.database : "<connection default>") +
+          "\r\n" +
+          (connCreds.authenticationType !== Constants.integratedauth
+              ? "User: " + connCreds.user + "\r\n"
+              : "") +
+          "Encryption Mode: " +
+          getEncryptionMode(connCreds.encrypt) +
+          "\r\n";
 
-	let tooltip: string =
-		connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
-			('Server: ' + connCreds.server + '\r\n' +
-				'Database: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
-				(connCreds.authenticationType !== Constants.integratedauth ? ('User: ' + connCreds.user + '\r\n') : '') +
-				'Encryption Mode: ' + getEncryptionMode(connCreds.encrypt) + '\r\n');
+    if (serverInfo && serverInfo.serverVersion) {
+        tooltip += "Server version: " + serverInfo.serverVersion + "\r\n";
+    }
 
-	if (serverInfo && serverInfo.serverVersion) {
-		tooltip += 'Server version: ' + serverInfo.serverVersion + '\r\n';
-	}
-
-	return tooltip;
+    return tooltip;
 }
 
-export function getEncryptionMode(encryption: string | boolean | undefined): EncryptOptions {
-	let encryptionMode = EncryptOptions.Mandatory;
-	if (encryption !== undefined) {
-		let encrypt = encryption.toString().toLowerCase();
-		switch (encrypt) {
-			case 'true':
-			case EncryptOptions.Mandatory.toLowerCase():
-				encryptionMode = EncryptOptions.Mandatory;
-				break;
-			case 'false':
-			case EncryptOptions.Optional.toLowerCase():
-				encryptionMode = EncryptOptions.Optional;
-				break;
-			case EncryptOptions.Strict.toLowerCase():
-				encryptionMode = EncryptOptions.Strict;
-				break;
-			default:
-				break;
-		}
-	}
-	return encryptionMode;
+export function getEncryptionMode(
+    encryption: string | boolean | undefined,
+): EncryptOptions {
+    let encryptionMode = EncryptOptions.Mandatory;
+    if (encryption !== undefined) {
+        let encrypt = encryption.toString().toLowerCase();
+        switch (encrypt) {
+            case "true":
+            case EncryptOptions.Mandatory.toLowerCase():
+                encryptionMode = EncryptOptions.Mandatory;
+                break;
+            case "false":
+            case EncryptOptions.Optional.toLowerCase():
+                encryptionMode = EncryptOptions.Optional;
+                break;
+            case EncryptOptions.Strict.toLowerCase():
+                encryptionMode = EncryptOptions.Strict;
+                break;
+            default:
+                break;
+        }
+    }
+    return encryptionMode;
 }
 
 export function getConnectionDisplayName(credentials: IConnectionInfo): string {
-	let database = credentials.database;
-	const server = credentials.server;
-	const authType = credentials.authenticationType;
-	let userOrAuthType = authType;
-	if (authType === Constants.sqlAuthentication) {
-		userOrAuthType = credentials.user;
-	}
-	if (authType === Constants.azureMfa) {
-		userOrAuthType = credentials.email;
-	}
-	if (!database || database === '') {
-		database = LocalizedConstants.defaultDatabaseLabel;
-	}
-	return `${server}, ${database} (${userOrAuthType})`;
+    let database = credentials.database;
+    const server = credentials.server;
+    const authType = credentials.authenticationType;
+    let userOrAuthType = authType;
+    if (authType === Constants.sqlAuthentication) {
+        userOrAuthType = credentials.user;
+    }
+    if (authType === Constants.azureMfa) {
+        userOrAuthType = credentials.email;
+    }
+    if (!database || database === "") {
+        database = LocalizedConstants.defaultDatabaseLabel;
+    }
+    return `${server}, ${database} (${userOrAuthType})`;
 }
