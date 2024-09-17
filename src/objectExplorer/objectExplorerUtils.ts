@@ -7,7 +7,7 @@ import * as path from 'path';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionProfile } from '../models/interfaces';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import * as vscodeMssql from 'vscode-mssql';
 import { TreeNodeType } from './connectTreeNode';
 
@@ -23,9 +23,6 @@ export class ObjectExplorerUtils {
 			} else if (label === Constants.serverLabel) {
 				// if connected
 				label += '_green';
-			}
-			if(label === 'TablesFolder') {
-				label = 'Folder';
 			}
 			return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
 		}

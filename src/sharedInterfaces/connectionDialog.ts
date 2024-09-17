@@ -3,26 +3,65 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
+import { FormItemSpec, FormContextProps, FormEvent, FormState } from "../reactviews/common/forms/form";
 import { ApiStatus } from "./webview";
 
-export interface ConnectionDialogWebviewState {
-	selectedFormTab: FormTabType;
-	connectionFormComponents: {
-		mainComponents: FormComponent[];
-		advancedComponents: {[category: string]: FormComponent[]};
-	};
-	connectionStringComponents: FormComponent[];
-	recentConnections: IConnectionDialogProfile[];
-	connectionProfile: IConnectionDialogProfile;
-	connectionStatus: ApiStatus;
-	formError: string;
+export class ConnectionDialogWebviewState implements FormState<IConnectionDialogProfile> {
+    /** the underlying connection profile for the form target; same as `connectionProfile` */
+    formState: IConnectionDialogProfile;
+    /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
+    get connectionProfile(): IConnectionDialogProfile { return this.formState; }
+    set connectionProfile(value: IConnectionDialogProfile) { this.formState = value; }
+    public selectedInputMode: ConnectionInputMode;
+    public connectionComponents: {
+        components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
+        mainOptions: (keyof IConnectionDialogProfile)[],
+        topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+        groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>
+    };
+    public recentConnections: IConnectionDialogProfile[];
+    public connectionStatus: ApiStatus;
+    public formError: string;
+
+    constructor({
+        connectionProfile,
+        selectedInputMode,
+        connectionComponents,
+        recentConnections,
+        connectionStatus,
+        formError
+    }: {
+        connectionProfile: IConnectionDialogProfile,
+        selectedInputMode: ConnectionInputMode,
+        connectionComponents: {
+            components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
+            mainOptions: (keyof IConnectionDialogProfile)[],
+            topAdvancedOptions: (keyof IConnectionDialogProfile)[],
+            groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>;
+        },
+        recentConnections: IConnectionDialogProfile[],
+        connectionStatus: ApiStatus,
+        formError: string
+    }) {
+        this.formState = connectionProfile;
+        this.selectedInputMode = selectedInputMode;
+        this.connectionComponents = connectionComponents;
+        this.recentConnections = recentConnections;
+        this.connectionStatus = connectionStatus;
+        this.formError = formError;
+    }
 }
 
-export enum FormTabType {
-	Parameters = 'parameter',
-	ConnectionString = 'connString'
+export interface ConnectionDialogFormItemSpec extends FormItemSpec<IConnectionDialogProfile> {
+    isAdvancedOption: boolean;
+    optionCategory?: string;
+}
+
+export enum ConnectionInputMode {
+    Parameters = 'parameters',
+    ConnectionString = 'connectionString',
+    AzureBrowse = 'azureBrowse'
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional
@@ -32,125 +71,14 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 	savePassword?: boolean;
 	emptyPasswordInput?: boolean;
 	azureAuthType?: vscodeMssql.AzureAuthType;
+    /** display name for the MRU pane; should be set to the profileName if available, otherwise generated from connection details */
+    displayName?: string;
 }
 
-
-
-export interface FormContextProps<T> {
-	formAction: (event: FormEvent<T>) => void;
-}
-
-export interface ConnectionDialogContextProps extends FormContextProps<IConnectionDialogProfile> {
-	state: ConnectionDialogWebviewState;
-	theme: Theme;
+export interface ConnectionDialogContextProps extends FormContextProps<ConnectionDialogWebviewState, IConnectionDialogProfile> {
 	loadConnection: (connection: IConnectionDialogProfile) => void;
-	setFormTab: (tab: FormTabType) => void;
+	setConnectionInputType: (inputType: ConnectionInputMode) => void;
 	connect: () => void;
-}
-
-/**
- * Describes a field in a connection dialog form.
- */
-
-export interface FormComponent {
-	/**
-	 * The type of the form component
-	 */
-	type: FormComponentType;
-	/**
-	 * The property name of the form component
-	 */
-	propertyName: keyof IConnectionDialogProfile;
-	/**
-	 * The label of the form component
-	 */
-	label: string;
-	/**
-	 * Whether the form component is required
-	 */
-	required: boolean;
-	/**
-	 * The tooltip of the form component
-	 */
-	tooltip?: string;
-	/**
-	 * The options for the form component in case of a dropdown
-	 */
-	options?: FormComponentOptions[];
-	/**
-	 * Whether the form component is hidden
-	 */
-	hidden?: boolean;
-	/**
-	 *	Action buttons for the form component
-	 */
-	actionButtons?: FormComponentActionButton[];
-	/**
-	 * Placeholder text for the form component
-	 */
-	placeholder?: string;
-	/**
-	 * Validation callback for the form component
-	 */
-	validate?: (value: string | boolean | number) => FormComponentValidationState;
-	/**
-	 * Validation state and message for the form component
-	 */
-	validation?: FormComponentValidationState;
-}
-
-export interface FormComponentValidationState {
-	/**
-	 * The validation state of the form component
-	 */
-	isValid: boolean
-	/**
-	 * The validation message of the form component
-	 */
-	validationMessage: string;
-}
-
-export interface FormComponentActionButton {
-	label: string;
-	id: string;
-	hidden?: boolean;
-	callback: () => void;
-}
-
-export interface FormComponentOptions {
-	displayName: string;
-	value: string;
-}
-
-/**
- * Interface for a form event
- */
-export interface FormEvent<T> {
-	/**
-	 * The property name of the form component that triggered the event
-	 */
-	propertyName: keyof T;
-	/**
-	 * Whether the event was triggered by an action button for the component
-	 */
-	isAction: boolean;
-	/**
-	 * Contains the updated value of the form component that triggered the event.
-	 * In case of isAction being true, this will contain the id of the action button that was clicked
-	 */
-	value: string | boolean;
-}
-
-/**
- * Enum for the type of form component
- */
-export enum FormComponentType {
-	Input = 'input',
-	Dropdown = 'dropdown',
-	Checkbox = 'checkbox',
-	Password = 'password',
-	Button = 'button',
-	TextArea = 'textarea'
 }
 
 export enum AuthenticationType {
@@ -160,8 +88,8 @@ export enum AuthenticationType {
 }
 
 export interface ConnectionDialogReducers {
-	setFormTab: {
-		tab: FormTabType;
+	setConnectionInputType: {
+		inputMode: ConnectionInputMode;
 	},
 	formAction: {
 		event: FormEvent<IConnectionDialogProfile>;

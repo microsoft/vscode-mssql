@@ -59,10 +59,10 @@ export const ConnectionPage = () => {
 				maxConstraints={[800, Infinity]}
 				minConstraints={[300, Infinity]}
 				resizeHandles={['w']}
-				handle={<div className={classes.mruPaneHandle} />				}
+				handle={<div className={classes.mruPaneHandle} />}
 			>
 				<MruConnectionsContainer />
 			</ResizableBox>
 		</div>
 	);
-}
+};

@@ -13,6 +13,7 @@ import { DesignerPageRibbon } from "./designerPageRibbon";
 import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
 import { DesignerResultPane } from "./designerResultPane";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
 	root: {
@@ -101,20 +102,25 @@ export const TableDesigner = () => {
 	if (!tableDesignerState) {
 		return null;
 	}
+
+	const ERROR_LOADING_DESIGNER = l10n.t('Error loading designer');
+	const RETRY = l10n.t('Retry');
+	const LOADING_TABLE_DESIGNER = l10n.t('Loading table designer');
+
 	return (
 		<div className={classes.root}>
 			{
 				tableDesignerState.apiState?.initializeState === designer.LoadState.Loading &&
 				<div className={classes.pageContext}>
-					<Spinner label='Loading...' labelPosition="below" />
+					<Spinner label={LOADING_TABLE_DESIGNER} labelPosition="below" />
 				</div>
 			}
 			{
 				tableDesignerState.apiState?.initializeState === designer.LoadState.Error &&
 				<div className={classes.pageContext}>
 					<ErrorCircleRegular className={classes.errorIcon} />
-                    <div>Error loading designer</div>
-                    <Button className={classes.retryButton}>Retry</Button>
+                    <div>{ERROR_LOADING_DESIGNER}</div>
+                    <Button className={classes.retryButton}>{RETRY}</Button>
 				</div>
 			}
 			{

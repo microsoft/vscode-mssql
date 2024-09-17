@@ -8,6 +8,7 @@ import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import * as utils from './queryPlanSetup';
 import './executionPlan.css';
 import { makeStyles, Toolbar, ToolbarButton } from '@fluentui/react-components';
+import { locConstants } from '../../common/locConstants';
 
 const useStyles = makeStyles({
 	iconStack: {
@@ -60,7 +61,6 @@ export const IconStack : React.FC<IconStackProps> = ({
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
-	const LocalizedConstants = executionPlanState!.localizedConstants!;
 	const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
 	enum InputEnum {
 		CustomZoom,
@@ -68,6 +68,18 @@ export const IconStack : React.FC<IconStackProps> = ({
 		HighlightOps,
 		Properties
 	}
+
+	const SAVE_PLAN = locConstants.executionPlan.savePlan;
+	const OPEN_XML = locConstants.executionPlan.openXml;
+	const OPEN_QUERY = locConstants.executionPlan.openQuery;
+	const ZOOM_IN = locConstants.executionPlan.zoomIn;
+	const ZOOM_OUT = locConstants.executionPlan.zoomOut;
+	const ZOOM_TO_FIT = locConstants.executionPlan.zoomToFit;
+	const CUSTOM_ZOOM = locConstants.executionPlan.customZoom;
+	const FIND_NODE = locConstants.executionPlan.findNode;
+	const PROPERTIES = locConstants.executionPlan.properties;
+	const HIGHLIGHT_OPS = locConstants.executionPlan.highlightExpensiveOperation;
+	const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
 
 	const handleSavePlan = async () => {
 		await state!.provider.saveExecutionPlan(executionPlanState!.sqlPlanContent!);
@@ -155,12 +167,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.save(executionPlanState!.theme!)}
-				alt={LocalizedConstants.savePlan}
+				alt={SAVE_PLAN}
 			  />
 			}
 			onClick={handleSavePlan}
-			title={LocalizedConstants.savePlan}
-			aria-label={LocalizedConstants.savePlan}
+			title={SAVE_PLAN}
+			aria-label={SAVE_PLAN}
 		  />
 		  <ToolbarButton
 		  	className={classes.button}
@@ -169,12 +181,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.openPlanFile(executionPlanState!.theme!)}
-				alt={LocalizedConstants.openXml}
+				alt={OPEN_XML}
 			  />
 			}
 			onClick={handleShowXml}
-			title={LocalizedConstants.openXml}
-			aria-label={LocalizedConstants.openXml}
+			title={OPEN_XML}
+			aria-label={OPEN_XML}
 		  />
 		  <ToolbarButton
 		  	className={classes.button}
@@ -183,12 +195,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.openQuery(executionPlanState!.theme!)}
-				alt={LocalizedConstants.openQuery}
+				alt={OPEN_QUERY}
 			  />
 			}
 			onClick={handleShowQuery}
-			title={LocalizedConstants.openQuery}
-			aria-label={LocalizedConstants.openQuery}
+			title={OPEN_QUERY}
+			aria-label={OPEN_QUERY}
 		  />
 		  <hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
 		  <ToolbarButton
@@ -198,12 +210,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.zoomIn(executionPlanState!.theme!)}
-				alt={LocalizedConstants.zoomIn}
+				alt={ZOOM_IN}
 			  />
 			}
 			onClick={handleZoomIn}
-			title={LocalizedConstants.zoomIn}
-			aria-label={LocalizedConstants.zoomIn}
+			title={ZOOM_IN}
+			aria-label={ZOOM_IN}
 		  />
 		  <ToolbarButton
 		 	className={classes.button}
@@ -212,12 +224,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.zoomOut(executionPlanState!.theme!)}
-				alt={LocalizedConstants.zoomOut}
+				alt={ZOOM_OUT}
 			  />
 			}
 			onClick={handleZoomOut}
-			title={LocalizedConstants.zoomOut}
-			aria-label={LocalizedConstants.zoomOut}
+			title={ZOOM_OUT}
+			aria-label={ZOOM_OUT}
 		  />
 		  <ToolbarButton
 		  	className={classes.button}
@@ -226,12 +238,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.zoomToFit(executionPlanState!.theme!)}
-				alt={LocalizedConstants.zoomToFit}
+				alt={ZOOM_TO_FIT}
 			  />
 			}
 			onClick={handleZoomToFit}
-			title={LocalizedConstants.zoomToFit}
-			aria-label={LocalizedConstants.zoomToFit}
+			title={ZOOM_TO_FIT}
+			aria-label={ZOOM_TO_FIT}
 		  />
 		  <ToolbarButton
 		  	className={classes.button}
@@ -240,12 +252,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.customZoom(executionPlanState!.theme!)}
-				alt={LocalizedConstants.customZoom}
+				alt={CUSTOM_ZOOM}
 			  />
 			}
 			onClick={() => setInputContainer(InputEnum.CustomZoom)}
-			title={LocalizedConstants.customZoom}
-			aria-label={LocalizedConstants.customZoom}
+			title={CUSTOM_ZOOM}
+			aria-label={CUSTOM_ZOOM}
 		  />
 		  <hr className={classes.seperator} style={{background:utils.seperator(executionPlanState!.theme!)}}></hr>
 		  <ToolbarButton
@@ -255,12 +267,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.search(executionPlanState!.theme!)}
-				alt={LocalizedConstants.findNode}
+				alt={FIND_NODE}
 			  />
 			}
 			onClick={() => setInputContainer(InputEnum.FindNode)}
-			title={LocalizedConstants.findNode}
-			aria-label={LocalizedConstants.findNode}
+			title={FIND_NODE}
+			aria-label={FIND_NODE}
 		  />
 		  <ToolbarButton
 			className={classes.button}
@@ -269,12 +281,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.properties(executionPlanState!.theme!)}
-				alt={LocalizedConstants.properties}
+				alt={PROPERTIES}
 			  />
 			}
 			onClick={() => setInputContainer(InputEnum.Properties)}
-			title={LocalizedConstants.properties}
-			aria-label={LocalizedConstants.properties}
+			title={PROPERTIES}
+			aria-label={PROPERTIES}
 		  />
 		  <ToolbarButton
 		  	className={classes.button}
@@ -283,12 +295,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 			  <img
 				className={classes.buttonImg}
 				src={utils.highlightOps(executionPlanState!.theme!)}
-				alt={LocalizedConstants.highlightOps}
+				alt={HIGHLIGHT_OPS}
 			  />
 			}
 			onClick={() => setInputContainer(InputEnum.HighlightOps)}
-			title={LocalizedConstants.highlightOps}
-			aria-label={LocalizedConstants.highlightOps}
+			title={HIGHLIGHT_OPS}
+			aria-label={HIGHLIGHT_OPS}
 			role="button"
 		  />
 		  <ToolbarButton
@@ -302,12 +314,12 @@ export const IconStack : React.FC<IconStackProps> = ({
 					? utils.enableTooltip(executionPlanState!.theme!)
 					: utils.disableTooltip(executionPlanState!.theme!)
 				}
-				alt={LocalizedConstants.toggleTooltips}
+				alt={TOGGLE_TOOLTIPS}
 			  />
 			}
 			onClick={handleToggleTooltips}
-			title={LocalizedConstants.toggleTooltips}
-			aria-label={LocalizedConstants.toggleTooltips}
+			title={TOGGLE_TOOLTIPS}
+			aria-label={TOGGLE_TOOLTIPS}
 			role="button"
 		  />
 		</Toolbar>

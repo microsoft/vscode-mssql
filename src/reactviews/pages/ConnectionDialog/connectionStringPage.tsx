@@ -3,52 +3,32 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, MessageBar, Spinner } from "@fluentui/react-components";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { generateFormField, useFormStyles } from "../../common/forms/formUtils";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { FormField } from "../../common/forms/form.component";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { FormItemSpec } from "../../common/forms/form";
+import { ConnectButton } from "./connectButton";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const formStyles = useFormStyles();
 
 	if (connectionDialogContext === undefined) {
 		return undefined;
 	}
 
+	let index = 0;
 	return (
-		<div className={formStyles.formDiv}>
-			{
-				connectionDialogContext?.state.formError &&
-				<MessageBar intent="error">
-					{connectionDialogContext.state.formError}
-				</MessageBar>
-			}
-			{
-				connectionDialogContext.state.connectionStringComponents.map((component, idx) => {
-					if (component.hidden === true) {
-						return undefined;
-					}
-					return generateFormField(connectionDialogContext, component, idx, formStyles);
-				})
-			}
-			<Button
-				appearance="primary"
-				disabled={connectionDialogContext.state.connectionStatus === ApiStatus.Loading}
-				shape="square"
-				onClick={(_event) => {
-					connectionDialogContext.connect();
-				}} style={
-					{
-						width: '200px',
-						alignSelf: 'center'
-					}
-				}
-				iconPosition="after"
-				icon={ connectionDialogContext.state.connectionStatus === ApiStatus.Loading ? <Spinner size='tiny' /> : undefined}>
-					Connect
-			</Button>
+		<div>
+			<FormField
+				key={index++}
+				context={connectionDialogContext}
+				component={connectionDialogContext.state.connectionComponents.components['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
+				idx={index}
+				props={{ orientation: 'horizontal' }}
+			/>
+
+            <ConnectButton />
 		</div>
 	);
 };

@@ -7,12 +7,11 @@ import { Resource } from '@azure/arm-resources';
 import { AccountInfo, AuthError, AuthenticationResult, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
 import * as url from 'url';
 import * as vscode from 'vscode';
-import * as LocalizedConstants from '../../constants/localizedConstants';
+import * as LocalizedConstants from '../../constants/locConstants';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
 import { AccountType, AzureAuthType, IAADResource, IAccount, IPromptFailedResult, IProviderSettings, ITenant } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
-import * as Utils from '../../models/utils';
 import { AzureAuthError } from '../azureAuthError';
 import * as Constants from '../constants';
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
@@ -51,7 +50,7 @@ export abstract class MsalAzureAuth {
 		try {
 			this.logger.verbose('Starting login');
 			if (!this.providerSettings.resources.windowsManagementResource) {
-				throw new Error(Utils.formatString(LocalizedConstants.azureNoMicrosoftResource, this.providerSettings.displayName));
+				throw new Error(LocalizedConstants.azureNoMicrosoftResource(this.providerSettings.displayName));
 			}
 			const result = await this.login(Constants.organizationTenant);
 			loginComplete = result.authComplete;
@@ -341,7 +340,7 @@ export abstract class MsalAzureAuth {
 			booleanResult: false
 		};
 
-		const messageBody = Utils.formatString(LocalizedConstants.azureConsentDialogBodyAccount, settings.id);
+		const messageBody = LocalizedConstants.azureConsentDialogBodyAccount(settings.id);
 		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem);
 
 		if (result?.action) {

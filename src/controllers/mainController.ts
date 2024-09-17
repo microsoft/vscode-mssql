@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { IConnectionInfo } from 'vscode-mssql';
 import { AzureResourceController } from '../azure/azureResourceController';
 import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as ConnInfo from '../models/connectionInfo';
 import { CompletionExtensionParams, CompletionExtLoadRequest, RebuildIntelliSenseNotification } from '../models/contracts/languageService';
@@ -42,10 +42,12 @@ import VscodeWrapper from './vscodeWrapper';
 import { sendActionEvent } from '../telemetry/telemetry';
 import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 import { TableDesignerService } from '../services/tableDesignerService';
-import { TableDesignerWebViewController } from '../tableDesigner/tableDesignerWebViewController';
-import { ConnectionDialogWebViewController } from '../connectionconfig/connectionDialogWebViewController';
+import { TableDesignerWebviewController } from '../tableDesigner/tableDesignerWebviewController';
+import { ConnectionDialogWebviewController } from '../connectionconfig/connectionDialogWebviewController';
+import { ObjectExplorerFilter } from '../objectExplorer/objectExplorerFilter';
 import { ExecutionPlanService } from '../services/executionPlanService';
-import { ExecutionPlanWebViewController } from './executionPlanWebviewController';
+import { ExecutionPlanWebviewController } from './executionPlanWebviewController';
+import { QueryResultWebviewController } from '../queryResult/queryResultWebViewController';
 
 /**
  * The main controller class that initializes the extension
@@ -54,6 +56,7 @@ export default class MainController implements vscode.Disposable {
 	private _context: vscode.ExtensionContext;
 	private _event: events.EventEmitter = new events.EventEmitter();
 	private _outputContentProvider: SqlOutputContentProvider;
+	private _queryResultWebviewController: QueryResultWebviewController;
 	private _statusview: StatusView;
 	private _connectionMgr: ConnectionManager;
 	private _prompter: IPrompter;
@@ -131,6 +134,12 @@ export default class MainController implements vscode.Disposable {
 
 	public get isExperimentalEnabled(): boolean {
 		return this.configuration.get(Constants.configEnableExperimentalFeatures);
+	}
+
+	// Use a separate flag so it won't be enabled with the experimental features flag
+	public get isNewQueryResultFeatureEnabled(): boolean {
+		let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+		return config.get(Constants.configEnableNewQueryResultFeature);
 	}
 
 	/**
@@ -320,8 +329,13 @@ export default class MainController implements vscode.Disposable {
 		// Init CodeAdapter for use when user response to questions is needed
 		this._prompter = new CodeAdapter(this._vscodeWrapper);
 
+		// Init Query Results Webview Controller
+		this._queryResultWebviewController = new QueryResultWebviewController(this._context);
+
 		// Init content provider for results pane
 		this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper);
+		this._outputContentProvider.setQueryResultWebviewController(this._queryResultWebviewController);
+		this._queryResultWebviewController.setRowRequestHandler((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => this._outputContentProvider.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows));
 
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
@@ -451,7 +465,7 @@ export default class MainController implements vscode.Disposable {
 				}
 				await self.createObjectExplorerSession();
 			} else {
-				const connDialog = new ConnectionDialogWebViewController(
+				const connDialog = new ConnectionDialogWebviewController(
 					this._context,
 					this,
 					this._objectExplorerProvider
@@ -527,7 +541,7 @@ export default class MainController implements vscode.Disposable {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdEditConnection, async (node: TreeNodeInfo) => {
-						const connDialog = new ConnectionDialogWebViewController(
+						const connDialog = new ConnectionDialogWebviewController(
 							this._context,
 							this,
 							this._objectExplorerProvider,
@@ -540,7 +554,7 @@ export default class MainController implements vscode.Disposable {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdNewTable, async (node: TreeNodeInfo) => {
-						const reactPanel = new TableDesignerWebViewController(
+						const reactPanel = new TableDesignerWebviewController(
 							this._context,
 							this.tableDesignerService,
 							this._connectionMgr,
@@ -553,7 +567,7 @@ export default class MainController implements vscode.Disposable {
 			this._context.subscriptions.push(
 				vscode.commands.registerCommand(
 					Constants.cmdEditTable, async (node: TreeNodeInfo) => {
-						const reactPanel = new TableDesignerWebViewController(
+						const reactPanel = new TableDesignerWebviewController(
 							this._context,
 							this.tableDesignerService,
 							this._connectionMgr,
@@ -562,6 +576,46 @@ export default class MainController implements vscode.Disposable {
 						);
 						reactPanel.revealToForeground();
 					}));
+
+			const filterNode = async (node: TreeNodeInfo) => {
+				const filters = await ObjectExplorerFilter.getFilters(this._context, node);
+				if (filters) {
+					node.filters = filters;
+					if(node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
+						await this._objectExplorerProvider.refreshNode(node);
+					} else if (node.collapsibleState === vscode.TreeItemCollapsibleState.Expanded) {
+						await this._objectExplorerProvider.expandNode(node, node.sessionId, undefined);
+					}
+					await this.objectExplorerTree.reveal(node, {select: true, focus: true, expand: true});
+				} else {
+					// User cancelled the operation. Do nothing and focus on the node
+					await this.objectExplorerTree.reveal(node, {select: true, focus: true});
+					return;
+				}
+			};
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdFilterNode, filterNode));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdFilterNodeWithExistingFilters, filterNode));
+
+			this._context.subscriptions.push(
+				vscode.commands.registerCommand(
+					Constants.cmdClearFilters, async(node: TreeNodeInfo) => {
+						node.filters = [];
+						await this._objectExplorerProvider.refreshNode(node);
+						await this.objectExplorerTree.reveal(node, {select: true, focus: true, expand: true});
+					})
+				);
+
+		}
+
+		if (this.isNewQueryResultFeatureEnabled) {
+			this._context.subscriptions.push(
+				vscode.window.registerWebviewViewProvider("queryResult", this._queryResultWebviewController));
 		}
 
 		// Initiate the scripting service
@@ -603,10 +657,10 @@ export default class MainController implements vscode.Disposable {
 			vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
 				let node = this._objectExplorerProvider.currentNode;
 				// Folder node
-				if (node.contextValue === Constants.folderLabel) {
+				if (node.context.type === Constants.folderLabel) {
 					return;
-				} else if (node.contextValue === Constants.serverLabel ||
-					node.contextValue === Constants.disconnectedServerLabel) {
+				} else if (node.context.type === Constants.serverLabel ||
+					node.context.type === Constants.disconnectedServerLabel) {
 					const label = typeof node.label === 'string' ? node.label : node.label.label;
 					await this._vscodeWrapper.clipboardWriteText(label);
 				} else {
@@ -1452,13 +1506,13 @@ export default class MainController implements vscode.Disposable {
 			let docName = document.fileName;
 			docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
 
-			const executionPlanController = new ExecutionPlanWebViewController(
+			const executionPlanController = new ExecutionPlanWebviewController(
 				this.context,
 				this.executionPlanService,
 				this.untitledSqlService,
 				planContents,
 				docName
-			)
+			);
 
 			executionPlanController.revealToForeground();
 		}

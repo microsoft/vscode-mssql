@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, shorthands } from "@fluentui/react-components";
+import { Button, makeStyles } from "@fluentui/react-components";
 import { AppsListDetailRegular, ChevronDownRegular, ChevronUpRegular } from "@fluentui/react-icons";
 import React, { useState } from "react";
 
@@ -21,12 +21,9 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         overflowX: "hidden",
-        //...shorthands.border("1px solid #E5E5E5"),
-        ...shorthands.borderWidth("1px"),
-        ...shorthands.borderStyle("solid"),
-        ...shorthands.borderColor("rgb(209, 209, 209)"),
-        ...shorthands.borderRadius("8px"),
-        ...shorthands.padding("12px"),
+        border: "1px solid rgb(209, 209, 209)",
+        borderRadius: "8px",
+        padding: "12px"
     },
     header: {
         display: "flex",
@@ -48,7 +45,7 @@ const useStyles = makeStyles({
         textAlign: "left",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
-        ...shorthands.overflow("hidden"),
+        overflow: "hidden",
         width: "100%",
     },
     collapseButton: {
@@ -56,7 +53,7 @@ const useStyles = makeStyles({
         height: "20px",
         lineHeight: "24px",
         alignItems: "flex-start",
-        ...shorthands.flex(1)
+        flex: 1
     },
     collapseIcon: {
         width: "20px",

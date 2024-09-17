@@ -5,6 +5,7 @@ coverage
 coverage-remapped
 lib
 localization
+! localization/l10n
 out/test
 packages
 samples

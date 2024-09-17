@@ -5,14 +5,13 @@
 
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
-export interface ExecutionPlanWebViewState {
+export interface ExecutionPlanWebviewState {
 	sqlPlanContent?: string;
 	executionPlan?: GetExecutionPlanResult;
 	executionPlanGraphs?: ExecutionPlanGraph[];
 	theme?: string;
 	totalCost?: number;
 	loadState?: ApiStatus;
-	localizedConstants?: any;
 	errorMessage?: string;
 }
 

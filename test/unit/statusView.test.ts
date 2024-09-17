@@ -6,7 +6,7 @@
 import * as assert from 'assert';
 
 import StatusView from '../../src/views/statusView';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 
 suite('Status View Tests', () => {
 

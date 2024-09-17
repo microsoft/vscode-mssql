@@ -1,6 +1,10 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 // Drag select selection model gist taken from https://gist.github.com/skoon/5312536
 // heavily modified
-declare let Slick;
 
 (function ($: JQueryStatic): void {
 	// register namespace
@@ -370,7 +374,7 @@ declare let Slick;
 			e.stopImmediatePropagation();
 			_dragging = true;
 			if (e.ctrlKey || e.metaKey) {
-				_ranges.push(new Slick.Range());
+				_ranges.push(new Slick.Range(cell.row, cell.cell));
 				_grid.setActiveCell(cell.row, cell.cell);
 			} else if (_ranges.length && e.shiftKey) {
 				let last = _ranges.pop();
@@ -380,7 +384,7 @@ declare let Slick;
 				let toCell = Math.max(cell.cell, last.toCell);
 				_ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
 			} else {
-				_ranges = [new Slick.Range()];
+				_ranges = [new Slick.Range(cell.row, cell.cells)];
 				_grid.setActiveCell(cell.row, cell.cell);
 			}
 			setSelectedRanges(_ranges);

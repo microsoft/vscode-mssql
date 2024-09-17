@@ -224,7 +224,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			// and be incompatible with the selection merging code in this component
 			let grid = this.slickgrids.toArray()[this.activeGrid];
 			grid.selection = [
-				new Slick.Range(0, 1,
+				new SlickGrid.Range(0, 1,
 					grid._grid.getDataLength() - 1,
 					grid._grid.getColumns().length - 1)];
 		},
@@ -645,7 +645,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 		let contextMenuCell = grid.getCellFromEvent(event);
 		if (contextMenuCell || grid.canCellBeActive(contextMenuCell.row, contextMenuCell.cell)) {
 			if (selection.length === 0 || !this.isContextMenuCellWIthinSelection(selection, contextMenuCell)) {
-				selection = [new Slick.Range(contextMenuCell.row, contextMenuCell.cell - 1, contextMenuCell.row, contextMenuCell.cell - 1)];
+				selection = [new SlickGrid.Range(contextMenuCell.row, contextMenuCell.cell - 1, contextMenuCell.row, contextMenuCell.cell - 1)];
 				grid.setActiveCell(contextMenuCell.row, contextMenuCell.cell);
 			}
 		}

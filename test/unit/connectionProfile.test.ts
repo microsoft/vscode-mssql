@@ -10,7 +10,7 @@ import { IConnectionInfo } from 'vscode-mssql';
 import { AccountStore } from '../../src/azure/accountStore';
 import { AzureController } from '../../src/azure/azureController';
 import { MsalAzureController } from '../../src/azure/msal/msalAzureController';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import ConnectionManager from '../../src/controllers/connectionManager';
 import VscodeWrapper from '../../src/controllers/vscodeWrapper';
 import { ConnectionCredentials } from '../../src/models/connectionCredentials';

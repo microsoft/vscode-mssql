@@ -9,6 +9,7 @@ import { OpenFilled, ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluen
 import Editor from '@monaco-editor/react';
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
 	root: {
@@ -68,8 +69,17 @@ export const DesignerResultPane = () => {
 	const state = useContext(TableDesignerContext);
 	const metadata = state?.state;
 
-	const getVscodeTheme = (theme: Theme) => {
+	const SEVERITY = l10n.t('Severity');
+	const DESCRIPTION = l10n.t('Description');
+	const SCRIPT_AS_CREATE = l10n.t('Script as CREATE');
+	const getIssuesTabAriaLabel = (count: number) => {
+		return count === 1 ? l10n.t('1 issue') : l10n.t('{0} issues', count);
+	};
+	const ISSUES = l10n.t('Issues');
+	const GO_THERE = l10n.t('Go there');
+	const OPEN_IN_NEW_TAB = l10n.t('Open in new tab');
 
+	const getVscodeTheme = (theme: Theme) => {
 		switch (theme) {
 			case webDarkTheme:
 				return 'vs-dark';
@@ -83,11 +93,11 @@ export const DesignerResultPane = () => {
 	const columnsDef: TableColumnDefinition<DesignerIssue>[] = [
 		createTableColumn({
 			columnId: 'severity',
-			renderHeaderCell: () => <>Severity</>
+			renderHeaderCell: () => <>{SEVERITY}</>
 		}),
 		createTableColumn({
 			columnId: 'description',
-			renderHeaderCell: () => <>Description</>
+			renderHeaderCell: () => <>{DESCRIPTION}</>
 		}),
 		createTableColumn({
 			columnId: 'propertyPath',
@@ -139,27 +149,27 @@ export const DesignerResultPane = () => {
 				className={classes.designerResultPaneTabs}
 			>
 				<Tab value={DesignerResultPaneTabs.Script} key={DesignerResultPaneTabs.Script}>
-					Script
+					{SCRIPT_AS_CREATE}
 				</Tab>
 				<Tab value={DesignerResultPaneTabs.Issues} key={DesignerResultPaneTabs.Issues}
-					disabled={!metadata.issues || metadata.issues.length === 0}
+					aria-label={getIssuesTabAriaLabel(metadata.issues?.length!)}
 				>
-					Issues {metadata.issues && <CounterBadge style={{
+					{ISSUES} {metadata.issues && <CounterBadge style={{
 						marginLeft: '5px',
 						marginTop: '-10px'
 					}} count={metadata.issues?.length} size='small' />}
 				</Tab>
 			</TabList>
 			{
-				metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
+				metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script &&
 				<Divider vertical style={{
 					flex: '0'
 				}} />
 			}
 
 			{
-				metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
-				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title='Open in new tab'></Button>
+				metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script &&
+				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title={OPEN_IN_NEW_TAB}></Button>
 			}
 		</div>
 		<div className={classes.tabContent}>
@@ -212,25 +222,12 @@ export const DesignerResultPane = () => {
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('propertyPath')}
 									><Link>
-											Go there
+											{GO_THERE}
 										</Link></TableCell>
 								</TableRow>
 							})
 						}
 					</TableBody>
-					{/* {metadata.issues?.map((i, index) => {
-						return <div className={classes.issuesRows}>
-							<Text size={300}>{(index + 1)}.</Text>
-							<Text size={300}>{i.description} : {i.propertyPath?.join('.')}</Text>
-							<Link onClick={() => {
-								console.log('Go there');
-								//designerContext.goToProperty(i.propertyPath!);
-							}}>
-								Go there
-							</Link>
-							{i.moreInfoLink && <Link href={i.moreInfoLink} target="_blank">More info</Link>}
-						</div>
-					})} */}
 				</Table>
 			</div>
 			}

@@ -7,8 +7,9 @@ import { Tab, TabList } from "@fluentui/react-tabs"
 import { CounterBadge, Text, makeStyles, shorthands } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext } from "react";
-import { DesignerMainPaneTabs, InputBoxProperties } from  "../../../sharedInterfaces/tableDesigner";
+import { DesignerMainPaneTabs, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
     root: {
@@ -36,8 +37,8 @@ const useStyles = makeStyles({
         alignItems: 'center',
         justifyContent: 'center',
         '> *': {
-			marginRight: '5px'
-		},
+            marginRight: '5px'
+        },
     }
 });
 
@@ -66,7 +67,46 @@ export const DesignerMainPane = () => {
             }
         }
         return count;
+    };
+
+    function getTableIssuesCountLabel(id: string) {
+        const issues = getCurrentTabIssuesCount(id);
+        if (issues === 1) {
+            return l10n.t({
+                message: '{0} issue',
+                args: [issues],
+                comment: ['{0} is the number of issues']
+            });
+        } else if (issues > 1 || issues === 0) {
+            return l10n.t({
+                message: '{0} issues',
+                args: [issues],
+                comment: ['{0} is the number of issues']
+            });
+        }
     }
+
+    function getTabAriaLabel(tabId: string) {
+        const issues = getCurrentTabIssuesCount(tabId);
+        if (issues === 0) {
+            return tabId;
+        } else if (issues === 1) {
+            return l10n.t({
+                message: '{0} {1} issue',
+                args: [tabId, issues],
+                comment: ['{0} is the tab name', '{1} is the number of issues']
+            });
+        } else {
+            return l10n.t({
+                message: '{0} {1} issues',
+                args: [tabId, issues],
+                comment: ['{0} is the tab name', '{1} is the number of issues']
+            });
+        }
+    }
+
+
+
     return <div className={classes.root}>
         <div className={classes.title}>
             <Text className={classes.title} size={500} weight='semibold'>{(metadata.model!['name'] as InputBoxProperties).value}</Text>
@@ -81,19 +121,16 @@ export const DesignerMainPane = () => {
         >
             {
                 metadata.view?.tabs.map(tab => {
-                    const ariaLabel = `${tab.title} ${getCurrentTabIssuesCount(tab.id) > 0 ? getCurrentTabIssuesCount(tab.id) + ` issues` : ''} `;
-                    return <Tab title={ariaLabel} value={tab.id} key={tab.id} onClick={() => {
-                        //designerContext.clearPropertiesTabData();
-                    }}>
-                        <div className={classes.tabButtonContainer}
-                        >
+                    const ariaLabel = getTabAriaLabel(tab.id);
+                    return <Tab title={ariaLabel} value={tab.id} key={tab.id}>
+                        <div className={classes.tabButtonContainer}>
                             <Text>{tab.title}</Text>
                             {
                                 getCurrentTabIssuesCount(tab.id) > 0 && <CounterBadge style={
                                     {
                                         marginTop: '2px'
                                     }
-                                } color="danger" size="small" title={getCurrentTabIssuesCount(tab.id) + ' issues'} count={getCurrentTabIssuesCount(tab.id)} />
+                                } color="danger" size="small" title={getTableIssuesCountLabel(tab.id)} count={getCurrentTabIssuesCount(tab.id)} />
 
                             }
                         </div>
@@ -110,7 +147,7 @@ export const DesignerMainPane = () => {
                         height: '100%',
                     }} key={tab.id}>
                         <DesignerMainPaneTab tabId={tab.id} />
-                    </div>
+                    </div>;
                 })
             }
         </div>

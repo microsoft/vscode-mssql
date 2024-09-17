@@ -1478,6 +1478,99 @@ declare module 'vscode-mssql' {
 		nodeType: string;
 		metadata: ObjectMetadata;
 		parentNode: ITreeNodeInfo;
+		filterableProperties?: NodeFilterProperty[];
+		context?: TreeNodeContextValue,
+		filters?: NodeFilter[];
+	}
+
+	export interface TreeNodeContextValue {
+		type: string;
+		subType: string;
+		filterable: boolean;
+		hasFilters: boolean;
+	}
+
+	export interface NodeFilterProperty {
+		/**
+		 * The non-localized name of the filter property
+		 */
+		name: string;
+		/**
+		 * The name of the filter property displayed to the user
+		 */
+		displayName: string;
+		/**
+		 * The type of the filter property
+		 */
+		type: NodeFilterPropertyDataType;
+		/**
+		 * The description of the filter property
+		 */
+		description: string;
+	}
+
+	/**
+	 * NodeFilterChoiceProperty is used to define the choices for the filter property if the type is choice
+	 */
+	export interface NodeFilterChoiceProperty extends NodeFilterProperty {
+		/**
+		 * The list of choices for the filter property if the type is choice
+		 */
+		choices: NodeFilterChoicePropertyValue[];
+	}
+
+
+	export interface NodeFilterChoicePropertyValue {
+		/**
+		 * The value of the choice
+		 */
+		value: string;
+		/**
+		 * The display name of the choice
+		 * If not specified, the value will be used as the display name
+		 * If specified, the display name will be used in the dropdown
+		 */
+		displayName?: string;
+	}
+
+	export interface NodeFilter {
+		/**
+		 * The name of the filter property
+		 */
+		name: string;
+		/**
+		 * The operator of the filter property
+		 */
+		operator: NodeFilterOperator;
+		/**
+		 * The applied values of the filter property
+		 */
+		value: string | string[] | number | number[] | boolean | undefined;
+	}
+
+	export enum NodeFilterPropertyDataType {
+		String = 0,
+		Number = 1,
+		Boolean = 2,
+		Date = 3,
+		Choice = 4
+	}
+
+	export enum NodeFilterOperator {
+		Equals = 0,
+		NotEquals = 1,
+		LessThan = 2,
+		LessThanOrEquals = 3,
+		GreaterThan = 4,
+		GreaterThanOrEquals = 5,
+		Between = 6,
+		NotBetween = 7,
+		Contains = 8,
+		NotContains = 9,
+		StartsWith = 10,
+		NotStartsWith = 11,
+		EndsWith = 12,
+		NotEndsWith = 13
 	}
 
 	export const enum MetadataType {

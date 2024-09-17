@@ -60,6 +60,9 @@ export const cmdScriptExecute = 'mssql.scriptExecute';
 export const cmdScriptAlter = 'mssql.scriptAlter';
 export const cmdToggleSqlCmd = 'mssql.toggleSqlCmd';
 export const cmdCopyObjectName = 'mssql.copyObjectName';
+export const cmdFilterNode = "mssql.filterNode";
+export const cmdFilterNodeWithExistingFilters = "mssql.filterNodeWithExistingFilters";
+export const cmdClearFilters = "mssql.clearFilters";
 export const cmdOpenExtension = 'extension.open';
 export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const cmdAzureSignIn = 'azure-account.login';
@@ -159,6 +162,7 @@ export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
 export const configEnableQueryHistoryFeature = 'enableQueryHistoryFeature';
 export const configEnableExperimentalFeatures = 'mssql.enableExperimentalFeatures';
+export const configEnableNewQueryResultFeature = 'enableNewQueryResultFeature';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';

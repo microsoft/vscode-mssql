@@ -12,7 +12,7 @@ import SqlToolsServiceClient from '../../src/languageservice/serviceclient';
 
 import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../../src/constants/constants';
-import * as LocalizedConstants from '../../src/constants/localizedConstants';
+import * as LocalizedConstants from '../../src/constants/locConstants';
 import ConnectionManager from '../../src/controllers/connectionManager';
 import MainController from '../../src/controllers/mainController';
 import VscodeWrapper from '../../src/controllers/vscodeWrapper';

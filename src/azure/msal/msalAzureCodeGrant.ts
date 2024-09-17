@@ -12,7 +12,7 @@ import { MsalAzureAuth } from './msalAzureAuth';
 import { SimpleWebServer } from '../simpleWebServer';
 import { AzureAuthError } from '../azureAuthError';
 import * as Constants from '../constants';
-import * as LocalizedConstants from '../../constants/localizedConstants';
+import * as LocalizedConstants from '../../constants/locConstants';
 import * as path from 'path';
 import * as http from 'http';
 import { promises as fs } from 'fs';

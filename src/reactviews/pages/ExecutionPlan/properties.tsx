@@ -25,6 +25,7 @@ import {
 import { ChevronDown20Regular, ChevronRight20Regular, Dismiss12Regular } from '@fluentui/react-icons';
 import * as ep from "./executionPlanInterfaces";
 import "./executionPlan.css";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
   paneContainer: {
@@ -133,6 +134,16 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       "value": 200
     });
   const [inputValue, setInputValue] = useState<string>("");
+
+  const PROPERTIES = locConstants.executionPlan.properties;
+  const NAME = locConstants.executionPlan.name;
+  const VALUE = locConstants.executionPlan.value;
+  const IMPORTANCE = locConstants.executionPlan.importance;
+  const ALPHABETICAL = locConstants.executionPlan.alphabetical;
+  const REVERSE_ALPHABETICAL = locConstants.executionPlan.reverseAlphabetical;
+  const EXPAND_ALL = locConstants.executionPlan.expandAll;
+  const COLLAPSE_ALL = locConstants.executionPlan.collapseAll;
+  const FILTER_ANY_FIELD = locConstants.executionPlan.filterAnyField;
 
   // set initial items
   useEffect(() => {
@@ -253,7 +264,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     // is there a way to put a button this is item.children.length > 0
       createTableColumn<ep.ExecutionPlanPropertyTableItem>({
         columnId: "name",
-        renderHeaderCell: () => "Name",
+        renderHeaderCell: () => NAME,
         renderCell: (item) =>
         <TableCellLayout>
           <div className={classes.textContainer} style={{width: `${columnWidths["name"]}px`}}>
@@ -272,7 +283,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       }),
       createTableColumn<ep.ExecutionPlanPropertyTableItem>({
         columnId: "value",
-        renderHeaderCell: () => "Value",
+        renderHeaderCell: () => VALUE,
         renderCell: (item) => <TableCellLayout><div className={classes.textContainer} style={{width: `${columnWidths["value"]}px`}}>{item.value}</div></TableCellLayout>,
       }),
   ];
@@ -287,7 +298,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       }}
     >
 	    <div className={classes.propertiesHeader} style={{background:utils.background(executionPlanState!.theme!)}}>
-        <div>Properties</div>
+        <div>{PROPERTIES}</div>
         <div><Button className={classes.dismissButton} style={{background:utils.background(executionPlanState!.theme!)}} onClick={() => setPropertiesClicked(false)} icon={<Dismiss12Regular />} /></div>
       </div>
       <div className={classes.nameContainer} style={{background:utils.tableBackground(executionPlanState!.theme!)}}>
@@ -302,12 +313,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <img
             className={classes.buttonImg}
             src={utils.sortByImportance(executionPlanState!.theme!)}
-            alt={"Sort by importance"}
+            alt={IMPORTANCE}
             />
           }
           onClick={() => handleSort(ep.SortOption.Importance)}
-          title={"Importance"}
-          aria-label={"Sort By Importance"}
+          title={IMPORTANCE}
+          aria-label={IMPORTANCE}
         />
         <ToolbarButton
           className={classes.button}
@@ -316,12 +327,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <img
             className={classes.buttonImg}
             src={utils.sortAlphabetically(executionPlanState!.theme!)}
-            alt={"Sort alphabetically"}
+            alt={ALPHABETICAL}
             />
           }
           onClick={() => handleSort(ep.SortOption.Alphabetical)}
-          title={"Alphabetical"}
-          aria-label={"Sort alphabetically"}
+          title={ALPHABETICAL}
+          aria-label={ALPHABETICAL}
         />
         <ToolbarButton
           className={classes.button}
@@ -330,12 +341,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <img
             className={classes.buttonImg}
             src={utils.sortReverseAlphabetically(executionPlanState!.theme!)}
-            alt={"Sort reverse alphabetically"}
+            alt={REVERSE_ALPHABETICAL}
             />
           }
           onClick={() => handleSort(ep.SortOption.ReverseAlphabetical)}
-          title={"Reverse Alphabetical"}
-          aria-label={"Sort reverse alphabetically"}
+          title={REVERSE_ALPHABETICAL}
+          aria-label={REVERSE_ALPHABETICAL}
         />
         <ToolbarButton
           className={classes.button}
@@ -344,12 +355,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <img
             className={classes.buttonImg}
             src={utils.expandAll(executionPlanState!.theme!)}
-            alt={"Expand All"}
+            alt={EXPAND_ALL}
             />
           }
           onClick={handleExpandAll}
-          title={"Expand All"}
-          aria-label={"Expand All"}
+          title={EXPAND_ALL}
+          aria-label={EXPAND_ALL}
         />
         <ToolbarButton
           className={classes.button}
@@ -358,12 +369,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <img
             className={classes.buttonImg}
             src={utils.collapseAll(executionPlanState!.theme!)}
-            alt={"Collapse All"}
+            alt={COLLAPSE_ALL}
             />
           }
           onClick={handleCollapseAll}
-          title={"Collapse All"}
-          aria-label={"Collapse All"}
+          title={COLLAPSE_ALL}
+          aria-label={COLLAPSE_ALL}
         />
         </div>
         <div>
@@ -371,11 +382,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
           type="text"
           className={classes.inputbox}
           value={inputValue}
-          placeholder="Filter for any field..."
+          placeholder={FILTER_ANY_FIELD}
           contentBefore={
             <img
             src={utils.filterIcon(executionPlanState!.theme!)}
-            alt={"Filter"}
+            alt={FILTER_ANY_FIELD}
             style={{
               width: "20px",
               height: "20px",

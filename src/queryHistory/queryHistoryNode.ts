@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../constants/locConstants';
 
 /**
  * Empty Node shown when no queries are available

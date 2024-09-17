@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /** Note: The new constants in this file should be added to localization\xliff\constants\localizedConstants.enu.xlf so the localized texts get loaded here */
 
 /** Results Pane Labels */

@@ -16,7 +16,7 @@ import { Checkmark20Regular, Dismiss20Regular } from '@fluentui/react-icons';
 import { IconStack } from './iconMenu';
 import { FindNode } from './findNodes';
 import { HighlightExpensiveOperations } from './highlightExpensiveOperations';
-import { formatString } from '../../common/utils';
+import { locConstants } from '../../common/locConstants';
 import { PropertiesPane } from './properties';
 
 const useStyles = makeStyles({
@@ -82,7 +82,7 @@ interface ExecutionPlanGraphProps {
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	graphIndex
-  }) => {
+}) => {
 	const classes = useStyles();
 	const state = useContext(ExecutionPlanContext);
 	const executionPlanState = state?.state;
@@ -99,7 +99,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	const [propertiesWidth, setPropertiesWidth] = useState(400);
 	const [containerHeight, setContainerHeight] = useState('100%');
  	const resizableRef = useRef<HTMLDivElement>(null);
-	const LocalizedConstants = executionPlanState!.localizedConstants!;
 
 	useEffect(() => {
 		if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -175,7 +174,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 
 	const getQueryCostPercentage = () => {
 		const percentage = (cost / executionPlanState!.totalCost!) * 100;
-  		return percentage.toFixed(2) + '%';
+  		return percentage.toFixed(2);
 	};
 
 	const onMouseDown = (e: any) => {
@@ -200,8 +199,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 	return (
 		<div id="panelContainer" className={classes.panelContainer} style={{height: containerHeight}}>
 			<div id="planContainer" className={classes.planContainer} style={{height: containerHeight}}>
-				<div id="queryCostContainer" className={classes.queryCostContainer} style={{background:utils.background(executionPlanState!.theme!)}}>
-					{formatString(LocalizedConstants.queryCostHeader, graphIndex + 1, getQueryCostPercentage())}<br />{query}
+				<div id="queryCostContainer" className={classes.queryCostContainer} style={{ background: utils.background(executionPlanState!.theme!) }}>
+					{
+						locConstants.executionPlan.queryCostRelativeToScript(graphIndex + 1, getQueryCostPercentage())
+					}<br />{query}
 				</div>
 				<div id={`queryPlanParent${graphIndex + 1}`} className={classes.queryPlanParent}
 				style={{
