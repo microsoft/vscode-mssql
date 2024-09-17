@@ -5,6 +5,7 @@
 		"dbaeumer.vscode-eslint",
 		"EditorConfig.EditorConfig",
 		"GitHub.vscode-pull-request-github",
-		"ms-playwright.playwright"
+		"ms-playwright.playwright",
+		"esbenp.prettier-vscode"
 	]
 }
