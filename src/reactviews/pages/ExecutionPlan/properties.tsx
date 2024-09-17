@@ -56,10 +56,19 @@ const useStyles = makeStyles({
     fontWeight: "bold",
     fontSize: "12px",
     width: "100%",
+    padding: "4px",
+    opacity: 1
+  },
+  nameContainer: {
+    fontWeight: "bold",
+    fontSize: "14px",
+    width: "100%",
+    padding: "4px",
     opacity: 1
   },
   tableHeader: {
     fontWeight: "bold",
+    fontSize: "12px",
     border: "1px solid #bbbbbb",
   },
   tableRow: {
@@ -80,6 +89,11 @@ const useStyles = makeStyles({
 		overflow: "hidden",
     right: 0
 	},
+  toolbar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
 });
 
 interface PropertiesPaneProps {
@@ -106,7 +120,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   useEffect(() => {
     if (!items.length && !isFiltered) {
       const unsortedItems = mapPropertiesToItems(element.properties, 0, 0, false, -1);
-      setItems(sort(unsortedItems, ep.SortOption.Importance));
+      setItems(recursiveSort(unsortedItems, unsortedItems.filter(item => !item.isChild), ep.SortOption.Importance));
       setNumItems(unsortedItems.length);
     }
 	}, [items, isFiltered]);
@@ -130,7 +144,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 
   const handleSort = async (sortOption: ep.SortOption) => {
     const currentItems = resetFiltering();
-    setItems(sort(currentItems, sortOption));
+    setItems(recursiveSort(currentItems, currentItems.filter(item => !item.isChild), sortOption));
 	};
 
   const handleExpandAll = async () => {
@@ -212,20 +226,25 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         renderHeaderCell: () => "Value",
         renderCell: (item) => <TableCellLayout><div className="text" style={{textOverflow: "ellipsis"}}>{item.value}</div></TableCellLayout>,
       }),
-    ];
+  ];
 
   return (
     <div
       id="propertiesPanelContainer"
       className={classes.paneContainer}
-      style={{ background: utils.background(executionPlanState!.theme!) }}
+      style={{
+        background: utils.background(executionPlanState!.theme!),
+        borderLeft: `2px solid ${utils.tableBackground(executionPlanState!.theme!)}`
+      }}
     >
 	    <div className={classes.propertiesHeader} style={{background:utils.background(executionPlanState!.theme!)}}>
         Properties
       </div>
-      <br/>
-      {element.name}
-      <Toolbar>
+      <div className={classes.nameContainer} style={{background:utils.tableBackground(executionPlanState!.theme!)}}>
+        {element.name}
+      </div>
+      <Toolbar className={classes.toolbar}>
+        <div>
         <ToolbarButton
           className={classes.button}
           tabIndex={0}
@@ -296,17 +315,35 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
           title={"Collapse All"}
           aria-label={"Collapse All"}
         />
-        <Input type="text" className={classes.inputbox} value={inputValue}  onChange={(e) => {handleInputChange(e.target.value);}}/>
+        </div>
+        <div>
+        <Input
+          type="text"
+          className={classes.inputbox}
+          value={inputValue}
+          contentBefore={
+            <img
+            src={utils.filterIcon(executionPlanState!.theme!)}
+            alt={"Filter"}
+            style={{
+              width: "24px",
+              height: "100%",
+              overflow: "visible"
+            }}
+            />
+          }
+          onChange={(e) => {handleInputChange(e.target.value);}}
+        />
+        </div>
       </Toolbar>
       <DataGrid
         items={items}
         columns={columns}
         focusMode="composite"
-        style={{ minWidth: "250px" }}
-		resizableColumns={true}
-		resizableColumnsOptions={{autoFitColumns:true}}
+        style={{ minWidth: "250px"}}
+		    resizableColumns={true}
       >
-        <DataGridHeader className={classes.tableHeader}>
+        <DataGridHeader className={classes.tableHeader} style={{ background: utils.tableBackground(executionPlanState!.theme!) }}>
           <DataGridRow className={classes.tableRow}>
             {({ renderHeaderCell }) => (
               <DataGridHeaderCell className={classes.tableHeader}>{renderHeaderCell()}</DataGridHeaderCell>
@@ -368,29 +405,6 @@ function mapPropertiesToItems(properties: ep.ExecutionPlanGraphElementProperty[]
 	return items;
 }
 
-function buildItemsFromParentList(parentList: ep.ExecutionPlanPropertyTableItem[], itemList: ep.ExecutionPlanPropertyTableItem[]): ep.ExecutionPlanPropertyTableItem[] {
-  let fullItemList: ep.ExecutionPlanPropertyTableItem[] = [];
-
-  for (const parent of parentList) {
-    fullItemList.push(parent);
-    if (parent.children.length) {
-      let childItemList: ep.ExecutionPlanPropertyTableItem[] = [];
-
-      for (const childId of parent.children) {
-        const childItem = itemList.find(item => childId === item.id);
-        if (childItem) {
-          childItemList.push(childItem);
-        }
-      }
-
-      const childList = buildItemsFromParentList(childItemList, itemList);
-      fullItemList = fullItemList.concat(childList);
-    }
-  }
-
-  return fullItemList;
-}
-
 function buildFilteredItemsFromChildList(childList: ep.ExecutionPlanPropertyTableItem[], itemList: ep.ExecutionPlanPropertyTableItem[]) : ep.ExecutionPlanPropertyTableItem[] {
   let fullItemList: ep.ExecutionPlanPropertyTableItem[] = [];
 
@@ -412,21 +426,31 @@ function buildFilteredItemsFromChildList(childList: ep.ExecutionPlanPropertyTabl
   return fullItemList;
 }
 
-function sort(items: ep.ExecutionPlanPropertyTableItem[], sortOption: ep.SortOption) {
-  let parentList: ep.ExecutionPlanPropertyTableItem[] = [];
+function recursiveSort(items: ep.ExecutionPlanPropertyTableItem[], parentList: ep.ExecutionPlanPropertyTableItem[], sortOption: ep.SortOption): ep.ExecutionPlanPropertyTableItem[] {
+  let sortedList: ep.ExecutionPlanPropertyTableItem[] = [];
 
   if (sortOption == ep.SortOption.Alphabetical) {
-    parentList = items.filter(item => !item.isChild)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    parentList = parentList.sort((a, b) => a.name.localeCompare(b.name));
   }
   else if (sortOption == ep.SortOption.ReverseAlphabetical) {
-    parentList = items.filter(item => !item.isChild)
-      .sort((a, b) => b.name.localeCompare(a.name));
+    parentList = parentList.sort((a, b) => b.name.localeCompare(a.name));
   }
   else if (sortOption == ep.SortOption.Importance) {
-    parentList = items.filter(item => !item.isChild)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
+    parentList = parentList.sort((a, b) => a.displayOrder - b.displayOrder);
   }
 
-  return buildItemsFromParentList(parentList, items);
+  for (const item of parentList) {
+    sortedList.push(item);
+    let childList: ep.ExecutionPlanPropertyTableItem[] = [];
+
+    for (const childId of item.children) {
+      const childItem = items.find((childItem) => childItem.id === childId);
+      if (childItem) {
+        childList.push(childItem);
+      }
+    }
+
+    sortedList = sortedList.concat(recursiveSort(items, childList, sortOption));
+  }
+  return sortedList;
 }
