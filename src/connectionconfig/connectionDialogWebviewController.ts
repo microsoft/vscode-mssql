@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
-import { AuthenticationType, ConnectionDialogFormItemSpec, ConnectionDialogReducers, ConnectionDialogWebviewState, ConnectionInputMode, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
+import { AuthenticationType, AzureSqlDatabaseInfo, ConnectionDialogFormItemSpec, ConnectionDialogReducers, ConnectionDialogWebviewState, ConnectionInputMode, IConnectionDialogProfile } from '../sharedInterfaces/connectionDialog';
 import { IConnectionInfo } from 'vscode-mssql';
 import MainController from '../controllers/mainController';
 import { getConnectionDisplayName } from '../models/connectionInfo';
@@ -18,6 +18,10 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as LocalizedConstants from '../constants/locConstants';
 import { FormItemSpec, FormItemActionButton, FormItemOptions, FormItemType } from '../reactviews/common/forms/form';
 import { ApiStatus } from '../sharedInterfaces/webview';
+import { AzureSubscription, VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
+import { uiUtils } from '@microsoft/vscode-azext-azureutils';
+import { ResourceManagementClient } from '@azure/arm-resources';
+// import { createSubscriptionContext, IActionContext } from '@microsoft/vscode-azext-utils';
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
 	private _connectionToEditCopy: IConnectionDialogProfile | undefined;
@@ -45,6 +49,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 					topAdvancedOptions: [],
 					groupedAdvancedOptions: {}
 				},
+				azureDatabases: [],
 				connectionStatus: ApiStatus.NotStarted,
 				formError: ''
 			}),
@@ -574,6 +579,12 @@ private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItem
 		this.registerReducer('setConnectionInputType', async (state, payload) => {
 			this.state.selectedInputMode = payload.inputMode;
 			await this.updateItemVisibility();
+			this.state = this.state;
+
+			if (this.state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+				await this.loadAzureDatabases(state);
+			}
+
 			return state;
 		});
 
@@ -593,6 +604,7 @@ private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItem
 				await this.handleAzureMFAEdits(payload.event.propertyName);
 			}
 			await this.updateItemVisibility();
+
 			return state;
 		});
 
@@ -603,6 +615,7 @@ private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItem
 			await this.updateItemVisibility();
 			await this.handleAzureMFAEdits('azureAuthType');
 			await this.handleAzureMFAEdits('accountId');
+
 			return state;
 		});
 
@@ -656,5 +669,70 @@ private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItem
 			}
 			return state;
 		});
+	}
+
+	private async loadAzureDatabases(state: ConnectionDialogWebviewState) {
+		const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
+
+		if (!await auth.isSignedIn()) {
+			const result = await auth.signIn();
+
+			if (!result) {
+				state.formError = "Azure sign in failed.";
+				return state;
+			}
+		}
+
+		function groupBy<T>(xs: T[], key: string): Map<string, T[]> {
+			return xs.reduce((rv, x) => {
+				const keyValue = x[key];
+				if (!rv.has(keyValue)) {
+					rv.set(keyValue, []);
+				}
+				rv.get(keyValue)!.push(x);
+				return rv;
+			}, new Map<string, T[]>());
+		}
+
+		async function getSqlDatabases(sub: AzureSubscription): Promise<AzureSqlDatabaseInfo[]> {
+			const result: AzureSqlDatabaseInfo[] = [];
+			const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+			const servers = await uiUtils.listAllIterator(client.resources.list({filter: "resourceType eq 'Microsoft.Sql/servers'"}));
+			const databasesPromise = uiUtils.listAllIterator(client.resources.list({filter: "resourceType eq 'Microsoft.Sql/servers/databases'"}));
+
+			for (const server of servers) {
+				result.push({
+					server: server.name,
+					databases: [],
+					location: server.location,
+					resourceGroup: server.id.split('/')[4], // TODO: don't hardcode
+					subscriptionId: sub.subscriptionId
+				});
+			}
+
+			for (const database of await databasesPromise) {
+				const serverName = database.id.split('/')[8];  // TODO: don't hardcode
+				const server = result.find(s => s.server === serverName);
+				if (server) {
+					server.databases.push(database.name);
+				}
+			}
+
+			return result;
+		}
+
+		const subs = groupBy(await auth.getSubscriptions(), 'tenantId'); // TODO: replace with Object.groupBy once ES2024 is supported
+
+		if (subs.size === 0) {
+			state.formError = `No subscriptions set in VS Code's Azure account filter.`;
+		} else {
+			for (const t of subs.keys()) {
+				for (const s of subs.get(t)) {
+					const databases = await getSqlDatabases(s);
+					state.azureDatabases.push(...databases);
+					this.state = state; // update state mid-reducer so the UI is more responsive
+				}
+			}
+		}
 	}
 }

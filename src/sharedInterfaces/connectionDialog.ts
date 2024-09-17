@@ -20,6 +20,7 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         topAdvancedOptions: (keyof IConnectionDialogProfile)[],
         groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>
     };
+    public azureDatabases: AzureSqlDatabaseInfo[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
@@ -28,6 +29,7 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         connectionProfile,
         selectedInputMode,
         connectionComponents,
+        azureDatabases,
         recentConnections,
         connectionStatus,
         formError
@@ -40,6 +42,7 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
             topAdvancedOptions: (keyof IConnectionDialogProfile)[],
             groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>;
         },
+        azureDatabases: AzureSqlDatabaseInfo[],
         recentConnections: IConnectionDialogProfile[],
         connectionStatus: ApiStatus,
         formError: string
@@ -47,10 +50,19 @@ export class ConnectionDialogWebviewState implements FormState<IConnectionDialog
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
         this.connectionComponents = connectionComponents;
+        this.azureDatabases = azureDatabases;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;
     }
+}
+
+export interface AzureSqlDatabaseInfo {
+    server: string;
+    databases: string[];
+    location: string;
+    resourceGroup: string;
+    subscriptionId: string;
 }
 
 export interface ConnectionDialogFormItemSpec extends FormItemSpec<IConnectionDialogProfile> {

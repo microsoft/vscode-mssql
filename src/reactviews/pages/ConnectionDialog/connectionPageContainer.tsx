@@ -14,6 +14,7 @@ import { ConnectionStringPage } from "./connectionStringPage";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { locConstants } from "../../common/locConstants";
+import { AzureBrowsePage } from "./azureBrowsePage";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
 	switch (connectionDialogContext?.state.selectedInputMode) {
@@ -21,6 +22,8 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
 			return <ConnectionFormPage />;
 		case ConnectionInputMode.ConnectionString:
 			return <ConnectionStringPage />;
+		case ConnectionInputMode.AzureBrowse:
+			return <AzureBrowsePage />;
 	}
 }
 

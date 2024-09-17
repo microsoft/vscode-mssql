@@ -17,7 +17,7 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField } from "../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { ConnectButton } from "./connectButton";
@@ -26,6 +26,7 @@ import { locConstants } from "../../common/locConstants";
 export const ConnectionFormPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+    const formStyles = useFormStyles();
 
     if (connectionDialogContext === undefined) {
         return undefined;
@@ -114,39 +115,27 @@ export const ConnectionFormPage = () => {
                     </Accordion>
                 </DrawerBody>
             </OverlayDrawer>
-            <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-            }}>
+            <div className={formStyles.formNavTray}>
                 <Button
                     shape="square"
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}
-                    style={{
-                        width: "150px",
-                        alignSelf: "center",
-                        margin: "0px 10px",
-                    }}
+                    className={formStyles.formNavTrayButton}
                 >
                     {locConstants.connectionDialog.advancedSettings}
                 </Button>
-                <div style={{ display: "flex", marginLeft: "auto" }}>
-                <Button
-                    shape="square"
-                    onClick={(_event) => {
-                        // TODO: connectionDialogContext.testConnection();
-                    }}
-                    style={{
-                        width: "150px",
-                        alignSelf: "center",
-                        margin: "0px 10px",
-                    }}
-                >
-                    {locConstants.connectionDialog.testConnection}
-                </Button>
-                <ConnectButton />
+                <div className={formStyles.formNavTrayRight}>
+                    <Button
+                        shape="square"
+                        onClick={(_event) => {
+                            // TODO: connectionDialogContext.testConnection();
+                        }}
+                        className={formStyles.formNavTrayButton}
+                    >
+                        {locConstants.connectionDialog.testConnection}
+                    </Button>
+                    <ConnectButton className={formStyles.formNavTrayButton}/>
                 </div>
             </div>
         </div>
