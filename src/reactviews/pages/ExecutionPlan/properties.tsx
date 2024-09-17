@@ -30,6 +30,7 @@ import { locConstants } from "../../common/locConstants";
 const useStyles = makeStyles({
   paneContainer: {
     height: "100%",
+    width: "100%",
 	  overflowY: "scroll"
   },
   chevronButton: {
@@ -78,14 +79,11 @@ const useStyles = makeStyles({
     overflow: "hidden",
     border: "1px solid #bbbbbb",
     fontSize: "12px",
-    whiteSpace: "nowrap",
-    textOverflow: "ellipsis"
   },
 	inputbox: {
 		minWidth: "50px",
 		width: "100px",
 		maxWidth: "300px",
-		overflow: "hidden",
     right: 0,
     fontSize: "12px"
 	},
@@ -102,9 +100,7 @@ const useStyles = makeStyles({
     marginRight: "4px"
   },
   textContainer: {
-    textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    overflow:"hidden",
   }
 });
 
@@ -128,11 +124,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
   const [isFiltered, setIsFiltered] = useState<boolean>(false);
   const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
   const [numItems, setNumItems] = useState<number>(0);
-  const [columnWidths, setColumnWidths] = useState(
-    {
-      "name": 150,
-      "value": 200
-    });
   const [inputValue, setInputValue] = useState<string>("");
 
   const PROPERTIES = locConstants.executionPlan.properties;
@@ -240,14 +231,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     }
 	};
 
-  const handleColumnResize = async (columnId: string, width: number) =>{
-    setColumnWidths(prevWidths => ({
-      ...prevWidths,
-      [columnId]: width,
-    }));
-    setItems(items);
-  }
-
   function resetFiltering(): ep.ExecutionPlanPropertyTableItem[] {
     // react updates state asynchronously, so if the state of unfiltered
     // items hasn't been updated yet, ie. sorting while actively filtering,
@@ -266,8 +249,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         columnId: "name",
         renderHeaderCell: () => NAME,
         renderCell: (item) =>
-        <TableCellLayout>
-          <div className={classes.textContainer} style={{width: `${columnWidths["name"]}px`}}>
+        <TableCellLayout truncate className={classes.textContainer}>
             {`\u200b\t`.repeat(item.level * 6)}
             {item.children.length > 0 && (
               <Button
@@ -278,13 +260,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
               />
             )}
             {item.name}
-          </div>
         </TableCellLayout>,
       }),
       createTableColumn<ep.ExecutionPlanPropertyTableItem>({
         columnId: "value",
         renderHeaderCell: () => VALUE,
-        renderCell: (item) => <TableCellLayout><div className={classes.textContainer} style={{width: `${columnWidths["value"]}px`}}>{item.value}</div></TableCellLayout>,
+        renderCell: (item) => <TableCellLayout truncate className={classes.textContainer}>{item.value}</TableCellLayout>,
       }),
   ];
 
@@ -403,7 +384,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         columns={columns}
         focusMode="composite"
 		    resizableColumns={true}
-        onColumnResize={(_, data) => handleColumnResize(data.columnId.toString(), data.width)}
       >
         <DataGridHeader className={classes.tableHeader} style={{ background: utils.tableBackground(executionPlanState!.theme!) }}>
           <DataGridRow className={classes.tableRow}>
