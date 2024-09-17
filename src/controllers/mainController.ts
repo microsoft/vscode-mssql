@@ -224,15 +224,17 @@ export default class MainController implements vscode.Disposable {
 			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService, this._untitledSqlDocumentService);
 			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);
 
-			const uriHandler: vscode.UriHandler = {
-				handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
-					const mssqlProtocolHandler = new MssqlProtocolHandler();
-					const parsedArgs = mssqlProtocolHandler.handleUri(uri);
+			if (this.isExperimentalEnabled) {
+				const uriHandler: vscode.UriHandler = {
+					handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+						const mssqlProtocolHandler = new MssqlProtocolHandler();
+						const connectionInfo = mssqlProtocolHandler.handleUri(uri);
 
-					vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, parsedArgs);
-				}
-			};
-			vscode.window.registerUriHandler(uriHandler);
+						vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
+					}
+				};
+				vscode.window.registerUriHandler(uriHandler);
+			}
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -477,12 +479,10 @@ export default class MainController implements vscode.Disposable {
 				}
 				await self.createObjectExplorerSession();
 			} else {
-				const connectionInfo = {
-					server: args.server,
-					database: args.database,
-					user: '',
-					password: '',
-				} as IConnectionInfo;
+				let connectionInfo: IConnectionInfo | undefined = undefined;
+				if (args) {
+					connectionInfo = args as IConnectionInfo;
+				}
 
 				const connDialog = new ConnectionDialogWebviewController(
 					this._context,
