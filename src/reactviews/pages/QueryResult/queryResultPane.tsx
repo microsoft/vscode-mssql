@@ -281,7 +281,9 @@ export const QueryResultPane = () => {
                                                     "time",
                                                 )}
                                             >
-                                                {row.item.batchId === undefined ? row.item.time : null}
+                                                {row.item.batchId === undefined
+                                                    ? row.item.time
+                                                    : null}
                                             </TableCell>
                                             <TableCell
                                                 {...columnSizing_unstable.getTableCellProps(
@@ -295,10 +297,16 @@ export const QueryResultPane = () => {
                                                             {" "}
                                                             <Link
                                                                 onClick={async () => {
-                                                                    await webViewState.extensionRpc.call('setEditorSelection', {
-                                                                        uri: metadata?.uri,
-                                                                        selectionData: row.item.selection
-                                                                    });
+                                                                    await webViewState.extensionRpc.call(
+                                                                        "setEditorSelection",
+                                                                        {
+                                                                            uri: metadata?.uri,
+                                                                            selectionData:
+                                                                                row
+                                                                                    .item
+                                                                                    .selection,
+                                                                        },
+                                                                    );
                                                                 }}
                                                             >
                                                                 {

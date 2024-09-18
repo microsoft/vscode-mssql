@@ -41,8 +41,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 message.numberOfRows,
             );
         });
-        this.registerRequestHandler('setEditorSelection', async (message) => {
-            return await this._sqlOutputContentProvider.editorSelectionRequestHandler(message.uri, message.selectionData);
+        this.registerRequestHandler("setEditorSelection", async (message) => {
+            return await this._sqlOutputContentProvider.editorSelectionRequestHandler(
+                message.uri,
+                message.selectionData,
+            );
         });
         this.registerReducer("setResultTab", async (state, payload) => {
             state.tabStates.resultPaneTab = payload.tabId;
@@ -70,7 +73,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return res;
     }
 
-    public setSqlOutputContentProvider(provider: SqlOutputContentProvider): void {
+    public setSqlOutputContentProvider(
+        provider: SqlOutputContentProvider,
+    ): void {
         this._sqlOutputContentProvider = provider;
     }
 }

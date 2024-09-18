@@ -464,10 +464,15 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("complete", totalMilliseconds);
                     } else {
-                        this._queryResultWebviewController.getQueryResultState(uri).messages.push({
-                            message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-                            isError: hasError
-                        });
+                        this._queryResultWebviewController
+                            .getQueryResultState(uri)
+                            .messages.push({
+                                message:
+                                    LocalizedConstants.elapsedTimeLabel(
+                                        totalMilliseconds,
+                                    ),
+                                isError: hasError,
+                            });
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
                         ).tabStates.resultPaneTab =
@@ -485,7 +490,9 @@ export class SqlOutputContentProvider {
                                 uri,
                             );
                         // reset query result state for the editor
-                        this._queryResultWebviewController.addQueryResultState(uri);
+                        this._queryResultWebviewController.addQueryResultState(
+                            uri,
+                        );
                     }
                 },
             );
