@@ -139,9 +139,9 @@ export const QueryResultPane = () => {
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
-            minWidth: 50,
-            idealWidth: 50,
-            defaultWidth: 50,
+            minWidth: 100,
+            idealWidth: 100,
+            defaultWidth: 100,
         },
         message: {
             minWidth: 500,
@@ -299,19 +299,6 @@ export const QueryResultPane = () => {
                             {...columnSizing_unstable.getTableProps()}
                             ref={tableRef}
                         >
-                            {/* <TableHeader>
-                        <TableRow>
-                            {
-                                columnsDef.map((column) => {
-                                    return <TableHeaderCell
-                                        {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-                                        key={column.columnId}>
-                                        {column.renderHeaderCell()}
-                                    </TableHeaderCell>
-                                })
-                            }
-                        </TableRow>
-                    </TableHeader> */}
                             <TableBody>
                                 {rows.map((row, index) => {
                                     return (
@@ -321,7 +308,9 @@ export const QueryResultPane = () => {
                                                     "time",
                                                 )}
                                             >
-                                                {row.item.time}
+                                                {row.item.batchId === undefined
+                                                    ? row.item.time
+                                                    : null}
                                             </TableCell>
                                             <TableCell
                                                 {...columnSizing_unstable.getTableCellProps(
@@ -334,9 +323,16 @@ export const QueryResultPane = () => {
                                                         <>
                                                             {" "}
                                                             <Link
-                                                                onClick={() => {
-                                                                    console.log(
-                                                                        "TODO open link",
+                                                                onClick={async () => {
+                                                                    await webViewState.extensionRpc.call(
+                                                                        "setEditorSelection",
+                                                                        {
+                                                                            uri: metadata?.uri,
+                                                                            selectionData:
+                                                                                row
+                                                                                    .item
+                                                                                    .selection,
+                                                                        },
                                                                     );
                                                                 }}
                                                             >
