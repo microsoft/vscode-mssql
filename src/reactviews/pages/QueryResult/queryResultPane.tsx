@@ -106,18 +106,18 @@ export const QueryResultPane = () => {
             renderHeaderCell: () => <>{MESSAGE}</>,
         }),
     ];
-	const gridParentRef = useRef<HTMLDivElement>(null);
-	const ribbonRef = useRef<HTMLDivElement>(null);
-	// Resize grid when parent element resizes
-	useEffect(() => {
-		const gridParent = gridParentRef.current;
-		if (!gridParent) {return;}
+    const gridParentRef = useRef<HTMLDivElement>(null);
+    const ribbonRef = useRef<HTMLDivElement>(null);
+    // Resize grid when parent element resizes
+    useEffect(() => {
+        const gridParent = gridParentRef.current;
+        if (!gridParent) {return;}
         const observer = new ResizeObserver(() => {
-			if (!gridRef.current) {return;}
-			if (!ribbonRef.current) {return;}
-			if (gridParent.clientWidth && gridParent.clientHeight) {
-				gridRef.current.resizeGrid(gridParent.clientWidth, gridParent.clientHeight - ribbonRef.current.clientHeight - 5);
-			}
+            if (!gridRef.current) {return;}
+            if (!ribbonRef.current) {return;}
+            if (gridParent.clientWidth && gridParent.clientHeight) {
+                gridRef.current.resizeGrid(gridParent.clientWidth, gridParent.clientHeight - ribbonRef.current.clientHeight - 5);
+            }
         });
         observer.observe(gridParent);
         return () => observer.disconnect();
@@ -289,18 +289,18 @@ export const QueryResultPane = () => {
                             ref={tableRef}
                         >
                             {/* <TableHeader>
-						<TableRow>
-							{
-								columnsDef.map((column) => {
-									return <TableHeaderCell
-										{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-										key={column.columnId}>
-										{column.renderHeaderCell()}
-									</TableHeaderCell>
-								})
-							}
-						</TableRow>
-					</TableHeader> */}
+                        <TableRow>
+                            {
+                                columnsDef.map((column) => {
+                                    return <TableHeaderCell
+                                        {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+                                        key={column.columnId}>
+                                        {column.renderHeaderCell()}
+                                    </TableHeaderCell>
+                                })
+                            }
+                        </TableRow>
+                    </TableHeader> */}
                             <TableBody>
                                 {rows.map((row, index) => {
                                     return (
