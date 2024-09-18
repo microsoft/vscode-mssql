@@ -13,6 +13,7 @@ import { VirtualizedCollection } from './table/asyncDataView';
 import { HybridDataProvider } from './table/hybridDataProvider';
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from './table/formatters';
 import { DbCellValue, ResultSetSummary } from '../../../sharedInterfaces/queryResult';
+import * as DOM from './table/dom';
 
 window.jQuery = $ as any;
 require('slickgrid/lib/jquery.event.drag-2.3.0.js');
@@ -38,7 +39,9 @@ export interface SlickGridProps {
 
 export interface SlickGridHandle {
     refreshGrid: () => void;
+    resizeGrid: (width: number, height: number) => void;
 }
+let table: Table<any>;
 
 const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridProps, ref) => {
 
@@ -46,6 +49,10 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
     const [refreshkey, setRefreshKey] = useState(0);
     const refreshGrid = () => {
         setRefreshKey(prev => prev + 1);
+    };
+    const resizeGrid = (width: number, height: number) => {
+        const dimension = new DOM.Dimension(width, height);
+        table.layout(dimension);
     };
     useEffect(() => {
         const ROW_HEIGHT = 25;
@@ -122,7 +129,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
             },
             undefined,
             undefined);
-        var table = new Table(div, defaultTableStyles, { dataProvider: dataProvider, columns: columns }, tableOptions);
+        table = new Table(div, defaultTableStyles, { dataProvider: dataProvider, columns: columns }, tableOptions);
 
         collection.setCollectionChangedCallback((startIndex, count) => {
             let refreshedRows = range(startIndex, startIndex + count);
@@ -137,7 +144,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>((props: SlickGridP
     }, [refreshkey]);
 
     useImperativeHandle(ref, () => ({
-        refreshGrid,
+        refreshGrid, resizeGrid
     }));
 
     return <div ref={gridContainerRef}></div>;

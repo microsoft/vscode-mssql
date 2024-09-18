@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableRow, createTableColumn, makeStyles, shorthands, useTableColumnSizing_unstable, useTableFeatures } from "@fluentui/react-components";
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from '../../../sharedInterfaces/queryResult';
@@ -87,6 +87,22 @@ export const QueryResultPane = () => {
 			renderHeaderCell: () => <>{MESSAGE}</>
 		}),
 	];
+	const gridParentRef = useRef<HTMLDivElement>(null);
+	const ribbonRef = useRef<HTMLDivElement>(null);
+	// Resize grid when parent element resizes
+	useEffect(() => {
+		const gridParent = gridParentRef.current;
+		if (!gridParent) {return;}
+        const observer = new ResizeObserver(() => {
+			if (!gridRef.current) {return;}
+			if (!ribbonRef.current) {return;}
+			if (gridParent.clientWidth && gridParent.clientHeight) {
+				gridRef.current.resizeGrid(gridParent.clientWidth, gridParent.clientHeight - ribbonRef.current.clientHeight - 5);
+			}
+        });
+        observer.observe(gridParent);
+        return () => observer.disconnect();
+    }, []);
 	const [columns] = useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
 	const items = metadata?.messages ?? [];
 
@@ -119,8 +135,8 @@ export const QueryResultPane = () => {
 
 	const gridRef = useRef<SlickGridHandle>(null);
 
-	return <div className={classes.root}>
-		<div className={classes.ribbon}>
+	return <div className={classes.root} ref={gridParentRef}>
+		<div className={classes.ribbon} ref={ribbonRef}>
 			<TabList
 				size='medium'
 				selectedValue={metadata.tabStates!.resultPaneTab}
