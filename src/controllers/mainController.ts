@@ -493,21 +493,8 @@ export default class MainController implements vscode.Disposable {
         this._outputContentProvider.setQueryResultWebviewController(
             this._queryResultWebviewController,
         );
-        this._queryResultWebviewController.setRowRequestHandler(
-            (
-                uri: string,
-                batchId: number,
-                resultId: number,
-                rowStart: number,
-                numberOfRows: number,
-            ) =>
-                this._outputContentProvider.rowRequestHandler(
-                    uri,
-                    batchId,
-                    resultId,
-                    rowStart,
-                    numberOfRows,
-                ),
+        this._queryResultWebviewController.setSqlOutputContentProvider(
+            this._outputContentProvider,
         );
 
         // Init connection manager and connection MRU

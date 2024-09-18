@@ -50,7 +50,7 @@ export interface IMessageLink {
 
 export interface IMessage {
     batchId?: number;
-    time: string;
+    time?: string;
     message: string;
     isError: boolean;
     link?: IMessageLink;

@@ -377,7 +377,6 @@ export class SqlOutputContentProvider {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                 } else {
                     await vscode.commands.executeCommand("queryResult.focus");
-                    this._queryResultWebviewController.addQueryResultState(uri);
                     this._queryResultWebviewController.getQueryResultState(
                         uri,
                     ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
@@ -465,6 +464,15 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("complete", totalMilliseconds);
                     } else {
+                        this._queryResultWebviewController
+                            .getQueryResultState(uri)
+                            .messages.push({
+                                message:
+                                    LocalizedConstants.elapsedTimeLabel(
+                                        totalMilliseconds,
+                                    ),
+                                isError: hasError,
+                            });
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
                         ).tabStates.resultPaneTab =
@@ -481,6 +489,10 @@ export class SqlOutputContentProvider {
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
                             );
+                        // reset query result state for the editor
+                        this._queryResultWebviewController.addQueryResultState(
+                            uri,
+                        );
                     }
                 },
             );
