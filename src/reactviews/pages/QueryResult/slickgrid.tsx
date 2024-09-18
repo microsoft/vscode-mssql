@@ -27,6 +27,7 @@ import {
     DbCellValue,
     ResultSetSummary,
 } from "../../../sharedInterfaces/queryResult";
+import * as DOM from "./table/dom";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -52,7 +53,9 @@ export interface SlickGridProps {
 
 export interface SlickGridHandle {
     refreshGrid: () => void;
+    resizeGrid: (width: number, height: number) => void;
 }
+let table: Table<any>;
 
 const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
     (props: SlickGridProps, ref) => {
@@ -60,6 +63,10 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
             setRefreshKey((prev) => prev + 1);
+        };
+        const resizeGrid = (width: number, height: number) => {
+            const dimension = new DOM.Dimension(width, height);
+            table.layout(dimension);
         };
         useEffect(() => {
             const ROW_HEIGHT = 25;
@@ -190,7 +197,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
                 undefined,
                 undefined,
             );
-            var table = new Table(
+            table = new Table(
                 div,
                 defaultTableStyles,
                 { dataProvider: dataProvider, columns: columns },
@@ -211,6 +218,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
 
         useImperativeHandle(ref, () => ({
             refreshGrid,
+            resizeGrid,
         }));
 
         return <div ref={gridContainerRef}></div>;
