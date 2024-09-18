@@ -361,7 +361,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             >
                 {name}
             </div>
-            <Toolbar className={classes.toolbar}>
+            <Toolbar className={classes.toolbar} size="small">
                 <ToolbarButton
                     className={classes.button}
                     tabIndex={0}
@@ -418,9 +418,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.expandAll(
-                                executionPlanState!.theme!,
-                            )}
+                            src={utils.expandAll(executionPlanState!.theme!)}
                             alt={EXPAND_ALL}
                         />
                     }
@@ -434,9 +432,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.collapseAll(
-                                executionPlanState!.theme!,
-                            )}
+                            src={utils.collapseAll(executionPlanState!.theme!)}
                             alt={COLLAPSE_ALL}
                         />
                     }
@@ -446,14 +442,13 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                 />
                 <Input
                     type="text"
+                    size="small"
                     className={classes.inputbox}
                     value={inputValue}
                     placeholder={FILTER_ANY_FIELD}
                     contentBefore={
                         <img
-                            src={utils.filterIcon(
-                                executionPlanState!.theme!,
-                            )}
+                            src={utils.filterIcon(executionPlanState!.theme!)}
                             alt={FILTER_ANY_FIELD}
                             style={{ width: "20px", height: "20px" }}
                         />
@@ -470,6 +465,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
+                    size="small"
                 >
                     <DataGridHeader
                         className={classes.tableHeader}
