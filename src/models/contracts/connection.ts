@@ -3,30 +3,32 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DataProtocolServerCapabilities } from 'azdata';
-import { NotificationType, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails, IServerInfo } from 'vscode-mssql';
+import { DataProtocolServerCapabilities } from "azdata";
+import { NotificationType, RequestType } from "vscode-languageclient";
+import { ConnectionDetails, IServerInfo } from "vscode-mssql";
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-	export const type = new RequestType<ConnectParams, boolean, void, void>('connection/connect');
+    export const type = new RequestType<ConnectParams, boolean, void, void>(
+        "connection/connect",
+    );
 }
 
 /**
  * Connection request message format
  */
 export class ConnectParams {
-	/**
-	 * URI identifying the owner of the connection
-	 */
-	public ownerUri: string;
+    /**
+     * URI identifying the owner of the connection
+     */
+    public ownerUri: string;
 
-	/**
-	 * Details for creating the connection
-	 */
-	public connection: ConnectionDetails;
+    /**
+     * Details for creating the connection
+     */
+    public connection: ConnectionDetails;
 }
 
 // ------------------------------- </ Connect Request > ---------------------------------------------
@@ -37,47 +39,49 @@ export class ConnectParams {
  * Connection complete event callback declaration.
  */
 export namespace ConnectionCompleteNotification {
-	export const type = new NotificationType<ConnectionCompleteParams, void>('connection/complete');
+    export const type = new NotificationType<ConnectionCompleteParams, void>(
+        "connection/complete",
+    );
 }
 
 /**
  * Connection response format.
  */
 export class ConnectionCompleteParams {
-	/**
-	 * URI identifying the owner of the connection
-	 */
-	public ownerUri: string;
+    /**
+     * URI identifying the owner of the connection
+     */
+    public ownerUri: string;
 
-	/**
-	 * connection id returned from service host.
-	 */
-	public connectionId: string;
+    /**
+     * connection id returned from service host.
+     */
+    public connectionId: string;
 
-	/**
-	 * any diagnostic messages return from the service host.
-	 */
-	public messages: string;
+    /**
+     * any diagnostic messages return from the service host.
+     */
+    public messages: string;
 
-	/**
-	 * Error message returned from the engine, if any.
-	 */
-	public errorMessage: string;
+    /**
+     * Error message returned from the engine, if any.
+     */
+    public errorMessage: string;
 
-	/**
-	 * Error number returned from the engine, if any.
-	 */
-	public errorNumber: number;
+    /**
+     * Error number returned from the engine, if any.
+     */
+    public errorNumber: number;
 
-	/**
-	 * Information about the connected server.
-	 */
-	public serverInfo: IServerInfo;
+    /**
+     * Information about the connected server.
+     */
+    public serverInfo: IServerInfo;
 
-	/**
-	 * information about the actual connection established
-	 */
-	public connectionSummary: ConnectionSummary;
+    /**
+     * information about the actual connection established
+     */
+    public connectionSummary: ConnectionSummary;
 }
 
 // ------------------------------- </ Connection Complete Event > -----------------------------------
@@ -88,18 +92,22 @@ export class ConnectionCompleteParams {
  * Cancel connect request message callback declaration
  */
 export namespace CancelConnectRequest {
-	export const type = new RequestType<CancelConnectParams, CancelConnectResult, void, void>('connection/cancelconnect');
+    export const type = new RequestType<
+        CancelConnectParams,
+        CancelConnectResult,
+        void,
+        void
+    >("connection/cancelconnect");
 }
-
 
 /**
  * Cancel connect request message format
  */
 export class CancelConnectParams {
-	/**
-	 * URI identifying the owner of the connection
-	 */
-	public ownerUri: string;
+    /**
+     * URI identifying the owner of the connection
+     */
+    public ownerUri: string;
 }
 
 /**
@@ -115,42 +123,44 @@ export type CancelConnectResult = boolean;
  * Connection changed event callback declaration.
  */
 export namespace ConnectionChangedNotification {
-	export const type = new NotificationType<ConnectionChangedParams, void>('connection/connectionchanged');
+    export const type = new NotificationType<ConnectionChangedParams, void>(
+        "connection/connectionchanged",
+    );
 }
 
 /**
  * Summary that identifies a unique database connection.
  */
 export class ConnectionSummary {
-	/**
-	 * server name
-	 */
-	public serverName: string;
+    /**
+     * server name
+     */
+    public serverName: string;
 
-	/**
-	 * database name
-	 */
-	public databaseName: string;
+    /**
+     * database name
+     */
+    public databaseName: string;
 
-	/**
-	 * user name
-	 */
-	public userName: string;
+    /**
+     * user name
+     */
+    public userName: string;
 }
 
 /**
  * Parameters for the ConnectionChanged notification.
  */
 export class ConnectionChangedParams {
-	/**
-	 * Owner URI of the connection that changed.
-	 */
-	public ownerUri: string;
+    /**
+     * Owner URI of the connection that changed.
+     */
+    public ownerUri: string;
 
-	/**
-	 * Summary of details containing any connection changes.
-	 */
-	public connection: ConnectionSummary;
+    /**
+     * Summary of details containing any connection changes.
+     */
+    public connection: ConnectionSummary;
 }
 
 // ------------------------------- </ Connection Changed Event > ------------------------------------
@@ -159,14 +169,18 @@ export class ConnectionChangedParams {
 
 // Disconnect request message callback declaration
 export namespace DisconnectRequest {
-	export const type = new RequestType<DisconnectParams, DisconnectResult, void, void>('connection/disconnect');
+    export const type = new RequestType<
+        DisconnectParams,
+        DisconnectResult,
+        void,
+        void
+    >("connection/disconnect");
 }
-
 
 // Disconnect request message format
 export class DisconnectParams {
-	// URI identifying the owner of the connection
-	public ownerUri: string;
+    // URI identifying the owner of the connection
+    public ownerUri: string;
 }
 
 // Disconnect response format
@@ -178,18 +192,23 @@ export type DisconnectResult = boolean;
 
 // List databases request callback declaration
 export namespace ListDatabasesRequest {
-	export const type = new RequestType<ListDatabasesParams, ListDatabasesResult, void, void>('connection/listdatabases');
+    export const type = new RequestType<
+        ListDatabasesParams,
+        ListDatabasesResult,
+        void,
+        void
+    >("connection/listdatabases");
 }
 
 // List databases request format
 export class ListDatabasesParams {
-	// Connection information to use for querying master
-	public ownerUri: string;
+    // Connection information to use for querying master
+    public ownerUri: string;
 }
 
 // List databases response format
 export class ListDatabasesResult {
-	public databaseNames: Array<string>;
+    public databaseNames: Array<string>;
 }
 
 // ------------------------------- </ List Databases Request > --------------------------------------
@@ -199,35 +218,40 @@ export class ListDatabasesResult {
  * Get Connection String request callback declaration
  */
 export namespace GetConnectionStringRequest {
-	export const type = new RequestType<GetConnectionStringParams, string, void, void>('connection/getconnectionstring');
+    export const type = new RequestType<
+        GetConnectionStringParams,
+        string,
+        void,
+        void
+    >("connection/getconnectionstring");
 }
 
 /**
  * Get Connection String request format
  */
 export class GetConnectionStringParams {
-	/**
-	 * Connection key to lookup connection string for the provided connection Uri
-	 * If undefined then a connection details should be specified
-	 */
-	public ownerUri?: string;
+    /**
+     * Connection key to lookup connection string for the provided connection Uri
+     * If undefined then a connection details should be specified
+     */
+    public ownerUri?: string;
 
-	/**
-	 * Connection details used to create the connection string
-	 * If undefined then a owner Uri should be specified
-	 */
-	public connectionDetails?: ConnectionDetails;
+    /**
+     * Connection details used to create the connection string
+     * If undefined then a owner Uri should be specified
+     */
+    public connectionDetails?: ConnectionDetails;
 
-	/**
-	 * Indicates whether to include the password in the connection string
-	 */
-	public includePassword?: boolean;
+    /**
+     * Indicates whether to include the password in the connection string
+     */
+    public includePassword?: boolean;
 
-	/**
-	 * Indicates whether to include the password in the connection string
-	 * default is set to true
-	 */
-	public includeApplicationName?: boolean;
+    /**
+     * Indicates whether to include the password in the connection string
+     * default is set to true
+     */
+    public includeApplicationName?: boolean;
 }
 
 // ------------------------------- </ Connection String Request > --------------------------------------
@@ -237,27 +261,32 @@ export class GetConnectionStringParams {
  * Parameters for the MSAL cache encryption key notification
  */
 export class DidChangeEncryptionIVKeyParams {
-	/**
-	 * Buffer encoded IV string for MSAL cache encryption
-	 */
-	public iv: string;
-	/**
-	 * Buffer encoded Key string for MSAL cache encryption
-	 */
-	public key: string;
+    /**
+     * Buffer encoded IV string for MSAL cache encryption
+     */
+    public iv: string;
+    /**
+     * Buffer encoded Key string for MSAL cache encryption
+     */
+    public key: string;
 }
 
 /**
  * Notification sent when the encryption keys are changed.
  */
 export namespace EncryptionKeysChangedNotification {
-	export const type = new NotificationType<DidChangeEncryptionIVKeyParams, void>('connection/encryptionKeysChanged');
+    export const type = new NotificationType<
+        DidChangeEncryptionIVKeyParams,
+        void
+    >("connection/encryptionKeysChanged");
 }
 
 // ------------------------------- < Clear Pooled Connections Request > ---------------------------------------
 
 export namespace ClearPooledConnectionsRequest {
-	export const type = new RequestType<object, void, void, void>('connection/clearpooledconnections');
+    export const type = new RequestType<object, void, void, void>(
+        "connection/clearpooledconnections",
+    );
 }
 
 //#region Connection capabilities
@@ -266,11 +295,13 @@ export namespace ClearPooledConnectionsRequest {
  * Gets the capabilities of the data protocol server
  */
 export namespace GetCapabilitiesRequest {
-	export const type = new RequestType<object, CapabilitiesResult, void, void>('capabilities/list');
+    export const type = new RequestType<object, CapabilitiesResult, void, void>(
+        "capabilities/list",
+    );
 }
 
 export interface CapabilitiesResult {
-	capabilities: DataProtocolServerCapabilities;
+    capabilities: DataProtocolServerCapabilities;
 }
 
 //#endregion

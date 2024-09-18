@@ -8,30 +8,41 @@ import { Text, Image, webLightTheme } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { locConstants } from "../../common/locConstants";
 
-const sqlServerImage = require('../../../../media/sqlServer_light.svg');
-const sqlServerImageDark = require('../../../../media/sqlServer_dark.svg');
+const sqlServerImage = require("../../../../media/sqlServer_light.svg");
+const sqlServerImageDark = require("../../../../media/sqlServer_dark.svg");
 
 export const ConnectionHeader = () => {
-	const connectionDialogContext = useContext(ConnectionDialogContext);
-	return (
-		<div style={
-			{
-				display: 'flex',
-				flexDirection: 'row',
-				alignItems: 'center'
-			}
-		}>
-			<Image style={
-				{
-					padding: '10px',
-				}
-			}
-				src={connectionDialogContext?.theme === webLightTheme ? sqlServerImage : sqlServerImageDark} alt='SQL Server' height={60} width={60} />
-			<Text size={500} style={
-				{
-					lineHeight: '60px'
-				}
-			} weight='medium'>{locConstants.connectionDialog.connectToSQLServer}</Text>
-		</div>
-	);
+    const connectionDialogContext = useContext(ConnectionDialogContext);
+    return (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+            }}
+        >
+            <Image
+                style={{
+                    padding: "10px",
+                }}
+                src={
+                    connectionDialogContext?.theme === webLightTheme
+                        ? sqlServerImage
+                        : sqlServerImageDark
+                }
+                alt="SQL Server"
+                height={60}
+                width={60}
+            />
+            <Text
+                size={500}
+                style={{
+                    lineHeight: "60px",
+                }}
+                weight="medium"
+            >
+                {locConstants.connectionDialog.connectToSQLServer}
+            </Text>
+        </div>
+    );
 };

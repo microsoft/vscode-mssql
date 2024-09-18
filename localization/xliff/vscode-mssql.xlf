@@ -738,6 +738,9 @@
     <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
       <source xml:lang="en">Open in new tab</source>
     </trans-unit>
+    <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
+      <source xml:lang="en">Open snapshot in new tab</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
     </trans-unit>
@@ -1445,6 +1448,9 @@
     </trans-unit>
     <trans-unit id="extension.queryHistory">
       <source xml:lang="en">Query History</source>
+    </trans-unit>
+    <trans-unit id="extension.queryResult">
+      <source xml:lang="en">Query Result</source>
     </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>
