@@ -44,6 +44,14 @@ export class MssqlProtocolHandler {
 		}
 
 		const args = new URLSearchParams(query);
+
+		const connectionString = args.get('connectionString') ?? undefined;
+		if (connectionString !== undefined) {
+			return {
+				connectionString
+			} as IConnectionInfo;
+		}
+
 		const server = args.get('server') ?? '';
 		const database = args.get('database') ?? '';
 		const user = args.get('user') ?? '';
@@ -73,7 +81,7 @@ export class MssqlProtocolHandler {
 		const azureAccountToken = args.get('azureAccountToken') ?? undefined;
 
 		const expiresOnValue = parseInt(args.get('expiresOn'));
-		const expiresOn = isNaN(expiresOnValue) ? undefined : expiresOnValue;;
+		const expiresOn = isNaN(expiresOnValue) ? undefined : expiresOnValue;
 
 		const encryptValueFlag = parseInt(args.get('encrypt'));
 		const encryptValueStr = args.get('encrypt') ?? 'Mandatory'; // default to Mandatory
@@ -137,7 +145,6 @@ export class MssqlProtocolHandler {
 		const packetSize = isNaN(packetSizeValue) ? undefined : packetSizeValue;
 
 		const typeSystemVersion = args.get('typeSystemVersion') ?? undefined;
-		const connectionString = args.get('connectionString') ?? undefined;
 
 		return {
 			server,
