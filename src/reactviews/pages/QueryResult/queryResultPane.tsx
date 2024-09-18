@@ -125,8 +125,9 @@ export const QueryResultPane = () => {
                 gridRef.current.resizeGrid(
                     gridParent.clientWidth,
                     gridParent.clientHeight -
-                    ribbonRef.current.clientHeight -
-                    5);
+                        ribbonRef.current.clientHeight -
+                        5,
+                );
             }
         });
         observer.observe(gridParent);

@@ -218,7 +218,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
 
         useImperativeHandle(ref, () => ({
             refreshGrid,
-            resizeGrid
+            resizeGrid,
         }));
 
         return <div ref={gridContainerRef}></div>;
