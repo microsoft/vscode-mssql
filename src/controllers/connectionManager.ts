@@ -3,1181 +3,1684 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { NotificationHandler, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails, IConnectionInfo, IServerInfo } from 'vscode-mssql';
-import { AccountService } from '../azure/accountService';
-import { AccountStore } from '../azure/accountStore';
-import { AzureController } from '../azure/azureController';
-import { MsalAzureController } from '../azure/msal/msalAzureController';
-import providerSettings from '../azure/providerSettings';
-import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/locConstants';
-import { CredentialStore } from '../credentialstore/credentialstore';
-import { FirewallService } from '../firewall/firewallService';
-import SqlToolsServerClient from '../languageservice/serviceclient';
-import { ConnectionCredentials } from '../models/connectionCredentials';
-import { ConnectionProfile } from '../models/connectionProfile';
-import { ConnectionStore } from '../models/connectionStore';
-import { IAccount } from '../models/contracts/azure';
-import * as ConnectionContracts from '../models/contracts/connection';
-import { ClearPooledConnectionsRequest, ConnectionSummary } from '../models/contracts/connection';
-import * as LanguageServiceContracts from '../models/contracts/languageService';
-import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
-import { PlatformInformation, Runtime } from '../models/platform';
-import * as Utils from '../models/utils';
-import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
-import { Deferred } from '../protocol';
-import { ConnectionUI } from '../views/connectionUI';
-import StatusView from '../views/statusView';
-import VscodeWrapper from './vscodeWrapper';
-import { sendActionEvent, sendErrorEvent } from '../telemetry/telemetry';
-import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
-import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
+import * as vscode from "vscode";
+import { NotificationHandler, RequestType } from "vscode-languageclient";
+import { ConnectionDetails, IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { AccountService } from "../azure/accountService";
+import { AccountStore } from "../azure/accountStore";
+import { AzureController } from "../azure/azureController";
+import { MsalAzureController } from "../azure/msal/msalAzureController";
+import providerSettings from "../azure/providerSettings";
+import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
+import { CredentialStore } from "../credentialstore/credentialstore";
+import { FirewallService } from "../firewall/firewallService";
+import SqlToolsServerClient from "../languageservice/serviceclient";
+import { ConnectionCredentials } from "../models/connectionCredentials";
+import { ConnectionProfile } from "../models/connectionProfile";
+import { ConnectionStore } from "../models/connectionStore";
+import { IAccount } from "../models/contracts/azure";
+import * as ConnectionContracts from "../models/contracts/connection";
+import {
+    ClearPooledConnectionsRequest,
+    ConnectionSummary,
+} from "../models/contracts/connection";
+import * as LanguageServiceContracts from "../models/contracts/languageService";
+import { EncryptOptions, IConnectionProfile } from "../models/interfaces";
+import { PlatformInformation, Runtime } from "../models/platform";
+import * as Utils from "../models/utils";
+import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
+import { Deferred } from "../protocol";
+import { ConnectionUI } from "../views/connectionUI";
+import StatusView from "../views/statusView";
+import VscodeWrapper from "./vscodeWrapper";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../telemetry/telemetryInterfaces";
+import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
  */
 export class ConnectionInfo {
-	/**
-	 * Connection GUID returned from the service host
-	 */
-	public connectionId: string;
+    /**
+     * Connection GUID returned from the service host
+     */
+    public connectionId: string;
 
-	/**
-	 * Credentials used to connect
-	 */
-	public credentials: IConnectionInfo;
+    /**
+     * Credentials used to connect
+     */
+    public credentials: IConnectionInfo;
 
-	/**
-	 * Callback for when a connection notification is received.
-	 */
-	public connectHandler: (result: boolean, error?: any) => void;
+    /**
+     * Callback for when a connection notification is received.
+     */
+    public connectHandler: (result: boolean, error?: any) => void;
 
-	public connectionCompleteHandler: (result: ConnectionContracts.ConnectionCompleteParams) => void;
+    public connectionCompleteHandler: (
+        result: ConnectionContracts.ConnectionCompleteParams,
+    ) => void;
 
-	/**
-	 * Information about the SQL Server instance.
-	 */
-	public serverInfo: IServerInfo;
+    /**
+     * Information about the SQL Server instance.
+     */
+    public serverInfo: IServerInfo;
 
-	/**
-	 * Whether the connection is in the process of connecting.
-	 */
-	public connecting: boolean;
+    /**
+     * Whether the connection is in the process of connecting.
+     */
+    public connecting: boolean;
 
-	/**
-	 * The MS SQL error number coming from the server
-	 */
-	public errorNumber: number;
+    /**
+     * The MS SQL error number coming from the server
+     */
+    public errorNumber: number;
 
-	/**
-	 * The MS SQL error message coming from the server
-	 */
-	public errorMessage: string;
+    /**
+     * The MS SQL error message coming from the server
+     */
+    public errorMessage: string;
 
-	public get loginFailed(): boolean {
-		return this.errorNumber !== undefined && this.errorNumber === Constants.errorLoginFailed;
-	}
+    public get loginFailed(): boolean {
+        return (
+            this.errorNumber !== undefined &&
+            this.errorNumber === Constants.errorLoginFailed
+        );
+    }
 }
 
 export interface IReconnectAction {
-	(profile: IConnectionInfo): Promise<void>;
+    (profile: IConnectionInfo): Promise<void>;
 }
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-	private _statusView: StatusView;
-	private _connections: { [fileUri: string]: ConnectionInfo };
-	private _connectionCredentialsToServerInfoMap:
-		Map<IConnectionInfo, IServerInfo>;
-	private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
-	private _uriToConnectionCompleteParamsMap: Map<string, Deferred<ConnectionContracts.ConnectionCompleteParams>>;
-	private _failedUriToFirewallIpMap: Map<string, string>;
-	private _failedUriToSSLMap: Map<string, string>;
-	private _accountService: AccountService;
-	private _firewallService: FirewallService;
-	public azureController: AzureController;
-
-	constructor(context: vscode.ExtensionContext,
-		statusView: StatusView,
-		prompter: IPrompter,
-		private _client?: SqlToolsServerClient,
-		private _vscodeWrapper?: VscodeWrapper,
-		private _connectionStore?: ConnectionStore,
-		private _credentialStore?: CredentialStore,
-		private _connectionUI?: ConnectionUI,
-		private _accountStore?: AccountStore) {
-		this._statusView = statusView;
-		this._connections = {};
-		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, IServerInfo>();
-		this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
-		this._uriToConnectionCompleteParamsMap = new Map<string, Deferred<ConnectionContracts.ConnectionCompleteParams>>();
-		if (!this.client) {
-			this.client = SqlToolsServerClient.instance;
-		}
-		if (!this.vscodeWrapper) {
-			this.vscodeWrapper = new VscodeWrapper();
-		}
-
-		if (!this._credentialStore) {
-			this._credentialStore = new CredentialStore(context);
-		}
-
-		if (!this._connectionStore) {
-			this._connectionStore = new ConnectionStore(context, this.client?.logger, this._credentialStore);
-		}
-
-		if (!this._accountStore) {
-			this._accountStore = new AccountStore(context, this.client?.logger);
-		}
-
-		if (!this._connectionUI) {
-			this._connectionUI = new ConnectionUI(this, context, this._connectionStore, this._accountStore, prompter, this.vscodeWrapper);
-		}
-
-		if (!this.azureController) {
-			this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
-
-
-			this.azureController.init();
-		}
-
-		// Initiate the firewall service
-		this._accountService = new AccountService(this.client, this._accountStore, this.azureController);
-		this._firewallService = new FirewallService(this._accountService);
-		this._failedUriToFirewallIpMap = new Map<string, string>();
-		this._failedUriToSSLMap = new Map<string, string>();
-
-		if (this.client !== undefined) {
-			this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
-			this.client.onNotification(ConnectionContracts.ConnectionCompleteNotification.type, this.handleConnectionCompleteNotification());
-			this.client.onNotification(LanguageServiceContracts.IntelliSenseReadyNotification.type, this.handleLanguageServiceUpdateNotification());
-		}
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public get vscodeWrapper(): VscodeWrapper {
-		return this._vscodeWrapper!;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public set vscodeWrapper(wrapper: VscodeWrapper) {
-		this._vscodeWrapper = wrapper;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public get client(): SqlToolsServerClient {
-		return this._client!;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public set client(client: SqlToolsServerClient) {
-		this._client = client;
-	}
-
-	/**
-	 * Get the connection view.
-	 */
-	public get connectionUI(): ConnectionUI {
-		return this._connectionUI!;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public get statusView(): StatusView {
-		return this._statusView;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public set statusView(value: StatusView) {
-		this._statusView = value;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public get connectionStore(): ConnectionStore {
-		return this._connectionStore!;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public set connectionStore(value: ConnectionStore) {
-		this._connectionStore = value;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public get accountStore(): AccountStore {
-		return this._accountStore!;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public set accountStore(value: AccountStore) {
-		this._accountStore = value;
-	}
-
-	/**
-	 * Exposed for testing purposes
-	 */
-	public get connectionCount(): number {
-		return Object.keys(this._connections).length;
-	}
-
-	public get failedUriToFirewallIpMap(): Map<string, string> {
-		return this._failedUriToFirewallIpMap;
-	}
-
-	public get failedUriToSSLMap(): Map<string, string> {
-		return this._failedUriToSSLMap;
-	}
-
-	public get accountService(): AccountService {
-		return this._accountService;
-	}
-
-	public get firewallService(): FirewallService {
-		return this._firewallService;
-	}
-
-	public isActiveConnection(credential: IConnectionInfo): boolean {
-		const connectedCredentials = Object.keys(this._connections).map((uri) => this._connections[uri].credentials);
-		for (let connectedCredential of connectedCredentials) {
-			if (Utils.isSameConnection(credential, connectedCredential)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public getUriForConnection(connection: IConnectionInfo): string {
-		for (let uri of Object.keys(this._connections)) {
-			if (Utils.isSameConnection(this._connections[uri].credentials, connection)) {
-				return uri;
-			}
-		}
-		return undefined;
-	}
-
-	public isConnected(fileUri: string): boolean {
-		return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
-	}
-
-	public isConnecting(fileUri: string): boolean {
-		return (fileUri in this._connections && this._connections[fileUri].connecting);
-	}
-
-	/**
-	 * Get the connection string for the provided connection Uri or ConnectionDetails.
-	 * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
-	 * @param includePassword (optional) if password should be included in connection string.
-	 * @param includeApplicationName (optional) if application name should be included in connection string.
-	 * @returns connection string for the connection
-	 */
-	public async getConnectionString(connectionUriOrDetails: string | ConnectionDetails,
-		includePassword: boolean = false, includeApplicationName: boolean = true): Promise<string> {
-		const listParams = new ConnectionContracts.GetConnectionStringParams();
-		if (typeof connectionUriOrDetails === 'string') {
-			listParams.ownerUri = connectionUriOrDetails;
-		} else {
-			listParams.connectionDetails = connectionUriOrDetails;
-		}
-		listParams.includePassword = includePassword;
-		listParams.includeApplicationName = includeApplicationName;
-		return this.client.sendRequest(ConnectionContracts.GetConnectionStringRequest.type, listParams);
-	}
-
-	/**
-	 * Set connection details for the provided connection info
-	 * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
-	 * @param connectionInfo connection info of the connection
-	 * @returns connection details credentials for the connection
-	 */
-	public createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails {
-		return ConnectionCredentials.createConnectionDetails(connectionInfo);
-	}
-
-	/**
-	 * Send a request to the SQL Tools Server client
-	 * @param requestType The type of the request
-	 * @param params The params to pass with the request
-	 * @returns A promise object for when the request receives a response
-	 */
-	public async sendRequest<P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P): Promise<R> {
-		return await this.client.sendRequest(requestType, params);
-	}
-
-	/**
-	 * Exposed for testing purposes.
-	 */
-	public getConnectionInfo(fileUri: string): ConnectionInfo {
-		return this._connections[fileUri];
-	}
-
-	/**
-	 * Public for testing purposes only.
-	 */
-	public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
-		// Using a lambda here to perform variable capture on the 'this' reference
-		return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
-			this._statusView.languageServiceStatusChanged(event.ownerUri, LocalizedConstants.intelliSenseUpdatedStatus);
-		};
-	}
-
-	/**
-	 * Public for testing purposes only.
-	 */
-	public handleConnectionChangedNotification(): NotificationHandler<ConnectionContracts.ConnectionChangedParams> {
-		// Using a lambda here to perform variable capture on the 'this' reference
-		const self = this;
-		return (event: ConnectionContracts.ConnectionChangedParams): void => {
-			if (self.isConnected(event.ownerUri)) {
-				let connectionInfo: ConnectionInfo = self._connections[event.ownerUri];
-				connectionInfo.credentials.server = event.connection.serverName;
-				connectionInfo.credentials.database = event.connection.databaseName;
-				connectionInfo.credentials.user = event.connection.userName;
-
-				self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials, connectionInfo.serverInfo);
-
-				let logMessage = LocalizedConstants.msgChangedDatabaseContext(event.connection.databaseName, event.ownerUri);
-
-				self.vscodeWrapper.logToOutputChannel(logMessage);
-			}
-		};
-	}
-
-	/**
-	 * Public for testing purposes only.
-	 */
-	public handleConnectionCompleteNotification(): NotificationHandler<ConnectionContracts.ConnectionCompleteParams> {
-		// Using a lambda here to perform variable capture on the 'this' reference
-		const self = this;
-		return async (result: ConnectionContracts.ConnectionCompleteParams): Promise<void> => {
-			let fileUri = result.ownerUri;
-			let connection = self.getConnectionInfo(fileUri);
-			connection.connecting = false;
-
-			let mruConnection: IConnectionInfo = <any>{};
-
-			if (Utils.isNotEmpty(result.connectionId)) {
-				// Use the original connection information to save the MRU connection.
-				// for connections that a database is not provided, the database information will be updated
-				// to the default database name, if we use the new information as the MRU connection,
-				// the connection information will be different from the saved connections (saved connection's database property is empty).
-				// When deleting the saved connection, we won't be able to find its corresponding recent connection,
-				// and the saved connection credentials will become orphaned.
-				mruConnection = Utils.deepClone(connection.credentials);
-				// Convert to credentials if it's a connection string based connection
-				if (connection.credentials.connectionString) {
-					connection.credentials = await this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
-				}
-				this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
-
-				// We have a valid connection
-				// Copy credentials as the database name will be updated
-				let newCredentials: IConnectionInfo = <any>{};
-				Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, connection.credentials);
-				if (result.connectionSummary && result.connectionSummary.databaseName) {
-					newCredentials.database = result.connectionSummary.databaseName;
-					mruConnection.database = result.connectionSummary.databaseName;
-				}
-				self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
-				const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
-				if (promise) {
-					promise.resolve(true);
-					self._uriToConnectionPromiseMap.delete(result.ownerUri);
-				}
-				const completePromise = self._uriToConnectionCompleteParamsMap.get(result.ownerUri);
-				if (completePromise) {
-					completePromise.resolve(result);
-					self._uriToConnectionCompleteParamsMap.delete(result.ownerUri);
-				}
-			} else {
-				mruConnection = undefined;
-				const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
-				if (promise) {
-					if (result.errorMessage) {
-						await self.handleConnectionErrors(fileUri, connection, result);
-						promise.reject(result.errorMessage);
-						self._uriToConnectionPromiseMap.delete(result.ownerUri);
-					} else if (result.messages) {
-						promise.reject(result.messages);
-						self._uriToConnectionPromiseMap.delete(result.ownerUri);
-					}
-				}
-				const completePromise = self._uriToConnectionCompleteParamsMap.get(result.ownerUri);
-				if (completePromise) {
-					completePromise.resolve(result);
-					self._uriToConnectionCompleteParamsMap.delete(result.ownerUri);
-				}
-				await self.handleConnectionErrors(fileUri, connection, result);
-			}
-
-			await self.tryAddMruConnection(connection, mruConnection);
-		};
-	}
-
-	private handleConnectionSuccess(
-		fileUri: string,
-		connection: ConnectionInfo,
-		newCredentials: IConnectionInfo,
-		result: ConnectionContracts.ConnectionCompleteParams): void {
-		connection.connectionId = result.connectionId;
-		connection.serverInfo = result.serverInfo;
-		connection.credentials = newCredentials;
-		connection.errorNumber = undefined;
-		connection.errorMessage = undefined;
-
-		this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
-		this.statusView.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
-
-		this._vscodeWrapper.logToOutputChannel(
-			LocalizedConstants.msgConnectedServerInfo(connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
-		);
-		sendActionEvent(
-			TelemetryViews.ConnectionPrompt,
-			TelemetryActions.CreateConnectionResult,
-			undefined,
-			undefined,
-			newCredentials as IConnectionProfile,
-			result.serverInfo
-		);
-	}
-
-	private async handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): Promise<void> {
-		if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
-			// Check if the error is an expired password
-			if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
-				// TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-				Utils.showErrorMsg(LocalizedConstants.msgConnectionErrorPasswordExpired(result.errorNumber, result.errorMessage));
-			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) { // check if it's an SSL failed error
-				this._failedUriToSSLMap.set(fileUri, result.errorMessage);
-			} else if (result.errorNumber === Constants.errorFirewallRule) { // check whether it's a firewall rule error
-				let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
-				if (firewallResult.result && firewallResult.ipAddress) {
-					this.failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
-				} else {
-					Utils.showErrorMsg(LocalizedConstants.msgConnectionError(result.errorNumber, result.errorMessage));
-				}
-			} else {
-				Utils.showErrorMsg(LocalizedConstants.msgConnectionError(result.errorNumber, result.errorMessage));
-			}
-			connection.errorNumber = result.errorNumber;
-			connection.errorMessage = result.errorMessage;
-		} else {
-			const platformInfo = await PlatformInformation.getCurrent();
-			if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {
-				const action = await this.vscodeWrapper.showErrorMessage(
-					LocalizedConstants.msgConnectionError2(result.errorMessage),
-					LocalizedConstants.macOpenSslHelpButton);
-				if (action && action === LocalizedConstants.macOpenSslHelpButton) {
-					await vscode.env.openExternal(vscode.Uri.parse(Constants.integratedAuthHelpLink));
-				}
-			} else if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
-				result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
-				const action = await this.vscodeWrapper.showErrorMessage(LocalizedConstants.msgConnectionError2(
-					LocalizedConstants.macOpenSslErrorMessage), LocalizedConstants.macOpenSslHelpButton);
-				if (action && action === LocalizedConstants.macOpenSslHelpButton) {
-					await vscode.env.openExternal(vscode.Uri.parse(Constants.macOpenSslHelpLink));
-				}
-			} else {
-				Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(result.messages));
-			}
-		}
-		this.statusView.connectError(fileUri, connection.credentials, result);
-		this.vscodeWrapper.logToOutputChannel(
-			LocalizedConstants.msgConnectionFailed(
-				connection.credentials.server,
-				result.errorMessage ? result.errorMessage : result.messages)
-		);
-		sendErrorEvent(
-			TelemetryViews.ConnectionPrompt,
-			TelemetryActions.CreateConnectionResult,
-			new Error(result.errorMessage),
-			false,
-			result.errorNumber?.toString(),
-			undefined,
-			{
-				'containsError': 'true'
-			},
-			undefined,
-			connection.credentials as IConnectionProfile,
-			result.serverInfo
-		);
-	}
-
-	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: IReconnectAction): Promise<void> {
-		const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
-			LocalizedConstants.msgPromptSSLCertificateValidationFailed,
-			{ modal: false },
-			[
-				LocalizedConstants.enableTrustServerCertificate,
-				LocalizedConstants.readMore,
-				LocalizedConstants.cancel
-			]);
-		if (selection === LocalizedConstants.enableTrustServerCertificate) {
-			if (profile.connectionString) {
-				// Append connection string with encryption options
-				profile.connectionString = profile.connectionString.concat('; Encrypt=true; Trust Server Certificate=true;');
-			}
-			profile.encrypt = EncryptOptions.Mandatory;
-			profile.trustServerCertificate = true;
-			await reconnectAction(profile);
-		} else if (selection === LocalizedConstants.readMore) {
-			this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
-			await this.showInstructionTextAsWarning(profile, reconnectAction);
-		}
-	}
-
-	public async handleSSLError(uri: string, profile: IConnectionProfile): Promise<IConnectionInfo | undefined> {
-		let updatedConn: IConnectionInfo | undefined;
-		await this.showInstructionTextAsWarning(profile, async updatedConnection => {
-			vscode.commands.executeCommand(Constants.cmdConnectObjectExplorerProfile, updatedConnection);
-			updatedConn = updatedConnection;
-		});
-		this.failedUriToSSLMap.delete(uri);
-		return updatedConn;
-	}
-
-	private async tryAddMruConnection(connection: ConnectionInfo, newConnection: IConnectionInfo): Promise<void> {
-		if (newConnection) {
-			let connectionToSave: IConnectionInfo = Object.assign({}, newConnection);
-			try {
-				await this._connectionStore.addRecentlyUsed(connectionToSave);
-				connection.connectHandler(true);
-			} catch (err) {
-				connection.connectHandler(false, err);
-			}
-		} else {
-			connection.connectHandler(false);
-		}
-	}
-
-	/**
-	 * Populates a credential object based on the credential connection string
-	 */
-	private async populateCredentialsFromConnectionString(credentials: IConnectionInfo, connectionSummary: ConnectionSummary): Promise<IConnectionInfo> {
-		// populate credential details
-		credentials.database = connectionSummary.databaseName;
-		credentials.user = connectionSummary.userName;
-		credentials.server = connectionSummary.serverName;
-
-		// save credentials if needed
-		let isPasswordBased: boolean = ConnectionCredentials.isPasswordBasedConnectionString(credentials.connectionString);
-		if (isPasswordBased) {
-			// save the connection string here
-			await this._connectionStore.saveProfileWithConnectionString(credentials as IConnectionProfile);
-			// replace the conn string from the profile
-			credentials.connectionString = ConnectionStore.formatCredentialId(credentials.server,
-				credentials.database, credentials.user, ConnectionStore.CRED_PROFILE_USER, true);
-
-			// set auth type
-			credentials.authenticationType = Constants.sqlAuthentication;
-
-			// set savePassword to true so that credentials are automatically
-			// deleted if the settings file is manually changed
-			(credentials as IConnectionProfile).savePassword = true;
-		} else {
-			credentials.authenticationType = Constants.integratedauth;
-		}
-
-		return credentials;
-	}
-
-	/**
-	 * Clear the recently used connections list in the connection store.
-	 * @returns a boolean value indicating whether the credentials were deleted successfully.
-	 */
-	public clearRecentConnectionsList(): Promise<boolean> {
-		return this.connectionStore.clearRecentlyUsed();
-	}
-
-	// choose database to use on current server from UI
-	public async onChooseDatabase(): Promise<boolean> {
-		const fileUri = this.vscodeWrapper.activeTextEditorUri;
-		if (!this.isConnected(fileUri)) {
-			this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
-			return false;
-		}
-
-		// Get list of databases on current server
-		let listParams = new ConnectionContracts.ListDatabasesParams();
-		listParams.ownerUri = fileUri;
-		const result: ConnectionContracts.ListDatabasesResult = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
-		// Then let the user select a new database to connect to
-		const newDatabaseCredentials = await this.connectionUI.showDatabasesOnCurrentServer(this._connections[fileUri].credentials, result.databaseNames);
-		if (newDatabaseCredentials) {
-			this.vscodeWrapper.logToOutputChannel(
-				LocalizedConstants.msgChangingDatabase(newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
-			);
-			await this.disconnect(fileUri);
-			await this.connect(fileUri, newDatabaseCredentials);
-			this.vscodeWrapper.logToOutputChannel(
-				LocalizedConstants.msgChangedDatabase(
-					newDatabaseCredentials.database,
-					newDatabaseCredentials.server, fileUri)
-			);
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Retrieves the list of databases for the connection specified by the given URI.
-	 * @param connectionUri The URI of the connection to list the databases for
-	 * @returns The list of databases retrieved from the connection
-	 */
-	public async listDatabases(connectionUri: string): Promise<string[]> {
-		await this.refreshAzureAccountToken(connectionUri);
-		const listParams = new ConnectionContracts.ListDatabasesParams();
-		listParams.ownerUri = connectionUri;
-		const result: ConnectionContracts.ListDatabasesResult = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
-		return result.databaseNames;
-	}
-
-	public async changeDatabase(newDatabaseCredentials: IConnectionInfo): Promise<boolean> {
-		const fileUri = this.vscodeWrapper.activeTextEditorUri;
-		if (!this.isConnected(fileUri)) {
-			this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
-			return false;
-		}
-		await this.disconnect(fileUri);
-		await this.connect(fileUri, newDatabaseCredentials);
-		this.vscodeWrapper.logToOutputChannel(
-			LocalizedConstants.msgChangedDatabase(
-				newDatabaseCredentials.database,
-				newDatabaseCredentials.server, fileUri));
-		return true;
-	}
-
-	public async onChooseLanguageFlavor(isSqlCmdMode: boolean = false, isSqlCmd: boolean = false): Promise<boolean> {
-		const fileUri = this._vscodeWrapper.activeTextEditorUri;
-		if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
-			if (isSqlCmdMode) {
-				SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
-					<LanguageServiceContracts.DidChangeLanguageFlavorParams>{
-						uri: fileUri,
-						language: isSqlCmd ? 'sqlcmd' : 'sql',
-						flavor: 'MSSQL'
-					});
-				return true;
-			}
-			const flavor = await this._connectionUI.promptLanguageFlavor();
-			if (!flavor) {
-				return false;
-			}
-			this.statusView.languageFlavorChanged(fileUri, flavor);
-			SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
-				<LanguageServiceContracts.DidChangeLanguageFlavorParams>{
-					uri: fileUri,
-					language: 'sql',
-					flavor: flavor
-				});
-			return true;
-		} else {
-			await this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
-			return false;
-		}
-	}
-
-	// close active connection, if any
-	public onDisconnect(): Promise<boolean> {
-		return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
-	}
-
-	public async disconnect(fileUri: string): Promise<boolean> {
-		if (this.isConnected(fileUri)) {
-			let disconnectParams = new ConnectionContracts.DisconnectParams();
-			disconnectParams.ownerUri = fileUri;
-
-			const result: ConnectionContracts.DisconnectResult = await this.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams);
-			if (this.statusView) {
-				this.statusView.notConnected(fileUri);
-			}
-			if (result) {
-				this.vscodeWrapper.logToOutputChannel(
-					LocalizedConstants.msgDisconnected(fileUri)
-				);
-			}
-
-			delete this._connections[fileUri];
-			vscode.commands.executeCommand('setContext', 'mssql.connections', this._connections);
-			return result;
-
-		} else if (this.isConnecting(fileUri)) {
-			// Prompt the user to cancel connecting
-			await this.onCancelConnect();
-			return true;
-		} else {
-			return true;
-		}
-	}
-
-	/**
-	 * Helper to show all connections and perform connect logic.
-	 */
-	public async showConnectionsAndConnect(fileUri: string): Promise<IConnectionInfo> {
-		// show connection picklist
-		const connectionCreds = await this.connectionUI.promptForConnection();
-		if (connectionCreds) {
-			// close active connection
-			await this.disconnect(fileUri);
-			// connect to the server/database
-			const result = await this.connect(fileUri, connectionCreds);
-			await this.handleConnectionResult(result, fileUri, connectionCreds);
-		}
-		return connectionCreds;
-	}
-
-	/**
-	 * Get the server info for a connection
-	 * @param connectionCreds
-	 */
-	public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
-		if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
-			return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
-		}
-	}
-
-	/**
-	 * Verifies the connection result. If connection failed because of invalid credentials,
-	 * tries to connect again by asking user for different credentials
-	 * @param result Connection result
-	 * @param fileUri file Uri
-	 * @param connectionCreds Connection Profile
-	 */
-	public async handleConnectionResult(result: boolean, fileUri: string, connectionCreds: IConnectionInfo): Promise<boolean> {
-		let connection = this._connections[fileUri];
-		if (!result && connection && connection.loginFailed) {
-			const newConnection = await this.connectionUI.createProfileWithDifferentCredentials(connectionCreds);
-			if (newConnection) {
-				const newResult = await this.connect(fileUri, newConnection);
-				connection = this._connections[fileUri];
-				if (!newResult && connection && connection.loginFailed) {
-					Utils.showErrorMsg(LocalizedConstants.msgConnectionError(connection.errorNumber, connection.errorMessage));
-				}
-				return newResult;
-			} else {
-				return true;
-			}
-		} else {
-			return true;
-		}
-	}
-
-	/**
-	 * Delete a credential from the credential store
-	 */
-	public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
-		return await this._connectionStore.deleteCredential(profile);
-	}
-
-	// let users pick from a picklist of connections
-	public async onNewConnection(): Promise<IConnectionInfo> {
-		const fileUri = this.vscodeWrapper.activeTextEditorUri;
-		if (!fileUri) {
-			// A text document needs to be open before we can connect
-			this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
-			return undefined;
-		} else if (!this.vscodeWrapper.isEditingSqlFile) {
-			const result = await this.connectionUI.promptToChangeLanguageMode();
-			if (result) {
-				const credentials = await this.showConnectionsAndConnect(fileUri);
-				return credentials;
-			} else {
-				return undefined;
-			}
-		}
-		const creds = await this.showConnectionsAndConnect(fileUri);
-		return creds;
-	}
-
-	// create a new connection with the connectionCreds provided
-	public async connect(fileUri: string, connectionCreds: IConnectionInfo, promise?: Deferred<boolean>): Promise<boolean> {
-		return await vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
-			title: LocalizedConstants.connectProgressNoticationTitle,
-			cancellable: false
-		}, async (_progress, _token) => {
-			if (!connectionCreds.server && !connectionCreds.connectionString) {
-				throw new Error(LocalizedConstants.serverNameMissing);
-			}
-			// Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
-			if (connectionCreds.authenticationType === Constants.azureMfa) {
-				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
-					let account: IAccount;
-					let profile: ConnectionProfile;
-					if (connectionCreds.accountId) {
-						account = this.accountStore.getAccount(connectionCreds.accountId);
-						profile = new ConnectionProfile(connectionCreds);
-					} else {
-						throw new Error(LocalizedConstants.cannotConnect);
-					}
-					if (account) {
-						// Always set username
-						connectionCreds.user = account.displayInfo.displayName;
-						connectionCreds.email = account.displayInfo.email;
-						profile.user = account.displayInfo.displayName;
-						profile.email = account.displayInfo.email;
-						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
-							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
-						if (!azureAccountToken) {
-							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-							let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-							if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-								await this.azureController.populateAccountProperties(
-									profile, this.accountStore, providerSettings.resources.databaseResource!);
-
-							} else {
-								throw new Error(LocalizedConstants.cannotConnect);
-							}
-						} else {
-							connectionCreds.azureAccountToken = azureAccountToken.token;
-							connectionCreds.expiresOn = azureAccountToken.expiresOn;
-						}
-					} else {
-						throw new Error(LocalizedConstants.msgAccountNotFound);
-					}
-				}
-			}
-			let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
-
-				if (connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX)
-					&& connectionCreds.connectionString?.includes('isConnectionString:true')) {
-					let connectionString = await this.connectionStore.lookupPassword(connectionCreds, true);
-					connectionCreds.connectionString = connectionString;
-				}
-
-				let connectionInfo: ConnectionInfo = new ConnectionInfo();
-				connectionInfo.credentials = connectionCreds;
-				connectionInfo.connecting = true;
-				this._connections[fileUri] = connectionInfo;
-
-				// Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
-				if (this.statusView) {
-					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-					this.statusView.connecting(fileUri, connectionCreds);
-					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-				}
-				this.vscodeWrapper.logToOutputChannel(
-					LocalizedConstants.msgConnecting(connectionCreds.server, fileUri)
-				);
-
-				// Setup the handler for the connection complete notification to call
-				connectionInfo.connectHandler = ((connectResult, error) => {
-					if (error) {
-						reject(error);
-					} else {
-						vscode.commands.executeCommand('setContext', 'mssql.connections', this._connections);
-						resolve(connectResult);
-					}
-				});
-
-				// package connection details for request message
-				const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
-				let connectParams = new ConnectionContracts.ConnectParams();
-				connectParams.ownerUri = fileUri;
-				connectParams.connection = connectionDetails;
-
-				// send connection request message to service host
-				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise!);
-				try {
-					const result = await this.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
-					if (!result) {
-						// Failed to process connect request
-						resolve(false);
-					}
-				} catch (error) {
-					reject(error);
-				}
-			});
-			return connectionPromise;
-		});
-	}
-
-	public async connectDialog(connectionCreds: IConnectionInfo): Promise<ConnectionContracts.ConnectionCompleteParams> {
-		// If the connection info doesn't have server or connection string, throw an error
-		if (!connectionCreds.server && !connectionCreds.connectionString) {
-			throw new Error(LocalizedConstants.serverNameMissing);
-		}
-
-		if (connectionCreds.authenticationType === Constants.azureMfa) {
-			if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
-				let account: IAccount;
-				let profile: ConnectionProfile;
-				if (connectionCreds.accountId) {
-					account = this.accountStore.getAccount(connectionCreds.accountId);
-					profile = new ConnectionProfile(connectionCreds);
-				} else {
-					throw new Error(LocalizedConstants.cannotConnect);
-				}
-				if (account) {
-					// Always set username
-					connectionCreds.user = account.displayInfo.displayName;
-					connectionCreds.email = account.displayInfo.email;
-					profile.user = account.displayInfo.displayName;
-					profile.email = account.displayInfo.email;
-					let azureAccountToken = await this.azureController.refreshAccessToken(account!,
-						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
-					if (!azureAccountToken) {
-						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-							await this.azureController.populateAccountProperties(
-								profile, this.accountStore, providerSettings.resources.databaseResource!);
-
-						} else {
-							throw new Error(LocalizedConstants.cannotConnect);
-						}
-					} else {
-						connectionCreds.azureAccountToken = azureAccountToken.token;
-						connectionCreds.expiresOn = azureAccountToken.expiresOn;
-					}
-				} else {
-					throw new Error(LocalizedConstants.msgAccountNotFound);
-				}
-			}
-		}
-
-		if (connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX)
-			&& connectionCreds.connectionString?.includes('isConnectionString:true')) {
-			let connectionString = await this.connectionStore.lookupPassword(connectionCreds, true);
-			connectionCreds.connectionString = connectionString;
-		}
-
-		const uri = ObjectExplorerUtils.getNodeUriFromProfile(connectionCreds as IConnectionProfile);
-		let connectionInfo: ConnectionInfo = new ConnectionInfo();
-		connectionInfo.credentials = connectionCreds;
-		connectionInfo.connecting = true;
-		// Setup the handler for the connection complete notification to call
-		connectionInfo.connectHandler = ((connectResult, error) => {
-		});
-		this._connections[uri] = connectionInfo;
-
-		// Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
-		if (this.statusView) {
-			this.statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
-			this.statusView.connecting(uri, connectionCreds);
-			this.statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
-		}
-
-		// this.vscodeWrapper.logToOutputChannel(
-		// 	Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
-		// );
-
-		const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
-		let connectParams = new ConnectionContracts.ConnectParams();
-		connectParams.ownerUri = uri;
-		connectParams.connection = connectionDetails;
-
-		const connectionCompletePromise = new Deferred<ConnectionContracts.ConnectionCompleteParams>();
-		this._uriToConnectionCompleteParamsMap.set(connectParams.ownerUri, connectionCompletePromise);
-
-		try {
-			const result = await this.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
-			if (!result) {
-				// Failed to process connect request
-				throw new Error('Failed to connect');
-			}
-		} catch (error) {
-			throw new Error('Failed to connect');
-		}
-
-		return await connectionCompletePromise;
-	}
-
-	public async onCancelConnect(): Promise<void> {
-		const result = await this.connectionUI.promptToCancelConnection();
-		if (result) {
-			await this.cancelConnect();
-		}
-	}
-
-	public async cancelConnect(): Promise<void> {
-		let fileUri = this.vscodeWrapper.activeTextEditorUri;
-		if (!fileUri || Utils.isEmpty(fileUri)) {
-			return;
-		}
-
-		let cancelParams: ConnectionContracts.CancelConnectParams = new ConnectionContracts.CancelConnectParams();
-		cancelParams.ownerUri = fileUri;
-
-		const result = await this.client.sendRequest(ConnectionContracts.CancelConnectRequest.type, cancelParams);
-		if (result) {
-			this.statusView.notConnected(fileUri);
-		}
-	}
-
-	/**
-	 * Called when the 'Manage Connection Profiles' command is issued.
-	 */
-	public onManageProfiles(): Promise<boolean> {
-		// Show quick pick to create, edit, or remove profiles
-		return this.connectionUI.promptToManageProfiles();
-	}
-
-	public async onClearPooledConnections(): Promise<void> {
-		return await this._client.sendRequest(ClearPooledConnectionsRequest.type, {});
-	}
-
-	public async onCreateProfile(): Promise<boolean> {
-		let self = this;
-		const profile = await self.connectionUI.createAndSaveProfile(self.vscodeWrapper.isEditingSqlFile);
-		return profile ? true : false;
-	}
-
-	public onRemoveProfile(): Promise<boolean> {
-		return this.connectionUI.removeProfile();
-	}
-
-	public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
-		let docUri: string = doc.uri.toString(true);
-
-		// If this file isn't connected, then don't do anything
-		if (!this.isConnected(docUri)) {
-			return;
-		}
-
-		// Disconnect the document's connection when we close it
-		await this.disconnect(docUri);
-	}
-
-	public onDidOpenTextDocument(doc: vscode.TextDocument): void {
-		let uri = doc.uri.toString(true);
-		if (doc.languageId === 'sql' && typeof (this._connections[uri]) === 'undefined') {
-			this.statusView.notConnected(uri);
-		}
-	}
-
-	public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
-		// Is the new file connected or the old file not connected?
-		if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
-			return;
-		}
-
-		// Connect the saved uri and disconnect the untitled uri on successful connection
-		let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
-		let result = await this.connect(newFileUri, creds);
-		if (result) {
-			await this.disconnect(oldFileUri);
-		}
-	}
-
-	public async refreshAzureAccountToken(uri: string): Promise<void> {
-		const profile = this.getConnectionInfo(uri);
-		if (!profile) {
-			this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgConnectionNotFound(uri));
-			return;
-		}
-
-		// Wait for the pending reconnction promise if any
-		const previousReconnectPromise = this._uriToConnectionPromiseMap.get(uri);
-		if (previousReconnectPromise) {
-			this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgFoundPendingReconnect(uri));
-			try {
-				const previousConnectionResult = await previousReconnectPromise;
-				if (previousConnectionResult) {
-					this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgPendingReconnectSuccess(uri));
-					return;
-				}
-				this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgFoundPendingReconnectFailed(uri));
-			} catch (err) {
-				this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgFoundPendingReconnectError(uri, err));
-			}
-		}
-
-		const expiry = profile.credentials.expiresOn;
-		if (typeof expiry === 'number' && !Number.isNaN(expiry)) {
-			if (AzureController.isTokenExpired(expiry)) {
-				this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgAcessTokenExpired(profile.connectionId, uri));
-				try {
-					let connectionResult = await this.connect(uri, profile.credentials);
-					if (!connectionResult) {
-						this.vscodeWrapper.showErrorMessage(LocalizedConstants.msgRefreshConnection(profile.connectionId, uri));
-						throw new Error('Unable to refresh connection');
-					}
-					this.vscodeWrapper.logToOutputChannel(
-						LocalizedConstants.msgRefreshTokenSuccess(
-							profile.connectionId,
-							uri,
-							JSON.stringify(this.getConnectionInfo(uri))
-						)
-					);
-					return;
-				} catch {
-					this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgRefreshTokenError);
-				}
-			}
-			this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgRefreshTokenNotNeeded(profile.connectionId, uri));
-		}
-		return;
-	}
-
-	public async addAccount(): Promise<IAccount> {
-		let account = await this.connectionUI.addNewAccount();
-		if (account) {
-			this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountAddedSuccessfully(account.displayInfo.displayName));
-		} else {
-			this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
-		}
-		return account;
-	}
-
-	public async removeAccount(prompter: IPrompter): Promise<void> {
-		// list options for accounts to remove
-		let questions: IQuestion[] = [];
-		let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
-
-		if (azureAccountChoices.length > 0) {
-			questions.push(
-				{
-					type: QuestionTypes.expand,
-					name: 'account',
-					message: LocalizedConstants.azureChooseAccount,
-					choices: azureAccountChoices
-				}
-			);
-
-			return prompter.prompt<IAccount>(questions, true).then(async answers => {
-				if (answers?.account) {
-					try {
-						if (answers.account.key) {
-							this._accountStore.removeAccount(answers.account.key.id);
-						} else {
-							await this._accountStore.pruneAccounts();
-						}
-						this.azureController.removeAccount(answers.account);
-						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
-
-					} catch (e) {
-						this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountRemovalFailed(e.message));
-					}
-				}
-			});
-		} else {
-			this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
-		}
-	}
-
-	public onClearTokenCache(): void {
-		this.azureController.clearTokenCache();
-		this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
-	}
+    private _statusView: StatusView;
+    private _connections: { [fileUri: string]: ConnectionInfo };
+    private _connectionCredentialsToServerInfoMap: Map<
+        IConnectionInfo,
+        IServerInfo
+    >;
+    private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
+    private _uriToConnectionCompleteParamsMap: Map<
+        string,
+        Deferred<ConnectionContracts.ConnectionCompleteParams>
+    >;
+    private _failedUriToFirewallIpMap: Map<string, string>;
+    private _failedUriToSSLMap: Map<string, string>;
+    private _accountService: AccountService;
+    private _firewallService: FirewallService;
+    public azureController: AzureController;
+
+    constructor(
+        context: vscode.ExtensionContext,
+        statusView: StatusView,
+        prompter: IPrompter,
+        private _client?: SqlToolsServerClient,
+        private _vscodeWrapper?: VscodeWrapper,
+        private _connectionStore?: ConnectionStore,
+        private _credentialStore?: CredentialStore,
+        private _connectionUI?: ConnectionUI,
+        private _accountStore?: AccountStore,
+    ) {
+        this._statusView = statusView;
+        this._connections = {};
+        this._connectionCredentialsToServerInfoMap = new Map<
+            IConnectionInfo,
+            IServerInfo
+        >();
+        this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
+        this._uriToConnectionCompleteParamsMap = new Map<
+            string,
+            Deferred<ConnectionContracts.ConnectionCompleteParams>
+        >();
+        if (!this.client) {
+            this.client = SqlToolsServerClient.instance;
+        }
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+
+        if (!this._credentialStore) {
+            this._credentialStore = new CredentialStore(context);
+        }
+
+        if (!this._connectionStore) {
+            this._connectionStore = new ConnectionStore(
+                context,
+                this.client?.logger,
+                this._credentialStore,
+            );
+        }
+
+        if (!this._accountStore) {
+            this._accountStore = new AccountStore(context, this.client?.logger);
+        }
+
+        if (!this._connectionUI) {
+            this._connectionUI = new ConnectionUI(
+                this,
+                context,
+                this._connectionStore,
+                this._accountStore,
+                prompter,
+                this.vscodeWrapper,
+            );
+        }
+
+        if (!this.azureController) {
+            this.azureController = new MsalAzureController(
+                context,
+                prompter,
+                this._credentialStore,
+            );
+
+            this.azureController.init();
+        }
+
+        // Initiate the firewall service
+        this._accountService = new AccountService(
+            this.client,
+            this._accountStore,
+            this.azureController,
+        );
+        this._firewallService = new FirewallService(this._accountService);
+        this._failedUriToFirewallIpMap = new Map<string, string>();
+        this._failedUriToSSLMap = new Map<string, string>();
+
+        if (this.client !== undefined) {
+            this.client.onNotification(
+                ConnectionContracts.ConnectionChangedNotification.type,
+                this.handleConnectionChangedNotification(),
+            );
+            this.client.onNotification(
+                ConnectionContracts.ConnectionCompleteNotification.type,
+                this.handleConnectionCompleteNotification(),
+            );
+            this.client.onNotification(
+                LanguageServiceContracts.IntelliSenseReadyNotification.type,
+                this.handleLanguageServiceUpdateNotification(),
+            );
+        }
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper!;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set vscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get client(): SqlToolsServerClient {
+        return this._client!;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set client(client: SqlToolsServerClient) {
+        this._client = client;
+    }
+
+    /**
+     * Get the connection view.
+     */
+    public get connectionUI(): ConnectionUI {
+        return this._connectionUI!;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get statusView(): StatusView {
+        return this._statusView;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set statusView(value: StatusView) {
+        this._statusView = value;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get connectionStore(): ConnectionStore {
+        return this._connectionStore!;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set connectionStore(value: ConnectionStore) {
+        this._connectionStore = value;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get accountStore(): AccountStore {
+        return this._accountStore!;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set accountStore(value: AccountStore) {
+        this._accountStore = value;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get connectionCount(): number {
+        return Object.keys(this._connections).length;
+    }
+
+    public get failedUriToFirewallIpMap(): Map<string, string> {
+        return this._failedUriToFirewallIpMap;
+    }
+
+    public get failedUriToSSLMap(): Map<string, string> {
+        return this._failedUriToSSLMap;
+    }
+
+    public get accountService(): AccountService {
+        return this._accountService;
+    }
+
+    public get firewallService(): FirewallService {
+        return this._firewallService;
+    }
+
+    public isActiveConnection(credential: IConnectionInfo): boolean {
+        const connectedCredentials = Object.keys(this._connections).map(
+            (uri) => this._connections[uri].credentials,
+        );
+        for (let connectedCredential of connectedCredentials) {
+            if (Utils.isSameConnection(credential, connectedCredential)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public getUriForConnection(connection: IConnectionInfo): string {
+        for (let uri of Object.keys(this._connections)) {
+            if (
+                Utils.isSameConnection(
+                    this._connections[uri].credentials,
+                    connection,
+                )
+            ) {
+                return uri;
+            }
+        }
+        return undefined;
+    }
+
+    public isConnected(fileUri: string): boolean {
+        return (
+            fileUri in this._connections &&
+            this._connections[fileUri].connectionId &&
+            Utils.isNotEmpty(this._connections[fileUri].connectionId)
+        );
+    }
+
+    public isConnecting(fileUri: string): boolean {
+        return (
+            fileUri in this._connections &&
+            this._connections[fileUri].connecting
+        );
+    }
+
+    /**
+     * Get the connection string for the provided connection Uri or ConnectionDetails.
+     * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
+     * @param includePassword (optional) if password should be included in connection string.
+     * @param includeApplicationName (optional) if application name should be included in connection string.
+     * @returns connection string for the connection
+     */
+    public async getConnectionString(
+        connectionUriOrDetails: string | ConnectionDetails,
+        includePassword: boolean = false,
+        includeApplicationName: boolean = true,
+    ): Promise<string> {
+        const listParams = new ConnectionContracts.GetConnectionStringParams();
+        if (typeof connectionUriOrDetails === "string") {
+            listParams.ownerUri = connectionUriOrDetails;
+        } else {
+            listParams.connectionDetails = connectionUriOrDetails;
+        }
+        listParams.includePassword = includePassword;
+        listParams.includeApplicationName = includeApplicationName;
+        return this.client.sendRequest(
+            ConnectionContracts.GetConnectionStringRequest.type,
+            listParams,
+        );
+    }
+
+    /**
+     * Set connection details for the provided connection info
+     * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
+     * @param connectionInfo connection info of the connection
+     * @returns connection details credentials for the connection
+     */
+    public createConnectionDetails(
+        connectionInfo: IConnectionInfo,
+    ): ConnectionDetails {
+        return ConnectionCredentials.createConnectionDetails(connectionInfo);
+    }
+
+    /**
+     * Send a request to the SQL Tools Server client
+     * @param requestType The type of the request
+     * @param params The params to pass with the request
+     * @returns A promise object for when the request receives a response
+     */
+    public async sendRequest<P, R, E, R0>(
+        requestType: RequestType<P, R, E, R0>,
+        params?: P,
+    ): Promise<R> {
+        return await this.client.sendRequest(requestType, params);
+    }
+
+    /**
+     * Exposed for testing purposes.
+     */
+    public getConnectionInfo(fileUri: string): ConnectionInfo {
+        return this._connections[fileUri];
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+        return (
+            event: LanguageServiceContracts.IntelliSenseReadyParams,
+        ): void => {
+            this._statusView.languageServiceStatusChanged(
+                event.ownerUri,
+                LocalizedConstants.intelliSenseUpdatedStatus,
+            );
+        };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleConnectionChangedNotification(): NotificationHandler<ConnectionContracts.ConnectionChangedParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+        const self = this;
+        return (event: ConnectionContracts.ConnectionChangedParams): void => {
+            if (self.isConnected(event.ownerUri)) {
+                let connectionInfo: ConnectionInfo =
+                    self._connections[event.ownerUri];
+                connectionInfo.credentials.server = event.connection.serverName;
+                connectionInfo.credentials.database =
+                    event.connection.databaseName;
+                connectionInfo.credentials.user = event.connection.userName;
+
+                self._statusView.connectSuccess(
+                    event.ownerUri,
+                    connectionInfo.credentials,
+                    connectionInfo.serverInfo,
+                );
+
+                let logMessage = LocalizedConstants.msgChangedDatabaseContext(
+                    event.connection.databaseName,
+                    event.ownerUri,
+                );
+
+                self.vscodeWrapper.logToOutputChannel(logMessage);
+            }
+        };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleConnectionCompleteNotification(): NotificationHandler<ConnectionContracts.ConnectionCompleteParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+        const self = this;
+        return async (
+            result: ConnectionContracts.ConnectionCompleteParams,
+        ): Promise<void> => {
+            let fileUri = result.ownerUri;
+            let connection = self.getConnectionInfo(fileUri);
+            connection.connecting = false;
+
+            let mruConnection: IConnectionInfo = <any>{};
+
+            if (Utils.isNotEmpty(result.connectionId)) {
+                // Use the original connection information to save the MRU connection.
+                // for connections that a database is not provided, the database information will be updated
+                // to the default database name, if we use the new information as the MRU connection,
+                // the connection information will be different from the saved connections (saved connection's database property is empty).
+                // When deleting the saved connection, we won't be able to find its corresponding recent connection,
+                // and the saved connection credentials will become orphaned.
+                mruConnection = Utils.deepClone(connection.credentials);
+                // Convert to credentials if it's a connection string based connection
+                if (connection.credentials.connectionString) {
+                    connection.credentials =
+                        await this.populateCredentialsFromConnectionString(
+                            connection.credentials,
+                            result.connectionSummary,
+                        );
+                }
+                this._connectionCredentialsToServerInfoMap.set(
+                    connection.credentials,
+                    result.serverInfo,
+                );
+
+                // We have a valid connection
+                // Copy credentials as the database name will be updated
+                let newCredentials: IConnectionInfo = <any>{};
+                Object.assign<IConnectionInfo, IConnectionInfo>(
+                    newCredentials,
+                    connection.credentials,
+                );
+                if (
+                    result.connectionSummary &&
+                    result.connectionSummary.databaseName
+                ) {
+                    newCredentials.database =
+                        result.connectionSummary.databaseName;
+                    mruConnection.database =
+                        result.connectionSummary.databaseName;
+                }
+                self.handleConnectionSuccess(
+                    fileUri,
+                    connection,
+                    newCredentials,
+                    result,
+                );
+                const promise = self._uriToConnectionPromiseMap.get(
+                    result.ownerUri,
+                );
+                if (promise) {
+                    promise.resolve(true);
+                    self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                }
+                const completePromise =
+                    self._uriToConnectionCompleteParamsMap.get(result.ownerUri);
+                if (completePromise) {
+                    completePromise.resolve(result);
+                    self._uriToConnectionCompleteParamsMap.delete(
+                        result.ownerUri,
+                    );
+                }
+            } else {
+                mruConnection = undefined;
+                const promise = self._uriToConnectionPromiseMap.get(
+                    result.ownerUri,
+                );
+                if (promise) {
+                    if (result.errorMessage) {
+                        await self.handleConnectionErrors(
+                            fileUri,
+                            connection,
+                            result,
+                        );
+                        promise.reject(result.errorMessage);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    } else if (result.messages) {
+                        promise.reject(result.messages);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    }
+                }
+                const completePromise =
+                    self._uriToConnectionCompleteParamsMap.get(result.ownerUri);
+                if (completePromise) {
+                    completePromise.resolve(result);
+                    self._uriToConnectionCompleteParamsMap.delete(
+                        result.ownerUri,
+                    );
+                }
+                await self.handleConnectionErrors(fileUri, connection, result);
+            }
+
+            await self.tryAddMruConnection(connection, mruConnection);
+        };
+    }
+
+    private handleConnectionSuccess(
+        fileUri: string,
+        connection: ConnectionInfo,
+        newCredentials: IConnectionInfo,
+        result: ConnectionContracts.ConnectionCompleteParams,
+    ): void {
+        connection.connectionId = result.connectionId;
+        connection.serverInfo = result.serverInfo;
+        connection.credentials = newCredentials;
+        connection.errorNumber = undefined;
+        connection.errorMessage = undefined;
+
+        this.statusView.connectSuccess(
+            fileUri,
+            newCredentials,
+            connection.serverInfo,
+        );
+        this.statusView.languageServiceStatusChanged(
+            fileUri,
+            LocalizedConstants.updatingIntelliSenseStatus,
+        );
+
+        this._vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgConnectedServerInfo(
+                connection.credentials.server,
+                fileUri,
+                JSON.stringify(connection.serverInfo),
+            ),
+        );
+        sendActionEvent(
+            TelemetryViews.ConnectionPrompt,
+            TelemetryActions.CreateConnectionResult,
+            undefined,
+            undefined,
+            newCredentials as IConnectionProfile,
+            result.serverInfo,
+        );
+    }
+
+    private async handleConnectionErrors(
+        fileUri: string,
+        connection: ConnectionInfo,
+        result: ConnectionContracts.ConnectionCompleteParams,
+    ): Promise<void> {
+        if (
+            result.errorNumber &&
+            result.errorMessage &&
+            !Utils.isEmpty(result.errorMessage)
+        ) {
+            // Check if the error is an expired password
+            if (
+                result.errorNumber === Constants.errorPasswordExpired ||
+                result.errorNumber === Constants.errorPasswordNeedsReset
+            ) {
+                // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
+                Utils.showErrorMsg(
+                    LocalizedConstants.msgConnectionErrorPasswordExpired(
+                        result.errorNumber,
+                        result.errorMessage,
+                    ),
+                );
+            } else if (
+                result.errorNumber ===
+                Constants.errorSSLCertificateValidationFailed
+            ) {
+                // check if it's an SSL failed error
+                this._failedUriToSSLMap.set(fileUri, result.errorMessage);
+            } else if (result.errorNumber === Constants.errorFirewallRule) {
+                // check whether it's a firewall rule error
+                let firewallResult =
+                    await this.firewallService.handleFirewallRule(
+                        result.errorNumber,
+                        result.errorMessage,
+                    );
+                if (firewallResult.result && firewallResult.ipAddress) {
+                    this.failedUriToFirewallIpMap.set(
+                        fileUri,
+                        firewallResult.ipAddress,
+                    );
+                } else {
+                    Utils.showErrorMsg(
+                        LocalizedConstants.msgConnectionError(
+                            result.errorNumber,
+                            result.errorMessage,
+                        ),
+                    );
+                }
+            } else {
+                Utils.showErrorMsg(
+                    LocalizedConstants.msgConnectionError(
+                        result.errorNumber,
+                        result.errorMessage,
+                    ),
+                );
+            }
+            connection.errorNumber = result.errorNumber;
+            connection.errorMessage = result.errorMessage;
+        } else {
+            const platformInfo = await PlatformInformation.getCurrent();
+            if (
+                !platformInfo.isWindows &&
+                result.errorMessage &&
+                result.errorMessage.includes("Kerberos")
+            ) {
+                const action = await this.vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgConnectionError2(result.errorMessage),
+                    LocalizedConstants.macOpenSslHelpButton,
+                );
+                if (
+                    action &&
+                    action === LocalizedConstants.macOpenSslHelpButton
+                ) {
+                    await vscode.env.openExternal(
+                        vscode.Uri.parse(Constants.integratedAuthHelpLink),
+                    );
+                }
+            } else if (
+                platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
+                result.messages.indexOf(
+                    "Unable to load DLL 'System.Security.Cryptography.Native'",
+                ) !== -1
+            ) {
+                const action = await this.vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgConnectionError2(
+                        LocalizedConstants.macOpenSslErrorMessage,
+                    ),
+                    LocalizedConstants.macOpenSslHelpButton,
+                );
+                if (
+                    action &&
+                    action === LocalizedConstants.macOpenSslHelpButton
+                ) {
+                    await vscode.env.openExternal(
+                        vscode.Uri.parse(Constants.macOpenSslHelpLink),
+                    );
+                }
+            } else {
+                Utils.showErrorMsg(
+                    LocalizedConstants.msgConnectionError2(result.messages),
+                );
+            }
+        }
+        this.statusView.connectError(fileUri, connection.credentials, result);
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgConnectionFailed(
+                connection.credentials.server,
+                result.errorMessage ? result.errorMessage : result.messages,
+            ),
+        );
+        sendErrorEvent(
+            TelemetryViews.ConnectionPrompt,
+            TelemetryActions.CreateConnectionResult,
+            new Error(result.errorMessage),
+            false,
+            result.errorNumber?.toString(),
+            undefined,
+            {
+                containsError: "true",
+            },
+            undefined,
+            connection.credentials as IConnectionProfile,
+            result.serverInfo,
+        );
+    }
+
+    public async showInstructionTextAsWarning(
+        profile: IConnectionInfo,
+        reconnectAction: IReconnectAction,
+    ): Promise<void> {
+        const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
+            LocalizedConstants.msgPromptSSLCertificateValidationFailed,
+            { modal: false },
+            [
+                LocalizedConstants.enableTrustServerCertificate,
+                LocalizedConstants.readMore,
+                LocalizedConstants.cancel,
+            ],
+        );
+        if (selection === LocalizedConstants.enableTrustServerCertificate) {
+            if (profile.connectionString) {
+                // Append connection string with encryption options
+                profile.connectionString = profile.connectionString.concat(
+                    "; Encrypt=true; Trust Server Certificate=true;",
+                );
+            }
+            profile.encrypt = EncryptOptions.Mandatory;
+            profile.trustServerCertificate = true;
+            await reconnectAction(profile);
+        } else if (selection === LocalizedConstants.readMore) {
+            this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
+            await this.showInstructionTextAsWarning(profile, reconnectAction);
+        }
+    }
+
+    public async handleSSLError(
+        uri: string,
+        profile: IConnectionProfile,
+    ): Promise<IConnectionInfo | undefined> {
+        let updatedConn: IConnectionInfo | undefined;
+        await this.showInstructionTextAsWarning(
+            profile,
+            async (updatedConnection) => {
+                vscode.commands.executeCommand(
+                    Constants.cmdConnectObjectExplorerProfile,
+                    updatedConnection,
+                );
+                updatedConn = updatedConnection;
+            },
+        );
+        this.failedUriToSSLMap.delete(uri);
+        return updatedConn;
+    }
+
+    private async tryAddMruConnection(
+        connection: ConnectionInfo,
+        newConnection: IConnectionInfo,
+    ): Promise<void> {
+        if (newConnection) {
+            let connectionToSave: IConnectionInfo = Object.assign(
+                {},
+                newConnection,
+            );
+            try {
+                await this._connectionStore.addRecentlyUsed(connectionToSave);
+                connection.connectHandler(true);
+            } catch (err) {
+                connection.connectHandler(false, err);
+            }
+        } else {
+            connection.connectHandler(false);
+        }
+    }
+
+    /**
+     * Populates a credential object based on the credential connection string
+     */
+    private async populateCredentialsFromConnectionString(
+        credentials: IConnectionInfo,
+        connectionSummary: ConnectionSummary,
+    ): Promise<IConnectionInfo> {
+        // populate credential details
+        credentials.database = connectionSummary.databaseName;
+        credentials.user = connectionSummary.userName;
+        credentials.server = connectionSummary.serverName;
+
+        // save credentials if needed
+        let isPasswordBased: boolean =
+            ConnectionCredentials.isPasswordBasedConnectionString(
+                credentials.connectionString,
+            );
+        if (isPasswordBased) {
+            // save the connection string here
+            await this._connectionStore.saveProfileWithConnectionString(
+                credentials as IConnectionProfile,
+            );
+            // replace the conn string from the profile
+            credentials.connectionString = ConnectionStore.formatCredentialId(
+                credentials.server,
+                credentials.database,
+                credentials.user,
+                ConnectionStore.CRED_PROFILE_USER,
+                true,
+            );
+
+            // set auth type
+            credentials.authenticationType = Constants.sqlAuthentication;
+
+            // set savePassword to true so that credentials are automatically
+            // deleted if the settings file is manually changed
+            (credentials as IConnectionProfile).savePassword = true;
+        } else {
+            credentials.authenticationType = Constants.integratedauth;
+        }
+
+        return credentials;
+    }
+
+    /**
+     * Clear the recently used connections list in the connection store.
+     * @returns a boolean value indicating whether the credentials were deleted successfully.
+     */
+    public clearRecentConnectionsList(): Promise<boolean> {
+        return this.connectionStore.clearRecentlyUsed();
+    }
+
+    // choose database to use on current server from UI
+    public async onChooseDatabase(): Promise<boolean> {
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        if (!this.isConnected(fileUri)) {
+            this.vscodeWrapper.showWarningMessage(
+                LocalizedConstants.msgChooseDatabaseNotConnected,
+            );
+            return false;
+        }
+
+        // Get list of databases on current server
+        let listParams = new ConnectionContracts.ListDatabasesParams();
+        listParams.ownerUri = fileUri;
+        const result: ConnectionContracts.ListDatabasesResult =
+            await this.client.sendRequest(
+                ConnectionContracts.ListDatabasesRequest.type,
+                listParams,
+            );
+        // Then let the user select a new database to connect to
+        const newDatabaseCredentials =
+            await this.connectionUI.showDatabasesOnCurrentServer(
+                this._connections[fileUri].credentials,
+                result.databaseNames,
+            );
+        if (newDatabaseCredentials) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgChangingDatabase(
+                    newDatabaseCredentials.database,
+                    newDatabaseCredentials.server,
+                    fileUri,
+                ),
+            );
+            await this.disconnect(fileUri);
+            await this.connect(fileUri, newDatabaseCredentials);
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgChangedDatabase(
+                    newDatabaseCredentials.database,
+                    newDatabaseCredentials.server,
+                    fileUri,
+                ),
+            );
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves the list of databases for the connection specified by the given URI.
+     * @param connectionUri The URI of the connection to list the databases for
+     * @returns The list of databases retrieved from the connection
+     */
+    public async listDatabases(connectionUri: string): Promise<string[]> {
+        await this.refreshAzureAccountToken(connectionUri);
+        const listParams = new ConnectionContracts.ListDatabasesParams();
+        listParams.ownerUri = connectionUri;
+        const result: ConnectionContracts.ListDatabasesResult =
+            await this.client.sendRequest(
+                ConnectionContracts.ListDatabasesRequest.type,
+                listParams,
+            );
+        return result.databaseNames;
+    }
+
+    public async changeDatabase(
+        newDatabaseCredentials: IConnectionInfo,
+    ): Promise<boolean> {
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        if (!this.isConnected(fileUri)) {
+            this.vscodeWrapper.showWarningMessage(
+                LocalizedConstants.msgChooseDatabaseNotConnected,
+            );
+            return false;
+        }
+        await this.disconnect(fileUri);
+        await this.connect(fileUri, newDatabaseCredentials);
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgChangedDatabase(
+                newDatabaseCredentials.database,
+                newDatabaseCredentials.server,
+                fileUri,
+            ),
+        );
+        return true;
+    }
+
+    public async onChooseLanguageFlavor(
+        isSqlCmdMode: boolean = false,
+        isSqlCmd: boolean = false,
+    ): Promise<boolean> {
+        const fileUri = this._vscodeWrapper.activeTextEditorUri;
+        if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+            if (isSqlCmdMode) {
+                SqlToolsServerClient.instance.sendNotification(
+                    LanguageServiceContracts.LanguageFlavorChangedNotification
+                        .type,
+                    <LanguageServiceContracts.DidChangeLanguageFlavorParams>{
+                        uri: fileUri,
+                        language: isSqlCmd ? "sqlcmd" : "sql",
+                        flavor: "MSSQL",
+                    },
+                );
+                return true;
+            }
+            const flavor = await this._connectionUI.promptLanguageFlavor();
+            if (!flavor) {
+                return false;
+            }
+            this.statusView.languageFlavorChanged(fileUri, flavor);
+            SqlToolsServerClient.instance.sendNotification(
+                LanguageServiceContracts.LanguageFlavorChangedNotification.type,
+                <LanguageServiceContracts.DidChangeLanguageFlavorParams>{
+                    uri: fileUri,
+                    language: "sql",
+                    flavor: flavor,
+                },
+            );
+            return true;
+        } else {
+            await this._vscodeWrapper.showWarningMessage(
+                LocalizedConstants.msgOpenSqlFile,
+            );
+            return false;
+        }
+    }
+
+    // close active connection, if any
+    public onDisconnect(): Promise<boolean> {
+        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
+    }
+
+    public async disconnect(fileUri: string): Promise<boolean> {
+        if (this.isConnected(fileUri)) {
+            let disconnectParams = new ConnectionContracts.DisconnectParams();
+            disconnectParams.ownerUri = fileUri;
+
+            const result: ConnectionContracts.DisconnectResult =
+                await this.client.sendRequest(
+                    ConnectionContracts.DisconnectRequest.type,
+                    disconnectParams,
+                );
+            if (this.statusView) {
+                this.statusView.notConnected(fileUri);
+            }
+            if (result) {
+                this.vscodeWrapper.logToOutputChannel(
+                    LocalizedConstants.msgDisconnected(fileUri),
+                );
+            }
+
+            delete this._connections[fileUri];
+            vscode.commands.executeCommand(
+                "setContext",
+                "mssql.connections",
+                this._connections,
+            );
+            return result;
+        } else if (this.isConnecting(fileUri)) {
+            // Prompt the user to cancel connecting
+            await this.onCancelConnect();
+            return true;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Helper to show all connections and perform connect logic.
+     */
+    public async showConnectionsAndConnect(
+        fileUri: string,
+    ): Promise<IConnectionInfo> {
+        // show connection picklist
+        const connectionCreds = await this.connectionUI.promptForConnection();
+        if (connectionCreds) {
+            // close active connection
+            await this.disconnect(fileUri);
+            // connect to the server/database
+            const result = await this.connect(fileUri, connectionCreds);
+            await this.handleConnectionResult(result, fileUri, connectionCreds);
+        }
+        return connectionCreds;
+    }
+
+    /**
+     * Get the server info for a connection
+     * @param connectionCreds
+     */
+    public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
+        if (
+            this._connectionCredentialsToServerInfoMap.has(
+                connectionCredentials,
+            )
+        ) {
+            return this._connectionCredentialsToServerInfoMap.get(
+                connectionCredentials,
+            );
+        }
+    }
+
+    /**
+     * Verifies the connection result. If connection failed because of invalid credentials,
+     * tries to connect again by asking user for different credentials
+     * @param result Connection result
+     * @param fileUri file Uri
+     * @param connectionCreds Connection Profile
+     */
+    public async handleConnectionResult(
+        result: boolean,
+        fileUri: string,
+        connectionCreds: IConnectionInfo,
+    ): Promise<boolean> {
+        let connection = this._connections[fileUri];
+        if (!result && connection && connection.loginFailed) {
+            const newConnection =
+                await this.connectionUI.createProfileWithDifferentCredentials(
+                    connectionCreds,
+                );
+            if (newConnection) {
+                const newResult = await this.connect(fileUri, newConnection);
+                connection = this._connections[fileUri];
+                if (!newResult && connection && connection.loginFailed) {
+                    Utils.showErrorMsg(
+                        LocalizedConstants.msgConnectionError(
+                            connection.errorNumber,
+                            connection.errorMessage,
+                        ),
+                    );
+                }
+                return newResult;
+            } else {
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Delete a credential from the credential store
+     */
+    public async deleteCredential(
+        profile: IConnectionProfile,
+    ): Promise<boolean> {
+        return await this._connectionStore.deleteCredential(profile);
+    }
+
+    // let users pick from a picklist of connections
+    public async onNewConnection(): Promise<IConnectionInfo> {
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        if (!fileUri) {
+            // A text document needs to be open before we can connect
+            this.vscodeWrapper.showWarningMessage(
+                LocalizedConstants.msgOpenSqlFile,
+            );
+            return undefined;
+        } else if (!this.vscodeWrapper.isEditingSqlFile) {
+            const result = await this.connectionUI.promptToChangeLanguageMode();
+            if (result) {
+                const credentials =
+                    await this.showConnectionsAndConnect(fileUri);
+                return credentials;
+            } else {
+                return undefined;
+            }
+        }
+        const creds = await this.showConnectionsAndConnect(fileUri);
+        return creds;
+    }
+
+    // create a new connection with the connectionCreds provided
+    public async connect(
+        fileUri: string,
+        connectionCreds: IConnectionInfo,
+        promise?: Deferred<boolean>,
+    ): Promise<boolean> {
+        return await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: LocalizedConstants.connectProgressNoticationTitle,
+                cancellable: false,
+            },
+            async (_progress, _token) => {
+                if (
+                    !connectionCreds.server &&
+                    !connectionCreds.connectionString
+                ) {
+                    throw new Error(LocalizedConstants.serverNameMissing);
+                }
+                // Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
+                if (connectionCreds.authenticationType === Constants.azureMfa) {
+                    if (
+                        AzureController.isTokenInValid(
+                            connectionCreds.azureAccountToken,
+                            connectionCreds.expiresOn,
+                        )
+                    ) {
+                        let account: IAccount;
+                        let profile: ConnectionProfile;
+                        if (connectionCreds.accountId) {
+                            account = this.accountStore.getAccount(
+                                connectionCreds.accountId,
+                            );
+                            profile = new ConnectionProfile(connectionCreds);
+                        } else {
+                            throw new Error(LocalizedConstants.cannotConnect);
+                        }
+                        if (account) {
+                            // Always set username
+                            connectionCreds.user =
+                                account.displayInfo.displayName;
+                            connectionCreds.email = account.displayInfo.email;
+                            profile.user = account.displayInfo.displayName;
+                            profile.email = account.displayInfo.email;
+                            let azureAccountToken =
+                                await this.azureController.refreshAccessToken(
+                                    account!,
+                                    this.accountStore,
+                                    profile.tenantId,
+                                    providerSettings.resources
+                                        .databaseResource!,
+                                );
+                            if (!azureAccountToken) {
+                                let errorMessage =
+                                    LocalizedConstants.msgAccountRefreshFailed;
+                                let refreshResult =
+                                    await this.vscodeWrapper.showErrorMessage(
+                                        errorMessage,
+                                        LocalizedConstants.refreshTokenLabel,
+                                    );
+                                if (
+                                    refreshResult ===
+                                    LocalizedConstants.refreshTokenLabel
+                                ) {
+                                    await this.azureController.populateAccountProperties(
+                                        profile,
+                                        this.accountStore,
+                                        providerSettings.resources
+                                            .databaseResource!,
+                                    );
+                                } else {
+                                    throw new Error(
+                                        LocalizedConstants.cannotConnect,
+                                    );
+                                }
+                            } else {
+                                connectionCreds.azureAccountToken =
+                                    azureAccountToken.token;
+                                connectionCreds.expiresOn =
+                                    azureAccountToken.expiresOn;
+                            }
+                        } else {
+                            throw new Error(
+                                LocalizedConstants.msgAccountNotFound,
+                            );
+                        }
+                    }
+                }
+                let connectionPromise = new Promise<boolean>(
+                    async (resolve, reject) => {
+                        if (
+                            connectionCreds.connectionString?.includes(
+                                ConnectionStore.CRED_PREFIX,
+                            ) &&
+                            connectionCreds.connectionString?.includes(
+                                "isConnectionString:true",
+                            )
+                        ) {
+                            let connectionString =
+                                await this.connectionStore.lookupPassword(
+                                    connectionCreds,
+                                    true,
+                                );
+                            connectionCreds.connectionString = connectionString;
+                        }
+
+                        let connectionInfo: ConnectionInfo =
+                            new ConnectionInfo();
+                        connectionInfo.credentials = connectionCreds;
+                        connectionInfo.connecting = true;
+                        this._connections[fileUri] = connectionInfo;
+
+                        // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
+                        if (this.statusView) {
+                            this.statusView.languageFlavorChanged(
+                                fileUri,
+                                Constants.mssqlProviderName,
+                            );
+                            this.statusView.connecting(
+                                fileUri,
+                                connectionCreds,
+                            );
+                            this.statusView.languageFlavorChanged(
+                                fileUri,
+                                Constants.mssqlProviderName,
+                            );
+                        }
+                        this.vscodeWrapper.logToOutputChannel(
+                            LocalizedConstants.msgConnecting(
+                                connectionCreds.server,
+                                fileUri,
+                            ),
+                        );
+
+                        // Setup the handler for the connection complete notification to call
+                        connectionInfo.connectHandler = (
+                            connectResult,
+                            error,
+                        ) => {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                vscode.commands.executeCommand(
+                                    "setContext",
+                                    "mssql.connections",
+                                    this._connections,
+                                );
+                                resolve(connectResult);
+                            }
+                        };
+
+                        // package connection details for request message
+                        const connectionDetails =
+                            ConnectionCredentials.createConnectionDetails(
+                                connectionCreds,
+                            );
+                        let connectParams =
+                            new ConnectionContracts.ConnectParams();
+                        connectParams.ownerUri = fileUri;
+                        connectParams.connection = connectionDetails;
+
+                        // send connection request message to service host
+                        this._uriToConnectionPromiseMap.set(
+                            connectParams.ownerUri,
+                            promise!,
+                        );
+                        try {
+                            const result = await this.client.sendRequest(
+                                ConnectionContracts.ConnectionRequest.type,
+                                connectParams,
+                            );
+                            if (!result) {
+                                // Failed to process connect request
+                                resolve(false);
+                            }
+                        } catch (error) {
+                            reject(error);
+                        }
+                    },
+                );
+                return connectionPromise;
+            },
+        );
+    }
+
+    public async connectDialog(
+        connectionCreds: IConnectionInfo,
+    ): Promise<ConnectionContracts.ConnectionCompleteParams> {
+        // If the connection info doesn't have server or connection string, throw an error
+        if (!connectionCreds.server && !connectionCreds.connectionString) {
+            throw new Error(LocalizedConstants.serverNameMissing);
+        }
+
+        if (connectionCreds.authenticationType === Constants.azureMfa) {
+            if (
+                AzureController.isTokenInValid(
+                    connectionCreds.azureAccountToken,
+                    connectionCreds.expiresOn,
+                )
+            ) {
+                let account: IAccount;
+                let profile: ConnectionProfile;
+                if (connectionCreds.accountId) {
+                    account = this.accountStore.getAccount(
+                        connectionCreds.accountId,
+                    );
+                    profile = new ConnectionProfile(connectionCreds);
+                } else {
+                    throw new Error(LocalizedConstants.cannotConnect);
+                }
+                if (account) {
+                    // Always set username
+                    connectionCreds.user = account.displayInfo.displayName;
+                    connectionCreds.email = account.displayInfo.email;
+                    profile.user = account.displayInfo.displayName;
+                    profile.email = account.displayInfo.email;
+                    let azureAccountToken =
+                        await this.azureController.refreshAccessToken(
+                            account!,
+                            this.accountStore,
+                            profile.tenantId,
+                            providerSettings.resources.databaseResource!,
+                        );
+                    if (!azureAccountToken) {
+                        let errorMessage =
+                            LocalizedConstants.msgAccountRefreshFailed;
+                        let refreshResult =
+                            await this.vscodeWrapper.showErrorMessage(
+                                errorMessage,
+                                LocalizedConstants.refreshTokenLabel,
+                            );
+                        if (
+                            refreshResult ===
+                            LocalizedConstants.refreshTokenLabel
+                        ) {
+                            await this.azureController.populateAccountProperties(
+                                profile,
+                                this.accountStore,
+                                providerSettings.resources.databaseResource!,
+                            );
+                        } else {
+                            throw new Error(LocalizedConstants.cannotConnect);
+                        }
+                    } else {
+                        connectionCreds.azureAccountToken =
+                            azureAccountToken.token;
+                        connectionCreds.expiresOn = azureAccountToken.expiresOn;
+                    }
+                } else {
+                    throw new Error(LocalizedConstants.msgAccountNotFound);
+                }
+            }
+        }
+
+        if (
+            connectionCreds.connectionString?.includes(
+                ConnectionStore.CRED_PREFIX,
+            ) &&
+            connectionCreds.connectionString?.includes(
+                "isConnectionString:true",
+            )
+        ) {
+            let connectionString = await this.connectionStore.lookupPassword(
+                connectionCreds,
+                true,
+            );
+            connectionCreds.connectionString = connectionString;
+        }
+
+        const uri = ObjectExplorerUtils.getNodeUriFromProfile(
+            connectionCreds as IConnectionProfile,
+        );
+        let connectionInfo: ConnectionInfo = new ConnectionInfo();
+        connectionInfo.credentials = connectionCreds;
+        connectionInfo.connecting = true;
+        // Setup the handler for the connection complete notification to call
+        connectionInfo.connectHandler = (connectResult, error) => {};
+        this._connections[uri] = connectionInfo;
+
+        // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
+        if (this.statusView) {
+            this.statusView.languageFlavorChanged(
+                uri,
+                Constants.mssqlProviderName,
+            );
+            this.statusView.connecting(uri, connectionCreds);
+            this.statusView.languageFlavorChanged(
+                uri,
+                Constants.mssqlProviderName,
+            );
+        }
+
+        // this.vscodeWrapper.logToOutputChannel(
+        // 	Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
+        // );
+
+        const connectionDetails =
+            ConnectionCredentials.createConnectionDetails(connectionCreds);
+        let connectParams = new ConnectionContracts.ConnectParams();
+        connectParams.ownerUri = uri;
+        connectParams.connection = connectionDetails;
+
+        const connectionCompletePromise =
+            new Deferred<ConnectionContracts.ConnectionCompleteParams>();
+        this._uriToConnectionCompleteParamsMap.set(
+            connectParams.ownerUri,
+            connectionCompletePromise,
+        );
+
+        try {
+            const result = await this.client.sendRequest(
+                ConnectionContracts.ConnectionRequest.type,
+                connectParams,
+            );
+            if (!result) {
+                // Failed to process connect request
+                throw new Error("Failed to connect");
+            }
+        } catch (error) {
+            throw new Error("Failed to connect");
+        }
+
+        return await connectionCompletePromise;
+    }
+
+    public async onCancelConnect(): Promise<void> {
+        const result = await this.connectionUI.promptToCancelConnection();
+        if (result) {
+            await this.cancelConnect();
+        }
+    }
+
+    public async cancelConnect(): Promise<void> {
+        let fileUri = this.vscodeWrapper.activeTextEditorUri;
+        if (!fileUri || Utils.isEmpty(fileUri)) {
+            return;
+        }
+
+        let cancelParams: ConnectionContracts.CancelConnectParams =
+            new ConnectionContracts.CancelConnectParams();
+        cancelParams.ownerUri = fileUri;
+
+        const result = await this.client.sendRequest(
+            ConnectionContracts.CancelConnectRequest.type,
+            cancelParams,
+        );
+        if (result) {
+            this.statusView.notConnected(fileUri);
+        }
+    }
+
+    /**
+     * Called when the 'Manage Connection Profiles' command is issued.
+     */
+    public onManageProfiles(): Promise<boolean> {
+        // Show quick pick to create, edit, or remove profiles
+        return this.connectionUI.promptToManageProfiles();
+    }
+
+    public async onClearPooledConnections(): Promise<void> {
+        return await this._client.sendRequest(
+            ClearPooledConnectionsRequest.type,
+            {},
+        );
+    }
+
+    public async onCreateProfile(): Promise<boolean> {
+        let self = this;
+        const profile = await self.connectionUI.createAndSaveProfile(
+            self.vscodeWrapper.isEditingSqlFile,
+        );
+        return profile ? true : false;
+    }
+
+    public onRemoveProfile(): Promise<boolean> {
+        return this.connectionUI.removeProfile();
+    }
+
+    public async onDidCloseTextDocument(
+        doc: vscode.TextDocument,
+    ): Promise<void> {
+        let docUri: string = doc.uri.toString(true);
+
+        // If this file isn't connected, then don't do anything
+        if (!this.isConnected(docUri)) {
+            return;
+        }
+
+        // Disconnect the document's connection when we close it
+        await this.disconnect(docUri);
+    }
+
+    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+        let uri = doc.uri.toString(true);
+        if (
+            doc.languageId === "sql" &&
+            typeof this._connections[uri] === "undefined"
+        ) {
+            this.statusView.notConnected(uri);
+        }
+    }
+
+    public async transferFileConnection(
+        oldFileUri: string,
+        newFileUri: string,
+    ): Promise<void> {
+        // Is the new file connected or the old file not connected?
+        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
+            return;
+        }
+
+        // Connect the saved uri and disconnect the untitled uri on successful connection
+        let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
+        let result = await this.connect(newFileUri, creds);
+        if (result) {
+            await this.disconnect(oldFileUri);
+        }
+    }
+
+    public async refreshAzureAccountToken(uri: string): Promise<void> {
+        const profile = this.getConnectionInfo(uri);
+        if (!profile) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgConnectionNotFound(uri),
+            );
+            return;
+        }
+
+        // Wait for the pending reconnction promise if any
+        const previousReconnectPromise =
+            this._uriToConnectionPromiseMap.get(uri);
+        if (previousReconnectPromise) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgFoundPendingReconnect(uri),
+            );
+            try {
+                const previousConnectionResult = await previousReconnectPromise;
+                if (previousConnectionResult) {
+                    this.vscodeWrapper.logToOutputChannel(
+                        LocalizedConstants.msgPendingReconnectSuccess(uri),
+                    );
+                    return;
+                }
+                this.vscodeWrapper.logToOutputChannel(
+                    LocalizedConstants.msgFoundPendingReconnectFailed(uri),
+                );
+            } catch (err) {
+                this.vscodeWrapper.logToOutputChannel(
+                    LocalizedConstants.msgFoundPendingReconnectError(uri, err),
+                );
+            }
+        }
+
+        const expiry = profile.credentials.expiresOn;
+        if (typeof expiry === "number" && !Number.isNaN(expiry)) {
+            if (AzureController.isTokenExpired(expiry)) {
+                this.vscodeWrapper.logToOutputChannel(
+                    LocalizedConstants.msgAcessTokenExpired(
+                        profile.connectionId,
+                        uri,
+                    ),
+                );
+                try {
+                    let connectionResult = await this.connect(
+                        uri,
+                        profile.credentials,
+                    );
+                    if (!connectionResult) {
+                        this.vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgRefreshConnection(
+                                profile.connectionId,
+                                uri,
+                            ),
+                        );
+                        throw new Error("Unable to refresh connection");
+                    }
+                    this.vscodeWrapper.logToOutputChannel(
+                        LocalizedConstants.msgRefreshTokenSuccess(
+                            profile.connectionId,
+                            uri,
+                            JSON.stringify(this.getConnectionInfo(uri)),
+                        ),
+                    );
+                    return;
+                } catch {
+                    this.vscodeWrapper.showInformationMessage(
+                        LocalizedConstants.msgRefreshTokenError,
+                    );
+                }
+            }
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgRefreshTokenNotNeeded(
+                    profile.connectionId,
+                    uri,
+                ),
+            );
+        }
+        return;
+    }
+
+    public async addAccount(): Promise<IAccount> {
+        let account = await this.connectionUI.addNewAccount();
+        if (account) {
+            this.vscodeWrapper.showInformationMessage(
+                LocalizedConstants.accountAddedSuccessfully(
+                    account.displayInfo.displayName,
+                ),
+            );
+        } else {
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.accountCouldNotBeAdded,
+            );
+        }
+        return account;
+    }
+
+    public async removeAccount(prompter: IPrompter): Promise<void> {
+        // list options for accounts to remove
+        let questions: IQuestion[] = [];
+        let azureAccountChoices = ConnectionProfile.getAccountChoices(
+            this._accountStore,
+        );
+
+        if (azureAccountChoices.length > 0) {
+            questions.push({
+                type: QuestionTypes.expand,
+                name: "account",
+                message: LocalizedConstants.azureChooseAccount,
+                choices: azureAccountChoices,
+            });
+
+            return prompter
+                .prompt<IAccount>(questions, true)
+                .then(async (answers) => {
+                    if (answers?.account) {
+                        try {
+                            if (answers.account.key) {
+                                this._accountStore.removeAccount(
+                                    answers.account.key.id,
+                                );
+                            } else {
+                                await this._accountStore.pruneAccounts();
+                            }
+                            this.azureController.removeAccount(answers.account);
+                            this.vscodeWrapper.showInformationMessage(
+                                LocalizedConstants.accountRemovedSuccessfully,
+                            );
+                        } catch (e) {
+                            this.vscodeWrapper.showErrorMessage(
+                                LocalizedConstants.accountRemovalFailed(
+                                    e.message,
+                                ),
+                            );
+                        }
+                    }
+                });
+        } else {
+            this.vscodeWrapper.showInformationMessage(
+                LocalizedConstants.noAzureAccountForRemoval,
+            );
+        }
+    }
+
+    public onClearTokenCache(): void {
+        this.azureController.clearTokenCache();
+        this.vscodeWrapper.showInformationMessage(
+            LocalizedConstants.clearedAzureTokenCache,
+        );
+    }
 }
