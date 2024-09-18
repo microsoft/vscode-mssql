@@ -272,19 +272,6 @@ export const QueryResultPane = () => {
                             {...columnSizing_unstable.getTableProps()}
                             ref={tableRef}
                         >
-                            {/* <TableHeader>
-                        <TableRow>
-                            {
-                                columnsDef.map((column) => {
-                                    return <TableHeaderCell
-                                        {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-                                        key={column.columnId}>
-                                        {column.renderHeaderCell()}
-                                    </TableHeaderCell>
-                                })
-                            }
-                        </TableRow>
-                    </TableHeader> */}
                             <TableBody>
                                 {rows.map((row, index) => {
                                     return (
