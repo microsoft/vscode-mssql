@@ -92,9 +92,9 @@ export const QueryResultPane = () => {
 
 	const sizingOptions: TableColumnSizingOptions = {
 		'time': {
-			minWidth: 50,
-			idealWidth: 50,
-			defaultWidth: 50
+			minWidth: 100,
+			idealWidth: 100,
+			defaultWidth: 100
 		},
 		'message': {
 			minWidth: 500,
@@ -213,7 +213,7 @@ export const QueryResultPane = () => {
 								return <TableRow key={index}>
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('time')}
-									>{row.item.time}</TableCell>
+									>{row.item.batchId === undefined ? row.item.time : null}</TableCell>
 									<TableCell
 										{...columnSizing_unstable.getTableCellProps('message')}
 									>{row.item.message}

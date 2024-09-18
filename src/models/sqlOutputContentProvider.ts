@@ -291,7 +291,6 @@ export class SqlOutputContentProvider {
 				} else {
 					this._queryResultWebviewController.getQueryResultState(uri).messages.push({
 						message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-						time: new Date().toLocaleTimeString(),
 						isError: hasError
 					});
 					this._queryResultWebviewController.getQueryResultState(uri).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
