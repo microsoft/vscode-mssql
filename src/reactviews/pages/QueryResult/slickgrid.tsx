@@ -27,7 +27,7 @@ import {
     DbCellValue,
     ResultSetSummary,
 } from "../../../sharedInterfaces/queryResult";
-import * as DOM from './table/dom';
+import * as DOM from "./table/dom";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -217,7 +217,8 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
         }, [refreshkey]);
 
         useImperativeHandle(ref, () => ({
-            refreshGrid, resizeGrid
+            refreshGrid,
+            resizeGrid
         }));
 
         return <div ref={gridContainerRef}></div>;

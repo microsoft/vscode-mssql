@@ -111,12 +111,22 @@ export const QueryResultPane = () => {
     // Resize grid when parent element resizes
     useEffect(() => {
         const gridParent = gridParentRef.current;
-        if (!gridParent) {return;}
+        if (!gridParent) {
+            return;
+        }
         const observer = new ResizeObserver(() => {
-            if (!gridRef.current) {return;}
-            if (!ribbonRef.current) {return;}
+            if (!gridRef.current) {
+                return;
+            }
+            if (!ribbonRef.current) {
+                return;
+            }
             if (gridParent.clientWidth && gridParent.clientHeight) {
-                gridRef.current.resizeGrid(gridParent.clientWidth, gridParent.clientHeight - ribbonRef.current.clientHeight - 5);
+                gridRef.current.resizeGrid(
+                    gridParent.clientWidth,
+                    gridParent.clientHeight -
+                    ribbonRef.current.clientHeight -
+                    5);
             }
         });
         observer.observe(gridParent);
