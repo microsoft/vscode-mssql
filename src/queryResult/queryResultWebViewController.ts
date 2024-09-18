@@ -44,7 +44,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerRequestHandler('setEditorSelection', async (message) => {
             return await this._sqlOutputContentProvider.editorSelectionRequestHandler(message.uri, message.selectionData);
         });
-
         this.registerReducer("setResultTab", async (state, payload) => {
             state.tabStates.resultPaneTab = payload.tabId;
             return state;
