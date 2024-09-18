@@ -67,7 +67,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                                 : undefined,
                     },
                     {
-                        timeTaken: endTime - startTime,
+                        durationMs: endTime - startTime,
                     },
                 );
             } else {
@@ -194,7 +194,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                         type: this._sourceFile,
                     },
                     {
-                        timeToLoad: timeToLoad,
+                        durationMs: timeToLoad,
                     },
                 );
                 this._isFirstLoad = false;

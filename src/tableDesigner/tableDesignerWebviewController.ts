@@ -140,7 +140,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     isEdit: this._isEdit.toString(),
                 },
                 {
-                    initializeTimeMs: intializeEndTime - intializeStartTime,
+                    durationMs: intializeEndTime - intializeStartTime,
                 },
             );
             intializeData.tableInfo.database = databaseName ?? "master";
