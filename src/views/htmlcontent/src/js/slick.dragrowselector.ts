@@ -5,7 +5,6 @@
 
 // Drag select selection model gist taken from https://gist.github.com/skoon/5312536
 // heavily modified
-declare let SlickDrag;
 
 (function ($: JQueryStatic): void {
 	// register namespace
@@ -375,7 +374,7 @@ declare let SlickDrag;
 			e.stopImmediatePropagation();
 			_dragging = true;
 			if (e.ctrlKey || e.metaKey) {
-				_ranges.push(new SlickDrag.Range());
+				_ranges.push(new Slick.Range(cell.row, cell.cell));
 				_grid.setActiveCell(cell.row, cell.cell);
 			} else if (_ranges.length && e.shiftKey) {
 				let last = _ranges.pop();
@@ -385,7 +384,7 @@ declare let SlickDrag;
 				let toCell = Math.max(cell.cell, last.toCell);
 				_ranges = [new SlickDrag.Range(fromRow, fromCell, toRow, toCell)];
 			} else {
-				_ranges = [new SlickDrag.Range()];
+				_ranges = [new Slick.Range(cell.row, cell.cells)];
 				_grid.setActiveCell(cell.row, cell.cell);
 			}
 			setSelectedRanges(_ranges);

@@ -3,71 +3,71 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { WebviewRoute } from '../sharedInterfaces/webviewRoutes';
-import { ReactWebviewBaseController } from './reactWebviewBaseController';
+import * as vscode from "vscode";
+import { ReactWebviewBaseController } from "./reactWebviewBaseController";
 
 /**
- * ReactWebViewViewController is a class that manages a vscode.WebviewView and provides
+ * ReactWebviewViewController is a class that manages a vscode.WebviewView and provides
  * a way to communicate with it. It provides a way to register request handlers and reducers
  * that can be called from the webview. It also provides a way to post notifications to the webview.
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebViewViewController<State, Reducers> extends ReactWebviewBaseController<State, Reducers> implements vscode.WebviewViewProvider{
-	private _webviewView: vscode.WebviewView;
+export class ReactWebviewViewController<State, Reducers>
+    extends ReactWebviewBaseController<State, Reducers>
+    implements vscode.WebviewViewProvider
+{
+    private _webviewView: vscode.WebviewView;
 
-	/**
-	 * Creates a new ReactWebViewPanelController
-	 * @param _context The context of the extension
-	 * @param title The title of the webview panel
-	 * @param _route The route that the webview will use
-	 * @param initialData The initial state object that the webview will use
-	 * @param viewColumn The view column that the webview will be displayed in
-	 * @param _iconPath The icon path that the webview will use
-	 */
-	constructor(
-		_context: vscode.ExtensionContext,
-		_route: WebviewRoute,
-		initialData: State,
-	) {
-		super(_context, _route, initialData);
-	}
+    /**
+     * Creates a new ReactWebviewViewController
+     * @param _context Extension context
+     * @param _sourceFile Source file that the webview will use
+     * @param initialData Initial state object that the webview will use
+     */
+    constructor(
+        _context: vscode.ExtensionContext,
+        _sourceFile: string,
+        initialData: State,
+    ) {
+        super(_context, _sourceFile, initialData);
+    }
 
+    protected _getWebview(): vscode.Webview {
+        return this._webviewView.webview;
+    }
 
-	protected _getWebview(): vscode.Webview {
-		return this._webviewView.webview;
-	}
+    /**
+     * Displays the webview in the foreground
+     * @param viewColumn The view column that the webview will be displayed in
+     */
+    public revealToForeground(
+        viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
+    ): void {}
 
-	/**
-	 * Displays the webview in the foreground
-	 * @param viewColumn The view column that the webview will be displayed in
-	 */
-	public revealToForeground(viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): void {
+    public resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken,
+    ) {
+        this._webviewView = webviewView;
 
-	}
+        webviewView.webview.options = {
+            // Allow scripts in the webview
+            enableScripts: true,
 
-	public resolveWebviewView(
-		webviewView: vscode.WebviewView,
-		context: vscode.WebviewViewResolveContext,
-		_token: vscode.CancellationToken,
-	) {
-		this._webviewView = webviewView;
+            localResourceRoots: [this._context.extensionUri],
+        };
+        this._webviewView.onDidDispose(() => {
+            this.dispose();
+        });
 
-		webviewView.webview.options = {
-			// Allow scripts in the webview
-			enableScripts: true,
-
-			localResourceRoots: [
-				this._context.extensionUri
-			]
-		};
-		this._webviewView.onDidDispose(() => {
-			this.dispose();
-		});
-
-		this._webviewView.webview.html = this._getHtmlTemplate();
-		this.registerDisposable(this._webviewView.webview.onDidReceiveMessage(this._webviewMessageHandler));
-		this.initializeBase();
-	}
+        this._webviewView.webview.html = this._getHtmlTemplate();
+        this.registerDisposable(
+            this._webviewView.webview.onDidReceiveMessage(
+                this._webviewMessageHandler,
+            ),
+        );
+        this.initializeBase();
+    }
 }
