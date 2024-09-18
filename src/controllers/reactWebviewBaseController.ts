@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { getNonce } from '../utils/utils';
+import * as vscode from "vscode";
+import { getNonce } from "../utils/utils";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -13,56 +13,84 @@ import { getNonce } from '../utils/utils';
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export abstract class ReactWebviewBaseController<State, Reducers> implements vscode.Disposable {
-	private _disposables: vscode.Disposable[] = [];
-	private _isDisposed: boolean = false;
-	private _state: State;
-	private _webviewRequestHandlers: { [key: string]: (params: any) => any } = {};
-	private _reducers: Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>> = {} as Record<keyof Reducers, (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>>;
-	private _isFirstLoad: boolean = true;
-	private _loadStartTime: number = Date.now();
-	private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-	public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
-	protected _webviewMessageHandler = async(message) => {
-		if (message.type === 'request') {
-			const handler = this._webviewRequestHandlers[message.method];
-			if (handler) {
-				const result = await handler(message.params);
-				this.postMessage({ type: 'response', id: message.id, result });
-			} else {
-				throw new Error(`No handler registered for method ${message.method}`);
-			}
-		}
-	};
+export abstract class ReactWebviewBaseController<State, Reducers>
+    implements vscode.Disposable
+{
+    private _disposables: vscode.Disposable[] = [];
+    private _isDisposed: boolean = false;
+    private _state: State;
+    private _webviewRequestHandlers: { [key: string]: (params: any) => any } =
+        {};
+    private _reducers: Record<
+        keyof Reducers,
+        (
+            state: State,
+            payload: Reducers[keyof Reducers],
+        ) => ReducerResponse<State>
+    > = {} as Record<
+        keyof Reducers,
+        (
+            state: State,
+            payload: Reducers[keyof Reducers],
+        ) => ReducerResponse<State>
+    >;
+    private _isFirstLoad: boolean = true;
+    private _loadStartTime: number = Date.now();
+    private _onDisposed: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>();
+    public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
+    protected _webviewMessageHandler = async (message) => {
+        if (message.type === "request") {
+            const handler = this._webviewRequestHandlers[message.method];
+            if (handler) {
+                const result = await handler(message.params);
+                this.postMessage({ type: "response", id: message.id, result });
+            } else {
+                throw new Error(
+                    `No handler registered for method ${message.method}`,
+                );
+            }
+        }
+    };
 
-	/**
-	 * Creates a new ReactWebviewPanelController
-	 * @param _context The context of the extension
-	 * @param _sourceFile The source file that the webview will use
-	 * @param _initialData The initial state object that the webview will use
-	 */
-	constructor(
-		protected _context: vscode.ExtensionContext,
-		private _sourceFile: string,
-		private _initialData: State,
-	) {
-	}
+    /**
+     * Creates a new ReactWebviewPanelController
+     * @param _context The context of the extension
+     * @param _sourceFile The source file that the webview will use
+     * @param _initialData The initial state object that the webview will use
+     */
+    constructor(
+        protected _context: vscode.ExtensionContext,
+        private _sourceFile: string,
+        private _initialData: State,
+    ) {}
 
-	protected initializeBase() {
-		this.state = this._initialData;
-		this._registerDefaultRequestHandlers();
-		this.setupTheming();
-	}
+    protected initializeBase() {
+        this.state = this._initialData;
+        this._registerDefaultRequestHandlers();
+        this.setupTheming();
+    }
 
-	protected registerDisposable(disposable: vscode.Disposable) {
-		this._disposables.push(disposable);
-	}
+    protected registerDisposable(disposable: vscode.Disposable) {
+        this._disposables.push(disposable);
+    }
 
-	protected _getHtmlTemplate() {
-		const nonce = getNonce();
-		const baseUrl = this._getWebview().asWebviewUri(vscode.Uri.joinPath(this._context.extensionUri, 'out', 'src', 'reactviews', 'assets')).toString() + '/';
+    protected _getHtmlTemplate() {
+        const nonce = getNonce();
+        const baseUrl =
+            this._getWebview()
+                .asWebviewUri(
+                    vscode.Uri.joinPath(
+                        this._context.extensionUri,
+                        "out",
+                        "src",
+                        "reactviews",
+                        "assets",
+                    ),
+                )
+                .toString() + "/";
 
-		return `
+        return `
 		<!DOCTYPE html>
 			<html lang="en">
 				<head>
@@ -86,131 +114,151 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				</body>
 			</html>
 		`;
-	}
+    }
 
-	protected abstract _getWebview(): vscode.Webview;
+    protected abstract _getWebview(): vscode.Webview;
 
-	protected setupTheming() {
-		this._disposables.push(vscode.window.onDidChangeActiveColorTheme((theme) => {
-			this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, theme.kind);
-		}));
-		this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, vscode.window.activeColorTheme.kind);
-	}
+    protected setupTheming() {
+        this._disposables.push(
+            vscode.window.onDidChangeActiveColorTheme((theme) => {
+                this.postNotification(
+                    DefaultWebviewNotifications.onDidChangeTheme,
+                    theme.kind,
+                );
+            }),
+        );
+        this.postNotification(
+            DefaultWebviewNotifications.onDidChangeTheme,
+            vscode.window.activeColorTheme.kind,
+        );
+    }
 
-	private _registerDefaultRequestHandlers() {
-		this._webviewRequestHandlers['getState'] = () => {
-			return this.state;
-		};
-		this._webviewRequestHandlers['action'] = async (action) => {
-			const reducer = this._reducers[action.type];
-			if (reducer) {
-				this.state = await reducer(this.state, action.payload);
-			}
-			else {
-				throw new Error(`No reducer registered for action ${action.type}`);
-			}
-		};
-		this._webviewRequestHandlers['getTheme'] = () => {
-			return vscode.window.activeColorTheme.kind;
-		};
-		this._webviewRequestHandlers['loadStats'] = (message) => {
-			const timeStamp = message.loadCompleteTimeStamp;
-			const timeToLoad = timeStamp - this._loadStartTime;
-			if (this._isFirstLoad) {
-				console.log(`
+    private _registerDefaultRequestHandlers() {
+        this._webviewRequestHandlers["getState"] = () => {
+            return this.state;
+        };
+        this._webviewRequestHandlers["action"] = async (action) => {
+            const reducer = this._reducers[action.type];
+            if (reducer) {
+                this.state = await reducer(this.state, action.payload);
+            } else {
+                throw new Error(
+                    `No reducer registered for action ${action.type}`,
+                );
+            }
+        };
+        this._webviewRequestHandlers["getTheme"] = () => {
+            return vscode.window.activeColorTheme.kind;
+        };
+        this._webviewRequestHandlers["loadStats"] = (message) => {
+            const timeStamp = message.loadCompleteTimeStamp;
+            const timeToLoad = timeStamp - this._loadStartTime;
+            if (this._isFirstLoad) {
+                console.log(`
 					Load stats for ${this._sourceFile}
 					Total time: ${timeToLoad} ms
 				`);
-				this._isFirstLoad = false;
-			}
-		};
-		this._webviewRequestHandlers['getLocalization'] = async () => {
-			if (vscode.l10n.uri?.fsPath) {
-				const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
-				const fileContents = Buffer.from(file).toString();
-				return fileContents;
-			} else {
-				return undefined;
-			}
-		};
-	}
+                this._isFirstLoad = false;
+            }
+        };
+        this._webviewRequestHandlers["getLocalization"] = async () => {
+            if (vscode.l10n.uri?.fsPath) {
+                const file = await vscode.workspace.fs.readFile(
+                    vscode.l10n.uri,
+                );
+                const fileContents = Buffer.from(file).toString();
+                return fileContents;
+            } else {
+                return undefined;
+            }
+        };
+    }
 
-	/**
-	 * Register a request handler that the webview can call and get a response from.
-	 * @param method The method name that the webview will use to call the handler
-	 * @param handler The handler that will be called when the method is called
-	 */
-	public registerRequestHandler(method: string, handler: (params: any) => any) {
-		this._webviewRequestHandlers[method] = handler;
-	}
+    /**
+     * Register a request handler that the webview can call and get a response from.
+     * @param method The method name that the webview will use to call the handler
+     * @param handler The handler that will be called when the method is called
+     */
+    public registerRequestHandler(
+        method: string,
+        handler: (params: any) => any,
+    ) {
+        this._webviewRequestHandlers[method] = handler;
+    }
 
-	/**
-	 * Reducers are methods that can be called from the webview to modify the state of the webview.
-	 * This method registers a reducer that can be called from the webview.
-	 * @param method The method name that the webview will use to call the reducer
-	 * @param reducer The reducer that will be called when the method is called
-	 * @template Method The key of the reducer that is being registered
-	 */
-	public registerReducer<Method extends keyof Reducers>(method: Method, reducer: (state: State, payload: Reducers[Method]) => ReducerResponse<State>) {
-		this._reducers[method] = reducer;
-	}
+    /**
+     * Reducers are methods that can be called from the webview to modify the state of the webview.
+     * This method registers a reducer that can be called from the webview.
+     * @param method The method name that the webview will use to call the reducer
+     * @param reducer The reducer that will be called when the method is called
+     * @template Method The key of the reducer that is being registered
+     */
+    public registerReducer<Method extends keyof Reducers>(
+        method: Method,
+        reducer: (
+            state: State,
+            payload: Reducers[Method],
+        ) => ReducerResponse<State>,
+    ) {
+        this._reducers[method] = reducer;
+    }
 
-	/**
-	 * Gets the state object that the webview is using
-	 */
-	public get state(): State {
-		return this._state;
-	}
+    /**
+     * Gets the state object that the webview is using
+     */
+    public get state(): State {
+        return this._state;
+    }
 
-	/**
-	 * Sets the state object that the webview is using. This will update the state in the webview
-	 * and may cause the webview to re-render.
-	 * @param value The new state object
-	 */
-	public set state(value: State) {
-		this._state = value;
-		this.postNotification(DefaultWebviewNotifications.updateState, value);
-	}
+    /**
+     * Sets the state object that the webview is using. This will update the state in the webview
+     * and may cause the webview to re-render.
+     * @param value The new state object
+     */
+    public set state(value: State) {
+        this._state = value;
+        this.postNotification(DefaultWebviewNotifications.updateState, value);
+    }
 
-	/**
-	 * Gets whether the controller has been disposed
-	 */
-	public get isDisposed(): boolean {
-		return this._isDisposed;
-	}
+    /**
+     * Gets whether the controller has been disposed
+     */
+    public get isDisposed(): boolean {
+        return this._isDisposed;
+    }
 
-	/**
-	 * Posts a notification to the webview
-	 * @param method The method name that the webview will use to handle the notification
-	 * @param params The parameters that will be passed to the method
-	 */
-	public postNotification(method: string, params: any) {
-		this.postMessage({ type: 'notification', method, params });
-	}
+    /**
+     * Posts a notification to the webview
+     * @param method The method name that the webview will use to handle the notification
+     * @param params The parameters that will be passed to the method
+     */
+    public postNotification(method: string, params: any) {
+        this.postMessage({ type: "notification", method, params });
+    }
 
-	/**
-	 * Posts a message to the webview
-	 * @param message The message to post to the webview
-	 */
-	public postMessage(message: any) {
-		if (!this._isDisposed) {
-			this._getWebview().postMessage(message);
-		}
-	}
+    /**
+     * Posts a message to the webview
+     * @param message The message to post to the webview
+     */
+    public postMessage(message: any) {
+        if (!this._isDisposed) {
+            this._getWebview().postMessage(message);
+        }
+    }
 
-	/**
-	 * Disposes the controller
-	 */
-	public dispose() {
-		this._onDisposed.fire();
-		this._disposables.forEach(d => d.dispose());
-		this._isDisposed = true;
-	}
+    /**
+     * Disposes the controller
+     */
+    public dispose() {
+        this._onDisposed.fire();
+        this._disposables.forEach((d) => d.dispose());
+        this._isDisposed = true;
+    }
 }
 
 export enum DefaultWebviewNotifications {
-	updateState = 'updateState',
-	onDidChangeTheme = 'onDidChangeTheme'
+    updateState = "updateState",
+    onDidChangeTheme = "onDidChangeTheme",
 }
 
 export type ReducerResponse<T> = T | Promise<T>;

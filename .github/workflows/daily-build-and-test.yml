@@ -63,7 +63,6 @@ jobs:
       - name: Run lint
         run: |
           yarn lint
-        continue-on-error: true
 
       - name: Run tests
         run: |
