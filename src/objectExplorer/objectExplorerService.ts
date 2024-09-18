@@ -47,11 +47,11 @@ import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IAccount } from "../models/contracts/azure";
 import * as AzureConstants from "../azure/constants";
+import { getConnectionDisplayName } from "../models/connectionInfo";
 import {
     TelemetryActions,
     TelemetryViews,
-} from "../telemetry/telemetryInterfaces";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+} from "../sharedInterfaces/telemetry";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;

@@ -10,10 +10,7 @@ import {
     ResultSetSubset,
     ISelectionData,
 } from "./models/interfaces";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "./telemetry/telemetryInterfaces";
+import { TelemetryViews, TelemetryActions } from "./sharedInterfaces/telemetry";
 
 export interface IWebviewProxy extends Disposable {
     sendEvent(type: string, arg: any): void;

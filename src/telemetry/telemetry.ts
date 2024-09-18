@@ -10,7 +10,10 @@ import AdsTelemetryReporter, {
 import * as vscodeMssql from "vscode-mssql";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscode from "vscode";
-import { TelemetryActions, TelemetryViews } from "./telemetryInterfaces";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 
 const packageJson = vscode.extensions.getExtension(
     vscodeMssql.extension.name,

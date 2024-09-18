@@ -38,7 +38,7 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import {
     TelemetryActions,
     TelemetryViews,
-} from "../telemetry/telemetryInterfaces";
+} from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 /**

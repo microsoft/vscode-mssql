@@ -47,7 +47,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import {
     TelemetryActions,
     TelemetryViews,
-} from "../telemetry/telemetryInterfaces";
+} from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
