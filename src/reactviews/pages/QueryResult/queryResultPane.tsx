@@ -218,7 +218,12 @@ export const QueryResultPane = () => {
 										{...columnSizing_unstable.getTableCellProps('message')}
 									>{row.item.message}
 										{row.item.link?.text && row.item.selection && (
-											<>{' '}<Link onClick={() => { console.log('TODO open link'); }}>{row.item?.link?.text}</Link></>
+											<>{' '}<Link onClick={async () => {
+												await webViewState.extensionRpc.call('setEditorSelection', {
+													uri: metadata?.uri,
+													selectionData: row.item.selection
+											});
+											}}>{row.item?.link?.text}</Link></>
 										)}
 									</TableCell>
 								</TableRow>;

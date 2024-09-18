@@ -6,10 +6,11 @@
 import * as vscode from 'vscode';
 import * as qr from '../sharedInterfaces/queryResult';
 import { ReactWebviewViewController } from '../controllers/reactWebviewViewController';
+import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 
 export class QueryResultWebviewController extends ReactWebviewViewController<qr.QueryResultWebviewState, qr.QueryResultReducers> {
 	private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> = new Map<string, qr.QueryResultWebviewState>();
-	private _rowRequestHandler: ((uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number) => Promise<qr.ResultSetSubset>) | undefined;
+	private _sqlOutputContentProvider: SqlOutputContentProvider;
 
 	constructor(context: vscode.ExtensionContext,
 	) {
@@ -29,7 +30,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<qr.
 
 	private registerRpcHandlers() {
 		this.registerRequestHandler('getRows', async (message) => {
-			return await this._rowRequestHandler(message.uri, message.batchId, message.resultId, message.rowStart, message.numberOfRows);
+			return await this._sqlOutputContentProvider.rowRequestHandler(message.uri, message.batchId, message.resultId, message.rowStart, message.numberOfRows);
+		});
+		this.registerRequestHandler('setEditorSelection', async (message) => {
+			return await this._sqlOutputContentProvider.editorSelectionRequestHandler(message.uri, message.selectionData);
 		});
 		this.registerReducer('setResultTab', async (state, payload) => {
 			state.tabStates.resultPaneTab = payload.tabId;
@@ -57,8 +61,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<qr.
 		return res;
 	}
 
-	public setRowRequestHandler(handler: (uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number)=> Promise<qr.ResultSetSubset>): void {
-
-		this._rowRequestHandler = handler;
+	public setSqlOutputContentProvider(provider: SqlOutputContentProvider): void {
+		this._sqlOutputContentProvider = provider;
 	}
 }
