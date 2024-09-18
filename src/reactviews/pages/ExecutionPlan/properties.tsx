@@ -31,6 +31,7 @@ const useStyles = makeStyles({
   paneContainer: {
     height: "100%",
     width: "100%",
+    overflowX: "hidden",
 	  overflowY: "scroll"
   },
   chevronButton: {
@@ -208,7 +209,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 
   const handleFilter = async (searchValue: string) => {
     // on starting filtering, save the current items so that when filtering stops
-    // we can reset the items
+    // it can properly reset the items
     let firstFilter = false;
     if (items.length === numItems) {
       setUnfilteredItems(items);
@@ -243,33 +244,31 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     return currentItems;
   }
 
-  // Define the columns
   const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] = [
-    // is there a way to put a button this is item.children.length > 0
-      createTableColumn<ep.ExecutionPlanPropertyTableItem>({
-        columnId: "name",
-        renderHeaderCell: () => NAME,
-        renderCell: (item) =>
-        // Add tabbing based on the "level" of the item in the table,
-        // and add expand button based on whether the item has children
-        <TableCellLayout truncate className={classes.textContainer}>
-            {`\u200b\t`.repeat(item.level * 6)}
-            {item.children.length > 0 && (
-              <Button
-                size="small"
-                className={classes.chevronButton}
-                icon={openedButtons.includes(item.name) ? <ChevronDown20Regular /> : <ChevronRight20Regular />}
-                onClick={() => handleShowChildrenClick(item.name, item.children)}
-              />
-            )}
-            {item.name}
-        </TableCellLayout>,
-      }),
-      createTableColumn<ep.ExecutionPlanPropertyTableItem>({
-        columnId: "value",
-        renderHeaderCell: () => VALUE,
-        renderCell: (item) => <TableCellLayout truncate className={classes.textContainer}>{item.value}</TableCellLayout>,
-      }),
+    createTableColumn<ep.ExecutionPlanPropertyTableItem>({
+      columnId: "name",
+      renderHeaderCell: () => NAME,
+      renderCell: (item) =>
+      // Add tabbing based on the "level" of the item in the table,
+      // and add expand button based on whether the item has children
+      <TableCellLayout truncate className={classes.textContainer} >
+          {`\u200b\t`.repeat(item.level * 6)}
+          {item.children.length > 0 && (
+            <Button
+              size="small"
+              className={classes.chevronButton}
+              icon={openedButtons.includes(item.name) ? <ChevronDown20Regular /> : <ChevronRight20Regular />}
+              onClick={() => handleShowChildrenClick(item.name, item.children)}
+            />
+          )}
+          {item.name}
+      </TableCellLayout>,
+    }),
+    createTableColumn<ep.ExecutionPlanPropertyTableItem>({
+      columnId: "value",
+      renderHeaderCell: () => VALUE,
+      renderCell: (item) => <TableCellLayout truncate className={classes.textContainer}>{item.value}</TableCellLayout>,
+    }),
   ];
 
   return (
@@ -278,7 +277,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
       className={classes.paneContainer}
       style={{
         background: utils.background(executionPlanState!.theme!),
-        borderLeft: `2px solid ${utils.tableBackground(executionPlanState!.theme!)}`
+        borderLeft: `2px solid ${utils.tableBackground(executionPlanState!.theme!)}`,
       }}
     >
 	    <div className={classes.propertiesHeader} style={{background:utils.background(executionPlanState!.theme!)}}>
@@ -378,6 +377,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         />
         </div>
       </Toolbar>
+      <div style={{width: "100%"}}>
       <DataGrid
         items={items}
         columns={columns}
@@ -407,6 +407,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 			)}
 		</DataGridBody>
       </DataGrid>
+      </div>
     </div>
   );
 };
