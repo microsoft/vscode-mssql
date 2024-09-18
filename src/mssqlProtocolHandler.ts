@@ -47,6 +47,13 @@ export class MssqlProtocolHandler {
 		const server = args.get('server') ?? '';
 		const database = args.get('database') ?? '';
 		const user = args.get('user') ?? '';
+		const email = args.get('email') ?? '';
+		const accountId = args.get('accountId') ?? '';
+		const tenantId = args.get('tenantId') ?? '';
+
+		const portValue = parseInt(args.get('port'));
+		const port = isNaN(portValue) ? 0 : portValue;
+
 		/*
 			Authentication Type:
 			1. Take --authenticationType, if not
@@ -63,14 +70,113 @@ export class MssqlProtocolHandler {
 						(user && user.length > 0) ? user.includes('@') ? 'AzureMFA' : 'SqlLogin' :
 							'Integrated';
 
+		const azureAccountToken = args.get('azureAccountToken') ?? undefined;
+
+		const expiresOnValue = parseInt(args.get('expiresOn'));
+		const expiresOn = isNaN(expiresOnValue) ? undefined : expiresOnValue;;
+
+		const encryptValueFlag = parseInt(args.get('encrypt'));
+		const encryptValueStr = args.get('encrypt') ?? 'Mandatory'; // default to Mandatory
+		const encrypt = isNaN(encryptValueFlag) ? (encryptValueStr) : encryptValueFlag === 1;
+
+		const trustServerCertificateValue = parseInt(args.get('trustServerCertificate'));
+		const trustServerCertificate = isNaN(trustServerCertificateValue) ? undefined : trustServerCertificateValue === 1;
+
+		const hostNameInCertificate = args.get('hostNameInCertificate') ?? undefined;
+
+		const persistSecurityInfoValue = parseInt(args.get('persistSecurityInfo'));
+		const persistSecurityInfo = isNaN(persistSecurityInfoValue) ? undefined : persistSecurityInfoValue === 1;
+
+		const columnEncryptionSetting = args.get('columnEncryptionSetting') ?? undefined;
+		const attestationProtocol = args.get('attestationProtocol') ?? undefined;
+		const enclaveAttestationUrl = args.get('enclaveAttestationUrl') ?? undefined;
+
+		const connectTimeoutValue = parseInt(args.get('connectTimeout'));
+		const connectTimeout = isNaN(connectTimeoutValue) ? undefined : connectTimeoutValue;
+
+		const commandTimeoutValue = parseInt(args.get('commandTimeout'));
+		const commandTimeout = isNaN(commandTimeoutValue) ? undefined : commandTimeoutValue;
+
+		const connectRetryCountValue = parseInt(args.get('connectRetryCount'));
+		const connectRetryCount = isNaN(connectRetryCountValue) ? undefined : connectRetryCountValue;
+
+		const connectRetryIntervalValue = parseInt(args.get('connectRetryInterval'));
+		const connectRetryInterval = isNaN(connectRetryIntervalValue) ? undefined : connectRetryIntervalValue;
+
 		const applicationName = args.get('applicationName') ? `${args.get('applicationName')}-azdata` : 'azdata';
+
+		const workstationId = args.get('workstationId') ?? undefined;
+		const applicationIntent = args.get('applicationIntent') ?? undefined;
+		const currentLanguage = args.get('currentLanguage') ?? undefined;
+
+		const poolingValue = parseInt(args.get('pooling'));
+		const pooling = isNaN(poolingValue) ? undefined : poolingValue === 1;
+
+		const maxPoolSizeValue = parseInt(args.get('maxPoolSize'));
+		const maxPoolSize = isNaN(maxPoolSizeValue) ? undefined : maxPoolSizeValue;
+
+		const minPoolSizeValue = parseInt(args.get('minPoolSize'));
+		const minPoolSize = isNaN(minPoolSizeValue) ? undefined : minPoolSizeValue;
+
+		const loadBalanceTimeoutValue = parseInt(args.get('loadBalanceTimeout'));
+		const loadBalanceTimeout = isNaN(loadBalanceTimeoutValue) ? undefined : loadBalanceTimeoutValue;
+
+		const replicationValue = parseInt(args.get('replication'));
+		const replication = isNaN(replicationValue) ? undefined : replicationValue === 1;
+
+		const attachDbFilename = args.get('attachDbFilename') ?? undefined;
+		const failoverPartner = args.get('failoverPartner') ?? undefined;
+
+		const multiSubnetFailoverValue = parseInt(args.get('multiSubnetFailover'));
+		const multiSubnetFailover = isNaN(multiSubnetFailoverValue) ? undefined : multiSubnetFailoverValue === 1;
+
+		const multipleActiveResultSetsValue = parseInt(args.get('multipleActiveResultSets'));
+		const multipleActiveResultSets = isNaN(multipleActiveResultSetsValue) ? undefined : multipleActiveResultSetsValue === 1;
+
+		const packetSizeValue = parseInt(args.get('packetSize'));
+		const packetSize = isNaN(packetSizeValue) ? undefined : packetSizeValue;
+
+		const typeSystemVersion = args.get('typeSystemVersion') ?? undefined;
+		const connectionString = args.get('connectionString') ?? undefined;
 
 		return {
 			server,
 			database,
 			user,
+			email,
+			accountId,
+			tenantId,
+			port,
 			authenticationType,
-			applicationName
+			azureAccountToken,
+			expiresOn,
+			encrypt,
+			trustServerCertificate,
+			hostNameInCertificate,
+			persistSecurityInfo,
+			columnEncryptionSetting,
+			attestationProtocol,
+			enclaveAttestationUrl,
+			connectTimeout,
+			commandTimeout,
+			connectRetryCount,
+			connectRetryInterval,
+			applicationName,
+			workstationId,
+			applicationIntent,
+			currentLanguage,
+			pooling,
+			maxPoolSize,
+			minPoolSize,
+			loadBalanceTimeout,
+			replication,
+			attachDbFilename,
+			failoverPartner,
+			multiSubnetFailover,
+			multipleActiveResultSets,
+			packetSize,
+			typeSystemVersion,
+			connectionString
 		} as IConnectionInfo;
 	}
 }
