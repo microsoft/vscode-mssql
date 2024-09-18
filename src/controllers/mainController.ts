@@ -224,17 +224,17 @@ export default class MainController implements vscode.Disposable {
 			const providerInstance = new this.ExecutionPlanCustomEditorProvider(this._context, this.executionPlanService, this._untitledSqlDocumentService);
 			vscode.window.registerCustomEditorProvider('mssql.executionPlanView', providerInstance);
 
-			if (this.isExperimentalEnabled) {
-				const uriHandler: vscode.UriHandler = {
-					handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+			const uriHandler: vscode.UriHandler = {
+				handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+					if (this.isExperimentalEnabled) {
 						const mssqlProtocolHandler = new MssqlProtocolHandler();
 						const connectionInfo = mssqlProtocolHandler.handleUri(uri);
 
 						vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
 					}
-				};
-				vscode.window.registerUriHandler(uriHandler);
-			}
+				}
+			};
+			vscode.window.registerUriHandler(uriHandler);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
