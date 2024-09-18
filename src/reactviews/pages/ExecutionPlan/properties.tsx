@@ -86,9 +86,7 @@ const useStyles = makeStyles({
         fontSize: "12px",
     },
     inputbox: {
-        minWidth: "50px",
-        width: "100px",
-        maxWidth: "300px",
+        width: "100%",
         right: 0,
         fontSize: "12px",
     },

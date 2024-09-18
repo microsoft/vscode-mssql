@@ -198,7 +198,7 @@ export class ExecutionPlanView {
     }
 
     private createGraphElementId(): string {
-        return `element-${this.getNonce()}`;
+	return `element-${window.crypto.randomUUID()}`;
     }
 
     /**
@@ -479,20 +479,5 @@ export class ExecutionPlanView {
             this._executionPlanRootNode.subTreeCost +
             this._executionPlanRootNode.cost
         );
-    }
-
-    /**
-     * Generates a random nonce value that can be used in a webview
-     */
-    private getNonce(): string {
-        let text = "";
-        const possible =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        for (let i = 0; i < 32; i++) {
-            text += possible.charAt(
-                Math.floor(Math.random() * possible.length),
-            );
-        }
-        return text;
     }
 }
