@@ -19,7 +19,7 @@ import { DesignerPageRibbon } from "./designerPageRibbon";
 import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
 import { DesignerResultPane } from "./designerResultPane";
-import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -109,17 +109,13 @@ export const TableDesigner = () => {
         return null;
     }
 
-    const ERROR_LOADING_DESIGNER = l10n.t("Error loading designer");
-    const RETRY = l10n.t("Retry");
-    const LOADING_TABLE_DESIGNER = l10n.t("Loading table designer");
-
     return (
         <div className={classes.root}>
             {tableDesignerState.apiState?.initializeState ===
                 designer.LoadState.Loading && (
                 <div className={classes.pageContext}>
                     <Spinner
-                        label={LOADING_TABLE_DESIGNER}
+                        label={locConstants.tableDesigner.loadingTableDesigner}
                         labelPosition="below"
                     />
                 </div>
@@ -128,8 +124,10 @@ export const TableDesigner = () => {
                 designer.LoadState.Error && (
                 <div className={classes.pageContext}>
                     <ErrorCircleRegular className={classes.errorIcon} />
-                    <div>{ERROR_LOADING_DESIGNER}</div>
-                    <Button className={classes.retryButton}>{RETRY}</Button>
+                    <div>{locConstants.tableDesigner.errorLoadingDesigner}</div>
+                    <Button className={classes.retryButton}>
+                        {locConstants.tableDesigner.retry}
+                    </Button>
                 </div>
             )}
             {tableDesignerState.apiState?.initializeState ===
@@ -150,10 +148,10 @@ export const TableDesigner = () => {
                         />
                         {state.state.propertiesPaneData && (
                             <ResizableBox
-                                width={350}
+                                width={500}
                                 height={Infinity}
-                                maxConstraints={[800, Infinity]}
-                                minConstraints={[300, Infinity]}
+                                maxConstraints={[Infinity, Infinity]}
+                                minConstraints={[10, Infinity]}
                                 resizeHandles={["w"]}
                                 handle={
                                     <div
@@ -169,8 +167,8 @@ export const TableDesigner = () => {
                     <ResizableBox
                         width={Infinity}
                         height={250}
-                        maxConstraints={[Infinity, 400]}
-                        minConstraints={[Infinity, 200]}
+                        maxConstraints={[Infinity, Infinity]}
+                        minConstraints={[Infinity, 10]}
                         resizeHandles={["n"]}
                         handle={<div className={classes.resultPaneHandle} />}
                         className={classes.resultPaneContainer}

@@ -42,6 +42,7 @@ import {
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -100,9 +101,6 @@ export const DesignerResultPane = () => {
     const state = useContext(TableDesignerContext);
     const metadata = state?.state;
 
-    const SEVERITY = l10n.t("Severity");
-    const DESCRIPTION = l10n.t("Description");
-    const SCRIPT_AS_CREATE = l10n.t("Script as CREATE");
     const getIssuesTabAriaLabel = (count: number) => {
         return count === 1 ? l10n.t("1 issue") : l10n.t("{0} issues", count);
     };
@@ -124,11 +122,13 @@ export const DesignerResultPane = () => {
     const columnsDef: TableColumnDefinition<DesignerIssue>[] = [
         createTableColumn({
             columnId: "severity",
-            renderHeaderCell: () => <>{SEVERITY}</>,
+            renderHeaderCell: () => <>{locConstants.tableDesigner.severity}</>,
         }),
         createTableColumn({
             columnId: "description",
-            renderHeaderCell: () => <>{DESCRIPTION}</>,
+            renderHeaderCell: () => (
+                <>{locConstants.tableDesigner.description}</>
+            ),
         }),
         createTableColumn({
             columnId: "propertyPath",
@@ -192,7 +192,7 @@ export const DesignerResultPane = () => {
                         value={DesignerResultPaneTabs.Script}
                         key={DesignerResultPaneTabs.Script}
                     >
-                        {SCRIPT_AS_CREATE}
+                        {locConstants.tableDesigner.scriptAsCreate}
                     </Tab>
                     <Tab
                         value={DesignerResultPaneTabs.Issues}
