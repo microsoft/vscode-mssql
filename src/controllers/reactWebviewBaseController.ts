@@ -12,7 +12,6 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/telemetry";
-import { randomUUID } from "crypto";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
