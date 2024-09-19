@@ -21,13 +21,13 @@ export class MssqlProtocolHandler {
 	}
 
 	/**
-     * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
+	 * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
 	 * - vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&user=sa&authenticationType=SqlLogin
 	 * - vscode://ms-mssql.mssql/connect?connectionString=Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;
-     *
-     * @param {vscode.Uri} uri - The URI to handle.
-     * @returns {IConnectionInfo | undefined} The connection information or undefined if not applicable.
-     */
+	 *
+	 * @param {vscode.Uri} uri - The URI to handle.
+	 * @returns {IConnectionInfo | undefined} The connection information or undefined if not applicable.
+	 */
 	public handleUri(uri: vscode.Uri): IConnectionInfo | undefined {
 		Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
 
@@ -47,11 +47,11 @@ export class MssqlProtocolHandler {
 
 
 	/**
-     * Connects using the given URI.
-     *
-     * @param {vscode.Uri} uri - The URI containing connection information.
-     * @returns {IConnectionInfo | undefined} The connection information or undefined if not applicable.
-     */
+	 * Connects using the given URI.
+	 *
+	 * @param {vscode.Uri} uri - The URI containing connection information.
+	 * @returns {IConnectionInfo | undefined} The connection information or undefined if not applicable.
+	 */
 	private connect(uri: vscode.Uri): IConnectionInfo | undefined {
 		return this.readProfileFromArgs(uri.query);
 	}
