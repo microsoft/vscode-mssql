@@ -250,6 +250,9 @@ export const DesignerResultPane = () => {
                                     ] as InputBoxProperties
                                 ).value ?? ""
                             }
+                            options={{
+                                readOnly: true,
+                            }}
                         ></Editor>
                     </div>
                 )}
