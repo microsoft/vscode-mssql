@@ -1785,7 +1785,7 @@ export default class MainController implements vscode.Disposable {
             this._lastSavedUri &&
             closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
             this._lastSavedTimer.getDuration() <
-            Constants.untitledSaveTimeThreshold
+                Constants.untitledSaveTimeThreshold
         ) {
             // Untitled file was saved and connection will be transfered
             await this._connectionMgr.transferFileConnection(
@@ -1797,7 +1797,7 @@ export default class MainController implements vscode.Disposable {
         } else if (
             this._lastOpenedUri &&
             this._lastOpenedTimer.getDuration() <
-            Constants.renamedOpenTimeThreshold
+                Constants.renamedOpenTimeThreshold
         ) {
             // File was renamed and connection will be transfered
             await this._connectionMgr.transferFileConnection(
@@ -1930,7 +1930,7 @@ export default class MainController implements vscode.Disposable {
                 );
                 if (
                     profile.authenticationType ===
-                    Constants.sqlAuthentication &&
+                        Constants.sqlAuthentication &&
                     profile.savePassword
                 ) {
                     await this.connectionManager.deleteCredential(profile);
@@ -2071,7 +2071,8 @@ export default class MainController implements vscode.Disposable {
     }
 
     private ExecutionPlanCustomEditorProvider = class
-        implements vscode.CustomTextEditorProvider {
+        implements vscode.CustomTextEditorProvider
+    {
         context: vscode.ExtensionContext;
         executionPlanService: ExecutionPlanService;
         untitledSqlService: UntitledSqlDocumentService;
