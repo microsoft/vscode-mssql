@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------------------------
+﻿/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -55,6 +55,7 @@ import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
+import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 
 /**
  * The main controller class that initializes the extension
@@ -335,6 +336,24 @@ export default class MainController implements vscode.Disposable {
                 "mssql.executionPlanView",
                 providerInstance,
             );
+
+            const self = this;
+            const uriHandler: vscode.UriHandler = {
+                handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+                    if (self.isExperimentalEnabled) {
+                        const mssqlProtocolHandler = new MssqlProtocolHandler();
+
+                        const connectionInfo =
+                            mssqlProtocolHandler.handleUri(uri);
+
+                        vscode.commands.executeCommand(
+                            Constants.cmdAddObjectExplorer,
+                            connectionInfo,
+                        );
+                    }
+                },
+            };
+            vscode.window.registerUriHandler(uriHandler);
 
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(
@@ -676,18 +695,24 @@ export default class MainController implements vscode.Disposable {
         // Old style Add connection when experimental features are not enabled
 
         // Add Object Explorer Node
-        this.registerCommand(Constants.cmdAddObjectExplorer);
-        this._event.on(Constants.cmdAddObjectExplorer, async () => {
+        this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
+        this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
             if (!this.isExperimentalEnabled) {
                 if (!self._objectExplorerProvider.objectExplorerExists) {
                     self._objectExplorerProvider.objectExplorerExists = true;
                 }
                 await self.createObjectExplorerSession();
             } else {
+                let connectionInfo: IConnectionInfo | undefined = undefined;
+                if (args) {
+                    connectionInfo = args as IConnectionInfo;
+                }
+
                 const connDialog = new ConnectionDialogWebviewController(
                     this._context,
                     this,
                     this._objectExplorerProvider,
+                    connectionInfo,
                 );
                 connDialog.revealToForeground();
             }

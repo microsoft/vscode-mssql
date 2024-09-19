@@ -36,6 +36,7 @@
     "multi-root ready"
   ],
   "activationEvents": [
+    "onUri",
     "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
