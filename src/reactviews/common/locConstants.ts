@@ -106,6 +106,9 @@ export class LocConstants {
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
             scriptAsCreate: l10n.t("Script As Create"),
+            designerPreviewConfirmation: l10n.t(
+                "I have read the summary and understand the potential risks.",
+            ),
         };
     }
 
