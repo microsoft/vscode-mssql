@@ -11,7 +11,7 @@ import {
     useRef,
     useState,
 } from "react";
-import "../../../../media/slickgrid.css";
+import "../../media/slickgrid.css";
 import { range, Table } from "./table/table";
 import { defaultTableStyles } from "./table/interfaces";
 import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";

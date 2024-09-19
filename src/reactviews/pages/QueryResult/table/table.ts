@@ -7,6 +7,7 @@
 // import 'media/slick.grid';
 // import 'media/slickColorTheme';
 
+import "../../../media/table.css";
 import { TableDataView } from "./tableDataView";
 import { ITableSorter, ITableConfiguration, ITableStyles } from "./interfaces";
 import * as DOM from "./dom";
