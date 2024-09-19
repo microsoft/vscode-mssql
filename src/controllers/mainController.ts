@@ -1,4 +1,5 @@
-﻿/*---------------------------------------------------------------------------------------------
+﻿/* eslint-disable prettier/prettier */
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -343,7 +344,8 @@ export default class MainController implements vscode.Disposable {
                     if (self.isExperimentalEnabled) {
                         const mssqlProtocolHandler = new MssqlProtocolHandler();
 
-                        const connectionInfo = mssqlProtocolHandler.handleUri(uri);
+                        const connectionInfo =
+                            mssqlProtocolHandler.handleUri(uri);
 
                         vscode.commands.executeCommand(
                             Constants.cmdAddObjectExplorer,
