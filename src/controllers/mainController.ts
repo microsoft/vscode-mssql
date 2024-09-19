@@ -337,18 +337,18 @@ export default class MainController implements vscode.Disposable {
                 providerInstance,
             );
 
-			const self = this;
-			const uriHandler: vscode.UriHandler = {
-				handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
-					if (self.isExperimentalEnabled) {
-						const mssqlProtocolHandler = new MssqlProtocolHandler();
-						const connectionInfo = mssqlProtocolHandler.handleUri(uri);
+            const self = this;
+            const uriHandler: vscode.UriHandler = {
+                handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+                    if (self.isExperimentalEnabled) {
+                        const mssqlProtocolHandler = new MssqlProtocolHandler();
+                        const connectionInfo = mssqlProtocolHandler.handleUri(uri);
 
-						vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
-					}
-				}
-			};
-			vscode.window.registerUriHandler(uriHandler);
+                        vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
+                    }
+                }
+            };
+            vscode.window.registerUriHandler(uriHandler);
 
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(
@@ -698,16 +698,16 @@ export default class MainController implements vscode.Disposable {
                 }
                 await self.createObjectExplorerSession();
             } else {
-				let connectionInfo: IConnectionInfo | undefined = undefined;
-				if (args) {
-					connectionInfo = args as IConnectionInfo;
-				}
+                let connectionInfo: IConnectionInfo | undefined = undefined;
+                if (args) {
+                    connectionInfo = args as IConnectionInfo;
+                }
 
                 const connDialog = new ConnectionDialogWebviewController(
                     this._context,
                     this,
                     this._objectExplorerProvider,
-					connectionInfo
+                    connectionInfo
                 );
                 connDialog.revealToForeground();
             }
@@ -1785,7 +1785,7 @@ export default class MainController implements vscode.Disposable {
             this._lastSavedUri &&
             closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
             this._lastSavedTimer.getDuration() <
-                Constants.untitledSaveTimeThreshold
+            Constants.untitledSaveTimeThreshold
         ) {
             // Untitled file was saved and connection will be transfered
             await this._connectionMgr.transferFileConnection(
@@ -1797,7 +1797,7 @@ export default class MainController implements vscode.Disposable {
         } else if (
             this._lastOpenedUri &&
             this._lastOpenedTimer.getDuration() <
-                Constants.renamedOpenTimeThreshold
+            Constants.renamedOpenTimeThreshold
         ) {
             // File was renamed and connection will be transfered
             await this._connectionMgr.transferFileConnection(
@@ -1930,7 +1930,7 @@ export default class MainController implements vscode.Disposable {
                 );
                 if (
                     profile.authenticationType ===
-                        Constants.sqlAuthentication &&
+                    Constants.sqlAuthentication &&
                     profile.savePassword
                 ) {
                     await this.connectionManager.deleteCredential(profile);
@@ -2071,8 +2071,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     private ExecutionPlanCustomEditorProvider = class
-        implements vscode.CustomTextEditorProvider
-    {
+        implements vscode.CustomTextEditorProvider {
         context: vscode.ExtensionContext;
         executionPlanService: ExecutionPlanService;
         untitledSqlService: UntitledSqlDocumentService;
