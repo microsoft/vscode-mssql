@@ -12,11 +12,22 @@ enum Command {
 	openConnectionDialog = '/openConnectionDialog'
 }
 
+/**
+ * Handles MSSQL protocol URIs.
+ */
 export class MssqlProtocolHandler {
 	constructor() {
 
 	}
 
+	/**
+     * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
+	 * - vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&user=sa&authenticationType=SqlLogin
+	 * - vscode://ms-mssql.mssql/connect?connectionString=Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;
+     *
+     * @param {vscode.Uri} uri - The URI to handle.
+     * @returns {IConnectionInfo | undefined} The connection information or undefined if not applicable.
+     */
 	public handleUri(uri: vscode.Uri): IConnectionInfo | undefined {
 		Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
 
@@ -34,10 +45,23 @@ export class MssqlProtocolHandler {
 		}
 	}
 
+
+	/**
+     * Connects using the given URI.
+     *
+     * @param {vscode.Uri} uri - The URI containing connection information.
+     * @returns {IConnectionInfo | undefined} The connection information or undefined if not applicable.
+     */
 	private connect(uri: vscode.Uri): IConnectionInfo | undefined {
 		return this.readProfileFromArgs(uri.query);
 	}
 
+	/**
+	 * Reads the profile information from the query string and returns an IConnectionInfo object.
+	 *
+	 * @param {string} query - The query string containing connection information.
+	 * @returns {IConnectionInfo | undefined} The connection information object or undefined if the query is empty.
+	 */
 	private readProfileFromArgs(query: string): IConnectionInfo | undefined {
 		if (!query) {
 			return undefined;
