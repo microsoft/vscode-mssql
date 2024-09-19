@@ -177,7 +177,7 @@ export const DesignerChangesPreviewButton = () => {
                                 locConstants.tableDesigner
                                     .designerPreviewConfirmation
                             }
-                            onChange={(event, data) => {
+                            onChange={(_event, data) => {
                                 console.log(data);
                                 setIsConfirmationChecked(
                                     data.checked as boolean,
