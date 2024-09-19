@@ -159,6 +159,15 @@ export class LocConstants {
                 "Highlight Expensive Operation",
             ),
             toggleTooltips: l10n.t("Toggle Tooltips"),
+            properties: l10n.t("Properties"),
+            name: l10n.t("Name"),
+            value: l10n.t("Value"),
+            importance: l10n.t("Importance"),
+            alphabetical: l10n.t("Alphabetical"),
+            reverseAlphabetical: l10n.t("Reverse Alphabetical"),
+            expandAll: l10n.t("Expand All"),
+            collapseAll: l10n.t("Collapse All"),
+            filterAnyField: l10n.t("Filter for any field..."),
         };
     }
 }

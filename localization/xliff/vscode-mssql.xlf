@@ -63,6 +63,9 @@
     <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
       <source xml:lang="en">Allow Nulls</source>
     </trans-unit>
+    <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
+      <source xml:lang="en">Alphabetical</source>
+    </trans-unit>
     <trans-unit id="++CODE++d4fd4b3da177dfc06dbcde0a7f62d637dbf3d90298fdc9b6aeba4f9230441e1f">
       <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
     </trans-unit>
@@ -217,6 +220,9 @@
     </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
+      <source xml:lang="en">Collapse All</source>
     </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
@@ -438,6 +444,9 @@
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
+      <source xml:lang="en">Expand All</source>
+    </trans-unit>
     <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
       <source xml:lang="en">Expression</source>
     </trans-unit>
@@ -469,6 +478,9 @@
     </trans-unit>
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
+      <source xml:lang="en">Filter for any field...</source>
     </trans-unit>
     <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
       <source xml:lang="en">Find Node</source>
@@ -538,6 +550,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
       <source xml:lang="en">Ignore Tenant</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
+      <source xml:lang="en">Importance</source>
     </trans-unit>
     <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
       <source xml:lang="en">In progress</source>
@@ -855,6 +870,9 @@
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
+      <source xml:lang="en">Reverse Alphabetical</source>
     </trans-unit>
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
