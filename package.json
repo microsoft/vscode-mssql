@@ -57,7 +57,8 @@
     "localization": "gulp ext:extract-localization-strings",
     "smoketest": "gulp ext:smoke",
     "test": "gulp test:cover --log",
-    "package": "vsce package"
+    "package": "vsce package",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
