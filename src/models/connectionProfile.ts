@@ -22,9 +22,9 @@ import { AzureAuthType, IAccount, ITenant } from "./contracts/azure";
 import { getEnableSqlAuthenticationProviderConfig } from "../azure/utils";
 import { sendActionEvent } from "../telemetry/telemetry";
 import {
-    TelemetryActions,
     TelemetryViews,
-} from "../telemetry/telemetryInterfaces";
+    TelemetryActions,
+} from "../sharedInterfaces/telemetry";
 
 // Concrete implementation of the IConnectionProfile interface
 

@@ -5,6 +5,13 @@
 
 import * as vscode from "vscode";
 import { getNonce } from "../utils/utils";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    TelemetryActions,
+    TelemetryViews,
+    WebviewTelemetryActionEvent,
+    WebviewTelemetryErrorEvent,
+} from "../sharedInterfaces/telemetry";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -43,8 +50,25 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         if (message.type === "request") {
             const handler = this._webviewRequestHandlers[message.method];
             if (handler) {
+                const startTime = Date.now();
                 const result = await handler(message.params);
                 this.postMessage({ type: "response", id: message.id, result });
+                const endTime = Date.now();
+                sendActionEvent(
+                    TelemetryViews.WebviewController,
+                    TelemetryActions.WebviewRequest,
+                    {
+                        type: this._sourceFile,
+                        method: message.method,
+                        reducer:
+                            message.method === "action"
+                                ? message.params.type
+                                : undefined,
+                    },
+                    {
+                        durationMs: endTime - startTime,
+                    },
+                );
             } else {
                 throw new Error(
                     `No handler registered for method ${message.method}`,
@@ -137,6 +161,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         this._webviewRequestHandlers["getState"] = () => {
             return this.state;
         };
+
         this._webviewRequestHandlers["action"] = async (action) => {
             const reducer = this._reducers[action.type];
             if (reducer) {
@@ -147,20 +172,60 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                 );
             }
         };
+
         this._webviewRequestHandlers["getTheme"] = () => {
             return vscode.window.activeColorTheme.kind;
         };
+
         this._webviewRequestHandlers["loadStats"] = (message) => {
             const timeStamp = message.loadCompleteTimeStamp;
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
-                console.log(`
-					Load stats for ${this._sourceFile}
-					Total time: ${timeToLoad} ms
-				`);
+                console.log(
+                    `Load stats for ${this._sourceFile}` +
+                        "\n" +
+                        `Total time: ${timeToLoad} ms`,
+                );
+                sendActionEvent(
+                    TelemetryViews.WebviewController,
+                    TelemetryActions.Load,
+                    {
+                        type: this._sourceFile,
+                    },
+                    {
+                        durationMs: timeToLoad,
+                    },
+                );
                 this._isFirstLoad = false;
             }
         };
+
+        this._webviewRequestHandlers["sendActionEvent"] = (
+            message: WebviewTelemetryActionEvent,
+        ) => {
+            sendActionEvent(
+                message.telemetryView,
+                message.telemetryAction,
+                message.additionalProps,
+                message.additionalMeasurements,
+            );
+        };
+
+        this._webviewRequestHandlers["sendErrorEvent"] = (
+            message: WebviewTelemetryErrorEvent,
+        ) => {
+            sendErrorEvent(
+                message.telemetryView,
+                message.telemetryAction,
+                message.error,
+                message.includeErrorMessage,
+                message.errorCode,
+                message.errorType,
+                message.additionalProps,
+                message.additionalMeasurements,
+            );
+        };
+
         this._webviewRequestHandlers["getLocalization"] = async () => {
             if (vscode.l10n.uri?.fsPath) {
                 const file = await vscode.workspace.fs.readFile(

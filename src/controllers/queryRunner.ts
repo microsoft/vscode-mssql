@@ -51,7 +51,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import {
     TelemetryActions,
     TelemetryViews,
-} from "../telemetry/telemetryInterfaces";
+} from "../sharedInterfaces/telemetry";
 
 export interface IResultSet {
     columns: string[];

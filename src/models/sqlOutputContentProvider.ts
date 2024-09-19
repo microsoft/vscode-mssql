@@ -16,12 +16,12 @@ import { WebviewPanelController } from "../controllers/webviewController";
 import { IServerProxy, Deferred } from "../protocol";
 import { ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
+import { QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import {
     TelemetryActions,
     TelemetryViews,
-} from "../telemetry/telemetryInterfaces";
-import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
-import { QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
+} from "../sharedInterfaces/telemetry";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 

@@ -11,6 +11,12 @@ import {
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../sharedInterfaces/objectExplorerFilter";
+import { sendActionEvent } from "../telemetry/telemetry";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { randomUUID } from "crypto";
 
 export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPanelController<
     ObjectExplorerFilterState,
@@ -84,6 +90,15 @@ export class ObjectExplorerFilter {
         treeNode: TreeNodeInfo,
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         return await new Promise((resolve, _reject) => {
+            const correlationId = randomUUID();
+            sendActionEvent(
+                TelemetryViews.ObjectExplorerFilter,
+                TelemetryActions.Open,
+                {
+                    nodeType: treeNode.nodeType,
+                    correlationId,
+                },
+            );
             if (
                 !this._filterWebviewController ||
                 this._filterWebviewController.isDisposed
@@ -103,12 +118,39 @@ export class ObjectExplorerFilter {
             }
             this._filterWebviewController.revealToForeground();
             this._filterWebviewController.onSubmit((e) => {
+                sendActionEvent(
+                    TelemetryViews.ObjectExplorerFilter,
+                    TelemetryActions.Submit,
+                    {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    },
+                    {
+                        filterCount: e.length,
+                    },
+                );
                 resolve(e);
             });
             this._filterWebviewController.onCancel(() => {
+                sendActionEvent(
+                    TelemetryViews.ObjectExplorerFilter,
+                    TelemetryActions.Cancel,
+                    {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    },
+                );
                 resolve(undefined);
             });
             this._filterWebviewController.onDisposed(() => {
+                sendActionEvent(
+                    TelemetryViews.ObjectExplorerFilter,
+                    TelemetryActions.Cancel,
+                    {
+                        nodeType: treeNode.nodeType,
+                        correlationId,
+                    },
+                );
                 resolve(undefined);
             });
         });
