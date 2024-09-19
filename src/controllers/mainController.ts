@@ -55,7 +55,7 @@ import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
-import { MssqlProtocolHandler } from '../mssqlProtocolHandler';
+import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 
 /**
  * The main controller class that initializes the extension
@@ -342,9 +342,12 @@ export default class MainController implements vscode.Disposable {
                 handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
                     if (self.isExperimentalEnabled) {
                         const mssqlProtocolHandler = new MssqlProtocolHandler();
-                        const connectionInfo = mssqlProtocolHandler.handleUri(uri);
 
-                        vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
+                        const connectionInfo = mssqlProtocolHandler.handleUri(uri);
+                        vscode.commands.executeCommand(
+                            Constants.cmdAddObjectExplorer,
+                            connectionInfo,
+                        );
                     }
                 }
             };
@@ -707,7 +710,7 @@ export default class MainController implements vscode.Disposable {
                     this._context,
                     this,
                     this._objectExplorerProvider,
-                    connectionInfo
+                    connectionInfo,
                 );
                 connDialog.revealToForeground();
             }

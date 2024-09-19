@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import * as Utils from './models/utils';
-import { IConnectionInfo } from 'vscode-mssql';
+import * as vscode from "vscode";
+import * as Utils from "./models/utils";
+import { IConnectionInfo } from "vscode-mssql";
 
 enum Command {
-    connect = '/connect',
-    openConnectionDialog = '/openConnectionDialog'
+    connect = "/connect",
+    openConnectionDialog = "/openConnectionDialog",
 }
 
 /**
