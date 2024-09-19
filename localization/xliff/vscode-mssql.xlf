@@ -548,6 +548,9 @@
     <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
       <source xml:lang="en">Highlight Expensive Operation</source>
     </trans-unit>
+    <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
+      <source xml:lang="en">I have read the summary and understand the potential risks.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
       <source xml:lang="en">Ignore Tenant</source>
     </trans-unit>
@@ -602,9 +605,6 @@
     </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c47aaf844e09d0c6bd516bf7b71a31e66eac808241c7ec609c6c74c54908daa4">
-      <source xml:lang="en">Loading table designer</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -912,9 +912,6 @@
     </trans-unit>
     <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
       <source xml:lang="en">Script As Create</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3a4a2e94c1227e991b2d55800b114ce9ef01970894efa5dade81ab8f14adda8b">
-      <source xml:lang="en">Script as CREATE</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>

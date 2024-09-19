@@ -18,9 +18,9 @@ import {
     ErrorCircleRegular,
 } from "@fluentui/react-icons";
 import { Button } from "@fluentui/react-button";
-import { Spinner, makeStyles } from "@fluentui/react-components";
+import { Checkbox, Spinner, makeStyles } from "@fluentui/react-components";
 import ReactMarkdown from "react-markdown";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import { locConstants } from "../../common/locConstants";
@@ -56,6 +56,8 @@ export const DesignerChangesPreviewButton = () => {
     if (!designerContext) {
         return null;
     }
+
+    const [isConfirmationChecked, setIsConfirmationChecked] = useState(false);
 
     const metadata = designerContext.state;
 
@@ -158,7 +160,7 @@ export const DesignerChangesPreviewButton = () => {
                         <div
                             style={{
                                 width: "98%",
-                                height: "100%",
+                                height: "calc(100% - 40px)",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 borderTop: "1px solid #e0e0e0",
@@ -170,13 +172,27 @@ export const DesignerChangesPreviewButton = () => {
                                 {metadata?.generatePreviewReportResult?.report}
                             </ReactMarkdown>
                         </div>
+                        <Checkbox
+                            label={
+                                locConstants.tableDesigner
+                                    .designerPreviewConfirmation
+                            }
+                            onChange={(_event, data) => {
+                                setIsConfirmationChecked(
+                                    data.checked as boolean,
+                                );
+                            }}
+                        />
                     </DialogContent>
                     <DialogActions>
                         <Button
                             className={classes.updateDatabase}
                             disabled={
-                                metadata.apiState?.previewState !==
-                                LoadState.Loaded
+                                !(
+                                    isConfirmationChecked &&
+                                    metadata.apiState?.previewState ===
+                                        LoadState.Loaded
+                                )
                             }
                             appearance="primary"
                             onClick={() => {

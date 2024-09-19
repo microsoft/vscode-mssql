@@ -102,6 +102,13 @@ export class LocConstants {
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
             close: l10n.t("Close"),
+            errorLoadingDesigner: l10n.t("Error loading designer"),
+            severity: l10n.t("Severity"),
+            description: l10n.t("Description"),
+            scriptAsCreate: l10n.t("Script As Create"),
+            designerPreviewConfirmation: l10n.t(
+                "I have read the summary and understand the potential risks.",
+            ),
         };
     }
 
