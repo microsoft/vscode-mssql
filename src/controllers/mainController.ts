@@ -344,12 +344,13 @@ export default class MainController implements vscode.Disposable {
                         const mssqlProtocolHandler = new MssqlProtocolHandler();
 
                         const connectionInfo = mssqlProtocolHandler.handleUri(uri);
+
                         vscode.commands.executeCommand(
                             Constants.cmdAddObjectExplorer,
                             connectionInfo,
                         );
                     }
-                }
+                },
             };
             vscode.window.registerUriHandler(uriHandler);
 

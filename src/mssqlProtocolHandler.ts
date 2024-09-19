@@ -16,9 +16,7 @@ enum Command {
  * Handles MSSQL protocol URIs.
  */
 export class MssqlProtocolHandler {
-    constructor() {
-
-    }
+    constructor() { }
 
     /**
      * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
@@ -33,18 +31,23 @@ export class MssqlProtocolHandler {
 
         switch (uri.path) {
             case Command.connect:
-                Utils.logDebug(`[MssqlProtocolHandler][handleUri] connect: ${uri.path}`);
+                Utils.logDebug(
+                    `[MssqlProtocolHandler][handleUri] connect: ${uri.path}`
+                );
+
                 return this.connect(uri);
 
             case Command.openConnectionDialog:
                 return undefined;
 
             default:
-                Utils.logDebug(`[MssqlProtocolHandler][handleUri] Unknown URI path, defaulting to connect: ${uri.path}`);
+                Utils.logDebug(
+                    `[MssqlProtocolHandler][handleUri] Unknown URI path, defaulting to connect: ${uri.path}`
+                );
+
                 return this.connect(uri);
         }
     }
-
 
     /**
      * Connects using the given URI.
@@ -72,7 +75,7 @@ export class MssqlProtocolHandler {
         const connectionString = args.get("connectionString") ?? undefined;
         if (connectionString !== undefined) {
             return {
-                connectionString
+                connectionString,
             } as IConnectionInfo;
         }
 
@@ -95,12 +98,14 @@ export class MssqlProtocolHandler {
             5. If user exists but doesn't have @, then its SqlLogin
             6. If user doesn't exist, then integrated
         */
-        const authenticationType =
-            args.get("authenticationType") ? args.get("authenticationType") :
-                args.get("integrated") ? "Integrated" :
-                    args.get("aad") ? "AzureMFA" :
-                        (user && user.length > 0) ? user.includes("@") ? "AzureMFA" : "SqlLogin" :
-                            "Integrated";
+        const authenticationType = args.get("authenticationType")
+            ? args.get("authenticationType")
+                : args.get("integrated")
+                    ? "Integrated"
+                        : args.get("aad")
+                            ? "AzureMFA"
+                                : (user && user.length > 0) ? user.includes("@") ? "AzureMFA" : "SqlLogin" :
+                                    "Integrated";
 
         const azureAccountToken = args.get("azureAccountToken") ?? undefined;
 
