@@ -5,7 +5,7 @@
 
 export enum TelemetryViews {
     ObjectExplorer = "ObjectExplorer",
-    CommandPallet = "CommandPallet",
+    CommandPalette = "CommandPalette",
     SqlProjects = "SqlProjects",
     QueryEditor = "QueryEditor",
     ResultsGrid = "ResultsGrid",

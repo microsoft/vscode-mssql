@@ -1707,7 +1707,7 @@ export default class MainController implements vscode.Disposable {
                 }
                 this._statusview.sqlCmdModeChanged(uri, false);
                 sendActionEvent(
-                    TelemetryViews.CommandPallet,
+                    TelemetryViews.CommandPalette,
                     TelemetryActions.NewQuery,
                     undefined,
                     undefined,
