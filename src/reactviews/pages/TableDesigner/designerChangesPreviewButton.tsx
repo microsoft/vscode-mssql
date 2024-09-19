@@ -178,7 +178,6 @@ export const DesignerChangesPreviewButton = () => {
                                     .designerPreviewConfirmation
                             }
                             onChange={(_event, data) => {
-                                console.log(data);
                                 setIsConfirmationChecked(
                                     data.checked as boolean,
                                 );
