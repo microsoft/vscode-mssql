@@ -142,10 +142,7 @@ export const DesignerMainPane = () => {
                                 <Text>{tab.title}</Text>
                                 {getCurrentTabIssuesCount(tab.id) > 0 && (
                                     <CounterBadge
-                                        style={{
-                                            marginTop: "2px",
-                                        }}
-                                        color="danger"
+                                        color="important"
                                         size="small"
                                         title={getTableIssuesCountLabel(tab.id)}
                                         count={getCurrentTabIssuesCount(tab.id)}
