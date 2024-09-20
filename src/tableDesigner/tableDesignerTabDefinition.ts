@@ -662,11 +662,6 @@ export function getDesignerView(
     return {
         tabs: [
             {
-                title: vscode.l10n.t("About table"),
-                id: designer.DesignerMainPaneTabs.AboutTable,
-                components: getAboutTableComponents(view),
-            },
-            {
                 title: vscode.l10n.t("Columns"),
                 id: designer.DesignerMainPaneTabs.Columns,
                 components: getColumnsTabComponents(view),
@@ -690,6 +685,11 @@ export function getDesignerView(
                 title: vscode.l10n.t("Check Constraints"),
                 id: designer.DesignerMainPaneTabs.CheckConstraints,
                 components: getCheckConstraintsTabComponents(view),
+            },
+            {
+                title: vscode.l10n.t("General"),
+                id: designer.DesignerMainPaneTabs.AboutTable,
+                components: getAboutTableComponents(view),
             },
         ],
     };
