@@ -230,7 +230,7 @@ export const DesignerChangesPreviewButton = () => {
     };
 
     return (
-        <Dialog inertTrapFocus={true}>
+        <Dialog inertTrapFocus>
             <DialogTrigger disableButtonEnhancement>
                 <ToolbarButton
                     aria-label={locConstants.tableDesigner.publish}

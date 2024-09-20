@@ -655,3 +655,4 @@ export let connect = l10n.t("Connect");
 export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
+export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");

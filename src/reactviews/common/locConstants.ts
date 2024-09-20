@@ -109,6 +109,10 @@ export class LocConstants {
             designerPreviewConfirmation: l10n.t(
                 "I have read the summary and understand the potential risks.",
             ),
+            copyScript: l10n.t("Copy script"),
+            openInEditor: l10n.t("Open in editor"),
+            maximizePanelSize: l10n.t("Maximize panel size"),
+            restorePanelSize: l10n.t("Restore panel size"),
         };
     }
 

@@ -166,12 +166,19 @@ export const TableDesigner = () => {
                     </div>
                     <ResizableBox
                         width={Infinity}
-                        height={250}
+                        height={
+                            state.isResultPaneFullScreen
+                                ? Number.MAX_SAFE_INTEGER
+                                : state.resultPaneHeight
+                        }
                         maxConstraints={[Infinity, Infinity]}
                         minConstraints={[Infinity, 10]}
                         resizeHandles={["n"]}
                         handle={<div className={classes.resultPaneHandle} />}
                         className={classes.resultPaneContainer}
+                        onResizeStop={(_e, data) => {
+                            state.setResultPaneHeight(data.size.height);
+                        }}
                     >
                         <DesignerResultPane />
                     </ResizableBox>

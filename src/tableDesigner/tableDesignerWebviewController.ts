@@ -16,6 +16,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { scriptCopiedToClipboard } from "../constants/locConstants";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -324,6 +325,15 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 (state.model["script"] as designer.InputBoxProperties).value ??
                     "",
             );
+            return state;
+        });
+
+        this.registerReducer("copyScriptAsCreateToClipboard", async (state) => {
+            await vscode.env.clipboard.writeText(
+                (state.model["script"] as designer.InputBoxProperties).value ??
+                    "",
+            );
+            await vscode.window.showInformationMessage(scriptCopiedToClipboard);
             return state;
         });
 

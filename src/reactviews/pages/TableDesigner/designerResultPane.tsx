@@ -6,7 +6,6 @@
 import {
     Button,
     CounterBadge,
-    Divider,
     Link,
     Tab,
     TabList,
@@ -33,6 +32,9 @@ import {
     ErrorCircleFilled,
     WarningFilled,
     InfoFilled,
+    CopyFilled,
+    ChevronUpFilled,
+    ChevronDownFilled,
 } from "@fluentui/react-icons";
 import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -58,6 +60,7 @@ const useStyles = makeStyles({
         "> *": {
             marginRight: "10px",
         },
+        padding: "5px 0px",
     },
     designerResultPaneTabs: {
         flex: 1,
@@ -106,7 +109,6 @@ export const DesignerResultPane = () => {
     };
     const ISSUES = l10n.t("Issues");
     const GO_THERE = l10n.t("Go there");
-    const OPEN_IN_NEW_TAB = l10n.t("Open in new tab");
 
     const getVscodeTheme = (theme: Theme) => {
         switch (theme) {
@@ -179,7 +181,7 @@ export const DesignerResultPane = () => {
         <div className={classes.root}>
             <div className={classes.ribbon}>
                 <TabList
-                    size="medium"
+                    size="small"
                     selectedValue={metadata.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
                         state.provider.setResultTab(
@@ -216,23 +218,50 @@ export const DesignerResultPane = () => {
                 </TabList>
                 {metadata.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Script && (
-                    <Divider
-                        vertical
-                        style={{
-                            flex: "0",
-                        }}
-                    />
+                    <>
+                        <Button
+                            size="small"
+                            appearance="outline"
+                            onClick={() => state.provider.scriptAsCreate()}
+                            title={locConstants.tableDesigner.openInEditor}
+                            icon={<OpenFilled />}
+                        >
+                            {locConstants.tableDesigner.openInEditor}
+                        </Button>
+                        <Button
+                            size="small"
+                            appearance="outline"
+                            onClick={() =>
+                                state.provider.copyScriptAsCreateToClipboard()
+                            }
+                            title={locConstants.tableDesigner.copyScript}
+                            icon={<CopyFilled />}
+                        >
+                            {locConstants.tableDesigner.copyScript}
+                        </Button>
+                    </>
                 )}
-
-                {metadata.tabStates!.resultPaneTab ===
-                    DesignerResultPaneTabs.Script && (
-                    <Button
-                        appearance="transparent"
-                        icon={<OpenFilled />}
-                        onClick={() => state.provider.scriptAsCreate()}
-                        title={OPEN_IN_NEW_TAB}
-                    ></Button>
-                )}
+                <Button
+                    size="small"
+                    appearance="transparent"
+                    onClick={() =>
+                        state.setIsResultPaneFullScreen(
+                            !state.isResultPaneFullScreen,
+                        )
+                    }
+                    title={
+                        state.isResultPaneFullScreen
+                            ? locConstants.tableDesigner.restorePanelSize
+                            : locConstants.tableDesigner.maximizePanelSize
+                    }
+                    icon={
+                        state.isResultPaneFullScreen ? (
+                            <ChevronDownFilled />
+                        ) : (
+                            <ChevronUpFilled />
+                        )
+                    }
+                />
             </div>
             <div className={classes.tabContent}>
                 {metadata.tabStates!.resultPaneTab ===

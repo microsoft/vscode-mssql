@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext } from "react";
+import { ReactNode, createContext, useState } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Theme } from "@fluentui/react-components";
@@ -12,6 +12,10 @@ export interface TableDesignerState {
     provider: designer.TableDesignerReactProvider;
     state: designer.TableDesignerWebviewState;
     theme: Theme;
+    resultPaneHeight: number;
+    setResultPaneHeight: (height: number) => void;
+    isResultPaneFullScreen: boolean;
+    setIsResultPaneFullScreen: (isFullScreen: boolean) => void;
 }
 
 const TableDesignerContext = createContext<TableDesignerState | undefined>(
@@ -29,6 +33,9 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
         designer.TableDesignerWebviewState,
         designer.TableDesignerReducers
     >();
+    const [resultPaneHeight, setResultPaneHeight] = useState<number>(300);
+    const [isResultPaneFullScreen, setIsResultPaneFullScreen] =
+        useState<boolean>(false);
     const tableState = webviewState?.state;
     return (
         <TableDesignerContext.Provider
@@ -70,6 +77,12 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                     },
                     scriptAsCreate: function (): void {
                         webviewState?.extensionRpc.action("scriptAsCreate", {});
+                    },
+                    copyScriptAsCreateToClipboard: function (): void {
+                        webviewState?.extensionRpc.action(
+                            "copyScriptAsCreateToClipboard",
+                            {},
+                        );
                     },
                     setTab: function (
                         tabId: designer.DesignerMainPaneTabs,
@@ -132,6 +145,10 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                 },
                 state: webviewState?.state as designer.TableDesignerWebviewState,
                 theme: webviewState?.theme,
+                resultPaneHeight,
+                setResultPaneHeight,
+                isResultPaneFullScreen,
+                setIsResultPaneFullScreen,
             }}
         >
             {children}
