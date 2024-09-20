@@ -7,9 +7,6 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
-    <trans-unit id="++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df">
-      <source xml:lang="en">1 issue</source>
-    </trans-unit>
     <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
       <source xml:lang="en">A SQL editor must have focus before executing this command</source>
     </trans-unit>
@@ -536,9 +533,6 @@
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
-    <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
-      <source xml:lang="en">Go there</source>
-    </trans-unit>
     <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
       <source xml:lang="en">Greater Than</source>
     </trans-unit>
@@ -581,8 +575,9 @@
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
     </trans-unit>
-    <trans-unit id="++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115">
-      <source xml:lang="en">Issues</source>
+    <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
+      <source xml:lang="en">Issues ({0})</source>
+      <note>{0} is the number of issues</note>
     </trans-unit>
     <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
       <source xml:lang="en">JSON</source>
@@ -1230,9 +1225,6 @@
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
-      <source xml:lang="en">{0} issues</source>
     </trans-unit>
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
