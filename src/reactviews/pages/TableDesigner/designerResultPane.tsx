@@ -5,32 +5,20 @@
 
 import {
     Button,
-    Link,
     Tab,
     TabList,
-    Table,
-    TableBody,
-    TableCell,
-    TableColumnDefinition,
-    TableColumnSizingOptions,
-    TableHeader,
-    TableHeaderCell,
-    TableRow,
     Theme,
-    createTableColumn,
     makeStyles,
     shorthands,
     teamsHighContrastTheme,
-    useTableColumnSizing_unstable,
-    useTableFeatures,
     webDarkTheme,
 } from "@fluentui/react-components";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import {
     OpenFilled,
-    ErrorCircleFilled,
-    WarningFilled,
-    InfoFilled,
+    ErrorCircleRegular,
+    WarningRegular,
+    InfoRegular,
     CopyFilled,
     ChevronUpFilled,
     ChevronDownFilled,
@@ -38,12 +26,11 @@ import {
 import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import {
-    DesignerIssue,
     DesignerResultPaneTabs,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
+import { List, ListItem } from "@fluentui/react-list-preview";
 
 const useStyles = makeStyles({
     root: {
@@ -89,13 +76,20 @@ const useStyles = makeStyles({
             marginBottom: "10px",
         },
         backgroundColor: "var(--vscode-editor-background)",
+        padding: "5px",
     },
     issuesRows: {
-        flexDirection: "row",
-        ...shorthands.padding("10px"),
+        display: "flex",
+        lineHeight: "20px",
+        padding: "5px",
         "> *": {
             marginRight: "10px",
         },
+        ":hover": {
+            backgroundColor:
+                "var(--vscode-editor-selectionHighlightBackground)",
+        },
+        width: "100%",
     },
 });
 
@@ -103,9 +97,6 @@ export const DesignerResultPane = () => {
     const classes = useStyles();
     const state = useContext(TableDesignerContext);
     const metadata = state?.state;
-
-    const GO_THERE = l10n.t("Go there");
-
     const getVscodeTheme = (theme: Theme) => {
         switch (theme) {
             case webDarkTheme:
@@ -117,61 +108,8 @@ export const DesignerResultPane = () => {
         }
     };
 
-    const columnsDef: TableColumnDefinition<DesignerIssue>[] = [
-        createTableColumn({
-            columnId: "severity",
-            renderHeaderCell: () => <>{locConstants.tableDesigner.severity}</>,
-        }),
-        createTableColumn({
-            columnId: "description",
-            renderHeaderCell: () => (
-                <>{locConstants.tableDesigner.description}</>
-            ),
-        }),
-        createTableColumn({
-            columnId: "propertyPath",
-            renderHeaderCell: () => <></>,
-        }),
-    ];
-    const [columns] =
-        useState<TableColumnDefinition<DesignerIssue>[]>(columnsDef);
-    const items = metadata?.issues ?? [];
-
-    const sizingOptions: TableColumnSizingOptions = {
-        severity: {
-            minWidth: 50,
-            idealWidth: 50,
-            defaultWidth: 50,
-        },
-        description: {
-            minWidth: 500,
-            idealWidth: 500,
-            defaultWidth: 500,
-        },
-        propertyPath: {
-            minWidth: 100,
-            idealWidth: 100,
-            defaultWidth: 100,
-        },
-    };
-
-    const [columnSizingOption] =
-        useState<TableColumnSizingOptions>(sizingOptions);
-    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
-        {
-            columns,
-            items: items,
-        },
-        [
-            useTableColumnSizing_unstable({
-                columnSizingOptions: columnSizingOption,
-            }),
-        ],
-    );
-    const rows = getRows();
-
     if (!metadata) {
-        return null;
+        return undefined;
     }
     return (
         <div className={classes.root}>
@@ -281,91 +219,39 @@ export const DesignerResultPane = () => {
                     DesignerResultPaneTabs.Issues &&
                     metadata.issues?.length !== 0 && (
                         <div className={classes.issuesContainer}>
-                            <Table
-                                size="small"
-                                as="table"
-                                {...columnSizing_unstable.getTableProps()}
-                                ref={tableRef}
-                            >
-                                <TableHeader>
-                                    <TableRow>
-                                        {columnsDef.map((column) => {
-                                            return (
-                                                <TableHeaderCell
-                                                    {...columnSizing_unstable.getTableHeaderCellProps(
-                                                        column.columnId,
-                                                    )}
-                                                    key={column.columnId}
-                                                >
-                                                    {column.renderHeaderCell()}
-                                                </TableHeaderCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {rows.map((row, index) => {
-                                        return (
-                                            <TableRow key={index}>
-                                                <TableCell
-                                                    {...columnSizing_unstable.getTableCellProps(
-                                                        "severity",
-                                                    )}
-                                                >
-                                                    {row.item.severity ===
-                                                        "error" && (
-                                                        <ErrorCircleFilled
-                                                            style={{
-                                                                marginTop:
-                                                                    "5px",
-                                                            }}
-                                                            fontSize={20}
-                                                            color="red"
-                                                        />
-                                                    )}
-                                                    {row.item.severity ===
-                                                        "warning" && (
-                                                        <WarningFilled
-                                                            style={{
-                                                                marginTop:
-                                                                    "5px",
-                                                            }}
-                                                            fontSize={20}
-                                                            color="yellow"
-                                                        />
-                                                    )}
-                                                    {row.item.severity ===
-                                                        "information" && (
-                                                        <InfoFilled
-                                                            style={{
-                                                                marginTop:
-                                                                    "5px",
-                                                            }}
-                                                            fontSize={20}
-                                                            color="blue"
-                                                        />
-                                                    )}
-                                                </TableCell>
-                                                <TableCell
-                                                    {...columnSizing_unstable.getTableCellProps(
-                                                        "description",
-                                                    )}
-                                                >
-                                                    {row.item.description}{" "}
-                                                    {row.item.propertyPath}
-                                                </TableCell>
-                                                <TableCell
-                                                    {...columnSizing_unstable.getTableCellProps(
-                                                        "propertyPath",
-                                                    )}
-                                                >
-                                                    <Link>{GO_THERE}</Link>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                            <List navigationMode="items">
+                                {metadata.issues!.map((item, index) => (
+                                    <ListItem
+                                        key={`issue-${index}`}
+                                        onAction={(e, d) => {
+                                            console.log(e, d);
+                                        }}
+                                    >
+                                        <div className={classes.issuesRows}>
+                                            {item.severity === "error" && (
+                                                <ErrorCircleRegular
+                                                    fontSize={20}
+                                                    color="var(--vscode-errorForeground)"
+                                                />
+                                            )}
+                                            {item.severity === "warning" && (
+                                                <WarningRegular
+                                                    fontSize={20}
+                                                    color="yellow"
+                                                />
+                                            )}
+                                            {item.severity ===
+                                                "information" && (
+                                                <InfoRegular
+                                                    fontSize={20}
+                                                    color="blue"
+                                                />
+                                            )}
+                                            {item.description}
+                                        </div>
+                                    </ListItem>
+                                ))}
+                            </List>
                         </div>
                     )}
             </div>
