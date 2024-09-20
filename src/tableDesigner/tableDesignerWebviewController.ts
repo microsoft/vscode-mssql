@@ -152,7 +152,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 issues: intializeData.issues,
                 isValid: true,
                 tabStates: {
-                    mainPaneTab: designer.DesignerMainPaneTabs.AboutTable,
+                    mainPaneTab: designer.DesignerMainPaneTabs.Columns,
                     resultPaneTab: designer.DesignerResultPaneTabs.Script,
                 },
                 apiState: {

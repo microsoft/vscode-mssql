@@ -664,7 +664,7 @@ export enum LoadState {
 }
 
 export enum DesignerMainPaneTabs {
-    AboutTable = "aboutTable",
+    AboutTable = "general",
     Columns = "columns",
     PrimaryKey = "primaryKey",
     ForeignKeys = "foreignKeys",
