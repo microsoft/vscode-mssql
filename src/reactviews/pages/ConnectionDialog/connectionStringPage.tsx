@@ -8,7 +8,7 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { FormItemSpec } from "../../common/forms/form";
-import { ConnectButton } from "./connectButton";
+import { ConnectButton } from "./components/connectButton.component";
 
 export const ConnectionStringPage = () => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);

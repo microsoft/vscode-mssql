@@ -5,9 +5,9 @@
 
 import { Button, Spinner } from "@fluentui/react-components";
 import { CSSProperties, useContext } from "react";
-import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { locConstants } from "../../common/locConstants";
+import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { locConstants } from "../../../common/locConstants";
 
 export const ConnectButton = ({style, className}: {style?: CSSProperties, className?: string}) => {
 	const connectionDialogContext = useContext(ConnectionDialogContext);

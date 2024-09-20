@@ -4,39 +4,30 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import {
-    Accordion,
-    AccordionHeader,
-    AccordionItem,
-    AccordionPanel,
-    Button,
-    DrawerBody,
-    DrawerHeader,
-    DrawerHeaderTitle,
-    OverlayDrawer,
-} from "@fluentui/react-components";
-import { Dismiss24Regular } from "@fluentui/react-icons";
+import { Button } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
-import { ConnectButton } from "./connectButton";
+import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
+import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
+import { TestConnectionButton } from "./components/testConnectionButton.component";
 
 export const ConnectionFormPage = () => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+    const context = useContext(ConnectionDialogContext);
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const formStyles = useFormStyles();
 
-    if (connectionDialogContext === undefined) {
+    if (context === undefined) {
         return undefined;
     }
 
     return (
         <div>
-            {(connectionDialogContext.state.connectionComponents.mainOptions).map(
+            {context.state.connectionComponents.mainOptions.map(
                 (inputName, idx) => {
-                    const component = connectionDialogContext.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
+                    const component = context.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
                     if (component.hidden === true) {
                         return undefined;
                     }
@@ -44,7 +35,7 @@ export const ConnectionFormPage = () => {
                     return (
                         <FormField
                             key={idx}
-                            context={connectionDialogContext}
+                            context={context}
                             component={component as FormItemSpec<IConnectionDialogProfile>}
                             idx={idx}
                             props={{ orientation: 'horizontal' }}
@@ -52,69 +43,7 @@ export const ConnectionFormPage = () => {
                     );
                 }
             )}
-
-            <OverlayDrawer
-                position="end"
-                size="medium"
-                open={isAdvancedDrawerOpen}
-                onOpenChange={(_, { open }) => setIsAdvancedDrawerOpen(open)}
-            >
-                <DrawerHeader>
-                    <DrawerHeaderTitle
-                        action={
-                            <Button
-                                appearance="subtle"
-                                aria-label="Close"
-                                icon={<Dismiss24Regular />}
-                                onClick={() => setIsAdvancedDrawerOpen(false)}
-                            />
-                        }
-                    >
-                        {locConstants.connectionDialog.advancedConnectionSettings}
-                    </DrawerHeaderTitle>
-                </DrawerHeader>
-
-                <DrawerBody>
-                    <div style={{ margin: "20px 0px" }}>
-                        {
-                            connectionDialogContext.state.connectionComponents.topAdvancedOptions.map((optionName, idx) => {
-                                return (
-                                    <FormField
-                                        key={idx}
-                                        context={connectionDialogContext}
-                                        component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
-                                        idx={idx}
-                                    />
-                                );
-                            })
-                        }
-                    </div>
-                    <Accordion multiple collapsible>
-                        {Object.keys(connectionDialogContext.state.connectionComponents.groupedAdvancedOptions).map((group, groupIndex) => {
-                            return (
-                                    <AccordionItem value={group} key={groupIndex}>
-                                        <AccordionHeader>{group}</AccordionHeader>
-                                            <AccordionPanel>
-                                                {connectionDialogContext.state.connectionComponents.groupedAdvancedOptions[group].map((optionName, idx) => {
-                                                if (connectionDialogContext.state.connectionComponents.components[optionName].hidden === true) {
-                                                    return undefined;
-                                                }
-                                                return (
-                                                    <FormField
-                                                        key={idx}
-                                                        context={connectionDialogContext}
-                                                        component={connectionDialogContext.state.connectionComponents.components[optionName] as FormItemSpec<IConnectionDialogProfile>}
-                                                        idx={idx}
-                                                    />
-                                                );
-                                            })}
-                                        </AccordionPanel>
-                                </AccordionItem>
-                            );
-                        })}
-                    </Accordion>
-                </DrawerBody>
-            </OverlayDrawer>
+            <AdvancedOptionsDrawer isAdvancedDrawerOpen={isAdvancedDrawerOpen} setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen} />
             <div className={formStyles.formNavTray}>
                 <Button
                     shape="square"
@@ -126,15 +55,7 @@ export const ConnectionFormPage = () => {
                     {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>
-                    <Button
-                        shape="square"
-                        onClick={(_event) => {
-                            // TODO: connectionDialogContext.testConnection();
-                        }}
-                        className={formStyles.formNavTrayButton}
-                    >
-                        {locConstants.connectionDialog.testConnection}
-                    </Button>
+                    <TestConnectionButton className={formStyles.formNavTrayButton}/>
                     <ConnectButton className={formStyles.formNavTrayButton}/>
                 </div>
             </div>
