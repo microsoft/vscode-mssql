@@ -57,6 +57,7 @@ const useStyles = makeStyles({
         overflow: "auto",
         padding: "10px 5px 5px 10px",
         margin: "5px",
+        backgroundColor: "var(--vscode-editor-background)",
     },
 });
 

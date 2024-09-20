@@ -5,7 +5,6 @@
 
 import {
     Button,
-    CounterBadge,
     Link,
     Tab,
     TabList,
@@ -89,6 +88,7 @@ const useStyles = makeStyles({
         "> *": {
             marginBottom: "10px",
         },
+        backgroundColor: "var(--vscode-editor-background)",
     },
     issuesRows: {
         flexDirection: "row",
@@ -104,10 +104,6 @@ export const DesignerResultPane = () => {
     const state = useContext(TableDesignerContext);
     const metadata = state?.state;
 
-    const getIssuesTabAriaLabel = (count: number) => {
-        return count === 1 ? l10n.t("1 issue") : l10n.t("{0} issues", count);
-    };
-    const ISSUES = l10n.t("Issues");
     const GO_THERE = l10n.t("Go there");
 
     const getVscodeTheme = (theme: Theme) => {
@@ -196,25 +192,16 @@ export const DesignerResultPane = () => {
                     >
                         {locConstants.tableDesigner.scriptAsCreate}
                     </Tab>
-                    <Tab
-                        value={DesignerResultPaneTabs.Issues}
-                        key={DesignerResultPaneTabs.Issues}
-                        aria-label={getIssuesTabAriaLabel(
-                            metadata.issues?.length!,
-                        )}
-                    >
-                        {ISSUES}{" "}
-                        {metadata.issues && (
-                            <CounterBadge
-                                style={{
-                                    marginLeft: "5px",
-                                    marginTop: "-10px",
-                                }}
-                                count={metadata.issues?.length}
-                                size="small"
-                            />
-                        )}
-                    </Tab>
+                    {metadata.issues?.length !== 0 && (
+                        <Tab
+                            value={DesignerResultPaneTabs.Issues}
+                            key={DesignerResultPaneTabs.Issues}
+                        >
+                            {locConstants.tableDesigner.issuesTabHeader(
+                                metadata.issues?.length!,
+                            )}
+                        </Tab>
+                    )}
                 </TabList>
                 {metadata.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Script && (
@@ -291,92 +278,96 @@ export const DesignerResultPane = () => {
                     </div>
                 )}
                 {metadata.tabStates!.resultPaneTab ===
-                    DesignerResultPaneTabs.Issues && (
-                    <div className={classes.issuesContainer}>
-                        <Table
-                            size="small"
-                            as="table"
-                            {...columnSizing_unstable.getTableProps()}
-                            ref={tableRef}
-                        >
-                            <TableHeader>
-                                <TableRow>
-                                    {columnsDef.map((column) => {
+                    DesignerResultPaneTabs.Issues &&
+                    metadata.issues?.length !== 0 && (
+                        <div className={classes.issuesContainer}>
+                            <Table
+                                size="small"
+                                as="table"
+                                {...columnSizing_unstable.getTableProps()}
+                                ref={tableRef}
+                            >
+                                <TableHeader>
+                                    <TableRow>
+                                        {columnsDef.map((column) => {
+                                            return (
+                                                <TableHeaderCell
+                                                    {...columnSizing_unstable.getTableHeaderCellProps(
+                                                        column.columnId,
+                                                    )}
+                                                    key={column.columnId}
+                                                >
+                                                    {column.renderHeaderCell()}
+                                                </TableHeaderCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {rows.map((row, index) => {
                                         return (
-                                            <TableHeaderCell
-                                                {...columnSizing_unstable.getTableHeaderCellProps(
-                                                    column.columnId,
-                                                )}
-                                                key={column.columnId}
-                                            >
-                                                {column.renderHeaderCell()}
-                                            </TableHeaderCell>
+                                            <TableRow key={index}>
+                                                <TableCell
+                                                    {...columnSizing_unstable.getTableCellProps(
+                                                        "severity",
+                                                    )}
+                                                >
+                                                    {row.item.severity ===
+                                                        "error" && (
+                                                        <ErrorCircleFilled
+                                                            style={{
+                                                                marginTop:
+                                                                    "5px",
+                                                            }}
+                                                            fontSize={20}
+                                                            color="red"
+                                                        />
+                                                    )}
+                                                    {row.item.severity ===
+                                                        "warning" && (
+                                                        <WarningFilled
+                                                            style={{
+                                                                marginTop:
+                                                                    "5px",
+                                                            }}
+                                                            fontSize={20}
+                                                            color="yellow"
+                                                        />
+                                                    )}
+                                                    {row.item.severity ===
+                                                        "information" && (
+                                                        <InfoFilled
+                                                            style={{
+                                                                marginTop:
+                                                                    "5px",
+                                                            }}
+                                                            fontSize={20}
+                                                            color="blue"
+                                                        />
+                                                    )}
+                                                </TableCell>
+                                                <TableCell
+                                                    {...columnSizing_unstable.getTableCellProps(
+                                                        "description",
+                                                    )}
+                                                >
+                                                    {row.item.description}{" "}
+                                                    {row.item.propertyPath}
+                                                </TableCell>
+                                                <TableCell
+                                                    {...columnSizing_unstable.getTableCellProps(
+                                                        "propertyPath",
+                                                    )}
+                                                >
+                                                    <Link>{GO_THERE}</Link>
+                                                </TableCell>
+                                            </TableRow>
                                         );
                                     })}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rows.map((row, index) => {
-                                    return (
-                                        <TableRow key={index}>
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "severity",
-                                                )}
-                                            >
-                                                {row.item.severity ===
-                                                    "error" && (
-                                                    <ErrorCircleFilled
-                                                        style={{
-                                                            marginTop: "5px",
-                                                        }}
-                                                        fontSize={20}
-                                                        color="red"
-                                                    />
-                                                )}
-                                                {row.item.severity ===
-                                                    "warning" && (
-                                                    <WarningFilled
-                                                        style={{
-                                                            marginTop: "5px",
-                                                        }}
-                                                        fontSize={20}
-                                                        color="yellow"
-                                                    />
-                                                )}
-                                                {row.item.severity ===
-                                                    "information" && (
-                                                    <InfoFilled
-                                                        style={{
-                                                            marginTop: "5px",
-                                                        }}
-                                                        fontSize={20}
-                                                        color="blue"
-                                                    />
-                                                )}
-                                            </TableCell>
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "description",
-                                                )}
-                                            >
-                                                {row.item.description}{" "}
-                                                {row.item.propertyPath}
-                                            </TableCell>
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "propertyPath",
-                                                )}
-                                            >
-                                                <Link>{GO_THERE}</Link>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-                )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
             </div>
         </div>
     );

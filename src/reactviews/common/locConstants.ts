@@ -113,6 +113,12 @@ export class LocConstants {
             openInEditor: l10n.t("Open in editor"),
             maximizePanelSize: l10n.t("Maximize panel size"),
             restorePanelSize: l10n.t("Restore panel size"),
+            issuesTabHeader: (issueCount: number) =>
+                l10n.t({
+                    message: "Issues ({0})",
+                    args: [issueCount],
+                    comment: ["{0} is the number of issues"],
+                }),
         };
     }
 
