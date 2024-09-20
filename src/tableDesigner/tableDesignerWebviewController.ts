@@ -205,16 +205,24 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     correlationId: this._correlationId,
                 },
             );
+            if (editResponse.issues?.length === 0) {
+                state.tabStates.resultPaneTab =
+                    designer.DesignerResultPaneTabs.Script;
+            } else {
+                state.tabStates.resultPaneTab =
+                    designer.DesignerResultPaneTabs.Issues;
+            }
+
             const afterEditState = {
-                ...this.state,
+                ...state,
                 view: editResponse.view
                     ? getDesignerView(editResponse.view)
-                    : this.state.view,
+                    : state.view,
                 model: editResponse.viewModel,
                 issues: editResponse.issues,
                 isValid: editResponse.isValid,
                 apiState: {
-                    ...this.state.apiState,
+                    ...state.apiState,
                     editState: designer.LoadState.Loaded,
                 },
             };
