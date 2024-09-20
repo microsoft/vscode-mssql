@@ -11,24 +11,29 @@ import { FormItemSpec } from "../../common/forms/form";
 import { ConnectButton } from "./connectButton";
 
 export const ConnectionStringPage = () => {
-	const connectionDialogContext = useContext(ConnectionDialogContext);
+    const connectionDialogContext = useContext(ConnectionDialogContext);
 
-	if (connectionDialogContext === undefined) {
-		return undefined;
-	}
+    if (connectionDialogContext === undefined) {
+        return undefined;
+    }
 
-	let index = 0;
-	return (
-		<div>
-			<FormField
-				key={index++}
-				context={connectionDialogContext}
-				component={connectionDialogContext.state.connectionComponents.components['connectionString'] as FormItemSpec<IConnectionDialogProfile>}
-				idx={index}
-				props={{ orientation: 'horizontal' }}
-			/>
+    let index = 0;
+    return (
+        <div>
+            <FormField
+                key={index++}
+                context={connectionDialogContext}
+                component={
+                    connectionDialogContext.state.connectionComponents
+                        .components[
+                        "connectionString"
+                    ] as FormItemSpec<IConnectionDialogProfile>
+                }
+                idx={index}
+                props={{ orientation: "horizontal" }}
+            />
 
             <ConnectButton />
-		</div>
-	);
+        </div>
+    );
 };

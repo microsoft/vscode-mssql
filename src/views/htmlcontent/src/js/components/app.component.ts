@@ -22,7 +22,7 @@ import * as Utils from './../utils';
 
 /** enableProdMode */
 import { enableProdMode } from '@angular/core';
-import { TelemetryActions, TelemetryViews } from '../../../../../telemetry/telemetryInterfaces';
+import { TelemetryActions, TelemetryViews } from '../../../../../sharedInterfaces/telemetry';
 enableProdMode();
 
 // text selection helper library

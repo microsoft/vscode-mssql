@@ -20,7 +20,6 @@ const path = require('path');
 const esbuild = require('esbuild');
 const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
 const run = require('gulp-run-command').default;
-
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
 
@@ -72,6 +71,7 @@ const cssLoaderPlugin = {
 };
 
 gulp.task('ext:lint', () => {
+	const fix = (argv.fix === undefined) ? false : true;
 	return gulp.src([
 		'./src/**/*.ts',
 		'./src/**/*.tsx',
@@ -80,10 +80,12 @@ gulp.task('ext:lint', () => {
 		'!./src/views/htmlcontent/**/*'
 	])
 		.pipe(gulpESLintNew({
-			quiet: true
+			quiet: true,
+			fix: fix
 		}))
 		.pipe(gulpESLintNew.format())           // Output lint results to the console.
-		.pipe(gulpESLintNew.failAfterError());
+		.pipe(gulpESLintNew.failAfterError())
+		.pipe(gulpESLintNew.fix());
 });
 
 // Copy icons for OE

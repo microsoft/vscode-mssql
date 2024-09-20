@@ -3,40 +3,51 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger } from "@fluentui/react-dialog";
+import {
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
+} from "@fluentui/react-dialog";
 import { ToolbarButton } from "@fluentui/react-toolbar";
-import { DatabaseArrowDownRegular, ErrorCircleRegular } from "@fluentui/react-icons";
+import {
+    DatabaseArrowDownRegular,
+    ErrorCircleRegular,
+} from "@fluentui/react-icons";
 import { Button } from "@fluentui/react-button";
-import { Spinner, makeStyles } from "@fluentui/react-components";
-import ReactMarkdown from 'react-markdown'
-import { useContext } from "react";
+import { Checkbox, Spinner, makeStyles } from "@fluentui/react-components";
+import ReactMarkdown from "react-markdown";
+import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     dialogContent: {
-        height: '300px',
-        overflow: 'auto',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        flexDirection: 'column'
+        height: "300px",
+        overflow: "auto",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+        flexDirection: "column",
     },
     openScript: {
-        width: '150px'
+        width: "150px",
     },
     updateDatabase: {
-        width: '150px'
+        width: "150px",
     },
     errorIcon: {
-        fontSize: '100px',
-        opacity: 0.5
+        fontSize: "100px",
+        opacity: 0.5,
     },
     retryButton: {
-        marginTop: '10px'
-    }
+        marginTop: "10px",
+    },
 });
 
 export const DesignerChangesPreviewButton = () => {
@@ -46,12 +57,14 @@ export const DesignerChangesPreviewButton = () => {
         return null;
     }
 
+    const [isConfirmationChecked, setIsConfirmationChecked] = useState(false);
+
     const metadata = designerContext.state;
 
     const generateScriptIcon = () => {
         switch (metadata?.apiState?.generateScriptState) {
             case LoadState.Loading:
-                return <Spinner size='extra-small' />;
+                return <Spinner size="extra-small" />;
             case LoadState.Error:
                 return <ErrorCircleRegular />;
             default:
@@ -64,7 +77,10 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent className={classes.dialogContent}>
-                        <Spinner label={locConstants.tableDesigner.publishingChanges} labelPosition='below' />
+                        <Spinner
+                            label={locConstants.tableDesigner.publishingChanges}
+                            labelPosition="below"
+                        />
                     </DialogContent>
                 </>
             );
@@ -73,12 +89,31 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent className={classes.dialogContent}>
-                        <div>{locConstants.tableDesigner.changesPublishedSuccessfully}</div>
+                        <div>
+                            {
+                                locConstants.tableDesigner
+                                    .changesPublishedSuccessfully
+                            }
+                        </div>
                     </DialogContent>
                     <DialogActions>
-                        <Button size="medium" appearance="primary" onClick={designerContext.provider.closeDesigner}>{locConstants.tableDesigner.closeDesigner}</Button>
+                        <Button
+                            size="medium"
+                            appearance="primary"
+                            onClick={designerContext.provider.closeDesigner}
+                        >
+                            {locConstants.tableDesigner.closeDesigner}
+                        </Button>
                         <DialogTrigger action="close">
-                            <Button size="medium" appearance="secondary" onClick={designerContext.provider.continueEditing}>{locConstants.tableDesigner.continueEditing}</Button>
+                            <Button
+                                size="medium"
+                                appearance="secondary"
+                                onClick={
+                                    designerContext.provider.continueEditing
+                                }
+                            >
+                                {locConstants.tableDesigner.continueEditing}
+                            </Button>
                         </DialogTrigger>
                     </DialogActions>
                 </>
@@ -88,7 +123,12 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent className={classes.dialogContent}>
-                        <Spinner label={locConstants.tableDesigner.loadingTableDesigner} labelPosition='below' />
+                        <Spinner
+                            label={
+                                locConstants.tableDesigner.loadingTableDesigner
+                            }
+                            labelPosition="below"
+                        />
                     </DialogContent>
                 </>
             );
@@ -98,10 +138,17 @@ export const DesignerChangesPreviewButton = () => {
                 <>
                     <DialogContent className={classes.dialogContent}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <div>{locConstants.tableDesigner.errorLoadingPreview}</div>
-                        <Button className={classes.retryButton} onClick={() => {
-                            designerContext.provider.generatePreviewReport();
-                        }}>{locConstants.tableDesigner.retry}</Button>
+                        <div>
+                            {locConstants.tableDesigner.errorLoadingPreview}
+                        </div>
+                        <Button
+                            className={classes.retryButton}
+                            onClick={() => {
+                                designerContext.provider.generatePreviewReport();
+                            }}
+                        >
+                            {locConstants.tableDesigner.retry}
+                        </Button>
                     </DialogContent>
                 </>
             );
@@ -110,35 +157,76 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent>
-                        <div style={
-                            {
-                                width: '98%',
-                                height: '100%',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderTop: '1px solid #e0e0e0',
-                                borderBottom: '1px solid #e0e0e0',
-                                overflow: 'auto',
-                            }
-                        }>
-                            <ReactMarkdown>{metadata?.generatePreviewReportResult?.report}</ReactMarkdown>
+                        <div
+                            style={{
+                                width: "98%",
+                                height: "calc(100% - 40px)",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderTop: "1px solid #e0e0e0",
+                                borderBottom: "1px solid #e0e0e0",
+                                overflow: "auto",
+                            }}
+                        >
+                            <ReactMarkdown>
+                                {metadata?.generatePreviewReportResult?.report}
+                            </ReactMarkdown>
                         </div>
+                        <Checkbox
+                            label={
+                                locConstants.tableDesigner
+                                    .designerPreviewConfirmation
+                            }
+                            onChange={(_event, data) => {
+                                setIsConfirmationChecked(
+                                    data.checked as boolean,
+                                );
+                            }}
+                        />
                     </DialogContent>
                     <DialogActions>
-                        <Button className={classes.updateDatabase} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={() => {
-                            designerContext.provider.publishChanges();
-                        }} >{locConstants.tableDesigner.updateDatabase}</Button>
+                        <Button
+                            className={classes.updateDatabase}
+                            disabled={
+                                !(
+                                    isConfirmationChecked &&
+                                    metadata.apiState?.previewState ===
+                                        LoadState.Loaded
+                                )
+                            }
+                            appearance="primary"
+                            onClick={() => {
+                                designerContext.provider.publishChanges();
+                            }}
+                        >
+                            {locConstants.tableDesigner.updateDatabase}
+                        </Button>
                         <DialogTrigger action="close">
-                            <Button icon={generateScriptIcon()} iconPosition="after" className={classes.openScript} disabled={metadata.apiState?.previewState !== LoadState.Loaded} appearance="primary" onClick={designerContext.provider.generateScript} >{locConstants.tableDesigner.generateScript}</Button>
+                            <Button
+                                icon={generateScriptIcon()}
+                                iconPosition="after"
+                                className={classes.openScript}
+                                disabled={
+                                    metadata.apiState?.previewState !==
+                                    LoadState.Loaded
+                                }
+                                appearance="primary"
+                                onClick={
+                                    designerContext.provider.generateScript
+                                }
+                            >
+                                {locConstants.tableDesigner.generateScript}
+                            </Button>
                         </DialogTrigger>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button size="medium" appearance="secondary">{locConstants.tableDesigner.close}</Button>
+                            <Button size="medium" appearance="secondary">
+                                {locConstants.tableDesigner.close}
+                            </Button>
                         </DialogTrigger>
                     </DialogActions>
                 </>
             );
         }
-
     };
 
     return (
@@ -166,4 +254,4 @@ export const DesignerChangesPreviewButton = () => {
             </DialogSurface>
         </Dialog>
     );
-}
+};

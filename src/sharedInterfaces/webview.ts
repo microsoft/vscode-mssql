@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 export enum ApiStatus {
-	NotStarted = 'notStarted',
-	Loading = 'loading',
-	Loaded = 'loaded',
-	Error = 'error',
+    NotStarted = "notStarted",
+    Loading = "loading",
+    Loaded = "loaded",
+    Error = "error",
 }
