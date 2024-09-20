@@ -244,18 +244,23 @@ export const DesignerResultPane = () => {
                 <Button
                     size="small"
                     appearance="transparent"
-                    onClick={() =>
-                        state.setIsResultPaneFullScreen(
-                            !state.isResultPaneFullScreen,
-                        )
-                    }
+                    onClick={() => {
+                        if (state.resultPaneResizeInfo.isMaximized) {
+                            state.resultPaneResizeInfo.setCurrentHeight(
+                                state.resultPaneResizeInfo.originalHeight,
+                            );
+                        }
+                        state.resultPaneResizeInfo.setIsMaximized(
+                            !state.resultPaneResizeInfo.isMaximized,
+                        );
+                    }}
                     title={
-                        state.isResultPaneFullScreen
+                        state.resultPaneResizeInfo.isMaximized
                             ? locConstants.tableDesigner.restorePanelSize
                             : locConstants.tableDesigner.maximizePanelSize
                     }
                     icon={
-                        state.isResultPaneFullScreen ? (
+                        state.resultPaneResizeInfo.isMaximized ? (
                             <ChevronDownFilled />
                         ) : (
                             <ChevronUpFilled />

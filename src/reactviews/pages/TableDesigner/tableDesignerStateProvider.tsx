@@ -12,10 +12,14 @@ export interface TableDesignerState {
     provider: designer.TableDesignerReactProvider;
     state: designer.TableDesignerWebviewState;
     theme: Theme;
-    resultPaneHeight: number;
-    setResultPaneHeight: (height: number) => void;
-    isResultPaneFullScreen: boolean;
-    setIsResultPaneFullScreen: (isFullScreen: boolean) => void;
+    resultPaneResizeInfo: {
+        originalHeight: number;
+        setOriginalHeight: (height: number) => void;
+        isMaximized: boolean;
+        setIsMaximized: (isFullScreen: boolean) => void;
+        currentHeight: number;
+        setCurrentHeight: (height: number) => void;
+    };
 }
 
 const TableDesignerContext = createContext<TableDesignerState | undefined>(
@@ -33,10 +37,15 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
         designer.TableDesignerWebviewState,
         designer.TableDesignerReducers
     >();
+
+    // Result pane height state
     const [resultPaneHeight, setResultPaneHeight] = useState<number>(300);
     const [isResultPaneFullScreen, setIsResultPaneFullScreen] =
         useState<boolean>(false);
+    const [originalHeight, setOriginalHeight] = useState<number>(300);
+
     const tableState = webviewState?.state;
+
     return (
         <TableDesignerContext.Provider
             value={{
@@ -145,10 +154,14 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                 },
                 state: webviewState?.state as designer.TableDesignerWebviewState,
                 theme: webviewState?.theme,
-                resultPaneHeight,
-                setResultPaneHeight,
-                isResultPaneFullScreen,
-                setIsResultPaneFullScreen,
+                resultPaneResizeInfo: {
+                    originalHeight: originalHeight,
+                    setOriginalHeight: setOriginalHeight,
+                    isMaximized: isResultPaneFullScreen,
+                    setIsMaximized: setIsResultPaneFullScreen,
+                    currentHeight: resultPaneHeight,
+                    setCurrentHeight: setResultPaneHeight,
+                },
             }}
         >
             {children}

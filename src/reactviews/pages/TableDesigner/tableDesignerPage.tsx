@@ -167,17 +167,40 @@ export const TableDesigner = () => {
                     <ResizableBox
                         width={Infinity}
                         height={
-                            state.isResultPaneFullScreen
-                                ? Number.MAX_SAFE_INTEGER
-                                : state.resultPaneHeight
+                            state.resultPaneResizeInfo.isMaximized
+                                ? 9999999
+                                : state.resultPaneResizeInfo.currentHeight
                         }
                         maxConstraints={[Infinity, Infinity]}
                         minConstraints={[Infinity, 10]}
                         resizeHandles={["n"]}
                         handle={<div className={classes.resultPaneHandle} />}
                         className={classes.resultPaneContainer}
-                        onResizeStop={(_e, data) => {
-                            state.setResultPaneHeight(data.size.height);
+                        onResizeStart={(_e, _div) => {
+                            state.resultPaneResizeInfo.setIsMaximized(false);
+                        }}
+                        onResizeStop={(_e, div) => {
+                            const parentContainerHeight =
+                                div.node!.parentElement!.parentElement!
+                                    .offsetHeight!;
+
+                            const currentDivHeight = div.size.height;
+                            if (
+                                currentDivHeight >=
+                                parentContainerHeight - 50
+                            ) {
+                                state.resultPaneResizeInfo.setIsMaximized(true);
+                                state.resultPaneResizeInfo.setCurrentHeight(
+                                    parentContainerHeight,
+                                );
+                            } else {
+                                state.resultPaneResizeInfo.setCurrentHeight(
+                                    div.size.height,
+                                );
+                                state.resultPaneResizeInfo.setOriginalHeight(
+                                    div.size.height,
+                                );
+                            }
                         }}
                     >
                         <DesignerResultPane />
