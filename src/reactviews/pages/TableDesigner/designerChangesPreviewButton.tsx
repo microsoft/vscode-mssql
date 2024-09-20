@@ -48,6 +48,16 @@ const useStyles = makeStyles({
     retryButton: {
         marginTop: "10px",
     },
+    markdownContainer: {
+        width: "calc(100% - 40px)",
+        height: "calc(100% - 80px)",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1px solid #e0e0e0",
+        overflow: "auto",
+        padding: "10px 5px 5px 10px",
+        margin: "5px",
+    },
 });
 
 export const DesignerChangesPreviewButton = () => {
@@ -157,17 +167,7 @@ export const DesignerChangesPreviewButton = () => {
             return (
                 <>
                     <DialogContent>
-                        <div
-                            style={{
-                                width: "98%",
-                                height: "calc(100% - 40px)",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                borderTop: "1px solid #e0e0e0",
-                                borderBottom: "1px solid #e0e0e0",
-                                overflow: "auto",
-                            }}
-                        >
+                        <div className={classes.markdownContainer}>
                             <ReactMarkdown>
                                 {metadata?.generatePreviewReportResult?.report}
                             </ReactMarkdown>
