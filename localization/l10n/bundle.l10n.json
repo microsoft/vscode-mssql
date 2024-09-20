@@ -95,7 +95,6 @@
   "{0} issues": "{0} issues",
   "Issues": "Issues",
   "Go there": "Go there",
-  "Open in new tab": "Open in new tab",
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
@@ -168,6 +167,10 @@
   "Error loading designer": "Error loading designer",
   "Severity": "Severity",
   "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
+  "Copy script": "Copy script",
+  "Open in editor": "Open in editor",
+  "Maximize panel size": "Maximize panel size",
+  "Restore panel size": "Restore panel size",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -642,5 +645,6 @@
   "Sign in": "Sign in",
   "Additional parameters": "Additional parameters",
   "Loading": "Loading",
-  "Execution Plan": "Execution Plan"
+  "Execution Plan": "Execution Plan",
+  "Script copied to clipboard": "Script copied to clipboard"
 }
