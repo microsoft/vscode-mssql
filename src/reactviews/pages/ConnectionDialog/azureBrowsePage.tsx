@@ -22,11 +22,12 @@ function removeDuplicates<T>(array: T[]): T[] {
 export const AzureBrowsePage = () => {
 	const context = useContext(ConnectionDialogContext);
 	const formStyles = useFormStyles();
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 	const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
 	const [selectedResourceGroup, setSelectedResourceGroup] = useState<string | undefined>(undefined);
 	const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
-	const [_selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+	const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
+	const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
 
 	if (context === undefined) {
 		return undefined;
@@ -54,6 +55,11 @@ export const AzureBrowsePage = () => {
 
 	const servers = removeDuplicates(activeServers.map(server => server.server));
 
+	let databases = [];
+	if (selectedServer) {
+		databases = activeServers.find(server => server.server === selectedServer)?.databases;
+	}
+
 	return (
 		<div>
 			<div className={formStyles.formComponentDiv}>
@@ -66,6 +72,18 @@ export const AzureBrowsePage = () => {
 			<AzureBrowseDropdown label="Resource Group" valueList={resourceGroups} setValue={setSelectedResourceGroup} />
 			<AzureBrowseDropdown label="Location" valueList={locations} setValue={setSelectedLocation} />
 			<AzureBrowseDropdown label="Server" valueList={servers} setValue={setSelectedServer} />
+
+			{selectedServer && (
+				<>
+					<FormField
+						context={context}
+						component={context.state.connectionComponents.components['trustServerCertificate'] as FormItemSpec<IConnectionDialogProfile>}
+						idx={0}
+						props={{ orientation: 'horizontal' }}
+					/>
+					<AzureBrowseDropdown label="Database" valueList={databases} setValue={setSelectedDatabase} />
+				</>
+			)}
 
             {context.state.connectionComponents.mainOptions.filter(opt => !['server', 'database'].includes(opt)).map(
                 (inputName, idx) => {

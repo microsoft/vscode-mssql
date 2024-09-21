@@ -174,9 +174,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 	}
 
 	private async updateItemVisibility() {
-		const selectedTab = this.state.selectedInputMode;
 		let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
-		if (selectedTab === ConnectionInputMode.Parameters) {
+
+		if (this.state.selectedInputMode === ConnectionInputMode.Parameters || this.state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
 			if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
 				hiddenProperties.push('user', 'password', 'savePassword');
 			}
