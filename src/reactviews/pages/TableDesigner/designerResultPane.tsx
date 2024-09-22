@@ -77,7 +77,7 @@ const useStyles = makeStyles({
         },
         backgroundColor: "var(--vscode-editor-background)",
         padding: "5px",
-        overflow: "hidden scroll",
+        overflow: "hidden auto",
     },
     issuesRows: {
         display: "flex",
