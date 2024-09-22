@@ -38,6 +38,9 @@ export const DesignerDropdown = ({
 }: DesignerDropdownProps) => {
     const [value, setValue] = useState<string[]>([]);
     const state = useContext(TableDesignerContext);
+    if (!state) {
+        return undefined;
+    }
     const width =
         UiArea === "PropertiesView"
             ? "100%"
@@ -74,7 +77,7 @@ export const DesignerDropdown = ({
         >
             <Dropdown
                 aria-labelledby={dropdownId}
-                id={state?.provider.getComponentId(componentPath)}
+                ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                 selectedOptions={value}
                 disabled={model.enabled === undefined ? false : !model.enabled}
                 style={{ width: width, minWidth: width, maxWidth: width }}

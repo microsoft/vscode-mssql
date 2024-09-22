@@ -42,6 +42,9 @@ export const DesignerInputBox = ({
 }: DesignerInputBoxProps) => {
     const [value, setValue] = useState(model.value);
     const state = useContext(TableDesignerContext);
+    if (!state) {
+        return undefined;
+    }
     const dropdownId = useId(
         state?.provider.getComponentId(componentPath) ?? "",
     );
@@ -80,7 +83,7 @@ export const DesignerInputBox = ({
             {!multiline ? (
                 <Input
                     aria-labelledby={dropdownId}
-                    id={state?.provider.getComponentId(componentPath)}
+                    ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");
@@ -105,7 +108,7 @@ export const DesignerInputBox = ({
             ) : (
                 <Textarea
                     aria-labelledby={dropdownId}
-                    id={state?.provider.getComponentId(componentPath)}
+                    ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useState } from "react";
+import { ReactNode, createContext, useRef, useState } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Theme } from "@fluentui/react-components";
@@ -20,6 +20,12 @@ export interface TableDesignerState {
         currentHeight: number;
         setCurrentHeight: (height: number) => void;
     };
+    elementRefs: React.MutableRefObject<{ [key: string]: any | null }>;
+    addElementRef: (
+        path: (string | number)[],
+        ref: any,
+        UiArea: designer.DesignerUIArea,
+    ) => void;
 }
 
 const TableDesignerContext = createContext<TableDesignerState | undefined>(
@@ -43,8 +49,12 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
     const [isResultPaneFullScreen, setIsResultPaneFullScreen] =
         useState<boolean>(false);
     const [originalHeight, setOriginalHeight] = useState<number>(300);
-
+    const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const tableState = webviewState?.state;
+
+    function getComponentId(componentPath: (string | number)[]): string {
+        return `${tableState.tableInfo?.id}_${componentPath.join("_")}`;
+    }
 
     return (
         <TableDesignerContext.Provider
@@ -100,11 +110,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                             tabId: tabId,
                         });
                     },
-                    getComponentId: function (
-                        componentPath: (string | number)[],
-                    ): string {
-                        return `${tableState.tableInfo?.id}_${componentPath.join("_")}`;
-                    },
+                    getComponentId: getComponentId,
                     getErrorMessage: function (
                         componentPath: (string | number)[],
                     ): string | undefined {
@@ -161,6 +167,25 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                     setIsMaximized: setIsResultPaneFullScreen,
                     currentHeight: resultPaneHeight,
                     setCurrentHeight: setResultPaneHeight,
+                },
+                elementRefs: elementRefs,
+                addElementRef: function (
+                    path: (string | number)[],
+                    ref: any,
+                    UiArea: designer.DesignerUIArea,
+                ): void {
+                    const key = getComponentId(path);
+                    /**
+                     * If the component is in the main view, we don't want to store the reference
+                     * of the component copy in the properties view.
+                     */
+                    if (
+                        UiArea === "PropertiesView" &&
+                        elementRefs.current[key]
+                    ) {
+                        return;
+                    }
+                    return (elementRefs.current[key] = ref);
                 },
             }}
         >

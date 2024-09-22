@@ -9,7 +9,7 @@ import {
     AddRegular,
     NavigationFilled,
     DeleteRegular,
-    ErrorCircleFilled,
+    ErrorCircleRegular,
     ArrowCircleUpFilled,
     ArrowCircleDownFilled,
 } from "@fluentui/react-icons";
@@ -49,6 +49,9 @@ export const DesignerTable = ({
     const tableProps =
         component.componentProperties as designer.DesignerTableProperties;
     const state = useContext(TableDesignerContext);
+    if (!state) {
+        return undefined;
+    }
     const classes = useStyles();
 
     const MOVE_UP = l10n.t("Move Up");
@@ -158,7 +161,11 @@ export const DesignerTable = ({
         return issue?.description ?? undefined;
     };
 
-    const getErrorPopup = (message: string | undefined) => {
+    const getErrorPopup = (
+        message: string | undefined,
+        isRowError?: boolean,
+        index?: number,
+    ) => {
         return (
             <fluentui.Popover>
                 <fluentui.PopoverTrigger disableButtonEnhancement>
@@ -166,14 +173,28 @@ export const DesignerTable = ({
                         appearance="subtle"
                         aria-label={message}
                         icon={
-                            <ErrorCircleFilled
+                            <ErrorCircleRegular
                                 style={{
                                     marginTop: "5px",
                                     marginLeft: "5px",
                                 }}
-                                color="red"
+                                color="var(--vscode-errorForeground)"
                             />
                         }
+                        ref={(el) => {
+                            if (
+                                componentPath &&
+                                isRowError &&
+                                index !== undefined
+                            ) {
+                                return state.addElementRef(
+                                    [...componentPath, index],
+                                    el,
+                                    UiArea,
+                                );
+                            }
+                            return undefined;
+                        }}
                     ></fluentui.Button>
                 </fluentui.PopoverTrigger>
 
@@ -206,7 +227,11 @@ export const DesignerTable = ({
                             />
                         )}
                         {getRowError(row.rowId as number) &&
-                            getErrorPopup(getRowError(row.rowId as number))}
+                            getErrorPopup(
+                                getRowError(row.rowId as number),
+                                true,
+                                row.rowId as number,
+                            )}
                     </div>
                 );
             case "remove":

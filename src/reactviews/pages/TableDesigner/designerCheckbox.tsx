@@ -30,6 +30,9 @@ export const DesignerCheckbox = ({
 }: DesignerCheckboxProps) => {
     const [value, setValue] = useState(model.checked);
     const state = useContext(TableDesignerContext);
+    if (!state) {
+        return undefined;
+    }
     useEffect(() => {
         setValue(model.checked);
     }, [model]);
@@ -43,7 +46,7 @@ export const DesignerCheckbox = ({
                         </Label>
                     ) : undefined
                 }
-                id={state?.provider.getComponentId(componentPath)}
+                ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                 checked={value}
                 onChange={async (_event, data) => {
                     if (model.enabled === false) {

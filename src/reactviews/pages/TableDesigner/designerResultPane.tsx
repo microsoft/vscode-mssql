@@ -77,6 +77,7 @@ const useStyles = makeStyles({
         },
         backgroundColor: "var(--vscode-editor-background)",
         padding: "5px",
+        overflow: "hidden scroll",
     },
     issuesRows: {
         display: "flex",
@@ -223,8 +224,26 @@ export const DesignerResultPane = () => {
                                 {metadata.issues!.map((item, index) => (
                                     <ListItem
                                         key={`issue-${index}`}
-                                        onAction={(e, d) => {
-                                            console.log(e, d);
+                                        onAction={() => {
+                                            const path =
+                                                state.provider.getComponentId(
+                                                    metadata.issues![index]
+                                                        .propertyPath as any,
+                                                );
+                                            if (path) {
+                                                const element =
+                                                    state.elementRefs.current[
+                                                        path
+                                                    ];
+                                                if (element) {
+                                                    element.scrollIntoView({
+                                                        behavior: "smooth",
+                                                        block: "center",
+                                                        inline: "center",
+                                                    });
+                                                    element.focus();
+                                                }
+                                            }
                                         }}
                                     >
                                         <div className={classes.issuesRows}>
