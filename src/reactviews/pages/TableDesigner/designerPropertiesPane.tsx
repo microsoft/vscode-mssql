@@ -18,6 +18,7 @@ import {
 } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerCollapsibleDiv } from "./designerCollapsibleDiv";
 import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -93,7 +94,9 @@ export const DesignerPropertiesPane = () => {
     return (
         <div className={classes.root}>
             <Text className={classes.title} size={500}>
-                {PROPERTIES}
+                {locConstants.tableDesigner.propertiesPaneTitle(
+                    parentTableProperties.objectTypeDisplayName,
+                )}
             </Text>
             <div className={classes.stack}>
                 {data &&

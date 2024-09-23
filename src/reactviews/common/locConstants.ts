@@ -119,6 +119,12 @@ export class LocConstants {
                     args: [issueCount],
                     comment: ["{0} is the number of issues"],
                 }),
+            propertiesPaneTitle: (objectType: string) =>
+                l10n.t({
+                    message: "{0} properties",
+                    args: [objectType],
+                    comment: ["{0} is the object type"],
+                }),
         };
     }
 
