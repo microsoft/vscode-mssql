@@ -37,8 +37,8 @@ export const AzureBrowsePage = () => {
 	const [locations, setLocations] = useState<string[]>([]);
 	const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
 
-	// const [servers, setServers] = useState<string[]>([]);
-	// const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
+	const [servers, setServers] = useState<string[]>([]);
+	const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
 
 	// const [databases, setDatabases] = useState<string[]>([]);
 	// const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
@@ -47,7 +47,7 @@ export const AzureBrowsePage = () => {
 		const subs = removeDuplicates(context.state.azureDatabases.map(server => server.subscriptionId));
 		setSubscriptions(subs);
 
-		if (subs.length === 1) {
+		if (!selectedSubscription && subs.length === 1) {
 			setSelectedSubscription(subs[0]);
 		}
 
@@ -63,8 +63,10 @@ export const AzureBrowsePage = () => {
 		const rgs = removeDuplicates(activeServers.map(server => server.resourceGroup));
 		setResourceGroups(rgs);
 
-		if (rgs.length === 1) {
-			setSelectedResourceGroup(rgs[0]);
+		// if current selection is no longer in the list of options,
+		// set selection to undefined (if multiple options) or the only option (if only one)
+		if (!rgs.includes(selectedResourceGroup)) {
+			setSelectedResourceGroup(rgs.length === 1 ? rgs[0] : undefined);
 		}
 
 	}, [subscriptions, selectedSubscription]);
@@ -84,14 +86,37 @@ export const AzureBrowsePage = () => {
 
 		setLocations(locs);
 
-		if (locs.length === 1) {
-			setSelectedLocation(locs[0]);
+		// if current selection is no longer in the list of options,
+		// set selection to undefined (if multiple options) or the only option (if only one)
+		if (!locs.includes(selectedLocation)) {
+			setSelectedLocation(locs.length === 1 ? locs[0] : undefined);
 		}
 	}, [resourceGroups, selectedResourceGroup]);
 
-	// useEffect(() => {
+	useEffect(() => {
+		let activeServers = context.state.azureDatabases;
 
-	// }, [selectedLocation]);
+		if (selectedSubscription) {
+			activeServers = activeServers.filter(server => server.subscriptionId === selectedSubscription);
+		}
+
+		if (selectedResourceGroup) {
+			activeServers = activeServers.filter(server => server.resourceGroup === selectedResourceGroup);
+		}
+
+		if (selectedLocation) {
+			activeServers = activeServers.filter(server => server.location === selectedLocation);
+		}
+
+		const srvs = removeDuplicates(activeServers.map(server => server.server));
+		setServers(srvs);
+
+		// if current selection is no longer in the list of options,
+		// set selection to undefined (if multiple options) or the only option (if only one)
+		if (!srvs.includes(selectedServer)) {
+			setSelectedServer(srvs.length === 1 ? srvs[0] : undefined);
+		}
+	}, [locations, selectedLocation]);
 
 	// useEffect(() => {
 	// 	if (subscriptions.length === 1) {
@@ -112,10 +137,10 @@ export const AzureBrowsePage = () => {
 
 	return (
 		<div>
-			<AzureBrowseDropdown label="Subscription" clearable content={{valueList: subscriptions, setValue: setSelectedSubscription, currentValue: selectedSubscription, dependentValues: [setSelectedResourceGroup, setSelectedLocation, /*setSelectedServer, setSelectedDatabase*/]}}/>
-			<AzureBrowseDropdown label="Resource Group" clearable content={{valueList: resourceGroups, setValue: setSelectedResourceGroup, currentValue: selectedResourceGroup, dependentValues: [setSelectedLocation, /*setSelectedServer, setSelectedDatabase*/]}}/>
-			<AzureBrowseDropdown label="Location" clearable content={{valueList: locations, setValue: setSelectedLocation, currentValue: selectedLocation, dependentValues: [/*setSelectedServer, setSelectedDatabase*/]}}/>
-			{/* <AzureBrowseDropdown label="Server" content={{valueList: servers, setValue: setSelectedServer, currentValue: selectedServer, dependentValues: [setSelectedDatabase]}} required={true} /> */}
+			<AzureBrowseDropdown label="Subscription" clearable content={{valueList: subscriptions, setValue: setSelectedSubscription, currentValue: selectedSubscription}}/>
+			<AzureBrowseDropdown label="Resource Group" clearable content={{valueList: resourceGroups, setValue: setSelectedResourceGroup, currentValue: selectedResourceGroup}}/>
+			<AzureBrowseDropdown label="Location" clearable content={{valueList: locations, setValue: setSelectedLocation, currentValue: selectedLocation}}/>
+			<AzureBrowseDropdown label="Server" required content={{valueList: servers, setValue: setSelectedServer, currentValue: selectedServer}} />
 
 			{/* {selectedServer && (
 				<>
@@ -179,8 +204,7 @@ const AzureBrowseDropdown = ({
 	content: {
 		valueList: string[],
 		setValue: (value: string|undefined) => void,
-		currentValue?: string,
-		dependentValues?: ((value: string|undefined) => void)[]
+		currentValue?: string
 	}
 }) => {
 	const formStyles = useFormStyles();
@@ -194,15 +218,11 @@ const AzureBrowseDropdown = ({
 			>
 				<Dropdown
 					value={content.currentValue ?? ""}
-					selectedOptions={[content.currentValue]}
+					selectedOptions={content.currentValue ? [content.currentValue] : []}
 					clearable={clearable}
 					onOptionSelect={(_event, data) => {
 						if (data.optionValue === content.currentValue) {
 							return;
-						}
-
-						for (const dependentValue of content.dependentValues || []) {
-							dependentValue(undefined);
 						}
 
 						content.setValue(data.optionValue);
