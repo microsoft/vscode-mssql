@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 // import { FormField } from "../../common/forms/form.component";
 import { ConnectButton } from "./components/connectButton.component";
-import { Dropdown, Field, Textarea, Option, Button } from "@fluentui/react-components";
+import { Dropdown, Field, Option, Button } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -23,57 +23,101 @@ export const AzureBrowsePage = () => {
 	const context = useContext(ConnectionDialogContext);
 	const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-	const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
-	const [selectedResourceGroup, setSelectedResourceGroup] = useState<string | undefined>(undefined);
-	const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
-	const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
-	const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
 
 	if (context === undefined) {
 		return undefined;
 	}
 
-	let activeServers = context.state.azureDatabases;
+	const [subscriptions, setSubscriptions] = useState<string[]>([]);
+	const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
 
-	const subscriptions = removeDuplicates(context.state.azureDatabases.map(server => server.subscriptionId));
+	const [resourceGroups, setResourceGroups] = useState<string[]>([]);
+	const [selectedResourceGroup, setSelectedResourceGroup] = useState<string | undefined>(undefined);
 
-	if (selectedSubscription) {
-		activeServers = activeServers.filter(server => server.subscriptionId === selectedSubscription);
-	}
+	const [locations, setLocations] = useState<string[]>([]);
+	const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
 
-	const resourceGroups = removeDuplicates(activeServers.map(server => server.resourceGroup));
+	// const [servers, setServers] = useState<string[]>([]);
+	// const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
 
-	if (selectedResourceGroup) {
-		activeServers = activeServers.filter(server => server.resourceGroup === selectedResourceGroup);
-	}
+	// const [databases, setDatabases] = useState<string[]>([]);
+	// const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
 
-	const locations = removeDuplicates(activeServers.map(server => server.location));
+	useEffect(() => {
+		const subs = removeDuplicates(context.state.azureDatabases.map(server => server.subscriptionId));
+		setSubscriptions(subs);
 
-	if (selectedLocation) {
-		activeServers = activeServers.filter(server => server.location === selectedLocation);
-	}
+		if (subs.length === 1) {
+			setSelectedSubscription(subs[0]);
+		}
 
-	const servers = removeDuplicates(activeServers.map(server => server.server));
+	}, [context.state.azureDatabases]);
 
-	let databases = [];
-	if (selectedServer) {
-		databases = activeServers.find(server => server.server === selectedServer)?.databases;
-	}
+	useEffect(() => {
+		let activeServers = context.state.azureDatabases;
+
+		if (selectedSubscription) {
+			activeServers = activeServers.filter(server => server.subscriptionId === selectedSubscription);
+		}
+
+		const rgs = removeDuplicates(activeServers.map(server => server.resourceGroup));
+		setResourceGroups(rgs);
+
+		if (rgs.length === 1) {
+			setSelectedResourceGroup(rgs[0]);
+		}
+
+	}, [subscriptions, selectedSubscription]);
+
+	useEffect(() => {
+		let activeServers = context.state.azureDatabases;
+
+		if (selectedSubscription) {
+			activeServers = activeServers.filter(server => server.subscriptionId === selectedSubscription);
+		}
+
+		if (selectedResourceGroup) {
+			activeServers = activeServers.filter(server => server.resourceGroup === selectedResourceGroup);
+		}
+
+		const locs = removeDuplicates(activeServers.map(server => server.location));
+
+		setLocations(locs);
+
+		if (locs.length === 1) {
+			setSelectedLocation(locs[0]);
+		}
+	}, [resourceGroups, selectedResourceGroup]);
+
+	// useEffect(() => {
+
+	// }, [selectedLocation]);
+
+	// useEffect(() => {
+	// 	if (subscriptions.length === 1) {
+	// 		setSelectedSubscription(subscriptions[0]);
+	// 	}
+	// }, [subscriptions]);
+
+
+	// useEffect(() => {
+	// 	if (selectedServer) {
+	// 		databases = activeServers.find(server => server.server === selectedServer)!.databases;
+	// 	}
+
+	// 	if (databases.length === 1) {
+	// 		setSelectedDatabase(databases[0]);
+	// 	}
+    // }, [selectedServer]);
 
 	return (
 		<div>
-			<div className={formStyles.formComponentDiv}>
-				<Textarea
-					value={context.state.azureDatabases.map((server, _idx) => JSON.stringify(server)).join('\n')}
-					style={{ height: '200px', width: '100%', margin: '10px 0px' }}
-				/>
-			</div>
-			<AzureBrowseDropdown label="Subscription" valueList={subscriptions} setValue={setSelectedSubscription} />
-			<AzureBrowseDropdown label="Resource Group" valueList={resourceGroups} setValue={setSelectedResourceGroup} />
-			<AzureBrowseDropdown label="Location" valueList={locations} setValue={setSelectedLocation} />
-			<AzureBrowseDropdown label="Server" valueList={servers} setValue={setSelectedServer} />
+			<AzureBrowseDropdown label="Subscription" clearable content={{valueList: subscriptions, setValue: setSelectedSubscription, currentValue: selectedSubscription, dependentValues: [setSelectedResourceGroup, setSelectedLocation, /*setSelectedServer, setSelectedDatabase*/]}}/>
+			<AzureBrowseDropdown label="Resource Group" clearable content={{valueList: resourceGroups, setValue: setSelectedResourceGroup, currentValue: selectedResourceGroup, dependentValues: [setSelectedLocation, /*setSelectedServer, setSelectedDatabase*/]}}/>
+			<AzureBrowseDropdown label="Location" clearable content={{valueList: locations, setValue: setSelectedLocation, currentValue: selectedLocation, dependentValues: [/*setSelectedServer, setSelectedDatabase*/]}}/>
+			{/* <AzureBrowseDropdown label="Server" content={{valueList: servers, setValue: setSelectedServer, currentValue: selectedServer, dependentValues: [setSelectedDatabase]}} required={true} /> */}
 
-			{selectedServer && (
+			{/* {selectedServer && (
 				<>
 					<FormField
 						context={context}
@@ -81,28 +125,27 @@ export const AzureBrowsePage = () => {
 						idx={0}
 						props={{ orientation: 'horizontal' }}
 					/>
-					<AzureBrowseDropdown label="Database" valueList={databases} setValue={setSelectedDatabase} />
+					<AzureBrowseDropdown label="Database" content={{valueList: databases, setValue: setSelectedDatabase, currentValue: selectedDatabase}} />
+					{context.state.connectionComponents.mainOptions.filter(opt => !['server', 'database'].includes(opt)).map(
+						(inputName, idx) => {
+							const component = context.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
+							if (component.hidden === true) {
+								return undefined;
+							}
+
+							return (
+								<FormField
+									key={idx}
+									context={context}
+									component={component as FormItemSpec<IConnectionDialogProfile>}
+									idx={idx}
+									props={{ orientation: 'horizontal' }}
+								/>
+							);
+						}
+					)}
 				</>
-			)}
-
-            {context.state.connectionComponents.mainOptions.filter(opt => !['server', 'database'].includes(opt)).map(
-                (inputName, idx) => {
-                    const component = context.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
-                    if (component.hidden === true) {
-                        return undefined;
-                    }
-
-                    return (
-                        <FormField
-                            key={idx}
-                            context={context}
-                            component={component as FormItemSpec<IConnectionDialogProfile>}
-                            idx={idx}
-                            props={{ orientation: 'horizontal' }}
-                        />
-                    );
-                }
-            )}
+			)} */}
 
             <AdvancedOptionsDrawer isAdvancedDrawerOpen={isAdvancedDrawerOpen} setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen} />
             <div className={formStyles.formNavTray}>
@@ -124,18 +167,48 @@ export const AzureBrowsePage = () => {
 	);
 };
 
-const AzureBrowseDropdown = ({label, valueList, setValue}: {label: string, valueList: string[], setValue: (value: string|undefined) => void}) => {
+const AzureBrowseDropdown = ({
+	label,
+	required,
+	clearable,
+	content
+}: {
+	label: string,
+	required?: boolean,
+	clearable?: boolean,
+	content: {
+		valueList: string[],
+		setValue: (value: string|undefined) => void,
+		currentValue?: string,
+		dependentValues?: ((value: string|undefined) => void)[]
+	}
+}) => {
 	const formStyles = useFormStyles();
 
 	return (
 		<div className={formStyles.formComponentDiv}>
-			<Field label={label} orientation="horizontal">
+			<Field
+				label={label}
+				orientation="horizontal"
+				required={required}
+			>
 				<Dropdown
+					value={content.currentValue ?? ""}
+					selectedOptions={[content.currentValue]}
+					clearable={clearable}
 					onOptionSelect={(_event, data) => {
-						setValue(data.optionValue);
+						if (data.optionValue === content.currentValue) {
+							return;
+						}
+
+						for (const dependentValue of content.dependentValues || []) {
+							dependentValue(undefined);
+						}
+
+						content.setValue(data.optionValue);
 					}}
 				>
-					{valueList.map((loc, idx) => {
+					{content.valueList.map((loc, idx) => {
 						return (
 							<Option
 								key={idx}
