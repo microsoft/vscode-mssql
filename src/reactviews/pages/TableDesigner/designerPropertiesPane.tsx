@@ -95,7 +95,7 @@ export const DesignerPropertiesPane = () => {
         <div className={classes.root}>
             <Text className={classes.title} size={500}>
                 {locConstants.tableDesigner.propertiesPaneTitle(
-                    parentTableProperties.objectTypeDisplayName,
+                    parentTableProperties.objectTypeDisplayName ?? "",
                 )}
             </Text>
             <div className={classes.stack}>
