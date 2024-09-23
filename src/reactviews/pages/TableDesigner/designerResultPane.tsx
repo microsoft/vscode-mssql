@@ -224,7 +224,38 @@ export const DesignerResultPane = () => {
                                 {metadata.issues!.map((item, index) => (
                                     <ListItem
                                         key={`issue-${index}`}
-                                        onAction={() => {
+                                        onAction={async () => {
+                                            const tab =
+                                                metadata!.view!.tabs.find(
+                                                    (t) => {
+                                                        const component =
+                                                            t.components.find(
+                                                                (c) => {
+                                                                    if (
+                                                                        item.propertyPath!.includes(
+                                                                            c.propertyName,
+                                                                        )
+                                                                    ) {
+                                                                        return true;
+                                                                    }
+                                                                },
+                                                            );
+
+                                                        if (component) {
+                                                            return true;
+                                                        }
+                                                        return false;
+                                                    },
+                                                );
+                                            if (tab) {
+                                                state.provider.setTab(
+                                                    tab.id as any,
+                                                );
+                                            }
+                                            // delay for 100ms to ensure the tab is set before scrolling
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 100),
+                                            );
                                             const path =
                                                 state.provider.getComponentId(
                                                     metadata.issues![index]
