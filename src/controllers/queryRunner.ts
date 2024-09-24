@@ -203,6 +203,7 @@ export default class QueryRunner {
             // Put together the request
             let queryDetails: QueryExecuteParams = {
                 ownerUri: this._ownerUri,
+                executionPlanOptions: {includeActualExecutionPlanXml: false, includeEstimatedExecutionPlanXml: true},
                 querySelection: selection,
             };
 
