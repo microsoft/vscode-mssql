@@ -457,15 +457,14 @@ export const DesignerTable = ({
                                 focusedRowId === index
                                     ? "var(--vscode-list-hoverBackground)"
                                     : "var(--vscode-editor-background)";
-                            if (rowError) {
-                                backgroundColor =
-                                    "var(--vscode-diffEditor-removedLineBackground)";
-                            }
 
                             return (
                                 <fluentui.TableRow
                                     style={{
                                         backgroundColor: backgroundColor,
+                                        border: rowError
+                                            ? "1px solid var(--vscode-errorForeground)"
+                                            : "",
                                         width: "calc(100% - 10px)",
                                     }}
                                     draggable={tableProps.canMoveRows}
@@ -512,13 +511,14 @@ export const DesignerTable = ({
                                     }}
                                 >
                                     {columnsDef.map((column, columnIndex) => {
-                                        console.log(
+                                        const borderColor =
                                             state?.provider.getErrorMessage([
                                                 ...componentPath,
                                                 row.rowId,
                                                 column.columnId,
-                                            ]),
-                                        );
+                                            ])
+                                                ? "1px solid var(--vscode-errorForeground)"
+                                                : "";
                                         return (
                                             <fluentui.TableCell
                                                 key={
@@ -532,16 +532,8 @@ export const DesignerTable = ({
                                                 id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
-                                                    backgroundColor:
-                                                        state?.provider.getErrorMessage(
-                                                            [
-                                                                ...componentPath,
-                                                                row.rowId,
-                                                                column.columnId,
-                                                            ],
-                                                        )
-                                                            ? "var(--vscode-diffEditor-removedLineBackground)"
-                                                            : "",
+                                                    border: borderColor,
+                                                    paddingBottom: "5px",
                                                 }}
                                             >
                                                 {getTableCell(
