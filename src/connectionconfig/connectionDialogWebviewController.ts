@@ -21,6 +21,7 @@ import { ApiStatus } from '../sharedInterfaces/webview';
 import { AzureSubscription, VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
 import { uiUtils } from '@microsoft/vscode-azext-azureutils';
 import { ResourceManagementClient } from '@azure/arm-resources';
+import { getErrorMessage } from '../utils/utils';
 // import { createSubscriptionContext, IActionContext } from '@microsoft/vscode-azext-utils';
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<ConnectionDialogWebviewState, ConnectionDialogReducers> {
@@ -198,7 +199,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 }
 
 private getActiveFormComponents(): (keyof IConnectionDialogProfile)[] {
-	if (this.state.selectedInputMode === ConnectionInputMode.Parameters) {
+	if (this.state.selectedInputMode === ConnectionInputMode.Parameters || this.state.selectedInputMode ===	ConnectionInputMode.AzureBrowse) {
 		return this.state.connectionComponents.mainOptions;
 	}
 	return ['connectionString', 'profileName'];
@@ -641,13 +642,22 @@ private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItem
 			}
 
 			try {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
-				if (result?.errorMessage) {
-					this.state.formError = result.errorMessage;
+
+				try {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const result = await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(this.state.connectionProfile as any);
+
+					if (result?.errorMessage) {
+						this.state.formError = result.errorMessage;
+						this.state.connectionStatus = ApiStatus.Error;
+						return state;
+					}
+				} catch (error) {
+					this.state.formError = getErrorMessage(error);
 					this.state.connectionStatus = ApiStatus.Error;
 					return state;
 				}
+
 				if (this._connectionToEditCopy) {
 					await this._mainController.connectionManager.getUriForConnection(this._connectionToEditCopy);
 					await this._objectExplorerProvider.removeConnectionNodes([this._connectionToEditCopy]);
@@ -672,67 +682,72 @@ private getFormComponent(propertyName: keyof IConnectionDialogProfile): FormItem
 	}
 
 	private async loadAzureDatabases(state: ConnectionDialogWebviewState) {
-		const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
+		try {
+			const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
 
-		if (!await auth.isSignedIn()) {
-			const result = await auth.signIn();
+			if (!await auth.isSignedIn()) {
+				const result = await auth.signIn();
 
-			if (!result) {
-				state.formError = "Azure sign in failed.";
-				return state;
-			}
-		}
-
-		function groupBy<T>(xs: T[], key: string): Map<string, T[]> {
-			return xs.reduce((rv, x) => {
-				const keyValue = x[key];
-				if (!rv.has(keyValue)) {
-					rv.set(keyValue, []);
-				}
-				rv.get(keyValue)!.push(x);
-				return rv;
-			}, new Map<string, T[]>());
-		}
-
-		async function getSqlDatabases(sub: AzureSubscription): Promise<AzureSqlDatabaseInfo[]> {
-			const result: AzureSqlDatabaseInfo[] = [];
-			const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
-			const servers = await uiUtils.listAllIterator(client.resources.list({filter: "resourceType eq 'Microsoft.Sql/servers'"}));
-			const databasesPromise = uiUtils.listAllIterator(client.resources.list({filter: "resourceType eq 'Microsoft.Sql/servers/databases'"}));
-
-			for (const server of servers) {
-				result.push({
-					server: server.name,
-					databases: [],
-					location: server.location,
-					resourceGroup: server.id.split('/')[4], // TODO: don't hardcode
-					subscriptionId: sub.subscriptionId
-				});
-			}
-
-			for (const database of await databasesPromise) {
-				const serverName = database.id.split('/')[8];  // TODO: don't hardcode
-				const server = result.find(s => s.server === serverName);
-				if (server) {
-					server.databases.push(database.name);
+				if (!result) {
+					state.formError = "Azure sign in failed.";
+					return state;
 				}
 			}
 
-			return result;
-		}
+			const subs = this.groupBy(await auth.getSubscriptions(), 'tenantId'); // TODO: replace with Object.groupBy once ES2024 is supported
 
-		const subs = groupBy(await auth.getSubscriptions(), 'tenantId'); // TODO: replace with Object.groupBy once ES2024 is supported
-
-		if (subs.size === 0) {
-			state.formError = `No subscriptions set in VS Code's Azure account filter.`;
-		} else {
-			for (const t of subs.keys()) {
-				for (const s of subs.get(t)) {
-					const databases = await getSqlDatabases(s);
-					state.azureDatabases.push(...databases);
-					this.state = state; // update state mid-reducer so the UI is more responsive
+			if (subs.size === 0) {
+				state.formError = `No subscriptions set in VS Code's Azure account filter.`;
+			} else {
+				for (const t of subs.keys()) {
+					for (const s of subs.get(t)) {
+						const databases = await this.getSqlDatabases(s);
+						state.azureDatabases.push(...databases);
+						this.state = state; // update state mid-reducer so the UI is more responsive
+					}
 				}
 			}
+		} catch (error) {
+			state.formError = `Error loading Azure databases: ${error}`;
+			return state;
 		}
+	}
+
+	private groupBy<T>(xs: T[], key: string): Map<string, T[]> {
+		return xs.reduce((rv, x) => {
+			const keyValue = x[key];
+			if (!rv.has(keyValue)) {
+				rv.set(keyValue, []);
+			}
+			rv.get(keyValue)!.push(x);
+			return rv;
+		}, new Map<string, T[]>());
+	}
+
+	private async getSqlDatabases(sub: AzureSubscription): Promise<AzureSqlDatabaseInfo[]> {
+		const result: AzureSqlDatabaseInfo[] = [];
+		const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+		const servers = await uiUtils.listAllIterator(client.resources.list({filter: "resourceType eq 'Microsoft.Sql/servers'"}));
+		const databasesPromise = uiUtils.listAllIterator(client.resources.list({filter: "resourceType eq 'Microsoft.Sql/servers/databases'"}));
+
+		for (const server of servers) {
+			result.push({
+				server: server.name,
+				databases: [],
+				location: server.location,
+				resourceGroup: server.id.split('/')[4], // TODO: don't hardcode
+				subscriptionId: sub.subscriptionId
+			});
+		}
+
+		for (const database of await databasesPromise) {
+			const serverName = database.id.split('/')[8];  // TODO: don't hardcode
+			const server = result.find(s => s.server === serverName);
+			if (server) {
+				server.databases.push(database.name);
+			}
+		}
+
+		return result;
 	}
 }

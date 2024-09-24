@@ -40,8 +40,8 @@ export const AzureBrowsePage = () => {
 	const [servers, setServers] = useState<string[]>([]);
 	const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
 
-	// const [databases, setDatabases] = useState<string[]>([]);
-	// const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
+	const [databases, setDatabases] = useState<string[]>([]);
+	const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
 
 	useEffect(() => {
 		const subs = removeDuplicates(context.state.azureDatabases.map(server => server.subscriptionId));
@@ -65,7 +65,7 @@ export const AzureBrowsePage = () => {
 
 		// if current selection is no longer in the list of options,
 		// set selection to undefined (if multiple options) or the only option (if only one)
-		if (!rgs.includes(selectedResourceGroup)) {
+		if (selectedResourceGroup && !rgs.includes(selectedResourceGroup)) {
 			setSelectedResourceGroup(rgs.length === 1 ? rgs[0] : undefined);
 		}
 
@@ -88,7 +88,7 @@ export const AzureBrowsePage = () => {
 
 		// if current selection is no longer in the list of options,
 		// set selection to undefined (if multiple options) or the only option (if only one)
-		if (!locs.includes(selectedLocation)) {
+		if (selectedLocation && !locs.includes(selectedLocation)) {
 			setSelectedLocation(locs.length === 1 ? locs[0] : undefined);
 		}
 	}, [resourceGroups, selectedResourceGroup]);
@@ -113,36 +113,34 @@ export const AzureBrowsePage = () => {
 
 		// if current selection is no longer in the list of options,
 		// set selection to undefined (if multiple options) or the only option (if only one)
-		if (!srvs.includes(selectedServer)) {
+		if (selectedServer && !srvs.includes(selectedServer)) {
 			setSelectedServer(srvs.length === 1 ? srvs[0] : undefined);
 		}
 	}, [locations, selectedLocation]);
 
-	// useEffect(() => {
-	// 	if (subscriptions.length === 1) {
-	// 		setSelectedSubscription(subscriptions[0]);
-	// 	}
-	// }, [subscriptions]);
+	useEffect(() => {
+		if (!selectedServer) {
+			return; // should not be visible if no server is selected
+		}
 
+		const dbs = context.state.azureDatabases.find(server => server.server === selectedServer)!.databases;
 
-	// useEffect(() => {
-	// 	if (selectedServer) {
-	// 		databases = activeServers.find(server => server.server === selectedServer)!.databases;
-	// 	}
+		setDatabases(dbs);
+		setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
+    }, [selectedServer]);
 
-	// 	if (databases.length === 1) {
-	// 		setSelectedDatabase(databases[0]);
-	// 	}
-    // }, [selectedServer]);
+	function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
+		context!.formAction({propertyName, value, isAction: false});
+	}
 
 	return (
 		<div>
 			<AzureBrowseDropdown label="Subscription" clearable content={{valueList: subscriptions, setValue: setSelectedSubscription, currentValue: selectedSubscription}}/>
 			<AzureBrowseDropdown label="Resource Group" clearable content={{valueList: resourceGroups, setValue: setSelectedResourceGroup, currentValue: selectedResourceGroup}}/>
 			<AzureBrowseDropdown label="Location" clearable content={{valueList: locations, setValue: setSelectedLocation, currentValue: selectedLocation}}/>
-			<AzureBrowseDropdown label="Server" required content={{valueList: servers, setValue: setSelectedServer, currentValue: selectedServer}} />
+			<AzureBrowseDropdown label="Server" required content={{valueList: servers, setValue: (srv) => {setSelectedServer(srv); setConnectionProperty("server", srv ? srv + ".database.windows.net" : ""); }, currentValue: selectedServer}} />
 
-			{/* {selectedServer && (
+			{selectedServer && (
 				<>
 					<FormField
 						context={context}
@@ -150,7 +148,7 @@ export const AzureBrowsePage = () => {
 						idx={0}
 						props={{ orientation: 'horizontal' }}
 					/>
-					<AzureBrowseDropdown label="Database" content={{valueList: databases, setValue: setSelectedDatabase, currentValue: selectedDatabase}} />
+					<AzureBrowseDropdown label="Database" clearable content={{valueList: databases, setValue: (db) => { setSelectedDatabase(db); setConnectionProperty("database", db ?? ""); }, currentValue: selectedDatabase}} />
 					{context.state.connectionComponents.mainOptions.filter(opt => !['server', 'database'].includes(opt)).map(
 						(inputName, idx) => {
 							const component = context.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
@@ -170,7 +168,7 @@ export const AzureBrowsePage = () => {
 						}
 					)}
 				</>
-			)} */}
+			)}
 
             <AdvancedOptionsDrawer isAdvancedDrawerOpen={isAdvancedDrawerOpen} setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen} />
             <div className={formStyles.formNavTray}>

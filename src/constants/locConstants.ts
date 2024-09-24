@@ -54,7 +54,7 @@ export function msgConnectionError2(errorMessage: string) {
 		comment: ['{0} is the error message']
 	});
 }
-export let serverNameMissing = l10n.t('Server name not received.');
+export let serverNameMissing = l10n.t('Server name not set.');
 export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMessage: string) {
 	return l10n.t({
 		message: 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.',
