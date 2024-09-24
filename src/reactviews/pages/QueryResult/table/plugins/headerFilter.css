@@ -1,0 +1,31 @@
+#popup-menu {
+    width: 150px;
+    padding: 10px;
+    border-radius: 3px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d4d4d4;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Button styling to match the design */
+  .sort-btn {
+    width: 100%;
+    padding: 8px 10px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+  }
+  
+  .sort-btn:hover {
+    background-color: #e6e6e6;
+  }
+  
+  /* Additional styling for active/focused states */
+  .sort-btn:focus {
+    outline: none;
+    background-color: #d4d4d4;
+  }

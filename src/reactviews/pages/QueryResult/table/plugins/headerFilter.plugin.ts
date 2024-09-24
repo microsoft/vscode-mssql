@@ -9,6 +9,7 @@
 import { FilterableColumn } from "../interfaces";
 import { append, $ } from "../dom";
 import { instanceOfIDisposableDataProvider } from "../dataProvider";
+import "./headerFilter.css";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -123,12 +124,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
 
         var $popup = jQuery(
-            '<div id="popup-menu" style="display: none; position: absolute; border: 1px solid #ccc; background-color: #fff; padding: 15px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 100;">' +
-                "<p>Hello</p>" +
-                '<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending">Sort Ascending</button>' +
-                '<button id="sort-descending" type="button" icon="slick-header-menuicon.descending">Sort Descending</button>' +
-                '<button id="ok" type="button">OK</button>' +
-                '<button id="close-popup" type="button">Close</button>' +
+            '<div id="popup-menu" style="display: none; position: absolute; border: 1px solid #ccc; background-color: #fff; padding: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 100;">' +
+                '<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">Sort Ascending</button>' +
+                '<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">Sort Descending</button>' +
                 "</div>",
         );
 
