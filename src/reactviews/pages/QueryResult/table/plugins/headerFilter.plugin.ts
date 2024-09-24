@@ -124,7 +124,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
 
         var $popup = jQuery(
-            '<div id="popup-menu" style="display: none; position: absolute; border: 1px solid #ccc; background-color: #fff; padding: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 100;">' +
+            '<div id="popup-menu">' +
                 '<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">Sort Ascending</button>' +
                 '<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">Sort Descending</button>' +
                 "</div>",
