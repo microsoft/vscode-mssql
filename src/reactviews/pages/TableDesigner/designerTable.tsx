@@ -469,23 +469,23 @@ export const DesignerTable = ({
                                         width: "calc(100% - 10px)",
                                     }}
                                     draggable={tableProps.canMoveRows}
-                                    onFocus={(event) => {
-                                        if (!loadPropertiesTabData) {
-                                            return;
-                                        }
-                                        state?.provider.setPropertiesComponents(
-                                            {
-                                                componentPath: [
-                                                    ...componentPath,
-                                                    row.rowId,
-                                                ],
-                                                component: component,
-                                                model: model,
-                                            },
-                                        );
-                                        setFocusedRowId(index);
-                                        event.preventDefault();
-                                    }}
+                                    // onFocus={(event) => {
+                                    //     if (!loadPropertiesTabData) {
+                                    //         return;
+                                    //     }
+                                    //     state?.provider.setPropertiesComponents(
+                                    //         {
+                                    //             componentPath: [
+                                    //                 ...componentPath,
+                                    //                 row.rowId,
+                                    //             ],
+                                    //             component: component,
+                                    //             model: model,
+                                    //         },
+                                    //     );
+                                    //     setFocusedRowId(index);
+                                    //     event.preventDefault();
+                                    // }}
                                     key={componentPath.join(".") + index}
                                     onDragEnter={() => {
                                         setDraggedOverRowId(index);
