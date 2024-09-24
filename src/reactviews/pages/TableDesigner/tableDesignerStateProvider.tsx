@@ -20,6 +20,14 @@ export interface TableDesignerState {
         currentHeight: number;
         setCurrentHeight: (height: number) => void;
     };
+    propertiesPaneResizeInfo: {
+        originalWidth: number;
+        setOriginalWidth: (width: number) => void;
+        isMaximized: boolean;
+        setIsMaximized: (isFullScreen: boolean) => void;
+        currentWidth: number;
+        setCurrentWidth: (width: number) => void;
+    };
     elementRefs: React.MutableRefObject<{ [key: string]: any | null }>;
     addElementRef: (
         path: (string | number)[],
@@ -49,6 +57,13 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
     const [isResultPaneFullScreen, setIsResultPaneFullScreen] =
         useState<boolean>(false);
     const [originalHeight, setOriginalHeight] = useState<number>(300);
+
+    // Properties pane width state
+    const [propertiesPaneWidth, setPropertiesPaneWidth] = useState<number>(500);
+    const [isPropertiesPaneFullScreen, setIsPropertiesPaneFullScreen] =
+        useState<boolean>(false);
+    const [originalWidth, setOriginalWidth] = useState<number>(500);
+
     const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const tableState = webviewState?.state;
 
@@ -167,6 +182,14 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                     setIsMaximized: setIsResultPaneFullScreen,
                     currentHeight: resultPaneHeight,
                     setCurrentHeight: setResultPaneHeight,
+                },
+                propertiesPaneResizeInfo: {
+                    originalWidth: originalWidth,
+                    setOriginalWidth: setOriginalWidth,
+                    isMaximized: isPropertiesPaneFullScreen,
+                    setIsMaximized: setIsPropertiesPaneFullScreen,
+                    currentWidth: propertiesPaneWidth,
+                    setCurrentWidth: setPropertiesPaneWidth,
                 },
                 elementRefs: elementRefs,
                 addElementRef: function (
