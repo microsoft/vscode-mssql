@@ -9,9 +9,9 @@ import {
     AddRegular,
     NavigationFilled,
     DeleteRegular,
-    ErrorCircleRegular,
     ArrowCircleUpFilled,
     ArrowCircleDownFilled,
+    MoreHorizontalRegular,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -19,6 +19,7 @@ import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
 import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 export type DesignerTableProps = {
     component: designer.DesignerDataPropertyInfo;
@@ -69,12 +70,25 @@ export const DesignerTable = ({
                 ),
             });
         });
-    columnsDef.unshift(
-        fluentui.createTableColumn({
-            columnId: "dragHandle",
-            renderHeaderCell: () => <></>,
-        }),
-    );
+    if (tableProps.canMoveRows) {
+        columnsDef.unshift(
+            fluentui.createTableColumn({
+                columnId: "dragHandle",
+                renderHeaderCell: () => <></>,
+            }),
+        );
+    }
+
+    if (UiArea === "TabsView") {
+        columnsDef.push(
+            fluentui.createTableColumn({
+                columnId: "more",
+                renderHeaderCell: () => {
+                    return <>{locConstants.tableDesigner.more}</>;
+                },
+            }),
+        );
+    }
 
     if (tableProps.canRemoveRows) {
         columnsDef.push(
@@ -98,29 +112,60 @@ export const DesignerTable = ({
             fluentui.TableColumnDefinition<designer.DesignerTableComponentDataItem>[]
         >(columnsDef);
 
-    const sizingOptions: fluentui.TableColumnSizingOptions = {};
-    tableProps.columns!.forEach((column) => {
-        const colProps = tableProps.itemProperties?.find(
-            (item) => item.propertyName === column,
-        );
-        sizingOptions[column] = {
-            minWidth: (colProps?.componentProperties.width ?? 100) + 50,
-            idealWidth: (colProps?.componentProperties.width ?? 100) + 50,
-        };
-    });
-    sizingOptions["dragHandle"] = {
-        minWidth: 30,
-        idealWidth: 30,
-        defaultWidth: 30,
-    };
-    sizingOptions["remove"] = {
-        minWidth: 100,
-        idealWidth: 100,
-        defaultWidth: 100,
-    };
+    const getColumnSizingOptions = (): fluentui.TableColumnSizingOptions => {
+        const result = {} as fluentui.TableColumnSizingOptions;
+        tableProps.columns!.forEach((column) => {
+            const colProps = tableProps.itemProperties?.find(
+                (item) => item.propertyName === column,
+            );
+            if (!colProps) {
+                return;
+            }
 
-    const [columnSizingOptions] =
-        useState<fluentui.TableColumnSizingOptions>(sizingOptions);
+            // Adding space if the column item has an error
+            const doesColumnContainError = items.find((_i, index) => {
+                return state.provider.getErrorMessage([
+                    ...componentPath,
+                    index,
+                    column,
+                ]);
+            });
+            const widthSpacing = doesColumnContainError ? 0 : 0;
+            result[column] = {
+                minWidth:
+                    (colProps?.componentProperties.width ?? 70) + widthSpacing,
+                idealWidth:
+                    (colProps?.componentProperties.width ?? 70) + widthSpacing,
+                defaultWidth:
+                    (colProps?.componentProperties.width ?? 70) + widthSpacing,
+            };
+        });
+        if (tableProps.canMoveRows) {
+            result["dragHandle"] = {
+                minWidth: 15,
+                idealWidth: 15,
+                defaultWidth: 15,
+            };
+        }
+        if (UiArea === "TabsView") {
+            result["more"] = {
+                minWidth: 40,
+                idealWidth: 40,
+                defaultWidth: 40,
+            };
+        }
+        if (tableProps.canRemoveRows) {
+            result["remove"] = {
+                minWidth: 35,
+                idealWidth: 35,
+                defaultWidth: 35,
+            };
+        }
+        return result;
+    };
+    const [columnSizingOptions] = useState<fluentui.TableColumnSizingOptions>(
+        getColumnSizingOptions(),
+    );
 
     const { getRows, columnSizing_unstable, tableRef } =
         fluentui.useTableFeatures(
@@ -147,64 +192,21 @@ export const DesignerTable = ({
             to,
             columns[1].columnId,
         ]);
-        document.getElementById(firstCellElementId!)?.focus();
-        //setFocusedRowId(to);
+        const element = state.elementRefs.current[firstCellElementId];
+        element?.focus();
     };
 
     const getRowError = (index: number): string | undefined => {
         const issue = state?.state.issues?.find((i) => {
+            if (!i.propertyPath) {
+                return false;
+            }
             return (
                 i.propertyPath!.join(".") ===
                 [...componentPath, index].join(".")
             );
         });
         return issue?.description ?? undefined;
-    };
-
-    const getErrorPopup = (
-        message: string | undefined,
-        isRowError?: boolean,
-        index?: number,
-    ) => {
-        return (
-            <fluentui.Popover>
-                <fluentui.PopoverTrigger disableButtonEnhancement>
-                    <fluentui.Button
-                        appearance="subtle"
-                        aria-label={message}
-                        icon={
-                            <ErrorCircleRegular
-                                style={{
-                                    marginTop: "5px",
-                                    marginLeft: "5px",
-                                }}
-                                color="var(--vscode-errorForeground)"
-                            />
-                        }
-                        ref={(el) => {
-                            if (
-                                componentPath &&
-                                isRowError &&
-                                index !== undefined
-                            ) {
-                                return state.addElementRef(
-                                    [...componentPath, index],
-                                    el,
-                                    UiArea,
-                                );
-                            }
-                            return undefined;
-                        }}
-                    ></fluentui.Button>
-                </fluentui.PopoverTrigger>
-
-                <fluentui.PopoverSurface tabIndex={-1}>
-                    <div>
-                        <div>{message}</div>
-                    </div>
-                </fluentui.PopoverSurface>
-            </fluentui.Popover>
-        );
     };
 
     const getTableCell = (
@@ -226,13 +228,26 @@ export const DesignerTable = ({
                                 icon={<NavigationFilled />}
                             />
                         )}
-                        {getRowError(row.rowId as number) &&
-                            getErrorPopup(
-                                getRowError(row.rowId as number),
-                                true,
-                                row.rowId as number,
-                            )}
                     </div>
+                );
+            case "more":
+                return (
+                    <fluentui.Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<MoreHorizontalRegular />}
+                        onClick={() => {
+                            if (!loadPropertiesTabData) {
+                                return;
+                            }
+                            state?.provider.setPropertiesComponents({
+                                componentPath: [...componentPath, row.rowId],
+                                component: component,
+                                model: model,
+                            });
+                            setFocusedRowId(parseInt(row.rowId.toString()));
+                        }}
+                    />
                 );
             case "remove":
                 return (
@@ -259,32 +274,18 @@ export const DesignerTable = ({
                 switch (colProps?.componentType) {
                     case "input":
                         return (
-                            <div className={classes.tableCell}>
-                                <DesignerInputBox
-                                    component={colProps}
-                                    model={value as designer.InputBoxProperties}
-                                    componentPath={[
-                                        ...componentPath,
-                                        row.rowId,
-                                        columnId,
-                                    ]}
-                                    UiArea={UiArea}
-                                    showLabel={false}
-                                    showError={false}
-                                />
-                                {state?.provider.getErrorMessage([
+                            <DesignerInputBox
+                                component={colProps}
+                                model={value as designer.InputBoxProperties}
+                                componentPath={[
                                     ...componentPath,
                                     row.rowId,
                                     columnId,
-                                ]) &&
-                                    getErrorPopup(
-                                        state?.provider.getErrorMessage([
-                                            ...componentPath,
-                                            row.rowId,
-                                            columnId,
-                                        ]),
-                                    )}
-                            </div>
+                                ]}
+                                UiArea={UiArea}
+                                showLabel={false}
+                                showError={false}
+                            />
                         );
                     case "dropdown":
                         return (
@@ -301,18 +302,6 @@ export const DesignerTable = ({
                                     showLabel={false}
                                     showError={false}
                                 />
-                                {state?.provider.getErrorMessage([
-                                    ...componentPath,
-                                    row.rowId,
-                                    columnId,
-                                ]) &&
-                                    getErrorPopup(
-                                        state?.provider.getErrorMessage([
-                                            ...componentPath,
-                                            row.rowId,
-                                            columnId,
-                                        ]),
-                                    )}
                             </div>
                         );
                     case "checkbox": {
@@ -329,18 +318,6 @@ export const DesignerTable = ({
                                     UiArea={UiArea}
                                     showLabel={false}
                                 />
-                                {state?.provider.getErrorMessage([
-                                    ...componentPath,
-                                    row.rowId,
-                                    columnId,
-                                ]) &&
-                                    getErrorPopup(
-                                        state?.provider.getErrorMessage([
-                                            ...componentPath,
-                                            row.rowId,
-                                            columnId,
-                                        ]),
-                                    )}
                             </div>
                         );
                     }
@@ -365,7 +342,8 @@ export const DesignerTable = ({
         <div>
             <fluentui.Toolbar size="small">
                 {tableProps.canAddRows && (
-                    <fluentui.ToolbarButton
+                    <fluentui.Button
+                        appearance="transparent"
                         icon={<AddRegular />}
                         onClick={() => {
                             state?.provider.processTableEdit({
@@ -375,12 +353,13 @@ export const DesignerTable = ({
                                 value: undefined,
                             });
                         }}
+                        size="small"
                     >
                         {tableProps.labelForAddNewButton}
-                    </fluentui.ToolbarButton>
+                    </fluentui.Button>
                 )}
                 {tableProps.canMoveRows && (
-                    <fluentui.ToolbarButton
+                    <fluentui.Button
                         icon={<ArrowCircleUpFilled />}
                         onClick={(event) => {
                             (event.target as HTMLElement).focus();
@@ -389,12 +368,14 @@ export const DesignerTable = ({
                         disabled={
                             focusedRowId === undefined || focusedRowId === 0
                         }
+                        size="small"
+                        appearance="transparent"
                     >
                         {MOVE_UP}
-                    </fluentui.ToolbarButton>
+                    </fluentui.Button>
                 )}
                 {tableProps.canMoveRows && (
-                    <fluentui.ToolbarButton
+                    <fluentui.Button
                         icon={<ArrowCircleDownFilled />}
                         onClick={(event) => {
                             (event.target as HTMLElement).focus();
@@ -404,97 +385,178 @@ export const DesignerTable = ({
                             focusedRowId === undefined ||
                             focusedRowId === rows.length - 1
                         }
+                        size="small"
+                        appearance="transparent"
                     >
                         {MOVE_DOWN}
-                    </fluentui.ToolbarButton>
+                    </fluentui.Button>
                 )}
             </fluentui.Toolbar>
-            <fluentui.Table
-                as="table"
-                size="small"
-                {...columnSizing_unstable.getTableProps()}
-                ref={tableRef}
-            >
-                <fluentui.TableHeader>
-                    <fluentui.TableRow>
-                        {columnsDef.map((column) => {
+            <div
+                style={{
+                    maxWidth: "calc(100% - 20px)",
+                    width: Object.keys(columnSizingOptions).reduce(
+                        (acc, curr) => {
                             return (
-                                <fluentui.TableHeaderCell
-                                    {...columnSizing_unstable.getTableHeaderCellProps(
-                                        column.columnId,
-                                    )}
-                                    key={column.columnId}
+                                acc + columnSizingOptions[curr].idealWidth! + 22
+                            );
+                        },
+                        0,
+                    ),
+                    border: "1px solid var(--vscode-editorWidget-border)",
+                    overflowX: "auto",
+                    paddingBottom: "5px",
+                    paddingRight: "5px",
+                }}
+            >
+                <fluentui.Table
+                    as="table"
+                    size="extra-small"
+                    {...columnSizing_unstable.getTableProps()}
+                    ref={tableRef}
+                    style={{
+                        marginRight: "5px",
+                        width:
+                            Object.keys(columnSizingOptions).reduce(
+                                (acc, curr) => {
+                                    return (
+                                        acc +
+                                        columnSizingOptions[curr].idealWidth! +
+                                        22
+                                    );
+                                },
+                                0,
+                            ) - 20,
+                    }}
+                >
+                    <fluentui.TableHeader
+                        style={{
+                            borderBottom:
+                                "3px solid var(--vscode-editorWidget-border)",
+                        }}
+                    >
+                        <fluentui.TableRow>
+                            {columnsDef.map((column) => {
+                                return (
+                                    <fluentui.TableHeaderCell
+                                        {...columnSizing_unstable.getTableHeaderCellProps(
+                                            column.columnId,
+                                        )}
+                                        key={column.columnId}
+                                    >
+                                        {column.renderHeaderCell()}
+                                    </fluentui.TableHeaderCell>
+                                );
+                            })}
+                        </fluentui.TableRow>
+                    </fluentui.TableHeader>
+                    <fluentui.TableBody>
+                        {rows.map((row, index) => {
+                            const rowError = getRowError(index);
+                            let backgroundColor =
+                                focusedRowId === index
+                                    ? "var(--vscode-list-hoverBackground)"
+                                    : "var(--vscode-editor-background)";
+                            if (rowError) {
+                                backgroundColor =
+                                    "var(--vscode-diffEditor-removedLineBackground)";
+                            }
+
+                            return (
+                                <fluentui.TableRow
+                                    style={{
+                                        backgroundColor: backgroundColor,
+                                        width: "calc(100% - 10px)",
+                                    }}
+                                    draggable={tableProps.canMoveRows}
+                                    onFocus={(event) => {
+                                        if (!loadPropertiesTabData) {
+                                            return;
+                                        }
+                                        state?.provider.setPropertiesComponents(
+                                            {
+                                                componentPath: [
+                                                    ...componentPath,
+                                                    row.rowId,
+                                                ],
+                                                component: component,
+                                                model: model,
+                                            },
+                                        );
+                                        setFocusedRowId(index);
+                                        event.preventDefault();
+                                    }}
+                                    key={componentPath.join(".") + index}
+                                    onDragEnter={() => {
+                                        setDraggedOverRowId(index);
+                                    }}
+                                    onDragEnd={() => {
+                                        if (
+                                            draggedRowId === undefined ||
+                                            draggedOverRowId === undefined
+                                        ) {
+                                            return;
+                                        }
+                                        moveRows(
+                                            draggedRowId,
+                                            draggedOverRowId,
+                                        );
+                                        setDraggedRowId(undefined);
+                                    }}
+                                    onDrag={() => {
+                                        setDraggedRowId(index);
+                                    }}
+                                    onDragStart={() => {
+                                        setDraggedOverRowId(undefined);
+                                        setDraggedRowId(index);
+                                    }}
                                 >
-                                    {column.renderHeaderCell()}
-                                </fluentui.TableHeaderCell>
+                                    {columnsDef.map((column, columnIndex) => {
+                                        console.log(
+                                            state?.provider.getErrorMessage([
+                                                ...componentPath,
+                                                row.rowId,
+                                                column.columnId,
+                                            ]),
+                                        );
+                                        return (
+                                            <fluentui.TableCell
+                                                key={
+                                                    componentPath.join(".") +
+                                                    index +
+                                                    columnIndex
+                                                }
+                                                {...columnSizing_unstable.getTableCellProps(
+                                                    column.columnId,
+                                                )}
+                                                id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
+                                                style={{
+                                                    height: "30px",
+                                                    backgroundColor:
+                                                        state?.provider.getErrorMessage(
+                                                            [
+                                                                ...componentPath,
+                                                                row.rowId,
+                                                                column.columnId,
+                                                            ],
+                                                        )
+                                                            ? "var(--vscode-diffEditor-removedLineBackground)"
+                                                            : "",
+                                                }}
+                                            >
+                                                {getTableCell(
+                                                    row,
+                                                    column.columnId,
+                                                )}
+                                            </fluentui.TableCell>
+                                        );
+                                    })}
+                                </fluentui.TableRow>
                             );
                         })}
-                    </fluentui.TableRow>
-                </fluentui.TableHeader>
-                <fluentui.TableBody>
-                    {rows.map((row, index) => {
-                        return (
-                            <fluentui.TableRow
-                                draggable={tableProps.canMoveRows}
-                                onFocus={(event) => {
-                                    if (!loadPropertiesTabData) {
-                                        return;
-                                    }
-                                    state?.provider.setPropertiesComponents({
-                                        componentPath: [
-                                            ...componentPath,
-                                            row.rowId,
-                                        ],
-                                        component: component,
-                                        model: model,
-                                    });
-                                    setFocusedRowId(index);
-                                    event.preventDefault();
-                                }}
-                                key={componentPath.join(".") + index}
-                                onDragEnter={() => {
-                                    setDraggedOverRowId(index);
-                                }}
-                                onDragEnd={() => {
-                                    if (
-                                        draggedRowId === undefined ||
-                                        draggedOverRowId === undefined
-                                    ) {
-                                        return;
-                                    }
-                                    moveRows(draggedRowId, draggedOverRowId);
-                                    setDraggedRowId(undefined);
-                                }}
-                                onDrag={() => {
-                                    setDraggedRowId(index);
-                                }}
-                                onDragStart={() => {
-                                    setDraggedOverRowId(undefined);
-                                    setDraggedRowId(index);
-                                }}
-                            >
-                                {columnsDef.map((column, columnIndex) => {
-                                    return (
-                                        <fluentui.TableCell
-                                            key={
-                                                componentPath.join(".") +
-                                                index +
-                                                columnIndex
-                                            }
-                                            {...columnSizing_unstable.getTableCellProps(
-                                                column.columnId,
-                                            )}
-                                            id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
-                                        >
-                                            {getTableCell(row, column.columnId)}
-                                        </fluentui.TableCell>
-                                    );
-                                })}
-                            </fluentui.TableRow>
-                        );
-                    })}
-                </fluentui.TableBody>
-            </fluentui.Table>
+                    </fluentui.TableBody>
+                </fluentui.Table>
+            </div>
         </div>
     );
 };
