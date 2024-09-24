@@ -55,7 +55,7 @@ export const AzureBrowsePage = () => {
 
     useEffect(() => {
         const subs = removeDuplicates(
-            context.state.azureDatabases.map((server) => server.subscriptionId),
+            context.state.azureDatabases.map((server) => server.subscription),
         );
         setSubscriptions(subs);
 
@@ -69,7 +69,7 @@ export const AzureBrowsePage = () => {
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
-                (server) => server.subscriptionId === selectedSubscription,
+                (server) => server.subscription === selectedSubscription,
             );
         }
 
@@ -90,7 +90,7 @@ export const AzureBrowsePage = () => {
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
-                (server) => server.subscriptionId === selectedSubscription,
+                (server) => server.subscription === selectedSubscription,
             );
         }
 
@@ -118,7 +118,7 @@ export const AzureBrowsePage = () => {
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
-                (server) => server.subscriptionId === selectedSubscription,
+                (server) => server.subscription === selectedSubscription,
             );
         }
 

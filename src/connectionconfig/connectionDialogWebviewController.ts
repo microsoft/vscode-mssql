@@ -38,10 +38,8 @@ import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-import { uiUtils } from "@microsoft/vscode-azext-azureutils";
 import { ResourceManagementClient } from "@azure/arm-resources";
-import { getErrorMessage } from "../utils/utils";
-// import { createSubscriptionContext, IActionContext } from '@microsoft/vscode-azext-utils';
+import { getErrorMessage, listAllIterator } from "../utils/utils";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -933,24 +931,34 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 }
             }
 
-            const subs = this.groupBy(
-                await auth.getSubscriptions(),
+            const shouldUseFilter = vscode.workspace.getConfiguration().get<string[] | undefined>('azureResourceGroups.selectedSubscriptions') !== undefined;
+
+            const tenantSubMap = this.groupBy(
+                await auth.getSubscriptions(shouldUseFilter),
                 "tenantId",
             ); // TODO: replace with Object.groupBy once ES2024 is supported
 
-            if (subs.size === 0) {
+            if (tenantSubMap.size === 0) {
                 state.formError = `No subscriptions set in VS Code's Azure account filter.`;
             } else {
-                for (const t of subs.keys()) {
-                    for (const s of subs.get(t)) {
-                        const databases = await this.getSqlDatabases(s);
-                        state.azureDatabases.push(...databases);
-                        this.state = state; // update state mid-reducer so the UI is more responsive
+                for (const t of tenantSubMap.keys()) {
+                    for (const s of tenantSubMap.get(t)) {
+                        try {
+                            const servers = await this.getAzureServers(s);
+                            state.azureDatabases.push(...servers);
+                            this.state = state; // update state mid-reducer so the UI is more responsive
+                        }
+                        catch (error) {
+                            state.formError = `Error loading Azure databases for subscription ${s.name} (${s.subscriptionId}).  Confirm that you have permission.`;
+                            console.error(state.formError + "\n" + getErrorMessage(error));
+                            this.state = state; // update state mid-reducer so the UI is more responsive
+                        }
                     }
                 }
             }
         } catch (error) {
-            state.formError = `Error loading Azure databases: ${error}`;
+            state.formError = `Error loading Azure databases.`;
+            console.error(state.formError + "\n" + getErrorMessage(error));
             return state;
         }
     }
@@ -966,7 +974,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }, new Map<string, T[]>());
     }
 
-    private async getSqlDatabases(
+    private async getAzureServers(
         sub: AzureSubscription,
     ): Promise<AzureSqlDatabaseInfo[]> {
         const result: AzureSqlDatabaseInfo[] = [];
@@ -974,12 +982,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             sub.credential,
             sub.subscriptionId,
         );
-        const servers = await uiUtils.listAllIterator(
+        const servers = await listAllIterator(
             client.resources.list({
                 filter: "resourceType eq 'Microsoft.Sql/servers'",
             }),
         );
-        const databasesPromise = uiUtils.listAllIterator(
+        const databasesPromise = listAllIterator(
             client.resources.list({
                 filter: "resourceType eq 'Microsoft.Sql/servers/databases'",
             }),
@@ -990,13 +998,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 server: server.name,
                 databases: [],
                 location: server.location,
-                resourceGroup: server.id.split("/")[4], // TODO: don't hardcode
-                subscriptionId: sub.subscriptionId,
+                resourceGroup: this.extractFromResourceId(server.id, "resourceGroups"),
+                subscription: `${sub.name} (${sub.subscriptionId})`,
             });
         }
 
         for (const database of await databasesPromise) {
-            const serverName = database.id.split("/")[8]; // TODO: don't hardcode
+            const serverName = this.extractFromResourceId(database.id, "servers");
             const server = result.find((s) => s.server === serverName);
             if (server) {
                 server.databases.push(database.name);
@@ -1004,5 +1012,21 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
 
         return result;
+    }
+
+    private extractFromResourceId(resourceId: string, property: string): string | undefined {
+        if (!property.endsWith("/")) {
+            property += "/";
+        }
+
+        let startIndex = resourceId.indexOf(property);
+
+        if (startIndex === -1) {
+            return undefined;
+        } else {
+            startIndex += property.length;
+        }
+
+        return resourceId.substring(startIndex, resourceId.indexOf("/", startIndex));
     }
 }

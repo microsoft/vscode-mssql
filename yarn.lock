@@ -79,53 +79,7 @@
   dependencies:
     tslib "^2.6.2"
 
-"@azure/arm-authorization-profile-2020-09-01-hybrid@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@azure/arm-authorization-profile-2020-09-01-hybrid/-/arm-authorization-profile-2020-09-01-hybrid-2.1.0.tgz#e0e73339d4b00c6308f1c19a94e67bf6235cc914"
-  integrity sha512-uOXhcj6Dv+TB8Yn2fguQQhoBZhafTf0ir5/QIZ8C7Rb2vS0nLcnoeesWRj9jmS0SerE7y2AF3qEhrowEZotX1Q==
-  dependencies:
-    "@azure/core-auth" "^1.3.0"
-    "@azure/core-client" "^1.6.1"
-    "@azure/core-paging" "^1.2.0"
-    "@azure/core-rest-pipeline" "^1.8.0"
-    tslib "^2.2.0"
-
-"@azure/arm-authorization@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@azure/arm-authorization/-/arm-authorization-9.0.0.tgz#68f4ec3fe7abf7c986a2c405be3df7a67bfad13b"
-  integrity sha512-GdiCA8IA1gO+qcCbFEPj+iLC4+3ByjfKzmeAnkP7MdlL84Yo30Huo/EwbZzwRjYybXYUBuFxGPBB+yeTT4Ebxg==
-  dependencies:
-    "@azure/core-auth" "^1.3.0"
-    "@azure/core-client" "^1.7.0"
-    "@azure/core-paging" "^1.2.0"
-    "@azure/core-rest-pipeline" "^1.8.0"
-    tslib "^2.2.0"
-
-"@azure/arm-msi@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@azure/arm-msi/-/arm-msi-2.1.0.tgz#212bd5d16602c638463934b3fcab3b325e93399e"
-  integrity sha512-qP2BXpXkZ/I5gO479Dj6HFVkgSrAlYOG2AGVTqxTu0YIVdZdmrlZLH7SNl1Um9id+p7uNGNRdVKIBO5rcQgeJw==
-  dependencies:
-    "@azure/core-auth" "^1.3.0"
-    "@azure/core-client" "^1.6.1"
-    "@azure/core-paging" "^1.2.0"
-    "@azure/core-rest-pipeline" "^1.8.0"
-    tslib "^2.2.0"
-
-"@azure/arm-resources-profile-2020-09-01-hybrid@^2.0.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@azure/arm-resources-profile-2020-09-01-hybrid/-/arm-resources-profile-2020-09-01-hybrid-2.1.0.tgz#1b373b3e2e4b6b5926765fa834c142b07900bf98"
-  integrity sha512-7sNMfaf8agfQmExgtlvXzTooxoXPl2wJelSB2hQCG2BPZ37Oi24kxeECia+lXiZKfXAkiPSHxgdgECGjDQaV+Q==
-  dependencies:
-    "@azure/abort-controller" "^1.0.0"
-    "@azure/core-auth" "^1.3.0"
-    "@azure/core-client" "^1.6.1"
-    "@azure/core-lro" "^2.2.0"
-    "@azure/core-paging" "^1.2.0"
-    "@azure/core-rest-pipeline" "^1.8.0"
-    tslib "^2.2.0"
-
-"@azure/arm-resources-subscriptions@^2.0.0", "@azure/arm-resources-subscriptions@^2.1.0":
+"@azure/arm-resources-subscriptions@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@azure/arm-resources-subscriptions/-/arm-resources-subscriptions-2.1.0.tgz#a736ac80ef4dfc5dbc1a85222445c960de65824b"
   integrity sha512-vKiu/3Yh84IV3IuJJ+0Fgs/ZQpvuGzoZ3dAoBksIV++Uu/Qz9RcQVz7pj+APWYIuODuR9I0eGKswZvzynzekug==
@@ -162,32 +116,6 @@
     "@azure/core-rest-pipeline" "^1.1.0"
     tslib "^2.2.0"
 
-"@azure/arm-storage-profile-2020-09-01-hybrid@^2.0.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@azure/arm-storage-profile-2020-09-01-hybrid/-/arm-storage-profile-2020-09-01-hybrid-2.1.0.tgz#d5c7b8c41f71661236d76a35962734ac90435fc6"
-  integrity sha512-XZYoBWQP9BkQPde5DA7xIiOJVE+6Eeo755VfRqymN42gRn/X6GOcZ0X5x0qvLVxXZcwpFRKblRpkmxGi0FpIxg==
-  dependencies:
-    "@azure/abort-controller" "^1.0.0"
-    "@azure/core-auth" "^1.3.0"
-    "@azure/core-client" "^1.6.1"
-    "@azure/core-lro" "^2.2.0"
-    "@azure/core-paging" "^1.2.0"
-    "@azure/core-rest-pipeline" "^1.8.0"
-    tslib "^2.2.0"
-
-"@azure/arm-storage@^18.2.0":
-  version "18.3.0"
-  resolved "https://registry.yarnpkg.com/@azure/arm-storage/-/arm-storage-18.3.0.tgz#0dac2c708290c200fa08f96ea7f23c1ce4afcf19"
-  integrity sha512-iba1BroEL/PY1ZZg8SiqFkjB/NsXbgBCOIkOzp9pfWrukyuh96IDZCbRL+ASN2lWkXrZgbg9uuZ4zlX28xMYTQ==
-  dependencies:
-    "@azure/abort-controller" "^1.0.0"
-    "@azure/core-auth" "^1.6.0"
-    "@azure/core-client" "^1.7.0"
-    "@azure/core-lro" "^2.5.4"
-    "@azure/core-paging" "^1.2.0"
-    "@azure/core-rest-pipeline" "^1.14.0"
-    tslib "^2.2.0"
-
 "@azure/arm-subscriptions@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@azure/arm-subscriptions/-/arm-subscriptions-5.0.0.tgz#0b9ba1bb5654c80a0c693f55ff95d9a200814a41"
@@ -214,7 +142,7 @@
     "@azure/abort-controller" "^1.0.0"
     tslib "^2.2.0"
 
-"@azure/core-auth@^1.4.0", "@azure/core-auth@^1.6.0", "@azure/core-auth@^1.8.0":
+"@azure/core-auth@^1.4.0", "@azure/core-auth@^1.8.0":
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/@azure/core-auth/-/core-auth-1.8.0.tgz#281b4a6d3309c3e7b15bcd967f01d4c79ae4a1d6"
   integrity sha512-YvFMowkXzLbXNM11yZtVLhUCmuG0ex7JKOH366ipjmHBhL3vpDcPAeWF+jf0X+jVXwFqo3UhsWUq4kH0ZPdu/g==
@@ -236,7 +164,7 @@
     "@azure/logger" "^1.0.0"
     tslib "^2.2.0"
 
-"@azure/core-client@^1.6.0", "@azure/core-client@^1.6.1", "@azure/core-client@^1.7.0", "@azure/core-client@^1.9.2":
+"@azure/core-client@^1.7.0", "@azure/core-client@^1.9.2":
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/@azure/core-client/-/core-client-1.9.2.tgz#6fc69cee2816883ab6c5cdd653ee4f2ff9774f74"
   integrity sha512-kRdry/rav3fUKHl/aDLd/pDLcB+4pOFwPPTVEExuMyaI5r+JBbMWqRbCY1pn5BniDaU3lRxO9eaQ1AmSMehl/w==
@@ -259,16 +187,6 @@
     "@azure/logger" "^1.0.0"
     tslib "^2.2.0"
 
-"@azure/core-lro@^2.5.4":
-  version "2.7.2"
-  resolved "https://registry.yarnpkg.com/@azure/core-lro/-/core-lro-2.7.2.tgz#787105027a20e45c77651a98b01a4d3b01b75a08"
-  integrity sha512-0YIpccoX8m/k00O7mDDMdJpbr6mf1yWo2dfmxt5A8XVZVVMz2SSKaEbMCeJRvgQ0IaSlqhjT47p4hVIRRy90xw==
-  dependencies:
-    "@azure/abort-controller" "^2.0.0"
-    "@azure/core-util" "^1.2.0"
-    "@azure/logger" "^1.0.0"
-    tslib "^2.6.2"
-
 "@azure/core-paging@^1.2.0":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.2.1.tgz#1b884f563b6e49971e9a922da3c7a20931867b54"
@@ -276,6 +194,13 @@
   dependencies:
     "@azure/core-asynciterator-polyfill" "^1.0.0"
     tslib "^2.2.0"
+
+"@azure/core-paging@^1.6.2":
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.6.2.tgz#40d3860dc2df7f291d66350b2cfd9171526433e7"
+  integrity sha512-YKWi9YuCU04B55h25cnOYZHxXYtEvQEbKST5vqRga7hWY9ydd3FZHdeQF8pyh+acWZvppw13M/LMGx0LABUVMA==
+  dependencies:
+    tslib "^2.6.2"
 
 "@azure/core-rest-pipeline@^1.1.0", "@azure/core-rest-pipeline@^1.5.0", "@azure/core-rest-pipeline@^1.8.0":
   version "1.8.0"
@@ -292,7 +217,7 @@
     tslib "^2.2.0"
     uuid "^8.3.0"
 
-"@azure/core-rest-pipeline@^1.14.0", "@azure/core-rest-pipeline@^1.16.0", "@azure/core-rest-pipeline@^1.9.0", "@azure/core-rest-pipeline@^1.9.1":
+"@azure/core-rest-pipeline@^1.16.0", "@azure/core-rest-pipeline@^1.9.1":
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/@azure/core-rest-pipeline/-/core-rest-pipeline-1.17.0.tgz#55dafa1093553c549ed6d8dbca69aa505c7b3aa3"
   integrity sha512-62Vv8nC+uPId3j86XJ0WI+sBf0jlqTqPUFCBNrGtlaUeQUIXWV/D8GE5A1d+Qx8H7OQojn2WguC8kChD6v0shA==
@@ -329,7 +254,7 @@
     "@azure/abort-controller" "^2.0.0"
     tslib "^2.6.2"
 
-"@azure/core-util@^1.1.0", "@azure/core-util@^1.2.0", "@azure/core-util@^1.6.1", "@azure/core-util@^1.9.0":
+"@azure/core-util@^1.1.0", "@azure/core-util@^1.6.1", "@azure/core-util@^1.9.0":
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/@azure/core-util/-/core-util-1.10.0.tgz#cf3163382d40343972848c914869864df5d44bdb"
   integrity sha512-dqLWQsh9Nro1YQU+405POVtXnwrIVqPyfUzc4zXCbThTg7+vNNaiMkwbX9AMXKyoFYFClxmB3s25ZFr3+jZkww==
@@ -343,13 +268,6 @@
   integrity sha512-aK4s3Xxjrx3daZr3VylxejK3vG5ExXck5WOHDJ8in/k9AqlfIyFMMT1uG7u8mNjX+QRILTIn0/Xgschfh/dQ9g==
   dependencies:
     tslib "^2.2.0"
-
-"@azure/logger@^1.0.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@azure/logger/-/logger-1.1.4.tgz#223cbf2b424dfa66478ce9a4f575f59c6f379768"
-  integrity sha512-4IXXzcCdLdlXuCG+8UKEwLA1T1NHqUfanhXYHiQTn+6sfWCZXduqbtXDGceg3Ce5QxTGo7EqmbV6Bi+aqKuClQ==
-  dependencies:
-    tslib "^2.6.2"
 
 "@azure/ms-rest-azure-env@^2.0.0":
   version "2.0.0"
@@ -1773,93 +1691,12 @@
   resolved "https://registry.yarnpkg.com/@jgoz/esbuild-plugin-typecheck/-/esbuild-plugin-typecheck-4.0.0.tgz#53b373c907b2fac30753f9124d6929722812a312"
   integrity sha512-7yyamv/ahDr1INsPlkrmRxxa60haiGCvifcMniO9eVfSs37bz+f7yb588lNb52geUuzuPnY8Uo0LnbtFHr96BQ==
 
-"@microsoft/1ds-core-js@4.3.2", "@microsoft/1ds-core-js@^4.3.0":
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/1ds-core-js/-/1ds-core-js-4.3.2.tgz#e10b2871fefde968dadabf2d935be1f9cc622363"
-  integrity sha512-keD1cy6eH6STo9hvDiN1vSqbv+GM/qsgqaZ2p4j9OZJLBEE6vGRdRlnpB6lpkhGQ+cE9vP74aYNQt2/9fODqOQ==
-  dependencies:
-    "@microsoft/applicationinsights-core-js" "3.3.2"
-    "@microsoft/applicationinsights-shims" "3.0.1"
-    "@microsoft/dynamicproto-js" "^2.0.3"
-    "@nevware21/ts-async" ">= 0.5.2 < 2.x"
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
-"@microsoft/1ds-post-js@^4.3.0":
-  version "4.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/1ds-post-js/-/1ds-post-js-4.3.2.tgz#30b012ab36b2af91ae7ad6f02b112aebba49a7de"
-  integrity sha512-Mj6nGfYotM4y8YzBzNj1GMoOBv2szF2SmpWZLRUWdqO1ij2kuxLvtRYdQkJxwwrXbhrTtSzbZTcP1wZdJmlegQ==
-  dependencies:
-    "@microsoft/1ds-core-js" "4.3.2"
-    "@microsoft/applicationinsights-shims" "3.0.1"
-    "@microsoft/dynamicproto-js" "^2.0.3"
-    "@nevware21/ts-async" ">= 0.5.2 < 2.x"
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
 "@microsoft/ads-extension-telemetry@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@microsoft/ads-extension-telemetry/-/ads-extension-telemetry-3.0.2.tgz#edcbebbf5ab8ea183a7198ea8056a51f8ac76653"
   integrity sha512-h0ZLCMw3I/wcQWofr25MPSdYDd6CBwPG3XSJdgDwNdlVKUTSGL3QoBxspxtgF33yH5Zod7s+l/g7exbldDhY0Q==
   dependencies:
     "@vscode/extension-telemetry" "0.6.1"
-
-"@microsoft/applicationinsights-channel-js@3.3.2":
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/applicationinsights-channel-js/-/applicationinsights-channel-js-3.3.2.tgz#bd727aac21f9ccc21c8553028c11eb8e2e343cc7"
-  integrity sha512-ic1oCQgGzitCLMYMHOgGuQvqd8G81s8R7ynI0NBgXc7pkzGiatCkLGx2lDiIYTYWV+Cd/3+cJwPB+3N8/yTGew==
-  dependencies:
-    "@microsoft/applicationinsights-common" "3.3.2"
-    "@microsoft/applicationinsights-core-js" "3.3.2"
-    "@microsoft/applicationinsights-shims" "3.0.1"
-    "@microsoft/dynamicproto-js" "^2.0.3"
-    "@nevware21/ts-async" ">= 0.5.2 < 2.x"
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
-"@microsoft/applicationinsights-common@3.3.2":
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/applicationinsights-common/-/applicationinsights-common-3.3.2.tgz#63b8badeb5acab08b1ba00515deb9ddf04e4b010"
-  integrity sha512-RR6LpIC9JLQGTcgUaAXhuIZW69W00T6sF7GC6LvLy5PRjvg4m3MqflpQfNHt7yGy72ZHFG/TpLH5zJIghrNRew==
-  dependencies:
-    "@microsoft/applicationinsights-core-js" "3.3.2"
-    "@microsoft/applicationinsights-shims" "3.0.1"
-    "@microsoft/dynamicproto-js" "^2.0.3"
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
-"@microsoft/applicationinsights-core-js@3.3.2":
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/applicationinsights-core-js/-/applicationinsights-core-js-3.3.2.tgz#74ade83946164cb0006b8eddcbb2301c4ce069d4"
-  integrity sha512-Jo3Mkl6zPswjS90SBbe+TxAOjQqHbwpD00VPca1ZeICc+31dbVNIBgkK42G0DbMB/ml1kqwkFV2/kpAH8QJCrw==
-  dependencies:
-    "@microsoft/applicationinsights-shims" "3.0.1"
-    "@microsoft/dynamicproto-js" "^2.0.3"
-    "@nevware21/ts-async" ">= 0.5.2 < 2.x"
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
-"@microsoft/applicationinsights-shims@3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@microsoft/applicationinsights-shims/-/applicationinsights-shims-3.0.1.tgz#3865b73ace8405b9c4618cc5c571f2fe3876f06f"
-  integrity sha512-DKwboF47H1nb33rSUfjqI6ryX29v+2QWcTrRvcQDA32AZr5Ilkr7whOOSsD1aBzwqX0RJEIP1Z81jfE3NBm/Lg==
-  dependencies:
-    "@nevware21/ts-utils" ">= 0.9.4 < 2.x"
-
-"@microsoft/applicationinsights-web-basic@^3.3.0":
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/applicationinsights-web-basic/-/applicationinsights-web-basic-3.3.2.tgz#eed470ad6c4f257c2bc8ef95dbf47f7508ab361d"
-  integrity sha512-t1NPoE8DrBiNJOUtPfH81AO1wRpdlWu/sqFTFlTINCNbJuoTGNkqobPDGWCZezbqdGoe2xESe3fmJZd+faQ+pg==
-  dependencies:
-    "@microsoft/applicationinsights-channel-js" "3.3.2"
-    "@microsoft/applicationinsights-common" "3.3.2"
-    "@microsoft/applicationinsights-core-js" "3.3.2"
-    "@microsoft/applicationinsights-shims" "3.0.1"
-    "@microsoft/dynamicproto-js" "^2.0.3"
-    "@nevware21/ts-async" ">= 0.5.2 < 2.x"
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
-"@microsoft/dynamicproto-js@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@microsoft/dynamicproto-js/-/dynamicproto-js-2.0.3.tgz#ae2b408061e3ff01a97078429fc768331e239256"
-  integrity sha512-JTWTU80rMy3mdxOjjpaiDQsTLZ6YSGGqsjURsY6AUQtIj0udlF/jYmhdLZu8693ZIC0T1IwYnFa0+QeiMnziBA==
-  dependencies:
-    "@nevware21/ts-utils" ">= 0.10.4 < 2.x"
 
 "@microsoft/vscode-azext-azureauth@^2.5.0":
   version "2.5.0"
@@ -1870,46 +1707,6 @@
     "@azure/core-client" "^1.9.2"
     "@azure/core-rest-pipeline" "^1.16.0"
     "@azure/ms-rest-azure-env" "^2.0.0"
-
-"@microsoft/vscode-azext-azureutils@^3.0.1":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-azureutils/-/vscode-azext-azureutils-3.1.1.tgz#100eb791e90d03de77e4cf638904941ecd96c88e"
-  integrity sha512-1pfa205jeet3ncYlzjRndQz6b2M419OqYNt5PEMCbitWbJeinCz27vCDkuieNkWhqbqctjF2m1iGNYJ/HMnYvA==
-  dependencies:
-    "@azure/arm-authorization" "^9.0.0"
-    "@azure/arm-authorization-profile-2020-09-01-hybrid" "^2.1.0"
-    "@azure/arm-msi" "^2.1.0"
-    "@azure/arm-resources" "^5.0.0"
-    "@azure/arm-resources-profile-2020-09-01-hybrid" "^2.0.0"
-    "@azure/arm-resources-subscriptions" "^2.0.0"
-    "@azure/arm-storage" "^18.2.0"
-    "@azure/arm-storage-profile-2020-09-01-hybrid" "^2.0.0"
-    "@azure/core-client" "^1.6.0"
-    "@azure/core-rest-pipeline" "^1.9.0"
-    "@azure/logger" "^1.0.4"
-    "@microsoft/vscode-azext-utils" "^2.5.7"
-    semver "^7.3.7"
-    uuid "^9.0.0"
-
-"@microsoft/vscode-azext-utils@^2.5.4", "@microsoft/vscode-azext-utils@^2.5.7":
-  version "2.5.7"
-  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-utils/-/vscode-azext-utils-2.5.7.tgz#b359383d0ccfe38dedd0bf823e9ff2ee38062d9d"
-  integrity sha512-ZZYsASAawR/JhIPeVsplIsN8JK5d3nc2IkIS7RE5AWbbWVtrheCPkS9OoNx+Roal1w3u7Bm0nYJ6eI5NaxnvJw==
-  dependencies:
-    "@microsoft/vscode-azureresources-api" "^2.3.1"
-    "@vscode/extension-telemetry" "^0.9.6"
-    dayjs "^1.11.2"
-    escape-string-regexp "^2.0.0"
-    html-to-text "^8.2.0"
-    semver "^7.3.7"
-    uuid "^9.0.0"
-    vscode-tas-client "^0.1.47"
-    vscode-uri "^3.0.6"
-
-"@microsoft/vscode-azureresources-api@^2.3.1":
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azureresources-api/-/vscode-azureresources-api-2.3.2.tgz#270a7931d220dacf46de9eb7c1a1b80eb8e7215c"
-  integrity sha512-hwG8Q1ywk7faPIyKLRT5Lfk9usl5i0mIxqyVEWxs4gBi5Jfq4d90WEJbHJLX72v6HS+4KQCKJ0h0XhNS7y4OZg==
 
 "@monaco-editor/loader@^1.4.0":
   version "1.4.0"
@@ -1924,18 +1721,6 @@
   integrity sha512-RFkU9/i7cN2bsq/iTkurMWOEErmYcY6JiQI3Jn+WeR/FGISH8JbHERjpS9oRuSOPvDMJI0Z8nJeKkbOs9sBYQw==
   dependencies:
     "@monaco-editor/loader" "^1.4.0"
-
-"@nevware21/ts-async@>= 0.5.2 < 2.x":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@nevware21/ts-async/-/ts-async-0.5.2.tgz#a41883dc6ccc4666bdf156e92f35f3003fd3f6f0"
-  integrity sha512-Zf2vUNjCw2vJsiVKhWXA9hCNHsn59AOSGa5jGP4tWrp/vTH9XrI4eG/65khuoAgrS83migj0Xv5/j6fUAz69Zw==
-  dependencies:
-    "@nevware21/ts-utils" ">= 0.11.3 < 2.x"
-
-"@nevware21/ts-utils@>= 0.10.4 < 2.x", "@nevware21/ts-utils@>= 0.11.3 < 2.x", "@nevware21/ts-utils@>= 0.9.4 < 2.x":
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/@nevware21/ts-utils/-/ts-utils-0.11.3.tgz#d0f032ade9540585a30a6453d962de613566d856"
-  integrity sha512-oipW+tyKN68bREjoESYAzOZiatM+1LF+ez1TX3BaeinhCkI18xsLgmpH9tvwHaVgKf1Tsth25sdbXVtYmgRYvQ==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -1984,14 +1769,6 @@
   version "1.17.1"
   resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.17.1.tgz#bf93997beb81863fde042ebd05013a2618471362"
   integrity sha512-mCOMec4BKd6BRGBZeSnGiIgwsbLGp3yhVqAD8H+PxiRNEHgDpZb8J1TnrSDlg97t0ySKMQJTHCWBCmBpSmkF6Q==
-
-"@selderee/plugin-htmlparser2@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@selderee/plugin-htmlparser2/-/plugin-htmlparser2-0.6.0.tgz#27e994afd1c2cb647ceb5406a185a5574188069d"
-  integrity sha512-J3jpy002TyBjd4N/p6s+s90eX42H2eRhK3SbsZuvTDv977/E8p2U3zikdiehyJja66do7FlxLomZLPlvl2/xaA==
-  dependencies:
-    domhandler "^4.2.0"
-    selderee "^0.6.0"
 
 "@sinonjs/commons@^1.6.0", "@sinonjs/commons@^1.7.0", "@sinonjs/commons@^1.8.3":
   version "1.8.3"
@@ -2335,15 +2112,6 @@
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.6.1.tgz#f8d1f7145baf932b75077c48107edff48501fc14"
   integrity sha512-Y4Oc8yGURGVF4WhCZcu+EVy+MAIeQDLDVeDlLn59H0C1w+7xr8dL2ZtDBioy+Hog1Edrd6zOwr3Na7xe1iC/UA==
-
-"@vscode/extension-telemetry@^0.9.6":
-  version "0.9.7"
-  resolved "https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.9.7.tgz#386e08c1f98350bd5a368ccf279a501a0cd6dd67"
-  integrity sha512-2GQbcfDUTg0QC1v0HefkHNwYrE5LYKzS3Zb0+uA6Qn1MBDzgiSh23ddOZF/JRqhqBFOG0mE70XslKSGQ5v9KwQ==
-  dependencies:
-    "@microsoft/1ds-core-js" "^4.3.0"
-    "@microsoft/1ds-post-js" "^4.3.0"
-    "@microsoft/applicationinsights-web-basic" "^3.3.0"
 
 "@vscode/l10n-dev@^0.0.35":
   version "0.0.35"
@@ -3697,11 +3465,6 @@ commander@2.9.x:
   dependencies:
     graceful-readlink ">= 1.0.0"
 
-commander@^2.19.0:
-  version "2.20.3"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
-  integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
-
 commander@^6.1.0:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-6.2.1.tgz#0792eb682dfbc325999bb2b84fddddba110ac73c"
@@ -3929,11 +3692,6 @@ dateformat@^2.0.0:
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-2.2.0.tgz#4065e2013cf9fb916ddfd82efb506ad4c6769062"
   integrity sha1-QGXiATz5+5Ft39gu+1Bq1MZ2kGI=
 
-dayjs@^1.11.2:
-  version "1.11.13"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
-  integrity sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==
-
 debug-fabulous@0.0.X:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/debug-fabulous/-/debug-fabulous-0.0.4.tgz#fa071c5d87484685424807421ca4b16b0b1a0763"
@@ -4085,11 +3843,6 @@ deepmerge-json@^1.5.0:
   resolved "https://registry.yarnpkg.com/deepmerge-json/-/deepmerge-json-1.5.0.tgz#6daa3600d53fc1f646604853bc99e95e260fbda0"
   integrity sha512-jZRrDmBKjmGcqMFEUJ14FjMJwm05Qaked+1vxaALRtF0UAl7lPU8OLWXFxvoeg3jbQM249VPFVn8g2znaQkEtA==
 
-deepmerge@^4.2.2:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-4.3.1.tgz#44b5f2147cd3b00d4b56137685966f26fd25dd4a"
-  integrity sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==
-
 default-compare@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/default-compare/-/default-compare-1.0.0.tgz#cb61131844ad84d84788fb68fd01681ca7781a2f"
@@ -4233,11 +3986,6 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
-discontinuous-range@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/discontinuous-range/-/discontinuous-range-1.0.0.tgz#e38331f0844bba49b9a9cb71c771585aab1bc65a"
-  integrity sha512-c68LpLbO+7kP/b1Hr1qs8/BJ09F5khZGTxqxZuhzxpmwJKOgRFHJWIb9/KmqnqHhLdO55aOxFH/EGBvUQbL/RQ==
-
 doctrine@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-2.1.0.tgz#5cd01fc101621b42c4cd7f5d1a66243716d3f39d"
@@ -4253,15 +4001,6 @@ dom-helpers@^5.0.1:
     "@babel/runtime" "^7.8.7"
     csstype "^3.0.2"
 
-dom-serializer@^1.0.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/dom-serializer/-/dom-serializer-1.4.1.tgz#de5d41b1aea290215dc45a6dae8adcf1d32e2d30"
-  integrity sha512-VHwB3KfrcOOkelEG2ZOfxqLZdfkil8PtJi4P8N2MMXucZq2yLp75ClViUlOVwyoHEDjYU433Aq+5zWP61+RGag==
-  dependencies:
-    domelementtype "^2.0.1"
-    domhandler "^4.2.0"
-    entities "^2.0.0"
-
 dom-serializer@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/dom-serializer/-/dom-serializer-2.0.0.tgz#e41b802e1eedf9f6cae183ce5e622d789d7d8e53"
@@ -4271,17 +4010,10 @@ dom-serializer@^2.0.0:
     domhandler "^5.0.2"
     entities "^4.2.0"
 
-domelementtype@^2.0.1, domelementtype@^2.2.0, domelementtype@^2.3.0:
+domelementtype@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/domelementtype/-/domelementtype-2.3.0.tgz#5c45e8e869952626331d7aab326d01daf65d589d"
   integrity sha512-OLETBj6w0OsagBwdXnPdN0cnMfF9opN69co+7ZrbfPGrdpPVNBUj02spi6B1N7wChLQiPn4CSH/zJvXw56gmHw==
-
-domhandler@^4.0.0, domhandler@^4.2.0:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/domhandler/-/domhandler-4.3.1.tgz#8d792033416f59d68bc03a5aa7b018c1ca89279c"
-  integrity sha512-GrwoxYN+uWlzO8uhUXRl0P+kHE4GtVPfYzVLcUxPL7KNdHKj66vvlhiweIHqYYXWlw+T8iLMp42Lm67ghw4WMQ==
-  dependencies:
-    domelementtype "^2.2.0"
 
 domhandler@^5.0.2, domhandler@^5.0.3:
   version "5.0.3"
@@ -4289,15 +4021,6 @@ domhandler@^5.0.2, domhandler@^5.0.3:
   integrity sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==
   dependencies:
     domelementtype "^2.3.0"
-
-domutils@^2.5.2:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/domutils/-/domutils-2.8.0.tgz#4437def5db6e2d1f5d6ee859bd95ca7d02048135"
-  integrity sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==
-  dependencies:
-    dom-serializer "^1.0.1"
-    domelementtype "^2.2.0"
-    domhandler "^4.2.0"
 
 domutils@^3.0.1:
   version "3.1.0"
@@ -4412,11 +4135,6 @@ end-of-stream@^1.0.0, end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   integrity sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
   dependencies:
     once "^1.4.0"
-
-entities@^2.0.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/entities/-/entities-2.2.0.tgz#098dc90ebb83d8dffa089d55256b351d34c4da55"
-  integrity sha512-p92if5Nz619I0w+akJrLZH0MX0Pb5DX39XOwQTtXSdQQOaYH03S1uIQp4mhOZtAXrxq4ViO67YTiLBo2638o9A==
 
 entities@^4.2.0, entities@^4.4.0:
   version "4.5.0"
@@ -4692,11 +4410,6 @@ escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
-
-escape-string-regexp@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-2.0.0.tgz#a30304e99daa32e23b2fd20f51babd07cffca344"
-  integrity sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==
 
 escodegen@1.7.x:
   version "1.7.1"
@@ -6133,7 +5846,7 @@ hast-util-whitespace@^3.0.0:
   dependencies:
     "@types/hast" "^3.0.0"
 
-he@1.2.0, he@^1.2.0:
+he@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
@@ -6165,32 +5878,10 @@ hosted-git-info@^4.0.2:
   dependencies:
     lru-cache "^6.0.0"
 
-html-to-text@^8.2.0:
-  version "8.2.1"
-  resolved "https://registry.yarnpkg.com/html-to-text/-/html-to-text-8.2.1.tgz#4a75b8a1b646149bd71c50527adb568990bf459b"
-  integrity sha512-aN/3JvAk8qFsWVeE9InWAWueLXrbkoVZy0TkzaGhoRBC2gCFEeRLDDJN3/ijIGHohy6H+SZzUQWN/hcYtaPK8w==
-  dependencies:
-    "@selderee/plugin-htmlparser2" "^0.6.0"
-    deepmerge "^4.2.2"
-    he "^1.2.0"
-    htmlparser2 "^6.1.0"
-    minimist "^1.2.6"
-    selderee "^0.6.0"
-
 html-url-attributes@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/html-url-attributes/-/html-url-attributes-3.0.0.tgz#fc4abf0c3fb437e2329c678b80abb3c62cff6f08"
   integrity sha512-/sXbVCWayk6GDVg3ctOX6nxaVj7So40FcFAnWlWGNAB1LpYKcV5Cd10APjPjW80O7zYW2MsjBV4zZ7IZO5fVow==
-
-htmlparser2@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/htmlparser2/-/htmlparser2-6.1.0.tgz#c4d762b6c3371a05dbe65e94ae43a9f845fb8fb7"
-  integrity sha512-gyyPk6rgonLFEDGoeRgQNaEUvdJ4ktTmmUh/h2t7s+M8oPpIPxgNACWa+6ESR57kXstwqPiCut0V8NRpcwgU7A==
-  dependencies:
-    domelementtype "^2.0.1"
-    domhandler "^4.0.0"
-    domutils "^2.5.2"
-    entities "^2.0.0"
 
 htmlparser2@^8.0.1:
   version "8.0.2"
@@ -7985,11 +7676,6 @@ minimist@^1.1.3:
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
   integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
 
-minimist@^1.2.6:
-  version "1.2.8"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.8.tgz#c1a464e7693302e082a075cee0c057741ac4772c"
-  integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
-
 minipass@^3.0.0:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/minipass/-/minipass-3.1.3.tgz#7d42ff1f39635482e15f9cdb53184deebd5815fd"
@@ -8083,11 +7769,6 @@ mocha@>=2.0.0:
     yargs-parser "20.2.4"
     yargs-unparser "2.0.0"
 
-moo@^0.5.0, moo@^0.5.1:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/moo/-/moo-0.5.2.tgz#f9fe82473bc7c184b0d32e2215d3f6e67278733c"
-  integrity sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==
-
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -8156,16 +7837,6 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
-
-nearley@^2.20.1:
-  version "2.20.1"
-  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.20.1.tgz#246cd33eff0d012faf197ff6774d7ac78acdd474"
-  integrity sha512-+Mc8UaAebFzgV+KpI5n7DasuuQCHA89dmwm7JXw3TV43ukfNQ9DnBH3Mdb2g/I4Fdxc26pwimBWvjIw0UAILSQ==
-  dependencies:
-    commander "^2.19.0"
-    moo "^0.5.0"
-    railroad-diagrams "^1.0.0"
-    randexp "0.4.6"
 
 neo-async@^2.6.0:
   version "2.6.2"
@@ -8652,14 +8323,6 @@ parse5@^7.0.0:
   dependencies:
     entities "^4.4.0"
 
-parseley@^0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/parseley/-/parseley-0.7.0.tgz#9949e3a0ed05c5072adb04f013c2810cf49171a8"
-  integrity sha512-xyOytsdDu077M3/46Am+2cGXEKM9U9QclBDv7fimY7e+BBlxh2JcBp2mgNsmkyA9uvgyTjVzDi7cP1v4hcFxbw==
-  dependencies:
-    moo "^0.5.1"
-    nearley "^2.20.1"
-
 pascalcase@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/pascalcase/-/pascalcase-0.1.1.tgz#b363e55e8006ca6fe21784d2db22bd15d7917f14"
@@ -9057,19 +8720,6 @@ queue-tick@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/queue-tick/-/queue-tick-1.0.1.tgz#f6f07ac82c1fd60f82e098b417a80e52f1f4c142"
   integrity sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==
-
-railroad-diagrams@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/railroad-diagrams/-/railroad-diagrams-1.0.0.tgz#eb7e6267548ddedfb899c1b90e57374559cddb7e"
-  integrity sha512-cz93DjNeLY0idrCNOH6PviZGRN9GJhsdm9hpn1YCS879fj4W+x5IFJhhkRZcwVgMmFF7R82UA/7Oh+R8lLZg6A==
-
-randexp@0.4.6:
-  version "0.4.6"
-  resolved "https://registry.yarnpkg.com/randexp/-/randexp-0.4.6.tgz#e986ad5e5e31dae13ddd6f7b3019aa7c87f60ca3"
-  integrity sha512-80WNmd9DA0tmZrw9qQa62GPPWfuXJknrmVmLcxvq4uZBdYqb1wYoKTmnlGUchvVWe0XiLupYkBoXVOxz3C8DYQ==
-  dependencies:
-    discontinuous-range "1.0.0"
-    ret "~0.1.10"
 
 randombytes@^2.1.0:
   version "2.1.0"
@@ -9632,13 +9282,6 @@ scheduler@^0.23.2:
   dependencies:
     loose-envify "^1.1.0"
 
-selderee@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/selderee/-/selderee-0.6.0.tgz#f3bee66cfebcb6f33df98e4a1df77388b42a96f7"
-  integrity sha512-ibqWGV5aChDvfVdqNYuaJP/HnVBhlRGSRrlbttmlMpHcLuTqqbMH36QkSs9GEgj5M88JDYLI8eyP94JaQ8xRlg==
-  dependencies:
-    parseley "^0.7.0"
-
 semver-greatest-satisfied-range@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/semver-greatest-satisfied-range/-/semver-greatest-satisfied-range-1.1.0.tgz#13e8c2658ab9691cb0cd71093240280d36f77a5b"
@@ -9671,7 +9314,7 @@ semver@^6.3.1:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-semver@^7.3.5, semver@^7.3.7, semver@^7.6.3:
+semver@^7.3.5, semver@^7.6.3:
   version "7.6.3"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.3.tgz#980f7b5550bc175fb4dc09403085627f9eb33143"
   integrity sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==
@@ -10470,11 +10113,6 @@ tar@^6.2.1:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-tas-client@0.2.33:
-  version "0.2.33"
-  resolved "https://registry.yarnpkg.com/tas-client/-/tas-client-0.2.33.tgz#451bf114a8a64748030ce4068ab7d079958402e6"
-  integrity sha512-V+uqV66BOQnWxvI6HjDnE4VkInmYZUQ4dgB7gzaDyFyFSK1i1nF/j7DpS9UbQAgV9NaF1XpcyuavnM1qOeiEIg==
-
 teex@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/teex/-/teex-1.0.1.tgz#b8fa7245ef8e8effa8078281946c85ab780a0b12"
@@ -11124,11 +10762,6 @@ uuid@^8.3.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
-uuid@^9.0.0:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
-  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
-
 v8flags@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/v8flags/-/v8flags-3.2.0.tgz#b243e3b4dfd731fa774e7492128109a0fe66d656"
@@ -11374,18 +11007,6 @@ vscode-nls@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-2.0.2.tgz#808522380844b8ad153499af5c3b03921aea02da"
   integrity sha512-xK4p7Wksahb1imTwJZeA7+OSobDlRkWYWBuz9eR6LyJRLLG4LBxvLvZF8GO1ZY1tUWHITjZn2BtA8nRufKdHSg==
-
-vscode-tas-client@^0.1.47:
-  version "0.1.84"
-  resolved "https://registry.yarnpkg.com/vscode-tas-client/-/vscode-tas-client-0.1.84.tgz#906bdcfd8c9e1dc04321d6bc0335184f9119968e"
-  integrity sha512-rUTrUopV+70hvx1hW5ebdw1nd6djxubkLvVxjGdyD/r5v/wcVF41LIfiAtbm5qLZDtQdsMH1IaCuDoluoIa88w==
-  dependencies:
-    tas-client "0.2.33"
-
-vscode-uri@^3.0.6:
-  version "3.0.8"
-  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.8.tgz#1770938d3e72588659a172d0fd4642780083ff9f"
-  integrity sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==
 
 web-tree-sitter@^0.20.8:
   version "0.20.8"

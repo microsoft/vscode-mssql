@@ -85,7 +85,7 @@ export interface AzureSqlDatabaseInfo {
     databases: string[];
     location: string;
     resourceGroup: string;
-    subscriptionId: string;
+    subscription: string;
 }
 
 export interface ConnectionDialogFormItemSpec
