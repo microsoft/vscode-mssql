@@ -125,6 +125,8 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            tableName: l10n.t("Table name"),
+            more: l10n.t("More"),
         };
     }
 
