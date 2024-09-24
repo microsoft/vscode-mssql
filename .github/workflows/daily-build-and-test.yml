@@ -60,6 +60,16 @@ jobs:
         run: |
           yarn build --prod
 
+      - name: Build extension package
+        run: |
+          yarn package
+
+      - name: 'Extension VSIX'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-mssql
+          path: ./mssql-*.vsix
+
       - name: Run lint
         run: |
           yarn lint
