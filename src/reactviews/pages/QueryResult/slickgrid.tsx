@@ -196,7 +196,6 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
                 {
                     inMemoryDataProcessing: true,
                 },
-                //TODO: need to provide sort function here
                 undefined,
                 undefined,
             );

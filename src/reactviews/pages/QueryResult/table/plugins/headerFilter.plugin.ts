@@ -64,7 +64,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private handleHeaderCellRendered(
-        e: Event,
+        _e: Event,
         args: Slick.OnHeaderCellRenderedEventArgs<T>,
     ) {
         const column = args.column as FilterableColumn<T>;
@@ -103,6 +103,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         $el.appendTo(args.node);
 
+        //@ts-ignore
         this.columnButtonMapping[column.id] = $el[0];
     }
 
@@ -114,7 +115,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.columnDef = $menuButton.data("column");
         }
 
-        let popupOpen: boolean;
         const offset = jQuery(filterButton).offset();
         if (offset) {
             // If there is not enough vertical space under the filter button, we will move up the menu.
@@ -163,7 +163,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         jQuery(document).on(
             "click",
             "#sort-ascending",
-            (e: JQuery.ClickEvent) => {
+            (_e: JQuery.ClickEvent) => {
                 this.handleMenuItemClick("sort-asc", this.columnDef);
                 closePopup($popup);
             },
@@ -171,7 +171,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         jQuery(document).on(
             "click",
             "#sort-descending",
-            (e: JQuery.ClickEvent) => {
+            (_e: JQuery.ClickEvent) => {
                 this.handleMenuItemClick("sort-desc", this.columnDef);
                 closePopup($popup);
             },
@@ -179,13 +179,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         function closePopup($popup: JQuery<HTMLElement>) {
             $popup.fadeOut();
-            popupOpen = false;
             console.log("close popup");
         }
 
         function openPopup($popup: JQuery<HTMLElement>) {
             $popup.fadeIn();
-            popupOpen = true;
         }
     }
 
@@ -225,7 +223,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private handleBeforeHeaderCellDestroy(
-        e: Event,
+        _e: Event,
         args: Slick.OnBeforeHeaderCellDestroyEventArgs<T>,
     ) {
         jQuery(args.node).find(".slick-header-menubutton").remove();

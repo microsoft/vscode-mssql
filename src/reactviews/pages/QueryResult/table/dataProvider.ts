@@ -52,9 +52,9 @@ export interface IDisposableDataProvider<T extends Slick.SlickData>
 /**
  * Check whether the object is an instance of IDisposableDataProvider
  */
-export function instanceOfIDisposableDataProvider<T>(
+export function instanceOfIDisposableDataProvider<T extends Slick.SlickData>(
     obj: any,
 ): obj is IDisposableDataProvider<T> {
     const provider = obj as IDisposableDataProvider<T>;
-    return obj && provider.sort && provider.isDataInMemory !== undefined;
+    return obj && provider.isDataInMemory !== undefined;
 }
