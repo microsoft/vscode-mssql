@@ -703,12 +703,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++3a4a2e94c1227e991b2d55800b114ce9ef01970894efa5dade81ab8f14adda8b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Script as CREATE]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Firewall rule successfully created.]]></Val>
@@ -1987,6 +1981,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[I have read the summary and understand the potential risks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[概要を読み、潜在的なリスクを理解しました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++99fb39ba4e498877a20049303aa3318b2004884dab008c65a3b5dd48f47cdd04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Confirm to remove this profile.]]></Val>
@@ -2581,12 +2584,6 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[削除]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++c47aaf844e09d0c6bd516bf7b71a31e66eac808241c7ec609c6c74c54908daa4" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Loading table designer]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
