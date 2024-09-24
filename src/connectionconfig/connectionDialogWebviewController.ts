@@ -38,7 +38,7 @@ import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-import { ResourceManagementClient } from "@azure/arm-resources";
+import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
@@ -982,12 +982,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             sub.credential,
             sub.subscriptionId,
         );
-        const servers = await listAllIterator(
+        const servers = await listAllIterator<GenericResourceExpanded>(
             client.resources.list({
                 filter: "resourceType eq 'Microsoft.Sql/servers'",
             }),
         );
-        const databasesPromise = listAllIterator(
+        const databasesPromise = listAllIterator<GenericResourceExpanded>(
             client.resources.list({
                 filter: "resourceType eq 'Microsoft.Sql/servers/databases'",
             }),
