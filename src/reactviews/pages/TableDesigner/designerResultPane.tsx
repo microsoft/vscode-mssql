@@ -26,8 +26,10 @@ import {
 import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import {
+    DesignerIssue,
     DesignerResultPaneTabs,
     InputBoxProperties,
+    TableProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 import { locConstants } from "../../common/locConstants";
 import { List, ListItem } from "@fluentui/react-list-preview";
@@ -106,6 +108,108 @@ export const DesignerResultPane = () => {
                 return "hc-black";
             default:
                 return "light";
+        }
+    };
+
+    const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
+        const issuePath = issue.propertyPath ?? [];
+        console.log(`focusing on`, issuePath);
+        if (!metadata?.view?.tabs || !state?.provider) {
+            return;
+        }
+        const containingTab = metadata.view.tabs.find((tab) => {
+            return tab.components.find((c) => {
+                return c.propertyName === issuePath[0];
+            });
+        });
+
+        if (!containingTab) {
+            return;
+        } else {
+            state.provider.setTab(containingTab.id as any);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        let tableComponent;
+        let tableModel;
+        if (issuePath.length > 1) {
+            // error is found in a table row. Load properties for the row
+            tableComponent = containingTab.components.find(
+                (c) => c.propertyName === issuePath[0],
+            );
+            if (!tableComponent) {
+                return;
+            }
+            tableModel = metadata.model![tableComponent.propertyName];
+            if (!tableModel) {
+                return;
+            }
+            state?.provider.setPropertiesComponents({
+                componentPath: [issuePath[0], issuePath[1]],
+                component: tableComponent,
+                model: tableModel,
+            });
+        }
+
+        let elementToFocus: HTMLElement | undefined = undefined;
+        switch (issuePath.length) {
+            case 1:
+            case 3:
+            case 5:
+                elementToFocus =
+                    state.elementRefs.current[
+                        state.provider.getComponentId(issuePath as any)
+                    ];
+                break;
+            case 2:
+                // This is table row. Therefore focuing on the first property of the row
+                if (!tableComponent) {
+                    return;
+                }
+                const firstProperty = (
+                    tableComponent.componentProperties as TableProperties
+                ).itemProperties[0].propertyName;
+                elementToFocus =
+                    state.elementRefs.current[
+                        state.provider.getComponentId([
+                            ...issuePath,
+                            firstProperty,
+                        ] as any)
+                    ];
+                break;
+            case 4:
+                // This is table row in properties pane.
+                if (!tableComponent) {
+                    return;
+                }
+                const subTableName = issuePath[2];
+                const subTableComponent = (
+                    tableComponent.componentProperties as TableProperties
+                ).itemProperties.find((c) => c.propertyName === subTableName);
+                if (!subTableComponent) {
+                    return;
+                }
+                const firstPropertyInSubTable = (
+                    subTableComponent.componentProperties as TableProperties
+                ).itemProperties[0].propertyName;
+                elementToFocus =
+                    state.elementRefs.current[
+                        state.provider.getComponentId([
+                            ...issuePath,
+                            firstPropertyInSubTable,
+                        ] as any)
+                    ];
+                break;
+            default:
+                break;
+        }
+
+        if (elementToFocus) {
+            elementToFocus.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+                inline: "center",
+            });
+            elementToFocus.focus();
         }
     };
 
@@ -221,86 +325,40 @@ export const DesignerResultPane = () => {
                     metadata.issues?.length !== 0 && (
                         <div className={classes.issuesContainer}>
                             <List navigationMode="items">
-                                {metadata.issues!.map((item, index) => (
-                                    <ListItem
-                                        key={`issue-${index}`}
-                                        onAction={async () => {
-                                            const tab =
-                                                metadata!.view!.tabs.find(
-                                                    (t) => {
-                                                        const component =
-                                                            t.components.find(
-                                                                (c) => {
-                                                                    if (
-                                                                        item.propertyPath!.includes(
-                                                                            c.propertyName,
-                                                                        )
-                                                                    ) {
-                                                                        return true;
-                                                                    }
-                                                                },
-                                                            );
-
-                                                        if (component) {
-                                                            return true;
-                                                        }
-                                                        return false;
-                                                    },
-                                                );
-                                            if (tab) {
-                                                state.provider.setTab(
-                                                    tab.id as any,
-                                                );
+                                {metadata.issues!.map((item, index) => {
+                                    return (
+                                        <ListItem
+                                            key={`issue-${index}`}
+                                            onAction={async () =>
+                                                openAndFocusIssueComponet(item)
                                             }
-                                            // delay for 100ms to ensure the tab is set before scrolling
-                                            await new Promise((resolve) =>
-                                                setTimeout(resolve, 100),
-                                            );
-                                            const path =
-                                                state.provider.getComponentId(
-                                                    metadata.issues![index]
-                                                        .propertyPath as any,
-                                                );
-                                            if (path) {
-                                                const element =
-                                                    state.elementRefs.current[
-                                                        path
-                                                    ];
-                                                if (element) {
-                                                    element.scrollIntoView({
-                                                        behavior: "smooth",
-                                                        block: "center",
-                                                        inline: "center",
-                                                    });
-                                                    element.focus();
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        <div className={classes.issuesRows}>
-                                            {item.severity === "error" && (
-                                                <ErrorCircleRegular
-                                                    fontSize={20}
-                                                    color="var(--vscode-errorForeground)"
-                                                />
-                                            )}
-                                            {item.severity === "warning" && (
-                                                <WarningRegular
-                                                    fontSize={20}
-                                                    color="yellow"
-                                                />
-                                            )}
-                                            {item.severity ===
-                                                "information" && (
-                                                <InfoRegular
-                                                    fontSize={20}
-                                                    color="blue"
-                                                />
-                                            )}
-                                            {item.description}
-                                        </div>
-                                    </ListItem>
-                                ))}
+                                        >
+                                            <div className={classes.issuesRows}>
+                                                {item.severity === "error" && (
+                                                    <ErrorCircleRegular
+                                                        fontSize={20}
+                                                        color="var(--vscode-errorForeground)"
+                                                    />
+                                                )}
+                                                {item.severity ===
+                                                    "warning" && (
+                                                    <WarningRegular
+                                                        fontSize={20}
+                                                        color="yellow"
+                                                    />
+                                                )}
+                                                {item.severity ===
+                                                    "information" && (
+                                                    <InfoRegular
+                                                        fontSize={20}
+                                                        color="blue"
+                                                    />
+                                                )}
+                                                {item.description}
+                                            </div>
+                                        </ListItem>
+                                    );
+                                })}
                             </List>
                         </div>
                     )}
