@@ -29,47 +29,71 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
 }
 
 export const ConnectionInfoFormContainer = () => {
-	const connectionDialogContext = useContext(ConnectionDialogContext);
-	const formStyles = useFormStyles();
+    const connectionDialogContext = useContext(ConnectionDialogContext);
+    const formStyles = useFormStyles();
 
-	if (!connectionDialogContext?.state) {
-		return undefined;
-	}
+    if (!connectionDialogContext?.state) {
+        return undefined;
+    }
 
-	return (
-		<div className={formStyles.formRoot}>
-			<ConnectionHeader />
+    return (
+        <div className={formStyles.formRoot}>
+            <ConnectionHeader />
 
-			<div className={formStyles.formDiv}>
-				{
-					connectionDialogContext?.state.formError &&
-					<MessageBar intent="error">
-						{connectionDialogContext.state.formError}
-					</MessageBar>
-				}
-				<FormField
-					context={connectionDialogContext}
-					component={connectionDialogContext.state.connectionComponents.components['profileName'] as FormItemSpec<IConnectionDialogProfile>}
-					idx={0}
-					props={{ orientation: 'horizontal' }}
-				/>
+            <div className={formStyles.formDiv}>
+                {connectionDialogContext?.state.formError && (
+                    <MessageBar intent="error">
+                        {connectionDialogContext.state.formError}
+                    </MessageBar>
+                )}
+                <FormField
+                    context={connectionDialogContext}
+                    component={
+                        connectionDialogContext.state.connectionComponents
+                            .components[
+                            "profileName"
+                        ] as FormItemSpec<IConnectionDialogProfile>
+                    }
+                    idx={0}
+                    props={{ orientation: "horizontal" }}
+                />
 
-				<div className={formStyles.formComponentDiv}>
-					<Field label="Input type" orientation="horizontal">
-						<RadioGroup
-							onChange={(_, data) => { connectionDialogContext.setConnectionInputType(data.value as ConnectionInputMode); }}
-							value={connectionDialogContext.state.selectedInputMode}
-						>
-							<Radio value={ConnectionInputMode.Parameters} label={locConstants.connectionDialog.parameters} />
-							<Radio value={ConnectionInputMode.ConnectionString} label={locConstants.connectionDialog.connectionString} />
-							<Radio value={ConnectionInputMode.AzureBrowse} label={locConstants.connectionDialog.browseAzure} />
-						</RadioGroup>
-					</Field>
-				</div>
-				<div style={{ overflow: 'auto' }}>
-					{renderContent(connectionDialogContext)}
-				</div>
-			</div>
-		</div>
-	);
+                <div className={formStyles.formComponentDiv}>
+                    <Field label="Input type" orientation="horizontal">
+                        <RadioGroup
+                            onChange={(_, data) => {
+                                connectionDialogContext.setConnectionInputType(
+                                    data.value as ConnectionInputMode,
+                                );
+                            }}
+                            value={
+                                connectionDialogContext.state.selectedInputMode
+                            }
+                        >
+                            <Radio
+                                value={ConnectionInputMode.Parameters}
+                                label={locConstants.connectionDialog.parameters}
+                            />
+                            <Radio
+                                value={ConnectionInputMode.ConnectionString}
+                                label={
+                                    locConstants.connectionDialog
+                                        .connectionString
+                                }
+                            />
+                            <Radio
+                                value={ConnectionInputMode.AzureBrowse}
+                                label={
+                                    locConstants.connectionDialog.browseAzure
+                                }
+                            />
+                        </RadioGroup>
+                    </Field>
+                </div>
+                <div style={{ overflow: "auto" }}>
+                    {renderContent(connectionDialogContext)}
+                </div>
+            </div>
+        </div>
+    );
 };
