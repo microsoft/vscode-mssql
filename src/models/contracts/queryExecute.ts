@@ -117,8 +117,8 @@ export class QueryExecuteStatementParams {
 export class QueryExecuteResult {}
 
 export class ExecutionPlanOptions {
-    includeActualExecutionPlanXml: boolean;
-    includeEstimatedExecutionPlanXml: boolean;
+    includeActualExecutionPlanXml?: boolean;
+    includeEstimatedExecutionPlanXml?: boolean;
 }
 
 // ------------------------------- < Query Results Request > ------------------------------------

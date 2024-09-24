@@ -305,6 +305,11 @@
           "command": "mssql.changeDatabase",
           "when": "editorLangId == sql",
           "group": "navigation@4"
+        },
+        {
+          "command": "mssql.showExecutionPlanInResults",
+          "when": "editorLangId == sql",
+          "group": "navigation@4"
         }
       ],
       "editor/context": [
@@ -780,6 +785,15 @@
         "command": "mssql.clearAzureAccountTokenCache",
         "title": "%mssql.clearAzureAccountTokenCache%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.showExecutionPlanInResults",
+        "title": "%mssql.showExecutionPlanInResults%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/executionPlan_dark.svg",
+          "light": "media/executionPlan_light.svg"
+        }
       }
     ],
     "keybindings": [

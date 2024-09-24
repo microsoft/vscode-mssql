@@ -56,6 +56,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
+import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 
 /**
  * The main controller class that initializes the extension
@@ -247,6 +248,12 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () =>
                 this.onClearAzureTokenCache(),
             );
+            this.registerCommand(Constants.cmdShowExecutionPlanInResults);
+            this._event.on(Constants.cmdShowExecutionPlanInResults, async () => {
+                this.onRunQuery(undefined, {
+                    includeEstimatedExecutionPlanXml: true
+                })
+            });
             this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(
@@ -430,6 +437,7 @@ export default class MainController implements vscode.Disposable {
                 uri,
                 undefined,
                 title,
+                {},
                 queryPromise,
             );
             await queryPromise;
@@ -1453,7 +1461,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * get the T-SQL query from the editor, run it and show output
      */
-    public async onRunQuery(callbackThis?: MainController): Promise<void> {
+    public async onRunQuery(callbackThis?: MainController, executionPlanOptions?: ExecutionPlanOptions): Promise<void> {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
@@ -1510,11 +1518,13 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
+
             await self._outputContentProvider.runQuery(
                 self._statusview,
                 uri,
                 querySelection,
                 title,
+                executionPlanOptions
             );
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);
