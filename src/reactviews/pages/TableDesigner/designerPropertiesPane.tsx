@@ -165,7 +165,7 @@ export const DesignerPropertiesPane = () => {
                 />
             </div>
             <div className={classes.stack}>
-                <Accordion multiple collapsible defaultOpenItems={["General"]}>
+                <Accordion multiple collapsible defaultOpenItems={groups}>
                     {data &&
                         groups?.map((group) => {
                             return (
