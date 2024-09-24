@@ -5,9 +5,18 @@
 
 import { ReactNode, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { Field, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
-import { ConnectionDialogContextProps, IConnectionDialogProfile, ConnectionInputMode } from "../../../sharedInterfaces/connectionDialog";
-import './sqlServerRotation.css';
+import {
+    Field,
+    MessageBar,
+    Radio,
+    RadioGroup,
+} from "@fluentui/react-components";
+import {
+    ConnectionDialogContextProps,
+    IConnectionDialogProfile,
+    ConnectionInputMode,
+} from "../../../sharedInterfaces/connectionDialog";
+import "./sqlServerRotation.css";
 
 import { ConnectionHeader } from "./components/connectionHeader.component";
 import { ConnectionFormPage } from "./connectionFormPage";
@@ -17,15 +26,17 @@ import { FormItemSpec } from "../../common/forms/form";
 import { locConstants } from "../../common/locConstants";
 import { AzureBrowsePage } from "./azureBrowsePage";
 
-function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
-	switch (connectionDialogContext?.state.selectedInputMode) {
-		case ConnectionInputMode.Parameters:
-			return <ConnectionFormPage />;
-		case ConnectionInputMode.ConnectionString:
-			return <ConnectionStringPage />;
-		case ConnectionInputMode.AzureBrowse:
-			return <AzureBrowsePage />;
-	}
+function renderContent(
+    connectionDialogContext: ConnectionDialogContextProps,
+): ReactNode {
+    switch (connectionDialogContext?.state.selectedInputMode) {
+        case ConnectionInputMode.Parameters:
+            return <ConnectionFormPage />;
+        case ConnectionInputMode.ConnectionString:
+            return <ConnectionStringPage />;
+        case ConnectionInputMode.AzureBrowse:
+            return <AzureBrowsePage />;
+    }
 }
 
 export const ConnectionInfoFormContainer = () => {

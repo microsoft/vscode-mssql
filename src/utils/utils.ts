@@ -38,14 +38,18 @@ export function getNonce(): string {
     return text;
 }
 
-export class CancelError extends Error { }
+export class CancelError extends Error {}
 
 /**
  * Consolidates on the error message string
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getErrorMessage(error: any): string {
-	return (error instanceof Error)
-		? (typeof error.message === 'string' ? error.message : '')
-		: typeof error === 'string' ? error : `${JSON.stringify(error, undefined, '\t')}`;
+    return error instanceof Error
+        ? typeof error.message === "string"
+            ? error.message
+            : ""
+        : typeof error === "string"
+          ? error
+          : `${JSON.stringify(error, undefined, "\t")}`;
 }

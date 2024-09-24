@@ -54,15 +54,21 @@ export class ConnectionDialogWebviewState
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
         connectionComponents: {
-            components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>;
-            mainOptions: (keyof IConnectionDialogProfile)[],
-            topAdvancedOptions: (keyof IConnectionDialogProfile)[],
-            groupedAdvancedOptions: Record<string, (keyof IConnectionDialogProfile)[]>;
-        },
-        azureDatabases: AzureSqlDatabaseInfo[],
-        recentConnections: IConnectionDialogProfile[],
-        connectionStatus: ApiStatus,
-        formError: string
+            components: Record<
+                keyof IConnectionDialogProfile,
+                ConnectionDialogFormItemSpec
+            >;
+            mainOptions: (keyof IConnectionDialogProfile)[];
+            topAdvancedOptions: (keyof IConnectionDialogProfile)[];
+            groupedAdvancedOptions: Record<
+                string,
+                (keyof IConnectionDialogProfile)[]
+            >;
+        };
+        azureDatabases: AzureSqlDatabaseInfo[];
+        recentConnections: IConnectionDialogProfile[];
+        connectionStatus: ApiStatus;
+        formError: string;
     }) {
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
@@ -82,7 +88,8 @@ export interface AzureSqlDatabaseInfo {
     subscriptionId: string;
 }
 
-export interface ConnectionDialogFormItemSpec extends FormItemSpec<IConnectionDialogProfile> {
+export interface ConnectionDialogFormItemSpec
+    extends FormItemSpec<IConnectionDialogProfile> {
     isAdvancedOption: boolean;
     optionCategory?: string;
 }

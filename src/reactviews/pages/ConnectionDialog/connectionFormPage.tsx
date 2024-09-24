@@ -27,7 +27,10 @@ export const ConnectionFormPage = () => {
         <div>
             {context.state.connectionComponents.mainOptions.map(
                 (inputName, idx) => {
-                    const component = context.state.connectionComponents.components[inputName as keyof IConnectionDialogProfile];
+                    const component =
+                        context.state.connectionComponents.components[
+                            inputName as keyof IConnectionDialogProfile
+                        ];
                     if (component.hidden === true) {
                         return undefined;
                     }
@@ -36,14 +39,19 @@ export const ConnectionFormPage = () => {
                         <FormField
                             key={idx}
                             context={context}
-                            component={component as FormItemSpec<IConnectionDialogProfile>}
+                            component={
+                                component as FormItemSpec<IConnectionDialogProfile>
+                            }
                             idx={idx}
-                            props={{ orientation: 'horizontal' }}
+                            props={{ orientation: "horizontal" }}
                         />
                     );
-                }
+                },
             )}
-            <AdvancedOptionsDrawer isAdvancedDrawerOpen={isAdvancedDrawerOpen} setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen} />
+            <AdvancedOptionsDrawer
+                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+            />
             <div className={formStyles.formNavTray}>
                 <Button
                     shape="square"
@@ -55,8 +63,10 @@ export const ConnectionFormPage = () => {
                     {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>
-                    <TestConnectionButton className={formStyles.formNavTrayButton}/>
-                    <ConnectButton className={formStyles.formNavTrayButton}/>
+                    <TestConnectionButton
+                        className={formStyles.formNavTrayButton}
+                    />
+                    <ConnectButton className={formStyles.formNavTrayButton} />
                 </div>
             </div>
         </div>
