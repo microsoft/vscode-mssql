@@ -99,9 +99,6 @@
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
-  "Error loading designer": "Error loading designer",
-  "Retry": "Retry",
-  "Loading table designer": "Loading table designer",
   "Results": "Results",
   "Messages": "Messages",
   "Timestamp": "Timestamp",
@@ -258,7 +255,7 @@
       "{0} is the error message"
     ]
   },
-  "Server name not received.": "Server name not received.",
+  "Server name not set.": "Server name not set.",
   "Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN./{0} is the error number{1} is the error message": {
     "message": "Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.",
     "comment": [

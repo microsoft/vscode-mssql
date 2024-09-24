@@ -937,8 +937,8 @@
     <trans-unit id="++CODE++a0c0b90c3260929ade879e7cfe35629e6ed60fb62be887a77fe8ada9376a7ba7">
       <source xml:lang="en">Server is required</source>
     </trans-unit>
-    <trans-unit id="++CODE++10b48e930a5a1d6459b0bd050ae37f39e969abb8db827d083d31f62f0ed6b014">
-      <source xml:lang="en">Server name not received.</source>
+    <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
+      <source xml:lang="en">Server name not set.</source>
     </trans-unit>
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
