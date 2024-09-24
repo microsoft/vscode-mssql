@@ -19,6 +19,7 @@ export type DesignerCheckboxProps = {
     componentPath: (string | number)[];
     UiArea: DesignerUIArea;
     showLabel?: boolean;
+    horizontal?: boolean;
 };
 
 export const DesignerCheckbox = ({
@@ -27,6 +28,7 @@ export const DesignerCheckbox = ({
     componentPath,
     UiArea,
     showLabel = true,
+    horizontal = false,
 }: DesignerCheckboxProps) => {
     const [value, setValue] = useState(model.checked);
     const state = useContext(TableDesignerContext);
@@ -37,15 +39,18 @@ export const DesignerCheckbox = ({
         setValue(model.checked);
     }, [model]);
     return (
-        <Field size="small">
+        <Field
+            size="small"
+            label={
+                showLabel ? (
+                    <Label size="small">
+                        {component.componentProperties.title!}
+                    </Label>
+                ) : undefined
+            }
+            orientation={horizontal ? "horizontal" : "vertical"}
+        >
             <Checkbox
-                label={
-                    showLabel ? (
-                        <Label size="small">
-                            {component.componentProperties.title!}
-                        </Label>
-                    ) : undefined
-                }
                 ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                 checked={value}
                 onChange={async (_event, data) => {

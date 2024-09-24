@@ -29,6 +29,7 @@ export type DesignerInputBoxProps = {
     showLabel?: boolean;
     showError?: boolean;
     id?: string;
+    horizontal?: boolean;
 };
 
 export const DesignerInputBox = ({
@@ -39,6 +40,7 @@ export const DesignerInputBox = ({
     multiline = false,
     showLabel = true,
     showError = true,
+    horizontal = false,
 }: DesignerInputBoxProps) => {
     const [value, setValue] = useState(model.value);
     const state = useContext(TableDesignerContext);
@@ -79,6 +81,7 @@ export const DesignerInputBox = ({
             }
             style={{ width: width }}
             size="small"
+            orientation={horizontal ? "horizontal" : "vertical"}
         >
             {!multiline ? (
                 <Input

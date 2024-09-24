@@ -26,6 +26,7 @@ export type DesignerDropdownProps = {
     UiArea: DesignerUIArea;
     showLabel?: boolean;
     showError?: boolean;
+    horizontal?: boolean;
 };
 
 export const DesignerDropdown = ({
@@ -35,6 +36,7 @@ export const DesignerDropdown = ({
     UiArea,
     showLabel = true,
     showError = true,
+    horizontal = false,
 }: DesignerDropdownProps) => {
     const [value, setValue] = useState<string[]>([]);
     const state = useContext(TableDesignerContext);
@@ -74,6 +76,7 @@ export const DesignerDropdown = ({
             }
             style={{ width: width }}
             size="small"
+            orientation={horizontal ? "horizontal" : "vertical"}
         >
             <Dropdown
                 aria-labelledby={dropdownId}

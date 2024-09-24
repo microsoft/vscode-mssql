@@ -47,6 +47,9 @@ const useStyles = makeStyles({
         marginTop: "10px",
         overflowX: "auto",
         overflowY: "hidden",
+        "> *": {
+            marginBottom: "10px",
+        },
     },
 });
 export const DesignerPropertiesPane = () => {
@@ -140,6 +143,7 @@ export const DesignerPropertiesPane = () => {
                                                                         .componentPath,
                                                                     item.propertyName,
                                                                 ]}
+                                                                horizontal
                                                             />
                                                         );
                                                     case "input":
@@ -155,6 +159,7 @@ export const DesignerPropertiesPane = () => {
                                                                         .componentPath,
                                                                     item.propertyName,
                                                                 ]}
+                                                                horizontal
                                                             />
                                                         );
                                                     case "dropdown":
@@ -170,6 +175,7 @@ export const DesignerPropertiesPane = () => {
                                                                         .componentPath,
                                                                     item.propertyName,
                                                                 ]}
+                                                                horizontal
                                                             />
                                                         );
                                                     case "table":
