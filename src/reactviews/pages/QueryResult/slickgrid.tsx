@@ -180,7 +180,9 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
 
             let dataProvider = new HybridDataProvider(
                 collection,
-                (_startIndex, _count) => Promise.resolve([]),
+                (_startIndex, _count) => {
+                    return props.loadFunc(_startIndex, _count);
+                },
                 (data: DbCellValue) => {
                     if (!data || data.isNull) {
                         return undefined;
