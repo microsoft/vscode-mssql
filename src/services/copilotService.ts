@@ -5,7 +5,8 @@
 
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { GetNextMessageRequest, GetNextMessageResponse, GetNextMessageParams,
-	StartConversationRequest, StartConversationResponse, StartConversationParams } from '../models/contracts/copilot';	// SQL Copilot
+	StartConversationRequest, StartConversationResponse, StartConversationParams,
+	LanguageModelChatTool} from '../models/contracts/copilot';	// SQL Copilot
 
 export class CopilotService {
 	constructor(private _sqlToolsClient: SqlToolsServiceClient) {
@@ -24,11 +25,14 @@ export class CopilotService {
 			throw e;
 		}
 	}
-	async getNextMessage(conversationUri: string, replyText: string): Promise<GetNextMessageResponse> {
+	async getNextMessage(conversationUri: string, replyText: string,
+		tool?: LanguageModelChatTool, toolParameters?: string): Promise<GetNextMessageResponse> {
 		try {
 			let params: GetNextMessageParams = {
 				conversationUri: conversationUri,
-				userText: replyText
+				userText: replyText,
+				tool: tool,
+				toolParameters: toolParameters
 			};
 			let response: GetNextMessageResponse = await this._sqlToolsClient.sendRequest(GetNextMessageRequest.type, params);
 			return response;

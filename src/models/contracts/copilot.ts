@@ -12,14 +12,37 @@ export enum MessageType {
 	RequestLLM = 2
 }
 
+export enum MessageRole {
+	System = 0,
+	User = 1,
+	Assistant = 2,
+	Tool = 3,
+	Function = 4,
+}
+
+export class LanguageModelChatTool {
+	public functionName: string;
+	public functionDescription: string;
+	public functionParameters: string;
+}
+
+export class LanguageModelRequestMessage {
+	public text: string;
+	public role: MessageRole;
+}
+
 export class GetNextMessageParams {
 	public conversationUri: string;
 	public userText: string;
+	public tool: LanguageModelChatTool;
+	public toolParameters: string;
 }
 
 export class GetNextMessageResponse {
 	public messageType: MessageType;
 	public responseText: string;
+	public tools: LanguageModelChatTool[];
+	public requestMessages: LanguageModelRequestMessage[];
 }
 
 export class GetNextMessageRequest {
