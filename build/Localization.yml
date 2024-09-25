@@ -28,7 +28,9 @@ jobs:
       repoType: gitHub
       isCreatePrSelected: True
       prSourceBranchPrefix: 'locfiles'
-      isAutoCompletePrSelected: false
+      isAutoCompletePrSelected: true
+      gitHubPrMergeMethod: squash
+
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'
