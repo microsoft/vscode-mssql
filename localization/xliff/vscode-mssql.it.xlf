@@ -722,7 +722,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
-        <target state="new">I have read the summary and understand the potential risks.</target>
+        <target state="translated">Ho letto il riepilogo e ho compreso i potenziali rischi.</target>
       </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
@@ -1907,7 +1907,7 @@
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
-        <target state="new">Open Execution Plan File</target>
+        <target state="translated">Apri file piano di esecuzione</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>

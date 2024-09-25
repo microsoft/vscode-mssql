@@ -1907,7 +1907,7 @@
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
-        <target state="new">Open Execution Plan File</target>
+        <target state="translated">Abrir archivo de plan de ejecución</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>

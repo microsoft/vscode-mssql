@@ -631,7 +631,7 @@
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
-        <target state="translated">Filtrar por qualquer campo...</target>
+        <target state="translated">Filtro para qualquer campo...</target>
       </trans-unit>
       <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
         <source xml:lang="en">Find Node</source>
@@ -1149,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
-        <target state="translated">Alfabética Reversa</target>
+        <target state="translated">Alfabético Reverso</target>
       </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
