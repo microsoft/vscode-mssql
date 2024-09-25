@@ -33,6 +33,7 @@ import {
     FormItemType,
 } from "../reactviews/common/forms/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import { getErrorMessage } from "../utils/utils";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -91,16 +92,21 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         this.registerRpcHandlers();
         this.initializeDialog().catch((err) =>
-            vscode.window.showErrorMessage(err.toString()),
+            vscode.window.showErrorMessage(getErrorMessage(err)),
         );
     }
 
     private async initializeDialog() {
-        await this.loadRecentConnections();
-        if (this._connectionToEdit) {
-            await this.loadConnectionToEdit();
-        } else {
+        try {
+            await this.loadRecentConnections();
+            if (this._connectionToEdit) {
+                await this.loadConnectionToEdit();
+            } else {
+                await this.loadEmptyConnection();
+            }
+        } catch (err) {
             await this.loadEmptyConnection();
+            vscode.window.showErrorMessage(getErrorMessage(err));
         }
 
         this.state.connectionComponents = {
