@@ -5,6 +5,7 @@
 
 import { promises as fs } from "fs";
 import * as vscode from "vscode";
+import { IConnectionInfo } from "vscode-mssql";
 
 export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
     if (uri) {
@@ -39,3 +40,14 @@ export function getNonce(): string {
 }
 
 export class CancelError extends Error {}
+
+export function isIConnectionInfo(
+    connectionInfo: any,
+): connectionInfo is IConnectionInfo {
+    return (
+        (connectionInfo &&
+            connectionInfo.server &&
+            connectionInfo.authenticationType) ||
+        connectionInfo.connectionString
+    );
+}
