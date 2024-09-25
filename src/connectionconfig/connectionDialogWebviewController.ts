@@ -944,6 +944,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 }
             }
 
+            // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
+            // we can't controll which config setting it uses, but the Azure Resources extension (ms-azuretools.vscode-azureresourcegroups) sets this config setting,
+            // so that's the easiest way for a user to control their subscription filters.
             const shouldUseFilter = vscode.workspace.getConfiguration().get<string[] | undefined>('azureResourceGroups.selectedSubscriptions') !== undefined;
 
             const tenantSubMap = this.groupBy(
