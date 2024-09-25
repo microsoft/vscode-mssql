@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 // import { FormField } from "../../common/forms/form.component";
 import { ConnectButton } from "./components/connectButton.component";
-import { Dropdown, Field, Option, Button } from "@fluentui/react-components";
+import { Field, Option, Button, Combobox } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -57,7 +57,7 @@ export const AzureBrowsePage = () => {
         const subs = removeDuplicates(
             context.state.azureDatabases.map((server) => server.subscription),
         );
-        setSubscriptions(subs);
+        setSubscriptions(subs.sort());
 
         if (!selectedSubscription && subs.length === 1) {
             setSelectedSubscription(subs[0]);
@@ -76,7 +76,7 @@ export const AzureBrowsePage = () => {
         const rgs = removeDuplicates(
             activeServers.map((server) => server.resourceGroup),
         );
-        setResourceGroups(rgs);
+        setResourceGroups(rgs.sort());
 
         // if current selection is no longer in the list of options,
         // set selection to undefined (if multiple options) or the only option (if only one)
@@ -104,7 +104,7 @@ export const AzureBrowsePage = () => {
             activeServers.map((server) => server.location),
         );
 
-        setLocations(locs);
+        setLocations(locs.sort());
 
         // if current selection is no longer in the list of options,
         // set selection to undefined (if multiple options) or the only option (if only one)
@@ -137,7 +137,7 @@ export const AzureBrowsePage = () => {
         const srvs = removeDuplicates(
             activeServers.map((server) => server.server),
         );
-        setServers(srvs);
+        setServers(srvs.sort());
 
         // if current selection is no longer in the list of options,
         // set selection to undefined (if multiple options) or the only option (if only one)
@@ -155,7 +155,7 @@ export const AzureBrowsePage = () => {
             (server) => server.server === selectedServer,
         )!.databases;
 
-        setDatabases(dbs);
+        setDatabases(dbs.sort());
         setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
     }, [selectedServer]);
 
@@ -303,15 +303,20 @@ const AzureBrowseDropdown = ({
 }) => {
     const formStyles = useFormStyles();
 
+    const onInput = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        content.setValue(ev.target.value);
+    };
+
     return (
         <div className={formStyles.formComponentDiv}>
             <Field label={label} orientation="horizontal" required={required}>
-                <Dropdown
+                <Combobox
                     value={content.currentValue ?? ""}
                     selectedOptions={
                         content.currentValue ? [content.currentValue] : []
                     }
                     clearable={clearable}
+                    onInput={onInput}
                     onOptionSelect={(_event, data) => {
                         if (data.optionValue === content.currentValue) {
                             return;
@@ -327,7 +332,7 @@ const AzureBrowseDropdown = ({
                             </Option>
                         );
                     })}
-                </Dropdown>
+                </Combobox>
             </Field>
         </div>
     );

@@ -949,9 +949,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             this.state = state; // update state mid-reducer so the UI is more responsive
                         }
                         catch (error) {
-                            state.formError = `Error loading Azure databases for subscription ${s.name} (${s.subscriptionId}).  Confirm that you have permission.`;
+                            vscode.window.showErrorMessage(`Error loading Azure databases for subscription ${s.name} (${s.subscriptionId}).  Confirm that you have permission.`);
                             console.error(state.formError + "\n" + getErrorMessage(error));
-                            this.state = state; // update state mid-reducer so the UI is more responsive
                         }
                     }
                 }
@@ -1007,7 +1006,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             const serverName = this.extractFromResourceId(database.id, "servers");
             const server = result.find((s) => s.server === serverName);
             if (server) {
-                server.databases.push(database.name);
+                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
             }
         }
 
