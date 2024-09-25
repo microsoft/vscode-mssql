@@ -1143,6 +1143,9 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
+    <trans-unit id="++CODE++21c3a2d02a4190f9d3b0fdd247e27731d4a9bece63fa7991cdda7bd03a0f8161">
+      <source xml:lang="en">User Survey</source>
+    </trans-unit>
     <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
       <source xml:lang="en">User name</source>
     </trans-unit>
