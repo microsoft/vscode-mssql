@@ -159,6 +159,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 this._connectionToEdit,
             );
             this.state.connectionProfile = connection;
+
+            this.state.selectedInputMode = (connection.connectionString && connection.server === undefined) ? ConnectionInputMode.ConnectionString : ConnectionInputMode.Parameters;
             this.state = this.state;
         }
     }
