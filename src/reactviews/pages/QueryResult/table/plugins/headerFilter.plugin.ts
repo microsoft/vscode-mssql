@@ -10,6 +10,7 @@ import { FilterableColumn } from "../interfaces";
 import { append, $ } from "../dom";
 import { instanceOfIDisposableDataProvider } from "../dataProvider";
 import "./headerFilter.css";
+import { l10n } from "vscode";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -19,7 +20,7 @@ export interface CommandEventArgs<T extends Slick.SlickData> {
     command: HeaderFilterCommands;
 }
 
-const ShowFilterText = "Show Filter"; //TODO: localize
+const ShowFilterText = l10n.t("Show Filter");
 
 export const FilterButtonWidth: number = 34;
 
@@ -97,7 +98,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $el.on("click", async (e: JQuery.ClickEvent) => {
             e.stopPropagation();
             e.preventDefault();
-            console.log("open menu");
             this.showFilter($el[0]);
         });
 
@@ -179,7 +179,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         function closePopup($popup: JQuery<HTMLElement>) {
             $popup.fadeOut();
-            console.log("close popup");
         }
 
         function openPopup($popup: JQuery<HTMLElement>) {
