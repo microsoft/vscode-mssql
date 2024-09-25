@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
+import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
 
 const PROBABILITY = 0.15;
 const SESSION_COUNT_KEY = "nps/sessionCount";
@@ -64,6 +65,10 @@ export class UserSurvey {
         const take = {
             title: vscode.l10n.t("Take Survey"),
             run: async () => {
+                const webviewController = new UserSurveyWebviewController(
+                    this._context,
+                );
+                webviewController.revealToForeground();
                 await globalState.update(IS_CANDIDATE_KEY, false);
                 await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             },
@@ -92,5 +97,14 @@ export class UserSurvey {
             never,
         );
         await (button || remind).run();
+    }
+}
+
+class UserSurveyWebviewController extends ReactWebviewPanelController<
+    any,
+    any
+> {
+    constructor(context: vscode.ExtensionContext) {
+        super(context, vscode.l10n.t("User Survey"), "userSurvey", {});
     }
 }
