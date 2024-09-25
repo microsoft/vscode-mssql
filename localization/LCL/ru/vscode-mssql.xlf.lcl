@@ -41,7 +41,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Подключение к: ]]></Val>
+            <Val><![CDATA[Производится подключение к: ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -68,7 +68,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Disconnected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Отключен]]></Val>
+            <Val><![CDATA[Отключено]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -104,7 +104,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Account not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Учетная запись не найдена.]]></Val>
+            <Val><![CDATA[Учетная запись не найдена]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -131,7 +131,7 @@
         <Str Cat="Text">
           <Val><![CDATA[A SQL editor must have focus before executing this command]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Редактор SQL должен иметь фокус перед выполнением этой команды]]></Val>
+            <Val><![CDATA[Перед выполнением этой команды фокус должен находиться в редакторе SQL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -149,7 +149,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in to your Azure subscription]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Войти в подписку Azure]]></Val>
+            <Val><![CDATA[Войдите в свою подписку Azure]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -158,7 +158,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Executing query...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполнение запроса…]]></Val>
+            <Val><![CDATA[Выполняем запрос...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -217,12 +217,18 @@
       <Item ItemId=";bundle.++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Tooltips]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Переключение подсказок]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publishing Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Публикуем изменения…]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -247,6 +253,9 @@
       <Item ItemId=";bundle.++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Table Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Загружается конструктор таблиц]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -262,6 +271,9 @@
       <Item ItemId=";bundle.++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be set for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Необходимо задать первое значение для оператора {0} в фильтре {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -287,7 +299,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Список последних подключений был очищен, но при удалении некоторых связанных учетных данных возникли ошибки. Просмотрите ошибки в выходном канале MSSQL.]]></Val>
+            <Val><![CDATA[Список последних подключений был очищен, но при удалении некоторых связанных с ним учетных данных возникли ошибки. Просмотрите ошибки в канале выдачи MSSQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -296,7 +308,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Move Up]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Вверх]]></Val>
+            <Val><![CDATA[Переместить вверх]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -350,7 +362,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The behavior when a user tries to update a row with data that is involved in a foreign key relationship.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Поведение, которое реализуется при попытке пользователя обновить строку с данными, участвующую в связи по внешнему ключу.]]></Val>
+            <Val><![CDATA[Поведение при попытке пользователя обновить строку с данными, участвующую в отношении по внешнему ключу.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -359,7 +371,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Ends With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Оканчивается на]]></Val>
+            <Val><![CDATA[Заканчивается на]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -386,7 +398,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Ignore Tenant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Игнорировать клиент]]></Val>
+            <Val><![CDATA[Игнорировать клиента]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -440,7 +452,7 @@
         <Str Cat="Text">
           <Val><![CDATA[For numeric data, the maximum number of decimal digits that can be stored in this database object.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Для числовых данных: максимальное количество десятичных цифр, которые могут храниться в этом объекте базы данных.]]></Val>
+            <Val><![CDATA[Для числовых данных: максимальное количество десятичных знаков, которые могут храниться в этом объекте базы данных.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -472,6 +484,9 @@
       <Item ItemId=";bundle.++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse Azure]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Обзор Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -479,7 +494,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Query failed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Сбой запроса]]></Val>
+            <Val><![CDATA[Не удалось выполнить запрос]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -487,12 +502,18 @@
       <Item ItemId=";bundle.++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Сохранить план]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Расширенный тип]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -509,7 +530,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Disconnected on document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Завершено соединение для документа «{0}»]]></Val>
+            <Val><![CDATA[Разорвано подключение документа "{0}"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -518,7 +539,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Zoom Out]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Уменьшить]]></Val>
+            <Val><![CDATA[Уменьшить масштаб]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -581,7 +602,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure: Sign In with Device Code]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure: вход с кодом устройства]]></Val>
+            <Val><![CDATA[Azure: войдите с кодом устройства]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -590,7 +611,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Войти в подписку Azure с кодом устройства. Используйте эту возможность в установках, в которых комадна «Войти» не работает.]]></Val>
+            <Val><![CDATA[Войдите в свою подписку Azure с кодом устройства. Используйте эту возможность при установках, в которых команда "Войти" не работает.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -653,7 +674,7 @@
         <Str Cat="Text">
           <Val><![CDATA[New Index]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Новый индекс]]></Val>
+            <Val><![CDATA[Создание индекса]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -662,7 +683,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Unable to expand. Please check logs for more information.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Не удалось выполнить развертывание. Дополнительные сведения см. в журналах.]]></Val>
+            <Val><![CDATA[Не удалось развернуть. Подробнее см. в журналах.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -689,7 +710,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changing database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Подключение к базе данных «{0}» на сервере «{1}» в документе «{2}».]]></Val>
+            <Val><![CDATA[Контекст базы данных заменяется на "{0}" на сервере "{1}" в документе "{2}".]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -743,7 +764,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Choose a database from the list below]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выберите базу данных из списка ниже]]></Val>
+            <Val><![CDATA[Выберите базу данных из приведенного ниже списка]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -752,7 +773,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Custom Zoom]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Пользовательский масштаб]]></Val>
+            <Val><![CDATA[Пользовательское увеличение]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -770,7 +791,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Вы действительно хотите разорвать соединение?]]></Val>
+            <Val><![CDATA[Вы действительно хотите разорвать подключение?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -797,7 +818,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Поведение, которое реализуется при попытке пользователя удалить строку с данными, участвующую в связи по внешнему ключу.]]></Val>
+            <Val><![CDATA[Поведение при попытке пользователя удалить строку с данными, участвующую в отношении по внешнему ключу.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -886,6 +907,9 @@
       <Item ItemId=";bundle.++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open XML]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Open XML]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -893,7 +917,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable Trust Server Certificate]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить сертификат доверенного сервера]]></Val>
+            <Val><![CDATA[Включить опцию "Доверять сертификату сервера"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -902,7 +926,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Found pending reconnect promise for uri {0}, waiting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Найдено ожидающее обещание повторного подключения для URI {0}, ожидание.]]></Val>
+            <Val><![CDATA[Найдено ожидающее обещание повторного подключения для URI {0}, ждем.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -929,7 +953,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Для этого подключения было включено шифрование, проверьте конфигурацию SSL и сертификата для целевого SQL Server или установите для параметра «Сертификат доверенного сервера» значение «true» в файле настроек. Примечание. Самозаверяющий сертификат обеспечивает лишь ограниченную защиту и не рекомендуется для производственных сред. Вы хотите включить «Сертификат доверенного сервера» для этого подключения и повторить попытку?]]></Val>
+            <Val><![CDATA[Для этого подключения включено шифрование. Просмотрите SSL и конфигурацию сертификата для целевого сервера SQL Server или установите для параметра "Доверять сертификату сервера" значение "true" в файле настроек. Примечание. Самозаверяющий сертификат обеспечивает ограниченную защиту, и его не рекомендуется применять в производственных средах. Включить опцию "Доверять сертификату сервера" для этого подключения и повторить попытку?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -956,7 +980,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Dismiss]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Отклонить]]></Val>
+            <Val><![CDATA[Закрыть]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1019,7 +1043,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Начало выполнения запроса для документа «{0}»]]></Val>
+            <Val><![CDATA[Начато выполнение запроса для документа "{0}"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1046,7 +1070,7 @@
         <Str Cat="Text">
           <Val><![CDATA[To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Для использования этой команды, откройте файл SQL, либо измените языковой режим окна редактора на «SQL», либо выберите текст T-SQL в активном окне редактора SQL.]]></Val>
+            <Val><![CDATA[Для использования этой команды откройте файл SQL, или измените языковой режим окна редактора на "SQL", или выберите текст T-SQL в активном окне редактора SQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1063,6 +1087,9 @@
       <Item ItemId=";bundle.++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Для доступа к ресурсам {0} вашей учетной записи необходимо заново пройти проверку подлинности. Нажмите кнопку "Открыть", чтобы начать процесс проверки подлинности.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1097,7 +1124,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server "{0}" on document "{1}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Подключение к серверу «{0}» в документе «{1}».]]></Val>
+            <Val><![CDATA[Производится подключение к серверу "{0}" в документе "{1}".]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1105,6 +1132,9 @@
       <Item ItemId=";bundle.++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Explorer Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Фильтр обозревателя объектов]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1127,7 +1157,7 @@
         <Str Cat="Text">
           <Val><![CDATA[For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Для числовых данных максимальное количество десятичных знаков, которые могут быть сохранены в этом объекте базы данных справа от десятичного разделителя.]]></Val>
+            <Val><![CDATA[Для числовых данных максимальное количество десятичных знаков справа от десятичного разделителя, которые могут быть сохранены в этом объекте базы данных.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1172,7 +1202,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in to your Azure subscription in one of the sovereign clouds.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Войти в подписку Azure в одном из национальных облаков.]]></Val>
+            <Val><![CDATA[Войдите в свою подписку Azure в одном из национальных облаков.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1262,7 +1292,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Not Between]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Вне диапазона]]></Val>
+            <Val><![CDATA[Не находится между]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1280,7 +1310,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Zoom In]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Увеличить]]></Val>
+            <Val><![CDATA[Увеличить масштаб]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1343,7 +1373,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error connecting to server "{0}". Details: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[При подключении к серверу «{0}» возникла ошибка. Подробные сведения: {1}]]></Val>
+            <Val><![CDATA[При подключении к серверу "{0}" возникла ошибка. Подробности: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1478,7 +1508,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Firewall rule successfully added. Retry profile creation? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Правило брандмауэра добавлено. Вы хотите повторить попытку создания профиля? ]]></Val>
+            <Val><![CDATA[Правило брандмауэра добавлено. Хотите повторить попытку создания профиля? ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1505,7 +1535,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" for document "{1}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Контекст базы данных изменен на «{0}» для документа «{1}»]]></Val>
+            <Val><![CDATA[Контекст базы данных изменен на "{0}" для документа "{1}"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1523,7 +1553,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Login failed. Retry using different credentials?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ошибка: не удалось войти в систему. Вы хотите повторить попытку с другими учетными данными?]]></Val>
+            <Val><![CDATA[Ошибка: не удалось войти в систему. Хотите повторить попытку с другими учетными данными?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1531,6 +1561,9 @@
       <Item ItemId=";bundle.++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading preview]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ошибка при загрузке предварительного просмотра]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1538,7 +1571,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Succeeded]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Успешно выполнено]]></Val>
+            <Val><![CDATA[Выполнено]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1619,7 +1652,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Previous pending reconnection for uri {0}, succeeded.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Предыдущее ожидающее повторное подключение для URI {0} выполнено.]]></Val>
+            <Val><![CDATA[Предыдущее ожидающее повторное подключение для URI {0} выполнено успешно.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1628,7 +1661,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save Password? If 'No', password will be required each time you connect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Сохранить пароль? Если «Нет», пароль будет требоваться каждый раз при подключении]]></Val>
+            <Val><![CDATA[Сохранить пароль? При ответе "Нет" пароль будет требоваться каждый раз при подключении]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1655,7 +1688,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Cannot connect due to expired tokens. Please re-authenticate and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Не удается подключиться из-за просроченных токенов. Выполните проверку подлинности снова и повторите попытку.]]></Val>
+            <Val><![CDATA[Не удается подключиться из-за токенов с истекшим сроком действия. Выполните проверку подлинности заново и повторите попытку.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1664,7 +1697,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Displays the unified data type (including length, scale and precision) for the column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Отображает единый тип данных (включая длину, масштаб и точность) для столбца]]></Val>
+            <Val><![CDATA[Показывает единый тип данных (включая длину, масштаб и точность) для столбца]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1718,7 +1751,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Clear]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Очистить]]></Val>
+            <Val><![CDATA[Прозрачный]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1736,7 +1769,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Displays the description of the column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Указывает описание столбца.]]></Val>
+            <Val><![CDATA[Показывает описание столбца.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1763,7 +1796,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No connection was found. Please connect to a server first.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Соединение отсутствует. Сначала подключитесь к серверу.]]></Val>
+            <Val><![CDATA[Соединение не найдено. Сначала подключитесь к серверу.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1799,7 +1832,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Контекст базы данных изменен на «{0}» на сервере «{1}» в документе «{2}».]]></Val>
+            <Val><![CDATA[Контекст базы данных изменен на "{0}" на сервере "{1}" в документе "{2}".]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1817,7 +1850,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Displays the data type name for the column]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Отображает имя типа данных столбца.]]></Val>
+            <Val><![CDATA[Показывает имя типа данных столбца.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1834,6 +1867,9 @@
       <Item ItemId=";bundle.++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[About table]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[О таблице]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1913,7 +1949,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Testing connection profile...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Проверка профиля подключения…]]></Val>
+            <Val><![CDATA[Тестируем профиль подключения…]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1940,7 +1976,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Updating IntelliSense...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Обновление IntelliSense…]]></Val>
+            <Val><![CDATA[Обновляем IntelliSense...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1948,6 +1984,9 @@
       <Item ItemId=";bundle.++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Nodes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Найти узлы]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1964,7 +2003,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Retry]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Повторить попытку]]></Val>
+            <Val><![CDATA[Повторить]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2018,7 +2057,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure Account is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Требуется указать учетную запись Azure]]></Val>
+            <Val><![CDATA[Требуется учетная запись Azure]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2036,7 +2075,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Unable to connect using the connection information provided. Retry profile creation?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ошибка: не удается подключиться с использованием предоставленных сведений о подключении. Повторить создание профиля?]]></Val>
+            <Val><![CDATA[Ошибка: не удается подключиться с использованием предоставленных деталей подключения. Хотите повторить попытку создания профиля?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2054,7 +2093,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Advanced]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Дополнительная информация]]></Val>
+            <Val><![CDATA[Расширенный]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2062,6 +2101,9 @@
       <Item ItemId=";bundle.++CODE++9f24e982799f47ef97760b8fbb95ce6c89390fba37aa7fe9b6314f69aaa691ea" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query {0}:  Query cost (relative to the script):  {1}%]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Запрос {0}: стоимость запроса (по отношению к сценарию): {1}%]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2123,7 +2165,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling the query failed: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ошибка при отмене запроса: {0}]]></Val>
+            <Val><![CDATA[Ошибка при попытке отмены запроса: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2132,7 +2174,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Не удалось сохранить ключи для кэша маркеров в хранилище учетных данных. Это может привести к проблемам сохраняемости маркера доступа Microsoft Entra ID и нестабильности подключения. Скорее всего, в SqlTools достигнуто ограничение хранилища учетных данных в Windows. Удалите по крайней мере 2 учетных данных, которые начинаются с "Microsoft.SqlTools|" в диспетчере учетных данных Windows, и выполните перезагрузку.]]></Val>
+            <Val><![CDATA[Не удалось сохранить ключи для кэша маркеров в хранилище учетных данных. Это может привести к проблемам сохраняемости маркера доступа Microsoft Entra ID и нестабильности подключения. Скорее всего, в SqlTools достигнуто ограничение хранилища учетных данных в Windows. Удалите по крайней мере 2 набора учетных данных, которые начинаются с "Microsoft.SqlTools|" в диспетчере учетных данных Windows, и выполните перезагрузку.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2212,6 +2254,9 @@
       <Item ItemId=";bundle.++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Close Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Закрыть конструктор]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2243,7 +2288,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Less Than]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Меньше чем]]></Val>
+            <Val><![CDATA[Меньше]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2288,7 +2333,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Integrated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Интегрированный]]></Val>
+            <Val><![CDATA[Интегрированные]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2297,7 +2342,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Choose a connection profile from the list below]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выберите профиль подключения из списка ниже]]></Val>
+            <Val><![CDATA[Выберите профиль подключения из расположенного ниже списка]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2332,12 +2377,18 @@
       <Item ItemId=";bundle.++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} {1} issues]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} {1} проблем]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Queries Available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Нет доступных запросов]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2345,7 +2396,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Move Down]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Вниз]]></Val>
+            <Val><![CDATA[Переместить вниз]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2372,7 +2423,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connected to server "{0}" on document "{1}". Server information: {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Подключение к серверу «{0}» в документе «{1}». Сведения о сервере: {2}]]></Val>
+            <Val><![CDATA[Выполнено подключение к серверу "{0}" в документе "{1}". Сведения о сервере:{2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2426,7 +2477,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Finished query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Завершено выполнение запроса для документа «{0}»]]></Val>
+            <Val><![CDATA[Завершено выполнение запроса для документа "{0}"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2480,7 +2531,7 @@
         <Str Cat="Text">
           <Val><![CDATA[SQL Login]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Имя для входа SQL]]></Val>
+            <Val><![CDATA[Вход SQL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2489,7 +2540,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Getting definition ...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Получение определения…]]></Val>
+            <Val><![CDATA[Получаем определение…]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2624,7 +2675,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{{put-server-name-here}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{{введите-имя-сервера-здесь}}]]></Val>
+            <Val><![CDATA[{{put-server-name-here}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2660,7 +2711,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Off]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Отключено]]></Val>
+            <Val><![CDATA[Откл]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2686,12 +2737,18 @@
       <Item ItemId=";bundle.++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Script As Create]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Создать скрипт как CREATE]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Changes published successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Изменения успешно опубликованы]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2716,6 +2773,9 @@
       <Item ItemId=";bundle.++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be less than the second value for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Первое значение должно быть меньше второго значения оператора {0} в фильтре {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2740,6 +2800,9 @@
       <Item ItemId=";bundle.++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Connection Settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Дополнительные параметры подключения]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2765,7 +2828,7 @@
         <Str Cat="Text">
           <Val><![CDATA[An error occurred refreshing nodes. See the MSSQL output channel for more details.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Произошла ошибка при обновлении узлов. Дополнительные сведения см. в канале вывода MSSQL.]]></Val>
+            <Val><![CDATA[Произошла ошибка при обновлении узлов. Подробнее см. в канале вывода MSSQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2828,7 +2891,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Не удалось обновить профиль подключения. Измените сведения о подключении вручную в settings.json и повторите попытку.]]></Val>
+            <Val><![CDATA[Не удалось обновить профиль подключения. Измените детали подключения вручную в файле settings.json и повторите попытку.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2837,7 +2900,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Optional (False)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Необязательно (Ложь)]]></Val>
+            <Val><![CDATA[Необязательно (False)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2864,7 +2927,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Loading]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Загружается]]></Val>
+            <Val><![CDATA[Выполняется загрузка]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2873,7 +2936,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Zoom to Fit]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Масштабировать по данным]]></Val>
+            <Val><![CDATA[Масштабировать по размеру]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2882,7 +2945,7 @@
         <Str Cat="Text">
           <Val><![CDATA[None]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Нет]]></Val>
+            <Val><![CDATA[Отсутствует]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2963,7 +3026,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Open in new tab]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Открыть на новой вкладке]]></Val>
+            <Val><![CDATA[Открыть в новой вкладке]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2971,6 +3034,9 @@
       <Item ItemId=";bundle.++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go there]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Перейти туда]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3013,6 +3079,9 @@
       <Item ItemId=";bundle.++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} {1} issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} {1} проблема]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3029,7 +3098,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0} issue]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} проблема]]></Val>
+            <Val><![CDATA[{0} проблема]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3056,7 +3125,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Не удалось запустить сервер. Это может быть связано с ошибкой разрешений или несовместимостью вашей системы. Вы можете попробовать включить проверку подлинности кода устройства в разделе параметров.]]></Val>
+            <Val><![CDATA[Не удалось запустить сервер. Это может быть связано с ошибкой разрешений или несовместимостью вашей системы. Попробуйте включить проверку подлинности кода устройства в разделе параметров.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3074,7 +3143,7 @@
         <Str Cat="Text">
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Для использования этой команды в качестве языкового режима необходимо указать «SQL». Подтвердите изменение языкового режима.]]></Val>
+            <Val><![CDATA[Для использования этой команды в качестве языкового режима необходимо указать "SQL". Подтвердите изменение языкового режима.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3092,7 +3161,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Generate Script]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Создать сценарий]]></Val>
+            <Val><![CDATA[Сгенерировать скрипт]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3101,7 +3170,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No connection profile to remove.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Нет профилей подключения для удаления.]]></Val>
+            <Val><![CDATA[Не найдено ни одного профиля подключения, который можно было бы удалить.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3119,7 +3188,7 @@
         <Str Cat="Text">
           <Val><![CDATA[New Check Constraint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Создать ограничение CHECK]]></Val>
+            <Val><![CDATA[Новое проверочное ограничение]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3145,6 +3214,9 @@
       <Item ItemId=";bundle.++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The second value must be set for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Необходимо задать второе значение для оператора {0} в фильтре {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3278,7 +3350,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполняется отмена]]></Val>
+            <Val><![CDATA[Производится отмена]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3331,6 +3403,9 @@
       <Item ItemId=";bundle.++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ошибка при загрузке конструктора]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3419,7 +3494,7 @@
         <Str Cat="Text">
           <Val><![CDATA[ is required.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Является обязательным.]]></Val>
+            <Val><![CDATA[ является обязательным.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3581,7 +3656,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Clear All Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Очистить весь Журнал запросов]]></Val>
+            <Val><![CDATA[Очистить весь журнал запросов]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3617,7 +3692,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Open Query History in Command Palette]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Открыть Журнал запросов в палитре команд]]></Val>
+            <Val><![CDATA[Открыть журнал запросов в палитре команд]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3635,7 +3710,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Объявляет тип рабочей нагрузки приложения при подключении к серверу SQL Server, например ReadWrite или ReadOnly. Дополнительные сведения см. в SQL Server AlwaysOn.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Объявляет тип рабочей нагрузки приложения при подключении к серверу SQL Server, например ReadWrite или ReadOnly. Подробнее см. в SQL Server AlwaysOn.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3644,7 +3719,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Укажите имя приложения, используемого для ведения журнала сервера SQL Server (значение по умолчанию: «vscode-mssql»).]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Укажите имя приложения, используемого для ведения журнала сервера SQL Server (значение по умолчанию: "vscode-mssql").]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3725,7 +3800,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Укажите имя базы данных, к которой необходимо подключиться. Если база данных не указана, будет использована база данных пользователя по умолчанию, обычно «master».]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Укажите имя базы данных, к которой необходимо подключиться. Если база данных не указана, будет использована база данных пользователя по умолчанию, обычно "master".]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3743,7 +3818,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Если задано значение "Mandatory" или "Strict", SQL Server использует SSL-шифрование для всех данных, отправляемых между клиентом и сервером, если на сервере установлен сертификат. Если установлено значение "Strict", SQL Server использует TDS 8.0 для передачи всех данных между клиентом и сервером. Значение "Strict" поддерживается в SQL Server 2022 и более поздних версиях.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Когда задано значение "Mandatory" или "Strict", SQL Server использует SSL-шифрование для всех данных, отправляемых между клиентом и сервером, если на сервере установлен сертификат. Если установлено значение "Strict", SQL Server использует TDS 8.0 для передачи всех данных между клиентом и сервером. Значение "Strict" поддерживается в SQL Server начиная с версии 2022.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3797,7 +3872,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Когда установлено значение «TRUE», обнаружение активного сервера и подключение к нему происходит быстрее, если группа доступности AlwaysOn настроена в других подсетях.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Когда установлено значение "TRUE", обнаружение активного сервера и подключение к нему происходит быстрее, если группа доступности AlwaysOn настроена в других подсетях.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3806,7 +3881,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', multiple result sets can be returned and read from on connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Когда установлено значение «TRUE», из подключения может быть возвращено и прочитано несколько результирующих наборов.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Когда установлено значение "TRUE", из подключение позволяет вернуть и прочитать несколько результирующих наборов.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3833,7 +3908,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Когда установлено значение «FALSE», то секретные данные (например, пароль) не возвращаются в составе подключения, если подключение открыто или когда-либо находилось в открытом состоянии.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; При установленном значении "FALSE" конфиденциальные данные (например пароль) не возвращаются в составе подключения, если подключение открыто или когда-либо находилось в открытом состоянии.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3842,7 +3917,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Когда установлено значение «TRUE», объект подключения извлекается из соответствующего пула или, при необходимости, создается и добавляется в соответствующий пул.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Когда установлено значение "TRUE", объект подключения извлекается из соответствующего пула или, при необходимости, создается и добавляется в соответствующий пул.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3878,7 +3953,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Когда установлено значение «TRUE», пароль для проверки подлинности на сервере SQL Server сохраняется в безопасном хранилище операционной системы, например KeyChain в macOS или Secure Store в Windows.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Когда установлено значение "TRUE", пароль для проверки подлинности на сервере SQL Server сохраняется в безопасном хранилище операционной системы, например KeyChain в macOS или Secure Store в Windows.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3896,7 +3971,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Если этот параметр имеет значение «TRUE», SSL-сертификат сервера SQL Server будет автоматически считаться доверенным, если слой связи зашифрован с использованием SSL. Установите значение «false», чтобы использовать подключение к Базе данных SQL Azure.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Когда этот параметр имеет значение "TRUE", SSL-сертификат сервера SQL Server будет автоматически считаться доверенным, если слой связи зашифрован с использованием SSL. Установите значение "false", чтобы использовать подключение к базе данных SQL Azure.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3932,7 +4007,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Профили подключения, заданные в разделе «Параметры пользователей», отображаются в команде «MS SQL: Connect» палитры команд.]]></Val>
+            <Val><![CDATA[Профили подключения, заданные в разделе "Параметры пользователей", показаны в разделе команды "MS SQL: Connect" палитры команд.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4030,6 +4105,9 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включает экспериментальные функции в расширении MSSQL. Компоненты не готовы к работе и могут содержать дефекты или проблемы. Перезапустите Visual Studio Code после изменения этого параметра.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4037,7 +4115,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить ведение Журнала запросов]]></Val>
+            <Val><![CDATA[Включить ведение журнала запросов]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4046,7 +4124,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should Query History feature be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Следует ли включить функцию \"Журнал запросов\"]]></Val>
+            <Val><![CDATA[Следует ли включить функцию "Журнал запросов"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4064,7 +4142,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Фильтровать]]></Val>
+            <Val><![CDATA[Фильтр]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4073,7 +4151,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should column definitions be aligned?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Должны ли столбцы подсказок быть выровнены?]]></Val>
+            <Val><![CDATA[Должны ли определения столбцы быть выровнены?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4082,7 +4160,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Должен ли формат типов данных быть «ВЕРХНИЙ РЕГИСТР», «нижний регистр» или «нет» (формат отсутствует)]]></Val>
+            <Val><![CDATA[Должен ли формат типов данных быть "ВЕРХНИЙ РЕГИСТР", "нижний регистр" или "нет" (формат отсутствует)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4091,7 +4169,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Должен ли формат ключевых слов быть «ВЕРХНИЙ РЕГИСТР», «нижний регистр» или «нет» (формат отсутствует)]]></Val>
+            <Val><![CDATA[Должен ли формат ключевых слов быть "ВЕРХНИЙ РЕГИСТР", "нижний регистр" или "нет" (формат отсутствует)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4100,7 +4178,7 @@
         <Str Cat="Text">
           <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Следует ли поместить запятые в начале каждой инструкции списка — «, mycolumn2», а не в конце — «mycolumn1»]]></Val>
+            <Val><![CDATA[следует ли помещать запятые в начале каждой инструкции списка, а не в конце, например ", mycolumn2", а не "mycolumn1,"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4109,7 +4187,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Должны ли ссылки на объекты в инструкции SELECT быть разделены на отдельные строки? Например, для «SELECT C1, C2 FROM T1» C1 и C2 будут расположены в отдельных строках.]]></Val>
+            <Val><![CDATA[Следует ли разбивать на отдельные строки ссылки на объекты в инструкции SELECT? Например, для "SELECT C1, C2 FROM T1" C1 и C2 будут расположены в отдельных строках.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4262,7 +4340,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Время ожидания в секундах для развертывания узла в обозревателе объектов SQL Server. Значение по умолчанию — 45 секунд.]]></Val>
+            <Val><![CDATA[Время ожидания в секундах развертывания узла в обозревателе объектов. Значение по умолчанию — 45 секунд.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4288,6 +4366,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Открыть файл плана выполнения]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4304,7 +4385,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Pause Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Приостановить ведение Журнала запросов]]></Val>
+            <Val><![CDATA[Приостановить ведение журнала запросов]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4340,7 +4421,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_DEFAULTS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET ANSI_DEFAULTS]]></Val>
+            <Val><![CDATA[Установить параметр SET ANSI_DEFAULTS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4349,7 +4430,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_NULL_DFLT_ON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET ANSI_NULL_DFLT_ON]]></Val>
+            <Val><![CDATA[Установить параметр SET ANSI_NULL_DFLT_ON]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4358,7 +4439,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_NULLS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET ANSI_NULLS]]></Val>
+            <Val><![CDATA[Установить параметр SET ANSI_NULLS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4367,7 +4448,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_PADDING]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET ANSI_PADDING]]></Val>
+            <Val><![CDATA[Установить параметр SET ANSI_PADDING]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4376,7 +4457,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_WARNINGS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET ANSI_WARNINGS]]></Val>
+            <Val><![CDATA[Установить параметр SET ANSI_WARNINGS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4394,7 +4475,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET CURSOR_CLOSE_ON_COMMIT]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET CURSOR_CLOSE_ON_COMMIT]]></Val>
+            <Val><![CDATA[Установить параметр SET CURSOR_CLOSE_ON_COMMIT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4412,7 +4493,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Должны ли столбцы BIT отображаться как числа (1 или 0)? Если задать значение FALSE, столбцы будут отображаться как значения «TRUE» или «FALSE»]]></Val>
+            <Val><![CDATA[Следует ли показывать столбцы BIT в виде чисел (1 или 0)? Если задать значение FALSE, значения в столбцах типа BIT будут видны как значения "TRUE" или "FALSE"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4430,7 +4511,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET IMPLICIT_TRANSACTIONS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET IMPLICIT_TRANSACTIONS]]></Val>
+            <Val><![CDATA[Установить параметр SET IMPLICIT_TRANSACTIONS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4493,7 +4574,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
+            <Val><![CDATA[Установить параметр SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4502,7 +4583,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET QUOTED_IDENTIFIER]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Включить параметр SET QUOTED_IDENTIFIER]]></Val>
+            <Val><![CDATA[Установить параметр SET QUOTED_IDENTIFIER]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4538,7 +4619,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Maximum size of text and ntext data returned from a SELECT statement]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Максимальный размер текста и данных ntext, возвращаемых инструкцией SELECT]]></Val>
+            <Val><![CDATA[Максимальный размер данных типа text и ntext, возвращаемых инструкцией SELECT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4565,7 +4646,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Number of query history entries to show in the Query History view]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Число записей журнала запросов, отображаемых в представлении \"Журнал запросов\"]]></Val>
+            <Val><![CDATA[Число записей журнала запросов, показываемых в представлении "Журнал запросов"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4610,7 +4691,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Set the font family for the results grid; set to blank to use the editor font]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Задайте семейство шрифтов для сетки результатов; задайте значение «blank» (пустой), чтобы использовать размер шрифта редактора]]></Val>
+            <Val><![CDATA[Задайте семейство шрифтов для сетки результатов; укажите пустое значение, чтобы использовать размер шрифта редактора]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4619,7 +4700,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Set the font size for the results grid; set to blank to use the editor size]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Задайте размер шрифта для сетки результатов; задайте значение «blank» (пустой), чтобы использовать размер шрифта редактора]]></Val>
+            <Val><![CDATA[Задайте размер шрифта для таблицы результатов; задайте пустое значение, чтобы использовать размер шрифта редактора]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4646,7 +4727,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Run Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Запуск запроса]]></Val>
+            <Val><![CDATA[Запустить запрос]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4700,7 +4781,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Alter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Сценарий в режиме изменения]]></Val>
+            <Val><![CDATA[Создать скрипт как ALTER]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4709,7 +4790,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Сценарий в режиме создания]]></Val>
+            <Val><![CDATA[Создать скрипт как CREATE]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4718,7 +4799,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Drop]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Сценарий в режиме удаления]]></Val>
+            <Val><![CDATA[Создать скрипт как DROP]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4727,7 +4808,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Execute]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Сценарий в режиме выполнения]]></Val>
+            <Val><![CDATA[Создать скрипт как EXECUTE]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4754,7 +4835,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Should execution time be shown for individual batches]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Должно ли отображаться время выполнения для отдельных пакетов]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Нужно ли показывать время выполнения для отдельных пакетов]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4781,7 +4862,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Start Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Начать ведение Журнала запросов]]></Val>
+            <Val><![CDATA[Начать ведение журнала запросов]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4790,7 +4871,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Toggle SQLCMD Mode]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Переключить режим SQLCMD]]></Val>
+            <Val><![CDATA[Переключение режима SQLCMD]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4799,7 +4880,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Необязательно]5D; Уровень ведения журнала для серверных служб. Azure Data Studio создает имя файла при каждом запуске, а если такой файл уже существует, записи журналов добавляются в него. Для очистки старых файлов журналов см. описание параметров logRetentionMinutes и logFilesRemovalLimit. Параметр tracingLevel по умолчанию регистрирует не слишком многое. Изменение детализации может привести к тому, что журналы будут занимать слишком много места. Ошибка включает критический уровень, предупреждение включает ошибку, информационный уровень включает предупреждение, а подробный уровень включает информационный уровень.]]></Val>
+            <Val><![CDATA[[Необязательно]5D; Уровень ведения журнала для серверных служб. Azure Data Studio создает имя файла при каждом запуске, а если такой файл уже существует, записи журналов добавляются в него. Для очистки старых файлов журналов см. описание параметров logRetentionMinutes и logFilesRemovalLimit. По умолчанию параметр tracingLevel заносит в журнал не слишком много информации. Изменение детализации может привести к тому, что журналы будут занимать слишком много места. Ошибка включает критический уровень, предупреждение включает ошибку, информационный уровень включает предупреждение, а подробный уровень включает информационный уровень.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
