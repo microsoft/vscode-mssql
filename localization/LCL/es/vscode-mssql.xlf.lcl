@@ -4288,6 +4288,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir archivo de plan de ejecución]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

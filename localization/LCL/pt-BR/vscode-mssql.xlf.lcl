@@ -23,7 +23,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Filter for any field...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Filtrar por qualquer campo...]]></Val>
+            <Val><![CDATA[Filtro para qualquer campo...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3236,7 +3236,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Reverse Alphabetical]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Alfabética Reversa]]></Val>
+            <Val><![CDATA[Alfabético Reverso]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
