@@ -50,7 +50,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Total execution time: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Durée totale d'exécution : {0}]]></Val>
+            <Val><![CDATA[Durée totale d’exécution : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -131,7 +131,7 @@
         <Str Cat="Text">
           <Val><![CDATA[A SQL editor must have focus before executing this command]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'éditeur SQL doit avoir le focus pour exécuter cette commande]]></Val>
+            <Val><![CDATA[L’éditeur SQL doit avoir le focus pour exécuter cette commande]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -139,6 +139,9 @@
       <Item ItemId=";bundle.++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add a Microsoft Entra account...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter un compte Microsoft Entra...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -181,6 +184,9 @@
       <Item ItemId=";bundle.++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[<default>]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[<default>]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -188,7 +194,7 @@
         <Str Cat="Text">
           <Val><![CDATA[A query is already running for this editor session. Please cancel this query or wait for its completion.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Une requête est déjà en cours d'exécution pour cette session d'éditeur. Annulez-la ou attendez qu'elle se termine.]]></Val>
+            <Val><![CDATA[Une requête est déjà en cours d’exécution pour cette session d’éditeur. Annulez-la ou attendez qu’elle se termine.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -214,6 +220,9 @@
       <Item ItemId=";bundle.++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Tooltips]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activer/désactiver les info-bulles]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -302,7 +311,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Authentication failed due to a state mismatch, please close ADS and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'authentification a échoué en raison d'une incompatibilité d'état, fermez ADS et réessayez.]]></Val>
+            <Val><![CDATA[L’authentification a échoué en raison d’une incompatibilité d’état. Veuillez fermer ADS, puis réessayez.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -338,7 +347,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Se connecter]]></Val>
+            <Val><![CDATA[Connecter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -383,7 +392,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Ignore Tenant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ignorer le Locataire]]></Val>
+            <Val><![CDATA[Ignorer le locataire]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -454,6 +463,9 @@
       <Item ItemId=";bundle.++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[hostname\instance or <server>.database.windows.net or ADO.NET connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[hostname\instance or <server>.database.windows.net ou chaîne de connexion ADO.NET]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -484,6 +496,9 @@
       <Item ItemId=";bundle.++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enregistrer le plan]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -506,7 +521,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Disconnected on document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Déconnecté du document "{0}"]]></Val>
+            <Val><![CDATA[Déconnecté du document « {0} »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -542,7 +557,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to save results. ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'enregistrement des résultats a échoué. ]]></Val>
+            <Val><![CDATA[L’enregistrement des résultats a échoué. ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -551,7 +566,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection not found for uri "{0}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Connexion introuvable pour uri "{0}"]]></Val>
+            <Val><![CDATA[Connexion introuvable pour l’URI « {0} »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -578,7 +593,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure: Sign In with Device Code]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure : Connexion avec un code d'appareil]]></Val>
+            <Val><![CDATA[Azure : Connexion avec un code d’appareil]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -587,7 +602,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Connectez-vous à votre abonnement Azure avec un code d'appareil. Utilisez-le dans les configurations où la commande Se connecter ne fonctionne pas]]></Val>
+            <Val><![CDATA[Connectez-vous à votre abonnement Azure avec un code d’appareil. Utilisez-le dans les configurations où la commande Se connecter ne fonctionne pas]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -604,6 +619,9 @@
       <Item ItemId=";bundle.++CODE++2b8198974f44b4a37d366cb6535153e3646f2c9de308f0ca05bf90513b0a4630" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ce paramètre nécessite le redémarrage de Visual Studio Code. Rechargez Visual Studio Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -656,7 +674,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Unable to expand. Please check logs for more information.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impossible de développer. Pour plus d'informations, consultez les journaux.]]></Val>
+            <Val><![CDATA[Impossible de développer. Pour plus d’informations, consultez les journaux.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -683,7 +701,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changing database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Remplacement du contexte de base de données par "{0}" sur le serveur "{1}" et sur le document "{2}".]]></Val>
+            <Val><![CDATA[Remplacement du contexte de base de données par « {0} » sur le serveur « {1} » et sur le document « {2} ».]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -773,7 +791,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Tenant ID is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'ID de locataire est obligatoire]]></Val>
+            <Val><![CDATA[L’ID de locataire est obligatoire]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -836,7 +854,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Open Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ouvrir l'historique des requêtes]]></Val>
+            <Val><![CDATA[Ouvrir l’historique des requêtes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -854,7 +872,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'authentification a échoué en raison d'une incompatibilité de nonce, fermez Azure Data Studio et réessayez.]]></Val>
+            <Val><![CDATA[L’authentification a échoué en raison d’une incompatibilité de nonce, fermez Azure Data Studio et réessayez.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -887,7 +905,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable Trust Server Certificate]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer Faire confiance au certificat de serveur]]></Val>
+            <Val><![CDATA[Activer Approuver le certificat de serveur]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -896,7 +914,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Found pending reconnect promise for uri {0}, waiting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Promesse de reconnexion trouvée en attente pour uri {0}]]></Val>
+            <Val><![CDATA[Promesse de reconnexion trouvée en attente pour l’URI {0}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -923,7 +941,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Le chiffrement a été activé sur cette connexion. Passez en revue la configuration de votre SSL et de votre certificat pour la cible SQL Server ou définissez le « Certificat de serveur de confiance » sur « true » dans le fichier de configuration. Remarque : un certificat auto-signé offre une protection limitée uniquement et n’est pas une pratique recommandée pour les environnements de production. Voulez-vous activer le « Certificat de serveur de confiance » sur cette connexion et réessayer ?]]></Val>
+            <Val><![CDATA[Le cryptage a été activé sur cette connexion, vérifiez la configuration de votre SSL et de votre certificat pour le Microsoft SQL Server cible, ou définissez « Approuver le certificat de serveur » sur « true » dans le fichier des paramètres. Remarque : un certificat auto-signé n’offre qu’une protection limitée et n’est pas une pratique recommandée pour les environnements de production. Voulez-vous activer « Approuver le certificat de serveur » sur cette connexion et réessayer ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -959,7 +977,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Enter a display name for this connection profile]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Entrer un nom d'affichage pour ce profil de connexion]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Entrer un nom d’affichage pour ce profil de connexion]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1013,7 +1031,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Exécution de la requête démarrée pour le document "{0}"]]></Val>
+            <Val><![CDATA[Exécution de la requête démarrée pour le document « {0} »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1040,7 +1058,7 @@
         <Str Cat="Text">
           <Val><![CDATA[To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pour utiliser cette commande, ouvrez un fichier .sql ou remplacez le langage de l'éditeur par "SQL" ou sélectionnez le texte T-SQL dans l'éditeur SQL actif.]]></Val>
+            <Val><![CDATA[Pour utiliser cette commande, ouvrez un fichier .sql ou remplacez le langage de l’éditeur par « SQL » ou sélectionnez le texte T-SQL dans l’éditeur SQL actif.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1058,7 +1076,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Votre compte a besoin d’une nouvelle authentification pour accéder aux ressources {0}. Appuyez sur Ouvrir pour démarrer le processus d’authentification.]]></Val>
+            <Val><![CDATA[Votre compte doit s’authentifier à nouveau pour accéder aux ressources {0}. Appuyez sur Ouvrir pour démarrer le processus d’authentification.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1094,7 +1112,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server "{0}" on document "{1}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Connexion au serveur "{0}" sur le document "{1}".]]></Val>
+            <Val><![CDATA[Connexion au serveur « {0} » sur le document « {1} ».]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1102,6 +1120,9 @@
       <Item ItemId=";bundle.++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Explorer Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filtre Explorateur d’objets]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1150,6 +1171,9 @@
       <Item ItemId=";bundle.++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Microsoft Entra account removed successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le compte Microsoft Entra sélectionné a été supprimé avec succès.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1166,7 +1190,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in to your Azure subscription in one of the sovereign clouds.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Connectez-vous à votre abonnement Azure dans l'un des clouds souverains.]]></Val>
+            <Val><![CDATA[Connectez-vous à votre abonnement Azure dans l’un des clouds souverains.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1175,7 +1199,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Authentication Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Type d'authentification]]></Val>
+            <Val><![CDATA[Type d’authentification]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1301,7 +1325,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Votre locataire « {0} ({1}) » exige une nouvelle authentification pour accéder aux ressources {2}. Appuyez sur Ouvrir pour démarrer le processus d'authentification.]]></Val>
+            <Val><![CDATA[Votre locataire « {0} ({1}) » exige une nouvelle authentification pour accéder aux ressources {2}. Appuyez sur Ouvrir pour démarrer le processus d’authentification.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1337,7 +1361,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error connecting to server "{0}". Details: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Erreur de connexion au serveur "{0}". Détails : {1}]]></Val>
+            <Val><![CDATA[Erreur de connexion au serveur « {0} ». Détails : {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1346,7 +1370,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Erreur d'informations d'identification : une erreur s'est produite lors de la tentative d'actualisation des informations d'identification du compte. Veuillez vous ré-authentifier.]]></Val>
+            <Val><![CDATA[Erreur d’informations d’identification : une erreur s’est produite lors de la tentative d’actualisation des informations d’identification du compte. Veuillez vous authentifier à nouveau.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1364,7 +1388,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error occurred opening content in editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Une erreur s'est produite à l'ouverture du contenu dans l'éditeur.]]></Val>
+            <Val><![CDATA[Une erreur s’est produite lors de l’ouverture du contenu dans l’éditeur.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1373,7 +1397,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Choose Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Choisir l'historique des requêtes]]></Val>
+            <Val><![CDATA[Choisir l’historique des requêtes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1382,7 +1406,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to delete credential with id: {0}. {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Échec de la suppression de l'identifiant avec l'id : {0}. {1}]]></Val>
+            <Val><![CDATA[Échec de la suppression de l’identifiant avec l’id : {0}. {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1391,7 +1415,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Refresh Credentials]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Actualiser les informations d'identification]]></Val>
+            <Val><![CDATA[Actualiser les informations d’identification]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1408,6 +1432,9 @@
       <Item ItemId=";bundle.++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Microsoft Entra account could not be added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le nouveau compte Microsoft Entra n’a pas pu être ajouté.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1469,7 +1496,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Firewall rule successfully added. Retry profile creation? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Règle de pare-feu ajoutée. Réessayer la création de profil ? ]]></Val>
+            <Val><![CDATA[Règle de pare-feu ajoutée. Réessayer la création du profil ? ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1487,7 +1514,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Cannot cancel query as no query is running.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impossible d'annuler la requête, car aucune requête n'est en cours d’exécution.]]></Val>
+            <Val><![CDATA[Impossible d’annuler la requête, car aucune requête n’est en cours d’exécution.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1496,7 +1523,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" for document "{1}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Contexte de base de données remplacé par "{0}" pour le document "{1}"]]></Val>
+            <Val><![CDATA[Contexte de base de données remplacé par « {0} » pour le document « {1} »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1505,7 +1532,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Click to connect to a database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cliquer pour vous connecter à une base de données]]></Val>
+            <Val><![CDATA[Cliquez pour vous connecter à une base de données]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1514,7 +1541,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Login failed. Retry using different credentials?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Erreur : Échec de la connexion. Réessayez en utilisant d'autres informations d'identification ?]]></Val>
+            <Val><![CDATA[Erreur : échec de la connexion. Réessayer en utilisant d’autres informations d’identification ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1600,6 +1627,9 @@
       <Item ItemId=";bundle.++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compte Microsoft Entra]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1616,7 +1646,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save Password? If 'No', password will be required each time you connect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Enregistrer le mot de passe ? Si vous choisissez "Non", le mot de passe est demandé à chaque connexion]]></Val>
+            <Val><![CDATA[Enregistrer le mot de passe ? Si vous choisissez « Non », le mot de passe sera demandé à chaque connexion]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1634,7 +1664,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Batch execution time: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Durée d'exécution du lot : {0}]]></Val>
+            <Val><![CDATA[Durée d’exécution du lot : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1643,7 +1673,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Cannot connect due to expired tokens. Please re-authenticate and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impossible de se connecter en raison de jetons expirés. Veuillez vous ré-authentifier et réessayer.]]></Val>
+            <Val><![CDATA[Impossible de se connecter en raison de jetons expirés. Veuillez vous authentifier à nouveau, puis réessayez.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1661,7 +1691,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Provider '{0}' does not have a Microsoft resource endpoint defined.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Le fournisseur '{0}' n'a pas de point de terminaison de ressource Microsoft défini.]]></Val>
+            <Val><![CDATA[Aucun point de terminaison de ressource n’est défini pour le fournisseur « {0} ».]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1688,7 +1718,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to refresh connection ${0} with uri {1}, invalid connection result.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Échec de l’actualisation de la connexion ${0} avec l'{1} d’URI, résultat de connexion non valide]]></Val>
+            <Val><![CDATA[Échec de l’actualisation de la connexion ${0} avec l’URI {1}, résultat de connexion non valide.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1715,7 +1745,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Read more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[En savoir plus]]></Val>
+            <Val><![CDATA[Découvrir plus d’informations]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1751,7 +1781,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No connection was found. Please connect to a server first.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aucune connexion. Connectez-vous d'abord à un serveur.]]></Val>
+            <Val><![CDATA[Aucune connexion. Connectez-vous d’abord à un serveur.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1784,7 +1814,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Contexte de base de données remplacé par "{0}" sur le serveur "{1}" et sur le document "{2}".]]></Val>
+            <Val><![CDATA[Contexte de base de données remplacé par « {0} » sur le serveur « {1} » et le document « {2} ».]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1793,7 +1823,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Profile created successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Profil créé]]></Val>
+            <Val><![CDATA[Création du profil réussie]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1843,6 +1873,9 @@
       <Item ItemId=";bundle.++CODE++8cf147a84fa5b378df2fb1c8d2001b12404768f0de0871a152ed488136a3b350" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing Microsoft Entra account: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Une erreur s’est produite lors de la suppression du compte Microsoft Entra : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1922,7 +1955,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Updating IntelliSense...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Mise à jour d'IntelliSense...]]></Val>
+            <Val><![CDATA[Mise à jour d’IntelliSense...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1930,6 +1963,9 @@
       <Item ItemId=";bundle.++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Nodes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rechercher de nœuds]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1937,7 +1973,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Found pending reconnect promise for uri {0}, failed.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Promesse de reconnexion en attente trouvée pour l'{0} d’URI, échec]]></Val>
+            <Val><![CDATA[Promesse de reconnexion en attente trouvée pour l’URI {0}, échec.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2018,7 +2054,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Unable to connect using the connection information provided. Retry profile creation?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Erreur : Impossible de se connecter en utilisant les informations de connexion fournies. Réessayer la création de profil ?]]></Val>
+            <Val><![CDATA[Erreur : impossible de se connecter en utilisant les informations de connexion fournies. Réessayer la création du profil ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2105,7 +2141,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling the query failed: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'annulation de la requête a échoué : {0}]]></Val>
+            <Val><![CDATA[L’annulation de la requête a échoué : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2113,6 +2149,9 @@
       <Item ItemId=";bundle.++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Les clés du cache de jetons n’ont pas pu être enregistrées dans le magasin d’informations d’identification, ce qui peut entraîner des problèmes de persistance du jeton d’accès d’identifiant Microsoft Entra et des instabilités de connexion. Il est probable que SqlTools ait atteint la limite de stockage des informations d’identification sous Windows. Veuillez effacer au moins deux informations d’identification commençant par « Microsoft.SqlTools| » dans Windows Credential Manager et rechargez.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2152,6 +2191,9 @@
       <Item ItemId=";bundle.++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[L’adresse IP de votre client n’a pas accès au serveur. Ajoutez un compte Microsoft Entra et créez une nouvelle règle de pare-feu pour activer l’accès.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2167,6 +2209,9 @@
       <Item ItemId=";bundle.++CODE++a89bad7e873f85fc6867185da8c42b2743f3264bf2df68800c16c23a20e1a9cf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a Microsoft Entra tenant]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez un locataire Microsoft Entra]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2174,7 +2219,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[La promesse de reconnexion en attente précédente pour l’URI {0} est rejetée avec l’erreur {1}. Tentative de reconnexion si nécessaire]]></Val>
+            <Val><![CDATA[La promesse de reconnexion en attente précédente pour l’URI {0} est rejetée avec l’erreur {1}. Tentative de reconnexion si nécessaire.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2308,6 +2353,9 @@
       <Item ItemId=";bundle.++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Queries Available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucune requête disponible]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2342,7 +2390,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connected to server "{0}" on document "{1}". Server information: {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Connecté au serveur "{0}" sur le document "{1}". Informations du serveur : {2}]]></Val>
+            <Val><![CDATA[Connecté au serveur « {0} » sur le document « {1} ». Informations du serveur : {2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2387,7 +2435,7 @@
         <Str Cat="Text">
           <Val><![CDATA[User name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nom d'utilisateur]]></Val>
+            <Val><![CDATA[Nom d’utilisateur]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2396,7 +2444,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Finished query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Exécution de la requête terminée pour le document "{0}"]]></Val>
+            <Val><![CDATA[Exécution de la requête terminée pour le document « {0} »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2432,7 +2480,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save results command cannot be used with multiple selections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impossible d'utiliser la commande d'enregistrement des résultats avec des sélections multiples.]]></Val>
+            <Val><![CDATA[Impossible d’utiliser la commande d’enregistrement des résultats avec des sélections multiples.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2468,7 +2516,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Execution Plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Plan d'exécution]]></Val>
+            <Val><![CDATA[Plan d’exécution]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2486,7 +2534,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Inscription]]></Val>
+            <Val><![CDATA[Se connecter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2558,7 +2606,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure Device Code]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Code d'appareil Azure]]></Val>
+            <Val><![CDATA[Code d’appareil Azure]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2611,6 +2659,9 @@
       <Item ItemId=";bundle.++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pas besoin d’actualiser le jeton de compte Microsoft Entra pour la connexion {0} avec l’URI {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2636,7 +2687,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L’adresse IP de votre client «{0}» n’a pas accès au serveur «{1}» auquel vous tentez de vous connecter. Voulez-vous créer une règle de pare-feu ?]]></Val>
+            <Val><![CDATA[L’adresse IP de votre client « {0} » n’a pas accès au serveur « {1} » auquel vous tentez de vous connecter. Voulez-vous créer une règle de pare-feu ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2645,7 +2696,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save Password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Enregistrer le mot de passe]]></Val>
+            <Val><![CDATA[Enregistrer un mot de passe]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2675,7 +2726,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error code: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Code d'erreur : ]]></Val>
+            <Val><![CDATA[Code d’erreur : ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2689,6 +2740,9 @@
       <Item ItemId=";bundle.++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Id - Universal w/ MFA Support]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Identifiant Microsoft Entra – Universel avec prise en charge MFA]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2747,7 +2801,7 @@
         <Str Cat="Text">
           <Val><![CDATA[User name (SQL Login)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nom d'utilisateur (connexion SQL)]]></Val>
+            <Val><![CDATA[Nom d’utilisateur (connexion SQL)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2773,6 +2827,9 @@
       <Item ItemId=";bundle.++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra account {0} successfully added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compte Microsoft Entra {0} ajouté avec succès.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2789,7 +2846,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impossible de mettre à jour le profil de connexion. Modifiez les détails de la connexion manuellement dans settings.json et réessayez.]]></Val>
+            <Val><![CDATA[Impossible de mettre à jour le profil de connexion. Modifiez les détails de la connexion manuellement dans settings.json, puis réessayez.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2798,7 +2855,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Optional (False)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Facultatif (faux)]]></Val>
+            <Val><![CDATA[Facultatif (Faux)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2860,6 +2917,9 @@
       <Item ItemId=";bundle.++CODE++dcee789e6048807617a646e20bfba75832b8e459fdd8a9e41c08665ee4d8d36a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a Microsoft Entra account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez un compte Microsoft Entra]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2875,6 +2935,9 @@
       <Item ItemId=";bundle.++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Microsoft Entra account can be found for removal.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun compte Microsoft Entra n’a été trouvé pour la suppression.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2993,7 +3056,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Unable to execute the command while the extension is initializing. Please try again later.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Impossible d'exécuter la commande pendant l'initialisation de l'extension. Réessayez plus tard.]]></Val>
+            <Val><![CDATA[Impossible d’exécuter la commande pendant l’initialisation de l’extension. Veuillez réessayer plus tard.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3011,7 +3074,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Le serveur n'a pas pu démarrer. Il peut s'agir d'une erreur d'autorisation ou d'une incompatibilité sur votre système. Vous pouvez essayer d'activer l'authentification du code d'appareil dans les paramètres.]]></Val>
+            <Val><![CDATA[Le serveur n’a pas pu démarrer. Il peut s’agir d’une erreur d’autorisation ou d’une incompatibilité sur votre système. Vous pouvez essayer d’activer l’authentification du code d’appareil dans les paramètres.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3029,7 +3092,7 @@
         <Str Cat="Text">
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pour utiliser cette commande, vous devez définir le langage sur "SQL". Confirmez pour changer de mode de langage.]]></Val>
+            <Val><![CDATA[Pour utiliser cette commande, vous devez définir le langage sur « SQL ». Confirmez pour changer de mode de langage.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3083,7 +3146,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Database name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nom de la base de données]]></Val>
+            <Val><![CDATA[Nom de base de données]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3116,7 +3179,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Le jeton d’accès a expiré pour le {0} de connexion avec l'{1} d’URI]]></Val>
+            <Val><![CDATA[Le jeton d’accès a expiré pour la connexion {0} avec l’URI {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3152,7 +3215,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Select a tenant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Sélectionner un tenant]]></Val>
+            <Val><![CDATA[Sélectionner un locataire]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3161,7 +3224,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Authentication Library has changed, please reload Visual Studio Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[La bibliothèque d'authentification a changé, veuillez recharger Visual Studio Code.]]></Val>
+            <Val><![CDATA[La bibliothèque d’authentification a changé, veuillez recharger Visual Studio Code.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3224,7 +3287,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Successfully refreshed token for connection {0} with uri {1}, {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Jeton actualisé pour le {0} de connexion avec l'{1} d’URI, {2}]]></Val>
+            <Val><![CDATA[Jeton actualisé pour la connexion {0} avec l’URI {1}, {2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3260,7 +3323,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error Message: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Message d'erreur : ]]></Val>
+            <Val><![CDATA[Message d’erreur : ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3293,7 +3356,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure: Sign In]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure : Connexion]]></Val>
+            <Val><![CDATA[Azure : Se connecter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3329,7 +3392,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Run Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Exécuter l'historique des requêtes]]></Val>
+            <Val><![CDATA[Exécuter l’historique des requêtes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3347,7 +3410,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Maximize]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Maximiser]]></Val>
+            <Val><![CDATA[Agrandir]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3392,7 +3455,7 @@
         <Str Cat="Text">
           <Val><![CDATA[View mssql for Visual Studio Code release notes?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Afficher l’extension mssql pour les notes de publication Visual Studio Code ?]]></Val>
+            <Val><![CDATA[Afficher l’extension MSSQL pour les notes de publication Visual Studio Code ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3401,7 +3464,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Erreur {0} : {1} Connectez-vous avec un utilisateur différent et changez le mot de passe à l'aide d'ALTER LOGIN.]]></Val>
+            <Val><![CDATA[Erreur {0} : {1} Connectez-vous avec un utilisateur différent et changez le mot de passe à l’aide d’ALTER LOGIN.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3454,6 +3517,9 @@
       <Item ItemId=";package.mssql.addAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Microsoft Entra Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter un compte Microsoft Entra]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3533,7 +3599,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Clear All Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Effacer tous les Historique des requêtes]]></Val>
+            <Val><![CDATA[Effacer tout l’historique des requêtes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3541,6 +3607,9 @@
       <Item ItemId=";package.mssql.clearAzureAccountTokenCache" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear Microsoft Entra account token cache]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Effacer le cache des jetons du compte Microsoft Entra]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3584,7 +3653,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Déclare le type de charge de travail d'application pour la connexion à SQL Server, par exemple, ReadWrite ou ReadOnly. Consultez SQL Server Always On pour plus de détails.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Déclare le type de charge de travail d’application pour la connexion à SQL Server, par exemple, ReadWrite ou ReadOnly. Consultez SQL Server Always On pour plus de détails.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3593,7 +3662,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom de l'application utilisée par SQL Server pour la journalisation (par défaut : 'vscode-mssql').]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom de l’application utilisée par SQL Server pour la journalisation (par défaut : « vscode-mssql »).]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3611,7 +3680,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the SQL Server authentication type.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifiez le type d'authentification SQL Server.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifiez le type d’authentification SQL Server.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3674,7 +3743,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom de base de données à laquelle se connecter. Si la base de données n'est pas spécifiée, le paramètre de la base de données utilisateur par défaut est utilisé, généralement 'master'.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom de base de données à laquelle se connecter. Si la base de données n’est pas spécifiée, le paramètre de la base de données utilisateur par défaut est utilisé, généralement « master ».]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3692,7 +3761,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; En cas de chiffrement 'Obligatoire' ou 'Strict', SQL Server utilise le chiffrement SSL pour toutes les données envoyées entre le client et le serveur si un certificat est installé sur le serveur. Lorsqu’il est défini sur 'Strict, SQL Server utilise TDS 8.0 pour tout transfert de données entre le client et le serveur. 'Strict' est pris en charge à partir de SQL Server 2022.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; En cas de chiffrement « Mandatory » (obligatoire) ou « Strict » (stricte), SQL Server utilise le chiffrement SSL pour toutes les données envoyées entre le client et le serveur si un certificat est installé sur le serveur. Lorsque « stricte » est défini, SQL Server utilise TDS 8.0 pour tout transfert de données entre le client et le serveur. « Stricte » est pris en charge sur SQL Server 2022.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3701,7 +3770,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name or network address of the instance of SQL Server that acts as a failover partner.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom ou l'adresse réseau de l'instance de SQL Server servant de partenaire de basculement.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom ou l’adresse réseau de l’instance de SQL Server servant de partenaire de basculement.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3746,7 +3815,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est 'true', la détection et la connexion au serveur actif sont plus rapides si le groupe de disponibilité AlwaysOn est configuré dans des sous-réseaux différents.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », la détection et la connexion au serveur actif sont plus rapides si le groupe de disponibilité AlwaysOn est configuré dans des sous-réseaux différents.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3755,7 +3824,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', multiple result sets can be returned and read from on connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est 'true', plusieurs jeux de résultats peuvent être retournés et lus sur la connexion.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », plusieurs jeux de résultats peuvent être retournés et lus sur la connexion.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3773,7 +3842,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifiez le mot de passe pour l'authentification SQL Server. Si le mot de passe n'est pas spécifié ou n'est pas déjà enregistré, il est redemandé à la connexion.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifiez le mot de passe pour l’authentification SQL Server. Si le mot de passe n’est pas spécifié ou n’est pas déjà enregistré, il est redemandé à la connexion.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3782,7 +3851,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est false, les informations relatives à la sécurité, comme le mot de passe, ne sont pas retournées dans le cadre de la connexion si la connexion est ouverte ou a été dans un état ouvert.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « false », les informations relatives à la sécurité, comme le mot de passe, ne sont pas retournées dans le cadre de la connexion si la connexion est ouverte ou a été dans un état ouvert.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3791,7 +3860,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est 'true', l'objet de connexion est tiré du pool approprié ou, si nécessaire, est créé et ajouté au pool approprié.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », l’objet de connexion est tiré du pool approprié ou, si nécessaire, est créé et ajouté au pool approprié.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3827,7 +3896,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est 'true', le mot de passe pour l'authentification SQL Server est enregistré dans la banque d'informations sécurisée de votre système d'exploitation, par exemple, KeyChain dans MacOS ou Banque d'informations sécurisée dans Windows.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », le mot de passe pour l’authentification SQL Server est enregistré dans la banque d’informations sécurisée de votre système d’exploitation, par exemple, KeyChain dans MacOS ou Banque d’informations sécurisée dans Windows.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3836,7 +3905,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Requis]5D; Spécifiez le nom du serveur auquel se connecter. Utilisez 'hostname instance' ou '<server>.database.windows.net' pour Azure SQL Database.]]></Val>
+            <Val><![CDATA[[Requis]5D; Spécifiez le nom du serveur auquel se connecter. Utilisez « hostname instance » ou « <server>.database.windows.net » pour Azure SQL Database.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3845,7 +3914,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est 'true', le certificat SSL SQL Server est automatiquement approuvé si la couche de communication est chiffrée à l'aide de SSL. Définissez la valeur sur 'false' pour la connexion à Azure SQL Database.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », le certificat SSL SQL Server est automatiquement approuvé si la couche de communication est chiffrée à l’aide de SSL. Définissez la valeur sur « false » pour la connexion à Azure SQL Database.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3863,7 +3932,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom d'utilisateur pour l'authentification SQL Server. Si le nom d'utilisateur n'est pas spécifié, il est redemandé à la connexion.]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifiez le nom d’utilisateur pour l’authentification SQL Server. Si le nom d’utilisateur n’est pas spécifié, il est redemandé à la connexion.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3881,7 +3950,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Les profils de connexion définis dans "Paramètres utilisateur" apparaissent sous la commande 'MS SQL: Connect' dans la palette de commandes.]]></Val>
+            <Val><![CDATA[Les profils de connexion définis dans « Paramètres utilisateur » apparaissent sous la commande « MS SQL: Connect » dans la palette de commandes.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3971,7 +4040,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Permet le groupement des connexions pour améliorer le niveau de performance global de connectivité. Ce paramètre est activé par défaut. Visual Studio Code doit être relancé lorsque la valeur est modifiée. Pour effacer les connexions groupées, exécutez la commande : 'MS SQL : effacer les connexions groupées']]></Val>
+            <Val><![CDATA[Permet le groupement des connexions pour améliorer le niveau de performance global de connectivité. Ce paramètre est activé par défaut. Visual Studio Code doit être relancé lorsque la valeur est modifiée. Pour effacer les connexions groupées, exécutez la commande : « MS SQL : effacer les connexions groupées »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3979,6 +4048,9 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Active les fonctionnalités expérimentales dans l’extension MSSQL. Les fonctionnalités ne sont pas prêtes pour la production et peuvent présenter des bogues ou des problèmes. Veuillez redémarrer Visual Studio Code après avoir modifié ce paramètre.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3995,7 +4067,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should Query History feature be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[La fonctionnalité Historique des requêtes doit-elle être activée ?]]></Val>
+            <Val><![CDATA[La fonctionnalité Historique des requêtes doit-elle être activée ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4003,6 +4075,9 @@
       <Item ItemId=";package.mssql.enableSqlAuthenticationProvider" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Permet l’utilisation du fournisseur d’authentification SQL pour le mode d’authentification « Microsoft Entra Id Interactive » lorsque l’utilisateur sélectionne l’authentification « AzureMFA ». Cela permet l’intégration des points de terminaison de ressources côté serveur lors de la récupération des jetons d’accès. Cette option n’est prise en charge que pour la bibliothèque d’authentification « MSAL ». Veuillez redémarrer Visual Studio Code après avoir modifié cette option.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4010,7 +4085,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Filtrer]]></Val>
+            <Val><![CDATA[Filtre]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4046,7 +4121,7 @@
         <Str Cat="Text">
           <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[spécifie si les virgules doivent être placées au début de chaque instruction dans une liste, par exemple : ', mycolumn2' plutôt qu'à la fin, par exemple : 'mycolumn1,']]></Val>
+            <Val><![CDATA[spécifie si les virgules doivent être placées au début de chaque instruction dans une liste, par exemple : « , mycolumn2 » plutôt qu’à la fin, par exemple : « mycolumn1, »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4055,7 +4130,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spécifie si les références à des objets dans des instructions select doivent être réparties sur plusieurs lignes. Par exemple, pour 'SELECT C1, C2 FROM T1', C1 et C2 sont sur des lignes distinctes]]></Val>
+            <Val><![CDATA[Spécifie si les références à des objets dans des instructions select doivent être réparties sur plusieurs lignes. Par exemple, pour « SELECT C1, C2 FROM T1 », C1 et C2 sont sur des lignes distinctes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4091,7 +4166,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should IntelliSense quick info be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spécifie s'il faut activer Info express dans IntelliSense]]></Val>
+            <Val><![CDATA[Spécifie s’il faut activer Info express dans IntelliSense]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4127,7 +4202,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nombre maximal d'anciens fichiers ayant dépassé mssql.logRetentionMinutes à supprimer au démarrage. Les fichiers qui ne sont pas nettoyés du fait de cette limitation le sont au prochain démarrage d'Azure Data Studio.]]></Val>
+            <Val><![CDATA[Nombre maximal d’anciens fichiers ayant dépassé mssql.logRetentionMinutes à supprimer au démarrage. Les fichiers qui ne sont pas nettoyés du fait de cette limitation le sont au prochain démarrage d’Azure Data Studio.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4163,7 +4238,7 @@
         <Str Cat="Text">
           <Val><![CDATA[True for the messages pane to be open by default; false for closed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[True pour ouvrir par défaut le volet de messages, false pour le fermer]]></Val>
+            <Val><![CDATA[« True » pour ouvrir par défaut le volet de messages, « false » pour le fermer]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4217,7 +4292,7 @@
         <Str Cat="Text">
           <Val><![CDATA[When enabled, the database objects in Object Explorer will be categorized by schema.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Lorsque cette option est activée, les objets de base de données dans l’Explorateur d'objets sont classés par schéma.]]></Val>
+            <Val><![CDATA[Lorsque cette option est activée, les objets de base de données dans l’Explorateur d’objets sont classés par schéma.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4250,7 +4325,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Pause Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Suspendre la capture de l'historique des requêtes]]></Val>
+            <Val><![CDATA[Suspendre la capture de l’historique des requêtes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4259,7 +4334,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should query result selections and scroll positions be saved when switching tabs (may impact performance)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spécifie si les sélections de résultat de requête et les positions de défilement doivent être enregistrées lors du passage d'un onglet à l'autre (peut impacter les performances)]]></Val>
+            <Val><![CDATA[Spécifie si les sélections de résultat de requête et les positions de défilement doivent être enregistrées lors du passage d’un onglet à l’autre (peut impacter les performances)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4268,7 +4343,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Les informations d'identification personnelle (PII) doivent-elles être enregistrées dans le canal de sortie Azure Logs et le fichier journal du canal de sortie.]]></Val>
+            <Val><![CDATA[Les informations d’identification personnelle (PII) doivent-elles être enregistrées dans le canal de sortie Azure Logs et le fichier journal du canal de sortie.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4331,7 +4406,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ARITHABORT option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET ARITHABORT]]></Val>
+            <Val><![CDATA[Activer l’option SET ARITHABORT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4349,7 +4424,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET DEADLOCK_PRIORITY option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET DEADLOCK_PRIORITY]]></Val>
+            <Val><![CDATA[Activer l’option SET DEADLOCK_PRIORITY]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4358,7 +4433,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spécifie si les colonnes BIT doivent être affichées comme des nombres (1 ou 0). Si la valeur est false, les colonnes BIT sont affichées sous la forme 'true' ou 'false']]></Val>
+            <Val><![CDATA[Spécifie si les colonnes BIT doivent être affichées comme des nombres (1 ou 0). Si la valeur est « false », les colonnes BIT sont affichées sous la forme « true » ou « false »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4367,7 +4442,7 @@
         <Str Cat="Text">
           <Val><![CDATA[An execution time-out of 0 indicates an unlimited wait (no time-out)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Un délai d'expiration de 0 indique une attente illimitée (aucun délai d'expiration)]]></Val>
+            <Val><![CDATA[Un délai d’expiration de 0 indique une attente illimitée (aucun délai d’expiration)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4385,7 +4460,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET LOCK TIMEOUT option (in milliseconds)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET LOCK TIMEOUT (en millisecondes)]]></Val>
+            <Val><![CDATA[Activer l’option SET LOCK TIMEOUT (en millisecondes)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4412,7 +4487,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET NOCOUNT option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET NOCOUNT]]></Val>
+            <Val><![CDATA[Activer l’option SET NOCOUNT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4421,7 +4496,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET NOEXEC option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET NOEXEC]]></Val>
+            <Val><![CDATA[Activer l’option SET NOEXEC]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4430,7 +4505,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET PARSEONLY option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET PARSEONLY]]></Val>
+            <Val><![CDATA[Activer l’option SET PARSEONLY]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4466,7 +4541,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET STATISTICS IO option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET STATISTICS IO]]></Val>
+            <Val><![CDATA[Activer l’option SET STATISTICS IO]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4475,7 +4550,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET STATISTICS TIME option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET STATISTICS TIME]]></Val>
+            <Val><![CDATA[Activer l’option SET STATISTICS TIME]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4493,7 +4568,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET TRANSACTION ISOLATION LEVEL option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET TRANSACTION ISOLATION LEVEL]]></Val>
+            <Val><![CDATA[Activer l’option SET TRANSACTION ISOLATION LEVEL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4502,7 +4577,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET XACT_ABORT ON option]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Activer l'option SET XACT_ABORT ON]]></Val>
+            <Val><![CDATA[Activer l’option SET XACT_ABORT ON]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4537,6 +4612,9 @@
       <Item ItemId=";package.mssql.removeAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove Microsoft Entra Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Supprimer le compte Microsoft Entra]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4553,7 +4631,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Set the font family for the results grid; set to blank to use the editor font]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Définir la famille de polices de la grille de résultats, laisser vide pour utiliser la police de l'éditeur]]></Val>
+            <Val><![CDATA[Définissez la famille de polices de la grille de résultats, laissez vide pour utiliser la police de l’éditeur]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4562,7 +4640,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Set the font size for the results grid; set to blank to use the editor size]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Définir la taille de police de la grille de résultats, laisser vide pour utiliser la taille de l'éditeur]]></Val>
+            <Val><![CDATA[Définir la taille de police de la grille de résultats, laisser vide pour utiliser la taille de l’éditeur]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4571,7 +4649,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Execute Current Statement]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Exécuter l'instruction actuelle]]></Val>
+            <Val><![CDATA[Exécuter l’instruction actuelle]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4589,7 +4667,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Run Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Exécuter une requête]]></Val>
+            <Val><![CDATA[Exécuter la requête]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4598,7 +4676,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Délimiteur pour séparer les éléments de données pendant l'enregistrement des résultats au format CSV]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Délimiteur pour séparer les éléments de données pendant l’enregistrement des résultats au format CSV]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4607,7 +4685,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Encodage de fichier utilisé pendant l'enregistrement des résultats au format CSV]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Encodage de fichier utilisé pendant l’enregistrement des résultats au format CSV]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4616,7 +4694,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When true, column headers are included when saving results as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est true, les en-têtes de colonnes sont inclus dans l'enregistrement des résultats au format CSV]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », les en-têtes de colonnes sont inclus dans l’enregistrement des résultats au format CSV]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4625,7 +4703,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Character(s) used for separating rows when saving results as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Caractère(s) utilisé(s) pour séparer les lignes pendant l'enregistrement des résultats au format CSV]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Caractère(s) utilisé(s) pour séparer les lignes pendant l’enregistrement des résultats au format CSV]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4634,7 +4712,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Character used for enclosing text fields when saving results as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Caractère utilisé pour englober les champs textuels pendant l'enregistrement des résultats au format CSV]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Caractère utilisé pour englober les champs textuels pendant l’enregistrement des résultats au format CSV]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4670,7 +4748,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Execute]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Script d'exécution]]></Val>
+            <Val><![CDATA[Script d’exécution]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4679,7 +4757,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Select Top 1000]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Sélectionnez les 1000 premiers]]></Val>
+            <Val><![CDATA[Sélectionnez les 1 000 premiers]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4697,7 +4775,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Should execution time be shown for individual batches]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Spécifie si la durée d'exécution doit être affichée pour les lots individuels]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Spécifie si la durée d’exécution doit être affichée pour les lots individuels]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4715,7 +4793,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Configuration options for which column new result panes should open in]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Options de configuration pour définir la colonne dans laquelle les nouveaux volets de résultats doivent s'ouvrir]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Options de configuration pour définir la colonne dans laquelle les nouveaux volets de résultats doivent s’ouvrir]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4724,7 +4802,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Start Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Démarrer la capture de l'historique des requêtes]]></Val>
+            <Val><![CDATA[Démarrer la capture de l’historique des requêtes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4742,7 +4820,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Niveau de journalisation des services de back-end. Azure Data Studio génère un nom de fichier à chaque démarrage et, si le fichier existe déjà, ajoute les entrées de journal à ce fichier. Pour nettoyer les anciens fichiers journaux, consultez les paramètres logRetentionMinutes et logFilesRemovalLimit. Le niveau de suivi par défaut correspond à une faible journalisation. Si vous changez le niveau de détail, vous pouvez obtenir une journalisation massive nécessitant de l'espace disque pour les journaux. Le niveau Erreur inclut le niveau Critique, le niveau Avertissement inclut le niveau Erreur, le niveau Informations inclut le niveau Avertissement et le niveau Détail inclut le niveau Informations]]></Val>
+            <Val><![CDATA[[Facultatif]5D; Niveau de journalisation des services de back-end. Azure Data Studio génère un nom de fichier à chaque démarrage et, si le fichier existe déjà, ajoute les entrées de journal à ce fichier. Pour nettoyer les anciens fichiers journaux, consultez les paramètres logRetentionMinutes et logFilesRemovalLimit. Le niveau de suivi par défaut correspond à une faible journalisation. Si vous changez le niveau de détail, vous pouvez obtenir une journalisation massive nécessitant de l’espace disque pour les journaux. Le niveau Erreur inclut le niveau Critique, le niveau Avertissement inclut le niveau Erreur, le niveau Informations inclut le niveau Avertissement et le niveau Détail inclut le niveau Informations]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
