@@ -60,7 +60,7 @@
   "Check Constraints": "Check Constraints",
   "Check Constraint": "Check Constraint",
   "New Check Constraint": "New Check Constraint",
-  "About table": "About table",
+  "General": "General",
   "{0} issue/{0} is the number of issues": {
     "message": "{0} issue",
     "comment": [
@@ -173,6 +173,13 @@
       "{0} is the number of issues"
     ]
   },
+  "{0} properties/{0} is the object type": {
+    "message": "{0} properties",
+    "comment": [
+      "{0} is the object type"
+    ]
+  },
+  "Remove {0}": "Remove {0}",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
