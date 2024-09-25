@@ -177,6 +177,11 @@
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
   "Recent Connections": "Recent Connections",
+  "Subscription": "Subscription",
+  "Resource Group": "Resource Group",
+  "Location": "Location",
+  "Server": "Server",
+  "Database": "Database",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
