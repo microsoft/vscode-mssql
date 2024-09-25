@@ -5,14 +5,13 @@
 
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-// import { FormField } from "../../common/forms/form.component";
 import { ConnectButton } from "./components/connectButton.component";
 import { Field, Option, Button, Combobox } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
-import { locConstants } from "../../common/locConstants";
+import { locConstants as Loc } from "../../common/locConstants";
 import { TestConnectionButton } from "./components/testConnectionButton.component";
 
 function removeDuplicates<T>(array: T[]): T[] {
@@ -169,7 +168,7 @@ export const AzureBrowsePage = () => {
     return (
         <div>
             <AzureBrowseDropdown
-                label="Subscription"
+                label={Loc.connectionDialog.subscription}
                 clearable
                 content={{
                     valueList: subscriptions,
@@ -178,7 +177,7 @@ export const AzureBrowsePage = () => {
                 }}
             />
             <AzureBrowseDropdown
-                label="Resource Group"
+                label={Loc.connectionDialog.resourceGroup}
                 clearable
                 content={{
                     valueList: resourceGroups,
@@ -187,7 +186,7 @@ export const AzureBrowsePage = () => {
                 }}
             />
             <AzureBrowseDropdown
-                label="Location"
+                label={Loc.connectionDialog.location}
                 clearable
                 content={{
                     valueList: locations,
@@ -196,7 +195,7 @@ export const AzureBrowsePage = () => {
                 }}
             />
             <AzureBrowseDropdown
-                label="Server"
+                label={Loc.connectionDialog.server}
                 required
                 content={{
                     valueList: servers,
@@ -224,7 +223,7 @@ export const AzureBrowsePage = () => {
                         props={{ orientation: "horizontal" }}
                     />
                     <AzureBrowseDropdown
-                        label="Database"
+                        label={Loc.connectionDialog.database}
                         clearable
                         content={{
                             valueList: databases,
@@ -273,7 +272,7 @@ export const AzureBrowsePage = () => {
                     }}
                     className={formStyles.formNavTrayButton}
                 >
-                    {locConstants.connectionDialog.advancedSettings}
+                    {Loc.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>
                     <TestConnectionButton

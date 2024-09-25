@@ -123,6 +123,11 @@ export class LocConstants {
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
             recentConnections: l10n.t("Recent Connections"),
+            subscription: l10n.t("Subscription"),
+            resourceGroup: l10n.t("Resource Group"),
+            location: l10n.t("Location"),
+            server: l10n.t("Server"),
+            database: l10n.t("Database"),
         };
     }
 
