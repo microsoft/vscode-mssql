@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
         <source xml:lang="en"> is required.</source>
-        <target state="translated">은(는) 필수입니다.</target>
+        <target state="translated"> 은(는) 필수입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
@@ -28,7 +28,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
         <source xml:lang="en">About table</source>
-        <target state="new">About table</target>
+        <target state="translated">테이블 정보</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -74,11 +74,11 @@
       </trans-unit>
       <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
         <source xml:lang="en">Advanced Connection Settings</source>
-        <target state="new">Advanced Connection Settings</target>
+        <target state="translated">고급 연결 설정</target>
       </trans-unit>
       <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
         <source xml:lang="en">Advanced Type</source>
-        <target state="new">Advanced Type</target>
+        <target state="translated">고급 형식</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -168,7 +168,7 @@
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
-        <target state="new">Browse Azure</target>
+        <target state="translated">Azure 찾아보기</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f0f958e0da473b18b76ef9febe543579a601b532c9acd58ddab45f2d6549a3b3">
         <source xml:lang="en">Canceling</source>
-        <target state="translated">취소 중</target>
+        <target state="translated">취소하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++e98afd3714a8d3c15f84793e425b681975e26f06503850e4122965ee9825e907">
         <source xml:lang="en">Canceling query </source>
@@ -207,25 +207,25 @@
         <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source>
         <note>{0} is the database name
 {1} is the document name</note>
-        <target state="translated">문서 "{1}"에 대해 데이터베이스 컨텍스트를 "{0}"(으)로 변경함</target>
+        <target state="translated">문서 "{0}"에 대해 데이터베이스 컨텍스트를 "{1}"(으)로 변경함</target>
       </trans-unit>
       <trans-unit id="++CODE++88dcff06d01faeaf2253a502d07b9358b907ef3497a0f69c2f6546ffdc06b7b7">
         <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">데이터베이스 컨텍스트를 문서 {2}에서 서버 {1}의 {0}(으)로 변경했습니다.</target>
+        <target state="translated">데이터베이스 컨텍스트를 문서 {0}에서 서버 {1}의 {2}(으)로 변경했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
-        <target state="new">Changes published successfully</target>
+        <target state="translated">변경 내용이 게시됨</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">데이터베이스 컨텍스트를 문서 {2}에서 서버 {1}의 {0}(으)로 변경하는 중입니다.</target>
+        <target state="translated">데이터베이스 컨텍스트를 문서 {0}에서 서버 {1}의 {2}(으)로 변경하는 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -285,7 +285,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
         <source xml:lang="en">Close Designer</source>
-        <target state="new">Close Designer</target>
+        <target state="translated">Designer 닫기</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -328,17 +328,17 @@
         <note>{0} is the server name
 {1} is the document name
 {2} is the server info</note>
-        <target state="translated">문서 "{1}"에서 서버 "{0}"에 연결했습니다. 서버 정보: {2}</target>
+        <target state="translated">문서 "{0}"에서 서버 "{1}"에 연결했습니다. 서버 정보: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
         <source xml:lang="en">Connecting</source>
-        <target state="translated">연결 중</target>
+        <target state="translated">연결</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <note>{0} is the server name
 {1} is the document name</note>
-        <target state="translated">문서 "{1}"에서 서버 "{0}"에 연결하는 중입니다.</target>
+        <target state="translated">문서 "{0}"에서 서버 "{1}"에 연결하는 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
@@ -375,7 +375,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
         <source xml:lang="en">Contains</source>
-        <target state="translated">포함</target>
+        <target state="translated">다음을 포함함</target>
       </trans-unit>
       <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
         <source xml:lang="en">Continue Editing</source>
@@ -492,7 +492,7 @@
       </trans-unit>
       <trans-unit id="++CODE++476c508b94c7f515d2276689b1eb5c8d1eb0d109b274cced59a3e1a1e3a247c9">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">이 연결에서 암호화가 사용 설정되었습니다. 대상 SQL Server의 SSL 및 인증서 구성을 검토하거나 설정 파일에서 '서버 인증서 신뢰'를 'true'로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에서는 권장되지 않습니다. 이 연결에서 '서버 인증서 신뢰'를 활성화하고 다시 시도하시겠습니까?</target>
+        <target state="translated">이 연결에서 암호화를 사용하도록 설정했습니다. 대상 SQL Server에 대한 SSL 및 인증서 구성을 검토하거나, 설정 파일에서 '서버 인증서 신뢰'를 ‘true’로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에 권장되는 방법은 아닙니다. 이 연결에서 '서버 인증서 신뢰'를 사용하도록 설정하고 다시 시도하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -500,7 +500,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
         <source xml:lang="en">Ends With</source>
-        <target state="translated">다음으로 끝나는 경우</target>
+        <target state="translated">다음으로 끝남</target>
       </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
@@ -534,11 +534,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
-        <target state="new">Error loading designer</target>
+        <target state="translated">디자이너를 로드하는 동안 오류 발생</target>
       </trans-unit>
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
-        <target state="new">Error loading preview</target>
+        <target state="translated">미리 보기를 로드하는 동안 오류 발생</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -578,7 +578,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
         <source xml:lang="en">Executing query...</source>
-        <target state="translated">쿼리를 실행하는 중...</target>
+        <target state="translated">쿼리 실행 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
-        <target state="translated">실패함</target>
+        <target state="translated">실패</target>
       </trans-unit>
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
@@ -639,7 +639,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855">
         <source xml:lang="en">Find Nodes</source>
-        <target state="new">Find Nodes</target>
+        <target state="translated">노드 찾기</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -702,7 +702,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
         <source xml:lang="en">Go there</source>
-        <target state="new">Go there</target>
+        <target state="translated">그곳으로 이동</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -787,7 +787,7 @@
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
-        <target state="translated">줄 {0}</target>
+        <target state="translated">선 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
         <source xml:lang="en">Loading</source>
@@ -795,7 +795,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
-        <target state="new">Loading Table Designer</target>
+        <target state="translated">테이블 디자이너 로드 중</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -900,7 +900,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
-        <target state="new">No Queries Available</target>
+        <target state="translated">사용 가능한 쿼리 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -918,7 +918,7 @@
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
         <note>{0} is the connection id
 {1} is the uri</note>
-        <target state="translated">{0} URI와의 {1} 연결에 대한 Microsoft Entra 계정 토큰을 새로 고치지 않아도 됩니다.</target>
+        <target state="translated">{1} URI와의 {0} 연결에 대한 Microsoft Entra 계정 토큰을 새로 고치지 않아도 됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -958,7 +958,7 @@
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
-        <target state="new">Object Explorer Filter</target>
+        <target state="translated">개체 탐색기 필터</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -986,7 +986,7 @@
       </trans-unit>
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
-        <target state="new">Open XML</target>
+        <target state="translated">XML 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
         <source xml:lang="en">Open in new tab</source>
@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
         <source xml:lang="en">Open snapshot in new tab</source>
-        <target state="new">Open snapshot in new tab</target>
+        <target state="translated">새 탭에서 스냅샷 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -1066,7 +1066,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
         <source xml:lang="en">Profile created successfully</source>
-        <target state="translated">프로필을 생성함</target>
+        <target state="translated">프로필을 만들었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -1091,7 +1091,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
-        <target state="new">Publishing Changes</target>
+        <target state="translated">변경 내용 게시</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1109,7 +1109,7 @@
         <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
         <note>{0} is the query number
 {1} is the query cost</note>
-        <target state="new">Query {0}:  Query cost (relative to the script):  {1}%</target>
+        <target state="translated">쿼리 {0}: 쿼리 비용(스크립트 기준): {1}%</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
@@ -1117,7 +1117,7 @@
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
-        <target state="translated">최근 연결</target>
+        <target state="translated">최신 연결</target>
       </trans-unit>
       <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
         <source xml:lang="en">Recent connections list cleared</source>
@@ -1173,7 +1173,7 @@
       </trans-unit>
       <trans-unit id="++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d">
         <source xml:lang="en">Save Plan</source>
-        <target state="new">Save Plan</target>
+        <target state="translated">플랜 저장</target>
       </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
@@ -1193,7 +1193,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
         <source xml:lang="en">Scale</source>
-        <target state="translated">비율 크기를 조정합니다.</target>
+        <target state="translated">크기 조정</target>
       </trans-unit>
       <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
         <source xml:lang="en">Schema</source>
@@ -1201,7 +1201,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
-        <target state="new">Script As Create</target>
+        <target state="translated">CREATE로 스크립트</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1294,7 +1294,7 @@
       </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
-        <target state="translated">시작</target>
+        <target state="translated">다음으로 시작함</target>
       </trans-unit>
       <trans-unit id="++CODE++0035c67b91c2dd1e5f7a1fd9010b07ee0cdc93e578c2baf656dfc411a80f4b78">
         <source xml:lang="en">Subtree Cost</source>
@@ -1383,13 +1383,13 @@
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be less than the second value for the {0} operator in the {1} filter</target>
+        <target state="translated">첫 번째 값은 {1} 필터에서 {0} 연산자의 두 번째 값보다 작아야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e">
         <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">{1} 필터의 {0} 연산자에 대해 첫 번째 값을 설정해야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -1435,7 +1435,7 @@
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The second value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">{1} 필터의 {0} 연산자에 대해 두 번째 값을 설정해야 합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -1459,7 +1459,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
-        <target state="new">Toggle Tooltips</target>
+        <target state="translated">도구 설명 토글</target>
       </trans-unit>
       <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
         <source xml:lang="en">Total execution time: {0}</source>
@@ -1484,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
         <source xml:lang="en">Updating IntelliSense...</source>
-        <target state="translated">IntelliSense 업데이트 중...</target>
+        <target state="translated">IntelliSense를 업데이트하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
@@ -1542,7 +1542,7 @@
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the resource</note>
-        <target state="translated">'{0}({1})' 테넌트에서는 {2} 리소스에 액세스하려면 다시 재인증해야 합니다. [열기]를 눌러 인증 프로세스를 시작합니다.</target>
+        <target state="translated">테넌트 '{0} ({1})'을(를) 사용하려면 {2} 리소스에 액세스하기 위해 다시 인증해야 합니다. 열기를 눌러 인증 프로세스를 시작하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++5a982cf9dc11b4ec88b6151a75c4b45e269a5694c941c3c4c96689bed0c7d312">
         <source xml:lang="en">Zoom In</source>
@@ -1554,7 +1554,7 @@
       </trans-unit>
       <trans-unit id="++CODE++dc81206350e3da642fed43285f8b5a1dc00e0d91b4b81b6bffe3181d0e261d2e">
         <source xml:lang="en">Zoom to Fit</source>
-        <target state="translated">크기에 맞게</target>
+        <target state="translated">크기에 맞게 확대/축소</target>
       </trans-unit>
       <trans-unit id="++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -1574,7 +1574,7 @@
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-        <target state="new">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</target>
+        <target state="translated">hostname\instance 또는 &lt;server&gt;.database.windows.net 또는 ADO.NET 연결 문자열</target>
       </trans-unit>
       <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
         <source xml:lang="en">intelliSenseUpdated</source>
@@ -1603,7 +1603,7 @@
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
-        <target state="translated">문제 {0}개</target>
+        <target state="translated">{0}개 문제</target>
       </trans-unit>
       <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
         <source xml:lang="en">{0} issues</source>
@@ -1618,13 +1618,13 @@
         <source xml:lang="en">{0} {1} issue</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issue</target>
+        <target state="translated">{0}의 {1}개 문제</target>
       </trans-unit>
       <trans-unit id="++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235">
         <source xml:lang="en">{0} {1} issues</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issues</target>
+        <target state="translated">{0}의 {1}개 문제</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>
@@ -1699,7 +1699,7 @@
       </trans-unit>
       <trans-unit id="mssql.clearPooledConnections">
         <source xml:lang="en">Clear Pooled Connections</source>
-        <target state="translated">풀된 연결 지우기</target>
+        <target state="translated">풀링된 연결 지우기</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
@@ -1835,7 +1835,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">MSSQL 확장에서 실험적 기능을 사용하도록 설정합니다. 이 기능은 프로덕션 준비가 되지 않았으며 버그 또는 문제가 있을 수 있습니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
@@ -1867,11 +1867,11 @@
       </trans-unit>
       <trans-unit id="mssql.query.maxXmlCharsToStore">
         <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
-        <target state="translated">쿼리를 실행한 후 XML 열의 각 값에 대해 저장할 최대 문자 수입니다. 기본값: 2,097,152. 유효한 값 범위: 1 ~007E; 2,147,483,647.</target>
+        <target state="translated">쿼리 실행 후 XML 열의 각 값에 대해 저장할 수 있는 최대 문자 수입니다. 기본값: 2,097,152. 유효한 값 범위: 1 ~ 2,147,483,647.</target>
       </trans-unit>
       <trans-unit id="mssql.query.maxCharsToStore">
         <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
-        <target state="translated">쿼리를 실행한 후 문자/이진 열의 각 값에 대해 저장할 최대 문자/바이트 수입니다. 기본값: 65,535. 유효한 값 범위: 1 ~007E; 2,147,483,647.</target>
+        <target state="translated">쿼리를 실행한 후 문자/이진 열의 각 값에 대해 저장할 최대 문자/바이트 수입니다. 기본값: 65,535. 유효한 값 범위: 1 ~ 2,147,483,647.</target>
       </trans-unit>
       <trans-unit id="mssql.logFilesRemovalLimit">
         <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
@@ -2035,7 +2035,7 @@
       </trans-unit>
       <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
-        <target state="translated">Select 문에서 개체에 대한 참조를 별도 줄에 분할할지 여부(예: 'SELECT C1, C2 FROM T1'의 경우 C1 및 C2를 별도의 줄에 표시함)</target>
+        <target state="translated">선택 문에서 객체에 대한 참조를 별도의 줄로 분할해야 하나요? 예: 'SELECT C1, C2 FROM T1'의 경우 C1과 C2는 모두 별도의 줄에 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
