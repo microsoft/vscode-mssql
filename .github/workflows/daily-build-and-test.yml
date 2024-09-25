@@ -64,7 +64,7 @@ jobs:
         run: |
           yarn package
 
-      - name: 'Extension VSIX'
+      - name: 'Create VSIX artifact'
         uses: actions/upload-artifact@v4
         with:
           name: vscode-mssql
