@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as constants from "../constants/constants";
 
 const PROBABILITY = 0.15;
 const SESSION_COUNT_KEY = "nps/sessionCount";
@@ -53,8 +54,8 @@ export class UserSurvey {
         await globalState.update(IS_CANDIDATE_KEY, isCandidate);
 
         const extensionVersion =
-            vscode.extensions.getExtension("ms-vscode.azure-account")
-                .packageJSON.version || "unknown";
+            vscode.extensions.getExtension(constants.extensionId).packageJSON
+                .version || "unknown";
         if (!isCandidate) {
             await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             return;
@@ -84,7 +85,7 @@ export class UserSurvey {
 
         const button = await vscode.window.showInformationMessage(
             vscode.l10n.t(
-                "Do you mind taking a quick feedback survey about the Azure Extensions for VS Code?",
+                "Do you mind taking a quick feedback survey about the MSSQL Extensions for VS Code?",
             ),
             take,
             remind,

@@ -5,6 +5,7 @@
 
 // Collection of Non-localizable Constants
 export const languageId = "sql";
+export const extensionId = "ms-mssql.mssql";
 export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
