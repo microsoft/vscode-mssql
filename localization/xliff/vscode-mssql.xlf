@@ -363,6 +363,12 @@
     <trans-unit id="++CODE++7bba5bcc44de61b37dcadb5824fac7130483b749da0c5e9eea5e02765e06e37d">
       <source xml:lang="en">Displays the unified data type (including length, scale and precision) for the column</source>
     </trans-unit>
+    <trans-unit id="++CODE++be4be2936cad6a76cd7d52c49b47eeb8344cef0e55319eb131f01550d35e5efc">
+      <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extensions for VS Code?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
+      <source xml:lang="en">Don&apos;t Show Again</source>
+    </trans-unit>
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
     </trans-unit>
@@ -859,6 +865,9 @@
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++b69ef66763bd411348c2bf030ab4cd0881dc36c538ce1a05966e92b927d2675c">
+      <source xml:lang="en">Remind Me Later</source>
+    </trans-unit>
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
     </trans-unit>
@@ -1006,6 +1015,9 @@
     </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
+      <source xml:lang="en">Take Survey</source>
     </trans-unit>
     <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
       <source xml:lang="en">Tenant</source>
