@@ -56,6 +56,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
+import { isIConnectionInfo } from "../utils/utils";
 
 /**
  * The main controller class that initializes the extension
@@ -705,7 +706,10 @@ export default class MainController implements vscode.Disposable {
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
                 if (args) {
-                    connectionInfo = args as IConnectionInfo;
+                    // validate that `args` is an IConnectionInfo before assigning
+                    if (isIConnectionInfo(args)) {
+                        connectionInfo = args;
+                    }
                 }
 
                 const connDialog = new ConnectionDialogWebviewController(
