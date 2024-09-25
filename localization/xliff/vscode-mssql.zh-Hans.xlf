@@ -141,6 +141,10 @@
         <source xml:lang="en">Azure Logs</source>
         <target state="translated">Azure 日志</target>
       </trans-unit>
+      <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
+        <source xml:lang="en">Azure sign in failed.</source>
+        <target state="new">Azure sign in failed.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
         <target state="translated">已成功清除 Azure 令牌缓存。</target>
@@ -417,6 +421,10 @@
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">自定义显示比例</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
+        <source xml:lang="en">Database</source>
+        <target state="new">Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
         <target state="translated">数据库名称</target>
@@ -531,6 +539,16 @@
       <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
         <source xml:lang="en">Error connecting to: </source>
         <target state="translated">连接到此处时出错: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
+        <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
+        <note>{0} is the subscription name
+{1} is the subscription id</note>
+        <target state="new">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0">
+        <source xml:lang="en">Error loading Azure databases.</source>
+        <target state="new">Error loading Azure databases.</target>
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
@@ -797,6 +815,10 @@
         <source xml:lang="en">Loading Table Designer</source>
         <target state="new">Loading Table Designer</target>
       </trans-unit>
+      <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
+        <source xml:lang="en">Location</source>
+        <target state="new">Location</target>
+      </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
         <target state="translated">MSSQL</target>
@@ -919,6 +941,10 @@
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">无需刷新 URI 为 {0} 的连接 {1} 的 Microsoft Entra 帐户令牌</target>
+      </trans-unit>
+      <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
+        <source xml:lang="en">No subscriptions set in VS Code's Azure account filter.</source>
+        <target state="new">No subscriptions set in VS Code's Azure account filter.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1135,6 +1161,10 @@
         <source xml:lang="en">Remove</source>
         <target state="translated">删除</target>
       </trans-unit>
+      <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
+        <source xml:lang="en">Resource Group</source>
+        <target state="new">Resource Group</target>
+      </trans-unit>
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
         <target state="translated">还原</target>
@@ -1223,6 +1253,10 @@
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">已成功删除所选 Microsoft Entra 帐户。</target>
       </trans-unit>
+      <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
+        <source xml:lang="en">Server</source>
+        <target state="new">Server</target>
+      </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
         <target state="translated">正在连接服务器。要取消吗?</target>
@@ -1235,9 +1269,9 @@
         <source xml:lang="en">Server is required</source>
         <target state="translated">服务器是必需的</target>
       </trans-unit>
-      <trans-unit id="++CODE++10b48e930a5a1d6459b0bd050ae37f39e969abb8db827d083d31f62f0ed6b014">
-        <source xml:lang="en">Server name not received.</source>
-        <target state="translated">未收到服务器名称。</target>
+      <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
+        <source xml:lang="en">Server name not set.</source>
+        <target state="new">Server name not set.</target>
       </trans-unit>
       <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
         <source xml:lang="en">Server name or ADO.NET connection string</source>
@@ -1295,6 +1329,10 @@
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
         <target state="translated">开头为</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
+        <source xml:lang="en">Subscription</source>
+        <target state="new">Subscription</target>
       </trans-unit>
       <trans-unit id="++CODE++0035c67b91c2dd1e5f7a1fd9010b07ee0cdc93e578c2baf656dfc411a80f4b78">
         <source xml:lang="en">Subtree Cost</source>
