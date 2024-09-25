@@ -177,6 +177,11 @@
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
   "Recent Connections": "Recent Connections",
+  "Subscription": "Subscription",
+  "Resource Group": "Resource Group",
+  "Location": "Location",
+  "Server": "Server",
+  "Database": "Database",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -255,7 +260,7 @@
       "{0} is the error message"
     ]
   },
-  "Server name not received.": "Server name not received.",
+  "Server name not set.": "Server name not set.",
   "Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN./{0} is the error number{1} is the error message": {
     "message": "Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.",
     "comment": [
@@ -628,6 +633,8 @@
   "Dismiss": "Dismiss",
   "Query succeeded": "Query succeeded",
   "Query failed": "Query failed",
+  "Loading": "Loading",
+  "Execution Plan": "Execution Plan",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -641,6 +648,14 @@
   "Connection string is required": "Connection string is required",
   "Sign in": "Sign in",
   "Additional parameters": "Additional parameters",
-  "Loading": "Loading",
-  "Execution Plan": "Execution Plan"
+  "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission./{0} is the subscription name{1} is the subscription id": {
+    "message": "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
+    "comment": [
+      "{0} is the subscription name",
+      "{1} is the subscription id"
+    ]
+  },
+  "Azure sign in failed.": "Azure sign in failed.",
+  "No subscriptions set in VS Code's Azure account filter.": "No subscriptions set in VS Code's Azure account filter.",
+  "Error loading Azure databases.": "Error loading Azure databases."
 }

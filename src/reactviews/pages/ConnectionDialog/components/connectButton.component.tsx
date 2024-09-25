@@ -5,11 +5,17 @@
 
 import { Button, Spinner } from "@fluentui/react-components";
 import { CSSProperties, useContext } from "react";
-import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { locConstants } from "../../common/locConstants";
+import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { locConstants } from "../../../common/locConstants";
 
-export const ConnectButton = ({ style }: { style?: CSSProperties }) => {
+export const ConnectButton = ({
+    style,
+    className,
+}: {
+    style?: CSSProperties;
+    className?: string;
+}) => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
 
     if (!connectionDialogContext) {
@@ -27,12 +33,8 @@ export const ConnectButton = ({ style }: { style?: CSSProperties }) => {
             onClick={(_event) => {
                 connectionDialogContext.connect();
             }}
-            style={{
-                width: "150px",
-                alignSelf: "center",
-                margin: "0px 10px",
-                ...style,
-            }}
+            className={className}
+            style={style}
             iconPosition="after"
             icon={
                 connectionDialogContext.state.connectionStatus ===
