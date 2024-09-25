@@ -126,7 +126,7 @@ export class LocConstants {
                     comment: ["{0} is the object type"],
                 }),
             tableName: l10n.t("Table name"),
-            more: l10n.t("More"),
+            remove: (objectType: string) => l10n.t("Remove {0}", objectType),
         };
     }
 

@@ -7,11 +7,10 @@ import * as fluentui from "@fluentui/react-components";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import {
     AddRegular,
-    NavigationFilled,
     DeleteRegular,
     ArrowCircleUpFilled,
     ArrowCircleDownFilled,
-    MoreHorizontalRegular,
+    ReorderRegular,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -79,17 +78,6 @@ export const DesignerTable = ({
         );
     }
 
-    if (UiArea === "TabsView") {
-        columnsDef.push(
-            fluentui.createTableColumn({
-                columnId: "more",
-                renderHeaderCell: () => {
-                    return <>{locConstants.tableDesigner.more}</>;
-                },
-            }),
-        );
-    }
-
     if (tableProps.canRemoveRows) {
         columnsDef.push(
             fluentui.createTableColumn({
@@ -121,23 +109,10 @@ export const DesignerTable = ({
             if (!colProps) {
                 return;
             }
-
-            // Adding space if the column item has an error
-            const doesColumnContainError = items.find((_i, index) => {
-                return state.provider.getErrorMessage([
-                    ...componentPath,
-                    index,
-                    column,
-                ]);
-            });
-            const widthSpacing = doesColumnContainError ? 0 : 0;
             result[column] = {
-                minWidth:
-                    (colProps?.componentProperties.width ?? 70) + widthSpacing,
-                idealWidth:
-                    (colProps?.componentProperties.width ?? 70) + widthSpacing,
-                defaultWidth:
-                    (colProps?.componentProperties.width ?? 70) + widthSpacing,
+                minWidth: colProps?.componentProperties.width ?? 70,
+                idealWidth: colProps?.componentProperties.width ?? 70,
+                defaultWidth: colProps?.componentProperties.width ?? 70,
             };
         });
         if (tableProps.canMoveRows) {
@@ -145,13 +120,6 @@ export const DesignerTable = ({
                 minWidth: 15,
                 idealWidth: 15,
                 defaultWidth: 15,
-            };
-        }
-        if (UiArea === "TabsView") {
-            result["more"] = {
-                minWidth: 40,
-                idealWidth: 40,
-                defaultWidth: 40,
             };
         }
         if (tableProps.canRemoveRows) {
@@ -173,7 +141,13 @@ export const DesignerTable = ({
                 columns,
                 items,
             },
-            [fluentui.useTableColumnSizing_unstable({ columnSizingOptions })],
+            [
+                fluentui.useTableColumnSizing_unstable({
+                    columnSizingOptions,
+                    autoFitColumns: false,
+                    containerWidthOffset: 20,
+                }),
+            ],
         );
 
     const rows = getRows();
@@ -225,29 +199,10 @@ export const DesignerTable = ({
                             <fluentui.Button
                                 appearance="subtle"
                                 size="small"
-                                icon={<NavigationFilled />}
+                                icon={<ReorderRegular />}
                             />
                         )}
                     </div>
-                );
-            case "more":
-                return (
-                    <fluentui.Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<MoreHorizontalRegular />}
-                        onClick={() => {
-                            if (!loadPropertiesTabData) {
-                                return;
-                            }
-                            state?.provider.setPropertiesComponents({
-                                componentPath: [...componentPath, row.rowId],
-                                component: component,
-                                model: model,
-                            });
-                            setFocusedRowId(parseInt(row.rowId.toString()));
-                        }}
-                    />
                 );
             case "remove":
                 return (
@@ -268,6 +223,9 @@ export const DesignerTable = ({
                                 value: undefined,
                             });
                         }}
+                        title={locConstants.tableDesigner.remove(
+                            tableProps.objectTypeDisplayName!,
+                        )}
                     />
                 );
             default: {
@@ -395,18 +353,12 @@ export const DesignerTable = ({
             <div
                 style={{
                     maxWidth: "calc(100% - 20px)",
-                    width: Object.keys(columnSizingOptions).reduce(
-                        (acc, curr) => {
-                            return (
-                                acc + columnSizingOptions[curr].idealWidth! + 22
-                            );
-                        },
-                        0,
-                    ),
+                    width: "fit-content",
                     border: "1px solid var(--vscode-editorWidget-border)",
                     overflowX: "auto",
                     paddingBottom: "5px",
                     paddingRight: "5px",
+                    paddingLeft: "5px",
                 }}
             >
                 <fluentui.Table
@@ -433,6 +385,7 @@ export const DesignerTable = ({
                         style={{
                             borderBottom:
                                 "3px solid var(--vscode-editorWidget-border)",
+                            marginBottom: "5px",
                         }}
                     >
                         <fluentui.TableRow>
@@ -466,25 +419,29 @@ export const DesignerTable = ({
                                             ? "1px solid var(--vscode-errorForeground)"
                                             : "",
                                         width: "calc(100% - 10px)",
+                                        borderTop:
+                                            draggedOverRowId === index
+                                                ? "3px solid var(--vscode-focusBorder)"
+                                                : "",
                                     }}
                                     draggable={tableProps.canMoveRows}
-                                    // onFocus={(event) => {
-                                    //     if (!loadPropertiesTabData) {
-                                    //         return;
-                                    //     }
-                                    //     state?.provider.setPropertiesComponents(
-                                    //         {
-                                    //             componentPath: [
-                                    //                 ...componentPath,
-                                    //                 row.rowId,
-                                    //             ],
-                                    //             component: component,
-                                    //             model: model,
-                                    //         },
-                                    //     );
-                                    //     setFocusedRowId(index);
-                                    //     event.preventDefault();
-                                    // }}
+                                    onFocus={(event) => {
+                                        if (!loadPropertiesTabData) {
+                                            return;
+                                        }
+                                        state?.provider.setPropertiesComponents(
+                                            {
+                                                componentPath: [
+                                                    ...componentPath,
+                                                    row.rowId,
+                                                ],
+                                                component: component,
+                                                model: model,
+                                            },
+                                        );
+                                        setFocusedRowId(index);
+                                        event.preventDefault();
+                                    }}
                                     key={componentPath.join(".") + index}
                                     onDragEnter={() => {
                                         setDraggedOverRowId(index);
@@ -501,6 +458,7 @@ export const DesignerTable = ({
                                             draggedOverRowId,
                                         );
                                         setDraggedRowId(undefined);
+                                        setDraggedOverRowId(undefined);
                                     }}
                                     onDrag={() => {
                                         setDraggedRowId(index);
