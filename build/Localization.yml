@@ -30,6 +30,7 @@ jobs:
       prSourceBranchPrefix: 'locfiles'
       isAutoCompletePrSelected: true
       gitHubPrMergeMethod: squash
+      isDeletePrSourceBranchSelected: false
 
 
   - task: PublishBuildArtifacts@1
