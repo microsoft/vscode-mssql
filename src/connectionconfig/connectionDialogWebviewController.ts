@@ -99,6 +99,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async initializeDialog() {
         try {
             await this.loadRecentConnections();
+        } catch (err) {
+            vscode.window.showErrorMessage(getErrorMessage(err));
+        }
+
+        try {
             if (this._connectionToEdit) {
                 await this.loadConnectionToEdit();
             } else {
