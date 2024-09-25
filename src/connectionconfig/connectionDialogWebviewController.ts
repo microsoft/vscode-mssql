@@ -100,16 +100,26 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         this.registerRpcHandlers();
         this.initializeDialog().catch((err) =>
-            vscode.window.showErrorMessage(err.toString()),
+            vscode.window.showErrorMessage(getErrorMessage(err)),
         );
     }
 
     private async initializeDialog() {
-        await this.loadRecentConnections();
-        if (this._connectionToEdit) {
-            await this.loadConnectionToEdit();
-        } else {
+        try {
+            await this.loadRecentConnections();
+        } catch (err) {
+            vscode.window.showErrorMessage(getErrorMessage(err));
+        }
+
+        try {
+            if (this._connectionToEdit) {
+                await this.loadConnectionToEdit();
+            } else {
+                await this.loadEmptyConnection();
+            }
+        } catch (err) {
             await this.loadEmptyConnection();
+            vscode.window.showErrorMessage(getErrorMessage(err));
         }
 
         this.state.connectionComponents = {
@@ -168,6 +178,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 this._connectionToEdit,
             );
             this.state.connectionProfile = connection;
+
+            this.state.selectedInputMode = (connection.connectionString && connection.server === undefined) ? ConnectionInputMode.ConnectionString : ConnectionInputMode.Parameters;
             this.state = this.state;
         }
     }
