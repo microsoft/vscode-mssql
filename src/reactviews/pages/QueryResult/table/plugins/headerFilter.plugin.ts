@@ -125,9 +125,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         var $popup = jQuery(
             '<div id="popup-menu">' +
-                '<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">l10n.t("Sort Ascending")</button>' +
-                '<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">l10n.t("Sort Descending")</button>' +
-                '<button id="close-popup" type="button" class="sort-btn">l10n.t("Cancel")</button>' +
+                `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${l10n.t("Sort Ascending")}</button>` +
+                `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${l10n.t("Sort Descending")}</button>` +
+                `<button id="close-popup" type="button" class="sort-btn">${l10n.t("Cancel")}</button>` +
                 "</div>",
         );
 
