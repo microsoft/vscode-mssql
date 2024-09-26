@@ -14,7 +14,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Subtree Cost]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[サブ ツリーの推定コスト]]></Val>
+            <Val><![CDATA[サブツリーのコスト]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -41,7 +41,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の場所に接続します: ]]></Val>
+            <Val><![CDATA[次の場所に接続します:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -104,7 +104,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Account not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[アカウントが見つかりませんでした]]></Val>
+            <Val><![CDATA[アカウントが見つかりません]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -217,6 +217,9 @@
       <Item ItemId=";bundle.++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Tooltips]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ツールヒントの切り替え]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -314,7 +317,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[取り消し済み]]></Val>
+            <Val><![CDATA[キャンセル済み]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -323,7 +326,7 @@
         <Str Cat="Text">
           <Val><![CDATA[View More]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[その他を表示]]></Val>
+            <Val><![CDATA[表示数を増やす]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -457,6 +460,9 @@
       <Item ItemId=";bundle.++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[hostname\instance or <server>.database.windows.net or ADO.NET connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[hostname\instance または <server>.database.windows.net または ADO.NET 接続文字列]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -487,6 +493,9 @@
       <Item ItemId=";bundle.++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[プランの保存]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -527,7 +536,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started executing query at ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の場所でクエリの実行を開始しました: ]]></Val>
+            <Val><![CDATA[次の場所でクエリの実行を開始しました:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -545,7 +554,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to save results. ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[結果を保存できませんでした。 ]]></Val>
+            <Val><![CDATA[結果を保存できませんでした。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -635,7 +644,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Contains]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の値を含む]]></Val>
+            <Val><![CDATA[含む]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -689,7 +698,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changing database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ドキュメント "{2}" でサーバー "{1}" のデータベース コンテキストを "{0}"に変更中です。]]></Val>
+            <Val><![CDATA[ドキュメント "{0}" でサーバー "{1}" のデータベース コンテキストを "{2}" に変更中です。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -770,7 +779,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[切断してよろしいですか?]]></Val>
+            <Val><![CDATA[切断しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -842,7 +851,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Open Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリ履歴を開く]]></Val>
+            <Val><![CDATA[Query History を開く]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -938,7 +947,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started saving results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の場所への結果の保存を開始しました: ]]></Val>
+            <Val><![CDATA[次の場所への結果の保存を開始しました:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -947,7 +956,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error connecting to: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の場所への接続エラー: ]]></Val>
+            <Val><![CDATA[次の場所への接続エラー:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -956,7 +965,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Dismiss]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無視]]></Val>
+            <Val><![CDATA[閉じる]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1091,7 +1100,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Encrypt]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[暗号化]]></Val>
+            <Val><![CDATA[暗号化する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1100,7 +1109,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server "{0}" on document "{1}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ドキュメント "{1}" でサーバー "{0}" に接続中です。]]></Val>
+            <Val><![CDATA[ドキュメント "{0}" でサーバー "{1}" に接続中です。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1108,6 +1117,9 @@
       <Item ItemId=";bundle.++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Explorer Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[オブジェクト エクスプローラー フィルター]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1313,7 +1325,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[テナント '{0} ({1})' では、{2} リソースにアクセスするために、もう一度再認証する必要があります。[開く]5D; をクリックして、認証プロセスを開始してください。]]></Val>
+            <Val><![CDATA[テナント '{0} ({1})' では、{2}リソースにアクセスするために、もう一度再認証する必要があります。[開く]5D; を押して認証プロセスを開始します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1349,7 +1361,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error connecting to server "{0}". Details: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[サーバー "{0}" への接続に失敗しました。詳細: {1}]]></Val>
+            <Val><![CDATA[サーバー "{0}" への接続中にエラーが発生しました。詳細: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1385,7 +1397,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Choose Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリ履歴の選択]]></Val>
+            <Val><![CDATA[Query History の選択]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1484,7 +1496,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Firewall rule successfully added. Retry profile creation? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ファイアウォール規則が正常に追加されました。プロファイルの作成を再試行しますか? ]]></Val>
+            <Val><![CDATA[ファイアウォール規則が正常に追加されました。プロファイルの作成を再試行しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1511,7 +1523,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" for document "{1}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ドキュメント "{1}" のデータベース コンテキストが "{0}" に変更されました]]></Val>
+            <Val><![CDATA[ドキュメント "{0}" のデータベース コンテキストが "{1}" に変更されました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1571,7 +1583,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Recent connections list cleared]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最近の接続履歴をクリアしました]]></Val>
+            <Val><![CDATA[最近の接続の一覧がクリアされました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1634,7 +1646,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save Password? If 'No', password will be required each time you connect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[パスワードを保存しますか? [いいえ]5D; を選ぶと、毎回の接続の際にパスワードが要求されます]]></Val>
+            <Val><![CDATA[パスワードを保存しますか?[いいえ]5D; を選ぶと、毎回の接続の際にパスワードが要求されます]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1733,7 +1745,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Read more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[関連資料]]></Val>
+            <Val><![CDATA[詳細情報]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1805,7 +1817,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ドキュメント "{2}" でサーバー "{1}" のデータベース コンテキストを "{0}"に変更しました。]]></Val>
+            <Val><![CDATA[ドキュメント "{0}" でサーバー "{1}" のデータベース コンテキストを "{2}"に変更しました。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1901,7 +1913,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エラー: ]]></Val>
+            <Val><![CDATA[エラー:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1919,7 +1931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Testing connection profile...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[接続プロファイルを接続しています...]]></Val>
+            <Val><![CDATA[接続プロファイルをテストしています...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1954,6 +1966,9 @@
       <Item ItemId=";bundle.++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Nodes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ノードの検索]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2015,7 +2030,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Successfully saved results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の場所に結果が正常に保存されました: ]]></Val>
+            <Val><![CDATA[次の場所に結果が正常に保存されました:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2129,7 +2144,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling the query failed: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[失敗したクエリのキャンセル中: {0}]]></Val>
+            <Val><![CDATA[失敗したクエリの取り消し中: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2138,7 +2153,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[トークン キャッシュのキーを資格情報ストアに保存できなかったため、Microsoft Entra ID アクセス トークンの永続化の問題や接続が不安定になる可能性があります。SqlTools が Windows の資格情報ストレージの上限に達した可能性があります。Windows 資格情報マネージャーで "Microsoft.SqlTools|" で始まる資格情報を少なくとも 2 つクリアして、再度読み込んでください。]]></Val>
+            <Val><![CDATA[トークン キャッシュのキーを資格情報ストアに保存できなかったため、Microsoft Entra ID アクセス トークンの永続化の問題が発生したり、接続が不安定になったりする可能性があります。SqlTools が Windows の資格情報ストレージの上限に達した可能性があります。Windows 資格情報マネージャーで "Microsoft.SqlTools|" で始まる資格情報を少なくとも 2 つクリアして、再度読み込んでください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2183,7 +2198,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クライアント IP アドレスにサーバーへのアクセス権がありません。Microsoft Entra アカウントを追加し、アクセスを有効にする新しいファイアウォール規則を作成します。]]></Val>
+            <Val><![CDATA[クライアント IP アドレスにサーバーへのアクセス権がありません。アクセスを有効にするには、Microsoft Entra アカウントを追加し、新しいファイアウォール規則を作成してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2344,6 +2359,9 @@
       <Item ItemId=";bundle.++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Queries Available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用できるクエリはありません]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2378,7 +2396,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connected to server "{0}" on document "{1}". Server information: {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ドキュメント "{1}" でサーバー "{0}" に接続しました。サーバー情報: {2}]]></Val>
+            <Val><![CDATA[ドキュメント "{0}" でサーバー "{1}" に接続しました。サーバー情報: {2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2558,7 +2576,7 @@
         <Str Cat="Text">
           <Val><![CDATA[In progress]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[進行中]]></Val>
+            <Val><![CDATA[処理中]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2630,7 +2648,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{{put-server-name-here}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{{ここにサーバー名を指定}}]]></Val>
+            <Val><![CDATA[{{put-server-name-here}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2684,7 +2702,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save Password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[パスワードを保存する]]></Val>
+            <Val><![CDATA[パスワードの保存]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2714,7 +2732,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error code: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エラー コード: ]]></Val>
+            <Val><![CDATA[エラー コード:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2843,7 +2861,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Optional (False)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[オプション (False)]]></Val>
+            <Val><![CDATA[省略可能 (False)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2879,7 +2897,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Zoom to Fit]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ウィンドウのサイズに合わせて大きさを変更]]></Val>
+            <Val><![CDATA[拡大して合わせる]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3044,7 +3062,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Unable to execute the command while the extension is initializing. Please try again later.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[拡張機能の初期化中はコマンドを実行できません。後でもう一度やり直してください。]]></Val>
+            <Val><![CDATA[拡張機能の初期化中はコマンドを実行できません。後でもう一度お試しください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3143,7 +3161,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling query ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリを取り消しています ]]></Val>
+            <Val><![CDATA[クエリを取り消しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3167,7 +3185,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[URI {1} の接続 {0} のアクセス トークンの有効期限が切れました]]></Val>
+            <Val><![CDATA[URI {0} の接続 {1} のアクセス トークンの有効期限が切れました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3275,7 +3293,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Successfully refreshed token for connection {0} with uri {1}, {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[URI {1} の接続 {0} のトークンが正常に更新されました。{2}]]></Val>
+            <Val><![CDATA[URI {0} の接続 {1} のトークンが正常に更新されました。{2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3284,7 +3302,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[取り消しています]]></Val>
+            <Val><![CDATA[取り消し中]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3311,7 +3329,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error Message: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エラー メッセージ: ]]></Val>
+            <Val><![CDATA[エラー メッセージ:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3380,7 +3398,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Run Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリ履歴の実行]]></Val>
+            <Val><![CDATA[Query History の実行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3425,7 +3443,7 @@
         <Str Cat="Text">
           <Val><![CDATA[ is required.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[必須です。]]></Val>
+            <Val><![CDATA[ 必須です。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3749,7 +3767,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[オプション]5D; 'Mandatory' または 'Strict' の場合、サーバーに証明書がインストールされていれば、クライアントとサーバーの間で送信されるすべてのデータに SQL Server が SSL 暗号化を使用します。'Strict' に設定されている場合、クライアントとサーバー間のすべてのデータ転送に SQL Server が TDS 8.0 を使用します。'Strict' は、SQL Server 2022 以降でサポートされています。]]></Val>
+            <Val><![CDATA[[省略可能]5D; 'Mandatory' または 'Strict' の場合、サーバーに証明書がインストールされていれば、クライアントとサーバーの間で送信されるすべてのデータに SQL Server が SSL 暗号化を使用します。'Strict' に設定されている場合、クライアントとサーバー間のすべてのデータ転送に SQL Server が TDS 8.0 を使用します。'Strict' は、SQL Server 2022 以降でサポートされています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3767,7 +3785,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[オプション]5D;指定した場合 (および encrypt=Mandatory and trustServerCertificate=false)、SQL Serverは、指定されたホスト名を使用してサーバー証明書との信頼を検証します。]]></Val>
+            <Val><![CDATA[[省略可能]5D; 指定した場合 (および encrypt=Mandatory and trustServerCertificate=false)、SQL Serverは、指定されたホスト名を使用してサーバー証明書との信頼を検証します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4036,6 +4054,9 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL 拡張機能の試験的な機能を有効にします。機能は運用環境に対応していないため、バグや問題が発生する可能性があります。この設定を変更した後、Visual Studio Code を再起動します。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4079,7 +4100,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should column definitions be aligned?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[列定義を揃えるかどうか]]></Val>
+            <Val><![CDATA[列定義を揃える必要がありますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4088,7 +4109,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[データ型を大文字、小文字、または [なし]5D; (元のまま) のいずれにフォーマットするか]]></Val>
+            <Val><![CDATA[データ型を大文字、小文字、またはなし (書式設定なし) として書式設定する場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4097,7 +4118,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[キーワードを大文字、小文字、または [なし]5D; (元のまま) のいずれにフォーマットするか]]></Val>
+            <Val><![CDATA[キーワードを大文字、小文字、またはなし (書式設定なし) として書式設定する場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4106,7 +4127,7 @@
         <Str Cat="Text">
           <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[コンマを、'mycolumn1,' のようにリスト内の各ステートメントの末尾に配置する代わりに ',mycolumn2' のように先頭に配置するかどうか]]></Val>
+            <Val><![CDATA[コンマを'mycolumn1,' のようにリスト内の各ステートメントの末尾に配置する代わりに ',mycolumn2' のように先頭に配置する場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4115,7 +4136,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[たとえば 'SELECT C1, C2 FROM T1' の場合に C1 と C2 を別々の行にするように、Select ステートメント内のオブジェクトへの参照を別々の行に分割するかどうか]]></Val>
+            <Val><![CDATA[select ステートメント内のオブジェクトへの参照は別々の行に分割する必要がありますか?例: 'SELECT C1, C2 FROM T1' の場合、C1 と C2 の両方が別々の行に配置されます]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4133,7 +4154,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should IntelliSense error checking be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IntelliSense エラー チェックを有効にするかどうか]]></Val>
+            <Val><![CDATA[IntelliSense エラー チェックを有効にする場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4142,7 +4163,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should IntelliSense be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IntelliSense を有効にするかどうか]]></Val>
+            <Val><![CDATA[IntelliSense を有効にする場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4151,7 +4172,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should IntelliSense quick info be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IntelliSense クイック ヒントを有効にするかどうか]]></Val>
+            <Val><![CDATA[IntelliSense クイック 情報を有効にする場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4160,7 +4181,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should IntelliSense suggestions be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IntelliSense 提案を有効にするかどうか]]></Val>
+            <Val><![CDATA[IntelliSense の候補を有効にする場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4169,7 +4190,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should IntelliSense suggestions be lowercase]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IntelliSense 提案を小文字にするかどうか]]></Val>
+            <Val><![CDATA[IntelliSense の候補を小文字にする場合]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4294,6 +4315,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[実行プラン ファイルを開く]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4319,7 +4343,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should query result selections and scroll positions be saved when switching tabs (may impact performance)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タブを切り替えるときにクエリ結果セクションとスクロール位置を保存するかどうか (パフォーマンスに影響する可能性があります)]]></Val>
+            <Val><![CDATA[タブを切り替えるときにクエリ結果セクションとスクロール位置を保存する場合 (パフォーマンスに影響する可能性があります)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4418,7 +4442,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ビット列を数値 (1 または 0) として表示するかどうか。False の場合、ビット列は 'true' または 'false' として表示されます]]></Val>
+            <Val><![CDATA[ビット列を数値 (1 または 0) として表示しますか?false の場合、ビット列は 'true' または 'false' として表示されます]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4769,7 +4793,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Getting Started Guide]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[はじめに]]></Val>
+            <Val><![CDATA[はじめにガイド]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
