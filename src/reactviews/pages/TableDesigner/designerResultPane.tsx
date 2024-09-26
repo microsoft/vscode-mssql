@@ -152,16 +152,15 @@ export const DesignerResultPane = () => {
 
         let elementToFocus: HTMLElement | undefined = undefined;
         switch (issuePath.length) {
-            case 1:
-            case 3:
-            case 5:
+            case 1: // This is a component in the main tab area. Therefore we can directly focus on the component
+            case 3: // This is a component in the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
+            case 5: // This is a component in the table inside the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
                 elementToFocus =
                     state.elementRefs.current[
                         state.provider.getComponentId(issuePath as any)
                     ];
                 break;
-            case 2:
-                // This is table row. Therefore focuing on the first property of the row
+            case 2: // This is table row. Therefore focuing on the first property of the row
                 if (!tableComponent) {
                     return;
                 }
@@ -176,8 +175,7 @@ export const DesignerResultPane = () => {
                         ] as any)
                     ];
                 break;
-            case 4:
-                // This is table row in properties pane.
+            case 4: // This is table row in properties pane. Therefore focuing on the first property of the row
                 if (!tableComponent) {
                     return;
                 }
