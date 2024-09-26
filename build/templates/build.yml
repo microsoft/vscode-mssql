@@ -37,11 +37,11 @@ steps:
     env:
       BUILDMACHINE: true
 
-  - task: gulp@1
+  - pwsh: |
+      yarn lint
     displayName: Lint code
-    inputs:
-      targets: lint
-      gulpFile: ${{ parameters.gulpfile }}
+    workingDirectory: "$(Build.SourcesDirectory)"
+
 
   - task: gulp@1
     displayName: Run tests and compute coverage

@@ -63,12 +63,14 @@ export function getErrorMessage(error: any): string {
             ? error.message
             : ""
         : typeof error === "string"
-            ? error
-            : `${JSON.stringify(error, undefined, "\t")}`;
+          ? error
+          : `${JSON.stringify(error, undefined, "\t")}`;
 }
 
 // Copied from https://github.com/microsoft/vscode-azuretools/blob/5794d9d2ccbbafdb09d44b2e1883e515077e4a72/azure/src/utils/uiUtils.ts#L26
-export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>): Promise<T[]> {
+export async function listAllIterator<T>(
+    iterator: PagedAsyncIterableIterator<T>,
+): Promise<T[]> {
     const resources: T[] = [];
     for await (const r of iterator) {
         resources.push(r);

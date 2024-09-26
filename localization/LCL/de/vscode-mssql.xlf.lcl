@@ -23,7 +23,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Filter for any field...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nach einem beliebigen Feld filtern...]]></Val>
+            <Val><![CDATA[Nach einem beliebigen Feld filtern …]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -59,7 +59,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Messages]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Meldungen]]></Val>
+            <Val><![CDATA[Nachrichten]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -104,7 +104,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Account not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Konto nicht gefunden.]]></Val>
+            <Val><![CDATA[Das Konto wurde nicht gefunden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -220,6 +220,9 @@
       <Item ItemId=";bundle.++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Tooltips]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[QuickInfos umschalten]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -290,7 +293,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error {0}: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Fehler "{0}": {1}]]></Val>
+            <Val><![CDATA[Fehler {0}: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -398,7 +401,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Ignore Tenant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Mandanten ignorieren]]></Val>
+            <Val><![CDATA[Mandant ignorieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -469,6 +472,9 @@
       <Item ItemId=";bundle.++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[hostname\instance or <server>.database.windows.net or ADO.NET connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hostname\Instanz oder <server>.database.windows.net oder ADO.NET-Verbindungszeichenfolge]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -502,6 +508,9 @@
       <Item ItemId=";bundle.++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Plan speichern]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -707,7 +716,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changing database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Der Datenbankkontext auf Server "{1}" für Dokument "{2}" wird geändert in "{0}".]]></Val>
+            <Val><![CDATA[Der Datenbankkontext auf Server "{0}" für Dokument "{1}" wird geändert in "{2}".]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -950,7 +959,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Die Verschlüsselung wurde für diese Verbindung aktiviert, überprüfen Sie Ihre SSL- und Zertifikatskonfiguration für den Ziel-SQL Server, oder legen Sie „Serverzertifikat vertrauen“ in der Einstellungsdatei auf „WAHR“ fest. Hinweis: Ein selbstsigniertes Zertifikat bietet nur eingeschränkten Schutz und ist keine empfohlene Praxis für Produktionsumgebungen. Möchten Sie „Serverzertifikat vertrauen“ für diese Verbindung aktivieren und es erneut versuchen?]]></Val>
+            <Val><![CDATA[Die Verschlüsselung wurde für diese Verbindung aktiviert, überprüfen Sie Ihre SSL- und Zertifikatskonfiguration für den Ziel-SQL Server, oder legen Sie „Serverzertifikat vertrauen“ in der Einstellungsdatei auf „WAHR“ fest. Hinweis: Ein selbstsigniertes Zertifikat bietet nur eingeschränkten Schutz und ist keine empfohlene Vorgehensweise für Produktionsumgebungen. Möchten Sie „Serverzertifikat vertrauen“ für diese Verbindung aktivieren und es erneut versuchen?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -977,7 +986,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Dismiss]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Schließen]]></Val>
+            <Val><![CDATA[Verwerfen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1085,7 +1094,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ihr Konto muss erneut authentifiziert werden, um auf {0} Ressourcen zugreifen zu können. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.]]></Val>
+            <Val><![CDATA[Ihr Konto muss erneut authentifiziert werden, um auf {0}-Ressourcen zugreifen zu können. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1129,6 +1138,9 @@
       <Item ItemId=";bundle.++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Explorer Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filter zum Objekt-Explorer]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1331,7 +1343,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Klicken Sie auf "Öffnen", um den Authentifizierungsvorgang zu starten.]]></Val>
+            <Val><![CDATA[Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1529,7 +1541,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" for document "{1}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Der Datenbankkontext für das Dokument "{1}" wurde in "{0}" geändert.]]></Val>
+            <Val><![CDATA[Der Datenbankkontext für das Dokument "{0}" wurde in "{1}" geändert.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1736,7 +1748,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Corp]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Microsoft Corp.]]></Val>
+            <Val><![CDATA[Microsoft Corp]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1826,7 +1838,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Der Datenbankkontext auf Server "{1}" für Dokument "{2}" wurde geändert in "{0}".]]></Val>
+            <Val><![CDATA[Der Datenbankkontext auf Server "{0}" für Dokument "{1}" wurde geändert in "{2}".]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1978,6 +1990,9 @@
       <Item ItemId=";bundle.++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Nodes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Knoten suchen]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2039,7 +2054,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Successfully saved results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ergebnisse erfolgreich gespeichert in:]]></Val>
+            <Val><![CDATA[Ergebnisse erfolgreich gespeichert in: ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2380,6 +2395,9 @@
       <Item ItemId=";bundle.++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Queries Available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine Abfragen vorhanden.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2801,7 +2819,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Die Verbindung wird hergestellt.]]></Val>
+            <Val><![CDATA[Verbindung wird hergestellt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2828,7 +2846,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Mandatory (True)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Obligatorisch (WAHR)]]></Val>
+            <Val><![CDATA[Erforderlich (WAHR)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2927,7 +2945,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Zoom to Fit]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Mit Zoom anpassen]]></Val>
+            <Val><![CDATA[Zoom anpassen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3098,7 +3116,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Unable to execute the command while the extension is initializing. Please try again later.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Der Befehl kann während der Initialisierung der Erweiterung nicht ausgeführt werden. Versuchen Sie es später noch mal.]]></Val>
+            <Val><![CDATA[Der Befehl kann während der Initialisierung der Erweiterung nicht ausgeführt werden. Versuchen Sie es später noch einmal.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3341,7 +3359,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vorgang wird abgebrochen]]></Val>
+            <Val><![CDATA[Wird abgebrochen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3503,7 +3521,7 @@
         <Str Cat="Text">
           <Val><![CDATA[View mssql for Visual Studio Code release notes?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[MSSQL für Visual Studio Code-Versionshinweise anzeigen?]]></Val>
+            <Val><![CDATA[Versionshinweise für mssql for Visual Studio Code anzeigen?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3827,7 +3845,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Optional]5D; Bei Angabe von (and encrypt=Mandatory and trustServerCertificate=false) verwendet SQL Server den angegebenen Hostnamen zum Überprüfen der Vertrauensstellung mit dem Serverzertifikat.]]></Val>
+            <Val><![CDATA[[Optional]5D; Bei Angabe von „(and encrypt=Mandatory and trustServerCertificate=false)“ verwendet SQL Server den angegebenen Hostnamen zum Überprüfen der Vertrauensstellung mit dem Serverzertifikat.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3953,7 +3971,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Erforderlich]5D; Gibt den Namen des Servers an, mit dem Sie eine Verbindung herstellen möchten. Verwenden Sie „hostname instance“ oder „<server>.database.windows.net“ für die Azure SQL-Datenbank.]]></Val>
+            <Val><![CDATA[[Erforderlich]5D; Gibt den Namen des Servers an, mit dem Sie eine Verbindung herstellen möchten. Verwenden Sie "hostname instance" oder "<server>.database.windows.net" für die Azure SQL-Datenbank.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4096,6 +4114,9 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktiviert experimentelle Features in der MSSQL-Erweiterung. Die Features sind nicht produktionsbereit und weisen möglicherweise Fehler oder Probleme auf. Starten Sie Visual Studio Code neu, nachdem Sie diese Einstellung geändert haben.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4354,6 +4375,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ausführungsplandatei öffnen]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4406,7 +4430,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_DEFAULTS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET ANSI_DEFAULTS“ aktivieren]]></Val>
+            <Val><![CDATA[SET ANSI_DEFAULTS aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4415,7 +4439,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_NULL_DFLT_ON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET ANSI_NULL_DFLT_ON“ aktivieren]]></Val>
+            <Val><![CDATA[SET ANSI_NULL_DFLT_ON aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4424,7 +4448,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_NULLS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET ANSI_NULLS“ aktivieren]]></Val>
+            <Val><![CDATA[SET ANSI_NULLS aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4433,7 +4457,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_PADDING]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET ANSI_PADDING“ aktivieren]]></Val>
+            <Val><![CDATA[SET ANSI_PADDING aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4442,7 +4466,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_WARNINGS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET ANSI_WARNINGS“ aktivieren]]></Val>
+            <Val><![CDATA[SET ANSI_WARNINGS aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4460,7 +4484,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET CURSOR_CLOSE_ON_COMMIT]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET CURSOR_CLOSE_ON_COMMIT“ aktivieren]]></Val>
+            <Val><![CDATA[SET CURSOR_CLOSE_ON_COMMIT aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4496,7 +4520,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET IMPLICIT_TRANSACTIONS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET IMPLICIT_TRANSACTIONS“ aktivieren]]></Val>
+            <Val><![CDATA[SET IMPLICIT_TRANSACTIONS aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4559,7 +4583,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET QUERY_GOVERNOR_COST_LIMIT“ aktivieren]]></Val>
+            <Val><![CDATA[SET QUERY_GOVERNOR_COST_LIMIT aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4568,7 +4592,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET QUOTED_IDENTIFIER]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[„SET QUOTED_IDENTIFIER“ aktivieren]]></Val>
+            <Val><![CDATA[SET QUOTED_IDENTIFIER aktivieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4766,7 +4790,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Alter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ALTER-Skript]]></Val>
+            <Val><![CDATA[Skript als Ändern]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4775,7 +4799,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[CREATE-Skript]]></Val>
+            <Val><![CDATA[Skript als Erstellen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4784,7 +4808,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Drop]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[DROP-Skript]]></Val>
+            <Val><![CDATA[Skript als Ablegen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4793,7 +4817,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Execute]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[EXECUTE-Skript]]></Val>
+            <Val><![CDATA[Skript als Ausführen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

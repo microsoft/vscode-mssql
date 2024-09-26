@@ -198,7 +198,7 @@ export class ExecutionPlanView {
     }
 
     private createGraphElementId(): string {
-	return `element-${window.crypto.randomUUID()}`;
+        return `element-${window.crypto.randomUUID()}`;
     }
 
     /**
