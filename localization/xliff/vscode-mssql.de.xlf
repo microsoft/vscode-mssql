@@ -38,7 +38,7 @@
       </trans-unit>
       <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
         <source xml:lang="en">Account not found</source>
-        <target state="translated">Konto nicht gefunden.</target>
+        <target state="translated">Das Konto wurde nicht gefunden.</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -188,7 +188,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f0f958e0da473b18b76ef9febe543579a601b532c9acd58ddab45f2d6549a3b3">
         <source xml:lang="en">Canceling</source>
-        <target state="translated">Vorgang wird abgebrochen</target>
+        <target state="translated">Wird abgebrochen</target>
       </trans-unit>
       <trans-unit id="++CODE++e98afd3714a8d3c15f84793e425b681975e26f06503850e4122965ee9825e907">
         <source xml:lang="en">Canceling query </source>
@@ -211,14 +211,14 @@
         <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source>
         <note>{0} is the database name
 {1} is the document name</note>
-        <target state="translated">Der Datenbankkontext für das Dokument "{1}" wurde in "{0}" geändert.</target>
+        <target state="translated">Der Datenbankkontext für das Dokument "{0}" wurde in "{1}" geändert.</target>
       </trans-unit>
       <trans-unit id="++CODE++88dcff06d01faeaf2253a502d07b9358b907ef3497a0f69c2f6546ffdc06b7b7">
         <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">Der Datenbankkontext auf Server "{1}" für Dokument "{2}" wurde geändert in "{0}".</target>
+        <target state="translated">Der Datenbankkontext auf Server "{0}" für Dokument "{1}" wurde geändert in "{2}".</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -229,7 +229,7 @@
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">Der Datenbankkontext auf Server "{1}" für Dokument "{2}" wird geändert in "{0}".</target>
+        <target state="translated">Der Datenbankkontext auf Server "{0}" für Dokument "{1}" wird geändert in "{2}".</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -336,7 +336,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
         <source xml:lang="en">Connecting</source>
-        <target state="translated">Die Verbindung wird hergestellt.</target>
+        <target state="translated">Verbindung wird hergestellt</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
@@ -472,7 +472,7 @@
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
-        <target state="translated">Schließen</target>
+        <target state="translated">Verwerfen</target>
       </trans-unit>
       <trans-unit id="++CODE++8a2ada67a303fe2602331dc153b30259b92e7cc2d741f8d5955d8af906ef016a">
         <source xml:lang="en">Displays the data type name for the column</source>
@@ -500,7 +500,7 @@
       </trans-unit>
       <trans-unit id="++CODE++476c508b94c7f515d2276689b1eb5c8d1eb0d109b274cced59a3e1a1e3a247c9">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">Die Verschlüsselung wurde für diese Verbindung aktiviert, überprüfen Sie Ihre SSL- und Zertifikatskonfiguration für den Ziel-SQL Server, oder legen Sie „Serverzertifikat vertrauen“ in der Einstellungsdatei auf „WAHR“ fest. Hinweis: Ein selbstsigniertes Zertifikat bietet nur eingeschränkten Schutz und ist keine empfohlene Praxis für Produktionsumgebungen. Möchten Sie „Serverzertifikat vertrauen“ für diese Verbindung aktivieren und es erneut versuchen?</target>
+        <target state="translated">Die Verschlüsselung wurde für diese Verbindung aktiviert, überprüfen Sie Ihre SSL- und Zertifikatskonfiguration für den Ziel-SQL Server, oder legen Sie „Serverzertifikat vertrauen“ in der Einstellungsdatei auf „WAHR“ fest. Hinweis: Ein selbstsigniertes Zertifikat bietet nur eingeschränkten Schutz und ist keine empfohlene Vorgehensweise für Produktionsumgebungen. Möchten Sie „Serverzertifikat vertrauen“ für diese Verbindung aktivieren und es erneut versuchen?</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -570,7 +570,7 @@
         <source xml:lang="en">Error {0}: {1}</source>
         <note>{0} is the error number
 {1} is the error message</note>
-        <target state="translated">Fehler "{0}": {1}</target>
+        <target state="translated">Fehler {0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++ff26e86bb0cdcae6cd4f1dcfbf7c61047f96a2ae5cdbd9fe0111ed6bd95b2193">
         <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
-        <target state="translated">Nach einem beliebigen Feld filtern...</target>
+        <target state="translated">Nach einem beliebigen Feld filtern …</target>
       </trans-unit>
       <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
         <source xml:lang="en">Find Node</source>
@@ -657,7 +657,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855">
         <source xml:lang="en">Find Nodes</source>
-        <target state="new">Find Nodes</target>
+        <target state="translated">Knoten suchen</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
-        <target state="translated">Mandanten ignorieren</target>
+        <target state="translated">Mandant ignorieren</target>
       </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
@@ -833,7 +833,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
         <source xml:lang="en">Mandatory (True)</source>
-        <target state="translated">Obligatorisch (WAHR)</target>
+        <target state="translated">Erforderlich (WAHR)</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -845,7 +845,7 @@
       </trans-unit>
       <trans-unit id="++CODE++04d7b48339271ea67d3c8493e07e90bc68dc565485eebe5e0b67c21c1586e3c0">
         <source xml:lang="en">Messages</source>
-        <target state="translated">Meldungen</target>
+        <target state="translated">Nachrichten</target>
       </trans-unit>
       <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
         <source xml:lang="en">Metric</source>
@@ -853,7 +853,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8055a31cb4833efbf1b76994151d8256bfc8500f2985d3d0ab1cf222dd91a043">
         <source xml:lang="en">Microsoft Corp</source>
-        <target state="translated">Microsoft Corp.</target>
+        <target state="translated">Microsoft Corp</target>
       </trans-unit>
       <trans-unit id="++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109">
         <source xml:lang="en">Microsoft Entra Account</source>
@@ -922,7 +922,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
-        <target state="new">No Queries Available</target>
+        <target state="translated">Keine Abfragen vorhanden.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -984,7 +984,7 @@
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
-        <target state="new">Object Explorer Filter</target>
+        <target state="translated">Filter zum Objekt-Explorer</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1203,7 +1203,7 @@
       </trans-unit>
       <trans-unit id="++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d">
         <source xml:lang="en">Save Plan</source>
-        <target state="new">Save Plan</target>
+        <target state="translated">Plan speichern</target>
       </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
@@ -1355,7 +1355,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
         <source xml:lang="en">Successfully saved results to </source>
-        <target state="translated">Ergebnisse erfolgreich gespeichert in:</target>
+        <target state="translated">Ergebnisse erfolgreich gespeichert in: </target>
       </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
@@ -1497,7 +1497,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
-        <target state="new">Toggle Tooltips</target>
+        <target state="translated">QuickInfos umschalten</target>
       </trans-unit>
       <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
         <source xml:lang="en">Total execution time: {0}</source>
@@ -1510,7 +1510,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
-        <target state="translated">Der Befehl kann während der Initialisierung der Erweiterung nicht ausgeführt werden. Versuchen Sie es später noch mal.</target>
+        <target state="translated">Der Befehl kann während der Initialisierung der Erweiterung nicht ausgeführt werden. Versuchen Sie es später noch einmal.</target>
       </trans-unit>
       <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
@@ -1550,7 +1550,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
-        <target state="translated">MSSQL für Visual Studio Code-Versionshinweise anzeigen?</target>
+        <target state="translated">Versionshinweise für mssql for Visual Studio Code anzeigen?</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -1563,7 +1563,7 @@
       <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
         <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
         <note>{0} is the resource</note>
-        <target state="translated">Ihr Konto muss erneut authentifiziert werden, um auf {0} Ressourcen zugreifen zu können. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.</target>
+        <target state="translated">Ihr Konto muss erneut authentifiziert werden, um auf {0}-Ressourcen zugreifen zu können. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.</target>
       </trans-unit>
       <trans-unit id="++CODE++cae61ae576cc3d82cec2579b9ac71b72196f7ff3f543408342b416c4877cce4e">
         <source xml:lang="en">Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?</source>
@@ -1580,7 +1580,7 @@
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the resource</note>
-        <target state="translated">Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Klicken Sie auf "Öffnen", um den Authentifizierungsvorgang zu starten.</target>
+        <target state="translated">Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.</target>
       </trans-unit>
       <trans-unit id="++CODE++5a982cf9dc11b4ec88b6151a75c4b45e269a5694c941c3c4c96689bed0c7d312">
         <source xml:lang="en">Zoom In</source>
@@ -1592,7 +1592,7 @@
       </trans-unit>
       <trans-unit id="++CODE++dc81206350e3da642fed43285f8b5a1dc00e0d91b4b81b6bffe3181d0e261d2e">
         <source xml:lang="en">Zoom to Fit</source>
-        <target state="translated">Mit Zoom anpassen</target>
+        <target state="translated">Zoom anpassen</target>
       </trans-unit>
       <trans-unit id="++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
@@ -1612,7 +1612,7 @@
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-        <target state="new">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</target>
+        <target state="translated">Hostname\Instanz oder &lt;server&gt;.database.windows.net oder ADO.NET-Verbindungszeichenfolge</target>
       </trans-unit>
       <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
         <source xml:lang="en">intelliSenseUpdated</source>
@@ -1793,23 +1793,23 @@
       </trans-unit>
       <trans-unit id="mssql.query.ansiDefaults">
         <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
-        <target state="translated">„SET ANSI_DEFAULTS“ aktivieren</target>
+        <target state="translated">SET ANSI_DEFAULTS aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiNulls">
         <source xml:lang="en">Enable SET ANSI_NULLS</source>
-        <target state="translated">„SET ANSI_NULLS“ aktivieren</target>
+        <target state="translated">SET ANSI_NULLS aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiNullDefaultOn">
         <source xml:lang="en">Enable SET ANSI_NULL_DFLT_ON</source>
-        <target state="translated">„SET ANSI_NULL_DFLT_ON“ aktivieren</target>
+        <target state="translated">SET ANSI_NULL_DFLT_ON aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiPadding">
         <source xml:lang="en">Enable SET ANSI_PADDING</source>
-        <target state="translated">„SET ANSI_PADDING“ aktivieren</target>
+        <target state="translated">SET ANSI_PADDING aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiWarnings">
         <source xml:lang="en">Enable SET ANSI_WARNINGS</source>
-        <target state="translated">„SET ANSI_WARNINGS“ aktivieren</target>
+        <target state="translated">SET ANSI_WARNINGS aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.arithAbort">
         <source xml:lang="en">Enable SET ARITHABORT option</source>
@@ -1817,7 +1817,7 @@
       </trans-unit>
       <trans-unit id="mssql.query.cursorCloseOnCommit">
         <source xml:lang="en">Enable SET CURSOR_CLOSE_ON_COMMIT</source>
-        <target state="translated">„SET CURSOR_CLOSE_ON_COMMIT“ aktivieren</target>
+        <target state="translated">SET CURSOR_CLOSE_ON_COMMIT aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.deadlockPriority">
         <source xml:lang="en">Enable SET DEADLOCK_PRIORITY option</source>
@@ -1825,7 +1825,7 @@
       </trans-unit>
       <trans-unit id="mssql.query.implicitTransactions">
         <source xml:lang="en">Enable SET IMPLICIT_TRANSACTIONS</source>
-        <target state="translated">„SET IMPLICIT_TRANSACTIONS“ aktivieren</target>
+        <target state="translated">SET IMPLICIT_TRANSACTIONS aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.lockTimeout">
         <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
@@ -1845,11 +1845,11 @@
       </trans-unit>
       <trans-unit id="mssql.query.queryGovernorCostLimit">
         <source xml:lang="en">Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
-        <target state="translated">„SET QUERY_GOVERNOR_COST_LIMIT“ aktivieren</target>
+        <target state="translated">SET QUERY_GOVERNOR_COST_LIMIT aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.quotedIdentifier">
         <source xml:lang="en">Enable SET QUOTED_IDENTIFIER</source>
-        <target state="translated">„SET QUOTED_IDENTIFIER“ aktivieren</target>
+        <target state="translated">SET QUOTED_IDENTIFIER aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.statisticsIO">
         <source xml:lang="en">Enable SET STATISTICS IO option</source>
@@ -1873,7 +1873,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">Aktiviert experimentelle Features in der MSSQL-Erweiterung. Die Features sind nicht produktionsbereit und weisen möglicherweise Fehler oder Probleme auf. Starten Sie Visual Studio Code neu, nachdem Sie diese Einstellung geändert haben.</target>
       </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
@@ -1945,7 +1945,7 @@
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
-        <target state="new">Open Execution Plan File</target>
+        <target state="translated">Ausführungsplandatei öffnen</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
@@ -1993,19 +1993,19 @@
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
-        <target state="translated">ALTER-Skript</target>
+        <target state="translated">Skript als Ändern</target>
       </trans-unit>
       <trans-unit id="mssql.scriptCreate">
         <source xml:lang="en">Script as Create</source>
-        <target state="translated">CREATE-Skript</target>
+        <target state="translated">Skript als Erstellen</target>
       </trans-unit>
       <trans-unit id="mssql.scriptDelete">
         <source xml:lang="en">Script as Drop</source>
-        <target state="translated">DROP-Skript</target>
+        <target state="translated">Skript als Ablegen</target>
       </trans-unit>
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
-        <target state="translated">EXECUTE-Skript</target>
+        <target state="translated">Skript als Ausführen</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -2277,7 +2277,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.hostNameInCertificate">
         <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
-        <target state="translated">[Optional] Bei Angabe von (and encrypt=Mandatory and trustServerCertificate=false) verwendet SQL Server den angegebenen Hostnamen zum Überprüfen der Vertrauensstellung mit dem Serverzertifikat.</target>
+        <target state="translated">[Optional] Bei Angabe von „(and encrypt=Mandatory and trustServerCertificate=false)“ verwendet SQL Server den angegebenen Hostnamen zum Überprüfen der Vertrauensstellung mit dem Serverzertifikat.</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.includeHeaders">
         <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source>
@@ -2285,7 +2285,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.server">
         <source xml:lang="en">[Required] Specify the server name to connect to. Use 'hostname instance' or '&lt;server&gt;.database.windows.net' for Azure SQL Database.</source>
-        <target state="translated">[Erforderlich] Gibt den Namen des Servers an, mit dem Sie eine Verbindung herstellen möchten. Verwenden Sie „hostname instance“ oder „&lt;server&gt;.database.windows.net“ für die Azure SQL-Datenbank.</target>
+        <target state="translated">[Erforderlich] Gibt den Namen des Servers an, mit dem Sie eine Verbindung herstellen möchten. Verwenden Sie "hostname instance" oder "&lt;server&gt;.database.windows.net" für die Azure SQL-Datenbank.</target>
       </trans-unit>
       <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
         <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
