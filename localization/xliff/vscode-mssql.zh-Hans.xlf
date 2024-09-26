@@ -20,7 +20,7 @@
       </trans-unit>
       <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
         <source xml:lang="en">A predefined global default value for the column or binding.</source>
-        <target state="translated">列或绑定的预定义的全局默认值。</target>
+        <target state="translated">列或绑定的预定义全局默认值。</target>
       </trans-unit>
       <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
@@ -28,7 +28,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
         <source xml:lang="en">About table</source>
-        <target state="new">About table</target>
+        <target state="translated">关于表</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -74,11 +74,11 @@
       </trans-unit>
       <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
         <source xml:lang="en">Advanced Connection Settings</source>
-        <target state="new">Advanced Connection Settings</target>
+        <target state="translated">高级连接设置</target>
       </trans-unit>
       <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
         <source xml:lang="en">Advanced Type</source>
-        <target state="new">Advanced Type</target>
+        <target state="translated">高级类型</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -172,7 +172,7 @@
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
-        <target state="new">Browse Azure</target>
+        <target state="translated">浏览 Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -222,7 +222,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
-        <target state="new">Changes published successfully</target>
+        <target state="translated">已成功发布更改</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
@@ -237,7 +237,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4a41af1285aa71f4e677bc3fa729070b3c3c0af177cb4e9f12e34f1e21045894">
         <source xml:lang="en">Check Constraints</source>
-        <target state="translated">检查约束</target>
+        <target state="translated">CHECK 约束</target>
       </trans-unit>
       <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
         <source xml:lang="en">Choose An Action</source>
@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
         <source xml:lang="en">Close Designer</source>
-        <target state="new">Close Designer</target>
+        <target state="translated">关闭 Designer</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -484,7 +484,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7bba5bcc44de61b37dcadb5824fac7130483b749da0c5e9eea5e02765e06e37d">
         <source xml:lang="en">Displays the unified data type (including length, scale and precision) for the column</source>
-        <target state="translated">显示列的统一数据类型(包括长度、小数位数、精度)</target>
+        <target state="translated">显示列的统一数据类型(包括长度、小数位数和精准率)</target>
       </trans-unit>
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
@@ -552,11 +552,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
-        <target state="new">Error loading designer</target>
+        <target state="translated">加载设计器时出错</target>
       </trans-unit>
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
-        <target state="new">Error loading preview</target>
+        <target state="translated">加载预览时出错</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -682,7 +682,7 @@
       </trans-unit>
       <trans-unit id="++CODE++20b04b0eb9264d54736120dae88c712700ee14a95803823187961e630998a7fc">
         <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object.</source>
-        <target state="translated">对于数值数据，为此数据库对象中最多可存储的十进制位数。</target>
+        <target state="translated">对于数值数据，可以存储在此数据库对象中的最大小数位数。</target>
       </trans-unit>
       <trans-unit id="++CODE++2390e8502ba64cd13706dd2af52d9983efe51a28984739601b0b86fbf7c65904">
         <source xml:lang="en">Foreign Column</source>
@@ -698,7 +698,7 @@
       </trans-unit>
       <trans-unit id="++CODE++343460cabeff0fb48d3eaab8a7b7cec8ab6533656b987b607002e6fae59daa8b">
         <source xml:lang="en">Foreign Table</source>
-        <target state="translated">外部表</target>
+        <target state="translated">外表</target>
       </trans-unit>
       <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
         <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
@@ -720,7 +720,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
         <source xml:lang="en">Go there</source>
-        <target state="new">Go there</target>
+        <target state="translated">去那里</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -813,7 +813,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
-        <target state="new">Loading Table Designer</target>
+        <target state="translated">正在加载表设计器</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -894,7 +894,7 @@
       </trans-unit>
       <trans-unit id="++CODE++5a59551b2622ee0d2767d9bbc3d03aa227824d88c6b25ac233cfb2a98684512c">
         <source xml:lang="en">New Column</source>
-        <target state="translated">新列</target>
+        <target state="translated">新建列</target>
       </trans-unit>
       <trans-unit id="++CODE++4a00fefe019ef43393da250ba4b62d7b6af849a1acac99b1192ffbeda8828fe7">
         <source xml:lang="en">New Column Mapping</source>
@@ -902,7 +902,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
         <source xml:lang="en">New Foreign Key</source>
-        <target state="translated">新建外键</target>
+        <target state="translated">新外键</target>
       </trans-unit>
       <trans-unit id="++CODE++30a5aebdb4a5faa3b927c90ef856e84e039707488be19e760b3701f24889875d">
         <source xml:lang="en">New Index</source>
@@ -1012,7 +1012,7 @@
       </trans-unit>
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
-        <target state="new">Open XML</target>
+        <target state="translated">打开 XML</target>
       </trans-unit>
       <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
         <source xml:lang="en">Open in new tab</source>
@@ -1076,7 +1076,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92022c2f45b6a9ba92c51438e6fed444d69673e4bd6c529e3ea8f0a8bfe1e969">
         <source xml:lang="en">Primary Key</source>
-        <target state="translated">主密钥</target>
+        <target state="translated">主键</target>
       </trans-unit>
       <trans-unit id="++CODE++a0de89c19964a6454c6d6b4f4205b8c8fcb6c1bfe9370b6d3183226ce8009141">
         <source xml:lang="en">Primary Key Columns</source>
@@ -1117,7 +1117,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
-        <target state="new">Publishing Changes</target>
+        <target state="translated">正在发布更改</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1135,7 +1135,7 @@
         <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
         <note>{0} is the query number
 {1} is the query cost</note>
-        <target state="new">Query {0}:  Query cost (relative to the script):  {1}%</target>
+        <target state="translated">查询 {0}: 查询成本(相对于脚本): {1}%</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
@@ -1231,7 +1231,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
-        <target state="new">Script As Create</target>
+        <target state="translated">将脚本编写为 Create</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1307,7 +1307,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
         <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
-        <target state="translated">指定列是否可以有 NULL 值。</target>
+        <target state="translated">指定列是否可以具有 NULL 值。</target>
       </trans-unit>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
@@ -1387,11 +1387,11 @@
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
-        <target state="translated">用户尝试删除以下行时的行为: 该行包含外键关系中涉及的数据。</target>
+        <target state="translated">当用户尝试删除包含外键关系中所涉及数据的行时的行为。</target>
       </trans-unit>
       <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
         <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
-        <target state="translated">用户尝试更新以下行时的行为: 该行包含外键关系中涉及的数据。</target>
+        <target state="translated">当用户尝试更新包含外键关系中所涉及数据的行时的行为。</target>
       </trans-unit>
       <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
         <source xml:lang="en">The columns of the index.</source>
@@ -1421,13 +1421,13 @@
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be less than the second value for the {0} operator in the {1} filter</target>
+        <target state="translated">第一个值必须小于 {1} 筛选器中 {0} 运算符的第二个值</target>
       </trans-unit>
       <trans-unit id="++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e">
         <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">必须为 {1} 筛选器中的 {0} 运算符设置第一个值</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -1435,7 +1435,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
         <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
-        <target state="translated">此数据库对象中可存储的最大长度(以字符为单位)。</target>
+        <target state="translated">可在此数据库对象中存储的最大长度(以字符为单位)。</target>
       </trans-unit>
       <trans-unit id="++CODE++c368a965891e9479b44218cb42c8cddde404740e364b53367e897dcb17ef1d6b">
         <source xml:lang="en">The name of the check constraint.</source>
@@ -1473,7 +1473,7 @@
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The second value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">必须为 {1} 筛选器中的 {0} 运算符设置第二个值</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -1656,13 +1656,13 @@
         <source xml:lang="en">{0} {1} issue</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issue</target>
+        <target state="translated">{0} {1} 个问题</target>
       </trans-unit>
       <trans-unit id="++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235">
         <source xml:lang="en">{0} {1} issues</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issues</target>
+        <target state="translated">{0} {1} 个问题</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>
