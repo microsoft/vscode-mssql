@@ -64,7 +64,7 @@ export function msgConnectionError2(errorMessage: string) {
         comment: ["{0} is the error message"],
     });
 }
-export let serverNameMissing = l10n.t("Server name not received.");
+export let serverNameMissing = l10n.t("Server name not set.");
 export function msgConnectionErrorPasswordExpired(
     errorNumber: number,
     errorMessage: string,
@@ -636,22 +636,34 @@ export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
 export let queryFailed = l10n.t("Query failed");
-export let connectionDialog = l10n.t("Connection Dialog");
-export let azureAccount = l10n.t("Azure Account");
-export let azureAccountIsRequired = l10n.t("Azure Account is required");
-export let selectAnAccount = l10n.t("Select an account");
-export let savePassword = l10n.t("Save Password");
-export let tenantId = l10n.t("Tenant ID");
-export let selectATenant = l10n.t("Select a tenant");
-export let tenantIdIsRequired = l10n.t("Tenant ID is required");
-export let profileName = l10n.t("Profile Name");
-export let serverIsRequired = l10n.t("Server is required");
-export let usernameIsRequired = l10n.t("User name is required");
-export let connectionString = l10n.t("Connection String");
-export let connectionStringIsRequired = l10n.t("Connection string is required");
-export let signIn = l10n.t("Sign in");
-export let additionalParameters = l10n.t("Additional parameters");
-export let connect = l10n.t("Connect");
+
 export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
+
+export class ConnectionDialog {
+    public static connectionDialog = l10n.t("Connection Dialog");
+    public static azureAccount = l10n.t("Azure Account");
+    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static selectAnAccount = l10n.t("Select an account");
+    public static savePassword = l10n.t("Save Password");
+    public static tenantId = l10n.t("Tenant ID");
+    public static selectATenant = l10n.t("Select a tenant");
+    public static tenantIdIsRequired = l10n.t("Tenant ID is required");
+    public static profileName = l10n.t("Profile Name");
+    public static serverIsRequired = l10n.t("Server is required");
+    public static usernameIsRequired = l10n.t("User name is required");
+    public static connectionString = l10n.t("Connection String");
+    public static connectionStringIsRequired = l10n.t("Connection string is required");
+    public static signIn = l10n.t("Sign in");
+    public static additionalParameters = l10n.t("Additional parameters");
+    public static connect = l10n.t("Connect");
+
+    public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
+        return l10n.t({
+            message: "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
+            args: [subscriptionName, subscriptionId],
+            comment: ["{0} is the subscription name", "{1} is the subscription id"],
+        });
+    }
+}

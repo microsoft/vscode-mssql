@@ -122,7 +122,6 @@ jobs:
             ### VSIX Size Comparison
 
       - name: Create or update comment
-        if: steps.fc.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

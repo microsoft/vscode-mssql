@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
 import {
     AuthenticationType,
+    AzureSqlDatabaseInfo,
     ConnectionDialogFormItemSpec,
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
@@ -25,7 +26,7 @@ import {
 import { ConnectionOption } from "azdata";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import * as LocalizedConstants from "../constants/locConstants";
+import { ConnectionDialog as Loc, refreshTokenLabel } from "../constants/locConstants";
 import {
     FormItemSpec,
     FormItemActionButton,
@@ -33,6 +34,13 @@ import {
     FormItemType,
 } from "../reactviews/common/forms/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import {
+    AzureSubscription,
+    VSCodeAzureSubscriptionProvider,
+} from "@microsoft/vscode-azext-azureauth";
+import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
+import { getErrorMessage, listAllIterator } from "../utils/utils";
+import { l10n } from "vscode";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -50,7 +58,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     ) {
         super(
             context,
-            LocalizedConstants.connectionDialog,
+            Loc.connectionDialog,
             "connectionDialog",
             new ConnectionDialogWebviewState({
                 connectionProfile: {} as IConnectionDialogProfile,
@@ -63,6 +71,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     topAdvancedOptions: [],
                     groupedAdvancedOptions: {},
                 },
+                azureDatabases: [],
                 connectionStatus: ApiStatus.NotStarted,
                 formError: "",
             }),
@@ -84,23 +93,33 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         if (!ConnectionDialogWebviewController._logger) {
             const vscodeWrapper = new VscodeWrapper();
             const channel = vscodeWrapper.createOutputChannel(
-                LocalizedConstants.connectionDialog,
+                Loc.connectionDialog,
             );
             ConnectionDialogWebviewController._logger = Logger.create(channel);
         }
 
         this.registerRpcHandlers();
         this.initializeDialog().catch((err) =>
-            vscode.window.showErrorMessage(err.toString()),
+            vscode.window.showErrorMessage(getErrorMessage(err)),
         );
     }
 
     private async initializeDialog() {
-        await this.loadRecentConnections();
-        if (this._connectionToEdit) {
-            await this.loadConnectionToEdit();
-        } else {
+        try {
+            await this.loadRecentConnections();
+        } catch (err) {
+            vscode.window.showErrorMessage(getErrorMessage(err));
+        }
+
+        try {
+            if (this._connectionToEdit) {
+                await this.loadConnectionToEdit();
+            } else {
+                await this.loadEmptyConnection();
+            }
+        } catch (err) {
             await this.loadEmptyConnection();
+            vscode.window.showErrorMessage(getErrorMessage(err));
         }
 
         this.state.connectionComponents = {
@@ -159,6 +178,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 this._connectionToEdit,
             );
             this.state.connectionProfile = connection;
+
+            this.state.selectedInputMode = (connection.connectionString && connection.server === undefined) ? ConnectionInputMode.ConnectionString : ConnectionInputMode.Parameters;
             this.state = this.state;
         }
     }
@@ -231,9 +252,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     }
 
     private async updateItemVisibility() {
-        const selectedTab = this.state.selectedInputMode;
         let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
-        if (selectedTab === ConnectionInputMode.Parameters) {
+
+        if (
+            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
+            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
             if (
                 this.state.connectionProfile.authenticationType !==
                 AuthenticationType.SqlLogin
@@ -270,7 +294,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     }
 
     private getActiveFormComponents(): (keyof IConnectionDialogProfile)[] {
-        if (this.state.selectedInputMode === ConnectionInputMode.Parameters) {
+        if (
+            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
+            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
             return this.state.connectionComponents.mainOptions;
         }
         return ["connectionString", "profileName"];
@@ -385,7 +412,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         // Add additional components that are not part of the connection options
         components["profileName"] = {
             propertyName: "profileName",
-            label: LocalizedConstants.profileName,
+            label: Loc.profileName,
             required: false,
             type: FormItemType.Input,
             isAdvancedOption: false,
@@ -393,7 +420,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         components["savePassword"] = {
             propertyName: "savePassword",
-            label: LocalizedConstants.savePassword,
+            label: Loc.savePassword,
             required: false,
             type: FormItemType.Checkbox,
             isAdvancedOption: false,
@@ -401,11 +428,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         components["accountId"] = {
             propertyName: "accountId",
-            label: LocalizedConstants.azureAccount,
+            label: Loc.azureAccount,
             required: true,
             type: FormItemType.Dropdown,
             options: await this.getAccounts(),
-            placeholder: LocalizedConstants.selectAnAccount,
+            placeholder: Loc.selectAnAccount,
             actionButtons: await this.getAzureActionButtons(),
             validate: (value: string) => {
                 if (
@@ -416,7 +443,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     return {
                         isValid: false,
                         validationMessage:
-                            LocalizedConstants.azureAccountIsRequired,
+                            Loc.azureAccountIsRequired,
                     };
                 }
                 return {
@@ -429,12 +456,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         components["tenantId"] = {
             propertyName: "tenantId",
-            label: LocalizedConstants.tenantId,
+            label: Loc.tenantId,
             required: true,
             type: FormItemType.Dropdown,
             options: [],
             hidden: true,
-            placeholder: LocalizedConstants.selectATenant,
+            placeholder: Loc.selectATenant,
             validate: (value: string) => {
                 if (
                     this.state.connectionProfile.authenticationType ===
@@ -444,7 +471,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     return {
                         isValid: false,
                         validationMessage:
-                            LocalizedConstants.tenantIdIsRequired,
+                            Loc.tenantIdIsRequired,
                     };
                 }
                 return {
@@ -458,7 +485,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         components["connectionString"] = {
             type: FormItemType.TextArea,
             propertyName: "connectionString",
-            label: LocalizedConstants.connectionString,
+            label: Loc.connectionString,
             required: true,
             validate: (value: string) => {
                 if (
@@ -469,7 +496,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     return {
                         isValid: false,
                         validationMessage:
-                            LocalizedConstants.connectionStringIsRequired,
+                            Loc.connectionStringIsRequired,
                     };
                 }
                 return {
@@ -489,7 +516,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ) {
                 return {
                     isValid: false,
-                    validationMessage: LocalizedConstants.usernameIsRequired,
+                    validationMessage: Loc.usernameIsRequired,
                 };
             }
             return {
@@ -506,7 +533,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ) {
                 return {
                     isValid: false,
-                    validationMessage: LocalizedConstants.usernameIsRequired,
+                    validationMessage: Loc.usernameIsRequired,
                 };
             }
             return {
@@ -634,7 +661,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         const actionButtons: FormItemActionButton[] = [];
         actionButtons.push({
-            label: LocalizedConstants.signIn,
+            label: Loc.signIn,
             id: "azureSignIn",
             callback: async () => {
                 const account =
@@ -672,7 +699,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 );
                 if (isTokenExpired) {
                     actionButtons.push({
-                        label: LocalizedConstants.refreshTokenLabel,
+                        label: refreshTokenLabel,
                         id: "refreshToken",
                         callback: async () => {
                             const account = (
@@ -774,6 +801,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             async (state, payload) => {
                 this.state.selectedInputMode = payload.inputMode;
                 await this.updateItemVisibility();
+                this.state = this.state;
+
+                if (
+                    this.state.selectedInputMode ===
+                    ConnectionInputMode.AzureBrowse
+                ) {
+                    await this.loadAzureDatabases(state);
+                }
+
                 return state;
             },
         );
@@ -799,6 +835,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 await this.handleAzureMFAEdits(payload.event.propertyName);
             }
             await this.updateItemVisibility();
+
             return state;
         });
 
@@ -809,6 +846,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             await this.updateItemVisibility();
             await this.handleAzureMFAEdits("azureAuthType");
             await this.handleAzureMFAEdits("accountId");
+
             return state;
         });
 
@@ -837,15 +875,23 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             }
 
             try {
-                const result =
-                    await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
-                        this.state.connectionProfile as any,
-                    );
-                if (result?.errorMessage) {
-                    this.state.formError = result.errorMessage;
+                try {
+                    const result =
+                        await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
+                            this.state.connectionProfile as any,
+                        );
+
+                    if (result?.errorMessage) {
+                        this.state.formError = result.errorMessage;
+                        this.state.connectionStatus = ApiStatus.Error;
+                        return state;
+                    }
+                } catch (error) {
+                    this.state.formError = getErrorMessage(error);
                     this.state.connectionStatus = ApiStatus.Error;
                     return state;
                 }
+
                 if (this._connectionToEditCopy) {
                     await this._mainController.connectionManager.getUriForConnection(
                         this._connectionToEditCopy,
@@ -882,5 +928,120 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             }
             return state;
         });
+    }
+
+    private async loadAzureDatabases(state: ConnectionDialogWebviewState) {
+        try {
+            const auth: VSCodeAzureSubscriptionProvider =
+                new VSCodeAzureSubscriptionProvider();
+
+            if (!(await auth.isSignedIn())) {
+                const result = await auth.signIn();
+
+                if (!result) {
+                    state.formError = l10n.t("Azure sign in failed.");
+                    return state;
+                }
+            }
+
+            // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
+            // we can't controll which config setting it uses, but the Azure Resources extension (ms-azuretools.vscode-azureresourcegroups) sets this config setting,
+            // so that's the easiest way for a user to control their subscription filters.
+            const shouldUseFilter = vscode.workspace.getConfiguration().get<string[] | undefined>('azureResourceGroups.selectedSubscriptions') !== undefined;
+
+            const tenantSubMap = this.groupBy(
+                await auth.getSubscriptions(shouldUseFilter),
+                "tenantId",
+            ); // TODO: replace with Object.groupBy once ES2024 is supported
+
+            if (tenantSubMap.size === 0) {
+                state.formError = l10n.t("No subscriptions set in VS Code's Azure account filter.");
+            } else {
+                for (const t of tenantSubMap.keys()) {
+                    for (const s of tenantSubMap.get(t)) {
+                        try {
+                            const servers = await this.getAzureServers(s);
+                            state.azureDatabases.push(...servers);
+                            this.state = state; // update state mid-reducer so the UI is more responsive
+                        }
+                        catch (error) {
+                            vscode.window.showErrorMessage(Loc.errorLoadingAzureDatabases(s.name, s.subscriptionId));
+                            console.error(state.formError + "\n" + getErrorMessage(error));
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            state.formError = l10n.t("Error loading Azure databases.");
+            console.error(state.formError + "\n" + getErrorMessage(error));
+            return state;
+        }
+    }
+
+    private groupBy<T>(xs: T[], key: string): Map<string, T[]> {
+        return xs.reduce((rv, x) => {
+            const keyValue = x[key];
+            if (!rv.has(keyValue)) {
+                rv.set(keyValue, []);
+            }
+            rv.get(keyValue)!.push(x);
+            return rv;
+        }, new Map<string, T[]>());
+    }
+
+    private async getAzureServers(
+        sub: AzureSubscription,
+    ): Promise<AzureSqlDatabaseInfo[]> {
+        const result: AzureSqlDatabaseInfo[] = [];
+        const client = new ResourceManagementClient(
+            sub.credential,
+            sub.subscriptionId,
+        );
+        const servers = await listAllIterator<GenericResourceExpanded>(
+            client.resources.list({
+                filter: "resourceType eq 'Microsoft.Sql/servers'",
+            }),
+        );
+        const databasesPromise = listAllIterator<GenericResourceExpanded>(
+            client.resources.list({
+                filter: "resourceType eq 'Microsoft.Sql/servers/databases'",
+            }),
+        );
+
+        for (const server of servers) {
+            result.push({
+                server: server.name,
+                databases: [],
+                location: server.location,
+                resourceGroup: this.extractFromResourceId(server.id, "resourceGroups"),
+                subscription: `${sub.name} (${sub.subscriptionId})`,
+            });
+        }
+
+        for (const database of await databasesPromise) {
+            const serverName = this.extractFromResourceId(database.id, "servers");
+            const server = result.find((s) => s.server === serverName);
+            if (server) {
+                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+            }
+        }
+
+        return result;
+    }
+
+    private extractFromResourceId(resourceId: string, property: string): string | undefined {
+        if (!property.endsWith("/")) {
+            property += "/";
+        }
+
+        let startIndex = resourceId.indexOf(property);
+
+        if (startIndex === -1) {
+            return undefined;
+        } else {
+            startIndex += property.length;
+        }
+
+        return resourceId.substring(startIndex, resourceId.indexOf("/", startIndex));
     }
 }

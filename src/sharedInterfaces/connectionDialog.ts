@@ -37,6 +37,7 @@ export class ConnectionDialogWebviewState
             (keyof IConnectionDialogProfile)[]
         >;
     };
+    public azureDatabases: AzureSqlDatabaseInfo[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
@@ -45,6 +46,7 @@ export class ConnectionDialogWebviewState
         connectionProfile,
         selectedInputMode,
         connectionComponents,
+        azureDatabases,
         recentConnections,
         connectionStatus,
         formError,
@@ -63,6 +65,7 @@ export class ConnectionDialogWebviewState
                 (keyof IConnectionDialogProfile)[]
             >;
         };
+        azureDatabases: AzureSqlDatabaseInfo[];
         recentConnections: IConnectionDialogProfile[];
         connectionStatus: ApiStatus;
         formError: string;
@@ -70,10 +73,19 @@ export class ConnectionDialogWebviewState
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
         this.connectionComponents = connectionComponents;
+        this.azureDatabases = azureDatabases;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;
     }
+}
+
+export interface AzureSqlDatabaseInfo {
+    server: string;
+    databases: string[];
+    location: string;
+    resourceGroup: string;
+    subscription: string;
 }
 
 export interface ConnectionDialogFormItemSpec
