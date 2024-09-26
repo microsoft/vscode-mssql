@@ -654,16 +654,25 @@ export class ConnectionDialog {
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
     public static connectionString = l10n.t("Connection String");
-    public static connectionStringIsRequired = l10n.t("Connection string is required");
+    public static connectionStringIsRequired = l10n.t(
+        "Connection string is required",
+    );
     public static signIn = l10n.t("Sign in");
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
 
-    public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
+    public static errorLoadingAzureDatabases(
+        subscriptionName: string,
+        subscriptionId: string,
+    ) {
         return l10n.t({
-            message: "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
+            message:
+                "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
             args: [subscriptionName, subscriptionId],
-            comment: ["{0} is the subscription name", "{1} is the subscription id"],
+            comment: [
+                "{0} is the subscription name",
+                "{1} is the subscription id",
+            ],
         });
     }
 }

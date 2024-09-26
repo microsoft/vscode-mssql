@@ -26,7 +26,10 @@ import {
 import { ConnectionOption } from "azdata";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ConnectionDialog as Loc, refreshTokenLabel } from "../constants/locConstants";
+import {
+    ConnectionDialog as Loc,
+    refreshTokenLabel,
+} from "../constants/locConstants";
 import {
     FormItemSpec,
     FormItemActionButton,
@@ -38,7 +41,10 @@ import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
+import {
+    GenericResourceExpanded,
+    ResourceManagementClient,
+} from "@azure/arm-resources";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { l10n } from "vscode";
 
@@ -179,7 +185,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             );
             this.state.connectionProfile = connection;
 
-            this.state.selectedInputMode = (connection.connectionString && connection.server === undefined) ? ConnectionInputMode.ConnectionString : ConnectionInputMode.Parameters;
+            this.state.selectedInputMode =
+                connection.connectionString && connection.server === undefined
+                    ? ConnectionInputMode.ConnectionString
+                    : ConnectionInputMode.Parameters;
             this.state = this.state;
         }
     }
@@ -442,8 +451,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 ) {
                     return {
                         isValid: false,
-                        validationMessage:
-                            Loc.azureAccountIsRequired,
+                        validationMessage: Loc.azureAccountIsRequired,
                     };
                 }
                 return {
@@ -470,8 +478,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 ) {
                     return {
                         isValid: false,
-                        validationMessage:
-                            Loc.tenantIdIsRequired,
+                        validationMessage: Loc.tenantIdIsRequired,
                     };
                 }
                 return {
@@ -495,8 +502,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 ) {
                     return {
                         isValid: false,
-                        validationMessage:
-                            Loc.connectionStringIsRequired,
+                        validationMessage: Loc.connectionStringIsRequired,
                     };
                 }
                 return {
@@ -947,7 +953,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
             // we can't controll which config setting it uses, but the Azure Resources extension (ms-azuretools.vscode-azureresourcegroups) sets this config setting,
             // so that's the easiest way for a user to control their subscription filters.
-            const shouldUseFilter = vscode.workspace.getConfiguration().get<string[] | undefined>('azureResourceGroups.selectedSubscriptions') !== undefined;
+            const shouldUseFilter =
+                vscode.workspace
+                    .getConfiguration()
+                    .get<
+                        string[] | undefined
+                    >("azureResourceGroups.selectedSubscriptions") !==
+                undefined;
 
             const tenantSubMap = this.groupBy(
                 await auth.getSubscriptions(shouldUseFilter),
@@ -955,7 +967,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ); // TODO: replace with Object.groupBy once ES2024 is supported
 
             if (tenantSubMap.size === 0) {
-                state.formError = l10n.t("No subscriptions set in VS Code's Azure account filter.");
+                state.formError = l10n.t(
+                    "No subscriptions set in VS Code's Azure account filter.",
+                );
             } else {
                 for (const t of tenantSubMap.keys()) {
                     for (const s of tenantSubMap.get(t)) {
@@ -963,10 +977,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             const servers = await this.getAzureServers(s);
                             state.azureDatabases.push(...servers);
                             this.state = state; // update state mid-reducer so the UI is more responsive
-                        }
-                        catch (error) {
-                            vscode.window.showErrorMessage(Loc.errorLoadingAzureDatabases(s.name, s.subscriptionId));
-                            console.error(state.formError + "\n" + getErrorMessage(error));
+                        } catch (error) {
+                            vscode.window.showErrorMessage(
+                                Loc.errorLoadingAzureDatabases(
+                                    s.name,
+                                    s.subscriptionId,
+                                ),
+                            );
+                            console.error(
+                                state.formError + "\n" + getErrorMessage(error),
+                            );
                         }
                     }
                 }
@@ -1013,23 +1033,34 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 server: server.name,
                 databases: [],
                 location: server.location,
-                resourceGroup: this.extractFromResourceId(server.id, "resourceGroups"),
+                resourceGroup: this.extractFromResourceId(
+                    server.id,
+                    "resourceGroups",
+                ),
                 subscription: `${sub.name} (${sub.subscriptionId})`,
             });
         }
 
         for (const database of await databasesPromise) {
-            const serverName = this.extractFromResourceId(database.id, "servers");
+            const serverName = this.extractFromResourceId(
+                database.id,
+                "servers",
+            );
             const server = result.find((s) => s.server === serverName);
             if (server) {
-                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+                server.databases.push(
+                    database.name.substring(serverName.length + 1),
+                ); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
             }
         }
 
         return result;
     }
 
-    private extractFromResourceId(resourceId: string, property: string): string | undefined {
+    private extractFromResourceId(
+        resourceId: string,
+        property: string,
+    ): string | undefined {
         if (!property.endsWith("/")) {
             property += "/";
         }
@@ -1042,6 +1073,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             startIndex += property.length;
         }
 
-        return resourceId.substring(startIndex, resourceId.indexOf("/", startIndex));
+        return resourceId.substring(
+            startIndex,
+            resourceId.indexOf("/", startIndex),
+        );
     }
 }
