@@ -58,7 +58,8 @@
     "smoketest": "gulp ext:smoke",
     "test": "gulp test:cover --log",
     "package": "vsce package",
-    "prepare": "husky"
+    "prepare": "husky",
+    "precommit": "run-p lint localization"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
