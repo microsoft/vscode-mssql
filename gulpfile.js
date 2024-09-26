@@ -70,22 +70,14 @@ const cssLoaderPlugin = {
 	},
 };
 
-gulp.task('ext:lint', () => {
+gulp.task('ext:lint', (done) => {
 	const fix = (argv.fix === undefined) ? false : true;
-	return gulp.src([
-		'./src/**/*.ts',
-		'./src/**/*.tsx',
-		'./test/**/*.ts',
-		'!**/*.d.ts',
-		'!./src/views/htmlcontent/**/*'
-	])
-		.pipe(gulpESLintNew({
-			quiet: true,
-			fix: fix
-		}))
-		.pipe(gulpESLintNew.format())           // Output lint results to the console.
-		.pipe(gulpESLintNew.failAfterError())
-		.pipe(gulpESLintNew.fix());
+	let eslintCommand = 'yarn eslint --quiet --cache ';
+	if (fix) {
+		eslintCommand += '--fix ';
+	}
+	run(eslintCommand);
+	done();
 });
 
 // Copy icons for OE
