@@ -883,6 +883,9 @@
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
     </trans-unit>
+    <trans-unit id="++CODE++dfbfd0da8890920dca12a78a08210bc467df81e904dbca2aad7e005ac10e1e00">
+      <source xml:lang="en">Remove {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
     </trans-unit>

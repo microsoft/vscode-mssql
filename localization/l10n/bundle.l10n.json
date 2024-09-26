@@ -647,6 +647,7 @@
   "Query failed": "Query failed",
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
+  "Script copied to clipboard": "Script copied to clipboard",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
