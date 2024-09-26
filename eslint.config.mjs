@@ -9,15 +9,26 @@ import reactRecommended from "eslint-plugin-react/configs/recommended.js";
 import react from "eslint-plugin-react";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import { includeIgnoreFile } from "@eslint/compat";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const gitignorePath = path.resolve(__dirname, ".gitignore");
 
 export default [
   {
-    files: ["**/*.ts", "**/*.tsx"],
+    ignores: ["out/**/*"],
+  },
+  {
+    files: ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts"],
     ignores: [
-      "src/prompts/**/*.ts",
-      "**/*.d.ts",
-      "src/reactviews/pages/ExecutionPlan/**/*",
-    ], // Ignore prompts files as they are copied from other repos
+      ...(includeIgnoreFile(gitignorePath).ignores) || [],
+      "src/views/**/*",
+      "src/prompts/**/*.ts", // Ignore prompts files as they are copied from other repos
+      "**/out/**/*",
+    ],
     languageOptions: {
       ...reactRecommended.languageOptions,
       ecmaVersion: "latest",
@@ -131,7 +142,7 @@ export default [
       "@typescript-eslint/semi": "warn",
       //...jsxA11y.flatConfigs.recommended.rules,
       "prettier/prettier": [
-        "warn",
+        "error",
         {
           endOfLine: "auto",
         },
