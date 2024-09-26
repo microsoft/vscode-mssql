@@ -104,6 +104,10 @@
   "Timestamp": "Timestamp",
   "Message": "Message",
   "Open snapshot in new tab": "Open snapshot in new tab",
+  "Show Filter": "Show Filter",
+  "Sort Ascending": "Sort Ascending",
+  "Sort Descending": "Sort Descending",
+  "Cancel": "Cancel",
   "Filter Settings": "Filter Settings",
   "Error": "Error",
   "Clear All": "Clear All",
@@ -296,7 +300,6 @@
   "Azure Device Code": "Azure Device Code",
   "Azure Logs": "Azure Logs",
   "Open": "Open",
-  "Cancel": "Cancel",
   "Ignore Tenant": "Ignore Tenant",
   "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process./{0} is the tenant name{1} is the tenant id{2} is the resource": {
     "message": "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.",
