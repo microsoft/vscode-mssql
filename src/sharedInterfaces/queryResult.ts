@@ -16,6 +16,7 @@ export interface QueryResultReactProvider {
 export enum QueryResultPaneTabs {
     Results = "results",
     Messages = "messages",
+    ExecutionPlan = "executionPlan"
 }
 
 export interface QueryResultTabStates {
@@ -28,6 +29,7 @@ export interface QueryResultWebviewState {
     value?: string;
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
+    isExecutionPlan?: boolean;
 }
 
 export interface QueryResultReducers {

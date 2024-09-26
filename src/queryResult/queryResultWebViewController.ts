@@ -53,7 +53,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
     }
 
-    public addQueryResultState(uri: string): void {
+    public addQueryResultState(uri: string, isExecutionPlan?: boolean): void {
         this._queryResultStateMap.set(uri, {
             value: "",
             messages: [],
@@ -61,6 +61,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
             uri: uri,
+            isExecutionPlan: isExecutionPlan ?? false
         });
     }
 
@@ -78,4 +79,5 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     ): void {
         this._sqlOutputContentProvider = provider;
     }
+
 }

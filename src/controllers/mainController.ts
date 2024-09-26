@@ -80,6 +80,10 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
+    private _executionPlanOptions: ExecutionPlanOptions = {
+        includeEstimatedExecutionPlanXml: false,
+        includeActualExecutionPlanXml: false
+    };
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -183,6 +187,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
+                this._executionPlanOptions.includeEstimatedExecutionPlanXml = false;
                 this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -250,9 +255,8 @@ export default class MainController implements vscode.Disposable {
             );
             this.registerCommand(Constants.cmdShowExecutionPlanInResults);
             this._event.on(Constants.cmdShowExecutionPlanInResults, async () => {
-                this.onRunQuery(undefined, {
-                    includeEstimatedExecutionPlanXml: true
-                })
+                this._executionPlanOptions.includeEstimatedExecutionPlanXml = true;
+                this.onRunQuery()
             });
             this.initializeObjectExplorer();
 
@@ -1461,7 +1465,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * get the T-SQL query from the editor, run it and show output
      */
-    public async onRunQuery(callbackThis?: MainController, executionPlanOptions?: ExecutionPlanOptions): Promise<void> {
+    public async onRunQuery(callbackThis?: MainController): Promise<void> {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
@@ -1524,7 +1528,7 @@ export default class MainController implements vscode.Disposable {
                 uri,
                 querySelection,
                 title,
-                executionPlanOptions
+                self._executionPlanOptions
             );
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);

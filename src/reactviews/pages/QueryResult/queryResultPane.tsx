@@ -136,6 +136,7 @@ export const QueryResultPane = () => {
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
+    const [xmlPlanText, setXmlPlanText] = useState<string>("");
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -198,6 +199,14 @@ export const QueryResultPane = () => {
                     >
                         {MESSAGES}
                     </Tab>
+                    {metadata.resultSetSummary && metadata.isExecutionPlan && (
+                        <Tab
+                            value={qr.QueryResultPaneTabs.ExecutionPlan}
+                            key={qr.QueryResultPaneTabs.ExecutionPlan}
+                        >
+                            {"Query Plan"}
+                        </Tab>
+                    )}
                 </TabList>
                 {metadata.tabStates!.resultPaneTab ==
                     qr.QueryResultPaneTabs.Results && (
@@ -208,7 +217,6 @@ export const QueryResultPane = () => {
                         }}
                     />
                 )}
-
                 {
                     <Button
                         appearance="transparent"
@@ -254,6 +262,7 @@ export const QueryResultPane = () => {
                                             var columnLength =
                                                 metadata?.resultSetSummary
                                                     ?.columnInfo?.length;
+                                            setXmlPlanText(metadata?.isExecutionPlan ? r.rows[0][0].displayValue : "");
                                             return r.rows.map((r) => {
                                                 let dataWithSchema: {
                                                     [key: string]: any;
@@ -352,6 +361,16 @@ export const QueryResultPane = () => {
                         </Table>
                     </div>
                 )}
+                {metadata.tabStates!.resultPaneTab ===
+                    qr.QueryResultPaneTabs.ExecutionPlan &&
+                    metadata.resultSetSummary && (
+                        <div
+                            id={"executionPlanResultsTab"}
+                            className={classes.queryResultContainer}
+                        >
+                            {xmlPlanText}
+                        </div>
+                    )}
             </div>
         </div>
     );

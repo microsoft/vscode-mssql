@@ -182,6 +182,7 @@ export class SqlOutputContentProvider {
                     await queryRunner.runQuery(selection, executionPlanOptions as ExecutionPlanOptions, promise);
                 }
             },
+            executionPlanOptions,
         );
     }
 
@@ -220,6 +221,7 @@ export class SqlOutputContentProvider {
         uri: string,
         title: string,
         queryCallback: any,
+        executionPlanOptions?: any,
     ): Promise<void> {
         let queryRunner = await this.createQueryRunner(
             statusView ? statusView : this._statusView,
@@ -240,7 +242,7 @@ export class SqlOutputContentProvider {
                 await this.createWebviewController(uri, title, queryRunner);
             }
         } else {
-            this._queryResultWebviewController.addQueryResultState(uri);
+            this._queryResultWebviewController.addQueryResultState(uri,  executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false);
         }
         if (queryRunner) {
             queryCallback(queryRunner);
