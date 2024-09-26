@@ -4,137 +4,71 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import {
-    Button,
-    Divider,
-    DrawerBody,
-    DrawerHeader,
-    DrawerHeaderTitle,
-    MessageBar,
-    OverlayDrawer,
-    Spinner,
-} from "@fluentui/react-components";
-import { Dismiss24Regular } from "@fluentui/react-icons";
-
+import { Button } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField, useFormStyles } from "../../common/forms/formUtils";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormItemSpec } from "../../common/forms/form";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { ConnectButton } from "./components/connectButton.component";
+import { locConstants } from "../../common/locConstants";
+import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
+import { TestConnectionButton } from "./components/testConnectionButton.component";
 
 export const ConnectionFormPage = () => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
-    const formStyles = useFormStyles();
+    const context = useContext(ConnectionDialogContext);
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+    const formStyles = useFormStyles();
 
-    if (connectionDialogContext === undefined) {
+    if (context === undefined) {
         return undefined;
     }
 
     return (
-        <div className={formStyles.formDiv}>
-            {connectionDialogContext?.state.formError && (
-                <MessageBar intent="error">
-                    {connectionDialogContext.state.formError}
-                </MessageBar>
-            )}
-            {connectionDialogContext.state.connectionFormComponents.mainComponents.map(
-                (component, idx) => {
+        <div>
+            {context.state.connectionComponents.mainOptions.map(
+                (inputName, idx) => {
+                    const component =
+                        context.state.connectionComponents.components[
+                            inputName as keyof IConnectionDialogProfile
+                        ];
                     if (component.hidden === true) {
                         return undefined;
                     }
+
                     return (
                         <FormField
                             key={idx}
-                            connectionDialogContext={connectionDialogContext}
-                            component={component}
+                            context={context}
+                            component={
+                                component as FormItemSpec<IConnectionDialogProfile>
+                            }
                             idx={idx}
+                            props={{ orientation: "horizontal" }}
                         />
                     );
-                }
+                },
             )}
-            <OverlayDrawer
-                position="end"
-                size="medium"
-                open={isAdvancedDrawerOpen}
-                onOpenChange={(_, { open }) => setIsAdvancedDrawerOpen(open)}
-            >
-                <DrawerHeader>
-                    <DrawerHeaderTitle
-                        action={
-                            <Button
-                                appearance="subtle"
-                                aria-label="Close"
-                                icon={<Dismiss24Regular />}
-                                onClick={() => setIsAdvancedDrawerOpen(false)}
-                            />
-                        }
-                    >
-                        Advanced Connection Settings
-                    </DrawerHeaderTitle>
-                </DrawerHeader>
-
-                <DrawerBody>
-                    {Object.keys(
-                        connectionDialogContext.state.connectionFormComponents
-                            .advancedComponents
-                    ).map((group, groupIndex) => {
-                        return (
-                            <div key={groupIndex} style={{ margin: "20px 0px" }}>
-                                <Divider>{group}</Divider>
-                                {connectionDialogContext.state.connectionFormComponents.advancedComponents[
-                                    group
-                                ].map((component, idx) => {
-                                    if (component.hidden === true) {
-                                        return undefined;
-                                    }
-                                    return (
-                                        <FormField
-                                            key={idx}
-                                            connectionDialogContext={connectionDialogContext}
-                                            component={component}
-                                            idx={idx}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        );
-                    })}
-                </DrawerBody>
-            </OverlayDrawer>
-            <Button
-                shape="square"
-                onClick={(_event) => {
-                    setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                }}
-                style={{
-                    width: "200px",
-                    alignSelf: "center",
-                }}
-            >
-                Advanced
-            </Button>
-            <Button
-                appearance="primary"
-                disabled={
-                    connectionDialogContext.state.connectionStatus === ApiStatus.Loading
-                }
-                shape="square"
-                onClick={(_event) => {
-                    connectionDialogContext.connect();
-                }}
-                style={{
-                    width: "200px",
-                    alignSelf: "center",
-                }}
-                iconPosition="after"
-                icon={
-                    connectionDialogContext.state.connectionStatus ===
-                        ApiStatus.Loading ? (
-                        <Spinner size="tiny" />
-                    ) : undefined
-                }
-            >
-                Connect
-            </Button>
+            <AdvancedOptionsDrawer
+                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+            />
+            <div className={formStyles.formNavTray}>
+                <Button
+                    shape="square"
+                    onClick={(_event) => {
+                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                    }}
+                    className={formStyles.formNavTrayButton}
+                >
+                    {locConstants.connectionDialog.advancedSettings}
+                </Button>
+                <div className={formStyles.formNavTrayRight}>
+                    <TestConnectionButton
+                        className={formStyles.formNavTrayButton}
+                    />
+                    <ConnectButton className={formStyles.formNavTrayButton} />
+                </div>
+            </div>
         </div>
     );
 };
