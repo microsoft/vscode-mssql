@@ -70,16 +70,6 @@ const cssLoaderPlugin = {
 	},
 };
 
-gulp.task('ext:lint', (done) => {
-	const fix = (argv.fix === undefined) ? false : true;
-	let eslintCommand = 'yarn eslint --quiet --cache ';
-	if (fix) {
-		eslintCommand += '--fix ';
-	}
-	run(eslintCommand);
-	done();
-});
-
 // Copy icons for OE
 gulp.task('ext:copy-OE-assets', (done) => {
 	return gulp.src([
@@ -438,7 +428,5 @@ gulp.task('watch-reactviews', function () {
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-reactviews')));
-
-gulp.task('lint', gulp.series('ext:lint'));
 
 gulp.task('cover', gulp.series('remap-coverage', 'cover:combine-json'));

@@ -7,7 +7,6 @@ import deprecationPlugin from "eslint-plugin-deprecation";
 import { fixupPluginRules } from "@eslint/compat";
 import reactRecommended from "eslint-plugin-react/configs/recommended.js";
 import react from "eslint-plugin-react";
-import jsxA11y from "eslint-plugin-jsx-a11y";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import { includeIgnoreFile } from "@eslint/compat";
 import path from "node:path";
@@ -16,6 +15,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const gitignorePath = path.resolve(__dirname, ".gitignore");
+import stylistic from '@stylistic/eslint-plugin'
 
 export default [
   {
@@ -48,8 +48,8 @@ export default [
       // @ts-ignore
       ["deprecation"]: fixupPluginRules(deprecationPlugin),
       react,
-      "jsx-a11y": jsxA11y,
-      ...eslintPluginPrettierRecommended.plugins
+      ...eslintPluginPrettierRecommended.plugins,
+      '@stylistic': stylistic
     },
     settings: {
       react: {
@@ -139,8 +139,7 @@ export default [
           leadingUnderscore: "require",
         },
       ],
-      "@typescript-eslint/semi": "warn",
-      //...jsxA11y.flatConfigs.recommended.rules,
+      "@stylistic/semi": "warn",
       "prettier/prettier": [
         "error",
         {
