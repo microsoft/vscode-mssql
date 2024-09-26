@@ -5,11 +5,11 @@
 
 import { useContext } from "react";
 import { Text, Image, webLightTheme } from "@fluentui/react-components";
-import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { locConstants } from "../../common/locConstants";
+import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+import { locConstants } from "../../../common/locConstants";
 
-const sqlServerImage = require("../../../../media/sqlServer_light.svg");
-const sqlServerImageDark = require("../../../../media/sqlServer_dark.svg");
+const sqlServerImage = require("../../../../../media/sqlServer_light.svg");
+const sqlServerImageDark = require("../../../../../media/sqlServer_dark.svg");
 
 export const ConnectionHeader = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);

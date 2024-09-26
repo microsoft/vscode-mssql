@@ -130,6 +130,12 @@ export default [
       ],
       "@typescript-eslint/semi": "warn",
       //...jsxA11y.flatConfigs.recommended.rules,
+      "prettier/prettier": [
+        "warn",
+        {
+          endOfLine: "auto",
+        },
+      ],
     },
   },
 ];
