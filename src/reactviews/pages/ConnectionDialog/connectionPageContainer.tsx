@@ -17,12 +17,14 @@ import {
     ConnectionInputMode,
 } from "../../../sharedInterfaces/connectionDialog";
 import "./sqlServerRotation.css";
-import { ConnectionHeader } from "./connectionHeader";
+
+import { ConnectionHeader } from "./components/connectionHeader.component";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionStringPage } from "./connectionStringPage";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { locConstants } from "../../common/locConstants";
+import { AzureBrowsePage } from "./azureBrowsePage";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -32,6 +34,8 @@ function renderContent(
             return <ConnectionFormPage />;
         case ConnectionInputMode.ConnectionString:
             return <ConnectionStringPage />;
+        case ConnectionInputMode.AzureBrowse:
+            return <AzureBrowsePage />;
     }
 }
 
