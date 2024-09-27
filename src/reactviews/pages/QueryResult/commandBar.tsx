@@ -4,12 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles } from "@fluentui/react-components";
-import * as utils from "./queryResultSetup";
 import { useContext } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import * as l10n from "@vscode/l10n";
+import {
+    saveAsCsvIcon,
+    saveAsExcelIcon,
+    saveAsJsonIcon,
+} from "./queryResultUtils";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -25,10 +29,10 @@ const useStyles = makeStyles({
 
 const CommandBar = () => {
     const context = useContext(QueryResultContext);
-    const queryResultState = context?.state;
     if (context === undefined) {
         return undefined;
     }
+    const queryResultState = context.state;
     const webViewState = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
@@ -54,7 +58,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsCsvIcon(context.theme)}
+                        src={saveAsCsvIcon(context.theme)}
                     />
                 }
                 className="codicon saveCsv"
@@ -67,7 +71,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsJsonIcon(context.theme)}
+                        src={saveAsJsonIcon(context.theme)}
                     />
                 }
                 className="codicon saveJson"
@@ -80,7 +84,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsExcelIcon(context.theme)}
+                        src={saveAsExcelIcon(context.theme)}
                     />
                 }
                 className="codicon saveExcel"
