@@ -26,7 +26,7 @@ import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import SlickGrid, { SlickGridHandle } from "./slickgrid";
+import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
@@ -169,7 +169,7 @@ export const QueryResultPane = () => {
         return null;
     }
 
-    const gridRef = useRef<SlickGridHandle>(null);
+    const gridRef = useRef<ResultGridHandle>(null);
 
     return (
         <div className={classes.root} ref={gridParentRef}>
@@ -229,7 +229,7 @@ export const QueryResultPane = () => {
                             id={"grid-parent"}
                             className={classes.queryResultContainer}
                         >
-                            <SlickGrid
+                            <ResultGrid
                                 loadFunc={(
                                     offset: number,
                                     count: number,

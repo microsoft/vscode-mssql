@@ -46,19 +46,19 @@ declare global {
     }
 }
 
-export interface SlickGridProps {
+export interface ResultGridProps {
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
     resultSetSummary?: ResultSetSummary;
 }
 
-export interface SlickGridHandle {
+export interface ResultGridHandle {
     refreshGrid: () => void;
     resizeGrid: (width: number, height: number) => void;
 }
 let table: Table<any>;
 
-const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
-    (props: SlickGridProps, ref) => {
+const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
+    (props: ResultGridProps, ref) => {
         const gridContainerRef = useRef<HTMLDivElement>(null);
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
@@ -262,5 +262,5 @@ const IsJsonRegex = /^\s*[\{|\[][\S\s]*[\}\]]\s*$/g;
 // The css class for null cell
 const NULL_CELL_CSS_CLASS = "cell-null";
 
-SlickGrid.displayName = "SlickGrid";
-export default SlickGrid;
+ResultGrid.displayName = "ResultGrid";
+export default ResultGrid;
