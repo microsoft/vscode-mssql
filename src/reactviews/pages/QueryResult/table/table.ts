@@ -15,7 +15,6 @@ import * as DOM from "./dom";
 import { IDisposableDataProvider } from "./dataProvider";
 import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
-import { HeaderFilter } from "./plugins/headerFilter.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -25,6 +24,8 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
         emulatePagingWhenScrolling: false,
     } as Slick.GridOptions<T>;
 }
+
+const ACTIONBAR_WIDTH = 36;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     protected styleElement: HTMLStyleElement;
@@ -71,7 +72,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         // this._tableContainer.className = //TODO: class name for styles
         let gridParent = document.getElementById("grid-parent");
         if (gridParent) {
-            this._tableContainer.style.width = `${gridParent?.clientWidth.toString()}px`;
+            // this._tableContainer.style.width = `calc(100% - 36px)`;
+            this._tableContainer.style.width = `${(gridParent?.clientWidth - ACTIONBAR_WIDTH).toString()}px`;
             const height = gridParent?.clientHeight - 5;
             this._tableContainer.style.height = `${height.toString()}px`;
         }
@@ -83,7 +85,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             [],
             newOptions,
         );
-        this.registerPlugin(new HeaderFilter());
 
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;
