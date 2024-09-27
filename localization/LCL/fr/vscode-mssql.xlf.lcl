@@ -1274,7 +1274,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Collapse All]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tout réduire]]></Val>
+            <Val><![CDATA[Réduire tout]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2281,6 +2281,9 @@
       <Item ItemId=";bundle.++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Database to connect (press Enter to connect to <default> database)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Facultatif]5D; Base de données à laquelle se connecter (appuyez sur Entrée pour vous connecter à la base de données <par défaut>)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3323,7 +3326,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Reverse Alphabetical]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Alphabétique inversé]]></Val>
+            <Val><![CDATA[Ordre alphabétique inversé]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
