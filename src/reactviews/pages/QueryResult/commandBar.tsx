@@ -50,7 +50,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsCsv(queryResultState!.theme!)}
+                        src={utils.saveAsCsv(state!.theme!)}
                     />
                 }
                 className="codicon saveCsv"
@@ -63,7 +63,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsJson(queryResultState!.theme!)}
+                        src={utils.saveAsJson(state!.theme!)}
                     />
                 }
                 className="codicon saveJson"
@@ -76,7 +76,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsExcel(queryResultState!.theme!)}
+                        src={utils.saveAsExcel(state!.theme!)}
                     />
                 }
                 className="codicon saveExcel"
