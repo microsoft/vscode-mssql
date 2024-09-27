@@ -640,6 +640,7 @@ export let queryFailed = l10n.t("Query failed");
 export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
+export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");

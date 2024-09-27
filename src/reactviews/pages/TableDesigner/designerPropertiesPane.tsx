@@ -3,7 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Text, makeStyles, shorthands } from "@fluentui/react-components";
+import {
+    Accordion,
+    AccordionHeader,
+    AccordionItem,
+    AccordionPanel,
+    Button,
+    Text,
+    makeStyles,
+    shorthands,
+} from "@fluentui/react-components";
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerCheckbox } from "./designerCheckbox";
@@ -16,12 +25,16 @@ import {
     DropDownProperties,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import { DesignerCollapsibleDiv } from "./designerCollapsibleDiv";
+import {
+    ChevronRightFilled,
+    ChevronLeftFilled,
+    DismissRegular,
+} from "@fluentui/react-icons";
 import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
-        ...shorthands.padding("10px"),
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -29,9 +42,15 @@ const useStyles = makeStyles({
         ...shorthands.overflow("hidden"),
     },
     title: {
-        marginLeft: "10px",
-        marginBottom: "10px",
+        display: "flex",
         height: "30px",
+        paddingTop: "10px",
+        paddingBottom: "10px",
+        borderBottom: "1px solid var(--vscode-editorWidget-border)",
+        "> *": {
+            marginRight: "10px",
+        },
+        lineHeight: "30px",
     },
     stack: {
         marginBottom: "10px",
@@ -41,13 +60,17 @@ const useStyles = makeStyles({
             marginBottom: "10px",
         },
         overflowY: "auto",
+        backgroundColor: "var(--vscode-editor-background)",
     },
     group: {
-        marginTop: "10px",
         overflowX: "auto",
         overflowY: "hidden",
+        "> *": {
+            marginBottom: "10px",
+        },
     },
 });
+
 export const DesignerPropertiesPane = () => {
     const classes = useStyles();
     const state = useContext(TableDesignerContext);
@@ -90,110 +113,167 @@ export const DesignerPropertiesPane = () => {
         );
     }
 
+    const renderAccordionItem = (group: string | undefined) => {
+        if (!group) {
+            return undefined;
+        }
+        return (
+            <AccordionItem value={group} key={group}>
+                <AccordionHeader>{group}</AccordionHeader>
+                <AccordionPanel>
+                    <div className={classes.group}>
+                        {parentTableProperties
+                            .itemProperties!.filter(
+                                (i) =>
+                                    (group === "General" && !i.group) ||
+                                    group === i.group,
+                            )
+                            .filter(
+                                (item) => item.showInPropertiesView !== false,
+                            )
+                            .map((item) => {
+                                if (!data) {
+                                    return undefined;
+                                }
+                                const modelValue = data![item.propertyName];
+                                if (!modelValue) {
+                                    return undefined;
+                                }
+                                switch (item.componentType) {
+                                    case "checkbox":
+                                        return (
+                                            <DesignerCheckbox
+                                                UiArea="PropertiesView"
+                                                component={item}
+                                                model={
+                                                    modelValue as CheckBoxProperties
+                                                }
+                                                componentPath={[
+                                                    ...propertiesPaneData!
+                                                        .componentPath,
+                                                    item.propertyName,
+                                                ]}
+                                                key={`${group}-${item.propertyName}`}
+                                            />
+                                        );
+                                    case "input":
+                                        return (
+                                            <DesignerInputBox
+                                                UiArea="PropertiesView"
+                                                component={item}
+                                                model={
+                                                    modelValue as InputBoxProperties
+                                                }
+                                                componentPath={[
+                                                    ...propertiesPaneData!
+                                                        .componentPath,
+                                                    item.propertyName,
+                                                ]}
+                                                horizontal
+                                                key={`${group}-${item.propertyName}`}
+                                            />
+                                        );
+                                    case "dropdown":
+                                        return (
+                                            <DesignerDropdown
+                                                UiArea="PropertiesView"
+                                                component={item}
+                                                model={
+                                                    modelValue as DropDownProperties
+                                                }
+                                                componentPath={[
+                                                    ...propertiesPaneData!
+                                                        .componentPath,
+                                                    item.propertyName,
+                                                ]}
+                                                horizontal
+                                                key={`${group}-${item.propertyName}`}
+                                            />
+                                        );
+                                    case "table":
+                                        return (
+                                            <DesignerTable
+                                                UiArea="PropertiesView"
+                                                component={item}
+                                                model={
+                                                    modelValue as DesignerTableProperties
+                                                }
+                                                componentPath={[
+                                                    ...propertiesPaneData!
+                                                        .componentPath,
+                                                    item.propertyName,
+                                                ]}
+                                                loadPropertiesTabData={false}
+                                                key={`${group}-${item.propertyName}`}
+                                            />
+                                        );
+                                }
+                            })}
+                    </div>
+                </AccordionPanel>
+            </AccordionItem>
+        );
+    };
+
     return (
         <div className={classes.root}>
-            <Text className={classes.title} size={500}>
-                {PROPERTIES}
-            </Text>
-            <div className={classes.stack}>
-                {data &&
-                    groups?.map((group) => {
-                        return (
-                            <DesignerCollapsibleDiv
-                                header={{
-                                    title: group!,
-                                    icon: undefined,
-                                }}
-                                key={group}
-                                div={
-                                    <div className={classes.group}>
-                                        {parentTableProperties.itemProperties
-                                            ?.filter(
-                                                (i) =>
-                                                    (group === "General" &&
-                                                        !i.group) ||
-                                                    group === i.group,
-                                            )
-                                            .map((item) => {
-                                                if (!data) {
-                                                    return undefined;
-                                                }
-                                                const modelValue =
-                                                    data![item.propertyName];
-                                                if (!modelValue) {
-                                                    return undefined;
-                                                }
-                                                switch (item.componentType) {
-                                                    case "checkbox":
-                                                        return (
-                                                            <DesignerCheckbox
-                                                                UiArea="PropertiesView"
-                                                                component={item}
-                                                                model={
-                                                                    modelValue as CheckBoxProperties
-                                                                }
-                                                                componentPath={[
-                                                                    ...propertiesPaneData!
-                                                                        .componentPath,
-                                                                    item.propertyName,
-                                                                ]}
-                                                            />
-                                                        );
-                                                    case "input":
-                                                        return (
-                                                            <DesignerInputBox
-                                                                UiArea="PropertiesView"
-                                                                component={item}
-                                                                model={
-                                                                    modelValue as InputBoxProperties
-                                                                }
-                                                                componentPath={[
-                                                                    ...propertiesPaneData!
-                                                                        .componentPath,
-                                                                    item.propertyName,
-                                                                ]}
-                                                            />
-                                                        );
-                                                    case "dropdown":
-                                                        return (
-                                                            <DesignerDropdown
-                                                                UiArea="PropertiesView"
-                                                                component={item}
-                                                                model={
-                                                                    modelValue as DropDownProperties
-                                                                }
-                                                                componentPath={[
-                                                                    ...propertiesPaneData!
-                                                                        .componentPath,
-                                                                    item.propertyName,
-                                                                ]}
-                                                            />
-                                                        );
-                                                    case "table":
-                                                        return (
-                                                            <DesignerTable
-                                                                UiArea="PropertiesView"
-                                                                component={item}
-                                                                model={
-                                                                    modelValue as DesignerTableProperties
-                                                                }
-                                                                componentPath={[
-                                                                    ...propertiesPaneData!
-                                                                        .componentPath,
-                                                                    item.propertyName,
-                                                                ]}
-                                                                loadPropertiesTabData={
-                                                                    false
-                                                                }
-                                                            />
-                                                        );
-                                                }
-                                            })}
-                                    </div>
-                                }
-                            ></DesignerCollapsibleDiv>
+            <div className={classes.title}>
+                <Button
+                    appearance="transparent"
+                    onClick={() => {
+                        if (state.propertiesPaneResizeInfo.isMaximized) {
+                            state.propertiesPaneResizeInfo.setCurrentWidth(
+                                state.propertiesPaneResizeInfo.originalWidth,
+                            );
+                        }
+                        state.propertiesPaneResizeInfo.setIsMaximized(
+                            !state.propertiesPaneResizeInfo.isMaximized,
                         );
-                    })}
+                    }}
+                    title={
+                        state.propertiesPaneResizeInfo.isMaximized
+                            ? locConstants.tableDesigner.restorePanelSize
+                            : locConstants.tableDesigner.maximizePanelSize
+                    }
+                    icon={
+                        state.propertiesPaneResizeInfo.isMaximized ? (
+                            <ChevronRightFilled />
+                        ) : (
+                            <ChevronLeftFilled />
+                        )
+                    }
+                />
+                <Text
+                    size={500}
+                    style={{
+                        fontWeight: "bold",
+                        flex: 1,
+                    }}
+                >
+                    {locConstants.tableDesigner.propertiesPaneTitle(
+                        parentTableProperties.objectTypeDisplayName ?? "",
+                    )}
+                </Text>
+                <Button
+                    appearance="outline"
+                    onClick={() => {
+                        state.provider.setPropertiesComponents(undefined);
+                    }}
+                    title={
+                        state.propertiesPaneResizeInfo.isMaximized
+                            ? locConstants.tableDesigner.restorePanelSize
+                            : locConstants.tableDesigner.maximizePanelSize
+                    }
+                    icon={<DismissRegular />}
+                />
+            </div>
+            <div className={classes.stack}>
+                <Accordion multiple collapsible defaultOpenItems={groups}>
+                    {data &&
+                        groups?.map((group) => {
+                            return renderAccordionItem(group);
+                        })}
+                </Accordion>
             </div>
         </div>
     );

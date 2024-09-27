@@ -60,7 +60,7 @@
   "Check Constraints": "Check Constraints",
   "Check Constraint": "Check Constraint",
   "New Check Constraint": "New Check Constraint",
-  "About table": "About table",
+  "General": "General",
   "{0} issue/{0} is the number of issues": {
     "message": "{0} issue",
     "comment": [
@@ -91,11 +91,6 @@
   "Script As Create": "Script As Create",
   "Properties": "Properties",
   "No data": "No data",
-  "1 issue": "1 issue",
-  "{0} issues": "{0} issues",
-  "Issues": "Issues",
-  "Go there": "Go there",
-  "Open in new tab": "Open in new tab",
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
@@ -172,6 +167,28 @@
   "Error loading designer": "Error loading designer",
   "Severity": "Severity",
   "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
+  "Copy script": "Copy script",
+  "Open in editor": "Open in editor",
+  "Maximize panel size": "Maximize panel size",
+  "Restore panel size": "Restore panel size",
+  "Issues ({0})/{0} is the number of issues": {
+    "message": "Issues ({0})",
+    "comment": [
+      "{0} is the number of issues"
+    ]
+  },
+  "{0} properties/{0} is the object type": {
+    "message": "{0} properties",
+    "comment": [
+      "{0} is the object type"
+    ]
+  },
+  "Remove {0}/{0} is the object type": {
+    "message": "Remove {0}",
+    "comment": [
+      "{0} is the object type"
+    ]
+  },
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -638,6 +655,7 @@
   "Query failed": "Query failed",
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
+  "Script copied to clipboard": "Script copied to clipboard",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
