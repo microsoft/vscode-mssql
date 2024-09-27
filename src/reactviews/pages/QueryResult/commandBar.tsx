@@ -7,7 +7,8 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import * as utils from "./queryResultSetup";
 import { useContext } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
-import { locConstants } from "../../common/locConstants";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import * as qr from "../../../sharedInterfaces/queryResult";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -24,54 +25,62 @@ const useStyles = makeStyles({
 const CommandBar = () => {
     const state = useContext(QueryResultContext);
     const queryResultState = state?.state;
+    const webViewState = useVscodeWebview<
+        qr.QueryResultWebviewState,
+        qr.QueryResultReducers
+    >();
     const classes = useStyles();
 
-    const SAVE_PLAN = locConstants.executionPlan.savePlan;
-
-    const handleClick = (buttonLabel) => {
-        console.log(`${buttonLabel} button clicked`);
+    const saveResults = (buttonLabel: string) => {
+        webViewState.extensionRpc.call("saveResults", {
+            uri: queryResultState?.uri,
+            batchId: queryResultState?.resultSetSummary?.batchId,
+            resultId: queryResultState?.resultSetSummary?.id,
+            format: buttonLabel,
+            selection: queryResultState?.resultSetSummary?.rowCount, //TODO: do for only user selection
+        });
     };
 
     return (
         <div className={classes.commandBar}>
             <Button
                 onClick={(_event) => {
-                    handleClick("csv");
+                    saveResults("csv");
                 }}
                 icon={
                     <img
                         className={classes.buttonImg}
                         src={utils.saveAsCsv(queryResultState!.theme!)}
-                        alt={SAVE_PLAN}
                     />
                 }
                 className="codicon saveCsv"
+                title="Save As CSV"
             ></Button>
             <Button
                 onClick={(_event) => {
-                    handleClick("json");
+                    saveResults("json");
                 }}
                 icon={
                     <img
                         className={classes.buttonImg}
                         src={utils.saveAsJson(queryResultState!.theme!)}
-                        alt={SAVE_PLAN}
                     />
                 }
                 className="codicon saveJson"
+                title="Save As JSON"
             ></Button>
             <Button
                 onClick={(_event) => {
-                    handleClick("excel");
+                    saveResults("excel");
                 }}
                 icon={
                     <img
                         className={classes.buttonImg}
                         src={utils.saveAsExcel(queryResultState!.theme!)}
-                        alt={SAVE_PLAN}
                     />
                 }
                 className="codicon saveExcel"
+                title="Save As Excel"
             ></Button>
         </div>
     );
