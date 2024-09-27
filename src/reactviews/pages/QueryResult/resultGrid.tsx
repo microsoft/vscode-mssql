@@ -55,10 +55,10 @@ export interface ResultGridHandle {
     refreshGrid: () => void;
     resizeGrid: (width: number, height: number) => void;
 }
-let table: Table<any>;
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
     (props: ResultGridProps, ref) => {
+        let table: Table<any>;
         const gridContainerRef = useRef<HTMLDivElement>(null);
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
@@ -66,7 +66,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         };
         const resizeGrid = (width: number, height: number) => {
             const dimension = new DOM.Dimension(width, height);
-            table.layout(dimension);
+            table?.layout(dimension);
         };
         useEffect(() => {
             const ROW_HEIGHT = 25;
@@ -211,11 +211,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 table.invalidateRows(refreshedRows, true);
             });
             table.updateRowCount();
-
-            let grid = document.body.appendChild(div);
-            const elm = document.getElementById("grid")!;
-            document.body.removeChild(grid);
-            gridContainerRef.current?.appendChild(elm);
+            gridContainerRef.current?.appendChild(div);
         }, [refreshkey]);
 
         useImperativeHandle(ref, () => ({
