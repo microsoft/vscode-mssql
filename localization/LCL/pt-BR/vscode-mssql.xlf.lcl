@@ -223,6 +223,9 @@
       <Item ItemId=";bundle.++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publishing Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Publicando Alterações]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -230,7 +233,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Filter Settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Configurações de Filtro]]></Val>
+            <Val><![CDATA[Configurações do Filtro]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -239,7 +242,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Not Ends With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Não Termina com]]></Val>
+            <Val><![CDATA[Não Termina Com]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -247,6 +250,9 @@
       <Item ItemId=";bundle.++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Table Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Carregando Designer de Tabela]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -259,6 +265,9 @@
       <Item ItemId=";bundle.++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be set for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O primeiro valor deve ser definido para o operador {0} no filtro {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -356,7 +365,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Ends With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Termina com]]></Val>
+            <Val><![CDATA[Termina Com]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -469,6 +478,9 @@
       <Item ItemId=";bundle.++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse Azure]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Procurar no Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -490,6 +502,9 @@
       <Item ItemId=";bundle.++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tipo Avançado]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -596,7 +611,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Not Equals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Não é igual a]]></Val>
+            <Val><![CDATA[Não Iguais]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -794,7 +809,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[O comportamento quando um usuário tenta excluir uma linha com dados que estão envolvidos em uma relação com uma chave estrangeira.]]></Val>
+            <Val><![CDATA[O comportamento quando um usuário tenta excluir uma linha com dados que estão envolvidos em um relacionamento de chave estrangeira.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -883,6 +898,9 @@
       <Item ItemId=";bundle.++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open XML]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir XML]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -980,7 +998,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The description of the index.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Descrição do índice.]]></Val>
+            <Val><![CDATA[A descrição do índice.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -989,7 +1007,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0} issues]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} problemas]]></Val>
+            <Val><![CDATA[Problemas {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1007,7 +1025,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Check Constraints]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Restrições de verificação]]></Val>
+            <Val><![CDATA[Restrições CHECK]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1079,7 +1097,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The description of the primary key.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Descrição da chave primária.]]></Val>
+            <Val><![CDATA[A descrição da chave primária.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1127,7 +1145,7 @@
         <Str Cat="Text">
           <Val><![CDATA[For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Para dados numéricos, o número máximo de dígitos decimais que podem ser armazenados nesse objeto de banco de dados à direita da vírgula decimal.]]></Val>
+            <Val><![CDATA[Para dados numéricos, o número máximo de dígitos decimais que podem ser armazenados nesse objeto de banco de dados à direita do ponto decimal.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1262,7 +1280,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Not Between]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Não entre]]></Val>
+            <Val><![CDATA[Não está Entre]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1531,6 +1549,9 @@
       <Item ItemId=";bundle.++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading preview]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erro ao carregar a exibição]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1601,7 +1622,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Starts With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Começa com]]></Val>
+            <Val><![CDATA[Começa Com]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1637,7 +1658,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Greater Than]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Maior que]]></Val>
+            <Val><![CDATA[Maior Que]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1682,7 +1703,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Foreign Keys]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Chaves estrangeiras]]></Val>
+            <Val><![CDATA[Chaves Estrangeiras]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1772,7 +1793,7 @@
         <Str Cat="Text">
           <Val><![CDATA[A predefined global default value for the column or binding.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Um valor padrão global predefinido para a coluna ou ligação.]]></Val>
+            <Val><![CDATA[Um valor padrão global predefinido para a coluna ou associação.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1834,6 +1855,9 @@
       <Item ItemId=";bundle.++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[About table]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sobre a tabela]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1931,7 +1955,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Primary Key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Chave primária]]></Val>
+            <Val><![CDATA[Chave Primária]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2024,7 +2048,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Preview Database Updates]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Visualizar Atualizações de Banco de Dados]]></Val>
+            <Val><![CDATA[Visualizar Atualizações de Banco do Dados]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2059,6 +2083,9 @@
       <Item ItemId=";bundle.++CODE++9f24e982799f47ef97760b8fbb95ce6c89390fba37aa7fe9b6314f69aaa691ea" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query {0}:  Query cost (relative to the script):  {1}%]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Consulta {0}: custo da consulta (em relação ao script): {1}%]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2138,7 +2165,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Less Than Or Equals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Menor ou Igual]]></Val>
+            <Val><![CDATA[Menor Que ou Igual]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2209,6 +2236,9 @@
       <Item ItemId=";bundle.++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Close Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fechar o Designer]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2231,7 +2261,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Allow Nulls]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Permitir Valores Nulos]]></Val>
+            <Val><![CDATA[Permitir Nulos]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2240,7 +2270,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Less Than]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Menor que]]></Val>
+            <Val><![CDATA[Menor Que]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2329,6 +2359,9 @@
       <Item ItemId=";bundle.++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} {1} issues]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Problemas {0} {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2396,7 +2429,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0} issues]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} problemas]]></Val>
+            <Val><![CDATA[Problemas {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2567,7 +2600,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The name of the check constraint.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[O nome da restrição de verificação.]]></Val>
+            <Val><![CDATA[O nome da restrição CHECK.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2630,7 +2663,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Check Constraint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Restrição de Verificação]]></Val>
+            <Val><![CDATA[Restrição CHECK]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2683,12 +2716,18 @@
       <Item ItemId=";bundle.++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Script As Create]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Script Como CREATE]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Changes published successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Alterações publicadas com sucesso]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2713,6 +2752,9 @@
       <Item ItemId=";bundle.++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be less than the second value for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O primeiro valor deve ser menor que o segundo valor para o operador {0} no filtro {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2737,6 +2779,9 @@
       <Item ItemId=";bundle.++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Connection Settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configurações Avançadas de Conexão]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2965,6 +3010,9 @@
       <Item ItemId=";bundle.++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go there]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ir até lá]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3007,6 +3055,9 @@
       <Item ItemId=";bundle.++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} {1} issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Problema {0} {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3023,7 +3074,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0} issue]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} problema]]></Val>
+            <Val><![CDATA[Problema {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3113,7 +3164,7 @@
         <Str Cat="Text">
           <Val><![CDATA[New Check Constraint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nova Restrição de Verificação]]></Val>
+            <Val><![CDATA[Nova Restrição CHECK]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3139,6 +3190,9 @@
       <Item ItemId=";bundle.++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The second value must be set for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O segundo valor deve ser definido para o operador {0} no filtro {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3308,7 +3362,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The description of the foreign key.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Descrição da chave estrangeira.]]></Val>
+            <Val><![CDATA[A descrição da chave estrangeira.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3325,6 +3379,9 @@
       <Item ItemId=";bundle.++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erro ao carregar o designer]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3449,7 +3506,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The expression defining the check constraint.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[A expressão que define a restrição de verificação.]]></Val>
+            <Val><![CDATA[A expressão que define a restrição CHECK.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4276,6 +4333,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir Arquivo de Plano de Execução]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

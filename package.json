@@ -53,12 +53,13 @@
     "build": "gulp build",
     "compile": "gulp ext:compile",
     "watch": "gulp watch",
-    "lint": "gulp lint",
+    "lint": "eslint --quiet --cache",
     "localization": "gulp ext:extract-localization-strings",
     "smoketest": "gulp ext:smoke",
     "test": "gulp test:cover --log",
     "package": "vsce package",
-    "prepare": "husky"
+    "prepare": "husky",
+    "precommit": "run-p lint localization"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",
@@ -69,12 +70,14 @@
     "@angular/platform-browser-dynamic": "~2.1.2",
     "@angular/router": "~3.1.2",
     "@angular/upgrade": "~2.1.2",
+    "@azure/core-paging": "^1.6.2",
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
     "@fluentui/react-components": "^9.54.13",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
     "@monaco-editor/react": "^4.6.0",
     "@playwright/test": "^1.45.0",
+    "@stylistic/eslint-plugin": "^2.8.0",
     "@types/azdata": "^1.46.6",
     "@types/ejs": "^3.1.0",
     "@types/eslint__js": "^8.42.3",
@@ -93,6 +96,8 @@
     "@types/underscore": "1.8.3",
     "@types/vscode": "1.83.1",
     "@types/vscode-webview": "^1.57.5",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
     "@vscode/l10n": "^0.0.18",
     "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-electron": "^2.3.9",
@@ -108,7 +113,7 @@
     "del": "^2.2.1",
     "esbuild": "^0.22.0",
     "esbuild-plugin-copy": "^2.1.1",
-    "eslint": "^9.5.0",
+    "eslint": "^9.11.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-jsdoc": "^50.2.2",
@@ -145,8 +150,8 @@
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
     "typemoq": "^1.7.0",
-    "typescript": "^5.4.5",
-    "typescript-eslint": "^7.13.1",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.7.0",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
     "xliff": "^6.2.1",
@@ -159,6 +164,7 @@
     "@azure/msal-common": "^14.14.0",
     "@azure/msal-node": "^2.12.0",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
+    "@microsoft/vscode-azext-azureauth": "^2.5.0",
     "axios": "^1.7.4",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
@@ -203,23 +209,23 @@
           "icon": "media/server_page_dark.svg"
         }
       ],
-			"panel": [
-				{
-					"id": "queryResult",
-					"title": "Query Result",
-					"icon": "media/SignIn.svg"
-				}
-			]
+      "panel": [
+        {
+          "id": "queryResult",
+          "title": "Query Result",
+          "icon": "media/SignIn.svg"
+        }
+      ]
     },
     "views": {
-			"queryResult": [
-				{
-					"type": "webview",
-					"id": "queryResult",
-					"name": "%extension.queryResult%",
+      "queryResult": [
+        {
+          "type": "webview",
+          "id": "queryResult",
+          "name": "%extension.queryResult%",
           "when": "config.mssql.enableNewQueryResultFeature"
-				}
-			],
+        }
+      ],
       "objectExplorer": [
         {
           "id": "objectExplorer",
