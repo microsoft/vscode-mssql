@@ -9,6 +9,7 @@ import { useContext } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
+import * as l10n from "@vscode/l10n";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -23,8 +24,11 @@ const useStyles = makeStyles({
 });
 
 const CommandBar = () => {
-    const state = useContext(QueryResultContext);
-    const queryResultState = state?.state;
+    const context = useContext(QueryResultContext);
+    const queryResultState = context?.state;
+    if (context === undefined) {
+        return undefined;
+    }
     const webViewState = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
@@ -50,12 +54,12 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsCsv(state!.theme!)}
+                        src={utils.saveAsCsv(context!.theme!)}
                     />
                 }
                 className="codicon saveCsv"
-                title="Save As CSV"
-            ></Button>
+                title={l10n.t("Save as CSV")}
+            />
             <Button
                 onClick={(_event) => {
                     saveResults("json");
@@ -63,12 +67,12 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsJson(state!.theme!)}
+                        src={utils.saveAsJson(context!.theme!)}
                     />
                 }
                 className="codicon saveJson"
-                title="Save As JSON"
-            ></Button>
+                title={l10n.t("Save as JSON")}
+            />
             <Button
                 onClick={(_event) => {
                     saveResults("excel");
@@ -76,12 +80,12 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsExcel(state!.theme!)}
+                        src={utils.saveAsExcel(context!.theme!)}
                     />
                 }
                 className="codicon saveExcel"
-                title="Save As Excel"
-            ></Button>
+                title={l10n.t("Save as Excel")}
+            />
         </div>
     );
 };
