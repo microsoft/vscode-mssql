@@ -47,6 +47,15 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 message.selectionData,
             );
         });
+        this.registerRequestHandler("saveResults", async (message) => {
+            return await this._sqlOutputContentProvider.saveResultsRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.format,
+                message.selection,
+            );
+        });
         this.registerReducer("setResultTab", async (state, payload) => {
             state.tabStates.resultPaneTab = payload.tabId;
             return state;
