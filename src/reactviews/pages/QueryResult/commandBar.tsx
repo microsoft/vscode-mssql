@@ -54,7 +54,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsCsv(context.theme)}
+                        src={utils.saveAsCsvIcon(context.theme)}
                     />
                 }
                 className="codicon saveCsv"
@@ -67,7 +67,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsJson(context.theme)}
+                        src={utils.saveAsJsonIcon(context.theme)}
                     />
                 }
                 className="codicon saveJson"
@@ -80,7 +80,7 @@ const CommandBar = () => {
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.saveAsExcel(context.theme)}
+                        src={utils.saveAsExcelIcon(context.theme)}
                     />
                 }
                 className="codicon saveExcel"
