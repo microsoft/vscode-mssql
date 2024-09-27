@@ -18,6 +18,7 @@ import {
     Textarea,
     useId,
 } from "@fluentui/react-components";
+import { ErrorCircleRegular } from "@fluentui/react-icons";
 
 export type DesignerInputBoxProps = {
     component: DesignerDataPropertyInfo;
@@ -70,7 +71,7 @@ export const DesignerInputBox = ({
                 ) : undefined,
             }}
             validationState={
-                showError && state?.provider.getErrorMessage(componentPath)
+                state?.provider.getErrorMessage(componentPath)
                     ? "error"
                     : undefined
             }
@@ -78,6 +79,11 @@ export const DesignerInputBox = ({
                 showError
                     ? state?.provider.getErrorMessage(componentPath)
                     : undefined
+            }
+            validationMessageIcon={
+                showError && state?.provider.getErrorMessage(componentPath) ? (
+                    <ErrorCircleRegular />
+                ) : undefined
             }
             style={{ width: width }}
             size="small"

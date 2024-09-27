@@ -83,7 +83,14 @@ export const DesignerDropdown = ({
                 ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                 selectedOptions={value}
                 disabled={model.enabled === undefined ? false : !model.enabled}
-                style={{ width: width, minWidth: width, maxWidth: width }}
+                style={{
+                    width: width,
+                    minWidth: width,
+                    maxWidth: width,
+                    border: state?.provider.getErrorMessage(componentPath)
+                        ? "1px solid var(--vscode-errorForeground)"
+                        : undefined,
+                }}
                 value={model.value}
                 size="small"
                 onOptionSelect={(_event, option) => {
@@ -97,6 +104,9 @@ export const DesignerDropdown = ({
                         source: UiArea,
                     });
                 }}
+                aria-errormessage={
+                    state?.provider.getErrorMessage(componentPath) ?? ""
+                }
             >
                 {model.values.map((option, index) => (
                     <Option

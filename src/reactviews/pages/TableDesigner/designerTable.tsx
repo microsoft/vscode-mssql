@@ -383,8 +383,6 @@ export const DesignerTable = ({
                 >
                     <fluentui.TableHeader
                         style={{
-                            borderBottom:
-                                "3px solid var(--vscode-editorWidget-border)",
                             marginBottom: "5px",
                         }}
                     >
@@ -410,19 +408,24 @@ export const DesignerTable = ({
                                 focusedRowId === index
                                     ? "var(--vscode-list-hoverBackground)"
                                     : "var(--vscode-editor-background)";
-
+                            let border = rowError
+                                ? "1px solid var(--vscode-errorForeground)"
+                                : "";
+                            let draggedOverBorder =
+                                "3px solid var(--vscode-focusBorder)";
                             return (
                                 <fluentui.TableRow
                                     style={{
                                         backgroundColor: backgroundColor,
-                                        border: rowError
-                                            ? "1px solid var(--vscode-errorForeground)"
-                                            : "",
                                         width: "calc(100% - 10px)",
                                         borderTop:
                                             draggedOverRowId === index
-                                                ? "3px solid var(--vscode-focusBorder)"
-                                                : "",
+                                                ? draggedOverBorder
+                                                : border,
+                                        borderBottom: border,
+                                        borderLeft: border,
+                                        borderRight: border,
+                                        marginTop: rowError ? "5px" : "",
                                     }}
                                     draggable={tableProps.canMoveRows}
                                     onFocus={(event) => {
@@ -469,14 +472,6 @@ export const DesignerTable = ({
                                     }}
                                 >
                                     {columnsDef.map((column, columnIndex) => {
-                                        const borderColor =
-                                            state?.provider.getErrorMessage([
-                                                ...componentPath,
-                                                row.rowId,
-                                                column.columnId,
-                                            ])
-                                                ? "1px solid var(--vscode-errorForeground)"
-                                                : "";
                                         return (
                                             <fluentui.TableCell
                                                 key={
@@ -490,7 +485,6 @@ export const DesignerTable = ({
                                                 id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
-                                                    border: borderColor,
                                                     paddingBottom: "5px",
                                                 }}
                                             >
