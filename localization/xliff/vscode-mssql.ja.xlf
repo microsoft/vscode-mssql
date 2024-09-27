@@ -66,11 +66,11 @@
       </trans-unit>
       <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
         <source xml:lang="en">Advanced Connection Settings</source>
-        <target state="new">Advanced Connection Settings</target>
+        <target state="translated">高度な接続設定</target>
       </trans-unit>
       <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
         <source xml:lang="en">Advanced Type</source>
-        <target state="new">Advanced Type</target>
+        <target state="translated">高度なタイプ</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -91,7 +91,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
-        <target state="translated">および</target>
+        <target state="translated">かつ</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
-        <target state="new">Browse Azure</target>
+        <target state="translated">Azure を参照</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
-        <target state="new">Changes published successfully</target>
+        <target state="translated">変更が正常に公開されました</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
@@ -281,7 +281,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
         <source xml:lang="en">Close Designer</source>
-        <target state="new">Close Designer</target>
+        <target state="translated">Designer を閉じる</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
         <source xml:lang="en">Ends With</source>
-        <target state="translated">で終わる</target>
+        <target state="translated">次で終わる</target>
       </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
@@ -516,7 +516,7 @@
       </trans-unit>
       <trans-unit id="++CODE++54a0e8c17ebb21a11f8a25b8042786ef7efe52441e6cc87e92c67e0c4c0c6e78">
         <source xml:lang="en">Error</source>
-        <target state="translated">エラー</target>
+        <target state="translated">Error</target>
       </trans-unit>
       <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
         <source xml:lang="en">Error Message: </source>
@@ -548,11 +548,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
-        <target state="new">Error loading designer</target>
+        <target state="translated">デザイナーの読み込みエラー</target>
       </trans-unit>
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
-        <target state="new">Error loading preview</target>
+        <target state="translated">プレビューの読み込みエラー</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -720,7 +720,7 @@
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
-        <target state="translated">より大きい</target>
+        <target state="translated">指定値より大きい</target>
       </trans-unit>
       <trans-unit id="++CODE++8885e80bb197b22bc702906ef86b149ad49d258c5cb14b09227c19ee4f01061e">
         <source xml:lang="en">Greater Than Or Equals</source>
@@ -793,7 +793,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ab7e3aa3d0d8c78763c986b6a831726ff623b195a38a8d4b1191976c0becf72e">
         <source xml:lang="en">Less Than</source>
-        <target state="translated">次の値より小さい</target>
+        <target state="translated">指定値より小さい</target>
       </trans-unit>
       <trans-unit id="++CODE++a408b91cd1b01aac0b9fa7eec7fafac233eb172b0aafcdf013d88575fac35c1f">
         <source xml:lang="en">Less Than Or Equals</source>
@@ -810,7 +810,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
-        <target state="new">Loading Table Designer</target>
+        <target state="translated">テーブル デザイナーを読み込んでいます</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -953,7 +953,7 @@
       </trans-unit>
       <trans-unit id="++CODE++58601e3ffba5990d1be4db9f2bcc6107f9a72949aabd8f68f79bcb2c92195b5f">
         <source xml:lang="en">Not Between</source>
-        <target state="translated">次の値の範囲外</target>
+        <target state="translated">指定範囲外</target>
       </trans-unit>
       <trans-unit id="++CODE++bfccbdda37b86c50ee3c10c461afc9fcc2854ca2d53d33b9bb079798a4f0cf21">
         <source xml:lang="en">Not Contains</source>
@@ -965,7 +965,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2abe6ce3689dddb31a75faaafb1a7293649d60f93bff0e48a87e7d5ddd7f2530">
         <source xml:lang="en">Not Equals</source>
-        <target state="translated">次の値に等しくない</target>
+        <target state="translated">指定値に等しくない</target>
       </trans-unit>
       <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
         <source xml:lang="en">Not Starts With</source>
@@ -1013,7 +1013,7 @@
       </trans-unit>
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
-        <target state="new">Open XML</target>
+        <target state="translated">XML を開く</target>
       </trans-unit>
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
@@ -1118,7 +1118,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
-        <target state="new">Publishing Changes</target>
+        <target state="translated">変更をパブリッシュしています</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1136,7 +1136,7 @@
         <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
         <note>{0} is the query number
 {1} is the query cost</note>
-        <target state="new">Query {0}:  Query cost (relative to the script):  {1}%</target>
+        <target state="translated">クエリ {0}: クエリ コスト (スクリプトに対する相対): {1}%</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
@@ -1241,7 +1241,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
-        <target state="new">Script As Create</target>
+        <target state="translated">作成としてのスクリプト</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -1354,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
-        <target state="translated">開始</target>
+        <target state="translated">次で始まる</target>
       </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
@@ -1447,13 +1447,13 @@
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be less than the second value for the {0} operator in the {1} filter</target>
+        <target state="translated">最初の値は、{1} フィルターの {0} 演算子の 2 番目の値より小さくする必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e">
         <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">{1} フィルターの {0} 演算子に最初の値を設定する必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -1499,7 +1499,7 @@
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The second value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">{1} フィルターの {0} 演算子に 2 番目の値を設定する必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -1532,7 +1532,7 @@
       </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
-        <target state="translated">タイプ</target>
+        <target state="translated">種類</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -1667,7 +1667,7 @@
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
-        <target state="translated">{0} 件の問題</target>
+        <target state="translated">{0} の問題</target>
       </trans-unit>
       <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
         <source xml:lang="en">{0} issues</source>
@@ -1683,13 +1683,13 @@
         <source xml:lang="en">{0} {1} issue</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issue</target>
+        <target state="translated">{0} {1} の問題</target>
       </trans-unit>
       <trans-unit id="++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235">
         <source xml:lang="en">{0} {1} issues</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issues</target>
+        <target state="translated">{0} {1} の問題</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>

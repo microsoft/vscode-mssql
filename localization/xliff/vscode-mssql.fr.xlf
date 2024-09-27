@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
-        <target state="translated">Tout réduire</target>
+        <target state="translated">Réduire tout</target>
       </trans-unit>
       <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
         <source xml:lang="en">Column</source>
@@ -1189,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
-        <target state="translated">Alphabétique inversé</target>
+        <target state="translated">Ordre alphabétique inversé</target>
       </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
@@ -1622,7 +1622,7 @@
       </trans-unit>
       <trans-unit id="++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-        <target state="new">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</target>
+        <target state="translated">[Facultatif] Base de données à laquelle se connecter (appuyez sur Entrée pour vous connecter à la base de données &lt;par défaut&gt;)</target>
       </trans-unit>
       <trans-unit id="++CODE++48a9c1333b8297748a7cf4f38e479f6d1722302a0ce72f8516d8a749fe49d752">
         <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
