@@ -15,6 +15,7 @@ const IS_CANDIDATE_KEY = "nps/isCandidate";
 
 export class UserSurvey {
     private static _instance: UserSurvey;
+    private _webviewController: UserSurveyWebviewController;
     private constructor(private _context: vscode.ExtensionContext) {}
     public static createInstance(_context: vscode.ExtensionContext): void {
         UserSurvey._instance = new UserSurvey(_context);
@@ -24,6 +25,13 @@ export class UserSurvey {
     }
 
     public async launchSurvey(): Promise<void> {
+        if (!this._webviewController || this._webviewController.isDisposed) {
+            this._webviewController = new UserSurveyWebviewController(
+                this._context,
+            );
+        }
+        this._webviewController.revealToForeground();
+        return;
         const globalState = this._context.globalState;
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
         if (skipVersion) {
@@ -105,6 +113,24 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
     any
 > {
     constructor(context: vscode.ExtensionContext) {
-        super(context, vscode.l10n.t("User Survey"), "userSurvey", {});
+        super(
+            context,
+            vscode.l10n.t("User Survey"),
+            "userSurvey",
+            {},
+            undefined,
+            {
+                dark: vscode.Uri.joinPath(
+                    context.extensionUri,
+                    "media",
+                    "feedback_dark.svg",
+                ),
+                light: vscode.Uri.joinPath(
+                    context.extensionUri,
+                    "media",
+                    "feedback_light.svg",
+                ),
+            },
+        );
     }
 }

@@ -1463,6 +1463,9 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
+    <trans-unit id="mssql.userFeedback">
+      <source xml:lang="en">Give Feedback</source>
+    </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL configuration</source>
     </trans-unit>
