@@ -74,6 +74,7 @@
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
     "@fluentui/react-components": "^9.54.13",
+    "@fluentui/react-list-preview": "^0.3.6",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
     "@monaco-editor/react": "^4.6.0",
     "@playwright/test": "^1.45.0",

@@ -109,6 +109,29 @@ export class LocConstants {
             designerPreviewConfirmation: l10n.t(
                 "I have read the summary and understand the potential risks.",
             ),
+            copyScript: l10n.t("Copy script"),
+            openInEditor: l10n.t("Open in editor"),
+            maximizePanelSize: l10n.t("Maximize panel size"),
+            restorePanelSize: l10n.t("Restore panel size"),
+            issuesTabHeader: (issueCount: number) =>
+                l10n.t({
+                    message: "Issues ({0})",
+                    args: [issueCount],
+                    comment: ["{0} is the number of issues"],
+                }),
+            propertiesPaneTitle: (objectType: string) =>
+                l10n.t({
+                    message: "{0} properties",
+                    args: [objectType],
+                    comment: ["{0} is the object type"],
+                }),
+            tableName: l10n.t("Table name"),
+            remove: (objectType: string) =>
+                l10n.t({
+                    message: "Remove {0}",
+                    args: [objectType],
+                    comment: ["{0} is the object type"],
+                }),
         };
     }
 

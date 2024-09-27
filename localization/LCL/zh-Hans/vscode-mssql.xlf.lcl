@@ -41,7 +41,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在连接至: ]]></Val>
+            <Val><![CDATA[正在连接至:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -131,7 +131,7 @@
         <Str Cat="Text">
           <Val><![CDATA[A SQL editor must have focus before executing this command]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在执行此命令前，必须聚焦在一个 SQL 编辑器。]]></Val>
+            <Val><![CDATA[在执行此命令前，必须聚焦在一个 SQL 编辑器]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -158,7 +158,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Executing query...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在执行查询…]]></Val>
+            <Val><![CDATA[正在执行查询...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -194,7 +194,7 @@
         <Str Cat="Text">
           <Val><![CDATA[A query is already running for this editor session. Please cancel this query or wait for its completion.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[当前编辑器的会话中有正在执行的查询，请取消该查询或者等待查询执行完毕。]]></Val>
+            <Val><![CDATA[此编辑器会话的查询已在运行。请取消此查询或等待其完成。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -220,6 +220,9 @@
       <Item ItemId=";bundle.++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Tooltips]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[切换工具提示]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -299,7 +302,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已清除最近的连接列表，但删除某些关联凭据时出错。请查看 MSSQL 输出通道中的错误。]]></Val>
+            <Val><![CDATA[已清除最近连接列表，但删除某些关联凭据时出错。查看 MSSQL 输出通道中的错误。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -380,7 +383,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to connect: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[连接失败︰ {0}]]></Val>
+            <Val><![CDATA[连接失败: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -389,7 +392,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Server connection in progress. Do you want to cancel?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在连接服务器。要取消吗?]]></Val>
+            <Val><![CDATA[正在连接服务器。是否要取消?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -469,6 +472,9 @@
       <Item ItemId=";bundle.++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[hostname\instance or <server>.database.windows.net or ADO.NET connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[hostname\instance 或 <server>.database.windows.net 或 ADO.NET 连接字符串]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -502,6 +508,9 @@
       <Item ItemId=";bundle.++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[保存计划]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -527,7 +536,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Disconnected on document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已断开文档 "{0}" 的连接]]></Val>
+            <Val><![CDATA[已断开文档“{0}”的连接]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -545,7 +554,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started executing query at ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[开始执行查询的位置 ]]></Val>
+            <Val><![CDATA[开始执行查询的位置]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -563,7 +572,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to save results. ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[未能保存结果。 ]]></Val>
+            <Val><![CDATA[未能保存结果。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -572,7 +581,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection not found for uri "{0}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[找不到 URI "{0}" 的连接。]]></Val>
+            <Val><![CDATA[找不到 URI“{0}”的连接。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -608,7 +617,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[使用设备代码登录到 Azure 订阅。“登录”命令不起作用时使用此选项进行设置。]]></Val>
+            <Val><![CDATA[使用设备代码登录到 Azure 订阅。“登录”命令不起作用时使用此选项进行设置]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -707,7 +716,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changing database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[对于文挡 "{2}"，正在将服务器 "{1}" 上的数据库上下文更改为 "{0}"。]]></Val>
+            <Val><![CDATA[对于文挡“{2}”，正在将服务器“{1}”上的数据库上下文更改为“{0}”。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -788,7 +797,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[确定要断开连接吗?]]></Val>
+            <Val><![CDATA[是否确定要断开连接?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -896,7 +905,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Invalid IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[IP 地址无效]]></Val>
+            <Val><![CDATA[无效 IP 地址]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -914,7 +923,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable Trust Server Certificate]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启用信任服务器证书]]></Val>
+            <Val><![CDATA[启用“信任服务器证书”]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -950,7 +959,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已在此连接上启用加密、查看目标 SQL Server 的 SSL 和证书配置，或在设置文件中将“信任服务器证书”设置为 “true”。注意: 自签名证书仅提供有限的保护，不建议用于生产环境。是否要在此连接上启用“信任服务器证书”并重试?]]></Val>
+            <Val><![CDATA[已在此连接上启用加密、查看目标 SQL Server 的 SSL 和证书配置，或在设置文件中将“信任服务器证书”设置为“true”。注意: 自签名证书仅提供有限的保护，不建议用于生产环境。是否要在此连接上启用“信任服务器证书”并重试?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -959,7 +968,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started saving results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[开始保存结果至 ]]></Val>
+            <Val><![CDATA[开始保存结果至]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -968,7 +977,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error connecting to: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[连接到此处时出错: ]]></Val>
+            <Val><![CDATA[连接到此处时出错:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1040,7 +1049,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Started query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已开始执行对于文档 "{0}" 的查询]]></Val>
+            <Val><![CDATA[已开始执行对于文档“{0}”的查询]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1067,7 +1076,7 @@
         <Str Cat="Text">
           <Val><![CDATA[To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[若要使用此命令，请打开一个 .sql 文件，或者将编辑器语言更改为 "SQL"，或者在运行中的 SQL 编辑器中选择 T-SQL 文本。]]></Val>
+            <Val><![CDATA[若要使用此命令，请打开一个 .sql 文件，或者将编辑器语言更改为“SQL”，或者在运行中的 SQL 编辑器中选择 T-SQL 文本。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1076,7 +1085,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Id]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Microsoft Entra Id]]></Val>
+            <Val><![CDATA[Microsoft Entra ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1121,7 +1130,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server "{0}" on document "{1}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[对于文档 "{1}"，正在连接服务器 "{0}"。]]></Val>
+            <Val><![CDATA[对于文档“{1}”，正在连接到服务器“{0}”。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1129,12 +1138,18 @@
       <Item ItemId=";bundle.++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Explorer Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[对象资源管理器筛选器]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open snapshot in new tab]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在新标签页中打开快照]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1178,7 +1193,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Selected Microsoft Entra account removed successfully.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已成功删除所选 Microsoft Entra 帐户。]]></Val>
+            <Val><![CDATA[已成功移除所选 Microsoft Entra 帐户。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1331,7 +1346,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[你的租户“{0} ({1})”需要你重新进行身份验证才能访问 {2} 资源。请按“打开”启动身份验证过程。]]></Val>
+            <Val><![CDATA[你的租户“{0} ({1})”需要你重新进行身份验证才能访问 {2}资源。按“打开”以开始身份验证过程。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1367,7 +1382,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error connecting to server "{0}". Details: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[连接服务器 "{0}" 时出错。详细信息: {1}]]></Val>
+            <Val><![CDATA[连接到服务器“{0}”时出错。详细信息: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1502,7 +1517,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Firewall rule successfully added. Retry profile creation? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已成功添加防火墙规则。是否重试创建配置文件? ]]></Val>
+            <Val><![CDATA[已成功添加防火墙规则。是否重试创建配置文件?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1520,7 +1535,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Cannot cancel query as no query is running.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[取消查询失败，没有正在运行的查询。]]></Val>
+            <Val><![CDATA[无法取消查询，因为没有正在运行的查询。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1529,7 +1544,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" for document "{1}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已将文档 "{1}" 的数据库上下文切换至 "{0}"]]></Val>
+            <Val><![CDATA[已将文档“{1}”的数据库上下文更改为“{0}”]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1592,7 +1607,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Recent connections list cleared]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已清空最近的连接列表]]></Val>
+            <Val><![CDATA[已清空最近连接列表]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1646,7 +1661,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Previous pending reconnection for uri {0}, succeeded.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[先前挂起的 URI {0} 的重新连接已成功。]]></Val>
+            <Val><![CDATA[URI {0} 的先前挂起的重新连接已成功。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1655,7 +1670,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save Password? If 'No', password will be required each time you connect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[是否保存密码? 如果选择 [否]5D;，每次连接时都需要输入密码]]></Val>
+            <Val><![CDATA[是否保存密码?如果选择“否”，每次连接时都需要输入密码]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1700,7 +1715,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Provider '{0}' does not have a Microsoft resource endpoint defined.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[提供程序 "{0}" 未定义 Microsoft 资源终结点。]]></Val>
+            <Val><![CDATA[提供程序“{0}”未定义 Microsoft 资源终结点。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1727,7 +1742,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to refresh connection ${0} with uri {1}, invalid connection result.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[无法刷新 URI 为 {1} 的连接 ${0}，无效的连接结果。]]></Val>
+            <Val><![CDATA[无法刷新 URI {1} 的连接 ${0}，无效的连接结果。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1754,7 +1769,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Read more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[阅读详细内容]]></Val>
+            <Val><![CDATA[了解详细信息]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1826,7 +1841,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Changed database context to "{0}" on server "{1}" on document "{2}".]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[对于文挡 "{2}"，已将服务器 "{1}" 上的数据库上下文更改为 "{0}"。]]></Val>
+            <Val><![CDATA[对于文挡“{2}”，已将服务器“{1}”上的数据库上下文更改为“{0}”。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1889,7 +1904,7 @@
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing Microsoft Entra account: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[删除 Microsoft Entra 帐户时出错: {0}]]></Val>
+            <Val><![CDATA[移除 Microsoft Entra 帐户时出错: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1916,7 +1931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed to get authentication method, please remove and re-add the account.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[无法获取身份验证方法，请删除账户并重新添加。]]></Val>
+            <Val><![CDATA[无法获取身份验证方法，请移除帐户并重新添加。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1925,7 +1940,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[错误: ]]></Val>
+            <Val><![CDATA[错误:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1952,7 +1967,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save as JSON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[另存为 JSON 文件]]></Val>
+            <Val><![CDATA[另存为 JSON]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1970,7 +1985,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Updating IntelliSense...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在更新 IntelliSense…]]></Val>
+            <Val><![CDATA[正在更新 IntelliSense...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1978,6 +1993,9 @@
       <Item ItemId=";bundle.++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Nodes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[查找节点]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2021,7 +2039,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Confirm to remove this profile.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[确认要删除此配置文件。]]></Val>
+            <Val><![CDATA[确认要移除此配置文件。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2039,7 +2057,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Successfully saved results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已成功保存结果至 ]]></Val>
+            <Val><![CDATA[已成功保存结果至]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2066,7 +2084,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Unable to connect using the connection information provided. Retry profile creation?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[错误: 无法使用所提供的连接信息进行连接。是否重新创建配置文件?]]></Val>
+            <Val><![CDATA[错误: 无法使用所提供的连接信息进行连接。是否重试创建配置文件?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2237,7 +2255,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[URI {0} 的先前挂起的重新连接承诺被拒绝，错误 {1}，如有必要，将尝试重新连接。]]></Val>
+            <Val><![CDATA[URI {0} 的先前挂起的重新连接承诺被拒绝，出现错误 {1}，如有必要，将尝试重新连接。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2327,7 +2345,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Integrated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[集成]]></Val>
+            <Val><![CDATA[已集成]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2380,6 +2398,9 @@
       <Item ItemId=";bundle.++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Queries Available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[没有可用的查询]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2414,7 +2435,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connected to server "{0}" on document "{1}". Server information: {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[对于文档 "{1}"，已连接服务器 "{0}"。服务器信息: {2}]]></Val>
+            <Val><![CDATA[对于文档“{1}”，已连接到服务器“{0}”。服务器信息: {2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2468,7 +2489,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Finished query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[对文档 "{0}" 的查询已完成]]></Val>
+            <Val><![CDATA[对文档“{0}”的查询已完成]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2504,7 +2525,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save results command cannot be used with multiple selections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[多选时不能使用保存结果命令。]]></Val>
+            <Val><![CDATA[多选时不能使用“保存结果”命令。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2513,7 +2534,7 @@
         <Str Cat="Text">
           <Val><![CDATA[User name is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[必须填写用户名]]></Val>
+            <Val><![CDATA[用户名是必需的]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2522,7 +2543,7 @@
         <Str Cat="Text">
           <Val><![CDATA[SQL Login]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL 登录名]]></Val>
+            <Val><![CDATA[SQL 登录]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2531,7 +2552,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Getting definition ...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在获取定义…]]></Val>
+            <Val><![CDATA[正在获取定义...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2594,7 +2615,7 @@
         <Str Cat="Text">
           <Val><![CDATA[In progress]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[进行中]]></Val>
+            <Val><![CDATA[正在进行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2621,7 +2642,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Remove]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[删除]]></Val>
+            <Val><![CDATA[移除]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2657,7 +2678,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Profile removed successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已成功删除配置文件]]></Val>
+            <Val><![CDATA[已成功移除配置文件]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2666,7 +2687,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{{put-server-name-here}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{{在此处填入服务器的名称}}]]></Val>
+            <Val><![CDATA[{{put-server-name-here}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2684,7 +2705,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[无需刷新 URI 为 {0} 的连接 {1} 的 Microsoft Entra 帐户令牌]]></Val>
+            <Val><![CDATA[无需刷新 URI {1} 的连接 {0} 的 Microsoft Entra 帐户令牌]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2747,7 +2768,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Line {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[第 {0} 行]]></Val>
+            <Val><![CDATA[行 {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2756,7 +2777,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error code: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[错误代码: ]]></Val>
+            <Val><![CDATA[错误代码:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2801,7 +2822,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connecting]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[连接中]]></Val>
+            <Val><![CDATA[正在连接]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2828,7 +2849,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Mandatory (True)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[必需(True)]]></Val>
+            <Val><![CDATA[强制(True)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2972,7 +2993,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No Microsoft Entra account can be found for removal.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[找不到要删除的 Microsoft Entra 帐户。]]></Val>
+            <Val><![CDATA[找不到要移除的 Microsoft Entra 帐户。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3008,7 +3029,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connection string is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[需要提供连接字符串]]></Val>
+            <Val><![CDATA[连接字符串是必需的]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3098,7 +3119,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Unable to execute the command while the extension is initializing. Please try again later.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[扩展组件正在初始化中，无法执行此命令。请稍后再试。]]></Val>
+            <Val><![CDATA[扩展组件正在初始化中，无法执行此命令。请稍后重试。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3125,7 +3146,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Save as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[另存为 CSV 文件]]></Val>
+            <Val><![CDATA[另存为 CSV]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3134,7 +3155,7 @@
         <Str Cat="Text">
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[若要使用此命令，必须将语言设定为 "SQL"。确认要更改语言模式。]]></Val>
+            <Val><![CDATA[若要使用此命令，必须将语言设定为“SQL”。确认要更改语言模式。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3161,7 +3182,7 @@
         <Str Cat="Text">
           <Val><![CDATA[No connection profile to remove.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[沒有可删除的连接配置文件。]]></Val>
+            <Val><![CDATA[沒有可移除的连接配置文件。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3197,7 +3218,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling query ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[正在取消查询 ]]></Val>
+            <Val><![CDATA[正在取消查询]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3224,7 +3245,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[URI 为 {1} 的连接 {0} 的访问令牌已过期]]></Val>
+            <Val><![CDATA[URI {1} 的连接 {0} 的访问令牌已过期]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3332,7 +3353,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Successfully refreshed token for connection {0} with uri {1}, {2}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[URI 为 {1} 的连接 {0} 的成功刷新的令牌，{2}]]></Val>
+            <Val><![CDATA[URI {1} 的连接 {0} 的成功刷新的令牌，{2}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3368,7 +3389,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error Message: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[错误消息: ]]></Val>
+            <Val><![CDATA[错误消息:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3584,7 +3605,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 本选项控制是否使用 VSCode 的区域设置进行本地化(必须重启 VSCode，设置才能生效)]]></Val>
+            <Val><![CDATA[[可选]5D; 用于本地化为 VSCode 的已配置区域设置的配置选项(必须重启 VSCode，设置才能生效)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3701,7 +3722,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请声明连接到 SQL Server 时的应用程序工作负载类型，例如 ReadWrite 或 ReadOnly。有关详细信息，请参阅 SQL Server AlwaysOn 可用性组。]]></Val>
+            <Val><![CDATA[[可选]5D; 声明连接到 SQL Server 时的应用程序工作负载类型，例如 ReadWrite 或 ReadOnly。有关详细信息，请参阅 SQL Server AlwaysOn 可用性组。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3710,7 +3731,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定 SQL Server 记录日志使用的应用程序名称(默认为 "vscode-mssql")。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定 SQL Server 记录日志使用的应用程序名称(默认为“vscode-mssql”)。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3719,7 +3740,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name of the primary file, including the full path name, of an attachable database.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定可附加数据库的主文件名称，包含完整路径名。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定可附加数据库的主文件名称，包含完整路径名。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3728,7 +3749,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the SQL Server authentication type.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定 SQL Server 验证类型。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定 SQL Server 身份验证类型。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3737,7 +3758,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D;指定在终止尝试并生成错误之前等待命令执行的时间长度(秒)。默认值为 30 秒。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定在终止尝试并生成错误之前等待命令执行的时间长度(秒)。默认值为 30 秒。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3746,7 +3767,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the number of attempts to restore connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定恢复连接的尝试次数。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定恢复连接的尝试次数。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3755,7 +3776,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the delay between attempts to restore connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定恢复连接尝试之间的延迟。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定恢复连接尝试之间的延迟。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3764,7 +3785,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D;指定在终止连接尝试并生成错误之前等待连接到服务器的时间长度(秒)。本地的默认值为 15 秒，Azure SQL 数据库连接的默认值为 30 秒。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定在终止连接尝试并生成错误之前等待连接到服务器的时间长度(秒)。本地的默认值为 15 秒，Azure SQL 数据库连接的默认值为 30 秒。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3782,7 +3803,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Indicates the SQL Server language settings.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定 SQL Server 的语言设置。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定 SQL Server 语言设置。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3791,7 +3812,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定要连接到的数据库名称。如果未指定数据库，则会使用默认的用户数据库设置，通常为 "master" 数据库。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定要连接到的数据库名称。如果未指定数据库，则会使用默认的用户数据库设置，通常为“master”数据库。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3809,7 +3830,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D;在值为 'Mandatory' 或 'Strict' 时，如果服务器安装了证书，SQL Server 将对客户端与服务器之间发送的所有数据使用 SSL 加密。在设置为 'Strict' 时，SQL Server 使用 TDS 8.0 在客户端与服务器之间传输所有数据。SQL Server 2022 及之后的版本均支持 'Strict'。]]></Val>
+            <Val><![CDATA[[可选]5D; 在值为“Mandatory”或“Strict”时，如果服务器安装了证书，SQL Server 将对客户端与服务器之间发送的所有数据使用 SSL 加密。在设置为“Strict”时，SQL Server 使用 TDS 8.0 在客户端与服务器之间传输所有数据。SQL Server 2022 及之后的版本均支持“Strict”。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3818,7 +3839,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name or network address of the instance of SQL Server that acts as a failover partner.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定充当故障转移伙伴的 SQL Server 实例的名称或网络地址。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定充当故障转移伙伴的 SQL Server 实例的名称或网络地址。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3836,7 +3857,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定此连接在池中保存直至被删除的最短时间(以秒为单位)。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定此连接在池中保存直至被移除/删除的最短时间(以秒为单位)。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3845,7 +3866,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the maximum number of connections allowed in the pool.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定池中允许的最大连接数。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定池中允许的最大连接数。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3854,7 +3875,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the minimum number of connections allowed in the pool.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定池中允许的最小连接数。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定池中允许的最小连接数。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3863,7 +3884,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当设置为 "true" 时，如果在不同子网上配置了 AlwaysOn 可用性组，对活动服务器的检测和连接将会更快。]]></Val>
+            <Val><![CDATA[[可选]5D; 当设置为“true”时，如果在不同子网上配置了 AlwaysOn 可用性组，对活动服务器的检测和连接将会更快。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3872,7 +3893,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', multiple result sets can be returned and read from on connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当设置为 "true" 时，将能从连接返回并读取多个结果集。]]></Val>
+            <Val><![CDATA[[可选]5D; 当设置为“true”时，将能从连接返回并读取多个结果集。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3881,7 +3902,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the size in bytes of the network packets to communicate with SQL Server.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定与 SQL Server 通信的网络数据包大小(以字节为单位)。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定与 SQL Server 通信的网络数据包大小(以字节为单位)。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3890,7 +3911,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定 SQL Server 身份验证的密码。如果未指定密码或保存，连接时会被再次询问。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定 SQL Server 身份验证的密码。如果未指定密码或保存，连接时会被再次询问。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3899,7 +3920,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当设置为 "false" 时，如果连接处于打开状态或曾经处于打开状态，则安全敏感信息(如密码等)将不会作为连接的一部分返回。]]></Val>
+            <Val><![CDATA[[可选]5D; 当设置为“false”时，如果连接处于打开状态或曾经处于打开状态，则安全敏感信息(如密码等)将不会作为连接的一部分返回。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3908,7 +3929,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当设置为 "true" 时，将从合适的池中提取连接对象，或者必要时，将创建对象并添加到合适的池中。]]></Val>
+            <Val><![CDATA[[可选]5D; 当设置为“true”时，将从合适的池中提取连接对象，或者必要时，将创建对象并添加到合适的池中。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3917,7 +3938,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the port number to connect to.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定要连接的端口号。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定要连接到的端口号。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3926,7 +3947,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定此连接配置文件的自定义名称，可使用它在 Visual Studio Code 的命令面板中轻松浏览和搜索。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定此连接配置文件的自定义名称，可使用它在 Visual Studio Code 的命令面板中轻松浏览和搜索。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3944,7 +3965,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当设置为 "true" 时，SQL Server 身份验证的密码将被保存在操作系统的安全存储区中，例如，KeyChain 保存在 MacOS 中，Secure Store 保存在 Windows 中。]]></Val>
+            <Val><![CDATA[[可选]5D; 当设置为“true”时，SQL Server 身份验证的密码将被保存在操作系统的安全存储区中，例如，KeyChain 保存在 MacOS 中，Secure Store 保存在 Windows 中。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3953,7 +3974,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[必需]5D; 请指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用“主机名实例”或 “<server>.database.windows.net”。]]></Val>
+            <Val><![CDATA[[必需]5D; 指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用“主机名实例”或“<server>.database.windows.net”。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3962,7 +3983,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当设置为 "true" 时，如果通信层使用 SSL 进行加密，将自动信任 SQL Server SSL 证书。使用 Azure SQL 数据库连接时，请设置为 "false"。]]></Val>
+            <Val><![CDATA[[可选]5D; 当设置为“true”时，如果通信层使用 SSL 进行加密，将自动信任 SQL Server SSL 证书。使用 Azure SQL 数据库连接时，请设置为“false”。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3980,7 +4001,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定 SQL Server 身份验证的用户名。如果未指定用户名，连接时会被再次询问。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定 SQL Server 身份验证的用户名。如果未指定用户名，连接时会被再次询问。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3989,7 +4010,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the name of the workstation connecting to SQL Server.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 请指定连接 SQL Server 的工作站名称。]]></Val>
+            <Val><![CDATA[[可选]5D; 指定连接到 SQL Server 的工作站名称。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4007,7 +4028,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Configuration options for copying results from the Results View]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 从结果视图复制结果的配置选项]]></Val>
+            <Val><![CDATA[[可选]5D; 用于从结果视图复制结果的配置选项]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4025,7 +4046,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Configuration options for copying multi-line results from the Results View]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 从结果视图复制多行结果的配置选项]]></Val>
+            <Val><![CDATA[[可选]5D; 用于从结果视图复制多行结果的配置选项]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4088,7 +4109,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启用连接池以提高整体连接性能。默认情况下启用此设置。更改值时，需要重新启动 Visual Studio Code。若要清除共用连接，请运行以下命令: 'MS SQL: Clear Pooled Connections']]></Val>
+            <Val><![CDATA[启用连接池以提高整体连接性能。默认启用此设置。更改值时，需要重新启动 Visual Studio Code。若要清除共用连接，请运行以下命令:“MS SQL: Clear Pooled Connections”]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4096,6 +4117,9 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 MSSQL 扩展中启用实验性功能。这些功能未准备就绪，可能存在漏洞或问题。请在更改此设置后重启 Visual Studio Code。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4148,7 +4172,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[数据类型格式是否应统一为“大写”("uppercase")、“小写”("lowercase") 或不进行统一 ("none")]]></Val>
+            <Val><![CDATA[数据类型格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4157,7 +4181,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[关键字格式是否应统一为“大写”("uppercase")、“小写”("lowercase") 或不进行统一 ("none")]]></Val>
+            <Val><![CDATA[关键字格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4166,7 +4190,7 @@
         <Str Cat="Text">
           <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[逗号是否应位于一串语句中每一条的开头(例如 ", mycolumn2")而不是结尾(例如 "mycolumn1,")]]></Val>
+            <Val><![CDATA[逗号是否应位于一串语句中每一条的开头(例如“, mycolumn2”)而不是结尾(例如“mycolumn1,”)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4175,7 +4199,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[select 语句中的对象引用是否应分为不同行? 例如，在 "SELECT C1, C2 FROM T1" 中，C1 和 C2 将位于不同行]]></Val>
+            <Val><![CDATA[select 语句中的对象引用是否应分为不同行?例如，在“SELECT C1, C2 FROM T1”中，C1 和 C2 将位于不同行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4247,7 +4271,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启动时要删除的已超过 mssql.logRetentionMinutes 的旧文件的最大数量。将在下次启动 Azure Data Studio 时清理由于此限制而未清理的文件。]]></Val>
+            <Val><![CDATA[启动时要移除的已超过 mssql.logRetentionMinutes 的旧文件的最大数量。将在下次启动 Azure Data Studio 时清理由于此限制而未清理的文件。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4274,7 +4298,7 @@
         <Str Cat="Text">
           <Val><![CDATA[The maximum number of recently used connections to store in the connection list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[连接列表中可保存的最近使用的最大连接数]]></Val>
+            <Val><![CDATA[连接列表中可保存的最近使用的最大连接数。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4283,7 +4307,7 @@
         <Str Cat="Text">
           <Val><![CDATA[True for the messages pane to be open by default; false for closed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA["true" 时默认开启消息面板；"false" 时默认关闭]]></Val>
+            <Val><![CDATA[“true”时默认开启消息面板；“false”时默认关闭]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4354,6 +4378,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[打开执行计划文件]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4388,7 +4415,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[是否应在 Azure 日志输出通道和输出通道日志文件中记录个人身份信息 (PII)。]]></Val>
+            <Val><![CDATA[是否应在 Azure 日志输出通道和输出通道日志文件中记录个人身份信息(PII)。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4478,7 +4505,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[是否应将 BIT 列显示为数字 (1 或 0)? 若为 "false"，BIT 列将显示为 "true" 或 "false"]]></Val>
+            <Val><![CDATA[是否应将 BIT 列显示为数字(1 或 0)?若为“false”，BIT 列将显示为“true”或“false”]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4505,7 +4532,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET LOCK TIMEOUT option (in milliseconds)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[启用 SET LOCK TIMEOUT 选项(毫秒)]]></Val>
+            <Val><![CDATA[启用 SET LOCK TIMEOUT 选项(以毫秒为单位)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4631,7 +4658,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Number of query history entries to show in the Query History view]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[要在查询历史记录视图中显示的查询历史记录条目数]]></Val>
+            <Val><![CDATA[要在“查询历史记录”视图中显示的查询历史记录条目数]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4658,7 +4685,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Remove Microsoft Entra Account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[删除 Microsoft Entra 帐户]]></Val>
+            <Val><![CDATA[移除 Microsoft Entra 帐户]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4667,7 +4694,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Remove]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[删除]]></Val>
+            <Val><![CDATA[移除]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4739,7 +4766,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When true, column headers are included when saving results as CSV]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[可选]5D; 当为 "true" 时，将结果保存为 CSV 时包含列标题]]></Val>
+            <Val><![CDATA[[可选]5D; 当为“true”时，将结果保存为 CSV 时包含列标题]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

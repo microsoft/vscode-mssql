@@ -4,15 +4,11 @@
     <body>
       <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
         <source xml:lang="en"> is required.</source>
-        <target state="translated">是必要的。</target>
+        <target state="translated"> 是必要的。</target>
       </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
-        <target state="new">&lt;default&gt;</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df">
-        <source xml:lang="en">1 issue</source>
-        <target state="translated">1 個問題</target>
+        <target state="translated">&lt;default&gt;</target>
       </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
@@ -26,15 +22,11 @@
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">此編輯器工作階段已經在執行查詢。請取消這項查詢，或等待查詢完成。</target>
       </trans-unit>
-      <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
-        <source xml:lang="en">About table</source>
-        <target state="new">About table</target>
-      </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
         <note>{0} is the connection id
 {1} is the uri</note>
-        <target state="translated">具有 URI {1} 的 {0} 權杖已過期</target>
+        <target state="translated">具有 URI {0} 的 {1} 權杖已過期</target>
       </trans-unit>
       <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
         <source xml:lang="en">Account not found</source>
@@ -58,7 +50,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d72d67f0f765e5584e6db8bd1e591a84914d23ff29e9f5b20d8b39125091fca0">
         <source xml:lang="en">Add Connection</source>
-        <target state="translated">新增連線</target>
+        <target state="translated">加入連接</target>
       </trans-unit>
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
@@ -74,11 +66,11 @@
       </trans-unit>
       <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
         <source xml:lang="en">Advanced Connection Settings</source>
-        <target state="new">Advanced Connection Settings</target>
+        <target state="translated">進階連線設定</target>
       </trans-unit>
       <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
         <source xml:lang="en">Advanced Type</source>
-        <target state="new">Advanced Type</target>
+        <target state="translated">進階類型</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -99,11 +91,11 @@
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
-        <target state="translated">且</target>
+        <target state="translated">和</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
-        <target state="translated">您確定要中斷目前連線?</target>
+        <target state="translated">確定要中斷連線嗎?</target>
       </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
@@ -172,7 +164,7 @@
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
-        <target state="new">Browse Azure</target>
+        <target state="translated">瀏覽 Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -192,7 +184,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e98afd3714a8d3c15f84793e425b681975e26f06503850e4122965ee9825e907">
         <source xml:lang="en">Canceling query </source>
-        <target state="translated">取消查詢 </target>
+        <target state="translated">取消查詢</target>
       </trans-unit>
       <trans-unit id="++CODE++a3b871209f5c0ce02e28669f9d6aeb1bd614ecdbd7e18a413fcc9a40e666fa59">
         <source xml:lang="en">Canceling the query failed: {0}</source>
@@ -211,25 +203,25 @@
         <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source>
         <note>{0} is the database name
 {1} is the document name</note>
-        <target state="translated">已針對文件 "{1}" 將資料庫內容變更為 "{0}"</target>
+        <target state="translated">已針對文件 "{0}" 將資料庫內容變更為 "{1}"</target>
       </trans-unit>
       <trans-unit id="++CODE++88dcff06d01faeaf2253a502d07b9358b907ef3497a0f69c2f6546ffdc06b7b7">
         <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">已將文件 "{2}" 上伺服器 "{1}" 的資料庫內容變更為 "{0}"。</target>
+        <target state="translated">已將文件 "{0}" 上伺服器 "{1}" 的資料庫內容變更為 "{2}"。</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
-        <target state="new">Changes published successfully</target>
+        <target state="translated">變更已成功發行</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">正在將文件 "{2}" 上伺服器 "{1}" 的資料庫內容變更為 "{0}"。</target>
+        <target state="translated">正在將文件 "{0}" 上伺服器 "{1}" 的資料庫內容變更為 "{2}"。</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -245,7 +237,7 @@
       </trans-unit>
       <trans-unit id="++CODE++61f2371ac2547488417f83422706e0e6c12b3c12f5f3595e90da91cbb167c174">
         <source xml:lang="en">Choose Query History</source>
-        <target state="translated">選擇查詢歷程記錄</target>
+        <target state="translated">選擇查詢歷史記錄</target>
       </trans-unit>
       <trans-unit id="++CODE++a1578b6089ec41921bc4a70b05ca1b1171199d5d5fea6ac6c345cba9b29a83ef">
         <source xml:lang="en">Choose SQL Language</source>
@@ -289,7 +281,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
         <source xml:lang="en">Close Designer</source>
-        <target state="new">Close Designer</target>
+        <target state="translated">關閉設計工具</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -332,7 +324,7 @@
         <note>{0} is the server name
 {1} is the document name
 {2} is the server info</note>
-        <target state="translated">已連線到文件 "{1}" 上的伺服器 "{0}"。伺服器資訊: {2}</target>
+        <target state="translated">已連線到文件 "{0}" 上的伺服器 "{1}"。伺服器資訊: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
         <source xml:lang="en">Connecting</source>
@@ -342,11 +334,11 @@
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <note>{0} is the server name
 {1} is the document name</note>
-        <target state="translated">正在連線文件 "{1}" 上的伺服器 "{0}"</target>
+        <target state="translated">正在連線文件 "{0}" 上的伺服器 "{1}"。</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
-        <target state="translated">正在連線到︰</target>
+        <target state="translated">正在連線到:</target>
       </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
@@ -393,6 +385,10 @@
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">複製代碼並開啟網頁</target>
       </trans-unit>
+      <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
+        <source xml:lang="en">Copy script</source>
+        <target state="new">Copy script</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
         <target state="translated">隨標題一同複製</target>
@@ -419,7 +415,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
-        <target state="translated">自訂顯示比例</target>
+        <target state="translated">自訂縮放</target>
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
@@ -463,7 +459,7 @@
       </trans-unit>
       <trans-unit id="++CODE++04dfac3671b494ad53fcd152f7a14511bfb35747278aad8ce254a0d6e4ba4718">
         <source xml:lang="en">Disconnected</source>
-        <target state="translated">中斷連線</target>
+        <target state="translated">已中斷連線</target>
       </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
@@ -500,7 +496,7 @@
       </trans-unit>
       <trans-unit id="++CODE++476c508b94c7f515d2276689b1eb5c8d1eb0d109b274cced59a3e1a1e3a247c9">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">已在此連線上啟用加密、檢閱目標 SQL Server 的 SSL 與憑證設定，或在設定檔案中將 [信任伺服器憑證] 設定為 'true'。注意: 自我簽署憑證只提供有限的保護，且不是實際執行環境的建議做法。您要在此連線上啟用 [信任伺服器憑證] 並重試嗎?</target>
+        <target state="translated">已在此連線上啟用加密、檢閱目標 SQL Server 的 SSL 與憑證設定，或在設定檔案中將 [信任伺服器憑證] 設定為 'true'。注意: 自我簽署憑證僅提供有限保護，並非實際執行環境的建議做法。您要在此連線上啟用 [信任伺服器憑證] 並重試嗎?</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -524,21 +520,21 @@
       </trans-unit>
       <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
         <source xml:lang="en">Error Message: </source>
-        <target state="translated">錯誤訊息: </target>
+        <target state="translated">錯誤訊息:</target>
       </trans-unit>
       <trans-unit id="++CODE++d0778b9c6b80f4a1e5c99227f273ca819714dbc51f673a92c354874eaa4a3f7c">
         <source xml:lang="en">Error code: </source>
-        <target state="translated">錯誤代碼: </target>
+        <target state="translated">錯誤碼:</target>
       </trans-unit>
       <trans-unit id="++CODE++609a5b573e17dee5039d1039c26a1601bb44dd596695c7767c81877925759cd7">
         <source xml:lang="en">Error connecting to server "{0}". Details: {1}</source>
         <note>{0} is the server name
 {1} is the error message</note>
-        <target state="translated">連線到伺服器 "{0}" 時發生錯誤。詳細資料︰{1}</target>
+        <target state="translated">連線到伺服器 "{0}" 時發生錯誤。詳細資料: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
         <source xml:lang="en">Error connecting to: </source>
-        <target state="translated">連線到此處時發生錯誤︰</target>
+        <target state="translated">連線到此處時發生錯誤:</target>
       </trans-unit>
       <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
         <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
@@ -552,11 +548,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
-        <target state="new">Error loading designer</target>
+        <target state="translated">載入設計工具時發生錯誤</target>
       </trans-unit>
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
-        <target state="new">Error loading preview</target>
+        <target state="translated">載入預覽時發生錯誤</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -580,7 +576,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8eecdde079a9092758e271d5a21f28eadbeedb35716353e07cfeb33f52e8005c">
         <source xml:lang="en">Error: </source>
-        <target state="translated">錯誤︰</target>
+        <target state="translated">錯誤:</target>
       </trans-unit>
       <trans-unit id="++CODE++6c1ebcf47761be137441b5293902752b802776fa5edd4ebf0193950f1adff0e8">
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
@@ -588,7 +584,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
-        <target state="translated">錯誤︰無法使用提供的連線資訊連線。要重新建立設定檔嗎?</target>
+        <target state="translated">錯誤︰無法使用提供的連線資訊連線。要重試建立設定檔嗎?</target>
       </trans-unit>
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
@@ -637,7 +633,7 @@
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
 {1} is the uri</note>
-        <target state="translated">無法重新整理 URI 為 {1} 的連線 ${0}，連線結果無效。</target>
+        <target state="translated">無法重新整理 URI 為 {0} 的連線 ${1}，連線結果無效。</target>
       </trans-unit>
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
@@ -657,7 +653,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855">
         <source xml:lang="en">Find Nodes</source>
-        <target state="new">Find Nodes</target>
+        <target state="translated">尋找節點</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -710,6 +706,10 @@
         <note>{0} is the uri</note>
         <target state="translated">找到 URI {0} 的擱置重新連接承諾，正在等候。</target>
       </trans-unit>
+      <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+        <source xml:lang="en">General</source>
+        <target state="new">General</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">產生指令碼</target>
@@ -717,10 +717,6 @@
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
         <target state="translated">正在取得定義...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
-        <source xml:lang="en">Go there</source>
-        <target state="new">Go there</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -756,7 +752,7 @@
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
-        <target state="translated">索引編制</target>
+        <target state="translated">索引</target>
       </trans-unit>
       <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
         <source xml:lang="en">Indexes</source>
@@ -764,7 +760,7 @@
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
-        <target state="translated">整合</target>
+        <target state="translated">已整合</target>
       </trans-unit>
       <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
         <source xml:lang="en">Invalid Firewall rule name</source>
@@ -776,11 +772,12 @@
       </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
-        <target state="translated">資料行寬度無效</target>
+        <target state="translated">欄寬無效</target>
       </trans-unit>
-      <trans-unit id="++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115">
-        <source xml:lang="en">Issues</source>
-        <target state="translated">問題</target>
+      <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
+        <source xml:lang="en">Issues ({0})</source>
+        <note>{0} is the number of issues</note>
+        <target state="new">Issues ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -805,7 +802,7 @@
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
-        <target state="translated">第 {0} 行</target>
+        <target state="translated">線條 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
         <source xml:lang="en">Loading</source>
@@ -813,7 +810,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
-        <target state="new">Loading Table Designer</target>
+        <target state="translated">正在載入資料表設計工具</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -833,11 +830,15 @@
       </trans-unit>
       <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
         <source xml:lang="en">Mandatory (True)</source>
-        <target state="translated">必要 (True)</target>
+        <target state="translated">強制 (True)</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
         <target state="translated">最大化</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
+        <source xml:lang="en">Maximize panel size</source>
+        <target state="new">Maximize panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -922,7 +923,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
-        <target state="new">No Queries Available</target>
+        <target state="translated">沒有任何可用的查詢</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -972,7 +973,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
-        <target state="translated">未啟動</target>
+        <target state="translated">未開始</target>
       </trans-unit>
       <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
         <source xml:lang="en">Number of Rows Read</source>
@@ -984,7 +985,7 @@
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
-        <target state="new">Object Explorer Filter</target>
+        <target state="translated">物件總管篩選</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1008,19 +1009,19 @@
       </trans-unit>
       <trans-unit id="++CODE++404eb1204c0e313b45f63c32657b2cabf3f3930b7a731969c82b5bc3061311ff">
         <source xml:lang="en">Open Query History</source>
-        <target state="translated">開啟查詢歷程記錄</target>
+        <target state="translated">開啟查詢歷史記錄</target>
       </trans-unit>
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
-        <target state="new">Open XML</target>
+        <target state="translated">開啟 XML</target>
       </trans-unit>
-      <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
-        <source xml:lang="en">Open in new tab</source>
-        <target state="translated">在新索引標籤中開啟</target>
+      <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
+        <source xml:lang="en">Open in editor</source>
+        <target state="new">Open in editor</target>
       </trans-unit>
       <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
         <source xml:lang="en">Open snapshot in new tab</source>
-        <target state="new">Open snapshot in new tab</target>
+        <target state="translated">在新索引標籤中開啟快照</target>
       </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -1092,7 +1093,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
         <source xml:lang="en">Profile created successfully</source>
-        <target state="translated">成功建立了設定檔</target>
+        <target state="translated">設定檔已成功建立</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -1117,7 +1118,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
-        <target state="new">Publishing Changes</target>
+        <target state="translated">正在發佈變更</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1135,15 +1136,15 @@
         <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
         <note>{0} is the query number
 {1} is the query cost</note>
-        <target state="new">Query {0}:  Query cost (relative to the script):  {1}%</target>
+        <target state="translated">查詢 {0}: 查詢成本 (相對於指令碼): {1}%</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
-        <target state="translated">深入了解</target>
+        <target state="translated">深入閱讀</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
-        <target state="translated">最近連線</target>
+        <target state="translated">最近的連線</target>
       </trans-unit>
       <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
         <source xml:lang="en">Recent connections list cleared</source>
@@ -1161,6 +1162,11 @@
         <source xml:lang="en">Remove</source>
         <target state="translated">移除</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
+        <source xml:lang="en">Remove {0}</source>
+        <note>{0} is the object type</note>
+        <target state="new">Remove {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
         <target state="new">Resource Group</target>
@@ -1168,6 +1174,10 @@
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
         <target state="translated">還原</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
+        <source xml:lang="en">Restore panel size</source>
+        <target state="new">Restore panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -1183,7 +1193,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
-        <target state="translated">執行查詢歷程記錄</target>
+        <target state="translated">執行查詢歷史記錄</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -1199,11 +1209,11 @@
       </trans-unit>
       <trans-unit id="++CODE++77252dc87eec71818cc0b5c0bc0e82792f92540faad923e81c6d5dcd3119e31a">
         <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
-        <target state="translated">是否儲存密碼? 如果 [否]，每次連線時都需要輸入密碼</target>
+        <target state="translated">是否儲存密碼?如果 [否]，每次連線時都需要輸入密碼</target>
       </trans-unit>
       <trans-unit id="++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d">
         <source xml:lang="en">Save Plan</source>
-        <target state="new">Save Plan</target>
+        <target state="translated">儲存計劃</target>
       </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
@@ -1219,11 +1229,11 @@
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
-        <target state="translated">多重選取項目無法使用儲存結果命令</target>
+        <target state="translated">多重選取項目無法使用儲存結果命令。</target>
       </trans-unit>
       <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
         <source xml:lang="en">Scale</source>
-        <target state="translated">縮放</target>
+        <target state="translated">調整</target>
       </trans-unit>
       <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
         <source xml:lang="en">Schema</source>
@@ -1231,7 +1241,11 @@
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
-        <target state="new">Script As Create</target>
+        <target state="translated">指令碼為建立</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
+        <source xml:lang="en">Script copied to clipboard</source>
+        <target state="new">Script copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1327,7 +1341,7 @@
       </trans-unit>
       <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
         <source xml:lang="en">Started executing query at </source>
-        <target state="translated">已在 </target>
+        <target state="translated">已在</target>
       </trans-unit>
       <trans-unit id="++CODE++4a5901a3ef8ce653c646a8ff72117555ad46803721be5b957ca9e799be6e7d20">
         <source xml:lang="en">Started query execution for document "{0}"</source>
@@ -1336,11 +1350,11 @@
       </trans-unit>
       <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
         <source xml:lang="en">Started saving results to </source>
-        <target state="translated">已開始將結果儲存至 </target>
+        <target state="translated">已開始將結果儲存至</target>
       </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
-        <target state="translated">開頭為</target>
+        <target state="translated">開始於</target>
       </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
@@ -1363,11 +1377,11 @@
         <note>{0} is the connection id
 {1} is the uri
 {2} is the message</note>
-        <target state="translated">已成功重新整理 URI 為 {1} 的連線 {0} 權杖，{2}</target>
+        <target state="translated">已成功重新整理 URI 為 {0} 的連線 {1} 權杖，{2}</target>
       </trans-unit>
       <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
         <source xml:lang="en">Successfully saved results to </source>
-        <target state="translated">已成功將結果儲存至 </target>
+        <target state="translated">已成功將結果儲存至</target>
       </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
@@ -1433,13 +1447,13 @@
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be less than the second value for the {0} operator in the {1} filter</target>
+        <target state="translated">第一個值必須小於 {1} 篩選中 {0} 運算子的第二個值</target>
       </trans-unit>
       <trans-unit id="++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e">
         <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">必須為 {1} 篩選中的 {0} 運算子設定第一個值</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -1485,7 +1499,7 @@
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The second value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">必須為 {1} 篩選中的 {0} 運算子設定第二個值</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -1509,7 +1523,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
-        <target state="new">Toggle Tooltips</target>
+        <target state="translated">切換工具提示</target>
       </trans-unit>
       <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
         <source xml:lang="en">Total execution time: {0}</source>
@@ -1592,7 +1606,7 @@
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the resource</note>
-        <target state="translated">您的租用戶 '{0} ({1})' 需要再次重新驗證，才能存取 {2} 資源。請按 [開啟] 啟動驗證程序。</target>
+        <target state="translated">您的租用戶 '{0} ({1})' 需要再次重新驗證，才能存取 {2}資源。按下 [開啟] 以開始驗證程序。</target>
       </trans-unit>
       <trans-unit id="++CODE++5a982cf9dc11b4ec88b6151a75c4b45e269a5694c941c3c4c96689bed0c7d312">
         <source xml:lang="en">Zoom In</source>
@@ -1608,7 +1622,7 @@
       </trans-unit>
       <trans-unit id="++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee">
         <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-        <target state="new">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</target>
+        <target state="translated">[選用] 要連線的資料庫 (按 Enter 以連線至 &lt;default&gt; 資料庫)</target>
       </trans-unit>
       <trans-unit id="++CODE++48a9c1333b8297748a7cf4f38e479f6d1722302a0ce72f8516d8a749fe49d752">
         <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
@@ -1624,7 +1638,7 @@
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-        <target state="new">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</target>
+        <target state="translated">hostname\instance 或 &lt;server&gt;.database.windows.net 或 ADO.NET 連接字串</target>
       </trans-unit>
       <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
         <source xml:lang="en">intelliSenseUpdated</source>
@@ -1655,26 +1669,27 @@
         <note>{0} is the number of issues</note>
         <target state="translated">{0} 個問題</target>
       </trans-unit>
-      <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
-        <source xml:lang="en">{0} issues</source>
-        <target state="translated">{0} 個問題</target>
-      </trans-unit>
       <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} 個問題</target>
       </trans-unit>
+      <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
+        <source xml:lang="en">{0} properties</source>
+        <note>{0} is the object type</note>
+        <target state="new">{0} properties</target>
+      </trans-unit>
       <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
         <source xml:lang="en">{0} {1} issue</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issue</target>
+        <target state="translated">{0} {1} 問題</target>
       </trans-unit>
       <trans-unit id="++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235">
         <source xml:lang="en">{0} {1} issues</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issues</target>
+        <target state="translated">{0} {1} 問題</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>
@@ -1705,7 +1720,7 @@
     <body>
       <trans-unit id="mssql.addObjectExplorer">
         <source xml:lang="en">Add Connection</source>
-        <target state="translated">新增連線</target>
+        <target state="translated">加入連接</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -1757,7 +1772,7 @@
       </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
-        <target state="translated">在「使用者設定」中定義的連線設定檔會位於命令選擇區的「MS SQL: Connect」 命令之下</target>
+        <target state="translated">在「使用者設定」中定義的連線設定檔會位於命令選擇區的「MS SQL: Connect」 命令之下。</target>
       </trans-unit>
       <trans-unit id="extension.connections">
         <source xml:lang="en">Connections</source>
@@ -1885,7 +1900,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">在 MSSQL 延伸模組中啟用實驗性功能。功能尚未就緒，可能會發生錯誤或問題。變更此設定後重新啟動 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
@@ -1917,11 +1932,11 @@
       </trans-unit>
       <trans-unit id="mssql.query.maxXmlCharsToStore">
         <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
-        <target state="translated">執行查詢後，XML 資料行中每個值儲存的最大字元數。預設值: 2，097，152。有效值範圍: 1 到 2，147，483，647。</target>
+        <target state="translated">執行查詢後，XML 資料行中每個值要儲存的字元數上限。預設: 2,097,152。有效值範圍: 1 到 2,147,483,647。</target>
       </trans-unit>
       <trans-unit id="mssql.query.maxCharsToStore">
         <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
-        <target state="translated">執行查詢之後，字元/二進位資料行中每個值儲存的字元/位元組數目上限。預設值: 65，535。有效值範圍: 1 到 2，147，483，647。</target>
+        <target state="translated">執行查詢之後，字元/二進位資料行中每個值儲存的字元/位元組數目上限。預設: 65,535。有效值範圍: 1 到 2,147,483,647。</target>
       </trans-unit>
       <trans-unit id="mssql.logFilesRemovalLimit">
         <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
@@ -1953,11 +1968,11 @@
       </trans-unit>
       <trans-unit id="mssql.queryHistoryLimit">
         <source xml:lang="en">Number of query history entries to show in the Query History view</source>
-        <target state="translated">在查詢歷史記錄檢視中顯示的查詢歷史記錄項目的數目</target>
+        <target state="translated">要在查詢歷史記錄檢視中顯示的查詢歷史記錄項目的數目</target>
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
-        <target state="new">Open Execution Plan File</target>
+        <target state="translated">開啟執行計畫檔案</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
@@ -2037,7 +2052,7 @@
       </trans-unit>
       <trans-unit id="mssql.query.displayBitAsNumber">
         <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'</source>
-        <target state="translated">BIT 資料行是否顯示為數字 (1 或 0)? 若為 false, BIT 資料行將會顯示為 'true' 或 'false'</target>
+        <target state="translated">BIT 資料行是否顯示為數字 (1 或 0)?若為 false, BIT 資料行將會顯示為 'true' 或 'false'</target>
       </trans-unit>
       <trans-unit id="mssql.intelliSense.enableIntelliSense">
         <source xml:lang="en">Should IntelliSense be enabled</source>
@@ -2085,7 +2100,7 @@
       </trans-unit>
       <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
-        <target state="translated">在 select 陳述式中參考的物件是否要分行處理? 以 'SELECT C1, C2 FROM T1' 為例，C1 與 C2 將會分行顯示</target>
+        <target state="translated">在 select 陳述式中參考的物件是否要分行處理?以 'SELECT C1, C2 FROM T1' 為例，C1 與 C2 將會分行顯示</target>
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
@@ -2261,7 +2276,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
         <source xml:lang="en">[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.</source>
-        <target state="translated">[選用] 當 [強制] 或 [嚴格] 時，若伺服器已安裝憑證，SQL Server 會為所有在用戶端和伺服器之間傳輸的資料使用 SSL 加密。當設定為 [嚴格] 時，SQL Server 會為所有在用戶端和伺服器之間傳輸的資料使用 TDS 8.0。SQL Server 2022 與更新版本支援 [嚴格]。</target>
+        <target state="translated">[選用] 當 [強制] 或 [嚴格] 時，若伺服器已安裝憑證，SQL Server 會為所有在用戶端和伺服器之間傳輸的資料使用 SSL 加密。當設定為 [嚴格] 時，SQL Server 會為所有在用戶端和伺服器之間的資料傳輸使用 TDS 8.0。SQL Server 2022 與更新版本支援 [嚴格]。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multipleActiveResultSets">
         <source xml:lang="en">[Optional] When set to 'true', multiple result sets can be returned and read from on connection.</source>
@@ -2301,7 +2316,7 @@
       </trans-unit>
       <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
         <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
-        <target state="translated">逗號是否放在 list 中每個陳述式的開頭 (例如: ', mycolumn2')，而非放在結尾 (例如: 'mycolumn1,')</target>
+        <target state="translated">逗號是否放在 list 中每個陳述式的開頭 (例如: ', mycolumn2')，而非放在結尾，例如:'mycolumn1,'</target>
       </trans-unit>
     </body>
   </file>
