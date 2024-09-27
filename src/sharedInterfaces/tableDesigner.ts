@@ -664,7 +664,7 @@ export enum LoadState {
 }
 
 export enum DesignerMainPaneTabs {
-    AboutTable = "aboutTable",
+    AboutTable = "general",
     Columns = "columns",
     PrimaryKey = "primaryKey",
     ForeignKeys = "foreignKeys",
@@ -737,6 +737,7 @@ export interface TableDesignerReducers {
         table: TableInfo;
     };
     scriptAsCreate: {};
+    copyScriptAsCreateToClipboard: {};
     setTab: {
         tabId: DesignerMainPaneTabs;
     };
@@ -801,6 +802,11 @@ export interface TableDesignerReactProvider {
      * Create a new sql create script for the table.
      */
     scriptAsCreate: () => void;
+
+    /**
+     * Copy the 'Script as create' script to the clipboard.
+     */
+    copyScriptAsCreateToClipboard: () => void;
 
     /**
      * Get the unique id for the component.

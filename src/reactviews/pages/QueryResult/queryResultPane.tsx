@@ -28,6 +28,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
 import * as l10n from "@vscode/l10n";
+import CommandBar from "./commandBar";
 
 const useStyles = makeStyles({
     root: {
@@ -58,6 +59,7 @@ const useStyles = makeStyles({
         width: "100%",
         height: "100%",
         position: "relative",
+        display: "flex",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -288,6 +290,7 @@ export const QueryResultPane = () => {
                                 ref={gridRef}
                                 resultSetSummary={metadata.resultSetSummary}
                             />
+                            <CommandBar />
                         </div>
                     )}
                 {metadata.tabStates!.resultPaneTab ===

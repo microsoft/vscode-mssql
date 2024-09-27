@@ -10,10 +10,6 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="new">&lt;default&gt;</target>
       </trans-unit>
-      <trans-unit id="++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df">
-        <source xml:lang="en">1 issue</source>
-        <target state="translated">1 件の問題</target>
-      </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         <target state="translated">このコマンドを実行する前に、SQL エディターはフォーカスされている必要があります</target>
@@ -25,10 +21,6 @@
       <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">このエディター セッションのクエリは既に実行中です。このクエリをキャンセルするか、完了まで待ってください。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
-        <source xml:lang="en">About table</source>
-        <target state="new">About table</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -74,11 +66,11 @@
       </trans-unit>
       <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
         <source xml:lang="en">Advanced Connection Settings</source>
-        <target state="new">Advanced Connection Settings</target>
+        <target state="translated">高度な接続設定</target>
       </trans-unit>
       <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
         <source xml:lang="en">Advanced Type</source>
-        <target state="new">Advanced Type</target>
+        <target state="translated">高度なタイプ</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -99,7 +91,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
-        <target state="translated">および</target>
+        <target state="translated">かつ</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
@@ -172,7 +164,7 @@
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
-        <target state="new">Browse Azure</target>
+        <target state="translated">Azure を参照</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -222,7 +214,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
-        <target state="new">Changes published successfully</target>
+        <target state="translated">変更が正常に公開されました</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
@@ -289,7 +281,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
         <source xml:lang="en">Close Designer</source>
-        <target state="new">Close Designer</target>
+        <target state="translated">Designer を閉じる</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -392,6 +384,10 @@
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">コードをコピーして Web ページを開く</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
+        <source xml:lang="en">Copy script</source>
+        <target state="new">Copy script</target>
       </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
@@ -508,7 +504,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
         <source xml:lang="en">Ends With</source>
-        <target state="translated">で終わる</target>
+        <target state="translated">次で終わる</target>
       </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
@@ -520,7 +516,7 @@
       </trans-unit>
       <trans-unit id="++CODE++54a0e8c17ebb21a11f8a25b8042786ef7efe52441e6cc87e92c67e0c4c0c6e78">
         <source xml:lang="en">Error</source>
-        <target state="translated">エラー</target>
+        <target state="translated">Error</target>
       </trans-unit>
       <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
         <source xml:lang="en">Error Message: </source>
@@ -552,11 +548,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
-        <target state="new">Error loading designer</target>
+        <target state="translated">デザイナーの読み込みエラー</target>
       </trans-unit>
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
-        <target state="new">Error loading preview</target>
+        <target state="translated">プレビューの読み込みエラー</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -710,6 +706,10 @@
         <note>{0} is the uri</note>
         <target state="translated">URI {0} の保留中の再接続 Promise が見つかりましたが、待機中です。</target>
       </trans-unit>
+      <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+        <source xml:lang="en">General</source>
+        <target state="new">General</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">スクリプトの生成</target>
@@ -718,13 +718,9 @@
         <source xml:lang="en">Getting definition ...</source>
         <target state="translated">定義を取得中...</target>
       </trans-unit>
-      <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
-        <source xml:lang="en">Go there</source>
-        <target state="new">Go there</target>
-      </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
-        <target state="translated">より大きい</target>
+        <target state="translated">指定値より大きい</target>
       </trans-unit>
       <trans-unit id="++CODE++8885e80bb197b22bc702906ef86b149ad49d258c5cb14b09227c19ee4f01061e">
         <source xml:lang="en">Greater Than Or Equals</source>
@@ -778,9 +774,10 @@
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">列の幅が無効です</target>
       </trans-unit>
-      <trans-unit id="++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115">
-        <source xml:lang="en">Issues</source>
-        <target state="translated">問題</target>
+      <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
+        <source xml:lang="en">Issues ({0})</source>
+        <note>{0} is the number of issues</note>
+        <target state="new">Issues ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -796,7 +793,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ab7e3aa3d0d8c78763c986b6a831726ff623b195a38a8d4b1191976c0becf72e">
         <source xml:lang="en">Less Than</source>
-        <target state="translated">次の値より小さい</target>
+        <target state="translated">指定値より小さい</target>
       </trans-unit>
       <trans-unit id="++CODE++a408b91cd1b01aac0b9fa7eec7fafac233eb172b0aafcdf013d88575fac35c1f">
         <source xml:lang="en">Less Than Or Equals</source>
@@ -813,7 +810,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
-        <target state="new">Loading Table Designer</target>
+        <target state="translated">テーブル デザイナーを読み込んでいます</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -838,6 +835,10 @@
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
         <target state="translated">最大化</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
+        <source xml:lang="en">Maximize panel size</source>
+        <target state="new">Maximize panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -952,7 +953,7 @@
       </trans-unit>
       <trans-unit id="++CODE++58601e3ffba5990d1be4db9f2bcc6107f9a72949aabd8f68f79bcb2c92195b5f">
         <source xml:lang="en">Not Between</source>
-        <target state="translated">次の値の範囲外</target>
+        <target state="translated">指定範囲外</target>
       </trans-unit>
       <trans-unit id="++CODE++bfccbdda37b86c50ee3c10c461afc9fcc2854ca2d53d33b9bb079798a4f0cf21">
         <source xml:lang="en">Not Contains</source>
@@ -964,7 +965,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2abe6ce3689dddb31a75faaafb1a7293649d60f93bff0e48a87e7d5ddd7f2530">
         <source xml:lang="en">Not Equals</source>
-        <target state="translated">次の値に等しくない</target>
+        <target state="translated">指定値に等しくない</target>
       </trans-unit>
       <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
         <source xml:lang="en">Not Starts With</source>
@@ -1012,11 +1013,11 @@
       </trans-unit>
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
-        <target state="new">Open XML</target>
+        <target state="translated">XML を開く</target>
       </trans-unit>
-      <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
-        <source xml:lang="en">Open in new tab</source>
-        <target state="translated">新しいタブで開く</target>
+      <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
+        <source xml:lang="en">Open in editor</source>
+        <target state="new">Open in editor</target>
       </trans-unit>
       <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
         <source xml:lang="en">Open snapshot in new tab</source>
@@ -1117,7 +1118,7 @@
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
-        <target state="new">Publishing Changes</target>
+        <target state="translated">変更をパブリッシュしています</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1135,7 +1136,7 @@
         <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
         <note>{0} is the query number
 {1} is the query cost</note>
-        <target state="new">Query {0}:  Query cost (relative to the script):  {1}%</target>
+        <target state="translated">クエリ {0}: クエリ コスト (スクリプトに対する相対): {1}%</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
@@ -1161,6 +1162,11 @@
         <source xml:lang="en">Remove</source>
         <target state="translated">削除</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
+        <source xml:lang="en">Remove {0}</source>
+        <note>{0} is the object type</note>
+        <target state="new">Remove {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
         <target state="new">Resource Group</target>
@@ -1168,6 +1174,10 @@
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
         <target state="translated">復元</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
+        <source xml:lang="en">Restore panel size</source>
+        <target state="new">Restore panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -1231,7 +1241,11 @@
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
-        <target state="new">Script As Create</target>
+        <target state="translated">作成としてのスクリプト</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
+        <source xml:lang="en">Script copied to clipboard</source>
+        <target state="new">Script copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1340,7 +1354,7 @@
       </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
-        <target state="translated">開始</target>
+        <target state="translated">次で始まる</target>
       </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
@@ -1433,13 +1447,13 @@
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be less than the second value for the {0} operator in the {1} filter</target>
+        <target state="translated">最初の値は、{1} フィルターの {0} 演算子の 2 番目の値より小さくする必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e">
         <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The first value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">{1} フィルターの {0} 演算子に最初の値を設定する必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -1485,7 +1499,7 @@
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
-        <target state="new">The second value must be set for the {0} operator in the {1} filter</target>
+        <target state="translated">{1} フィルターの {0} 演算子に 2 番目の値を設定する必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -1518,7 +1532,7 @@
       </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
-        <target state="translated">タイプ</target>
+        <target state="translated">種類</target>
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -1653,28 +1667,29 @@
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
-        <target state="translated">{0} 件の問題</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
-        <source xml:lang="en">{0} issues</source>
-        <target state="translated">{0} 件の問題</target>
+        <target state="translated">{0} の問題</target>
       </trans-unit>
       <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} 件の問題</target>
       </trans-unit>
+      <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
+        <source xml:lang="en">{0} properties</source>
+        <note>{0} is the object type</note>
+        <target state="new">{0} properties</target>
+      </trans-unit>
       <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
         <source xml:lang="en">{0} {1} issue</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issue</target>
+        <target state="translated">{0} {1} の問題</target>
       </trans-unit>
       <trans-unit id="++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235">
         <source xml:lang="en">{0} {1} issues</source>
         <note>{0} is the tab name
 {1} is the number of issues</note>
-        <target state="new">{0} {1} issues</target>
+        <target state="translated">{0} {1} の問題</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>

@@ -6,18 +6,21 @@
 import { Tab, TabList } from "@fluentui/react-tabs";
 import {
     CounterBadge,
+    Input,
     Text,
     makeStyles,
     shorthands,
 } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
+    DesignerEditType,
     DesignerMainPaneTabs,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
 import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -57,6 +60,9 @@ export const DesignerMainPane = () => {
     if (!metadata) {
         return null;
     }
+    const [tableName, setTableName] = useState(
+        (metadata.model!["name"] as InputBoxProperties).value,
+    );
     const getCurrentTabIssuesCount = (tabId: string) => {
         const tabComponents = metadata.view?.tabs.find(
             (tab) => tab.id === tabId,
@@ -122,12 +128,27 @@ export const DesignerMainPane = () => {
     return (
         <div className={classes.root}>
             <div className={classes.title}>
-                <Text className={classes.title} size={500} weight="semibold">
-                    {(metadata.model!["name"] as InputBoxProperties).value}
+                <Text className={classes.title} size={300} weight="semibold">
+                    {locConstants.tableDesigner.tableName}
                 </Text>
+                <Input
+                    size="medium"
+                    value={tableName}
+                    onChange={(_event, data) => {
+                        setTableName(data.value);
+                    }}
+                    onBlur={(_event) => {
+                        state.provider.processTableEdit({
+                            source: "TabsView",
+                            type: DesignerEditType.Update,
+                            path: ["name"],
+                            value: tableName,
+                        });
+                    }}
+                />
             </div>
             <TabList
-                size="medium"
+                size="small"
                 selectedValue={metadata.tabStates?.mainPaneTab}
                 onTabSelect={(_event, data) => {
                     state.provider.setTab(data.value as DesignerMainPaneTabs);
@@ -142,10 +163,7 @@ export const DesignerMainPane = () => {
                                 <Text>{tab.title}</Text>
                                 {getCurrentTabIssuesCount(tab.id) > 0 && (
                                     <CounterBadge
-                                        style={{
-                                            marginTop: "2px",
-                                        }}
-                                        color="danger"
+                                        color="important"
                                         size="small"
                                         title={getTableIssuesCountLabel(tab.id)}
                                         count={getCurrentTabIssuesCount(tab.id)}

@@ -30,20 +30,33 @@ export const DesignerCheckbox = ({
 }: DesignerCheckboxProps) => {
     const [value, setValue] = useState(model.checked);
     const state = useContext(TableDesignerContext);
+    if (!state) {
+        return undefined;
+    }
     useEffect(() => {
         setValue(model.checked);
     }, [model]);
     return (
-        <Field size="small">
+        <Field
+            size="small"
+            label={
+                showLabel ? (
+                    <Label size="small">
+                        {component.componentProperties.title!}
+                    </Label>
+                ) : undefined
+            }
+            orientation="horizontal"
+            style={{
+                width:
+                    (component.componentProperties.width ??
+                    UiArea === "PropertiesView")
+                        ? "100%"
+                        : "300px",
+            }}
+        >
             <Checkbox
-                label={
-                    showLabel ? (
-                        <Label size="small">
-                            {component.componentProperties.title!}
-                        </Label>
-                    ) : undefined
-                }
-                id={state?.provider.getComponentId(componentPath)}
+                ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                 checked={value}
                 onChange={async (_event, data) => {
                     if (model.enabled === false) {

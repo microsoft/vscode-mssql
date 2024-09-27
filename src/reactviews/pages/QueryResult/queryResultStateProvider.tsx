@@ -6,10 +6,12 @@
 import { ReactNode, createContext } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { Theme } from "@fluentui/react-components";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
     state: qr.QueryResultWebviewState;
+    theme: Theme;
 }
 
 const QueryResultContext = createContext<QueryResultState | undefined>(
@@ -41,6 +43,7 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                     },
                 },
                 state: webViewState?.state as qr.QueryResultWebviewState,
+                theme: webViewState?.theme,
             }}
         >
             {children}

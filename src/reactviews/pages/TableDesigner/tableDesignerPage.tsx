@@ -53,7 +53,7 @@ const useStyles = makeStyles({
         height: "10px",
         cursor: "ns-resize",
         zIndex: 1,
-        boxShadow: "0px -1px 1px  #e0e0e0",
+        boxShadow: "0px -1px 1px  var(--vscode-editorWidget-border)",
     },
     propertiesPaneHandle: {
         position: "absolute",
@@ -63,7 +63,7 @@ const useStyles = makeStyles({
         height: "100%",
         cursor: "ew-resize",
         zIndex: 1,
-        // boxShadow: '0px -1px 1px  #e0e0e0'
+        boxShadow: "-1px 0px 1px  var(--vscode-editorWidget-border)",
     },
     designerRibbon: {
         width: "100%",
@@ -148,7 +148,42 @@ export const TableDesigner = () => {
                         />
                         {state.state.propertiesPaneData && (
                             <ResizableBox
-                                width={500}
+                                width={
+                                    state.propertiesPaneResizeInfo.isMaximized
+                                        ? 9999999
+                                        : state.propertiesPaneResizeInfo
+                                              .currentWidth
+                                }
+                                onResizeStart={(_e, _div) => {
+                                    state.propertiesPaneResizeInfo.setIsMaximized(
+                                        false,
+                                    );
+                                }}
+                                onResizeStop={(_e, div) => {
+                                    const parentContainerWidth =
+                                        div.node!.parentElement!.parentElement!
+                                            .offsetWidth!;
+
+                                    const currentDivWidth = div.size.width;
+                                    if (
+                                        currentDivWidth >=
+                                        parentContainerWidth - 50
+                                    ) {
+                                        state.propertiesPaneResizeInfo.setIsMaximized(
+                                            true,
+                                        );
+                                        state.propertiesPaneResizeInfo.setCurrentWidth(
+                                            parentContainerWidth,
+                                        );
+                                    } else {
+                                        state.propertiesPaneResizeInfo.setCurrentWidth(
+                                            div.size.width,
+                                        );
+                                        state.propertiesPaneResizeInfo.setOriginalWidth(
+                                            div.size.width,
+                                        );
+                                    }
+                                }}
                                 height={Infinity}
                                 maxConstraints={[Infinity, Infinity]}
                                 minConstraints={[10, Infinity]}
@@ -166,12 +201,42 @@ export const TableDesigner = () => {
                     </div>
                     <ResizableBox
                         width={Infinity}
-                        height={250}
+                        height={
+                            state.resultPaneResizeInfo.isMaximized
+                                ? 9999999
+                                : state.resultPaneResizeInfo.currentHeight
+                        }
                         maxConstraints={[Infinity, Infinity]}
                         minConstraints={[Infinity, 10]}
                         resizeHandles={["n"]}
                         handle={<div className={classes.resultPaneHandle} />}
                         className={classes.resultPaneContainer}
+                        onResizeStart={(_e, _div) => {
+                            state.resultPaneResizeInfo.setIsMaximized(false);
+                        }}
+                        onResizeStop={(_e, div) => {
+                            const parentContainerHeight =
+                                div.node!.parentElement!.parentElement!
+                                    .offsetHeight!;
+
+                            const currentDivHeight = div.size.height;
+                            if (
+                                currentDivHeight >=
+                                parentContainerHeight - 50
+                            ) {
+                                state.resultPaneResizeInfo.setIsMaximized(true);
+                                state.resultPaneResizeInfo.setCurrentHeight(
+                                    parentContainerHeight,
+                                );
+                            } else {
+                                state.resultPaneResizeInfo.setCurrentHeight(
+                                    div.size.height,
+                                );
+                                state.resultPaneResizeInfo.setOriginalHeight(
+                                    div.size.height,
+                                );
+                            }
+                        }}
                     >
                         <DesignerResultPane />
                     </ResizableBox>

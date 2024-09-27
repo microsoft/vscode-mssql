@@ -10,13 +10,9 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
       </trans-unit>
-      <trans-unit id="++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df">
-        <source xml:lang="en">1 issue</source>
-        <target state="translated">1 个问题</target>
-      </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
-        <target state="translated">在执行此命令前，必须聚焦在一个 SQL 编辑器。</target>
+        <target state="translated">在执行此命令前，必须聚焦在一个 SQL 编辑器</target>
       </trans-unit>
       <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
         <source xml:lang="en">A predefined global default value for the column or binding.</source>
@@ -24,17 +20,13 @@
       </trans-unit>
       <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
-        <target state="translated">当前编辑器的会话中有正在执行的查询，请取消该查询或者等待查询执行完毕。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
-        <source xml:lang="en">About table</source>
-        <target state="translated">关于表</target>
+        <target state="translated">此编辑器会话的查询已在运行。请取消此查询或等待其完成。</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
         <note>{0} is the connection id
 {1} is the uri</note>
-        <target state="translated">URI 为 {1} 的连接 {0} 的访问令牌已过期</target>
+        <target state="translated">URI {1} 的连接 {0} 的访问令牌已过期</target>
       </trans-unit>
       <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
         <source xml:lang="en">Account not found</source>
@@ -95,7 +87,7 @@
       <trans-unit id="++CODE++8cf147a84fa5b378df2fb1c8d2001b12404768f0de0871a152ed488136a3b350">
         <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
         <note>{0} is the error message</note>
-        <target state="translated">删除 Microsoft Entra 帐户时出错: {0}</target>
+        <target state="translated">移除 Microsoft Entra 帐户时出错: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
@@ -103,7 +95,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
-        <target state="translated">确定要断开连接吗?</target>
+        <target state="translated">是否确定要断开连接?</target>
       </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
@@ -192,7 +184,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e98afd3714a8d3c15f84793e425b681975e26f06503850e4122965ee9825e907">
         <source xml:lang="en">Canceling query </source>
-        <target state="translated">正在取消查询 </target>
+        <target state="translated">正在取消查询</target>
       </trans-unit>
       <trans-unit id="++CODE++a3b871209f5c0ce02e28669f9d6aeb1bd614ecdbd7e18a413fcc9a40e666fa59">
         <source xml:lang="en">Canceling the query failed: {0}</source>
@@ -201,7 +193,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
         <source xml:lang="en">Cannot cancel query as no query is running.</source>
-        <target state="translated">取消查询失败，没有正在运行的查询。</target>
+        <target state="translated">无法取消查询，因为没有正在运行的查询。</target>
       </trans-unit>
       <trans-unit id="++CODE++78caadaa3d12c39131d70d9b85b2aa5b4fdc874138c7fa884349a843312e02c7">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -211,14 +203,14 @@
         <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source>
         <note>{0} is the database name
 {1} is the document name</note>
-        <target state="translated">已将文档 "{1}" 的数据库上下文切换至 "{0}"</target>
+        <target state="translated">已将文档“{1}”的数据库上下文更改为“{0}”</target>
       </trans-unit>
       <trans-unit id="++CODE++88dcff06d01faeaf2253a502d07b9358b907ef3497a0f69c2f6546ffdc06b7b7">
         <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">对于文挡 "{2}"，已将服务器 "{1}" 上的数据库上下文更改为 "{0}"。</target>
+        <target state="translated">对于文挡“{2}”，已将服务器“{1}”上的数据库上下文更改为“{0}”。</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -229,7 +221,7 @@
         <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
-        <target state="translated">对于文挡 "{2}"，正在将服务器 "{1}" 上的数据库上下文更改为 "{0}"。</target>
+        <target state="translated">对于文挡“{2}”，正在将服务器“{1}”上的数据库上下文更改为“{0}”。</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -317,7 +309,7 @@
       </trans-unit>
       <trans-unit id="++CODE++99fb39ba4e498877a20049303aa3318b2004884dab008c65a3b5dd48f47cdd04">
         <source xml:lang="en">Confirm to remove this profile.</source>
-        <target state="translated">确认要删除此配置文件。</target>
+        <target state="translated">确认要移除此配置文件。</target>
       </trans-unit>
       <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
         <source xml:lang="en">Connect</source>
@@ -332,21 +324,21 @@
         <note>{0} is the server name
 {1} is the document name
 {2} is the server info</note>
-        <target state="translated">对于文档 "{1}"，已连接服务器 "{0}"。服务器信息: {2}</target>
+        <target state="translated">对于文档“{1}”，已连接到服务器“{0}”。服务器信息: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
         <source xml:lang="en">Connecting</source>
-        <target state="translated">连接中</target>
+        <target state="translated">正在连接</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <note>{0} is the server name
 {1} is the document name</note>
-        <target state="translated">对于文档 "{1}"，正在连接服务器 "{0}"。</target>
+        <target state="translated">对于文档“{1}”，正在连接到服务器“{0}”。</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
-        <target state="translated">正在连接至: </target>
+        <target state="translated">正在连接至:</target>
       </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
@@ -371,11 +363,11 @@
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
         <note>{0} is the uri</note>
-        <target state="translated">找不到 URI "{0}" 的连接。</target>
+        <target state="translated">找不到 URI“{0}”的连接。</target>
       </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
-        <target state="translated">需要提供连接字符串</target>
+        <target state="translated">连接字符串是必需的</target>
       </trans-unit>
       <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
         <source xml:lang="en">Contains</source>
@@ -392,6 +384,10 @@
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">复制代码并打开网页</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
+        <source xml:lang="en">Copy script</source>
+        <target state="new">Copy script</target>
       </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
@@ -468,7 +464,7 @@
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
-        <target state="translated">已断开文档 "{0}" 的连接</target>
+        <target state="translated">已断开文档“{0}”的连接</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -492,7 +488,7 @@
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
-        <target state="translated">启用信任服务器证书</target>
+        <target state="translated">启用“信任服务器证书”</target>
       </trans-unit>
       <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
         <source xml:lang="en">Encrypt</source>
@@ -500,7 +496,7 @@
       </trans-unit>
       <trans-unit id="++CODE++476c508b94c7f515d2276689b1eb5c8d1eb0d109b274cced59a3e1a1e3a247c9">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="translated">已在此连接上启用加密、查看目标 SQL Server 的 SSL 和证书配置，或在设置文件中将“信任服务器证书”设置为 “true”。注意: 自签名证书仅提供有限的保护，不建议用于生产环境。是否要在此连接上启用“信任服务器证书”并重试?</target>
+        <target state="translated">已在此连接上启用加密、查看目标 SQL Server 的 SSL 和证书配置，或在设置文件中将“信任服务器证书”设置为“true”。注意: 自签名证书仅提供有限的保护，不建议用于生产环境。是否要在此连接上启用“信任服务器证书”并重试?</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -524,21 +520,21 @@
       </trans-unit>
       <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
         <source xml:lang="en">Error Message: </source>
-        <target state="translated">错误消息: </target>
+        <target state="translated">错误消息:</target>
       </trans-unit>
       <trans-unit id="++CODE++d0778b9c6b80f4a1e5c99227f273ca819714dbc51f673a92c354874eaa4a3f7c">
         <source xml:lang="en">Error code: </source>
-        <target state="translated">错误代码: </target>
+        <target state="translated">错误代码:</target>
       </trans-unit>
       <trans-unit id="++CODE++609a5b573e17dee5039d1039c26a1601bb44dd596695c7767c81877925759cd7">
         <source xml:lang="en">Error connecting to server "{0}". Details: {1}</source>
         <note>{0} is the server name
 {1} is the error message</note>
-        <target state="translated">连接服务器 "{0}" 时出错。详细信息: {1}</target>
+        <target state="translated">连接到服务器“{0}”时出错。详细信息: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
         <source xml:lang="en">Error connecting to: </source>
-        <target state="translated">连接到此处时出错: </target>
+        <target state="translated">连接到此处时出错:</target>
       </trans-unit>
       <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
         <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
@@ -580,7 +576,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8eecdde079a9092758e271d5a21f28eadbeedb35716353e07cfeb33f52e8005c">
         <source xml:lang="en">Error: </source>
-        <target state="translated">错误: </target>
+        <target state="translated">错误:</target>
       </trans-unit>
       <trans-unit id="++CODE++6c1ebcf47761be137441b5293902752b802776fa5edd4ebf0193950f1adff0e8">
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
@@ -588,7 +584,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
-        <target state="translated">错误: 无法使用所提供的连接信息进行连接。是否重新创建配置文件?</target>
+        <target state="translated">错误: 无法使用所提供的连接信息进行连接。是否重试创建配置文件?</target>
       </trans-unit>
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
@@ -596,7 +592,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
         <source xml:lang="en">Executing query...</source>
-        <target state="translated">正在执行查询…</target>
+        <target state="translated">正在执行查询...</target>
       </trans-unit>
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
@@ -617,7 +613,7 @@
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
         <note>{0} is the error message</note>
-        <target state="translated">连接失败︰ {0}</target>
+        <target state="translated">连接失败: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
         <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
@@ -631,17 +627,17 @@
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
-        <target state="translated">无法获取身份验证方法，请删除账户并重新添加。</target>
+        <target state="translated">无法获取身份验证方法，请移除帐户并重新添加。</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
 {1} is the uri</note>
-        <target state="translated">无法刷新 URI 为 {1} 的连接 ${0}，无效的连接结果。</target>
+        <target state="translated">无法刷新 URI {1} 的连接 ${0}，无效的连接结果。</target>
       </trans-unit>
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
-        <target state="translated">未能保存结果。 </target>
+        <target state="translated">未能保存结果。</target>
       </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
@@ -657,12 +653,12 @@
       </trans-unit>
       <trans-unit id="++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855">
         <source xml:lang="en">Find Nodes</source>
-        <target state="new">Find Nodes</target>
+        <target state="translated">查找节点</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
         <note>{0} is the document name</note>
-        <target state="translated">对文档 "{0}" 的查询已完成</target>
+        <target state="translated">对文档“{0}”的查询已完成</target>
       </trans-unit>
       <trans-unit id="++CODE++8a9ba2938bc6bfe8f093b2168aeb656e1be8e1792c61db93cb074a6e32300b1b">
         <source xml:lang="en">Firewall rule name</source>
@@ -670,7 +666,7 @@
       </trans-unit>
       <trans-unit id="++CODE++69564d37d68e80fe6d9e0507695069d1393632c9f82f5587b79f980436d9cb00">
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
-        <target state="translated">已成功添加防火墙规则。是否重试创建配置文件? </target>
+        <target state="translated">已成功添加防火墙规则。是否重试创建配置文件?</target>
       </trans-unit>
       <trans-unit id="++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b">
         <source xml:lang="en">Firewall rule successfully created.</source>
@@ -710,17 +706,17 @@
         <note>{0} is the uri</note>
         <target state="translated">找到 URI {0} 的挂起的重新连接承诺，正在等待。</target>
       </trans-unit>
+      <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+        <source xml:lang="en">General</source>
+        <target state="new">General</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">生成脚本</target>
       </trans-unit>
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
-        <target state="translated">正在获取定义…</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
-        <source xml:lang="en">Go there</source>
-        <target state="translated">去那里</target>
+        <target state="translated">正在获取定义...</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -752,7 +748,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
         <source xml:lang="en">In progress</source>
-        <target state="translated">进行中</target>
+        <target state="translated">正在进行</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -764,7 +760,7 @@
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
-        <target state="translated">集成</target>
+        <target state="translated">已集成</target>
       </trans-unit>
       <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
         <source xml:lang="en">Invalid Firewall rule name</source>
@@ -772,15 +768,16 @@
       </trans-unit>
       <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
         <source xml:lang="en">Invalid IP Address</source>
-        <target state="translated">IP 地址无效</target>
+        <target state="translated">无效 IP 地址</target>
       </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">列宽无效</target>
       </trans-unit>
-      <trans-unit id="++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115">
-        <source xml:lang="en">Issues</source>
-        <target state="translated">问题</target>
+      <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
+        <source xml:lang="en">Issues ({0})</source>
+        <note>{0} is the number of issues</note>
+        <target state="new">Issues ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -805,7 +802,7 @@
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
-        <target state="translated">第 {0} 行</target>
+        <target state="translated">行 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
         <source xml:lang="en">Loading</source>
@@ -833,11 +830,15 @@
       </trans-unit>
       <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
         <source xml:lang="en">Mandatory (True)</source>
-        <target state="translated">必需(True)</target>
+        <target state="translated">强制(True)</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
         <target state="translated">最大化</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
+        <source xml:lang="en">Maximize panel size</source>
+        <target state="new">Maximize panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -861,7 +862,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4cca27a3569729f8e3fa178db33f438eaa136c7491a5c3d26c807c876a02c292">
         <source xml:lang="en">Microsoft Entra Id</source>
-        <target state="translated">Microsoft Entra Id</target>
+        <target state="translated">Microsoft Entra ID</target>
       </trans-unit>
       <trans-unit id="++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2">
         <source xml:lang="en">Microsoft Entra Id - Universal w/ MFA Support</source>
@@ -918,15 +919,15 @@
       </trans-unit>
       <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
         <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
-        <target state="translated">找不到要删除的 Microsoft Entra 帐户。</target>
+        <target state="translated">找不到要移除的 Microsoft Entra 帐户。</target>
       </trans-unit>
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
-        <target state="new">No Queries Available</target>
+        <target state="translated">没有可用的查询</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
-        <target state="translated">沒有可删除的连接配置文件。</target>
+        <target state="translated">沒有可移除的连接配置文件。</target>
       </trans-unit>
       <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
@@ -940,7 +941,7 @@
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
         <note>{0} is the connection id
 {1} is the uri</note>
-        <target state="translated">无需刷新 URI 为 {0} 的连接 {1} 的 Microsoft Entra 帐户令牌</target>
+        <target state="translated">无需刷新 URI {1} 的连接 {0} 的 Microsoft Entra 帐户令牌</target>
       </trans-unit>
       <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
         <source xml:lang="en">No subscriptions set in VS Code's Azure account filter.</source>
@@ -984,7 +985,7 @@
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
-        <target state="new">Object Explorer Filter</target>
+        <target state="translated">对象资源管理器筛选器</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1014,13 +1015,13 @@
         <source xml:lang="en">Open XML</source>
         <target state="translated">打开 XML</target>
       </trans-unit>
-      <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
-        <source xml:lang="en">Open in new tab</source>
-        <target state="translated">在新选项卡中打开</target>
+      <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
+        <source xml:lang="en">Open in editor</source>
+        <target state="new">Open in editor</target>
       </trans-unit>
       <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
         <source xml:lang="en">Open snapshot in new tab</source>
-        <target state="new">Open snapshot in new tab</target>
+        <target state="translated">在新标签页中打开快照</target>
       </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -1067,12 +1068,12 @@
         <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
         <note>{0} is the uri
 {1} is the error</note>
-        <target state="translated">URI {0} 的先前挂起的重新连接承诺被拒绝，错误 {1}，如有必要，将尝试重新连接。</target>
+        <target state="translated">URI {0} 的先前挂起的重新连接承诺被拒绝，出现错误 {1}，如有必要，将尝试重新连接。</target>
       </trans-unit>
       <trans-unit id="++CODE++74ddf875033fe6ed895f48a8abc4373883fb876b36dfa7614f3f130ceee1ab20">
         <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
         <note>{0} is the uri</note>
-        <target state="translated">先前挂起的 URI {0} 的重新连接已成功。</target>
+        <target state="translated">URI {0} 的先前挂起的重新连接已成功。</target>
       </trans-unit>
       <trans-unit id="++CODE++92022c2f45b6a9ba92c51438e6fed444d69673e4bd6c529e3ea8f0a8bfe1e969">
         <source xml:lang="en">Primary Key</source>
@@ -1096,7 +1097,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
-        <target state="translated">已成功删除配置文件</target>
+        <target state="translated">已成功移除配置文件</target>
       </trans-unit>
       <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
         <source xml:lang="en">Properties</source>
@@ -1109,7 +1110,7 @@
       <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
         <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
         <note>{0} is the provider</note>
-        <target state="translated">提供程序 "{0}" 未定义 Microsoft 资源终结点。</target>
+        <target state="translated">提供程序“{0}”未定义 Microsoft 资源终结点。</target>
       </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
@@ -1139,7 +1140,7 @@
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
-        <target state="translated">阅读详细内容</target>
+        <target state="translated">了解详细信息</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -1147,7 +1148,7 @@
       </trans-unit>
       <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
         <source xml:lang="en">Recent connections list cleared</source>
-        <target state="translated">已清空最近的连接列表</target>
+        <target state="translated">已清空最近连接列表</target>
       </trans-unit>
       <trans-unit id="++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0">
         <source xml:lang="en">Refresh Credentials</source>
@@ -1159,7 +1160,12 @@
       </trans-unit>
       <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
         <source xml:lang="en">Remove</source>
-        <target state="translated">删除</target>
+        <target state="translated">移除</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
+        <source xml:lang="en">Remove {0}</source>
+        <note>{0} is the object type</note>
+        <target state="new">Remove {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
@@ -1168,6 +1174,10 @@
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
         <target state="translated">还原</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
+        <source xml:lang="en">Restore panel size</source>
+        <target state="new">Restore panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -1191,7 +1201,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
-        <target state="translated">SQL 登录名</target>
+        <target state="translated">SQL 登录</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -1199,15 +1209,15 @@
       </trans-unit>
       <trans-unit id="++CODE++77252dc87eec71818cc0b5c0bc0e82792f92540faad923e81c6d5dcd3119e31a">
         <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
-        <target state="translated">是否保存密码? 如果选择 [否]，每次连接时都需要输入密码</target>
+        <target state="translated">是否保存密码?如果选择“否”，每次连接时都需要输入密码</target>
       </trans-unit>
       <trans-unit id="++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d">
         <source xml:lang="en">Save Plan</source>
-        <target state="new">Save Plan</target>
+        <target state="translated">保存计划</target>
       </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
-        <target state="translated">另存为 CSV 文件</target>
+        <target state="translated">另存为 CSV</target>
       </trans-unit>
       <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
         <source xml:lang="en">Save as Excel</source>
@@ -1215,11 +1225,11 @@
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>
-        <target state="translated">另存为 JSON 文件</target>
+        <target state="translated">另存为 JSON</target>
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
-        <target state="translated">多选时不能使用保存结果命令。</target>
+        <target state="translated">多选时不能使用“保存结果”命令。</target>
       </trans-unit>
       <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
         <source xml:lang="en">Scale</source>
@@ -1232,6 +1242,10 @@
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
         <target state="translated">将脚本编写为 Create</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
+        <source xml:lang="en">Script copied to clipboard</source>
+        <target state="new">Script copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1251,7 +1265,7 @@
       </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
-        <target state="translated">已成功删除所选 Microsoft Entra 帐户。</target>
+        <target state="translated">已成功移除所选 Microsoft Entra 帐户。</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -1259,7 +1273,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
-        <target state="translated">正在连接服务器。要取消吗?</target>
+        <target state="translated">正在连接服务器。是否要取消?</target>
       </trans-unit>
       <trans-unit id="++CODE++e4e1940a01194f83f42724f0cc4b353c0219980452af7e69e597ca63229531d9">
         <source xml:lang="en">Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.</source>
@@ -1303,7 +1317,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2a2c6072cca49b7f2056d66f738d53593bce3004d1291d736ea9a69e58babae8">
         <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
-        <target state="translated">使用设备代码登录到 Azure 订阅。“登录”命令不起作用时使用此选项进行设置。</target>
+        <target state="translated">使用设备代码登录到 Azure 订阅。“登录”命令不起作用时使用此选项进行设置</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -1327,16 +1341,16 @@
       </trans-unit>
       <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
         <source xml:lang="en">Started executing query at </source>
-        <target state="translated">开始执行查询的位置 </target>
+        <target state="translated">开始执行查询的位置</target>
       </trans-unit>
       <trans-unit id="++CODE++4a5901a3ef8ce653c646a8ff72117555ad46803721be5b957ca9e799be6e7d20">
         <source xml:lang="en">Started query execution for document "{0}"</source>
         <note>{0} is the document name</note>
-        <target state="translated">已开始执行对于文档 "{0}" 的查询</target>
+        <target state="translated">已开始执行对于文档“{0}”的查询</target>
       </trans-unit>
       <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
         <source xml:lang="en">Started saving results to </source>
-        <target state="translated">开始保存结果至 </target>
+        <target state="translated">开始保存结果至</target>
       </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
@@ -1363,11 +1377,11 @@
         <note>{0} is the connection id
 {1} is the uri
 {2} is the message</note>
-        <target state="translated">URI 为 {1} 的连接 {0} 的成功刷新的令牌，{2}</target>
+        <target state="translated">URI {1} 的连接 {0} 的成功刷新的令牌，{2}</target>
       </trans-unit>
       <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
         <source xml:lang="en">Successfully saved results to </source>
-        <target state="translated">已成功保存结果至 </target>
+        <target state="translated">已成功保存结果至</target>
       </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
@@ -1475,7 +1489,7 @@
       </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
-        <target state="translated">已清除最近的连接列表，但删除某些关联凭据时出错。请查看 MSSQL 输出通道中的错误。</target>
+        <target state="translated">已清除最近连接列表，但删除某些关联凭据时出错。查看 MSSQL 输出通道中的错误。</target>
       </trans-unit>
       <trans-unit id="++CODE++c9d2c41f4eeba094c6db66ab88d3c5190e34865d80fe230483b6fdcaddf79e8a">
         <source xml:lang="en">The schema that contains the table.</source>
@@ -1501,15 +1515,15 @@
       </trans-unit>
       <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
         <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
-        <target state="translated">若要使用此命令，请打开一个 .sql 文件，或者将编辑器语言更改为 "SQL"，或者在运行中的 SQL 编辑器中选择 T-SQL 文本。</target>
+        <target state="translated">若要使用此命令，请打开一个 .sql 文件，或者将编辑器语言更改为“SQL”，或者在运行中的 SQL 编辑器中选择 T-SQL 文本。</target>
       </trans-unit>
       <trans-unit id="++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4">
         <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source>
-        <target state="translated">若要使用此命令，必须将语言设定为 "SQL"。确认要更改语言模式。</target>
+        <target state="translated">若要使用此命令，必须将语言设定为“SQL”。确认要更改语言模式。</target>
       </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
-        <target state="new">Toggle Tooltips</target>
+        <target state="translated">切换工具提示</target>
       </trans-unit>
       <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
         <source xml:lang="en">Total execution time: {0}</source>
@@ -1522,7 +1536,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
         <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
-        <target state="translated">扩展组件正在初始化中，无法执行此命令。请稍后再试。</target>
+        <target state="translated">扩展组件正在初始化中，无法执行此命令。请稍后重试。</target>
       </trans-unit>
       <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
@@ -1534,7 +1548,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
         <source xml:lang="en">Updating IntelliSense...</source>
-        <target state="translated">正在更新 IntelliSense…</target>
+        <target state="translated">正在更新 IntelliSense...</target>
       </trans-unit>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
@@ -1550,7 +1564,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bb6e451b4ca453ef7b93d4a89b702cde206029b5c57a46ac64072d7e909018c4">
         <source xml:lang="en">User name is required</source>
-        <target state="translated">必须填写用户名</target>
+        <target state="translated">用户名是必需的</target>
       </trans-unit>
       <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
         <source xml:lang="en">Value</source>
@@ -1592,7 +1606,7 @@
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the resource</note>
-        <target state="translated">你的租户“{0} ({1})”需要你重新进行身份验证才能访问 {2} 资源。请按“打开”启动身份验证过程。</target>
+        <target state="translated">你的租户“{0} ({1})”需要你重新进行身份验证才能访问 {2}资源。按“打开”以开始身份验证过程。</target>
       </trans-unit>
       <trans-unit id="++CODE++5a982cf9dc11b4ec88b6151a75c4b45e269a5694c941c3c4c96689bed0c7d312">
         <source xml:lang="en">Zoom In</source>
@@ -1624,7 +1638,7 @@
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-        <target state="new">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</target>
+        <target state="translated">hostname\instance 或 &lt;server&gt;.database.windows.net 或 ADO.NET 连接字符串</target>
       </trans-unit>
       <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
         <source xml:lang="en">intelliSenseUpdated</source>
@@ -1655,14 +1669,15 @@
         <note>{0} is the number of issues</note>
         <target state="translated">{0} 个问题</target>
       </trans-unit>
-      <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
-        <source xml:lang="en">{0} issues</source>
-        <target state="translated">{0} 个问题</target>
-      </trans-unit>
       <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} 个问题</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
+        <source xml:lang="en">{0} properties</source>
+        <note>{0} is the object type</note>
+        <target state="new">{0} properties</target>
       </trans-unit>
       <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
         <source xml:lang="en">{0} {1} issue</source>
@@ -1697,7 +1712,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
         <source xml:lang="en">{{put-server-name-here}}</source>
-        <target state="translated">{{在此处填入服务器的名称}}</target>
+        <target state="translated">{{put-server-name-here}}</target>
       </trans-unit>
     </body>
   </file>
@@ -1841,7 +1856,7 @@
       </trans-unit>
       <trans-unit id="mssql.query.lockTimeout">
         <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
-        <target state="translated">启用 SET LOCK TIMEOUT 选项(毫秒)</target>
+        <target state="translated">启用 SET LOCK TIMEOUT 选项(以毫秒为单位)</target>
       </trans-unit>
       <trans-unit id="mssql.query.noCount">
         <source xml:lang="en">Enable SET NOCOUNT option</source>
@@ -1881,11 +1896,11 @@
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">启用连接池以提高整体连接性能。默认情况下启用此设置。更改值时，需要重新启动 Visual Studio Code。若要清除共用连接，请运行以下命令: 'MS SQL: Clear Pooled Connections'</target>
+        <target state="translated">启用连接池以提高整体连接性能。默认启用此设置。更改值时，需要重新启动 Visual Studio Code。若要清除共用连接，请运行以下命令:“MS SQL: Clear Pooled Connections”</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">在 MSSQL 扩展中启用实验性功能。这些功能未准备就绪，可能存在漏洞或问题。请在更改此设置后重启 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
@@ -1925,7 +1940,7 @@
       </trans-unit>
       <trans-unit id="mssql.logFilesRemovalLimit">
         <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
-        <target state="translated">启动时要删除的已超过 mssql.logRetentionMinutes 的旧文件的最大数量。将在下次启动 Azure Data Studio 时清理由于此限制而未清理的文件。</target>
+        <target state="translated">启动时要移除的已超过 mssql.logRetentionMinutes 的旧文件的最大数量。将在下次启动 Azure Data Studio 时清理由于此限制而未清理的文件。</target>
       </trans-unit>
       <trans-unit id="mssql.query.setRowCount">
         <source xml:lang="en">Maximum number of rows to return before the server stops processing your query.</source>
@@ -1953,11 +1968,11 @@
       </trans-unit>
       <trans-unit id="mssql.queryHistoryLimit">
         <source xml:lang="en">Number of query history entries to show in the Query History view</source>
-        <target state="translated">要在查询历史记录视图中显示的查询历史记录条目数</target>
+        <target state="translated">要在“查询历史记录”视图中显示的查询历史记录条目数</target>
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
-        <target state="new">Open Execution Plan File</target>
+        <target state="translated">打开执行计划文件</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
@@ -1993,11 +2008,11 @@
       </trans-unit>
       <trans-unit id="mssql.removeObjectExplorerNode">
         <source xml:lang="en">Remove</source>
-        <target state="translated">删除</target>
+        <target state="translated">移除</target>
       </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
-        <target state="translated">删除 Microsoft Entra 帐户</target>
+        <target state="translated">移除 Microsoft Entra 帐户</target>
       </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
@@ -2037,7 +2052,7 @@
       </trans-unit>
       <trans-unit id="mssql.query.displayBitAsNumber">
         <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'</source>
-        <target state="translated">是否应将 BIT 列显示为数字 (1 或 0)? 若为 "false"，BIT 列将显示为 "true" 或 "false"</target>
+        <target state="translated">是否应将 BIT 列显示为数字(1 或 0)?若为“false”，BIT 列将显示为“true”或“false”</target>
       </trans-unit>
       <trans-unit id="mssql.intelliSense.enableIntelliSense">
         <source xml:lang="en">Should IntelliSense be enabled</source>
@@ -2061,7 +2076,7 @@
       </trans-unit>
       <trans-unit id="mssql.piiLogging">
         <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
-        <target state="translated">是否应在 Azure 日志输出通道和输出通道日志文件中记录个人身份信息 (PII)。</target>
+        <target state="translated">是否应在 Azure 日志输出通道和输出通道日志文件中记录个人身份信息(PII)。</target>
       </trans-unit>
       <trans-unit id="mssql.enableQueryHistoryFeature">
         <source xml:lang="en">Should Query History feature be enabled</source>
@@ -2073,11 +2088,11 @@
       </trans-unit>
       <trans-unit id="mssql.format.datatypeCasing">
         <source xml:lang="en">Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-        <target state="translated">数据类型格式是否应统一为“大写”("uppercase")、“小写”("lowercase") 或不进行统一 ("none")</target>
+        <target state="translated">数据类型格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)</target>
       </trans-unit>
       <trans-unit id="mssql.format.keywordCasing">
         <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-        <target state="translated">关键字格式是否应统一为“大写”("uppercase")、“小写”("lowercase") 或不进行统一 ("none")</target>
+        <target state="translated">关键字格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)</target>
       </trans-unit>
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
@@ -2085,7 +2100,7 @@
       </trans-unit>
       <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
-        <target state="translated">select 语句中的对象引用是否应分为不同行? 例如，在 "SELECT C1, C2 FROM T1" 中，C1 和 C2 将位于不同行</target>
+        <target state="translated">select 语句中的对象引用是否应分为不同行?例如，在“SELECT C1, C2 FROM T1”中，C1 和 C2 将位于不同行</target>
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
@@ -2093,7 +2108,7 @@
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
-        <target state="translated">连接列表中可保存的最近使用的最大连接数</target>
+        <target state="translated">连接列表中可保存的最近使用的最大连接数。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
@@ -2105,7 +2120,7 @@
       </trans-unit>
       <trans-unit id="mssql.messagesDefaultOpen">
         <source xml:lang="en">True for the messages pane to be open by default; false for closed</source>
-        <target state="translated">"true" 时默认开启消息面板；"false" 时默认关闭</target>
+        <target state="translated">“true”时默认开启消息面板；“false”时默认关闭</target>
       </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
@@ -2125,15 +2140,15 @@
       </trans-unit>
       <trans-unit id="mssql.copyRemoveNewLine">
         <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source>
-        <target state="translated">[可选] 从结果视图复制多行结果的配置选项</target>
+        <target state="translated">[可选] 用于从结果视图复制多行结果的配置选项</target>
       </trans-unit>
       <trans-unit id="mssql.copyIncludeHeaders">
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
-        <target state="translated">[可选] 从结果视图复制结果的配置选项</target>
+        <target state="translated">[可选] 用于从结果视图复制结果的配置选项</target>
       </trans-unit>
       <trans-unit id="mssql.applyLocalization">
         <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[可选] 本选项控制是否使用 VSCode 的区域设置进行本地化(必须重启 VSCode，设置才能生效)</target>
+        <target state="translated">[可选] 用于本地化为 VSCode 的已配置区域设置的配置选项(必须重启 VSCode，设置才能生效)</target>
       </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
@@ -2141,7 +2156,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.applicationIntent">
         <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
-        <target state="translated">[可选] 请声明连接到 SQL Server 时的应用程序工作负载类型，例如 ReadWrite 或 ReadOnly。有关详细信息，请参阅 SQL Server AlwaysOn 可用性组。</target>
+        <target state="translated">[可选] 声明连接到 SQL Server 时的应用程序工作负载类型，例如 ReadWrite 或 ReadOnly。有关详细信息，请参阅 SQL Server AlwaysOn 可用性组。</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.delimiter">
         <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
@@ -2157,7 +2172,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
-        <target state="translated">[可选] 请指定 SQL Server 的语言设置。</target>
+        <target state="translated">[可选] 指定 SQL Server 语言设置。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
@@ -2181,75 +2196,75 @@
       </trans-unit>
       <trans-unit id="mssql.connection.profileName">
         <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
-        <target state="translated">[可选] 请指定此连接配置文件的自定义名称，可使用它在 Visual Studio Code 的命令面板中轻松浏览和搜索。</target>
+        <target state="translated">[可选] 指定此连接配置文件的自定义名称，可使用它在 Visual Studio Code 的命令面板中轻松浏览和搜索。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.authenticationType">
         <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source>
-        <target state="translated">[可选] 请指定 SQL Server 验证类型。</target>
+        <target state="translated">[可选] 指定 SQL Server 身份验证类型。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.database">
         <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
-        <target state="translated">[可选] 请指定要连接到的数据库名称。如果未指定数据库，则会使用默认的用户数据库设置，通常为 "master" 数据库。</target>
+        <target state="translated">[可选] 指定要连接到的数据库名称。如果未指定数据库，则会使用默认的用户数据库设置，通常为“master”数据库。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryInterval">
         <source xml:lang="en">[Optional] Specify the delay between attempts to restore connection.</source>
-        <target state="translated">[可选] 请指定恢复连接尝试之间的延迟。</target>
+        <target state="translated">[可选] 指定恢复连接尝试之间的延迟。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.commandTimeout">
         <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
-        <target state="translated">[可选]指定在终止尝试并生成错误之前等待命令执行的时间长度(秒)。默认值为 30 秒。</target>
+        <target state="translated">[可选] 指定在终止尝试并生成错误之前等待命令执行的时间长度(秒)。默认值为 30 秒。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
         <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
-        <target state="translated">[可选]指定在终止连接尝试并生成错误之前等待连接到服务器的时间长度(秒)。本地的默认值为 15 秒，Azure SQL 数据库连接的默认值为 30 秒。</target>
+        <target state="translated">[可选] 指定在终止连接尝试并生成错误之前等待连接到服务器的时间长度(秒)。本地的默认值为 15 秒，Azure SQL 数据库连接的默认值为 30 秒。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
-        <target state="translated">[可选] 请指定池中允许的最大连接数。</target>
+        <target state="translated">[可选] 指定池中允许的最大连接数。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.loadBalanceTimeout">
         <source xml:lang="en">[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source>
-        <target state="translated">[可选] 请指定此连接在池中保存直至被删除的最短时间(以秒为单位)。</target>
+        <target state="translated">[可选] 指定此连接在池中保存直至被移除/删除的最短时间(以秒为单位)。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.minPoolSize">
         <source xml:lang="en">[Optional] Specify the minimum number of connections allowed in the pool.</source>
-        <target state="translated">[可选] 请指定池中允许的最小连接数。</target>
+        <target state="translated">[可选] 指定池中允许的最小连接数。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.applicationName">
         <source xml:lang="en">[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').</source>
-        <target state="translated">[可选] 请指定 SQL Server 记录日志使用的应用程序名称(默认为 "vscode-mssql")。</target>
+        <target state="translated">[可选] 指定 SQL Server 记录日志使用的应用程序名称(默认为“vscode-mssql”)。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.attachDbFilename">
         <source xml:lang="en">[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source>
-        <target state="translated">[可选] 请指定可附加数据库的主文件名称，包含完整路径名。</target>
+        <target state="translated">[可选] 指定可附加数据库的主文件名称，包含完整路径名。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.workstationId">
         <source xml:lang="en">[Optional] Specify the name of the workstation connecting to SQL Server.</source>
-        <target state="translated">[可选] 请指定连接 SQL Server 的工作站名称。</target>
+        <target state="translated">[可选] 指定连接到 SQL Server 的工作站名称。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.failoverPartner">
         <source xml:lang="en">[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner.</source>
-        <target state="translated">[可选] 请指定充当故障转移伙伴的 SQL Server 实例的名称或网络地址。</target>
+        <target state="translated">[可选] 指定充当故障转移伙伴的 SQL Server 实例的名称或网络地址。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>
-        <target state="translated">[可选] 请指定恢复连接的尝试次数。</target>
+        <target state="translated">[可选] 指定恢复连接的尝试次数。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.password">
         <source xml:lang="en">[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.</source>
-        <target state="translated">[可选] 请指定 SQL Server 身份验证的密码。如果未指定密码或保存，连接时会被再次询问。</target>
+        <target state="translated">[可选] 指定 SQL Server 身份验证的密码。如果未指定密码或保存，连接时会被再次询问。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.port">
         <source xml:lang="en">[Optional] Specify the port number to connect to.</source>
-        <target state="translated">[可选] 请指定要连接的端口号。</target>
+        <target state="translated">[可选] 指定要连接到的端口号。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.packetSize">
         <source xml:lang="en">[Optional] Specify the size in bytes of the network packets to communicate with SQL Server.</source>
-        <target state="translated">[可选] 请指定与 SQL Server 通信的网络数据包大小(以字节为单位)。</target>
+        <target state="translated">[可选] 指定与 SQL Server 通信的网络数据包大小(以字节为单位)。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.user">
         <source xml:lang="en">[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.</source>
-        <target state="translated">[可选] 请指定 SQL Server 身份验证的用户名。如果未指定用户名，连接时会被再次询问。</target>
+        <target state="translated">[可选] 指定 SQL Server 身份验证的用户名。如果未指定用户名，连接时会被再次询问。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectionString">
         <source xml:lang="en">[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection.</source>
@@ -2261,31 +2276,31 @@
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
         <source xml:lang="en">[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.</source>
-        <target state="translated">[可选]在值为 'Mandatory' 或 'Strict' 时，如果服务器安装了证书，SQL Server 将对客户端与服务器之间发送的所有数据使用 SSL 加密。在设置为 'Strict' 时，SQL Server 使用 TDS 8.0 在客户端与服务器之间传输所有数据。SQL Server 2022 及之后的版本均支持 'Strict'。</target>
+        <target state="translated">[可选] 在值为“Mandatory”或“Strict”时，如果服务器安装了证书，SQL Server 将对客户端与服务器之间发送的所有数据使用 SSL 加密。在设置为“Strict”时，SQL Server 使用 TDS 8.0 在客户端与服务器之间传输所有数据。SQL Server 2022 及之后的版本均支持“Strict”。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multipleActiveResultSets">
         <source xml:lang="en">[Optional] When set to 'true', multiple result sets can be returned and read from on connection.</source>
-        <target state="translated">[可选] 当设置为 "true" 时，将能从连接返回并读取多个结果集。</target>
+        <target state="translated">[可选] 当设置为“true”时，将能从连接返回并读取多个结果集。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
-        <target state="translated">[可选] 当设置为 "true" 时，如果通信层使用 SSL 进行加密，将自动信任 SQL Server SSL 证书。使用 Azure SQL 数据库连接时，请设置为 "false"。</target>
+        <target state="translated">[可选] 当设置为“true”时，如果通信层使用 SSL 进行加密，将自动信任 SQL Server SSL 证书。使用 Azure SQL 数据库连接时，请设置为“false”。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
         <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[可选] 当设置为 "true" 时，将从合适的池中提取连接对象，或者必要时，将创建对象并添加到合适的池中。</target>
+        <target state="translated">[可选] 当设置为“true”时，将从合适的池中提取连接对象，或者必要时，将创建对象并添加到合适的池中。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
-        <target state="translated">[可选] 当设置为 "true" 时，如果在不同子网上配置了 AlwaysOn 可用性组，对活动服务器的检测和连接将会更快。</target>
+        <target state="translated">[可选] 当设置为“true”时，如果在不同子网上配置了 AlwaysOn 可用性组，对活动服务器的检测和连接将会更快。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.savePassword">
         <source xml:lang="en">[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.</source>
-        <target state="translated">[可选] 当设置为 "true" 时，SQL Server 身份验证的密码将被保存在操作系统的安全存储区中，例如，KeyChain 保存在 MacOS 中，Secure Store 保存在 Windows 中。</target>
+        <target state="translated">[可选] 当设置为“true”时，SQL Server 身份验证的密码将被保存在操作系统的安全存储区中，例如，KeyChain 保存在 MacOS 中，Secure Store 保存在 Windows 中。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.persistSecurityInfo">
         <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
-        <target state="translated">[可选] 当设置为 "false" 时，如果连接处于打开状态或曾经处于打开状态，则安全敏感信息(如密码等)将不会作为连接的一部分返回。</target>
+        <target state="translated">[可选] 当设置为“false”时，如果连接处于打开状态或曾经处于打开状态，则安全敏感信息(如密码等)将不会作为连接的一部分返回。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.hostNameInCertificate">
         <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
@@ -2293,15 +2308,15 @@
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.includeHeaders">
         <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source>
-        <target state="translated">[可选] 当为 "true" 时，将结果保存为 CSV 时包含列标题</target>
+        <target state="translated">[可选] 当为“true”时，将结果保存为 CSV 时包含列标题</target>
       </trans-unit>
       <trans-unit id="mssql.connection.server">
         <source xml:lang="en">[Required] Specify the server name to connect to. Use 'hostname instance' or '&lt;server&gt;.database.windows.net' for Azure SQL Database.</source>
-        <target state="translated">[必需] 请指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用“主机名实例”或 “&lt;server&gt;.database.windows.net”。</target>
+        <target state="translated">[必需] 指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用“主机名实例”或“&lt;server&gt;.database.windows.net”。</target>
       </trans-unit>
       <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
         <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
-        <target state="translated">逗号是否应位于一串语句中每一条的开头(例如 ", mycolumn2")而不是结尾(例如 "mycolumn1,")</target>
+        <target state="translated">逗号是否应位于一串语句中每一条的开头(例如“, mycolumn2”)而不是结尾(例如“mycolumn1,”)</target>
       </trans-unit>
     </body>
   </file>
