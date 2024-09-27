@@ -10,10 +10,6 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="new">&lt;default&gt;</target>
       </trans-unit>
-      <trans-unit id="++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df">
-        <source xml:lang="en">1 issue</source>
-        <target state="translated">Una incidencia</target>
-      </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         <target state="translated">Un editor de SQL debe tener el foco antes de ejecutar este comando.</target>
@@ -25,10 +21,6 @@
       <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">Ya se está ejecutando una consulta para esta sesión del editor. Cancele la consulta o espere a que finalice.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
-        <source xml:lang="en">About table</source>
-        <target state="new">About table</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -393,6 +385,10 @@
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">Copiar código y abrir página web</target>
       </trans-unit>
+      <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
+        <source xml:lang="en">Copy script</source>
+        <target state="new">Copy script</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
         <target state="translated">Copiar con encabezados</target>
@@ -710,6 +706,10 @@
         <note>{0} is the uri</note>
         <target state="translated">Se encontró una promesa de reconexión pendiente para el uri {0}, en espera.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+        <source xml:lang="en">General</source>
+        <target state="new">General</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">Generar script</target>
@@ -717,10 +717,6 @@
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
         <target state="translated">Obteniendo la definición...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
-        <source xml:lang="en">Go there</source>
-        <target state="new">Go there</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -778,9 +774,10 @@
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">Ancho de columna no válido</target>
       </trans-unit>
-      <trans-unit id="++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115">
-        <source xml:lang="en">Issues</source>
-        <target state="translated">Incidencias</target>
+      <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
+        <source xml:lang="en">Issues ({0})</source>
+        <note>{0} is the number of issues</note>
+        <target state="new">Issues ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -838,6 +835,10 @@
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
         <target state="translated">Maximizar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
+        <source xml:lang="en">Maximize panel size</source>
+        <target state="new">Maximize panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -1014,9 +1015,9 @@
         <source xml:lang="en">Open XML</source>
         <target state="new">Open XML</target>
       </trans-unit>
-      <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
-        <source xml:lang="en">Open in new tab</source>
-        <target state="translated">Abrir en pestaña nueva</target>
+      <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
+        <source xml:lang="en">Open in editor</source>
+        <target state="new">Open in editor</target>
       </trans-unit>
       <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
         <source xml:lang="en">Open snapshot in new tab</source>
@@ -1161,6 +1162,11 @@
         <source xml:lang="en">Remove</source>
         <target state="translated">Quitar</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
+        <source xml:lang="en">Remove {0}</source>
+        <note>{0} is the object type</note>
+        <target state="new">Remove {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
         <target state="new">Resource Group</target>
@@ -1168,6 +1174,10 @@
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
         <target state="translated">Restaurar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
+        <source xml:lang="en">Restore panel size</source>
+        <target state="new">Restore panel size</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -1232,6 +1242,10 @@
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
         <target state="new">Script As Create</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
+        <source xml:lang="en">Script copied to clipboard</source>
+        <target state="new">Script copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1655,14 +1669,15 @@
         <note>{0} is the number of issues</note>
         <target state="translated">{0} problema</target>
       </trans-unit>
-      <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
-        <source xml:lang="en">{0} issues</source>
-        <target state="translated">{0} problemas</target>
-      </trans-unit>
       <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} problemas</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
+        <source xml:lang="en">{0} properties</source>
+        <note>{0} is the object type</note>
+        <target state="new">{0} properties</target>
       </trans-unit>
       <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
         <source xml:lang="en">{0} {1} issue</source>
