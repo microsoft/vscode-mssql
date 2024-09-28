@@ -16,8 +16,131 @@ import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
 import { createSqlAgentRequestHandler } from './chat/sqlAgentRequestHandler';
+// import { Message, Ollama, Tool, ToolCall } from 'ollama';
+import { ClaudeLanguageModelChatProviderImpl } from "./claudeLanguageModelChatProviderImpl";
 
 let controller: MainController = undefined;
+
+export class LanguageModelTextPart implements vscode.LanguageModelChatResponseTextPart {
+	value: string;
+
+	constructor(value: string) {
+		this.value = value;
+
+	}
+}
+
+class LanguageModelChatProviderImpl implements vscode.LanguageModelChatProvider {
+    LanguageModelChatProviderImpl() {
+        this.onDidReceiveLanguageModelResponse2(e => {
+			console.log('onDidReceiveLanguageModelResponse2', e);
+		});
+    }
+
+    private delegate: ClaudeLanguageModelChatProviderImpl = new ClaudeLanguageModelChatProviderImpl();
+
+    private readonly _emitter = new vscode.EventEmitter<{ readonly extensionId: string; readonly participant?: string; readonly tokenCount?: number }>();
+    public onDidReceiveLanguageModelResponse2: vscode.Event<{ readonly extensionId: string; readonly participant?: string; readonly tokenCount?: number }> = this._emitter.event
+
+    public provideLanguageModelResponse(
+        originalMessages: vscode.LanguageModelChatMessage[],
+        options: { [name: string]: any },
+        extensionId: string,
+        progress: vscode.Progress<vscode.ChatResponseFragment>,
+        token: vscode.CancellationToken): Thenable<any> {
+
+        return this.delegate.provideLanguageModelResponse(originalMessages, options, extensionId, progress, token);
+        //return undefined;
+    }
+
+    // private static toTools(tools: vscode.LanguageModelChatTool[]): Tool[] {
+    //     let newTools: Tool[] = [];
+    //     let tool = tools[0];
+    //     newTools.push({ type: 'function', function: { name: tool.name, description: tool.description, parameters: <any>tool.parametersSchema } });
+    //     return newTools;
+    // }
+
+    // private static toLanguageModelChatMessageToolResultPart(toolCall: ToolCall): vscode.LanguageModelChatResponseToolCallPart {
+    //     return new vscode.LanguageModelChatResponseToolCallPart(
+    //         toolCall.function.name,
+    //         toolCall.function.name,
+    //         toolCall.function.arguments);
+    // }
+
+    public async provideLanguageModelResponse2(
+        messages: vscode.LanguageModelChatMessage[],
+        options: vscode.LanguageModelChatRequestOptions,
+        extensionId: string,
+        progress: vscode.Progress<vscode.ChatResponseFragment2>,
+        token: vscode.CancellationToken): Promise<any> {
+
+        return this.delegate.provideLanguageModelResponse2(messages, options, extensionId, progress, token);
+
+        // let newMessages: Message[] = [];
+        // for (const message of messages) {
+        //     newMessages.push({ role: message.role == 1 ? 'user' : 'assistant', content: message.content });
+        // }
+        // const ollama = new Ollama({ host: 'http://localhost:11434' })
+        // let response = await ollama.chat(
+        // { model: 'llama3.2',
+        //     messages: newMessages,
+        //     stream: false,
+        //     tools: LanguageModelChatProviderImpl.toTools(options.tools)
+        // });
+
+        //  // Process function calls made by the model
+        // if (response.message.tool_calls && response.message.tool_calls.length > 0) {
+        //     let toolCall = LanguageModelChatProviderImpl.toLanguageModelChatMessageToolResultPart(response.message.tool_calls[0]);
+        //     progress.report({ index: 0, part: toolCall });
+
+        // } else {
+        //     let outputString = response.message.content;
+        //     progress.report({ index: 0, part: new vscode.LanguageModelChatResponseTextPart(outputString) });
+        //     this._emitter.fire({ extensionId: extensionId, participant: 'local-ollama', tokenCount: 10 });
+        // }
+    }
+
+    public provideTokenCount(text: string | vscode.LanguageModelChatMessage, token: vscode.CancellationToken): Thenable<number> {
+        return this.delegate.provideTokenCount(text, token);
+        //return Promise.resolve(10); // just use a fixed number for now
+    }
+}
+
+class ChatResponseProviderMetadataImpl implements vscode.ChatResponseProviderMetadata {
+
+    readonly vendor: string = 'local-ollama';
+
+    /**
+     * Human-readable name of the language model.
+     */
+    readonly name: string = "Local Ollama";
+    /**
+     * Opaque family-name of the language model. Values might be `gpt-3.5-turbo`, `gpt4`, `phi2`, or `llama`
+     * but they are defined by extensions contributing languages and subject to change.
+     */
+    readonly family: string = 'local-ollama';
+
+    /**
+     * Opaque version string of the model. This is defined by the extension contributing the language model
+     * and subject to change while the identifier is stable.
+     */
+    readonly version: string = '3.2'
+
+    readonly maxInputTokens: number = 30000;
+
+    readonly maxOutputTokens: number= 30000;
+
+    /**
+     * When present, this gates the use of `requestLanguageModelAccess` behind an authorization flow where
+     * the user must approve of another extension accessing the models contributed by this extension.
+     * Additionally, the extension can provide a label that will be shown in the UI.
+     */
+    auth?: true | { label: string };
+
+    // TODO@API maybe an enum, LanguageModelChatProviderPickerAvailability?
+    readonly isDefault?: boolean = true;
+    readonly isUserSelectable?: boolean = true;
+}
 
 export async function activate(
     context: vscode.ExtensionContext,
@@ -41,48 +164,15 @@ export async function activate(
 
 	const participant = vscode.chat.createChatParticipant('mssql.agent',
 		createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context));
+
+    // Register the chat model provider
+    vscode.lm.registerChatModelProvider(
+        "local-ollama",
+        new LanguageModelChatProviderImpl(),
+        new ChatResponseProviderMetadataImpl(),
+    );
+
 	context.subscriptions.push(controller, participant);
-
-	interface ITabCountParameters {
-        tabGroup?: number;
-    }
-	context.subscriptions.push(vscode.lm.registerTool('chat-sample_tabCount', {
-        async invoke(options, token) {
-            return {
-                toString() {
-                    const params = options.parameters as ITabCountParameters;
-                    if (typeof params.tabGroup === 'number') {
-                        const group = vscode.window.tabGroups.all[Math.max(params.tabGroup - 1, 0)];
-                        const nth = params.tabGroup === 1 ? '1st' : params.tabGroup === 2 ? '2nd' : params.tabGroup === 3 ? '3rd' : `${params.tabGroup}th`;
-                        return `There are ${group.tabs.length} tabs open in the ${nth} tab group.`;
-                    } else {
-                        const group = vscode.window.tabGroups.activeTabGroup;
-                        return `There are ${group.tabs.length} tabs open.`;
-                    }
-                },
-            };
-        },
-    }));
-
-	// context.subscriptions.push(vscode.lm.registerTool('SqlExecAndParse-ReadSystemMetadata', {
-    //     async invoke(_options, _token) {
-    //         return {
-    //             toString() {
-    //                 return "ReadSystemMetadata";
-    //             },
-    //         };
-    //     },
-    // }));
-
-	// context.subscriptions.push(vscode.lm.registerTool('SchemaExploration-GetTableNames', {
-    //     async invoke(_options, _token) {
-    //         return {
-    //             toString() {
-    //                 return "GetTableNames";
-    //             },
-    //         };
-    //     },
-    // }));
 
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,

@@ -37,10 +37,12 @@
   ],
   "activationEvents": [
     "onUri",
-    "onCommand:mssql.loadCompletionExtension"
+    "onCommand:mssql.loadCompletionExtension",
+    "onLanguageModelChat:local-ollama"
   ],
   "enabledApiProposals": [
       "chatVariableResolver",
+      "chatProvider",
       "chatParticipantAdditions",
       "lmTools"
   ],
@@ -163,6 +165,7 @@
     "yargs": "^17.7.2"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.3",
     "@azure/arm-resources": "^5.0.0",
     "@azure/arm-sql": "^9.0.0",
     "@azure/arm-subscriptions": "^5.0.0",
@@ -182,6 +185,7 @@
     "jquery": "^3.4.1",
     "lockfile": "1.0.4",
     "node-fetch": "^2.6.2",
+    "ollama": "^0.5.9",
     "opener": "1.4.2",
     "plist": "^3.0.6",
     "pretty-data": "^0.40.0",
@@ -243,6 +247,17 @@
         }
       ]
     },
+    "languageModels": {
+			"vendor": "local-ollama"
+		},
+		"interactiveSession": [
+			{
+				"label": "GitHub Copilot",
+				"id": "local-ollama",
+				"icon": "",
+				"when": "!github.copilot.interactiveSession.disabled"
+			}
+		],
     "chatParticipants": [
       {
         "id": "mssql.agent",

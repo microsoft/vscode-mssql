@@ -14,7 +14,7 @@ interface ISqlChatResult extends vscode.ChatResult {
 	};
 }
 
-const MODEL_SELECTOR: vscode.LanguageModelChatSelector = { vendor: 'copilot', family: 'gpt-4o' };
+const MODEL_SELECTOR: vscode.LanguageModelChatSelector = { family: 'local-ollama' }; //  { vendor: 'copilot', family: 'gpt-4o' };
 
 let nextConversationUriId = 1;
 
