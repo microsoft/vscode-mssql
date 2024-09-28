@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 
 export interface CommandBarProps {
     uri?: string;
-    resultSetSummary: qr.ResultSetSummary;
+    resultSetSummary?: qr.ResultSetSummary;
 }
 
 const CommandBar = (props: CommandBarProps) => {

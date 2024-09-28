@@ -173,6 +173,67 @@ export const QueryResultPane = () => {
 
     const gridRef = useRef<ResultGridHandle>(null);
 
+    const renderGrid = () => {
+        return (
+            <div id={"grid-parent"} className={classes.queryResultContainer}>
+                <ResultGrid
+                    loadFunc={(
+                        offset: number,
+                        count: number,
+                    ): Thenable<any[]> => {
+                        return webViewState.extensionRpc
+                            .call("getRows", {
+                                uri: metadata?.uri,
+                                batchId:
+                                    metadata?.resultSetSummaries[0]?.batchId,
+                                resultId: metadata?.resultSetSummaries[0]?.id,
+                                rowStart: offset,
+                                numberOfRows: count,
+                            })
+                            .then((response) => {
+                                if (!response) {
+                                    return [];
+                                }
+                                let r = response as qr.ResultSetSubset;
+                                var columnLength =
+                                    metadata?.resultSetSummaries[0]?.columnInfo
+                                        ?.length;
+                                return r.rows.map((r) => {
+                                    let dataWithSchema: {
+                                        [key: string]: any;
+                                    } = {};
+                                    // skip the first column since its a number column
+                                    for (
+                                        let i = 1;
+                                        columnLength && i < columnLength + 1;
+                                        i++
+                                    ) {
+                                        const displayValue =
+                                            r[i - 1].displayValue ?? "";
+                                        const ariaLabel = displayValue;
+                                        dataWithSchema[(i - 1).toString()] = {
+                                            displayValue: displayValue,
+                                            ariaLabel: ariaLabel,
+                                            isNull: r[i - 1].isNull,
+                                            invariantCultureDisplayValue:
+                                                displayValue,
+                                        };
+                                    }
+                                    return dataWithSchema;
+                                });
+                            });
+                    }}
+                    ref={gridRef}
+                    resultSetSummary={metadata?.resultSetSummaries[0]}
+                />
+                <CommandBar
+                    uri={metadata?.uri}
+                    resultSetSummary={metadata?.resultSetSummaries[0]}
+                />
+            </div>
+        );
+    };
+
     return (
         <div className={classes.root} ref={gridParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
@@ -225,81 +286,8 @@ export const QueryResultPane = () => {
             <div className={classes.tabContent}>
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Results &&
-                    Object.keys(metadata.resultSetSummaries).length > 0 && (
-                        <div
-                            id={"grid-parent"}
-                            className={classes.queryResultContainer}
-                        >
-                            <ResultGrid
-                                loadFunc={(
-                                    offset: number,
-                                    count: number,
-                                ): Thenable<any[]> => {
-                                    return webViewState.extensionRpc
-                                        .call("getRows", {
-                                            uri: metadata?.uri,
-                                            batchId:
-                                                metadata?.resultSetSummaries[0]
-                                                    ?.batchId,
-                                            resultId:
-                                                metadata?.resultSetSummaries[0]
-                                                    ?.id,
-                                            rowStart: offset,
-                                            numberOfRows: count,
-                                        })
-                                        .then((response) => {
-                                            if (!response) {
-                                                return [];
-                                            }
-                                            let r =
-                                                response as qr.ResultSetSubset;
-                                            var columnLength =
-                                                metadata?.resultSetSummaries[0]
-                                                    ?.columnInfo?.length;
-                                            return r.rows.map((r) => {
-                                                let dataWithSchema: {
-                                                    [key: string]: any;
-                                                } = {};
-                                                // skip the first column since its a number column
-                                                for (
-                                                    let i = 1;
-                                                    columnLength &&
-                                                    i < columnLength + 1;
-                                                    i++
-                                                ) {
-                                                    const displayValue =
-                                                        r[i - 1].displayValue ??
-                                                        "";
-                                                    const ariaLabel =
-                                                        displayValue;
-                                                    dataWithSchema[
-                                                        (i - 1).toString()
-                                                    ] = {
-                                                        displayValue:
-                                                            displayValue,
-                                                        ariaLabel: ariaLabel,
-                                                        isNull: r[i - 1].isNull,
-                                                        invariantCultureDisplayValue:
-                                                            displayValue,
-                                                    };
-                                                }
-                                                return dataWithSchema;
-                                            });
-                                        });
-                                }}
-                                ref={gridRef}
-                                resultSetSummary={
-                                    metadata.resultSetSummaries[0]
-                                }
-                            />
-                            <CommandBar
-                                uri={metadata.uri}
-                                resultSetSummary={
-                                    metadata.resultSetSummaries[0]
-                                }
-                            />
-                        </div>
-                    )}
+                    Object.keys(metadata.resultSetSummaries).length > 0 &&
+                    renderGrid()}
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Messages && (
                     <div className={classes.messagesContainer}>
