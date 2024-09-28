@@ -186,7 +186,7 @@ export const QueryResultPane = () => {
                     }}
                     className={classes.queryResultPaneTabs}
                 >
-                    {metadata.resultSetSummary && (
+                    {Object.keys(metadata.resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
                             key={qr.QueryResultPaneTabs.Results}
@@ -201,8 +201,7 @@ export const QueryResultPane = () => {
                         {MESSAGES}
                     </Tab>
                 </TabList>
-                {metadata.tabStates!.resultPaneTab ==
-                    qr.QueryResultPaneTabs.Results && (
+                {false && ( // hide divider until we implement snapshot
                     <Divider
                         vertical
                         style={{
@@ -211,7 +210,7 @@ export const QueryResultPane = () => {
                     />
                 )}
 
-                {
+                {false && ( // hide button until we implement snapshot
                     <Button
                         appearance="transparent"
                         icon={<OpenFilled />}
@@ -221,12 +220,12 @@ export const QueryResultPane = () => {
                         }}
                         title={OPEN_SNAPSHOT_IN_NEW_TAB}
                     ></Button>
-                }
+                )}
             </div>
             <div className={classes.tabContent}>
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Results &&
-                    metadata.resultSetSummary && (
+                    Object.keys(metadata.resultSetSummaries).length > 0 && (
                         <div
                             id={"grid-parent"}
                             className={classes.queryResultContainer}
@@ -240,10 +239,11 @@ export const QueryResultPane = () => {
                                         .call("getRows", {
                                             uri: metadata?.uri,
                                             batchId:
-                                                metadata?.resultSetSummary
+                                                metadata?.resultSetSummaries[0]
                                                     ?.batchId,
                                             resultId:
-                                                metadata?.resultSetSummary?.id,
+                                                metadata?.resultSetSummaries[0]
+                                                    ?.id,
                                             rowStart: offset,
                                             numberOfRows: count,
                                         })
@@ -254,7 +254,7 @@ export const QueryResultPane = () => {
                                             let r =
                                                 response as qr.ResultSetSubset;
                                             var columnLength =
-                                                metadata?.resultSetSummary
+                                                metadata?.resultSetSummaries[0]
                                                     ?.columnInfo?.length;
                                             return r.rows.map((r) => {
                                                 let dataWithSchema: {
@@ -288,9 +288,16 @@ export const QueryResultPane = () => {
                                         });
                                 }}
                                 ref={gridRef}
-                                resultSetSummary={metadata.resultSetSummary}
+                                resultSetSummary={
+                                    metadata.resultSetSummaries[0]
+                                }
                             />
-                            <CommandBar />
+                            <CommandBar
+                                uri={metadata.uri}
+                                resultSetSummary={
+                                    metadata.resultSetSummaries[0]
+                                }
+                            />
                         </div>
                     )}
                 {metadata.tabStates!.resultPaneTab ===

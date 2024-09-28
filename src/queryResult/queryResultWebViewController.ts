@@ -18,6 +18,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     constructor(context: vscode.ExtensionContext) {
         super(context, "queryResult", {
+            resultSetSummaries: {},
             messages: [],
             tabStates: {
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
@@ -63,6 +64,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public addQueryResultState(uri: string): void {
         this._queryResultStateMap.set(uri, {
+            resultSetSummaries: {},
             messages: [],
             tabStates: {
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
