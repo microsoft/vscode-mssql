@@ -213,7 +213,26 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                UserSurvey.getInstance().launchSurvey();
+                await UserSurvey.getInstance().launchSurvey({
+                    questions: [
+                        {
+                            label: LocalizedConstants.UserSurvey
+                                .overallHowSatisfiedAreYouWithMSSQLExtension,
+                            type: "nps",
+                            required: true,
+                        },
+                        {
+                            type: "divider",
+                            label: "",
+                        },
+                        {
+                            label: LocalizedConstants.UserSurvey
+                                .whatCanWeDoToImprove,
+                            type: "textarea",
+                            required: true,
+                        },
+                    ],
+                });
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => {

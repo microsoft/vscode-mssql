@@ -205,6 +205,28 @@ export class LocConstants {
             filterAnyField: l10n.t("Filter for any field..."),
         };
     }
+
+    public get userFeedback() {
+        return {
+            microsoftWouldLikeYourFeedback: l10n.t(
+                "Microsoft would like your feedback",
+            ),
+            overallHowSatisfiedAreYouWithMSSQLExtension: l10n.t(
+                "Overall, how satisfied are you with the MSSQL extension?",
+            ),
+            verySatisfied: l10n.t("Very Satisfied"),
+            satisfied: l10n.t("Satisfied"),
+            dissatisfied: l10n.t("Dissatisfied"),
+            veryDissatisfied: l10n.t("Very Dissatisfied"),
+            submit: l10n.t("Submit"),
+            cancel: l10n.t("Cancel"),
+            microsoftReviewPrivacyDisclaimer: l10n.t(
+                "Microsoft reviews your feedback to improve our products, so please don't share any personal data or confidential/proprietary content.",
+            ),
+            notLikelyAtAll: l10n.t("Not likely at all"),
+            extremelyLikely: l10n.t("Extremely likely"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

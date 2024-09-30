@@ -6,6 +6,16 @@
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
+import {
+    UserSurveyReducers,
+    UserSurveyState,
+} from "../sharedInterfaces/userSurvey";
+import * as locConstants from "../constants/locConstants";
+import { sendActionEvent } from "../telemetry/telemetry";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 
 const PROBABILITY = 0.15;
 const SESSION_COUNT_KEY = "nps/sessionCount";
@@ -24,14 +34,7 @@ export class UserSurvey {
         return UserSurvey._instance;
     }
 
-    public async launchSurvey(): Promise<void> {
-        if (!this._webviewController || this._webviewController.isDisposed) {
-            this._webviewController = new UserSurveyWebviewController(
-                this._context,
-            );
-        }
-        this._webviewController.revealToForeground();
-        return;
+    public async promptUserForNPSFeedback(): Promise<void> {
         const globalState = this._context.globalState;
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
         if (skipVersion) {
@@ -71,24 +74,72 @@ export class UserSurvey {
         }
 
         const take = {
-            title: vscode.l10n.t("Take Survey"),
+            title: locConstants.UserSurvey.takeSurvey,
             run: async () => {
-                const webviewController = new UserSurveyWebviewController(
-                    this._context,
+                const state: UserSurveyState = {
+                    questions: [
+                        {
+                            label: locConstants.UserSurvey
+                                .overallHowSatisfiedAreYouWithMSSQLExtension,
+                            type: "nps",
+                            required: true,
+                        },
+                        {
+                            type: "divider",
+                            label: "",
+                        },
+                        {
+                            label: locConstants.UserSurvey.whatCanWeDoToImprove,
+                            type: "textarea",
+                            required: true,
+                        },
+                    ],
+                };
+                if (
+                    !this._webviewController ||
+                    this._webviewController.isDisposed
+                ) {
+                    this._webviewController = new UserSurveyWebviewController(
+                        this._context,
+                        state,
+                    );
+                } else {
+                    this._webviewController.updateState(state);
+                }
+                this._webviewController.revealToForeground();
+
+                const answers = await new Promise<Record<string, string>>(
+                    (resolve) => {
+                        this._webviewController.onSubmit((e) => {
+                            resolve(e);
+                        });
+
+                        this._webviewController.onCancel(() => {
+                            resolve({});
+                        });
+                    },
                 );
-                webviewController.revealToForeground();
+
+                sendActionEvent(
+                    TelemetryViews.UserSurvey,
+                    TelemetryActions.SurverySubmit,
+                    {
+                        surveyId: "nps",
+                        ...answers,
+                    },
+                );
                 await globalState.update(IS_CANDIDATE_KEY, false);
                 await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             },
         };
         const remind = {
-            title: vscode.l10n.t("Remind Me Later"),
+            title: locConstants.UserSurvey.remindMeLater,
             run: async () => {
                 await globalState.update(SESSION_COUNT_KEY, sessionCount - 3);
             },
         };
         const never = {
-            title: vscode.l10n.t("Don't Show Again"),
+            title: locConstants.UserSurvey.dontShowAgain,
             isSecondary: true,
             run: async () => {
                 await globalState.update(IS_CANDIDATE_KEY, false);
@@ -97,27 +148,69 @@ export class UserSurvey {
         };
 
         const button = await vscode.window.showInformationMessage(
-            vscode.l10n.t(
-                "Do you mind taking a quick feedback survey about the MSSQL Extensions for VS Code?",
-            ),
+            locConstants.UserSurvey.doYouMindTakingAQuickFeedbackSurvey,
             take,
             remind,
             never,
         );
         await (button || remind).run();
     }
+
+    public async launchSurvey(
+        survey: UserSurveyState,
+    ): Promise<Record<string, string>> {
+        const state: UserSurveyState = survey;
+        if (!this._webviewController || this._webviewController.isDisposed) {
+            this._webviewController = new UserSurveyWebviewController(
+                this._context,
+                state,
+            );
+        } else {
+            this._webviewController.updateState(state);
+        }
+        this._webviewController.revealToForeground();
+
+        const answers = await new Promise<Record<string, string>>((resolve) => {
+            this._webviewController.onSubmit((e) => {
+                resolve(e);
+            });
+
+            this._webviewController.onCancel(() => {
+                resolve({});
+            });
+        });
+
+        sendActionEvent(
+            TelemetryViews.UserSurvey,
+            TelemetryActions.SurverySubmit,
+            {
+                surveyId: "nps",
+                ...answers,
+            },
+        );
+        return answers;
+    }
 }
 
 class UserSurveyWebviewController extends ReactWebviewPanelController<
-    any,
-    any
+    UserSurveyState,
+    UserSurveyReducers
 > {
-    constructor(context: vscode.ExtensionContext) {
+    private _onSubmit: vscode.EventEmitter<Record<string, string>> =
+        new vscode.EventEmitter<Record<string, string>>();
+    public readonly onSubmit: vscode.Event<Record<string, string>> =
+        this._onSubmit.event;
+
+    private _onCancel: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>();
+    public readonly onCancel: vscode.Event<void> = this._onCancel.event;
+
+    constructor(context: vscode.ExtensionContext, state?: UserSurveyState) {
         super(
             context,
-            vscode.l10n.t("User Survey"),
+            locConstants.UserSurvey.mssqlFeedback,
             "userSurvey",
-            {},
+            state,
             undefined,
             {
                 dark: vscode.Uri.joinPath(
@@ -132,5 +225,25 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                 ),
             },
         );
+
+        this.registerReducer("submit", async (state, payload) => {
+            const answers: Record<string, string> = {};
+            payload.answers.forEach((answer) => {
+                answers[answer.label] = answer.answer;
+            });
+            this._onSubmit.fire(answers);
+            this.panel.dispose();
+            return state;
+        });
+
+        this.registerReducer("cancel", async (state) => {
+            this._onCancel.fire();
+            this.panel.dispose();
+            return state;
+        });
+    }
+
+    updateState(state: UserSurveyState): void {
+        this.state = state;
     }
 }
