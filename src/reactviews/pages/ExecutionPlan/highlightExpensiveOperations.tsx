@@ -40,13 +40,14 @@ interface HighlightExpensiveOperationsProps {
     executionPlanView: any;
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
+    context?: any;
 }
 
 export const HighlightExpensiveOperations: React.FC<
     HighlightExpensiveOperationsProps
-> = ({ executionPlanView, setExecutionPlanView, setHighlightOpsClicked }) => {
+> = ({ executionPlanView, setExecutionPlanView, setHighlightOpsClicked, context }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
+    const state = context ?? useContext(ExecutionPlanContext);
     const executionPlanState = state?.state;
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
 

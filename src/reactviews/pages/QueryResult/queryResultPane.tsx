@@ -25,9 +25,11 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
+import * as ep from "../ExecutionPlan/executionPlanInterfaces";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
 import * as l10n from "@vscode/l10n";
+import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 
 const useStyles = makeStyles({
     root: {
@@ -136,7 +138,7 @@ export const QueryResultPane = () => {
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
-    const [xmlPlanText, setXmlPlanText] = useState<string>("");
+    // const [xmlPlanText, setXmlPlanText] = useState<string>("");
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -171,6 +173,18 @@ export const QueryResultPane = () => {
     }
 
     const gridRef = useRef<SlickGridHandle>(null);
+
+    const getExecutionPlanGraphs = async (contents: string) => {
+        let planFile: ep.ExecutionPlanGraphInfo = {
+            graphFileContent: contents,
+            graphFileType: ".sqlplan"
+        }
+        await state!.provider.getExecutionPlan(planFile);
+    };
+
+    useEffect(() => {
+        console.log(state);
+    }, [state]);
 
     return (
         <div className={classes.root} ref={gridParentRef}>
@@ -262,7 +276,7 @@ export const QueryResultPane = () => {
                                             var columnLength =
                                                 metadata?.resultSetSummary
                                                     ?.columnInfo?.length;
-                                            setXmlPlanText(metadata?.isExecutionPlan ? r.rows[0][0].displayValue : "");
+                                            getExecutionPlanGraphs(metadata?.isExecutionPlan ? r.rows[0][0].displayValue : "");
                                             return r.rows.map((r) => {
                                                 let dataWithSchema: {
                                                     [key: string]: any;
@@ -368,7 +382,7 @@ export const QueryResultPane = () => {
                             id={"executionPlanResultsTab"}
                             className={classes.queryResultContainer}
                         >
-                            {xmlPlanText}
+                            <ExecutionPlanPage context={state}/>
                         </div>
                     )}
             </div>

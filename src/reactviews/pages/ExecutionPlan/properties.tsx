@@ -109,14 +109,16 @@ const useStyles = makeStyles({
 interface PropertiesPaneProps {
     executionPlanView: any;
     setPropertiesClicked: any;
+    context?: any;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
+    context
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
+    const state = context ?? useContext(ExecutionPlanContext);
     const executionPlanState = state?.state;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);

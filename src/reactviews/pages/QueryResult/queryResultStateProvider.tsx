@@ -6,6 +6,7 @@
 import { ReactNode, createContext } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import * as ep from "../ExecutionPlan/executionPlanInterfaces";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
@@ -39,7 +40,45 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             tabId: tabId,
                         });
                     },
+                    getExecutionPlan: function (
+                        planFile: ep.ExecutionPlanGraphInfo,
+                    ): Promise<ep.GetExecutionPlanResult> {
+                        webViewState?.extensionRpc.action("getExecutionPlan", {
+                            sqlPlanContent: planFile.graphFileContent,
+                        });
+
+                        if (webViewState?.state.executionPlan) {
+                            return Promise.reject(
+                                new Error("Execution plan is undefined"),
+                            );
+                        }
+
+                        return Promise.resolve(
+                            webViewState!.state!.executionPlan!,
+                        );
+                    },
+                    saveExecutionPlan: function (sqlPlanContent: string): void {
+                        webViewState?.extensionRpc.action("saveExecutionPlan", {
+                            sqlPlanContent: sqlPlanContent,
+                        });
+                    },
+                    showPlanXml: function (sqlPlanContent: string): void {
+                        webViewState?.extensionRpc.action("showPlanXml", {
+                            sqlPlanContent: sqlPlanContent,
+                        });
+                    },
+                    showQuery: function (query: string): void {
+                        webViewState?.extensionRpc.action("showQuery", {
+                            query: query,
+                        });
+                    },
+                    updateTotalCost: function (totalCost: number): void {
+                        webViewState?.extensionRpc.action("updateTotalCost", {
+                            totalCost: totalCost,
+                        });
+                    },
                 },
+
                 state: webViewState?.state as qr.QueryResultWebviewState,
             }}
         >

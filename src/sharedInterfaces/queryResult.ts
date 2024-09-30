@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ApiStatus } from "../sharedInterfaces/webview";
+import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+
+
 export enum QueryResultLoadState {
     Loading = "Loading",
     Loaded = "Loaded",
@@ -11,6 +15,21 @@ export enum QueryResultLoadState {
 
 export interface QueryResultReactProvider {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
+    /**
+     * Gets the execution plan graph from the provider for a given plan file
+     * @param planFile file that contains the execution plan
+     */
+    getExecutionPlan(
+        planFile: ep.ExecutionPlanGraphInfo,
+    ): Thenable<ep.GetExecutionPlanResult>;
+
+    saveExecutionPlan(sqlPlanContent: string): void;
+
+    showPlanXml(sqlPlanContent: string): void;
+
+    showQuery(query: string): void;
+
+    updateTotalCost(totalCost: number): void;
 }
 
 export enum QueryResultPaneTabs {
@@ -30,11 +49,33 @@ export interface QueryResultWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
+    sqlPlanContent?: string;
+    executionPlan?: ep.GetExecutionPlanResult;
+    executionPlanGraphs?: ep.ExecutionPlanGraph[];
+    theme?: string;
+    totalCost?: number;
+    loadState?: ApiStatus;
+    errorMessage?: string;
 }
 
 export interface QueryResultReducers {
     setResultTab: {
         tabId: QueryResultPaneTabs;
+    };
+    getExecutionPlan: {
+        sqlPlanContent: string;
+    };
+    saveExecutionPlan: {
+        sqlPlanContent: string;
+    };
+    showPlanXml: {
+        sqlPlanContent: string;
+    };
+    showQuery: {
+        query: string;
+    };
+    updateTotalCost: {
+        totalCost: number;
     };
 }
 

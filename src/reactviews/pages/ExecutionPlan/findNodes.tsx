@@ -54,6 +54,7 @@ interface FindNodeProps {
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;
+    context?: any;
 }
 
 export const FindNode: React.FC<FindNodeProps> = ({
@@ -61,9 +62,10 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setExecutionPlanView,
     findNodeOptions,
     setFindNodeClicked,
+    context
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
+    const state = context ?? useContext(ExecutionPlanContext);
     const executionPlanState = state?.state;
 
     const findNodeComparisonOptions: string[] = [

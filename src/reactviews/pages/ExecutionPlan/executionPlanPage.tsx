@@ -33,9 +33,16 @@ const useStyles = makeStyles({
     },
 });
 
-export const ExecutionPlanPage = () => {
+interface ExecutionPlanPageProps {
+    context?: any;
+}
+
+export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
+    context
+}) => {
     const classes = useStyles();
-    const provider = useContext(ExecutionPlanContext);
+    console.log(context);
+    const provider = context ? context : useContext(ExecutionPlanContext);
     const loadState = provider?.state?.loadState ?? ApiStatus.Loading;
     const renderMainContent = () => {
         switch (loadState) {
@@ -51,8 +58,8 @@ export const ExecutionPlanPage = () => {
             case ApiStatus.Loaded:
                 const executionPlanGraphs =
                     provider?.state?.executionPlanGraphs ?? [];
-                return executionPlanGraphs?.map((_, index) => (
-                    <ExecutionPlanGraph key={index} graphIndex={index} />
+                return executionPlanGraphs?.map((_: any, index: number) => (
+                    <ExecutionPlanGraph key={index} graphIndex={index} context={context}/>
                 ));
             case ApiStatus.Error:
                 return (

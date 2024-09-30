@@ -78,13 +78,15 @@ const useStyles = makeStyles({
 
 interface ExecutionPlanGraphProps {
     graphIndex: number;
+    context?: any;
 }
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     graphIndex,
+    context
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
+    const state = context ?? useContext(ExecutionPlanContext);
     const executionPlanState = state?.state;
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
@@ -289,6 +291,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         setExecutionPlanView={setExecutionPlanView}
                         findNodeOptions={findNodeOptions}
                         setFindNodeClicked={setFindNodeClicked}
+                        context={context}
                     />
                 </Popover>
                 <Popover open={highlightOpsClicked}>
@@ -296,6 +299,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         executionPlanView={executionPlanView}
                         setExecutionPlanView={setExecutionPlanView}
                         setHighlightOpsClicked={setHighlightOpsClicked}
+                        context={context}
                     />
                 </Popover>
                 {propertiesClicked && (
@@ -312,6 +316,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                             <PropertiesPane
                                 executionPlanView={executionPlanView}
                                 setPropertiesClicked={setPropertiesClicked}
+                                context={context}
                             />
                         </Popover>
                     </div>
@@ -326,6 +331,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 setHighlightOpsClicked={setHighlightOpsClicked}
                 setPropertiesClicked={setPropertiesClicked}
                 query={query}
+                context={context}
             />
         </div>
     );

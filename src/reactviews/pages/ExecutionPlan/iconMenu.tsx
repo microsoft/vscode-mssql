@@ -46,6 +46,7 @@ interface IconStackProps {
     setHighlightOpsClicked: any;
     setPropertiesClicked: any;
     query: any;
+    context?: any;
 }
 
 export const IconStack: React.FC<IconStackProps> = ({
@@ -57,9 +58,10 @@ export const IconStack: React.FC<IconStackProps> = ({
     setHighlightOpsClicked,
     setPropertiesClicked,
     query,
+    context
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
+    const state = context ?? useContext(ExecutionPlanContext);
     const executionPlanState = state?.state;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {

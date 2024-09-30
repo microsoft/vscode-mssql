@@ -338,6 +338,8 @@ export default class MainController implements vscode.Disposable {
                 SqlToolsServerClient.instance,
             );
 
+            this._queryResultWebviewController.setExecutionPlanService(this.executionPlanService);
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this.executionPlanService,
@@ -513,6 +515,8 @@ export default class MainController implements vscode.Disposable {
         // Init Query Results Webview Controller
         this._queryResultWebviewController = new QueryResultWebviewController(
             this._context,
+            this.executionPlanService,
+            this.untitledSqlDocumentService
         );
 
         // Init content provider for results pane
