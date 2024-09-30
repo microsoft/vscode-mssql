@@ -54,17 +54,19 @@ export const AzureBrowsePage = () => {
 
     useEffect(() => {
         const subs = removeDuplicates(
-            context.state.azureDatabases.map((server) => server.subscription),
+            context.state.azureSubscriptions.map(
+                (sub) => `${sub.name} (${sub.id})`,
+            ),
         );
         setSubscriptions(subs.sort());
 
         if (!selectedSubscription && subs.length === 1) {
             setSelectedSubscription(subs[0]);
         }
-    }, [context.state.azureDatabases]);
+    }, [context.state.azureSubscriptions]);
 
     useEffect(() => {
-        let activeServers = context.state.azureDatabases;
+        let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -82,10 +84,10 @@ export const AzureBrowsePage = () => {
         if (selectedResourceGroup && !rgs.includes(selectedResourceGroup)) {
             setSelectedResourceGroup(rgs.length === 1 ? rgs[0] : undefined);
         }
-    }, [subscriptions, selectedSubscription]);
+    }, [subscriptions, selectedSubscription, context.state.azureServers]);
 
     useEffect(() => {
-        let activeServers = context.state.azureDatabases;
+        let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -110,10 +112,10 @@ export const AzureBrowsePage = () => {
         if (selectedLocation && !locs.includes(selectedLocation)) {
             setSelectedLocation(locs.length === 1 ? locs[0] : undefined);
         }
-    }, [resourceGroups, selectedResourceGroup]);
+    }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
 
     useEffect(() => {
-        let activeServers = context.state.azureDatabases;
+        let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -143,14 +145,14 @@ export const AzureBrowsePage = () => {
         if (selectedServer && !srvs.includes(selectedServer)) {
             setSelectedServer(srvs.length === 1 ? srvs[0] : undefined);
         }
-    }, [locations, selectedLocation]);
+    }, [locations, selectedLocation, context.state.azureServers]);
 
     useEffect(() => {
         if (!selectedServer) {
             return; // should not be visible if no server is selected
         }
 
-        const dbs = context.state.azureDatabases.find(
+        const dbs = context.state.azureServers.find(
             (server) => server.server === selectedServer,
         )!.databases;
 
@@ -324,10 +326,10 @@ const AzureBrowseDropdown = ({
                         content.setValue(data.optionValue);
                     }}
                 >
-                    {content.valueList.map((loc, idx) => {
+                    {content.valueList.map((val, idx) => {
                         return (
-                            <Option key={idx} value={loc}>
-                                {loc}
+                            <Option key={idx} value={val}>
+                                {val}
                             </Option>
                         );
                     })}

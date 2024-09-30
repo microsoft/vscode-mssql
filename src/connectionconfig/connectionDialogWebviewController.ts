@@ -7,7 +7,8 @@ import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
 import {
     AuthenticationType,
-    AzureSqlDatabaseInfo,
+    AzureSqlServerInfo,
+    AzureSubscriptionInfo,
     ConnectionDialogFormItemSpec,
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
@@ -77,9 +78,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     topAdvancedOptions: [],
                     groupedAdvancedOptions: {},
                 },
-                azureDatabases: [],
+                azureSubscriptions: [],
+                azureServers: [],
                 connectionStatus: ApiStatus.NotStarted,
                 formError: "",
+                loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
             }),
             vscode.ViewColumn.Active,
             {
@@ -936,7 +939,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
     }
 
-    private async loadAzureDatabases(state: ConnectionDialogWebviewState) {
+    private async loadAzureSubscriptions(
+        state: ConnectionDialogWebviewState,
+    ): Promise<Map<string, AzureSubscription[]> | undefined> {
         try {
             const auth: VSCodeAzureSubscriptionProvider =
                 new VSCodeAzureSubscriptionProvider();
@@ -946,9 +951,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
                 if (!result) {
                     state.formError = l10n.t("Azure sign in failed.");
-                    return state;
+                    return undefined;
                 }
             }
+
+            state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
+            this.state = state; // trigger UI update
 
             // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
             // we can't controll which config setting it uses, but the Azure Resources extension (ms-azuretools.vscode-azureresourcegroups) sets this config setting,
@@ -961,10 +969,39 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     >("azureResourceGroups.selectedSubscriptions") !==
                 undefined;
 
-            const tenantSubMap = this.groupBy(
+            const tenantSubMap = this.groupBy<string, AzureSubscription>(
                 await auth.getSubscriptions(shouldUseFilter),
                 "tenantId",
             ); // TODO: replace with Object.groupBy once ES2024 is supported
+
+            const subs: AzureSubscriptionInfo[] = [];
+
+            for (const t of tenantSubMap.keys()) {
+                for (const s of tenantSubMap.get(t)) {
+                    subs.push({
+                        id: s.subscriptionId,
+                        name: s.name,
+                        loaded: false,
+                    });
+                }
+            }
+
+            state.azureSubscriptions = subs;
+            state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
+
+            this.state = state; // trigger UI update
+
+            return tenantSubMap;
+        } catch (error) {
+            state.formError = l10n.t("Error loading Azure subscriptions.");
+            console.error(state.formError + "\n" + getErrorMessage(error));
+            return undefined;
+        }
+    }
+
+    private async loadAzureDatabases(state: ConnectionDialogWebviewState) {
+        try {
+            const tenantSubMap = await this.loadAzureSubscriptions(state);
 
             if (tenantSubMap.size === 0) {
                 state.formError = l10n.t(
@@ -975,8 +1012,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     for (const s of tenantSubMap.get(t)) {
                         try {
                             const servers = await this.getAzureServers(s);
-                            state.azureDatabases.push(...servers);
+                            state.azureServers.push(...servers);
                             this.state = state; // update state mid-reducer so the UI is more responsive
+                            console.log(
+                                `Loaded ${servers.length} servers for subscription ${s.name} (${s.subscriptionId})`,
+                            );
                         } catch (error) {
                             vscode.window.showErrorMessage(
                                 Loc.errorLoadingAzureDatabases(
@@ -998,21 +1038,21 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
     }
 
-    private groupBy<T>(xs: T[], key: string): Map<string, T[]> {
+    private groupBy<K, V>(xs: V[], key: string): Map<K, V[]> {
         return xs.reduce((rv, x) => {
-            const keyValue = x[key];
+            const keyValue = x[key] as K;
             if (!rv.has(keyValue)) {
                 rv.set(keyValue, []);
             }
             rv.get(keyValue)!.push(x);
             return rv;
-        }, new Map<string, T[]>());
+        }, new Map<K, V[]>());
     }
 
     private async getAzureServers(
         sub: AzureSubscription,
-    ): Promise<AzureSqlDatabaseInfo[]> {
-        const result: AzureSqlDatabaseInfo[] = [];
+    ): Promise<AzureSqlServerInfo[]> {
+        const result: AzureSqlServerInfo[] = [];
         const client = new ResourceManagementClient(
             sub.credential,
             sub.subscriptionId,

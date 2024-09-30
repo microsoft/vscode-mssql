@@ -37,19 +37,23 @@ export class ConnectionDialogWebviewState
             (keyof IConnectionDialogProfile)[]
         >;
     };
-    public azureDatabases: AzureSqlDatabaseInfo[];
+    public azureSubscriptions: AzureSubscriptionInfo[];
+    public azureServers: AzureSqlServerInfo[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
+    public loadingAzureSubscriptionsStatus: ApiStatus;
 
     constructor({
         connectionProfile,
         selectedInputMode,
         connectionComponents,
-        azureDatabases,
+        azureSubscriptions,
+        azureServers,
         recentConnections,
         connectionStatus,
         formError,
+        loadingAzureSubscriptionsStatus,
     }: {
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
@@ -65,22 +69,32 @@ export class ConnectionDialogWebviewState
                 (keyof IConnectionDialogProfile)[]
             >;
         };
-        azureDatabases: AzureSqlDatabaseInfo[];
+        azureServers: AzureSqlServerInfo[];
+        azureSubscriptions: AzureSubscriptionInfo[];
         recentConnections: IConnectionDialogProfile[];
         connectionStatus: ApiStatus;
         formError: string;
+        loadingAzureSubscriptionsStatus: ApiStatus;
     }) {
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
         this.connectionComponents = connectionComponents;
-        this.azureDatabases = azureDatabases;
+        this.azureSubscriptions = azureSubscriptions;
+        this.azureServers = azureServers;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;
+        this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
     }
 }
 
-export interface AzureSqlDatabaseInfo {
+export interface AzureSubscriptionInfo {
+    name: string;
+    id: string;
+    loaded: boolean;
+}
+
+export interface AzureSqlServerInfo {
     server: string;
     databases: string[];
     location: string;
