@@ -242,6 +242,10 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
             this.panel.dispose();
             return state;
         });
+
+        this.panel.onDidDispose(() => {
+            this._onCancel.fire();
+        });
     }
 
     updateState(state: UserSurveyState): void {
