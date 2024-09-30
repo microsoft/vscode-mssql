@@ -366,6 +366,9 @@
     <trans-unit id="++CODE++7bba5bcc44de61b37dcadb5824fac7130483b749da0c5e9eea5e02765e06e37d">
       <source xml:lang="en">Displays the unified data type (including length, scale and precision) for the column</source>
     </trans-unit>
+    <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
+      <source xml:lang="en">Dissatisfied</source>
+    </trans-unit>
     <trans-unit id="++CODE++be4be2936cad6a76cd7d52c49b47eeb8344cef0e55319eb131f01550d35e5efc">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extensions for VS Code?</source>
     </trans-unit>
@@ -466,6 +469,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
       <source xml:lang="en">Expression</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
+      <source xml:lang="en">Extremely likely</source>
     </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
@@ -630,6 +636,9 @@
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
+      <source xml:lang="en">MSSQL Feedback</source>
+    </trans-unit>
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
@@ -669,6 +678,12 @@
     <trans-unit id="++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d">
       <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
       <note>{0} is the account name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e97eda0cadd4376cf80048ad7eab088c00d6ebc20ab3877e963c0c28a964e1a3">
+      <source xml:lang="en">Microsoft reviews your feedback to improve our products, so please don&apos;t share any personal data or confidential/proprietary content.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
+      <source xml:lang="en">Microsoft would like your feedback</source>
     </trans-unit>
     <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
       <source xml:lang="en">Move Down</source>
@@ -744,6 +759,9 @@
     <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
       <source xml:lang="en">Not Starts With</source>
     </trans-unit>
+    <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
+      <source xml:lang="en">Not likely at all</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>
     </trans-unit>
@@ -791,6 +809,9 @@
     </trans-unit>
     <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
       <source xml:lang="en">Optional (False)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
+      <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
     </trans-unit>
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
@@ -923,6 +944,9 @@
     <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
       <source xml:lang="en">SQL Login</source>
     </trans-unit>
+    <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
+      <source xml:lang="en">Satisfied</source>
+    </trans-unit>
     <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
       <source xml:lang="en">Save Password</source>
     </trans-unit>
@@ -1037,6 +1061,9 @@
     </trans-unit>
     <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
       <source xml:lang="en">Starts With</source>
+    </trans-unit>
+    <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
+      <source xml:lang="en">Submit</source>
     </trans-unit>
     <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
       <source xml:lang="en">Subscription</source>
@@ -1192,9 +1219,6 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
-    <trans-unit id="++CODE++21c3a2d02a4190f9d3b0fdd247e27731d4a9bece63fa7991cdda7bd03a0f8161">
-      <source xml:lang="en">User Survey</source>
-    </trans-unit>
     <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
       <source xml:lang="en">User name</source>
     </trans-unit>
@@ -1207,11 +1231,20 @@
     <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
       <source xml:lang="en">Value</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
+      <source xml:lang="en">Very Dissatisfied</source>
+    </trans-unit>
+    <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
+      <source xml:lang="en">Very Satisfied</source>
+    </trans-unit>
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
+      <source xml:lang="en">What can we do to improve?</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
