@@ -339,6 +339,7 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._queryResultWebviewController.setExecutionPlanService(this.executionPlanService);
+            this._queryResultWebviewController.setUntitledDocumentService(this._untitledSqlDocumentService);
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,

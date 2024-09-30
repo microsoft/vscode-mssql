@@ -9,7 +9,7 @@ import { ReactWebviewViewController } from "../controllers/reactWebviewViewContr
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { exists } from "../utils/utils";
 import { homedir } from "os";
-import path from "path";
+import * as path from "path";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces"
@@ -67,6 +67,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             state.loadState = ApiStatus.Loaded;
             return {
                 ...state,
+                sqlPlanContent: this._executionPlanContents,
                 executionPlan: this.state.executionPlan,
                 executionPlanGraphs: this.state.executionPlanGraphs,
             };
@@ -177,6 +178,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         service: ExecutionPlanService,
     ): void {
         this.executionPlanService = service;
+    }
+
+    public setUntitledDocumentService (
+        service: UntitledSqlDocumentService,
+    ): void {
+        this.untitledSqlDocumentService = service;
     }
 
     private async createExecutionPlanGraphs() {
