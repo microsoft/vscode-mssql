@@ -221,7 +221,7 @@ export class LocConstants {
             submit: l10n.t("Submit"),
             cancel: l10n.t("Cancel"),
             microsoftReviewPrivacyDisclaimer: l10n.t(
-                "Microsoft reviews your feedback to improve our products, so please don't share any personal data or confidential/proprietary content.",
+                "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
             ),
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),

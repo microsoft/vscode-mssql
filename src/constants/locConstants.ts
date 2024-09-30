@@ -688,7 +688,7 @@ export class UserSurvey {
     public static remindMeLater = l10n.t("Remind Me Later");
     public static dontShowAgain = l10n.t("Don't Show Again");
     public static doYouMindTakingAQuickFeedbackSurvey = l10n.t(
-        "Do you mind taking a quick feedback survey about the MSSQL Extensions for VS Code?",
+        "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
     );
     public static mssqlFeedback = l10n.t("MSSQL Feedback");
 }

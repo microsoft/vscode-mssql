@@ -55,7 +55,8 @@ export class UserSurvey {
         await globalState.update(LAST_SESSION_DATE_KEY, date);
         await globalState.update(SESSION_COUNT_KEY, sessionCount);
 
-        if (sessionCount < 9) {
+        // don't prompt for feedback from users until they've had a chance to use the extension a few times
+        if (sessionCount < 5) {
             return;
         }
 
