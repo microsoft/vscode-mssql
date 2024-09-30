@@ -26,13 +26,6 @@ export enum ContentType {
     LocalizedTexts = 12,
 }
 
-export interface ISlickRange {
-    fromCell: number;
-    fromRow: number;
-    toCell: number;
-    toRow: number;
-}
-
 export enum AuthenticationTypes {
     Integrated = 1,
     SqlLogin = 2,
@@ -288,13 +281,6 @@ export interface ISelectionData {
     startColumn: number;
     endLine: number;
     endColumn: number;
-}
-
-export interface ISlickRange {
-    fromCell: number;
-    fromRow: number;
-    toCell: number;
-    toRow: number;
 }
 
 export enum FieldType {

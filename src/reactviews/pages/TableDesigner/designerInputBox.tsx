@@ -18,6 +18,7 @@ import {
     Textarea,
     useId,
 } from "@fluentui/react-components";
+import { ErrorCircleRegular } from "@fluentui/react-icons";
 
 export type DesignerInputBoxProps = {
     component: DesignerDataPropertyInfo;
@@ -29,6 +30,7 @@ export type DesignerInputBoxProps = {
     showLabel?: boolean;
     showError?: boolean;
     id?: string;
+    horizontal?: boolean;
 };
 
 export const DesignerInputBox = ({
@@ -39,9 +41,13 @@ export const DesignerInputBox = ({
     multiline = false,
     showLabel = true,
     showError = true,
+    horizontal = false,
 }: DesignerInputBoxProps) => {
     const [value, setValue] = useState(model.value);
     const state = useContext(TableDesignerContext);
+    if (!state) {
+        return undefined;
+    }
     const dropdownId = useId(
         state?.provider.getComponentId(componentPath) ?? "",
     );
@@ -65,7 +71,7 @@ export const DesignerInputBox = ({
                 ) : undefined,
             }}
             validationState={
-                showError && state?.provider.getErrorMessage(componentPath)
+                state?.provider.getErrorMessage(componentPath)
                     ? "error"
                     : undefined
             }
@@ -74,13 +80,19 @@ export const DesignerInputBox = ({
                     ? state?.provider.getErrorMessage(componentPath)
                     : undefined
             }
+            validationMessageIcon={
+                showError && state?.provider.getErrorMessage(componentPath) ? (
+                    <ErrorCircleRegular />
+                ) : undefined
+            }
             style={{ width: width }}
             size="small"
+            orientation={horizontal ? "horizontal" : "vertical"}
         >
             {!multiline ? (
                 <Input
                     aria-labelledby={dropdownId}
-                    id={state?.provider.getComponentId(componentPath)}
+                    ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");
@@ -105,7 +117,7 @@ export const DesignerInputBox = ({
             ) : (
                 <Textarea
                     aria-labelledby={dropdownId}
-                    id={state?.provider.getComponentId(componentPath)}
+                    ref={(el) => state.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");

@@ -7,9 +7,6 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
-    <trans-unit id="++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df">
-      <source xml:lang="en">1 issue</source>
-    </trans-unit>
     <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
       <source xml:lang="en">A SQL editor must have focus before executing this command</source>
     </trans-unit>
@@ -18,9 +15,6 @@
     </trans-unit>
     <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
       <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90">
-      <source xml:lang="en">About table</source>
     </trans-unit>
     <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
       <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -105,6 +99,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dd0c9a87e191fd735e4b79b2006a4804b2190b078a05aff1ea23945f37b309c2">
       <source xml:lang="en">Azure Logs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
+      <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
     <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
       <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -296,6 +293,9 @@
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
+      <source xml:lang="en">Copy script</source>
+    </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
     </trans-unit>
@@ -316,6 +316,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
+      <source xml:lang="en">Database</source>
     </trans-unit>
     <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
       <source xml:lang="en">Database name</source>
@@ -403,6 +406,14 @@
     </trans-unit>
     <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
       <source xml:lang="en">Error connecting to: </source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
+      <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
+      <note>{0} is the subscription name
+{1} is the subscription id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0">
+      <source xml:lang="en">Error loading Azure databases.</source>
     </trans-unit>
     <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
       <source xml:lang="en">Error loading designer</source>
@@ -527,14 +538,14 @@
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+      <source xml:lang="en">General</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d">
-      <source xml:lang="en">Go there</source>
     </trans-unit>
     <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
       <source xml:lang="en">Greater Than</source>
@@ -578,8 +589,9 @@
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
     </trans-unit>
-    <trans-unit id="++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115">
-      <source xml:lang="en">Issues</source>
+    <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
+      <source xml:lang="en">Issues ({0})</source>
+      <note>{0} is the number of issues</note>
     </trans-unit>
     <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
       <source xml:lang="en">JSON</source>
@@ -606,6 +618,9 @@
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
+    <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
+      <source xml:lang="en">Location</source>
+    </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
@@ -620,6 +635,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
       <source xml:lang="en">Maximize</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
+      <source xml:lang="en">Maximize panel size</source>
     </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
@@ -699,6 +717,9 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
+      <source xml:lang="en">No subscriptions set in VS Code&apos;s Azure account filter.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
       <source xml:lang="en">None</source>
     </trans-unit>
@@ -750,8 +771,8 @@
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
-    <trans-unit id="++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3">
-      <source xml:lang="en">Open in new tab</source>
+    <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
+      <source xml:lang="en">Open in editor</source>
     </trans-unit>
     <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
       <source xml:lang="en">Open snapshot in new tab</source>
@@ -862,8 +883,18 @@
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
+      <source xml:lang="en">Remove {0}</source>
+      <note>{0} is the object type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
+      <source xml:lang="en">Resource Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
       <source xml:lang="en">Restore</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
+      <source xml:lang="en">Restore panel size</source>
     </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
@@ -913,6 +944,9 @@
     <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
       <source xml:lang="en">Script As Create</source>
     </trans-unit>
+    <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
+      <source xml:lang="en">Script copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
     </trans-unit>
@@ -928,6 +962,9 @@
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
     </trans-unit>
+    <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
+      <source xml:lang="en">Server</source>
+    </trans-unit>
     <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
       <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
     </trans-unit>
@@ -937,14 +974,17 @@
     <trans-unit id="++CODE++a0c0b90c3260929ade879e7cfe35629e6ed60fb62be887a77fe8ada9376a7ba7">
       <source xml:lang="en">Server is required</source>
     </trans-unit>
-    <trans-unit id="++CODE++10b48e930a5a1d6459b0bd050ae37f39e969abb8db827d083d31f62f0ed6b014">
-      <source xml:lang="en">Server name not received.</source>
+    <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
+      <source xml:lang="en">Server name not set.</source>
     </trans-unit>
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
     </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
+      <source xml:lang="en">Show Filter</source>
     </trans-unit>
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
@@ -960,6 +1000,12 @@
     </trans-unit>
     <trans-unit id="++CODE++2a2c6072cca49b7f2056d66f738d53593bce3004d1291d736ea9a69e58babae8">
       <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
+      <source xml:lang="en">Sort Ascending</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2497697ff826db13ca94ea6c34dceced8bdf6fe44c7dde9d32c1cea30e9360a6">
+      <source xml:lang="en">Sort Descending</source>
     </trans-unit>
     <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
       <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -982,6 +1028,9 @@
     </trans-unit>
     <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
       <source xml:lang="en">Starts With</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
+      <source xml:lang="en">Subscription</source>
     </trans-unit>
     <trans-unit id="++CODE++0035c67b91c2dd1e5f7a1fd9010b07ee0cdc93e578c2baf656dfc411a80f4b78">
       <source xml:lang="en">Subtree Cost</source>
@@ -1219,12 +1268,13 @@
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>
     </trans-unit>
-    <trans-unit id="++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc">
-      <source xml:lang="en">{0} issues</source>
-    </trans-unit>
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
+      <source xml:lang="en">{0} properties</source>
+      <note>{0} is the object type</note>
     </trans-unit>
     <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
       <source xml:lang="en">{0} {1} issue</source>

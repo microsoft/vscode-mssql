@@ -16,6 +16,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { scriptCopiedToClipboard } from "../constants/locConstants";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -151,7 +152,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 issues: intializeData.issues,
                 isValid: true,
                 tabStates: {
-                    mainPaneTab: designer.DesignerMainPaneTabs.AboutTable,
+                    mainPaneTab: designer.DesignerMainPaneTabs.Columns,
                     resultPaneTab: designer.DesignerResultPaneTabs.Script,
                 },
                 apiState: {
@@ -204,16 +205,24 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     correlationId: this._correlationId,
                 },
             );
+            if (editResponse.issues?.length === 0) {
+                state.tabStates.resultPaneTab =
+                    designer.DesignerResultPaneTabs.Script;
+            } else {
+                state.tabStates.resultPaneTab =
+                    designer.DesignerResultPaneTabs.Issues;
+            }
+
             const afterEditState = {
-                ...this.state,
+                ...state,
                 view: editResponse.view
                     ? getDesignerView(editResponse.view)
-                    : this.state.view,
+                    : state.view,
                 model: editResponse.viewModel,
                 issues: editResponse.issues,
                 isValid: editResponse.isValid,
                 apiState: {
-                    ...this.state.apiState,
+                    ...state.apiState,
                     editState: designer.LoadState.Loaded,
                 },
             };
@@ -324,6 +333,15 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 (state.model["script"] as designer.InputBoxProperties).value ??
                     "",
             );
+            return state;
+        });
+
+        this.registerReducer("copyScriptAsCreateToClipboard", async (state) => {
+            await vscode.env.clipboard.writeText(
+                (state.model["script"] as designer.InputBoxProperties).value ??
+                    "",
+            );
+            await vscode.window.showInformationMessage(scriptCopiedToClipboard);
             return state;
         });
 

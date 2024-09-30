@@ -1,0 +1,35 @@
+#popup-menu {
+  position: absolute;
+  padding: 0px;
+  display: inline-block;
+  min-width: 100px;
+  z-index: 99999;
+  border: 1px solid;
+  outline: 0;
+  color: var(--vscode-activityBar-background);
+  background-color: var(--vscode-activityBar-background);
+  border-color: var(--vscode-menu-border);
+  font-family: var(--vscode-font-family);
+}
+
+/* Button styling to match the design */
+.sort-btn {
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-activityBar-background);
+}
+
+.sort-btn:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+/* Additional styling for active/focused states */
+.sort-btn:focus {
+  background-color: var(--vscode-button-hoverBackground);
+}

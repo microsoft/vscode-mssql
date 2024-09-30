@@ -32,7 +32,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Failed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Error]]></Val>
+            <Val><![CDATA[Erróneo]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -158,7 +158,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Executing query...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ejecutando la consulta...]]></Val>
+            <Val><![CDATA[Ejecutando consulta...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -184,6 +184,9 @@
       <Item ItemId=";bundle.++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[<default>]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[<default>]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -217,12 +220,18 @@
       <Item ItemId=";bundle.++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Tooltips]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Alternar información sobre herramientas]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Publishing Changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Publicando cambios]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -230,7 +239,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Filter Settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Configuración de filtro]]></Val>
+            <Val><![CDATA[Configuración del filtro]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -247,14 +256,8 @@
       <Item ItemId=";bundle.++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Table Designer]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++10b48e930a5a1d6459b0bd050ae37f39e969abb8db827d083d31f62f0ed6b014" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Server name not received.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[No se recibió el nombre del servidor.]]></Val>
+            <Val><![CDATA[Cargando Diseñador de tablas]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -262,6 +265,9 @@
       <Item ItemId=";bundle.++CODE++10dc5228a8a16a8eb753ca437fd81cd632ca4b12be41a33403e6614e46c4167e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be set for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se debe establecer el primer valor para el operador {0} en el filtro {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -328,6 +334,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Location]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ubicación]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cancel]]></Val>
@@ -359,8 +374,14 @@
         <Str Cat="Text">
           <Val><![CDATA[Ends With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[termina con]]></Val>
+            <Val><![CDATA[Termina con]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximize panel size]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -377,7 +398,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Server connection in progress. Do you want to cancel?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Hay una conexión del servidor en curso. ¿Quiere cancelarla?]]></Val>
+            <Val><![CDATA[Conexión de servidor en curso. ¿Desea cancelar?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -457,6 +478,9 @@
       <Item ItemId=";bundle.++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[hostname\instance or <server>.database.windows.net or ADO.NET connection string]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[nombreDeHost\instancia o <servidor>.database.windows.net o cadena de conexión de ADO.NET]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -472,6 +496,9 @@
       <Item ItemId=";bundle.++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse Azure]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Examinar Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -487,12 +514,18 @@
       <Item ItemId=";bundle.++CODE++22995cab793b6ddc02993f48d7042dff97e62df3faf4b7742629243a36ce968d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Guardar plan]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tipo avanzado]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -519,6 +552,15 @@
           <Val><![CDATA[Zoom Out]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Alejar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2497697ff826db13ca94ea6c34dceced8bdf6fe44c7dde9d32c1cea30e9360a6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sort Descending]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Orden descendente]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -664,6 +706,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[No se puede expandir. Consulte los registros para obtener más información.]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure sign in failed.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -886,6 +934,9 @@
       <Item ItemId=";bundle.++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open XML]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir XML]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -929,7 +980,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[El cifrado se ha habilitado en esta conexión, revise la configuración de SSL y certificado para el SQL Server de destino o establezca "Certificado de servidor de confianza" en "true" en el archivo de configuración. Nota: Un certificado autofirmado solo ofrece protección limitada y no es una práctica recomendada para entornos de producción. ¿Desea habilitar "Confiar en el certificado de servidor" en esta conexión y volver a intentarlo?]]></Val>
+            <Val><![CDATA[Se habilitó el cifrado en esta conexión, revise la configuración de SSL y certificado para el SQL Server de destino o establezca el "Certificado de servidor de confianza" en "true" el archivo de configuración. Nota: Un certificado autofirmado solo ofrece protección limitada y no es una práctica recomendada para entornos de producción. ¿Desea habilitar el "Certificado de servidor de confianza" en esta conexión y volver a intentarlo?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -997,6 +1048,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Subscription]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Suscripción]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4a00fefe019ef43393da250ba4b62d7b6af849a1acac99b1192ffbeda8828fe7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Column Mapping]]></Val>
@@ -1055,7 +1115,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Id]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Id. de Microsoft Entra]]></Val>
+            <Val><![CDATA[Microsoft Entra ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1075,6 +1135,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[No se admite la ejecución de consultas cuando el editor está en modo de selección múltiple.]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading Azure databases.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1105,15 +1171,30 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Quitar {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Explorer Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filtro de Explorador de objetos]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open snapshot in new tab]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir instantánea en nueva pestaña]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1267,6 +1348,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[No entre]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1468,12 +1555,9 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++666067dd376e5d4553b8fd554f855855819ad213ae825022d2a32dfa28431115" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";bundle.++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Issues]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Incidencias]]></Val>
-          </Tgt>
+          <Val><![CDATA[No subscriptions set in VS Code's Azure account filter.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1481,7 +1565,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Firewall rule successfully added. Retry profile creation? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[La regla de firewall se ha agregado correctamente. ¿Quiere reintentar la creación del perfil? ]]></Val>
+            <Val><![CDATA[La regla de firewall se ha agregado correctamente. ¿Reintentar la creación del perfil? ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1526,7 +1610,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Login failed. Retry using different credentials?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Error: No se pudo iniciar sesión. ¿Quiere reintentar con otras credenciales?]]></Val>
+            <Val><![CDATA[Error: no se pudo iniciar sesión. ¿Quiere volver a intentarlo con otras credenciales?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1534,6 +1618,9 @@
       <Item ItemId=";bundle.++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading preview]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Error al cargar la vista previa]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1541,7 +1628,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Succeeded]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Correcto]]></Val>
+            <Val><![CDATA[Realizado correctamente]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1604,7 +1691,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Starts With]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Empieza con]]></Val>
+            <Val><![CDATA[Comienza por]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1730,7 +1817,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Read more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Leer más]]></Val>
+            <Val><![CDATA[Más información]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1811,7 +1898,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Profile created successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[El perfil se ha creado correctamente.]]></Val>
+            <Val><![CDATA[El perfil se ha creado correctamente]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1831,12 +1918,6 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Conectar con SQL Server]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8a8e2d4f3b4443193caa0e9b0ce9484eeeae488501d43476f2e03968124d5e90" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[About table]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1888,6 +1969,9 @@
       <Item ItemId=";bundle.++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to get authentication method, please remove and re-add the account.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No se pudo obtener el método de autenticación. Quite y vuelva a agregar la cuenta.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1948,6 +2032,9 @@
       <Item ItemId=";bundle.++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Nodes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Buscar nodos]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2036,8 +2123,14 @@
         <Str Cat="Text">
           <Val><![CDATA[Error: Unable to connect using the connection information provided. Retry profile creation?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Error: No puede conectarse con la información de conexión proporcionada. ¿Quiere reintentar la creación del perfil?]]></Val>
+            <Val><![CDATA[Error: No puede conectarse con la información de conexión proporcionada. ¿Reintentar la creación del perfil?]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Server name not set.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2054,7 +2147,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Advanced]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Avanzada]]></Val>
+            <Val><![CDATA[Configuración avanzada]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2062,6 +2155,9 @@
       <Item ItemId=";bundle.++CODE++9f24e982799f47ef97760b8fbb95ce6c89390fba37aa7fe9b6314f69aaa691ea" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query {0}:  Query cost (relative to the script):  {1}%]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Consulta {0}: Coste de la consulta (relativo al script):  {1} %]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2150,7 +2246,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Profile Name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nombre del perfil]]></Val>
+            <Val><![CDATA[Nombre de perfil]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2209,9 +2305,30 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show Filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrar filtro]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} properties]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}propiedades]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Close Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cerrar Designer]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2227,6 +2344,9 @@
       <Item ItemId=";bundle.++CODE++aab103babf210fd60bfbe41ecd5ab24d36cb423ec956f0d0215c6161359e01ee" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Database to connect (press Enter to connect to <default> database)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Opcional]5D; Base de datos a la que conectarse (presione Entrar para conectarse a la base de datos <default>).]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2284,11 +2404,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resource Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grupo de recursos]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Servidor]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Integrated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Integrada]]></Val>
+            <Val><![CDATA[Integrado]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2332,12 +2470,18 @@
       <Item ItemId=";bundle.++CODE++b3a182c894c403e6b24bcc5dfc3ba0eeab9b2380519d82944789b5ffa76b1235" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} {1} issues]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} {1} problemas]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Queries Available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No hay ninguna consulta disponible.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2391,15 +2535,6 @@
           <Val><![CDATA[New Foreign Key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nueva clave externa]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++b770b7713326a104665ea604e4a6c8c1e7d9d33d797359c3f118418c365c4bdc" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{0} issues]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} problemas]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2624,7 +2759,16 @@
         <Str Cat="Text">
           <Val><![CDATA[{{put-server-name-here}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{{poner-nombre-de-servidor-aquí}}]]></Val>
+            <Val><![CDATA[{{put-server-name-here}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy script]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Copiar script]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2634,6 +2778,15 @@
           <Val><![CDATA[Check Constraint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Restricción CHECK]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[General]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[General]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2686,12 +2839,18 @@
       <Item ItemId=";bundle.++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Script As Create]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Script como Create]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Changes published successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cambios publicados correctamente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2716,6 +2875,9 @@
       <Item ItemId=";bundle.++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The first value must be less than the second value for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[El primer valor debe ser menor que el segundo valor para el operador {0} en el filtro {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2740,6 +2902,9 @@
       <Item ItemId=";bundle.++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Connection Settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configuración avanzada de las conexiones]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2788,20 +2953,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++d6bfda034106ecd656f7c676550815337c9b045baf85aa5c3b439c3ff82df1df" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[1 issue]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Una incidencia]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++d72d67f0f765e5584e6db8bd1e591a84914d23ff29e9f5b20d8b39125091fca0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agregar una conexión]]></Val>
+            <Val><![CDATA[Agregar conexión]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2837,7 +2993,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Optional (False)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Opcional (Falso)]]></Val>
+            <Val><![CDATA[Opcional (false)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2873,7 +3029,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Zoom to Fit]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ajustar al tamaño]]></Val>
+            <Val><![CDATA[Zoom para ajustar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2959,21 +3115,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++e0af5c0bc2457475ab3c6e78ea06374a904469684daf6bffa229ac990b21aca3" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open in new tab]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Abrir en pestaña nueva]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++e20bd7d7e901d3e58a8f309f390dfb1a743fd3108eed0db8e70c73c9ffe1c23d" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Go there]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy]]></Val>
@@ -3013,6 +3154,9 @@
       <Item ItemId=";bundle.++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} {1} issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} {1} incidencia]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3029,7 +3173,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0} issue]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} problema]]></Val>
+            <Val><![CDATA[{0} incidencia]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3128,7 +3272,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Database name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nombre de base de datos]]></Val>
+            <Val><![CDATA[Nombre de la base de datos]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3145,6 +3289,18 @@
       <Item ItemId=";bundle.++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The second value must be set for the {0} operator in the {1} filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se debe establecer el segundo valor para el operador {0} en el filtro {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open in editor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir en el editor]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3274,6 +3430,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sort Ascending]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Orden ascendente]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f0f958e0da473b18b76ef9febe543579a601b532c9acd58ddab45f2d6549a3b3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Canceling]]></Val>
@@ -3287,8 +3452,14 @@
         <Str Cat="Text">
           <Val><![CDATA[Scale]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Escala]]></Val>
+            <Val><![CDATA[Escalar]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Restore panel size]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3328,9 +3499,18 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Script copied to clipboard]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Error al cargar el diseñador]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3384,6 +3564,24 @@
           <Val><![CDATA[Failed to fetch user tokens.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[No se pudieron capturar los tokens de usuario.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Base de datos]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Issues ({0})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Problemas ({0})]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3509,7 +3707,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Add Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agregar una conexión]]></Val>
+            <Val><![CDATA[Agregar conexión]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3698,7 +3896,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Especifique el tiempo en segundos que se debe esperar para establecer una conexión con el servidor antes de finalizar el intento de conexión y generar un error. El valor predeterminado es de 15 segundos para las conexiones locales y de 30 segundos para las conexiones de Azure SQL Database.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Especifique el tiempo en segundos que se debe esperar para establecer una conexión con el servidor antes de finalizar el intento de conexión y generar un error. El valor predeterminado es de 15 segundos para las conexiones locales y de 30 segundos para las conexiones de base de datos de Azure SQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3887,7 +4085,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Obligatorio]5D; Especifique el nombre del servidor con el que se va a conectar. Use 'hostname instance' o '<server>.database.windows.net' para Azure SQL Database.]]></Val>
+            <Val><![CDATA[[Obligatorio]5D; Especifique el nombre del servidor con el que se va a conectar. Use 'hostname instance' o '<server>.database.windows.net' para la base de datos de Azure SQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3896,7 +4094,7 @@
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Si se establece en "true", se confía automáticamente en el certificado SSL de SQL Server cuando el nivel de comunicación se cifra con SSL. Establézcalo en "false" para la conexión con Azure SQL Database.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Si se establece en "true", se confía automáticamente en el certificado SSL de SQL Server cuando el nivel de comunicación se cifra con SSL. Establézcalo en "false" para la conexión con base de datos de Azure SQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4030,6 +4228,9 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Habilita características experimentales en la extensión MSSQL. Las características no están listas para producción y pueden tener errores o problemas. Reinicie Visual Studio Code después de cambiar esta configuración.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4100,7 +4301,7 @@
         <Str Cat="Text">
           <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Indica si las comas deben colocarse al principio de cada instrucción de una lista por ejemplo, ", micolumna2" en lugar de al final, por ejemplo, "micolumna1,'.]]></Val>
+            <Val><![CDATA[Indica si las comas deben colocarse al principio de cada instrucción de una lista por ejemplo, ", micolumna2" en lugar de al final, por ejemplo, "micolumna1,"]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4288,6 +4489,9 @@
       <Item ItemId=";package.mssql.openExecutionPlanFile" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Execution Plan File]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir archivo de plan de ejecución]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4637,7 +4841,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Execute Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ejecutar consulta]]></Val>
+            <Val><![CDATA[Ejecutar la consulta]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4709,7 +4913,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Script como Create]]></Val>
+            <Val><![CDATA[Script como crear]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4718,7 +4922,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Drop]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Script como Drop]]></Val>
+            <Val><![CDATA[Script como anular]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4727,7 +4931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Execute]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Script como Execute]]></Val>
+            <Val><![CDATA[Script como ejecutar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

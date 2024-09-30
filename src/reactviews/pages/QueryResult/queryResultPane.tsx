@@ -29,6 +29,7 @@ import * as ep from "../ExecutionPlan/executionPlanInterfaces";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
 import * as l10n from "@vscode/l10n";
+import CommandBar from "./commandBar";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 
 const useStyles = makeStyles({
@@ -60,6 +61,7 @@ const useStyles = makeStyles({
         width: "100%",
         height: "100%",
         position: "relative",
+        display: "flex",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -311,6 +313,7 @@ export const QueryResultPane = () => {
                                 ref={gridRef}
                                 resultSetSummary={metadata.resultSetSummary}
                             />
+                            <CommandBar />
                         </div>
                     )}
                 {metadata.tabStates!.resultPaneTab ===

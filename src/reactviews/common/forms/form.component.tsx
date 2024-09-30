@@ -313,4 +313,19 @@ export const useFormStyles = makeStyles({
             margin: "5px",
         },
     },
+    formNavTrayButton: {
+        width: "150px",
+        alignSelf: "center",
+        margin: "0px 10px",
+    },
+    formNavTray: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 0px",
+    },
+    formNavTrayRight: {
+        display: "flex",
+        marginLeft: "auto",
+    },
 });
