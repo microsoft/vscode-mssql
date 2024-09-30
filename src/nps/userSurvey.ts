@@ -91,7 +91,7 @@ export class UserSurvey {
                         {
                             label: locConstants.UserSurvey.whatCanWeDoToImprove,
                             type: "textarea",
-                            required: true,
+                            required: false,
                         },
                     ],
                 };
@@ -157,6 +157,7 @@ export class UserSurvey {
     }
 
     public async launchSurvey(
+        surveyId: string,
         survey: UserSurveyState,
     ): Promise<Record<string, string>> {
         const state: UserSurveyState = survey;
@@ -184,7 +185,7 @@ export class UserSurvey {
             TelemetryViews.UserSurvey,
             TelemetryActions.SurverySubmit,
             {
-                surveyId: "nps",
+                surveyId: surveyId,
                 ...answers,
             },
         );

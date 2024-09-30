@@ -213,7 +213,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey({
+                await UserSurvey.getInstance().launchSurvey("nps", {
                     questions: [
                         {
                             label: LocalizedConstants.UserSurvey
@@ -229,7 +229,7 @@ export default class MainController implements vscode.Disposable {
                             label: LocalizedConstants.UserSurvey
                                 .whatCanWeDoToImprove,
                             type: "textarea",
-                            required: true,
+                            required: false,
                         },
                     ],
                 });
