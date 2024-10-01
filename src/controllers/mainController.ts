@@ -57,7 +57,7 @@ import { ExecutionPlanWebviewController } from "./executionPlanWebviewController
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { isIConnectionInfo } from "../utils/utils";
-import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
+import { UserSurvey } from "../nps/userSurvey";
 
 /**
  * The main controller class that initializes the extension
@@ -185,6 +185,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
+                UserSurvey.getInstance().promptUserForNPSFeedback();
                 this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -213,10 +214,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey(
-                    "nps",
-                    getStandardNPSQuestions(),
-                );
+                await UserSurvey.getInstance().promptUserForNPSFeedback();
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => {
