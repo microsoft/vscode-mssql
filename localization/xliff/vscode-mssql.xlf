@@ -850,6 +850,9 @@
     <trans-unit id="++CODE++a0de89c19964a6454c6d6b4f4205b8c8fcb6c1bfe9370b6d3183226ce8009141">
       <source xml:lang="en">Primary Key Columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
+      <source xml:lang="en">Privacy Statement</source>
+    </trans-unit>
     <trans-unit id="++CODE++a423b47777783386516c79baa19b0dfcd12cb40e4fba79348ad14ab0169402cd">
       <source xml:lang="en">Profile Name</source>
     </trans-unit>
