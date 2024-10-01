@@ -173,7 +173,7 @@ export const QueryResultPane = () => {
 
     const gridRef = useRef<ResultGridHandle>(null);
 
-    const renderGrid = () => {
+    const renderGrid = (idx: number) => {
         return (
             <div id={"grid-parent"} className={classes.queryResultContainer}>
                 <ResultGrid
@@ -185,8 +185,8 @@ export const QueryResultPane = () => {
                             .call("getRows", {
                                 uri: metadata?.uri,
                                 batchId:
-                                    metadata?.resultSetSummaries[0]?.batchId,
-                                resultId: metadata?.resultSetSummaries[0]?.id,
+                                    metadata?.resultSetSummaries[idx]?.batchId,
+                                resultId: metadata?.resultSetSummaries[idx]?.id,
                                 rowStart: offset,
                                 numberOfRows: count,
                             })
@@ -196,8 +196,8 @@ export const QueryResultPane = () => {
                                 }
                                 let r = response as qr.ResultSetSubset;
                                 var columnLength =
-                                    metadata?.resultSetSummaries[0]?.columnInfo
-                                        ?.length;
+                                    metadata?.resultSetSummaries[idx]
+                                        ?.columnInfo?.length;
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
                                         [key: string]: any;
@@ -224,14 +224,26 @@ export const QueryResultPane = () => {
                             });
                     }}
                     ref={gridRef}
-                    resultSetSummary={metadata?.resultSetSummaries[0]}
+                    resultSetSummary={metadata?.resultSetSummaries[idx]}
                 />
                 <CommandBar
                     uri={metadata?.uri}
-                    resultSetSummary={metadata?.resultSetSummaries[0]}
+                    resultSetSummary={metadata?.resultSetSummaries[idx]}
                 />
             </div>
         );
+    };
+
+    const renderGridPanel = () => {
+        const grids = [];
+        for (
+            let i = 0;
+            i < Object.keys(metadata?.resultSetSummaries ?? []).length;
+            i++
+        ) {
+            grids.push(renderGrid(i));
+        }
+        return grids;
     };
 
     return (
@@ -287,7 +299,7 @@ export const QueryResultPane = () => {
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Results &&
                     Object.keys(metadata.resultSetSummaries).length > 0 &&
-                    renderGrid()}
+                    renderGridPanel()}
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Messages && (
                     <div className={classes.messagesContainer}>
