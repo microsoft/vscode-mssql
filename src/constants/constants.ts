@@ -212,6 +212,8 @@ export const scriptSelectText = "SELECT TOP (1000) * FROM ";
 export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
+export const microsoftPrivacyStatementUrl =
+    "https://www.microsoft.com/en-us/privacy/privacystatement";
 
 export enum Platform {
     Windows = "win32",

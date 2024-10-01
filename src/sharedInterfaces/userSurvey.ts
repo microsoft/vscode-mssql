@@ -69,6 +69,7 @@ export interface UserSurveyContextProps {
     state: UserSurveyState;
     submit(answers: Record<string, string>): void;
     cancel(): void;
+    openPrivacyStatement(): void;
 }
 
 export interface UserSurveyReducers {
@@ -76,4 +77,5 @@ export interface UserSurveyReducers {
         answers: Record<string, string>;
     };
     cancel: {};
+    openPrivacyStatement: {};
 }

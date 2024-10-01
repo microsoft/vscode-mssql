@@ -225,6 +225,7 @@ export class LocConstants {
             ),
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),
+            privacyStatement: l10n.t("Privacy Statement"),
         };
     }
 }

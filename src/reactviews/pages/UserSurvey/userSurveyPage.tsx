@@ -7,6 +7,7 @@ import {
     Button,
     Divider,
     Field,
+    Link,
     makeStyles,
     Radio,
     RadioGroup,
@@ -37,11 +38,18 @@ const useStyles = makeStyles({
     title: {
         marginBottom: "30px",
     },
+    footer: {
+        display: "flex",
+        justifyContent: "space-between",
+    },
     buttonsContainer: {
         display: "flex",
         "> *": {
             marginRight: "10px",
         },
+    },
+    privacyDisclaimer: {
+        marginLeft: "auto",
     },
 });
 
@@ -131,19 +139,28 @@ export const UserSurveyPage = () => {
                         return undefined;
                 }
             })}
-            <div className={classes.buttonsContainer}>
-                <Button
-                    appearance="primary"
-                    disabled={isSubmitDisabled}
-                    onClick={() => userSurveryProvider.submit(userAnswers)}
+            <div className={classes.footer}>
+                <div className={classes.buttonsContainer}>
+                    <Button
+                        appearance="primary"
+                        disabled={isSubmitDisabled}
+                        onClick={() => userSurveryProvider.submit(userAnswers)}
+                    >
+                        {userSurveryProvider.state.submitButtonText ??
+                            locConstants.userFeedback.submit}
+                    </Button>
+                    <Button onClick={() => userSurveryProvider.cancel()}>
+                        {userSurveryProvider.state.cancelButtonText ??
+                            locConstants.userFeedback.cancel}
+                    </Button>
+                </div>
+                <Link
+                    onClick={() => {
+                        userSurveryProvider.openPrivacyStatement();
+                    }}
                 >
-                    {userSurveryProvider.state.submitButtonText ??
-                        locConstants.userFeedback.submit}
-                </Button>
-                <Button onClick={() => userSurveryProvider.cancel()}>
-                    {userSurveryProvider.state.cancelButtonText ??
-                        locConstants.userFeedback.cancel}
-                </Button>
+                    {locConstants.userFeedback.privacyStatement}
+                </Link>
             </div>
         </div>
     );

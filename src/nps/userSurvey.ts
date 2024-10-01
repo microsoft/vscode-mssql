@@ -228,11 +228,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
         );
 
         this.registerReducer("submit", async (state, payload) => {
-            const answers: Record<string, string> = {};
-            payload.answers.forEach((answer) => {
-                answers[answer.label] = answer.answer;
-            });
-            this._onSubmit.fire(answers);
+            this._onSubmit.fire(payload.answers);
             this.panel.dispose();
             return state;
         });
@@ -243,6 +239,12 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("openPrivacyStatement", async (state) => {
+            vscode.env.openExternal(
+                vscode.Uri.parse(constants.microsoftPrivacyStatementUrl),
+            );
+            return state;
+        });
         this.panel.onDidDispose(() => {
             this._onCancel.fire();
         });

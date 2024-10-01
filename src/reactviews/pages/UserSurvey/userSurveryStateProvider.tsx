@@ -38,6 +38,11 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
                 cancel: async () => {
                     await vscodeWebviewProvider.extensionRpc.action("cancel");
                 },
+                openPrivacyStatement: async () => {
+                    await vscodeWebviewProvider.extensionRpc.action(
+                        "openPrivacyStatement",
+                    );
+                },
             }}
         >
             {children}
