@@ -37,19 +37,25 @@ export class ConnectionDialogWebviewState
             (keyof IConnectionDialogProfile)[]
         >;
     };
-    public azureDatabases: AzureSqlDatabaseInfo[];
+    public azureSubscriptions: AzureSubscriptionInfo[];
+    public azureServers: AzureSqlServerInfo[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
+    public loadingAzureSubscriptionsStatus: ApiStatus;
+    public loadingAzureServersStatus: ApiStatus;
 
     constructor({
         connectionProfile,
         selectedInputMode,
         connectionComponents,
-        azureDatabases,
+        azureSubscriptions,
+        azureServers,
         recentConnections,
         connectionStatus,
         formError,
+        loadingAzureSubscriptionsStatus,
+        loadingAzureServersStatus,
     }: {
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
@@ -65,22 +71,34 @@ export class ConnectionDialogWebviewState
                 (keyof IConnectionDialogProfile)[]
             >;
         };
-        azureDatabases: AzureSqlDatabaseInfo[];
+        azureServers: AzureSqlServerInfo[];
+        azureSubscriptions: AzureSubscriptionInfo[];
         recentConnections: IConnectionDialogProfile[];
         connectionStatus: ApiStatus;
         formError: string;
+        loadingAzureSubscriptionsStatus: ApiStatus;
+        loadingAzureServersStatus: ApiStatus;
     }) {
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
         this.connectionComponents = connectionComponents;
-        this.azureDatabases = azureDatabases;
+        this.azureSubscriptions = azureSubscriptions;
+        this.azureServers = azureServers;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;
+        this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
+        this.loadingAzureServersStatus = loadingAzureServersStatus;
     }
 }
 
-export interface AzureSqlDatabaseInfo {
+export interface AzureSubscriptionInfo {
+    name: string;
+    id: string;
+    loaded: boolean;
+}
+
+export interface AzureSqlServerInfo {
     server: string;
     databases: string[];
     location: string;
@@ -119,6 +137,7 @@ export interface ConnectionDialogContextProps
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
+    loadAzureServers: (subscriptionId: string) => void;
 }
 
 export enum AuthenticationType {
@@ -138,4 +157,7 @@ export interface ConnectionDialogReducers {
         connection: IConnectionDialogProfile;
     };
     connect: {};
+    loadAzureServers: {
+        subscriptionId: string;
+    };
 }

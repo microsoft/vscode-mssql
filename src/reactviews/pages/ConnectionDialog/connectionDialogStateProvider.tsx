@@ -59,6 +59,11 @@ const ConnectionDialogStateProvider: React.FC<
                 connect: function (): void {
                     webviewState?.extensionRpc.action("connect");
                 },
+                loadAzureServers: function (subscriptionId: string): void {
+                    webviewState?.extensionRpc.action("loadAzureServers", {
+                        subscriptionId: subscriptionId,
+                    });
+                },
             }}
         >
             {children}
