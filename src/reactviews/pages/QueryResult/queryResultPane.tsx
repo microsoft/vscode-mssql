@@ -186,10 +186,6 @@ export const QueryResultPane = () => {
         }
     };
 
-    useEffect(() => {
-        console.log(state);
-    }, [state]);
-
     return (
         <div className={classes.root} ref={gridParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
