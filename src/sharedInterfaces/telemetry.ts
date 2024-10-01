@@ -13,6 +13,7 @@ export enum TelemetryViews {
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
     TableDesigner = "TableDesigner",
+    UserSurvey = "UserSurvey",
 }
 
 export enum TelemetryActions {
@@ -39,6 +40,7 @@ export enum TelemetryActions {
     Publish = "Publish",
     ContinueEditing = "ContinueEditing",
     Close = "Close",
+    SurverySubmit = "SurveySubmit",
 }
 
 export interface WebviewTelemetryActionEvent {

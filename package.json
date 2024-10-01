@@ -794,6 +794,11 @@
         "command": "mssql.clearAzureAccountTokenCache",
         "title": "%mssql.clearAzureAccountTokenCache%",
         "category": "MS SQL"
+      },
+      {
+        "command": "mssql.userFeedback",
+        "title": "%mssql.userFeedback%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [

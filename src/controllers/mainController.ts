@@ -57,6 +57,7 @@ import { ExecutionPlanWebviewController } from "./executionPlanWebviewController
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { isIConnectionInfo } from "../utils/utils";
+import { UserSurvey } from "../nps/userSurvey";
 
 /**
  * The main controller class that initializes the extension
@@ -109,6 +110,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
         );
         this.configuration = vscode.workspace.getConfiguration();
+        UserSurvey.createInstance(this._context);
     }
 
     /**
@@ -183,6 +185,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
+                UserSurvey.getInstance().promptUserForNPSFeedback();
                 this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -208,6 +211,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdChooseLanguageFlavor);
             this._event.on(Constants.cmdChooseLanguageFlavor, () => {
                 this.runAndLogErrors(this.onChooseLanguageFlavor());
+            });
+            this.registerCommand(Constants.cmdLaunchUserFeedback);
+            this._event.on(Constants.cmdLaunchUserFeedback, async () => {
+                await UserSurvey.getInstance().promptUserForNPSFeedback();
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => {
@@ -969,6 +976,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
+                    await UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
             ),
         );

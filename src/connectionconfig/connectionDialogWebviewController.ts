@@ -48,6 +48,7 @@ import {
 } from "@azure/arm-resources";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { l10n } from "vscode";
+import { UserSurvey } from "../nps/userSurvey";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -933,6 +934,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     expand: true,
                 });
                 await this.panel.dispose();
+                await UserSurvey.getInstance().promptUserForNPSFeedback();
             } catch (error) {
                 this.state.connectionStatus = ApiStatus.Error;
                 return state;
