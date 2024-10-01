@@ -214,7 +214,6 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
                 await UserSurvey.getInstance().launchSurvey("nps", {
-                    subtitle: LocalizedConstants.UserSurvey.privacyDisclaimer,
                     questions: [
                         {
                             label: LocalizedConstants.UserSurvey
