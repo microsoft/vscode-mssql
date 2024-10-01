@@ -19,7 +19,6 @@ import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
-import { TestConnectionButton } from "./components/testConnectionButton.component";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 function removeDuplicates<T>(array: T[]): T[] {
@@ -61,7 +60,6 @@ export const AzureBrowsePage = () => {
     >(undefined);
 
     useEffect(() => {
-        console.log("===: subscriptions dropdown effect");
         const subs = removeDuplicates(
             context.state.azureSubscriptions.map(
                 (sub) => `${sub.name} (${sub.id})`,
@@ -75,7 +73,6 @@ export const AzureBrowsePage = () => {
     }, [context.state.azureSubscriptions]);
 
     useEffect(() => {
-        console.log("===: resource group dropdown effect");
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -97,7 +94,6 @@ export const AzureBrowsePage = () => {
     }, [subscriptions, selectedSubscription, context.state.azureServers]);
 
     useEffect(() => {
-        console.log("===: locations dropdown effect");
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -126,7 +122,6 @@ export const AzureBrowsePage = () => {
     }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
 
     useEffect(() => {
-        console.log("===: server dropdown effect");
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -160,7 +155,6 @@ export const AzureBrowsePage = () => {
     }, [locations, selectedLocation, context.state.azureServers]);
 
     useEffect(() => {
-        console.log("===: database dropdown effect");
         if (!selectedServer) {
             return; // should not be visible if no server is selected
         }
@@ -286,6 +280,7 @@ export const AzureBrowsePage = () => {
                     />
                     {context.state.connectionComponents.mainOptions
                         .filter(
+                            // filter out inputs that are manually placed above
                             (opt) =>
                                 ![
                                     "server",
@@ -332,9 +327,6 @@ export const AzureBrowsePage = () => {
                     {Loc.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>
-                    <TestConnectionButton
-                        className={formStyles.formNavTrayButton}
-                    />
                     <ConnectButton className={formStyles.formNavTrayButton} />
                 </div>
             </div>
@@ -375,46 +367,43 @@ const AzureBrowseDropdown = ({
     };
 
     return (
-        <>
-            <div className={formStyles.formComponentDiv}>
-                <Field
-                    label={
-                        <span className={loadableStyles.loadable}>
-                            {label}
-                            {loadState === ApiStatus.Loading && (
-                                <Spinner size="tiny" />
-                            )}
-                        </span>
+        <div className={formStyles.formComponentDiv}>
+            <Field
+                label={
+                    <div className={loadableStyles.loadable}>
+                        {label}
+                        {loadState === ApiStatus.Loading && (
+                            <Spinner size="tiny" />
+                        )}
+                    </div>
+                }
+                orientation="horizontal"
+                required={required}
+            >
+                <Combobox
+                    value={content.currentValue ?? ""}
+                    selectedOptions={
+                        content.currentValue ? [content.currentValue] : []
                     }
-                    orientation="horizontal"
-                    required={required}
-                >
-                    <Combobox
-                        style={{ width: "100%" }}
-                        value={content.currentValue ?? ""}
-                        selectedOptions={
-                            content.currentValue ? [content.currentValue] : []
+                    clearable={clearable}
+                    onInput={onInput}
+                    onOptionSelect={(_event, data) => {
+                        if (data.optionValue === content.currentValue) {
+                            return;
                         }
-                        clearable={clearable}
-                        onInput={onInput}
-                        onOptionSelect={(_event, data) => {
-                            if (data.optionValue === content.currentValue) {
-                                return;
-                            }
 
-                            content.setValue(data.optionValue);
-                        }}
-                    >
-                        {content.valueList.map((val, idx) => {
-                            return (
-                                <Option key={idx} value={val}>
-                                    {val}
-                                </Option>
-                            );
-                        })}
-                    </Combobox>
-                </Field>
-            </div>
-        </>
+                        content.setValue(data.optionValue);
+                    }}
+                >
+                    {content.valueList.map((val, idx) => {
+                        return (
+                            <Option key={idx} value={val}>
+                                {val}
+                            </Option>
+                        );
+                    })}
+                </Combobox>
+            </Field>
+        </div>
     );
 };

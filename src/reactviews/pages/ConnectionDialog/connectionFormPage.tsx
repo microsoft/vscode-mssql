@@ -12,7 +12,6 @@ import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDi
 import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
-import { TestConnectionButton } from "./components/testConnectionButton.component";
 
 export const ConnectionFormPage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -63,9 +62,6 @@ export const ConnectionFormPage = () => {
                     {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>
-                    <TestConnectionButton
-                        className={formStyles.formNavTrayButton}
-                    />
                     <ConnectButton className={formStyles.formNavTrayButton} />
                 </div>
             </div>
