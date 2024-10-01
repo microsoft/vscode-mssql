@@ -223,7 +223,6 @@ export default class MainController implements vscode.Disposable {
                         },
                         {
                             type: "divider",
-                            label: "",
                         },
                         {
                             label: LocalizedConstants.UserSurvey

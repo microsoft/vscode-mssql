@@ -87,7 +87,6 @@ export class UserSurvey {
                         },
                         {
                             type: "divider",
-                            label: "",
                         },
                         {
                             label: locConstants.UserSurvey.whatCanWeDoToImprove,

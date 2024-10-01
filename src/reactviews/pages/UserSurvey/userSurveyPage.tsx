@@ -13,10 +13,15 @@ import {
     Text,
     Textarea,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { UserSurveyContext } from "./userSurveryStateProvider";
 import { locConstants } from "../../common/locConstants";
-import { Answer, Question } from "../../../sharedInterfaces/userSurvey";
+import {
+    BaseQuestion,
+    NpsQuestion,
+    NsatQuestion,
+    TextareaQuestion,
+} from "../../../sharedInterfaces/userSurvey";
 
 const useStyles = makeStyles({
     root: {
@@ -44,39 +49,28 @@ export const UserSurveyPage = () => {
     const classes = useStyles();
     const userSurveryProvider = useContext(UserSurveyContext);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
-    const [userAnswers, setUserAnswers] = useState<Answer[]>([]);
-
-    useEffect(() => {
-        function loadQuestions() {
-            if (userSurveryProvider?.state?.questions) {
-                setUserAnswers(
-                    userSurveryProvider.state.questions.map((q) => {
-                        return {
-                            label: q.label,
-                            answer: "",
-                        };
-                    }),
-                );
-            }
-        }
-        loadQuestions();
-    }, [userSurveryProvider!.state]);
+    const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
 
     const updateSubmitButtonState = () => {
-        let emptyRequired = 0;
-        for (let i = 0; i < userAnswers.length; i++) {
-            if (!userSurveryProvider!.state!.questions[i].required) {
+        for (let i = 0; i < userSurveryProvider!.state!.questions.length; i++) {
+            const question = userSurveryProvider!.state!.questions[i];
+            // if question is not divider and not required, skip
+            if (question.type === "divider") {
                 continue;
             }
-            if (!userAnswers[i].answer) {
-                emptyRequired++;
+            if (!(question as BaseQuestion)?.required) {
+                continue;
+            }
+            if (!userAnswers[question.label]) {
+                setIsSubmitDisabled(true);
+                return;
             }
         }
-        setIsSubmitDisabled(emptyRequired !== 0);
+        setIsSubmitDisabled(false);
     };
 
-    const onAnswerChange = (index: number, answer: string) => {
-        userAnswers[index].answer = answer;
+    const onAnswerChange = (label: string, answer: string) => {
+        userAnswers[label] = answer;
         setUserAnswers(userAnswers);
         updateSubmitButtonState();
     };
@@ -106,7 +100,9 @@ export const UserSurveyPage = () => {
                             <NSATQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) => onAnswerChange(index, d)}
+                                onChange={(d) =>
+                                    onAnswerChange(question.label, d)
+                                }
                             />
                         );
                     case "nps":
@@ -114,7 +110,9 @@ export const UserSurveyPage = () => {
                             <NPSQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) => onAnswerChange(index, d)}
+                                onChange={(d) =>
+                                    onAnswerChange(question.label, d)
+                                }
                             />
                         );
                     case "textarea":
@@ -122,7 +120,9 @@ export const UserSurveyPage = () => {
                             <TextAreaQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) => onAnswerChange(index, d)}
+                                onChange={(d) =>
+                                    onAnswerChange(question.label, d)
+                                }
                             />
                         );
                     case "divider":
@@ -149,12 +149,15 @@ export const UserSurveyPage = () => {
     );
 };
 
-export interface QuestionProps {
-    question: Question;
+export interface QuestionProps<T> {
+    question: T;
     onChange: (data: string) => void;
 }
 
-export const NSATQuestion = ({ question, onChange }: QuestionProps) => {
+export const NSATQuestion = ({
+    question,
+    onChange,
+}: QuestionProps<NsatQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -195,7 +198,10 @@ export const NSATQuestion = ({ question, onChange }: QuestionProps) => {
     );
 };
 
-export const NPSQuestion = ({ question, onChange }: QuestionProps) => {
+export const NPSQuestion = ({
+    question,
+    onChange,
+}: QuestionProps<NpsQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -280,7 +286,10 @@ export const NPSQuestion = ({ question, onChange }: QuestionProps) => {
     );
 };
 
-export const TextAreaQuestion = ({ question, onChange }: QuestionProps) => {
+export const TextAreaQuestion = ({
+    question,
+    onChange,
+}: QuestionProps<TextareaQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;

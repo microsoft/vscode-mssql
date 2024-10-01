@@ -26,42 +26,54 @@ export interface UserSurveyState {
     questions: Question[];
 }
 
-export interface Question {
+export type Question = NpsQuestion | NsatQuestion | TextareaQuestion | Divider;
+
+export interface BaseQuestion {
     /**
      * The label of the question.
      */
     label: string;
-    /**
-     * The type of the question.
-     * - "nps": Radio button with 0 to 10 options.
-     * - "nsat": Radio button with 'Very Satisfied', 'Satisfied', 'Dissatisfied', 'Very Dissatisfied' options.
-     * - "textarea": Textarea.
-     */
-    type: "nps" | "nsat" | "textarea" | "divider";
-    /**
-     * The placeholder of the textarea. It is only used when the type is "textarea".
-     */
-    placeholder?: string;
     /**
      * The required field of the question.
      */
     required?: boolean;
 }
 
-export interface Answer {
-    label?: string;
-    answer?: string;
+/**
+ * A question with a radio button with 0 to 10 options.
+ */
+export interface NpsQuestion extends BaseQuestion {
+    type: "nps";
+}
+
+/**
+ * A question with a radio button with 'Very Satisfied', 'Satisfied', 'Dissatisfied', 'Very Dissatisfied' options.
+ */
+export interface NsatQuestion extends BaseQuestion {
+    type: "nsat";
+}
+
+export interface TextareaQuestion extends BaseQuestion {
+    type: "textarea";
+    /**
+     * The placeholder for the textarea.
+     */
+    placeholder?: string;
+}
+
+export interface Divider {
+    type: "divider";
 }
 
 export interface UserSurveyContextProps {
     state: UserSurveyState;
-    submit(answers: Answer[]): void;
+    submit(answers: Record<string, string>): void;
     cancel(): void;
 }
 
 export interface UserSurveyReducers {
     submit: {
-        answers: Answer[];
+        answers: Record<string, string>;
     };
     cancel: {};
 }

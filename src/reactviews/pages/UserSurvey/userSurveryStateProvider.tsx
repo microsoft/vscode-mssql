@@ -6,7 +6,6 @@
 import React, { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
-    Answer,
     UserSurveyContextProps,
     UserSurveyState,
     UserSurveyReducers,
@@ -31,7 +30,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
         <UserSurveyContext.Provider
             value={{
                 state: vscodeWebviewProvider.state,
-                submit: async (answers: Answer[]) => {
+                submit: async (answers: Record<string, string>) => {
                     await vscodeWebviewProvider.extensionRpc.action("submit", {
                         answers: answers,
                     });
