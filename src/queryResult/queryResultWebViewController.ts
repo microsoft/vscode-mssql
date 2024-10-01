@@ -12,7 +12,7 @@ import { homedir } from "os";
 import * as path from "path";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
-import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces"
+import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
@@ -24,9 +24,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _executionPlanContents: string;
 
-    constructor(context: vscode.ExtensionContext,
+    constructor(
+        context: vscode.ExtensionContext,
         private executionPlanService: ep.ExecutionPlanService,
-        private untitledSqlDocumentService: UntitledSqlDocumentService) {
+        private untitledSqlDocumentService: UntitledSqlDocumentService,
+    ) {
         super(context, "queryResult", {
             value: "",
             messages: [],
@@ -74,6 +76,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._executionPlanContents = payload.sqlPlanContent;
             await this.createExecutionPlanGraphs();
             state.loadState = ApiStatus.Loaded;
+            state.tabStates.resultPaneTab =
+                qr.QueryResultPaneTabs.ExecutionPlan;
             return {
                 ...state,
                 sqlPlanContent: this._executionPlanContents,
@@ -157,14 +161,15 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 loadState: ApiStatus.Loading,
                 sqlPlanContent: "",
                 theme:
-                    vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
+                    vscode.window.activeColorTheme.kind ===
+                    vscode.ColorThemeKind.Dark
                         ? "dark"
                         : "light",
                 executionPlan: undefined,
                 executionPlanGraphs: [],
                 totalCost: 0,
             }),
-        }
+        };
         this._queryResultStateMap.set(uri, currentState);
     }
 
@@ -183,13 +188,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this._sqlOutputContentProvider = provider;
     }
 
-    public setExecutionPlanService (
-        service: ExecutionPlanService,
-    ): void {
+    public setExecutionPlanService(service: ExecutionPlanService): void {
         this.executionPlanService = service;
     }
 
-    public setUntitledDocumentService (
+    public setUntitledDocumentService(
         service: UntitledSqlDocumentService,
     ): void {
         this.untitledSqlDocumentService = service;

@@ -58,7 +58,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     setHighlightOpsClicked,
     setPropertiesClicked,
     query,
-    context
+    context,
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
@@ -159,6 +159,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             className={classes.iconStack}
             style={{
                 background: `${utils.background(executionPlanState!.theme!)}`,
+                minHeight: "300px",
             }}
             vertical
         >

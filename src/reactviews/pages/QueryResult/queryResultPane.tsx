@@ -177,11 +177,13 @@ export const QueryResultPane = () => {
     const gridRef = useRef<SlickGridHandle>(null);
 
     const getExecutionPlanGraphs = async (contents: string) => {
-        let planFile: ep.ExecutionPlanGraphInfo = {
-            graphFileContent: contents,
-            graphFileType: ".sqlplan"
+        if (!state?.state?.executionPlanGraphs!.length) {
+            let planFile: ep.ExecutionPlanGraphInfo = {
+                graphFileContent: contents,
+                graphFileType: ".sqlplan",
+            };
+            await state!.provider.getExecutionPlan(planFile);
         }
-        await state!.provider.getExecutionPlan(planFile);
     };
 
     useEffect(() => {
@@ -278,7 +280,11 @@ export const QueryResultPane = () => {
                                             var columnLength =
                                                 metadata?.resultSetSummary
                                                     ?.columnInfo?.length;
-                                            getExecutionPlanGraphs(metadata?.isExecutionPlan ? r.rows[0][0].displayValue : "");
+                                            if (metadata?.isExecutionPlan) {
+                                                getExecutionPlanGraphs(
+                                                    r.rows[0][0].displayValue,
+                                                );
+                                            }
                                             return r.rows.map((r) => {
                                                 let dataWithSchema: {
                                                     [key: string]: any;
@@ -385,7 +391,7 @@ export const QueryResultPane = () => {
                             id={"executionPlanResultsTab"}
                             className={classes.queryResultContainer}
                         >
-                            <ExecutionPlanPage context={state}/>
+                            <ExecutionPlanPage context={state} />
                         </div>
                     )}
             </div>

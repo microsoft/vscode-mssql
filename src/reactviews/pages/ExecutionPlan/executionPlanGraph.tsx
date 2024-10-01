@@ -31,6 +31,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         flexGrow: 1,
         width: "100%",
+        minHeight: "300px",
     },
     inputContainer: {
         position: "absolute",
@@ -53,7 +54,7 @@ const useStyles = makeStyles({
         opacity: 1,
         height: "100%",
         width: "100%",
-        overflow: "auto",
+        overflowX: "auto",
     },
     resizable: {
         position: "absolute",
@@ -83,7 +84,7 @@ interface ExecutionPlanGraphProps {
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     graphIndex,
-    context
+    context,
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
