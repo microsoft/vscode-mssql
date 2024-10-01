@@ -696,4 +696,20 @@ export class UserSurvey {
     public static privacyDisclaimer = l10n.t(
         "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
     );
+    public static overallHowStatisfiedAreYouWithFeature = (
+        featureName: string,
+    ) =>
+        l10n.t({
+            message: "Overall, how satisfied are you with {0}?",
+            args: [featureName],
+            comment: ["{0} is the feature name"],
+        });
+
+    public static howLikelyAreYouToRecommendFeature = (featureName: string) =>
+        l10n.t({
+            message:
+                "How likely it is that you would recommend {0} to a friend or colleague?",
+            args: [featureName],
+            comment: ["{0} is the feature name"],
+        });
 }

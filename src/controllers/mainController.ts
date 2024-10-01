@@ -57,7 +57,7 @@ import { ExecutionPlanWebviewController } from "./executionPlanWebviewController
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { isIConnectionInfo } from "../utils/utils";
-import { UserSurvey } from "../nps/userSurvey";
+import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 
 /**
  * The main controller class that initializes the extension
@@ -213,33 +213,10 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey("nps", {
-                    questions: [
-                        {
-                            label: LocalizedConstants.UserSurvey
-                                .howlikelyAreYouToRecommendMSSQLExtension,
-                            type: "nps",
-                            required: true,
-                        },
-                        {
-                            label: LocalizedConstants.UserSurvey
-                                .overallHowSatisfiedAreYouWithMSSQLExtension,
-                            type: "nsat",
-                            required: true,
-                        },
-                        {
-                            type: "divider",
-                        },
-                        {
-                            label: LocalizedConstants.UserSurvey
-                                .whatCanWeDoToImprove,
-                            type: "textarea",
-                            required: false,
-                            placeholder:
-                                LocalizedConstants.UserSurvey.privacyDisclaimer,
-                        },
-                    ],
-                });
+                await UserSurvey.getInstance().launchSurvey(
+                    "nps",
+                    getStandardNPSQuestions(),
+                );
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => {

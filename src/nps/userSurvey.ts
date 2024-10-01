@@ -77,24 +77,7 @@ export class UserSurvey {
         const take = {
             title: locConstants.UserSurvey.takeSurvey,
             run: async () => {
-                const state: UserSurveyState = {
-                    questions: [
-                        {
-                            label: locConstants.UserSurvey
-                                .overallHowSatisfiedAreYouWithMSSQLExtension,
-                            type: "nps",
-                            required: true,
-                        },
-                        {
-                            type: "divider",
-                        },
-                        {
-                            label: locConstants.UserSurvey.whatCanWeDoToImprove,
-                            type: "textarea",
-                            required: false,
-                        },
-                    ],
-                };
+                const state: UserSurveyState = getStandardNPSQuestions();
                 if (
                     !this._webviewController ||
                     this._webviewController.isDisposed
@@ -253,4 +236,40 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
     updateState(state: UserSurveyState): void {
         this.state = state;
     }
+}
+
+export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
+    return {
+        questions: [
+            {
+                label: featureName
+                    ? locConstants.UserSurvey.howLikelyAreYouToRecommendFeature(
+                          featureName,
+                      )
+                    : locConstants.UserSurvey
+                          .howlikelyAreYouToRecommendMSSQLExtension,
+                type: "nps",
+                required: true,
+            },
+            {
+                label: featureName
+                    ? locConstants.UserSurvey.overallHowStatisfiedAreYouWithFeature(
+                          featureName,
+                      )
+                    : locConstants.UserSurvey
+                          .overallHowSatisfiedAreYouWithMSSQLExtension,
+                type: "nsat",
+                required: true,
+            },
+            {
+                type: "divider",
+            },
+            {
+                label: locConstants.UserSurvey.whatCanWeDoToImprove,
+                type: "textarea",
+                required: false,
+                placeholder: locConstants.UserSurvey.privacyDisclaimer,
+            },
+        ],
+    };
 }

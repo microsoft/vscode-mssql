@@ -694,6 +694,18 @@
   "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?": "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
   "MSSQL Feedback": "MSSQL Feedback",
   "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.": "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
+  "Overall, how satisfied are you with {0}?/{0} is the feature name": {
+    "message": "Overall, how satisfied are you with {0}?",
+    "comment": [
+      "{0} is the feature name"
+    ]
+  },
+  "How likely it is that you would recommend {0} to a friend or colleague?/{0} is the feature name": {
+    "message": "How likely it is that you would recommend {0} to a friend or colleague?",
+    "comment": [
+      "{0} is the feature name"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "No subscriptions set in VS Code's Azure account filter.": "No subscriptions set in VS Code's Azure account filter.",
   "Error loading Azure databases.": "Error loading Azure databases."
