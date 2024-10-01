@@ -56,6 +56,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private _connectionToEditCopy: IConnectionDialogProfile | undefined;
 
     private static _logger: Logger;
+    private _azureSubscriptions: Map<string, AzureSubscription>;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -83,6 +84,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 connectionStatus: ApiStatus.NotStarted,
                 formError: "",
                 loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
+                loadingAzureServersStatus: ApiStatus.NotStarted,
             }),
             vscode.ViewColumn.Active,
             {
@@ -816,7 +818,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     this.state.selectedInputMode ===
                     ConnectionInputMode.AzureBrowse
                 ) {
-                    await this.loadAzureDatabases(state);
+                    await this.loadAllAzureServers(state);
                 }
 
                 return state;
@@ -937,6 +939,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             }
             return state;
         });
+
+        this.registerReducer("loadAzureServers", async (state, payload) => {
+            await this.loadAzureServersForSubscription(
+                state,
+                payload.subscriptionId,
+            );
+
+            return state;
+        });
     }
 
     private async loadAzureSubscriptions(
@@ -969,6 +980,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     >("azureResourceGroups.selectedSubscriptions") !==
                 undefined;
 
+            this._azureSubscriptions = new Map(
+                (await auth.getSubscriptions(shouldUseFilter)).map((s) => [
+                    s.subscriptionId,
+                    s,
+                ]),
+            );
             const tenantSubMap = this.groupBy<string, AzureSubscription>(
                 await auth.getSubscriptions(shouldUseFilter),
                 "tenantId",
@@ -999,7 +1016,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
     }
 
-    private async loadAzureDatabases(state: ConnectionDialogWebviewState) {
+    private async loadAllAzureServers(state: ConnectionDialogWebviewState) {
         try {
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
@@ -1008,33 +1025,58 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     "No subscriptions set in VS Code's Azure account filter.",
                 );
             } else {
+                state.loadingAzureServersStatus = ApiStatus.Loading;
+                this.state = state; // update state mid-reducer so the UI is more responsive
+
+                const promiseArray: Promise<void>[] = [];
                 for (const t of tenantSubMap.keys()) {
                     for (const s of tenantSubMap.get(t)) {
-                        try {
-                            const servers = await this.getAzureServers(s);
-                            state.azureServers.push(...servers);
-                            this.state = state; // update state mid-reducer so the UI is more responsive
-                            console.log(
-                                `Loaded ${servers.length} servers for subscription ${s.name} (${s.subscriptionId})`,
-                            );
-                        } catch (error) {
-                            vscode.window.showErrorMessage(
-                                Loc.errorLoadingAzureDatabases(
-                                    s.name,
-                                    s.subscriptionId,
-                                ),
-                            );
-                            console.error(
-                                state.formError + "\n" + getErrorMessage(error),
-                            );
-                        }
+                        promiseArray.push(
+                            this.loadAzureServersForSubscription(
+                                state,
+                                s.subscriptionId,
+                            ),
+                        );
                     }
                 }
+                await Promise.all(promiseArray);
+
+                state.loadingAzureServersStatus = ApiStatus.Loaded;
+                return state;
             }
         } catch (error) {
             state.formError = l10n.t("Error loading Azure databases.");
+            state.loadingAzureServersStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
             return state;
+        }
+    }
+
+    private async loadAzureServersForSubscription(
+        state: ConnectionDialogWebviewState,
+        subscriptionId: string,
+    ) {
+        const azSub = this._azureSubscriptions.get(subscriptionId);
+        const stateSub = state.azureSubscriptions.find(
+            (s) => s.id === subscriptionId,
+        );
+
+        try {
+            const servers = await this.fetchServersFromAzure(azSub);
+            state.azureServers.push(...servers);
+            stateSub.loaded = true;
+            this.state = state; // update state mid-reducer so the UI is more responsive
+            console.log(
+                `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
+            );
+        } catch (error) {
+            console.error(
+                Loc.errorLoadingAzureDatabases(
+                    azSub.name,
+                    azSub.subscriptionId,
+                ),
+                +"\n" + getErrorMessage(error),
+            );
         }
     }
 
@@ -1049,7 +1091,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }, new Map<K, V[]>());
     }
 
-    private async getAzureServers(
+    private async fetchServersFromAzure(
         sub: AzureSubscription,
     ): Promise<AzureSqlServerInfo[]> {
         const result: AzureSqlServerInfo[] = [];

@@ -6,13 +6,21 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Field, Option, Button, Combobox } from "@fluentui/react-components";
+import {
+    Field,
+    Option,
+    Button,
+    Combobox,
+    Spinner,
+    makeStyles,
+} from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { TestConnectionButton } from "./components/testConnectionButton.component";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 function removeDuplicates<T>(array: T[]): T[] {
     return Array.from(new Set(array));
@@ -152,9 +160,15 @@ export const AzureBrowsePage = () => {
             return; // should not be visible if no server is selected
         }
 
-        const dbs = context.state.azureServers.find(
+        const server = context.state.azureServers.find(
             (server) => server.server === selectedServer,
-        )!.databases;
+        );
+
+        if (!server) {
+            return;
+        }
+
+        const dbs = server.databases;
 
         setDatabases(dbs.sort());
         setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
@@ -172,9 +186,37 @@ export const AzureBrowsePage = () => {
             <AzureBrowseDropdown
                 label={Loc.connectionDialog.subscription}
                 clearable
+                loadState={context.state.loadingAzureSubscriptionsStatus}
                 content={{
                     valueList: subscriptions,
-                    setValue: setSelectedSubscription,
+                    setValue: (sub) => {
+                        setSelectedSubscription(sub);
+
+                        if (sub === undefined) {
+                            return;
+                        }
+
+                        // TODO: swap out subscription ID parsing for an AzureSubscriptionInfo
+                        const openParen = sub.indexOf("(");
+
+                        if (openParen === -1) {
+                            return;
+                        }
+
+                        const closeParen = sub.indexOf(")", openParen);
+
+                        if (closeParen === -1) {
+                            return;
+                        }
+
+                        const subId = sub.substring(openParen + 1, closeParen); // get the subscription ID from the string
+
+                        if (subId.length === 0) {
+                            return;
+                        }
+
+                        context.loadAzureServers(subId);
+                    },
                     currentValue: selectedSubscription,
                 }}
             />
@@ -199,6 +241,7 @@ export const AzureBrowsePage = () => {
             <AzureBrowseDropdown
                 label={Loc.connectionDialog.server}
                 required
+                loadState={context.state.loadingAzureServersStatus}
                 content={{
                     valueList: servers,
                     setValue: (srv) => {
@@ -237,7 +280,14 @@ export const AzureBrowsePage = () => {
                         }}
                     />
                     {context.state.connectionComponents.mainOptions
-                        .filter((opt) => !["server", "database"].includes(opt))
+                        .filter(
+                            (opt) =>
+                                ![
+                                    "server",
+                                    "database",
+                                    "trustServerCertificate",
+                                ].includes(opt),
+                        )
                         .map((inputName, idx) => {
                             const component =
                                 context.state.connectionComponents.components[
@@ -287,15 +337,25 @@ export const AzureBrowsePage = () => {
     );
 };
 
+const useLoadableStyles = makeStyles({
+    loadable: {
+        display: "flex",
+        alignItems: "center",
+        columnGap: "4px",
+    },
+});
+
 const AzureBrowseDropdown = ({
     label,
     required,
     clearable,
+    loadState,
     content,
 }: {
     label: string;
     required?: boolean;
     clearable?: boolean;
+    loadState?: ApiStatus;
     content: {
         valueList: string[];
         setValue: (value: string | undefined) => void;
@@ -303,38 +363,53 @@ const AzureBrowseDropdown = ({
     };
 }) => {
     const formStyles = useFormStyles();
+    const loadableStyles = useLoadableStyles();
 
     const onInput = (ev: React.ChangeEvent<HTMLInputElement>) => {
         content.setValue(ev.target.value);
     };
 
     return (
-        <div className={formStyles.formComponentDiv}>
-            <Field label={label} orientation="horizontal" required={required}>
-                <Combobox
-                    value={content.currentValue ?? ""}
-                    selectedOptions={
-                        content.currentValue ? [content.currentValue] : []
+        <>
+            <div className={formStyles.formComponentDiv}>
+                <Field
+                    label={
+                        <span className={loadableStyles.loadable}>
+                            {label}
+                            {loadState === ApiStatus.Loading && (
+                                <Spinner size="tiny" />
+                            )}
+                        </span>
                     }
-                    clearable={clearable}
-                    onInput={onInput}
-                    onOptionSelect={(_event, data) => {
-                        if (data.optionValue === content.currentValue) {
-                            return;
-                        }
-
-                        content.setValue(data.optionValue);
-                    }}
+                    orientation="horizontal"
+                    required={required}
                 >
-                    {content.valueList.map((val, idx) => {
-                        return (
-                            <Option key={idx} value={val}>
-                                {val}
-                            </Option>
-                        );
-                    })}
-                </Combobox>
-            </Field>
-        </div>
+                    <Combobox
+                        style={{ width: "100%" }}
+                        value={content.currentValue ?? ""}
+                        selectedOptions={
+                            content.currentValue ? [content.currentValue] : []
+                        }
+                        clearable={clearable}
+                        onInput={onInput}
+                        onOptionSelect={(_event, data) => {
+                            if (data.optionValue === content.currentValue) {
+                                return;
+                            }
+
+                            content.setValue(data.optionValue);
+                        }}
+                    >
+                        {content.valueList.map((val, idx) => {
+                            return (
+                                <Option key={idx} value={val}>
+                                    {val}
+                                </Option>
+                            );
+                        })}
+                    </Combobox>
+                </Field>
+            </div>
+        </>
     );
 };

@@ -43,6 +43,7 @@ export class ConnectionDialogWebviewState
     public connectionStatus: ApiStatus;
     public formError: string;
     public loadingAzureSubscriptionsStatus: ApiStatus;
+    public loadingAzureServersStatus: ApiStatus;
 
     constructor({
         connectionProfile,
@@ -54,6 +55,7 @@ export class ConnectionDialogWebviewState
         connectionStatus,
         formError,
         loadingAzureSubscriptionsStatus,
+        loadingAzureServersStatus,
     }: {
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
@@ -75,6 +77,7 @@ export class ConnectionDialogWebviewState
         connectionStatus: ApiStatus;
         formError: string;
         loadingAzureSubscriptionsStatus: ApiStatus;
+        loadingAzureServersStatus: ApiStatus;
     }) {
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
@@ -85,6 +88,7 @@ export class ConnectionDialogWebviewState
         this.connectionStatus = connectionStatus;
         this.formError = formError;
         this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
+        this.loadingAzureServersStatus = loadingAzureServersStatus;
     }
 }
 
@@ -133,6 +137,7 @@ export interface ConnectionDialogContextProps
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
+    loadAzureServers: (subscriptionId: string) => void;
 }
 
 export enum AuthenticationType {
@@ -152,4 +157,7 @@ export interface ConnectionDialogReducers {
         connection: IConnectionDialogProfile;
     };
     connect: {};
+    loadAzureServers: {
+        subscriptionId: string;
+    };
 }
