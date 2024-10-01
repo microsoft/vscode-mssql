@@ -38,7 +38,7 @@ interface ExecutionPlanPageProps {
 }
 
 export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
-    context
+    context,
 }) => {
     const classes = useStyles();
     console.log(context);
@@ -59,7 +59,11 @@ export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
                 const executionPlanGraphs =
                     provider?.state?.executionPlanGraphs ?? [];
                 return executionPlanGraphs?.map((_: any, index: number) => (
-                    <ExecutionPlanGraph key={index} graphIndex={index} context={context}/>
+                    <ExecutionPlanGraph
+                        key={index}
+                        graphIndex={index}
+                        context={context}
+                    />
                 ));
             case ApiStatus.Error:
                 return (

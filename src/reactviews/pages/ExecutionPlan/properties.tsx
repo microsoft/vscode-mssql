@@ -115,7 +115,7 @@ interface PropertiesPaneProps {
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
-    context
+    context,
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);

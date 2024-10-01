@@ -14,7 +14,11 @@ import VscodeWrapper from "./../controllers/vscodeWrapper";
 import { ISelectionData, ISlickRange } from "./interfaces";
 import { WebviewPanelController } from "../controllers/webviewController";
 import { IServerProxy, Deferred } from "../protocol";
-import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
+import {
+    ExecutionPlanOptions,
+    ResultSetSubset,
+    ResultSetSummary,
+} from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
@@ -179,7 +183,11 @@ export class SqlOutputContentProvider {
                             this._panels.get(uri).revealToForeground(uri);
                         }
                     }
-                    await queryRunner.runQuery(selection, executionPlanOptions as ExecutionPlanOptions, promise);
+                    await queryRunner.runQuery(
+                        selection,
+                        executionPlanOptions as ExecutionPlanOptions,
+                        promise,
+                    );
                 }
             },
             executionPlanOptions,
@@ -242,7 +250,10 @@ export class SqlOutputContentProvider {
                 await this.createWebviewController(uri, title, queryRunner);
             }
         } else {
-            this._queryResultWebviewController.addQueryResultState(uri,  executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false);
+            this._queryResultWebviewController.addQueryResultState(
+                uri,
+                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false,
+            );
         }
         if (queryRunner) {
             queryCallback(queryRunner);

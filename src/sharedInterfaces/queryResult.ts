@@ -6,7 +6,6 @@
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
-
 export enum QueryResultLoadState {
     Loading = "Loading",
     Loaded = "Loaded",
@@ -35,7 +34,7 @@ export interface QueryResultReactProvider {
 export enum QueryResultPaneTabs {
     Results = "results",
     Messages = "messages",
-    ExecutionPlan = "executionPlan"
+    ExecutionPlan = "executionPlan",
 }
 
 export interface QueryResultTabStates {

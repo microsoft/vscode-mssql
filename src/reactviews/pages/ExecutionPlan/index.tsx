@@ -12,7 +12,7 @@ import { ExecutionPlanPage } from "./executionPlanPage";
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <ExecutionPlanStateProvider>
-            <ExecutionPlanPage/>
+            <ExecutionPlanPage />
         </ExecutionPlanStateProvider>
     </VscodeWebviewProvider>,
 );

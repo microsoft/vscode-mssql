@@ -62,7 +62,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setExecutionPlanView,
     findNodeOptions,
     setFindNodeClicked,
-    context
+    context,
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
