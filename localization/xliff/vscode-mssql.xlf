@@ -571,6 +571,9 @@
     <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
       <source xml:lang="en">Highlight Expensive Operation</source>
     </trans-unit>
+    <trans-unit id="++CODE++cdcc527989217aea79f51128ad3c86fa74d6c9def496f199f6b8d9728791d3b4">
+      <source xml:lang="en">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</source>
+    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>

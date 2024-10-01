@@ -214,11 +214,18 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
                 await UserSurvey.getInstance().launchSurvey("nps", {
+                    subtitle: LocalizedConstants.UserSurvey.privacyDisclaimer,
                     questions: [
                         {
                             label: LocalizedConstants.UserSurvey
-                                .overallHowSatisfiedAreYouWithMSSQLExtension,
+                                .howlikelyAreYouToRecommendMSSQLExtension,
                             type: "nps",
+                            required: true,
+                        },
+                        {
+                            label: LocalizedConstants.UserSurvey
+                                .overallHowSatisfiedAreYouWithMSSQLExtension,
+                            type: "nsat",
                             required: true,
                         },
                         {
@@ -229,6 +236,8 @@ export default class MainController implements vscode.Disposable {
                                 .whatCanWeDoToImprove,
                             type: "textarea",
                             required: false,
+                            placeholder:
+                                LocalizedConstants.UserSurvey.privacyDisclaimer,
                         },
                     ],
                 });

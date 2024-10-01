@@ -682,7 +682,9 @@ export class UserSurvey {
     public static overallHowSatisfiedAreYouWithMSSQLExtension = l10n.t(
         "Overall, how satisfied are you with the MSSQL extension?",
     );
-
+    public static howlikelyAreYouToRecommendMSSQLExtension = l10n.t(
+        "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
+    );
     public static whatCanWeDoToImprove = l10n.t("What can we do to improve?");
     public static takeSurvey = l10n.t("Take Survey");
     public static remindMeLater = l10n.t("Remind Me Later");
@@ -691,4 +693,7 @@ export class UserSurvey {
         "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
     );
     public static mssqlFeedback = l10n.t("MSSQL Feedback");
+    public static privacyDisclaimer = l10n.t(
+        "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
+    );
 }

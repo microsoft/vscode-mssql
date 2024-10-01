@@ -245,7 +245,6 @@
   "Dissatisfied": "Dissatisfied",
   "Very Dissatisfied": "Very Dissatisfied",
   "Submit": "Submit",
-  "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.": "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
   "Not likely at all": "Not likely at all",
   "Extremely likely": "Extremely likely",
   "Privacy Statement": "Privacy Statement",
@@ -687,12 +686,14 @@
       "{1} is the subscription id"
     ]
   },
+  "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?": "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
   "MSSQL Feedback": "MSSQL Feedback",
+  "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.": "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
   "Azure sign in failed.": "Azure sign in failed.",
   "No subscriptions set in VS Code's Azure account filter.": "No subscriptions set in VS Code's Azure account filter.",
   "Error loading Azure databases.": "Error loading Azure databases."

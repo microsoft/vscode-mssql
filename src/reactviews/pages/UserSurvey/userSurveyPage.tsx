@@ -28,7 +28,7 @@ const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        width: "500px",
+        width: "800px",
         maxWidth: "100%",
         "> *": {
             marginBottom: "15px",
@@ -195,20 +195,20 @@ export const NSATQuestion = ({
                 onChange={(_e, d) => onChange(d.value)}
             >
                 <Radio
-                    value={locConstants.userFeedback.verySatisfied}
-                    label={locConstants.userFeedback.verySatisfied}
-                />
-                <Radio
-                    value={locConstants.userFeedback.satisfied}
-                    label={locConstants.userFeedback.satisfied}
+                    value={locConstants.userFeedback.veryDissatisfied}
+                    label={locConstants.userFeedback.veryDissatisfied}
                 />
                 <Radio
                     value={locConstants.userFeedback.dissatisfied}
                     label={locConstants.userFeedback.dissatisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.veryDissatisfied}
-                    label={locConstants.userFeedback.veryDissatisfied}
+                    value={locConstants.userFeedback.satisfied}
+                    label={locConstants.userFeedback.satisfied}
+                />
+                <Radio
+                    value={locConstants.userFeedback.verySatisfied}
+                    label={locConstants.userFeedback.verySatisfied}
                 />
             </RadioGroup>
         </Field>
@@ -315,12 +315,9 @@ export const TextAreaQuestion = ({
         <Field
             required={question.required ?? false}
             label={<Text weight="bold">{question.label}</Text>}
+            hint={question.placeholder}
         >
             <Textarea
-                placeholder={
-                    question.placeholder ??
-                    locConstants.userFeedback.microsoftReviewPrivacyDisclaimer
-                }
                 onChange={(_e, data) => onChange(data.value)}
                 resize="vertical"
             />
