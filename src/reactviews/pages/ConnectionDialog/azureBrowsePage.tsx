@@ -61,6 +61,7 @@ export const AzureBrowsePage = () => {
     >(undefined);
 
     useEffect(() => {
+        console.log("===: subscriptions dropdown effect");
         const subs = removeDuplicates(
             context.state.azureSubscriptions.map(
                 (sub) => `${sub.name} (${sub.id})`,
@@ -74,6 +75,7 @@ export const AzureBrowsePage = () => {
     }, [context.state.azureSubscriptions]);
 
     useEffect(() => {
+        console.log("===: resource group dropdown effect");
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -95,6 +97,7 @@ export const AzureBrowsePage = () => {
     }, [subscriptions, selectedSubscription, context.state.azureServers]);
 
     useEffect(() => {
+        console.log("===: locations dropdown effect");
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -123,6 +126,7 @@ export const AzureBrowsePage = () => {
     }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
 
     useEffect(() => {
+        console.log("===: server dropdown effect");
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -156,6 +160,7 @@ export const AzureBrowsePage = () => {
     }, [locations, selectedLocation, context.state.azureServers]);
 
     useEffect(() => {
+        console.log("===: database dropdown effect");
         if (!selectedServer) {
             return; // should not be visible if no server is selected
         }
