@@ -677,3 +677,39 @@ export class ConnectionDialog {
         });
     }
 }
+
+export class UserSurvey {
+    public static overallHowSatisfiedAreYouWithMSSQLExtension = l10n.t(
+        "Overall, how satisfied are you with the MSSQL extension?",
+    );
+    public static howlikelyAreYouToRecommendMSSQLExtension = l10n.t(
+        "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
+    );
+    public static whatCanWeDoToImprove = l10n.t("What can we do to improve?");
+    public static takeSurvey = l10n.t("Take Survey");
+    public static remindMeLater = l10n.t("Remind Me Later");
+    public static dontShowAgain = l10n.t("Don't Show Again");
+    public static doYouMindTakingAQuickFeedbackSurvey = l10n.t(
+        "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
+    );
+    public static mssqlFeedback = l10n.t("MSSQL Feedback");
+    public static privacyDisclaimer = l10n.t(
+        "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
+    );
+    public static overallHowStatisfiedAreYouWithFeature = (
+        featureName: string,
+    ) =>
+        l10n.t({
+            message: "Overall, how satisfied are you with {0}?",
+            args: [featureName],
+            comment: ["{0} is the feature name"],
+        });
+
+    public static howLikelyAreYouToRecommendFeature = (featureName: string) =>
+        l10n.t({
+            message:
+                "How likely it is that you would recommend {0} to a friend or colleague?",
+            args: [featureName],
+            comment: ["{0} is the feature name"],
+        });
+}

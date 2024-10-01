@@ -801,6 +801,11 @@
         "category": "MS SQL"
       },
       {
+        "command": "mssql.userFeedback",
+        "title": "%mssql.userFeedback%",
+        "category": "MS SQL"
+      },
+      {
         "command": "mssql.showExecutionPlanInResults",
         "title": "%mssql.showExecutionPlanInResults%",
         "category": "MS SQL",

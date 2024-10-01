@@ -17,6 +17,7 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { scriptCopiedToClipboard } from "../constants/locConstants";
+import { UserSurvey } from "../nps/userSurvey";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -258,6 +259,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
             this.panel.title = state.tableInfo.title;
+            await UserSurvey.getInstance().promptUserForNPSFeedback();
             return state;
         });
 
@@ -287,6 +289,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
             await this._untitledSqlDocumentService.newQuery(script);
+            await UserSurvey.getInstance().promptUserForNPSFeedback();
             return state;
         });
 

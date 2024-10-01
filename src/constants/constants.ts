@@ -5,6 +5,7 @@
 
 // Collection of Non-localizable Constants
 export const languageId = "sql";
+export const extensionId = "ms-mssql.mssql";
 export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
@@ -82,6 +83,7 @@ export const cmdShowExecutionPlanInResults = "mssql.showExecutionPlanInResults";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
+export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider =
@@ -211,6 +213,8 @@ export const scriptSelectText = "SELECT TOP (1000) * FROM ";
 export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
+export const microsoftPrivacyStatementUrl =
+    "https://www.microsoft.com/en-us/privacy/privacystatement";
 
 export enum Platform {
     Windows = "win32",

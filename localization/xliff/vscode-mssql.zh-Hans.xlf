@@ -135,7 +135,7 @@
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
-        <target state="new">Azure sign in failed.</target>
+        <target state="translated">Azure 登录失败。</target>
       </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -387,7 +387,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
-        <target state="new">Copy script</target>
+        <target state="translated">复制脚本</target>
       </trans-unit>
       <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
         <source xml:lang="en">Copy with Headers</source>
@@ -419,7 +419,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
-        <target state="new">Database</target>
+        <target state="translated">数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
@@ -482,6 +482,18 @@
         <source xml:lang="en">Displays the unified data type (including length, scale and precision) for the column</source>
         <target state="translated">显示列的统一数据类型(包括长度、小数位数和精准率)</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
+        <source xml:lang="en">Dissatisfied</source>
+        <target state="new">Dissatisfied</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
+        <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
+        <target state="new">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
+        <source xml:lang="en">Don't Show Again</source>
+        <target state="new">Don't Show Again</target>
+      </trans-unit>
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
         <target state="translated">编辑</target>
@@ -540,11 +552,15 @@
         <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
         <note>{0} is the subscription name
 {1} is the subscription id</note>
-        <target state="new">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</target>
+        <target state="translated">为订阅 {0} ({1}) 加载 Azure 数据库时出错。确认您具有权限。</target>
       </trans-unit>
       <trans-unit id="++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0">
         <source xml:lang="en">Error loading Azure databases.</source>
-        <target state="new">Error loading Azure databases.</target>
+        <target state="translated">加载 Azure 数据库时出错。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
+        <source xml:lang="en">Error loading Azure subscriptions.</source>
+        <target state="new">Error loading Azure subscriptions.</target>
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
@@ -605,6 +621,10 @@
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
         <target state="translated">表达式</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
+        <source xml:lang="en">Extremely likely</source>
+        <target state="new">Extremely likely</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -708,7 +728,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
-        <target state="new">General</target>
+        <target state="translated">常规</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -733,6 +753,15 @@
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">突出显示高开销操作</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cdcc527989217aea79f51128ad3c86fa74d6c9def496f199f6b8d9728791d3b4">
+        <source xml:lang="en">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</source>
+        <target state="new">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++31a89f9bfc36d6f9ecf0a7e2e82cb5a9a0f1e7b1702f08bd3aced239c4f48a0b">
+        <source xml:lang="en">How likely it is that you would recommend {0} to a friend or colleague?</source>
+        <note>{0} is the feature name</note>
+        <target state="new">How likely it is that you would recommend {0} to a friend or colleague?</target>
       </trans-unit>
       <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
@@ -777,7 +806,7 @@
       <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
         <source xml:lang="en">Issues ({0})</source>
         <note>{0} is the number of issues</note>
-        <target state="new">Issues ({0})</target>
+        <target state="translated">问题({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -814,11 +843,15 @@
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
-        <target state="new">Location</target>
+        <target state="translated">位置</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
         <target state="translated">MSSQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
+        <source xml:lang="en">MSSQL Feedback</source>
+        <target state="new">MSSQL Feedback</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -838,7 +871,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
-        <target state="new">Maximize panel size</target>
+        <target state="translated">最大化面板大小</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -872,6 +905,14 @@
         <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
         <note>{0} is the account name</note>
         <target state="translated">已成功添加 Microsoft Entra 帐户 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
+        <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
+        <target state="new">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
+        <source xml:lang="en">Microsoft would like your feedback</source>
+        <target state="new">Microsoft would like your feedback</target>
       </trans-unit>
       <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
         <source xml:lang="en">Move Down</source>
@@ -945,7 +986,7 @@
       </trans-unit>
       <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
         <source xml:lang="en">No subscriptions set in VS Code's Azure account filter.</source>
-        <target state="new">No subscriptions set in VS Code's Azure account filter.</target>
+        <target state="translated">VS Code的 Azure 帐户筛选器中未设置任何订阅。</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -970,6 +1011,10 @@
       <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
         <source xml:lang="en">Not Starts With</source>
         <target state="translated">开头不为</target>
+      </trans-unit>
+      <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
+        <source xml:lang="en">Not likely at all</source>
+        <target state="new">Not likely at all</target>
       </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
@@ -1017,7 +1062,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
-        <target state="new">Open in editor</target>
+        <target state="translated">在编辑器中打开</target>
       </trans-unit>
       <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
         <source xml:lang="en">Open snapshot in new tab</source>
@@ -1034,6 +1079,15 @@
       <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
         <source xml:lang="en">Optional (False)</source>
         <target state="translated">可选(False)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
+        <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
+        <target state="new">Overall, how satisfied are you with the MSSQL extension?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cd184ad9e92906aa47b1a2a184c7d63d4c3642b0ee74079f2d428841ff17036c">
+        <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
+        <note>{0} is the feature name</note>
+        <target state="new">Overall, how satisfied are you with {0}?</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -1082,6 +1136,10 @@
       <trans-unit id="++CODE++a0de89c19964a6454c6d6b4f4205b8c8fcb6c1bfe9370b6d3183226ce8009141">
         <source xml:lang="en">Primary Key Columns</source>
         <target state="translated">主键列</target>
+      </trans-unit>
+      <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
+        <source xml:lang="en">Privacy Statement</source>
+        <target state="new">Privacy Statement</target>
       </trans-unit>
       <trans-unit id="++CODE++a423b47777783386516c79baa19b0dfcd12cb40e4fba79348ad14ab0169402cd">
         <source xml:lang="en">Profile Name</source>
@@ -1158,6 +1216,10 @@
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">重新加载 Visual Studio Code</target>
       </trans-unit>
+      <trans-unit id="++CODE++b69ef66763bd411348c2bf030ab4cd0881dc36c538ce1a05966e92b927d2675c">
+        <source xml:lang="en">Remind Me Later</source>
+        <target state="new">Remind Me Later</target>
+      </trans-unit>
       <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
         <source xml:lang="en">Remove</source>
         <target state="translated">移除</target>
@@ -1165,11 +1227,11 @@
       <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
         <source xml:lang="en">Remove {0}</source>
         <note>{0} is the object type</note>
-        <target state="new">Remove {0}</target>
+        <target state="translated">移除 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
-        <target state="new">Resource Group</target>
+        <target state="translated">资源组</target>
       </trans-unit>
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
@@ -1177,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
-        <target state="new">Restore panel size</target>
+        <target state="translated">恢复面板大小</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -1202,6 +1264,10 @@
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL 登录</target>
+      </trans-unit>
+      <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
+        <source xml:lang="en">Satisfied</source>
+        <target state="new">Satisfied</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -1245,7 +1311,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
-        <target state="new">Script copied to clipboard</target>
+        <target state="translated">复制到剪贴板的脚本</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1269,7 +1335,7 @@
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
-        <target state="new">Server</target>
+        <target state="translated">服务器</target>
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -1285,7 +1351,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
         <source xml:lang="en">Server name not set.</source>
-        <target state="new">Server name not set.</target>
+        <target state="translated">未设置服务器名称。</target>
       </trans-unit>
       <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
         <source xml:lang="en">Server name or ADO.NET connection string</source>
@@ -1297,7 +1363,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
         <source xml:lang="en">Show Filter</source>
-        <target state="new">Show Filter</target>
+        <target state="translated">显示筛选器</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
@@ -1321,11 +1387,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
-        <target state="new">Sort Ascending</target>
+        <target state="translated">升序排序</target>
       </trans-unit>
       <trans-unit id="++CODE++2497697ff826db13ca94ea6c34dceced8bdf6fe44c7dde9d32c1cea30e9360a6">
         <source xml:lang="en">Sort Descending</source>
-        <target state="new">Sort Descending</target>
+        <target state="translated">降序排序</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -1356,9 +1422,13 @@
         <source xml:lang="en">Starts With</source>
         <target state="translated">开头为</target>
       </trans-unit>
+      <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
+        <source xml:lang="en">Submit</source>
+        <target state="new">Submit</target>
+      </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
-        <target state="new">Subscription</target>
+        <target state="translated">订阅</target>
       </trans-unit>
       <trans-unit id="++CODE++0035c67b91c2dd1e5f7a1fd9010b07ee0cdc93e578c2baf656dfc411a80f4b78">
         <source xml:lang="en">Subtree Cost</source>
@@ -1390,6 +1460,10 @@
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">表单名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
+        <source xml:lang="en">Take Survey</source>
+        <target state="new">Take Survey</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -1570,6 +1644,14 @@
         <source xml:lang="en">Value</source>
         <target state="translated">值</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
+        <source xml:lang="en">Very Dissatisfied</source>
+        <target state="new">Very Dissatisfied</target>
+      </trans-unit>
+      <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
+        <source xml:lang="en">Very Satisfied</source>
+        <target state="new">Very Satisfied</target>
+      </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
         <target state="translated">查看更多</target>
@@ -1577,6 +1659,10 @@
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">是否查看 mssql 以获取 Visual Studio Code 发行说明?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
+        <source xml:lang="en">What can we do to improve?</source>
+        <target state="new">What can we do to improve?</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -1677,7 +1763,7 @@
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>
         <note>{0} is the object type</note>
-        <target state="new">{0} properties</target>
+        <target state="translated">{0} 属性</target>
       </trans-unit>
       <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
         <source xml:lang="en">{0} {1} issue</source>
@@ -1921,6 +2007,10 @@
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">入门指南</target>
+      </trans-unit>
+      <trans-unit id="mssql.userFeedback">
+        <source xml:lang="en">Give Feedback</source>
+        <target state="new">Give Feedback</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>

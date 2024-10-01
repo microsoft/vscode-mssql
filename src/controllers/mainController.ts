@@ -57,6 +57,7 @@ import { ExecutionPlanWebviewController } from "./executionPlanWebviewController
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { isIConnectionInfo } from "../utils/utils";
+import { UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 
 /**
@@ -83,7 +84,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryRegistered: boolean = false;
     private _executionPlanOptions: ExecutionPlanOptions = {
         includeEstimatedExecutionPlanXml: false,
-        includeActualExecutionPlanXml: false
+        includeActualExecutionPlanXml: false,
     };
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
@@ -114,6 +115,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
         );
         this.configuration = vscode.workspace.getConfiguration();
+        UserSurvey.createInstance(this._context);
     }
 
     /**
@@ -188,7 +190,9 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
-                this._executionPlanOptions.includeEstimatedExecutionPlanXml = false;
+                UserSurvey.getInstance().promptUserForNPSFeedback();
+                this._executionPlanOptions.includeEstimatedExecutionPlanXml =
+                    false;
                 this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -214,6 +218,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdChooseLanguageFlavor);
             this._event.on(Constants.cmdChooseLanguageFlavor, () => {
                 this.runAndLogErrors(this.onChooseLanguageFlavor());
+            });
+            this.registerCommand(Constants.cmdLaunchUserFeedback);
+            this._event.on(Constants.cmdLaunchUserFeedback, async () => {
+                await UserSurvey.getInstance().promptUserForNPSFeedback();
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => {
@@ -255,10 +263,14 @@ export default class MainController implements vscode.Disposable {
                 this.onClearAzureTokenCache(),
             );
             this.registerCommand(Constants.cmdShowExecutionPlanInResults);
-            this._event.on(Constants.cmdShowExecutionPlanInResults, async () => {
-                this._executionPlanOptions.includeEstimatedExecutionPlanXml = true;
-                this.onRunQuery()
-            });
+            this._event.on(
+                Constants.cmdShowExecutionPlanInResults,
+                async () => {
+                    this._executionPlanOptions.includeEstimatedExecutionPlanXml =
+                        true;
+                    this.onRunQuery();
+                },
+            );
             this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(
@@ -339,8 +351,12 @@ export default class MainController implements vscode.Disposable {
                 SqlToolsServerClient.instance,
             );
 
-            this._queryResultWebviewController.setExecutionPlanService(this.executionPlanService);
-            this._queryResultWebviewController.setUntitledDocumentService(this._untitledSqlDocumentService);
+            this._queryResultWebviewController.setExecutionPlanService(
+                this.executionPlanService,
+            );
+            this._queryResultWebviewController.setUntitledDocumentService(
+                this._untitledSqlDocumentService,
+            );
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
@@ -518,7 +534,7 @@ export default class MainController implements vscode.Disposable {
         this._queryResultWebviewController = new QueryResultWebviewController(
             this._context,
             this.executionPlanService,
-            this.untitledSqlDocumentService
+            this.untitledSqlDocumentService,
         );
 
         // Init content provider for results pane
@@ -986,6 +1002,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
+                    await UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
             ),
         );
@@ -1537,7 +1554,7 @@ export default class MainController implements vscode.Disposable {
                 uri,
                 querySelection,
                 title,
-                self._executionPlanOptions
+                self._executionPlanOptions,
             );
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);

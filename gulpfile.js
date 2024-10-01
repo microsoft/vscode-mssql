@@ -188,6 +188,7 @@ async function generateReactWebviewsBundle() {
 			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
 			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
 			'queryResult': 'src/reactviews/pages/QueryResult/index.tsx',
+			'userSurvey': 'src/reactviews/pages/UserSurvey/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
