@@ -59,7 +59,8 @@
     "test": "gulp test:cover --log",
     "package": "vsce package",
     "prepare": "husky",
-    "precommit": "run-p localization"
+    "lint-staged": "gulp lint-staged",
+    "precommit": "run-p lint-staged localization"
   },
   "devDependencies": {
     "@angular/common": "~2.1.2",

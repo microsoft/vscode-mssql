@@ -70,6 +70,38 @@ const cssLoaderPlugin = {
 	},
 };
 
+gulp.task('ext:lint-staged', async (done) => {
+	const util = require('util');
+	const exec = util.promisify(require('child_process').exec);
+	const ESLint = require("eslint");
+
+	const fix = (argv.fix === undefined) ? false : true;
+	const {stdout, stderr} = await exec("git diff --cached --name-only");
+	const stagedFiles = stdout.split('\n').filter(file => file.endsWith('.ts') || file.endsWith('.tsx'));
+	if (stagedFiles.length === 0) {
+		console.log(`No staged files to lint`);
+	} else {
+		const eslint = new ESLint.ESLint({
+			fix: fix,
+			cache: true,
+			overrideConfigFile: path.resolve(__dirname, 'eslint.config.mjs')
+		});
+		const results = await eslint.lintFiles(stagedFiles);
+		// Format and output results
+		const formatter = await eslint.loadFormatter("stylish");
+		// Suppressing all the warnings. Only errors will be shown
+		const errorResults = ESLint.ESLint.getErrorResults(results);
+		const resultText = formatter.format(errorResults);
+		console.log(resultText);
+		// Exit with non-zero code if there are errors
+		const hasErrors = results.some(result => result.errorCount > 0);
+		if (hasErrors) {
+			throw new Error('ESLint found errors in staged files');
+		}
+	}
+	done();
+});
+
 // Copy icons for OE
 gulp.task('ext:copy-OE-assets', (done) => {
 	return gulp.src([
@@ -429,5 +461,7 @@ gulp.task('watch-reactviews', function () {
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-reactviews')));
+
+gulp.task('lint-staged', gulp.series('ext:lint-staged'));
 
 gulp.task('cover', gulp.series('remap-coverage', 'cover:combine-json'));
