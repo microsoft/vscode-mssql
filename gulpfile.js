@@ -19,6 +19,9 @@ const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
 const run = require('gulp-run-command').default;
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+const ESLint = require("eslint");
 
 function getTimeString() {
 	const now = new Date();
@@ -68,10 +71,6 @@ const cssLoaderPlugin = {
 };
 
 gulp.task('ext:lint-staged', async (done) => {
-	const util = require('util');
-	const exec = util.promisify(require('child_process').exec);
-	const ESLint = require("eslint");
-
 	const fix = (argv.fix === undefined) ? false : true;
 	const {stdout, stderr} = await exec("git diff --cached --name-only");
 	const stagedFiles = stdout.split('\n').filter(file => file.endsWith('.ts') || file.endsWith('.tsx'));
