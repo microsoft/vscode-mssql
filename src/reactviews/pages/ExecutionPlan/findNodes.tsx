@@ -22,6 +22,8 @@ import {
 } from "@fluentui/react-icons";
 import * as ep from "./executionPlanInterfaces";
 import { locConstants } from "../../common/locConstants";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     inputContainer: {
@@ -50,11 +52,11 @@ const useStyles = makeStyles({
 });
 
 interface FindNodeProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;
-    context?: any;
+    context?: QueryResultState;
 }
 
 export const FindNode: React.FC<FindNodeProps> = ({

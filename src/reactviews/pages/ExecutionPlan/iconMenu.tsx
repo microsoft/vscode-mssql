@@ -9,6 +9,8 @@ import * as utils from "./queryPlanSetup";
 import "./executionPlan.css";
 import { makeStyles, Toolbar, ToolbarButton } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     iconStack: {
@@ -38,15 +40,15 @@ const useStyles = makeStyles({
 });
 
 interface IconStackProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setZoomNumber: any;
     setCustomZoomClicked: any;
     setFindNodeClicked: any;
     setHighlightOpsClicked: any;
     setPropertiesClicked: any;
-    query: any;
-    context?: any;
+    query: string;
+    context?: QueryResultState;
 }
 
 export const IconStack: React.FC<IconStackProps> = ({

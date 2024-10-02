@@ -16,6 +16,8 @@ import {
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import * as ep from "./executionPlanInterfaces";
 import { locConstants } from "../../common/locConstants";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     inputContainer: {
@@ -37,10 +39,10 @@ const useStyles = makeStyles({
 });
 
 interface HighlightExpensiveOperationsProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
-    context?: any;
+    context?: QueryResultState;
 }
 
 export const HighlightExpensiveOperations: React.FC<

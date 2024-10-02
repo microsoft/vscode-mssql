@@ -30,6 +30,8 @@ import {
 import * as ep from "./executionPlanInterfaces";
 import "./executionPlan.css";
 import { locConstants } from "../../common/locConstants";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -107,9 +109,9 @@ const useStyles = makeStyles({
 });
 
 interface PropertiesPaneProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setPropertiesClicked: any;
-    context?: any;
+    context?: QueryResultState;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
@@ -147,9 +149,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         // check whether items is actively filtered so it doesn't rerender if there
         // are no filter results
         if (!items.length && !isFiltered) {
+            const selectedElement = executionPlanView.getSelectedElement();
             const element: ep.ExecutionPlanNode =
-                executionPlanView.getSelectedElement() ??
-                executionPlanView.getRoot();
+                selectedElement && 'name' in selectedElement
+                    ? selectedElement
+                    : executionPlanView.getRoot();
             loadItems(element);
         }
     }, [items, isFiltered]);
@@ -157,9 +161,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     useEffect(() => {
         // poll for whether there has been a new element selected in the graph
         const intervalId = setInterval(() => {
+            const selectedElement = executionPlanView.getSelectedElement();
             const element: ep.ExecutionPlanNode =
-                executionPlanView.getSelectedElement() ??
-                executionPlanView.getRoot();
+                selectedElement && 'name' in selectedElement
+                    ? selectedElement
+                    : executionPlanView.getRoot();
 
             // Check if the element has changed, if so, reload items based on new element
             if (element.id !== id) {

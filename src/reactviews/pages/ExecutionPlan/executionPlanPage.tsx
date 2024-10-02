@@ -9,6 +9,7 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ExecutionPlanGraph } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -34,7 +35,7 @@ const useStyles = makeStyles({
 });
 
 interface ExecutionPlanPageProps {
-    context?: any;
+    context?: QueryResultState;
 }
 
 export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({

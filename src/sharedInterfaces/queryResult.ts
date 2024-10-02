@@ -4,7 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ApiStatus } from "../sharedInterfaces/webview";
-import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import {
+    ExecutionPlanGraph,
+    ExecutionPlanGraphInfo,
+    GetExecutionPlanResult,
+} from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
 export enum QueryResultLoadState {
     Loading = "Loading",
@@ -19,8 +23,8 @@ export interface QueryResultReactProvider {
      * @param planFile file that contains the execution plan
      */
     getExecutionPlan(
-        planFile: ep.ExecutionPlanGraphInfo,
-    ): Thenable<ep.GetExecutionPlanResult>;
+        planFile: ExecutionPlanGraphInfo,
+    ): Thenable<GetExecutionPlanResult>;
 
     saveExecutionPlan(sqlPlanContent: string): void;
 
@@ -49,8 +53,8 @@ export interface QueryResultWebviewState {
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
     sqlPlanContent?: string;
-    executionPlan?: ep.GetExecutionPlanResult;
-    executionPlanGraphs?: ep.ExecutionPlanGraph[];
+    executionPlan?: GetExecutionPlanResult;
+    executionPlanGraphs?: ExecutionPlanGraph[];
     theme?: string;
     totalCost?: number;
     loadState?: ApiStatus;

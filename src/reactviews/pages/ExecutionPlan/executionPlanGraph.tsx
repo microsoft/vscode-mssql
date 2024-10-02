@@ -18,6 +18,7 @@ import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { locConstants } from "../../common/locConstants";
 import { PropertiesPane } from "./properties";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -79,7 +80,7 @@ const useStyles = makeStyles({
 
 interface ExecutionPlanGraphProps {
     graphIndex: number;
-    context?: any;
+    context?: QueryResultState;
 }
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
@@ -288,7 +289,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 </Popover>
                 <Popover open={findNodeClicked}>
                     <FindNode
-                        executionPlanView={executionPlanView}
+                        // guaranteed to be non-null, because the plan will only
+                        // show if it's non-null
+                        executionPlanView={executionPlanView!}
                         setExecutionPlanView={setExecutionPlanView}
                         findNodeOptions={findNodeOptions}
                         setFindNodeClicked={setFindNodeClicked}
@@ -297,7 +300,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 </Popover>
                 <Popover open={highlightOpsClicked}>
                     <HighlightExpensiveOperations
-                        executionPlanView={executionPlanView}
+                        // guaranteed to be non-null
+                        executionPlanView={executionPlanView!}
                         setExecutionPlanView={setExecutionPlanView}
                         setHighlightOpsClicked={setHighlightOpsClicked}
                         context={context}
@@ -315,7 +319,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         ></div>
                         <Popover open={propertiesClicked}>
                             <PropertiesPane
-                                executionPlanView={executionPlanView}
+                                // guaranteed to be non-null
+                                executionPlanView={executionPlanView!}
                                 setPropertiesClicked={setPropertiesClicked}
                                 context={context}
                             />
@@ -324,7 +329,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 )}
             </div>
             <IconStack
-                executionPlanView={executionPlanView}
+                executionPlanView={executionPlanView!}
                 setExecutionPlanView={setExecutionPlanView}
                 setZoomNumber={setZoomNumber}
                 setCustomZoomClicked={setCustomZoomClicked}
