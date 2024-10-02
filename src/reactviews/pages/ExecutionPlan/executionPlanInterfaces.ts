@@ -29,7 +29,7 @@ export interface ExecutionPlanReducers {
         query: string;
     };
     updateTotalCost: {
-        totalCost: number;
+        addedCost: number;
     };
 }
 
@@ -48,7 +48,7 @@ export interface ExecutionPlanProvider {
 
     showQuery(query: string): void;
 
-    updateTotalCost(totalCost: number): void;
+    updateTotalCost(addedCost: number): void;
 }
 
 export interface ExecutionPlanGraph {

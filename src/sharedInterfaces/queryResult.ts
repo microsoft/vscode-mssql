@@ -28,7 +28,7 @@ export interface QueryResultReactProvider {
 
     showQuery(query: string): void;
 
-    updateTotalCost(totalCost: number): void;
+    updateTotalCost(addedCost: number): void;
 }
 
 export enum QueryResultPaneTabs {
@@ -74,7 +74,7 @@ export interface QueryResultReducers {
         query: string;
     };
     updateTotalCost: {
-        totalCost: number;
+        addedCost: number;
     };
 }
 

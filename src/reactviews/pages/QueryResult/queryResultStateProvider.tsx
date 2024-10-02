@@ -7,7 +7,10 @@ import { ReactNode, createContext } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Theme } from "@fluentui/react-components";
-import * as ep from "../ExecutionPlan/executionPlanInterfaces";
+import {
+    ExecutionPlanGraphInfo,
+    GetExecutionPlanResult,
+} from "../ExecutionPlan/executionPlanInterfaces";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
@@ -43,8 +46,8 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                         });
                     },
                     getExecutionPlan: function (
-                        planFile: ep.ExecutionPlanGraphInfo,
-                    ): Promise<ep.GetExecutionPlanResult> {
+                        planFile: ExecutionPlanGraphInfo,
+                    ): Promise<GetExecutionPlanResult> {
                         webViewState?.extensionRpc.action("getExecutionPlan", {
                             sqlPlanContent: planFile.graphFileContent,
                         });
@@ -74,9 +77,9 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             query: query,
                         });
                     },
-                    updateTotalCost: function (totalCost: number): void {
+                    updateTotalCost: function (addedCost: number): void {
                         webViewState?.extensionRpc.action("updateTotalCost", {
-                            totalCost: totalCost,
+                            addedCost: addedCost,
                         });
                     },
                 },

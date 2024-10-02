@@ -66,9 +66,9 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
                             query: query,
                         });
                     },
-                    updateTotalCost: function (totalCost: number): void {
+                    updateTotalCost: function (addedCost: number): void {
                         webviewState?.extensionRpc.action("updateTotalCost", {
-                            totalCost: totalCost,
+                            addedCost: addedCost,
                         });
                     },
                 },

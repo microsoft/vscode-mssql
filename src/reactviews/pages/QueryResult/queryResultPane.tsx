@@ -25,7 +25,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import * as ep from "../ExecutionPlan/executionPlanInterfaces";
+import { ExecutionPlanGraphInfo } from "../ExecutionPlan/executionPlanInterfaces";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import SlickGrid, { SlickGridHandle } from "./slickgrid";
 import * as l10n from "@vscode/l10n";
@@ -89,6 +89,7 @@ const RESULTS = l10n.t("Results");
 const MESSAGES = l10n.t("Messages");
 const TIMESTAMP = l10n.t("Timestamp");
 const MESSAGE = l10n.t("Message");
+const QUERY_PLAN = l10n.t("Query Plan");
 const OPEN_SNAPSHOT_IN_NEW_TAB = l10n.t("Open snapshot in new tab");
 
 export const QueryResultPane = () => {
@@ -140,7 +141,6 @@ export const QueryResultPane = () => {
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
-    // const [xmlPlanText, setXmlPlanText] = useState<string>("");
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -178,7 +178,7 @@ export const QueryResultPane = () => {
 
     const getExecutionPlanGraphs = async (contents: string) => {
         if (!state?.state?.executionPlanGraphs!.length) {
-            let planFile: ep.ExecutionPlanGraphInfo = {
+            let planFile: ExecutionPlanGraphInfo = {
                 graphFileContent: contents,
                 graphFileType: ".sqlplan",
             };
@@ -218,7 +218,7 @@ export const QueryResultPane = () => {
                             value={qr.QueryResultPaneTabs.ExecutionPlan}
                             key={qr.QueryResultPaneTabs.ExecutionPlan}
                         >
-                            {"Query Plan"}
+                            {QUERY_PLAN}
                         </Tab>
                     )}
                 </TabList>
@@ -276,6 +276,8 @@ export const QueryResultPane = () => {
                                             var columnLength =
                                                 metadata?.resultSetSummary
                                                     ?.columnInfo?.length;
+                                            // if the result is an execution plan xml,
+                                            // get the execution plan graph from it
                                             if (metadata?.isExecutionPlan) {
                                                 getExecutionPlanGraphs(
                                                     r.rows[0][0].displayValue,

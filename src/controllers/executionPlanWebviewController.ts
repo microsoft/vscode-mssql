@@ -76,6 +76,9 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
             let folder = vscode.Uri.file(homedir());
             let filename: vscode.Uri;
+
+            // make the default filename of the plan to be saved-
+            // start ad plan.sqlplan, then plan1.sqlplan, ...
             let counter = 1;
             if (await exists(`plan.sqlplan`, folder)) {
                 while (await exists(`plan${counter}.sqlplan`, folder)) {
@@ -123,7 +126,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             return state;
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
-            this.state.totalCost += payload.totalCost;
+            this.state.totalCost += payload.addedCost;
 
             return {
                 ...state,
@@ -149,13 +152,18 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 this.state.loadState = ApiStatus.Error;
                 this.state.errorMessage = e.toString();
             }
+            this.updateState();
         }
-        this.updateState();
     }
 
     private calculateTotalCost(): number {
+        if (!this.state.executionPlanGraphs) {
+            this.state.loadState = ApiStatus.Error;
+            return 0;
+        }
+
         let sum = 0;
-        for (const graph of this.state.executionPlanGraphs!) {
+        for (const graph of this.state.executionPlanGraphs) {
             sum += graph.root.cost + graph.root.subTreeCost;
         }
         return sum;
