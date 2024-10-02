@@ -26,3 +26,4 @@ tslint*.json
 **/*.ts
 webviews-metafile.json
 extension-metafile.json
+node_modules
