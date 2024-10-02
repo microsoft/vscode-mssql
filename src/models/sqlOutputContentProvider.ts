@@ -167,7 +167,7 @@ export class SqlOutputContentProvider {
         uri: string,
         selection: ISelectionData,
         title: string,
-        executionPlanOptions?: any,
+        executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
         // execute the query with a query runner
@@ -185,7 +185,7 @@ export class SqlOutputContentProvider {
                     }
                     await queryRunner.runQuery(
                         selection,
-                        executionPlanOptions as ExecutionPlanOptions,
+                        executionPlanOptions,
                         promise,
                     );
                 }
@@ -229,7 +229,7 @@ export class SqlOutputContentProvider {
         uri: string,
         title: string,
         queryCallback: any,
-        executionPlanOptions?: any,
+        executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
         let queryRunner = await this.createQueryRunner(
             statusView ? statusView : this._statusView,

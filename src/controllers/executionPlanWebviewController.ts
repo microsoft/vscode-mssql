@@ -9,7 +9,6 @@ import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { homedir } from "os";
 import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
-import * as path from "path";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
@@ -76,10 +75,6 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
             let folder = vscode.Uri.file(homedir());
-            if (await exists("Documents", folder)) {
-                folder = vscode.Uri.file(path.join(folder.path, "Documents"));
-            }
-
             let filename: vscode.Uri;
             let counter = 1;
             if (await exists(`plan.sqlplan`, folder)) {
@@ -104,7 +99,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
 
             if (saveUri) {
                 // Write the content to the new file
-                await vscode.workspace.fs.writeFile(
+                vscode.workspace.fs.writeFile(
                     saveUri,
                     Buffer.from(payload.sqlPlanContent),
                 );
@@ -118,12 +113,12 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 language: "xml",
             });
 
-            await vscode.window.showTextDocument(planXmlDoc);
+            vscode.window.showTextDocument(planXmlDoc);
 
             return state;
         });
         this.registerReducer("showQuery", async (state, payload) => {
-            await this.untitledSqlDocumentService.newQuery(payload.query);
+            this.untitledSqlDocumentService.newQuery(payload.query);
 
             return state;
         });

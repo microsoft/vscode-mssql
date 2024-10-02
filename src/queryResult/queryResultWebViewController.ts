@@ -9,10 +9,9 @@ import { ReactWebviewViewController } from "../controllers/reactWebviewViewContr
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { exists } from "../utils/utils";
 import { homedir } from "os";
-import * as path from "path";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
-import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import { ExecutionPlanGraphInfo } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
@@ -26,7 +25,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     constructor(
         context: vscode.ExtensionContext,
-        private executionPlanService: ep.ExecutionPlanService,
+        private executionPlanService: ExecutionPlanService,
         private untitledSqlDocumentService: UntitledSqlDocumentService,
     ) {
         super(context, "queryResult", {
@@ -87,10 +86,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
             let folder = vscode.Uri.file(homedir());
-            if (await exists("Documents", folder)) {
-                folder = vscode.Uri.file(path.join(folder.path, "Documents"));
-            }
-
             let filename: vscode.Uri;
             let counter = 1;
             if (await exists(`plan.sqlplan`, folder)) {
@@ -115,7 +110,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
             if (saveUri) {
                 // Write the content to the new file
-                await vscode.workspace.fs.writeFile(
+                vscode.workspace.fs.writeFile(
                     saveUri,
                     Buffer.from(payload.sqlPlanContent),
                 );
@@ -129,12 +124,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 language: "xml",
             });
 
-            await vscode.window.showTextDocument(planXmlDoc);
+            vscode.window.showTextDocument(planXmlDoc);
 
             return state;
         });
         this.registerReducer("showQuery", async (state, payload) => {
-            await this.untitledSqlDocumentService.newQuery(payload.query);
+            this.untitledSqlDocumentService.newQuery(payload.query);
 
             return state;
         });
@@ -200,7 +195,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private async createExecutionPlanGraphs() {
         if (!this.state.executionPlan) {
-            const planFile: ep.ExecutionPlanGraphInfo = {
+            const planFile: ExecutionPlanGraphInfo = {
                 graphFileContent: this._executionPlanContents,
                 graphFileType: ".sqlplan",
             };
