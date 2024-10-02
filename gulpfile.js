@@ -1,5 +1,4 @@
 ﻿const gulp = require('gulp');
-const rename = require('gulp-rename');
 const ts = require('gulp-typescript');
 const tsProject = ts.createProject('tsconfig.json');
 const del = require('del');
@@ -12,8 +11,6 @@ const argv = require('yargs').argv;
 const min = (argv.min === undefined) ? false : true;
 const prod = (argv.prod === undefined) ? false : true;
 const vscodeTest = require('@vscode/test-electron');
-const { exec } = require('child_process');
-const gulpESLintNew = require('gulp-eslint-new');
 const copy = require('esbuild-plugin-copy');
 const clc = require('cli-color');
 const path = require('path');
