@@ -57,7 +57,6 @@ const useStyles = makeStyles({
     },
     queryResultContainer: {
         width: "100%",
-        height: "40%",
         position: "relative",
         display: "flex",
     },
@@ -176,7 +175,17 @@ export const QueryResultPane = () => {
     const renderGrid = (idx: number) => {
         const divId = `grid-parent-${idx}`;
         return (
-            <div id={divId} className={classes.queryResultContainer}>
+            <div
+                id={divId}
+                className={classes.queryResultContainer}
+                style={{
+                    height:
+                        Object.keys(metadata?.resultSetSummaries ?? [])
+                            .length === 1
+                            ? "100%"
+                            : "50%",
+                }}
+            >
                 <ResultGrid
                     loadFunc={(
                         offset: number,
