@@ -3,20 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as constants from "../constants/constants";
+import * as vscode from "vscode";
+import * as vscodeMssql from "vscode-mssql";
+
 import AdsTelemetryReporter, {
     TelemetryEventMeasures,
     TelemetryEventProperties,
 } from "@microsoft/ads-extension-telemetry";
-import * as vscodeMssql from "vscode-mssql";
-import { IConnectionProfile } from "../models/interfaces";
-import * as vscode from "vscode";
 import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 
+import { IConnectionProfile } from "../models/interfaces";
+
 const packageJson = vscode.extensions.getExtension(
-    vscodeMssql.extension.name,
+    constants.extensionId,
 ).packageJSON;
 
 let packageInfo = {

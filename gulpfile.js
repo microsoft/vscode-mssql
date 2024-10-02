@@ -91,7 +91,6 @@ async function generateExtensionBundle() {
 		entryPoints: [
 			'src/extension.ts',
 			'src/languageService/serviceInstallerUtil.ts',
-			'src/telemetry/telemetryInterfaces.ts',
 			'src/protocol.ts',
 			'src/models/interfaces.ts'
 		],
@@ -105,6 +104,9 @@ async function generateExtensionBundle() {
 		external: [
 			'vscode',
 		],
+		tsconfig: './tsconfig.json',
+		metafile: true,
+		sourcemap: prod ? false : 'inline',
 		logLevel: 'silent',
 		loader: {
 			'.ts': 'ts',
@@ -137,11 +139,22 @@ async function generateExtensionBundle() {
 				],
 				resolveFrom: __dirname
 			}),
-			esbuildProblemMatcherPlugin('Extension')
+			esbuildProblemMatcherPlugin('Extension'),
 		],
 	});
 
-	await ctx.rebuild();
+	const result = await ctx.rebuild();
+
+	/**
+	 * Generating esbuild metafile for webviews. You can analyze the metafile https://esbuild.github.io/analyze/
+	 * to see the bundle size and other details.
+	 */
+	const fs = require('fs').promises;
+	if (result.metafile) {
+		await fs.writeFile('./extension-metafile.json', JSON.stringify(result.metafile));
+	}
+
+
 	await ctx.dispose();
 }
 
@@ -362,7 +375,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:copy-OE-assets', 'ext:copy-queryHistory-assets'));
+gulp.task('ext:compile', gulp.series('ext:bundle-src', 'ext:compile-tests', 'ext:copy-OE-assets', 'ext:copy-queryHistory-assets'));
 
 gulp.task('ext:copy-tests', () => {
 	return gulp.src(config.paths.project.root + '/test/resources/**/*')
@@ -416,7 +429,7 @@ gulp.task('clean', function (done) {
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
 gulp.task('watch-src', function () {
-	return gulp.watch('./src/**/*.ts', gulp.series('ext:compile-src'))
+	return gulp.watch('./src/**/*.ts', gulp.series('ext:bundle-src'))
 });
 
 gulp.task('watch-tests', function () {

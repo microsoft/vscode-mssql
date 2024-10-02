@@ -7,7 +7,6 @@ import * as getmac from "getmac";
 import * as crypto from "crypto";
 import * as os from "os";
 import * as path from "path";
-import * as findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import {
@@ -16,7 +15,7 @@ import {
     AuthenticationTypes,
 } from "./interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
-import * as fs from "fs";
+import { promises as fs } from "fs";
 import { AzureAuthType } from "./contracts/azure";
 import { IConnectionInfo } from "vscode-mssql";
 
@@ -353,9 +352,9 @@ export function isSameConnection(
 /**
  * Check if a file exists on disk
  */
-export function isFileExisting(filePath: string): boolean {
+export async function isFileExisting(filePath: string): Promise<boolean> {
     try {
-        fs.statSync(filePath);
+        await fs.access(filePath);
         return true;
     } catch (err) {
         return false;
@@ -508,11 +507,35 @@ export function getConfigLogRetentionSeconds(): number {
     }
 }
 
-export function removeOldLogFiles(logPath: string, prefix: string): JSON {
-    return findRemoveSync(logPath, {
-        age: { seconds: getConfigLogRetentionSeconds() },
-        limit: getConfigLogFilesRemovalLimit(),
-    });
+export async function removeOldLogFiles(
+    logPath: string,
+    prefix: string,
+): Promise<JSON> {
+    try {
+        const now = Date.now();
+        const files = await fs.readdir(logPath);
+
+        for (const file of files) {
+            if (file.startsWith(prefix)) {
+                const filePath = path.join(logPath, file);
+                const stats = await fs.stat(filePath);
+                const age = now - stats.mtimeMs;
+                console.log(
+                    `File ${file} is ${age}ms old, limit is ${getConfigLogRetentionSeconds()}s`,
+                );
+                if (age < getConfigLogRetentionSeconds() * 1000) {
+                    console.log(`Skipping ${file}`);
+                    continue;
+                } else {
+                    console.log(`Removing ${file}`);
+                    await fs.unlink(filePath);
+                }
+            }
+        }
+    } catch (e) {
+        console.error(`Error reading log files from ${logPath}: ${e}`);
+        return;
+    }
 }
 
 export function getCommonLaunchArgsAndCleanupOldLogFiles(
