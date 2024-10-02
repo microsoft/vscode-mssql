@@ -52,12 +52,12 @@ const useStyles = makeStyles({
         ...shorthands.flex(1),
         width: "100%",
         height: "100%",
-        display: "flex",
+        // display: "flex",
         ...shorthands.overflow("auto"),
     },
     queryResultContainer: {
         width: "100%",
-        height: "100%",
+        height: "40%",
         position: "relative",
         display: "flex",
     },
@@ -174,8 +174,9 @@ export const QueryResultPane = () => {
     const gridRef = useRef<ResultGridHandle>(null);
 
     const renderGrid = (idx: number) => {
+        const divId = `grid-parent-${idx}`;
         return (
-            <div id={"grid-parent"} className={classes.queryResultContainer}>
+            <div id={divId} className={classes.queryResultContainer}>
                 <ResultGrid
                     loadFunc={(
                         offset: number,
@@ -225,6 +226,7 @@ export const QueryResultPane = () => {
                     }}
                     ref={gridRef}
                     resultSetSummary={metadata?.resultSetSummaries[idx]}
+                    divId={divId}
                 />
                 <CommandBar
                     uri={metadata?.uri}

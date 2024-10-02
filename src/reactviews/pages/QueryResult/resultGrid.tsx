@@ -49,6 +49,7 @@ declare global {
 export interface ResultGridProps {
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
     resultSetSummary?: ResultSetSummary;
+    divId?: string;
 }
 
 export interface ResultGridHandle {
@@ -204,6 +205,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 defaultTableStyles,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
+                props.divId,
             );
 
             collection.setCollectionChangedCallback((startIndex, count) => {
