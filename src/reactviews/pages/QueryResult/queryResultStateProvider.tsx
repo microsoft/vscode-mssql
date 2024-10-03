@@ -52,14 +52,18 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             sqlPlanContent: planFile.graphFileContent,
                         });
 
-                        if (webViewState?.state.executionPlan) {
-                            return Promise.reject(
-                                new Error("Execution plan is undefined"),
+                        if (
+                            webViewState &&
+                            webViewState.state &&
+                            webViewState.state.executionPlan
+                        ) {
+                            return Promise.resolve(
+                                webViewState.state.executionPlan,
                             );
                         }
 
-                        return Promise.resolve(
-                            webViewState!.state!.executionPlan!,
+                        return Promise.reject(
+                            new Error("Execution plan is undefined"),
                         );
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {

@@ -29,7 +29,6 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
         ep.ExecutionPlanWebviewState,
         ep.ExecutionPlanReducers
     >();
-    const executionPlanState = webviewState?.state;
     return (
         <ExecutionPlanContext.Provider
             value={{
@@ -41,14 +40,18 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
                             sqlPlanContent: planFile.graphFileContent,
                         });
 
-                        if (!executionPlanState.executionPlan) {
-                            return Promise.reject(
-                                new Error("Execution plan is undefined"),
+                        if (
+                            webviewState &&
+                            webviewState.state &&
+                            webviewState.state.executionPlan
+                        ) {
+                            return Promise.resolve(
+                                webviewState.state.executionPlan,
                             );
                         }
 
-                        return Promise.resolve(
-                            executionPlanState.executionPlan,
+                        return Promise.reject(
+                            new Error("Execution plan is undefined"),
                         );
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {

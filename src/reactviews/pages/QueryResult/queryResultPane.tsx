@@ -177,7 +177,11 @@ export const QueryResultPane = () => {
     const gridRef = useRef<SlickGridHandle>(null);
 
     const getExecutionPlanGraphs = async (contents: string) => {
-        if (!state?.state?.executionPlanGraphs!.length) {
+        if (
+            metadata &&
+            metadata.executionPlanGraphs &&
+            !metadata.executionPlanGraphs.length
+        ) {
             let planFile: ExecutionPlanGraphInfo = {
                 graphFileContent: contents,
                 graphFileType: ".sqlplan",
