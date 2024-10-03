@@ -179,8 +179,8 @@ export const QueryResultPane = () => {
     const getExecutionPlanGraphs = async (contents: string) => {
         if (
             metadata &&
-            metadata.executionPlanGraphs &&
-            !metadata.executionPlanGraphs.length
+            metadata.executionPlanState.executionPlanGraphs &&
+            !metadata.executionPlanState.executionPlanGraphs.length
         ) {
             let planFile: ExecutionPlanGraphInfo = {
                 graphFileContent: contents,

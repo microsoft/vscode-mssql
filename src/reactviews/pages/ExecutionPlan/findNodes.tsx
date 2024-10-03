@@ -68,7 +68,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const executionPlanState = state?.state.executionPlanState;
 
     const findNodeComparisonOptions: string[] = [
         locConstants.executionPlan.equals,

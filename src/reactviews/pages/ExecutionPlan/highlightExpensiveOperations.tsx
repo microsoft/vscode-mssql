@@ -55,7 +55,7 @@ export const HighlightExpensiveOperations: React.FC<
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const executionPlanState = state?.state.executionPlanState;
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
 
     const highlightMetricOptions: string[] = [

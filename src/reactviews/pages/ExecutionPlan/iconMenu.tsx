@@ -64,7 +64,7 @@ export const IconStack: React.FC<IconStackProps> = ({
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const executionPlanState = state?.state.executionPlanState;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {
         CustomZoom,

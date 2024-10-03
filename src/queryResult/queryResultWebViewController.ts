@@ -34,6 +34,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             tabStates: {
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
+            executionPlanState: {},
         });
         this.initialize();
     }
@@ -74,14 +75,18 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerReducer("getExecutionPlan", async (state, payload) => {
             this._executionPlanContents = payload.sqlPlanContent;
             await this.createExecutionPlanGraphs();
-            state.loadState = ApiStatus.Loaded;
+            state.executionPlanState.loadState = ApiStatus.Loaded;
             state.tabStates.resultPaneTab =
                 qr.QueryResultPaneTabs.ExecutionPlan;
             return {
                 ...state,
-                sqlPlanContent: this._executionPlanContents,
-                executionPlan: this.state.executionPlan,
-                executionPlanGraphs: this.state.executionPlanGraphs,
+                executionPlanState: {
+                    ...state.executionPlanState,
+                    sqlPlanContent: payload.sqlPlanContent,
+                    executionPlan: this.state.executionPlanState.executionPlan,
+                    executionPlanGraphs:
+                        this.state.executionPlanState.executionPlanGraphs,
+                },
             };
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
@@ -137,11 +142,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
-            this.state.totalCost += payload.addedCost;
+            this.state.executionPlanState.totalCost += payload.addedCost;
 
             return {
                 ...state,
-                totalCost: this.state.totalCost,
+                executionPlanState: {
+                    ...state.executionPlanState,
+                    totalCost: this.state.executionPlanState.totalCost,
+                },
             };
         });
     }
@@ -156,16 +164,18 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             uri: uri,
             isExecutionPlan: isExecutionPlan,
             ...(isExecutionPlan && {
-                loadState: ApiStatus.Loading,
-                sqlPlanContent: "",
-                theme:
-                    vscode.window.activeColorTheme.kind ===
-                    vscode.ColorThemeKind.Dark
-                        ? "dark"
-                        : "light",
-                executionPlan: undefined,
-                executionPlanGraphs: [],
-                totalCost: 0,
+                executionPlanState: {
+                    loadState: ApiStatus.Loading,
+                    sqlPlanContent: "",
+                    theme:
+                        vscode.window.activeColorTheme.kind ===
+                        vscode.ColorThemeKind.Dark
+                            ? "dark"
+                            : "light",
+                    executionPlan: undefined,
+                    executionPlanGraphs: [],
+                    totalCost: 0,
+                },
             }),
         };
         this._queryResultStateMap.set(uri, currentState);
@@ -197,34 +207,35 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     private async createExecutionPlanGraphs() {
-        if (!this.state.executionPlan) {
+        if (!this.state.executionPlanState.executionPlan) {
             const planFile: ExecutionPlanGraphInfo = {
                 graphFileContent: this._executionPlanContents,
                 graphFileType: ".sqlplan",
             };
             try {
-                this.state.executionPlan =
+                this.state.executionPlanState.executionPlan =
                     await this.executionPlanService.getExecutionPlan(planFile);
-                this.state.executionPlanGraphs =
-                    this.state.executionPlan.graphs;
-                this.state.loadState = ApiStatus.Loaded;
-                this.state.totalCost = this.calculateTotalCost();
+                this.state.executionPlanState.executionPlanGraphs =
+                    this.state.executionPlanState.executionPlan.graphs;
+                this.state.executionPlanState.loadState = ApiStatus.Loaded;
+                this.state.executionPlanState.totalCost =
+                    this.calculateTotalCost();
             } catch (e) {
-                this.state.loadState = ApiStatus.Error;
-                this.state.errorMessage = e.toString();
+                this.state.executionPlanState.loadState = ApiStatus.Error;
+                this.state.executionPlanState.errorMessage = e.toString();
             }
             this.updateState();
         }
     }
 
     private calculateTotalCost(): number {
-        if (!this.state.executionPlanGraphs) {
-            this.state.loadState = ApiStatus.Error;
+        if (!this.state.executionPlanState.executionPlanGraphs) {
+            this.state.executionPlanState.loadState = ApiStatus.Error;
             return 0;
         }
 
         let sum = 0;
-        for (const graph of this.state.executionPlanGraphs) {
+        for (const graph of this.state.executionPlanState.executionPlanGraphs) {
             sum += graph.root.cost + graph.root.subTreeCost;
         }
         return sum;

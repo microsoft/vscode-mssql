@@ -44,7 +44,8 @@ export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
     const classes = useStyles();
     console.log(context);
     const provider = context ? context : useContext(ExecutionPlanContext);
-    const loadState = provider?.state?.loadState ?? ApiStatus.Loading;
+    const executionPlanState = provider?.state?.executionPlanState;
+    const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     const renderMainContent = () => {
         switch (loadState) {
             case ApiStatus.Loading:
@@ -58,7 +59,7 @@ export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
                 );
             case ApiStatus.Loaded:
                 const executionPlanGraphs =
-                    provider?.state?.executionPlanGraphs ?? [];
+                    executionPlanState?.executionPlanGraphs ?? [];
                 return executionPlanGraphs?.map((_: any, index: number) => (
                     <ExecutionPlanGraph
                         key={index}
@@ -71,7 +72,7 @@ export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
                         <Text size={400}>
-                            {provider?.state?.errorMessage ?? ""}
+                            {executionPlanState?.errorMessage ?? ""}
                         </Text>
                     </div>
                 );

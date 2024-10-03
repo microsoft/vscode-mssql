@@ -26,12 +26,28 @@ export interface QueryResultReactProvider {
         planFile: ExecutionPlanGraphInfo,
     ): Thenable<GetExecutionPlanResult>;
 
+    /**
+     * Handles saving the execution plan file through the vscode extension api
+     * @param sqlPlanContent the xml file content of the execution plan
+     */
     saveExecutionPlan(sqlPlanContent: string): void;
 
+    /**
+     * Opens the execution plan xml content in another window
+     * @param sqlPlanContent the xml file content of the execution plan
+     */
     showPlanXml(sqlPlanContent: string): void;
 
+    /**
+     * Opens the execution plan query in another window
+     * @param sqlPlanContent the query of the execution plan
+     */
     showQuery(query: string): void;
 
+    /**
+     * Adds the specified cost to the total cost of the execution plan script
+     * @param addedCost the cost of the current execution plan graph
+     */
     updateTotalCost(addedCost: number): void;
 }
 
@@ -52,13 +68,15 @@ export interface QueryResultWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
-    sqlPlanContent?: string;
-    executionPlan?: GetExecutionPlanResult;
-    executionPlanGraphs?: ExecutionPlanGraph[];
-    theme?: string;
-    totalCost?: number;
-    loadState?: ApiStatus;
-    errorMessage?: string;
+    executionPlanState: {
+        sqlPlanContent?: string;
+        executionPlan?: GetExecutionPlanResult;
+        executionPlanGraphs?: ExecutionPlanGraph[];
+        theme?: string;
+        totalCost?: number;
+        loadState?: ApiStatus;
+        errorMessage?: string;
+    };
 }
 
 export interface QueryResultReducers {

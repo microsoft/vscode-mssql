@@ -29,16 +29,18 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             `${xmlPlanFileName}`, // Sets the webview title
             "executionPlan",
             {
-                sqlPlanContent: executionPlanContents,
-                theme:
-                    vscode.window.activeColorTheme.kind ===
-                    vscode.ColorThemeKind.Dark
-                        ? "dark"
-                        : "light",
-                loadState: ApiStatus.Loading,
-                executionPlan: undefined,
-                executionPlanGraphs: [],
-                totalCost: 0,
+                executionPlanState: {
+                    sqlPlanContent: executionPlanContents,
+                    theme:
+                        vscode.window.activeColorTheme.kind ===
+                        vscode.ColorThemeKind.Dark
+                            ? "dark"
+                            : "light",
+                    loadState: ApiStatus.Loading,
+                    executionPlan: undefined,
+                    executionPlanGraphs: [],
+                    totalCost: 0,
+                },
             },
             vscode.ViewColumn.Active,
             {
@@ -58,7 +60,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     }
 
     private async initialize() {
-        this.state.loadState = ApiStatus.Loading;
+        this.state.executionPlanState.loadState = ApiStatus.Loading;
         this.updateState();
         await this.createExecutionPlanGraphs();
         this.registerRpcHandlers();
@@ -69,8 +71,13 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             await this.createExecutionPlanGraphs();
             return {
                 ...state,
-                executionPlan: this.state.executionPlan,
-                executionPlanGraphs: this.state.executionPlanGraphs,
+                executionPlanState: {
+                    ...state.executionPlanState,
+                    sqlPlanContent: payload.sqlPlanContent,
+                    executionPlan: this.state.executionPlanState.executionPlan,
+                    executionPlanGraphs:
+                        this.state.executionPlanState.executionPlanGraphs,
+                },
             };
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
@@ -126,44 +133,48 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             return state;
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
-            this.state.totalCost += payload.addedCost;
+            this.state.executionPlanState.totalCost += payload.addedCost;
 
             return {
                 ...state,
-                totalCost: this.state.totalCost,
+                executionPlanState: {
+                    ...state.executionPlanState,
+                    totalCost: this.state.executionPlanState.totalCost,
+                },
             };
         });
     }
 
     private async createExecutionPlanGraphs() {
-        if (!this.state.executionPlan) {
+        if (!this.state.executionPlanState.executionPlan) {
             const planFile: ep.ExecutionPlanGraphInfo = {
                 graphFileContent: this.executionPlanContents,
                 graphFileType: ".sqlplan",
             };
             try {
-                this.state.executionPlan =
+                this.state.executionPlanState.executionPlan =
                     await this.executionPlanService.getExecutionPlan(planFile);
-                this.state.executionPlanGraphs =
-                    this.state.executionPlan.graphs;
-                this.state.loadState = ApiStatus.Loaded;
-                this.state.totalCost = this.calculateTotalCost();
+                this.state.executionPlanState.executionPlanGraphs =
+                    this.state.executionPlanState.executionPlan.graphs;
+                this.state.executionPlanState.loadState = ApiStatus.Loaded;
+                this.state.executionPlanState.totalCost =
+                    this.calculateTotalCost();
             } catch (e) {
-                this.state.loadState = ApiStatus.Error;
-                this.state.errorMessage = e.toString();
+                this.state.executionPlanState.loadState = ApiStatus.Error;
+                this.state.executionPlanState.errorMessage = e.toString();
             }
             this.updateState();
         }
     }
 
     private calculateTotalCost(): number {
-        if (!this.state.executionPlanGraphs) {
-            this.state.loadState = ApiStatus.Error;
+        if (!this.state.executionPlanState.executionPlanGraphs) {
+            this.state.executionPlanState.loadState = ApiStatus.Error;
             return 0;
         }
 
         let sum = 0;
-        for (const graph of this.state.executionPlanGraphs) {
+        for (const graph of this.state.executionPlanState.executionPlanGraphs) {
             sum += graph.root.cost + graph.root.subTreeCost;
         }
         return sum;

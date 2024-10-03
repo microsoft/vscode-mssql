@@ -43,10 +43,11 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
                         if (
                             webviewState &&
                             webviewState.state &&
-                            webviewState.state.executionPlan
+                            webviewState.state.executionPlanState.executionPlan
                         ) {
                             return Promise.resolve(
-                                webviewState.state.executionPlan,
+                                webviewState.state.executionPlanState
+                                    .executionPlan,
                             );
                         }
 

@@ -55,10 +55,11 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                         if (
                             webViewState &&
                             webViewState.state &&
-                            webViewState.state.executionPlan
+                            webViewState.state.executionPlanState.executionPlan
                         ) {
                             return Promise.resolve(
-                                webViewState.state.executionPlan,
+                                webViewState.state.executionPlanState
+                                    .executionPlan,
                             );
                         }
 

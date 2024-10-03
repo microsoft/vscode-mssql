@@ -121,7 +121,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const executionPlanState = state?.state.executionPlanState;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
@@ -151,7 +151,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         if (!items.length && !isFiltered) {
             const selectedElement = executionPlanView.getSelectedElement();
             const element: ep.ExecutionPlanNode =
-                selectedElement && 'name' in selectedElement
+                selectedElement && "name" in selectedElement
                     ? selectedElement
                     : executionPlanView.getRoot();
             loadItems(element);
@@ -163,7 +163,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         const intervalId = setInterval(() => {
             const selectedElement = executionPlanView.getSelectedElement();
             const element: ep.ExecutionPlanNode =
-                selectedElement && 'name' in selectedElement
+                selectedElement && "name" in selectedElement
                     ? selectedElement
                     : executionPlanView.getRoot();
 
