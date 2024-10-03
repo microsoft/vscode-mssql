@@ -72,7 +72,6 @@ async function getL10nJson() {
 gulp.task('ext:generate-runtime-localization-files', async function () {
 	const xliffFiles = (await fs.readdir('./localization/xliff')).filter(f => f.endsWith('.xlf'));
 	for (const xliffFile of xliffFiles) {
-		console.error('Processing', xliffFile);
 		if (xliffFile === 'vscode-mssql.xlf') {
 			continue;
 		}
@@ -81,14 +80,12 @@ gulp.task('ext:generate-runtime-localization-files', async function () {
 		const packageDir = path.resolve(__dirname, '..');
 		const l10nDetailsArrayFromXlf = await vscodel10n.getL10nFilesFromXlf(xliffFileContents);
 		for (fileContent of l10nDetailsArrayFromXlf) {
-			console.log('Processing file', fileContent.name);
 			if (fileContent.name === 'bundle') {
 				let fileName = `bundle.l10n.${fileContent.language}.json`;
 				if (fileContent.language === 'enu') {
 					fileName = 'bundle.l10n.json';
 				}
 				const filePath = path.resolve(l10nDir, fileName);
-				console.log('Writing to', filePath);
 				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
 			} else if (fileContent.name === 'package') {
 				if (fileContent.language === 'enu') { // We don't need the enu nls file as it is edited manually by us.
@@ -96,7 +93,6 @@ gulp.task('ext:generate-runtime-localization-files', async function () {
 				}
 				const fileName = `package.nls.${fileContent.language}.json`;
 				const filePath = path.resolve(packageDir, fileName);
-				console.log('Writing to', filePath);
 				await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
 			}
 		}
