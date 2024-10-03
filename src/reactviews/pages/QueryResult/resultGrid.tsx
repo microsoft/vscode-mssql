@@ -28,6 +28,7 @@ import {
     ResultSetSummary,
 } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
+import * as l10n from "@vscode/l10n";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -46,19 +47,20 @@ declare global {
     }
 }
 
-export interface SlickGridProps {
+export interface ResultGridProps {
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
     resultSetSummary?: ResultSetSummary;
+    divId?: string;
 }
 
-export interface SlickGridHandle {
+export interface ResultGridHandle {
     refreshGrid: () => void;
     resizeGrid: (width: number, height: number) => void;
 }
-let table: Table<any>;
 
-const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
-    (props: SlickGridProps, ref) => {
+const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
+    (props: ResultGridProps, ref) => {
+        let table: Table<any>;
         const gridContainerRef = useRef<HTMLDivElement>(null);
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
@@ -66,7 +68,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
         };
         const resizeGrid = (width: number, height: number) => {
             const dimension = new DOM.Dimension(width, height);
-            table.layout(dimension);
+            table?.layout(dimension);
         };
         useEffect(() => {
             const ROW_HEIGHT = 25;
@@ -81,7 +83,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
                         name:
                             c.columnName ===
                             "Microsoft SQL Server 2005 XML Showplan"
-                                ? "TODO loc - Showplan XML"
+                                ? l10n.t("Showplan XML")
                                 : escape(c.columnName),
                         field: i.toString(),
                         formatter:
@@ -204,6 +206,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
                 defaultTableStyles,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
+                props.divId,
             );
 
             collection.setCollectionChangedCallback((startIndex, count) => {
@@ -211,11 +214,7 @@ const SlickGrid = forwardRef<SlickGridHandle, SlickGridProps>(
                 table.invalidateRows(refreshedRows, true);
             });
             table.updateRowCount();
-
-            let grid = document.body.appendChild(div);
-            const elm = document.getElementById("grid")!;
-            document.body.removeChild(grid);
-            gridContainerRef.current?.appendChild(elm);
+            gridContainerRef.current?.appendChild(div);
         }, [refreshkey]);
 
         useImperativeHandle(ref, () => ({
@@ -262,5 +261,5 @@ const IsJsonRegex = /^\s*[\{|\[][\S\s]*[\}\]]\s*$/g;
 // The css class for null cell
 const NULL_CELL_CSS_CLASS = "cell-null";
 
-SlickGrid.displayName = "SlickGrid";
-export default SlickGrid;
+ResultGrid.displayName = "ResultGrid";
+export default ResultGrid;

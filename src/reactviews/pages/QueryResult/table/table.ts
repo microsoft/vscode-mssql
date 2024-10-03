@@ -49,6 +49,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         styles: ITableStyles,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
+        divId?: string,
     ) {
         if (
             !configuration ||
@@ -71,7 +72,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.styleElement = DOM.createStyleSheet(this._container);
         this._tableContainer = document.createElement("div");
         // this._tableContainer.className = //TODO: class name for styles
-        let gridParent = document.getElementById("grid-parent");
+        let gridParent = document.getElementById(divId!);
         if (gridParent) {
             this._tableContainer.style.width = `${(gridParent?.clientWidth - ACTIONBAR_WIDTH).toString()}px`;
             const height = gridParent?.clientHeight - 5;
