@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDecompressProvider, IPackage } from "./interfaces";
-import { ILogger } from "../models/interfaces";
 import * as DecompressTar from "tar";
 import * as DecompressZip from "decompress-zip";
+
+import { IDecompressProvider, IPackage } from "./interfaces";
+
+import { ILogger } from "../models/interfaces";
 
 export default class DecompressProvider implements IDecompressProvider {
     private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {
@@ -38,9 +40,7 @@ export default class DecompressProvider implements IDecompressProvider {
                     totalFiles++;
                 },
                 onwarn: (warn) => {
-                    if (warn.data && !warn.data.recoverable) {
-                        logger.appendLine(`[ERROR] ${warn.message}`);
-                    }
+                    logger.appendLine(`[ERROR] ${warn}`);
                 },
             },
             () => {
