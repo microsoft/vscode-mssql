@@ -412,7 +412,6 @@ export const QueryResultPane = () => {
                             className={classes.queryResultContainer}
                             style={{ height: "100%", minHeight: "300px" }}
                         >
-                            ,
                             <ExecutionPlanPage context={state} />
                         </div>
                     )}
