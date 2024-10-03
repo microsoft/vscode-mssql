@@ -382,6 +382,9 @@
       <Item ItemId=";bundle.++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximize panel size]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[最大化面板大小]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -712,6 +715,9 @@
       <Item ItemId=";bundle.++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure sign in failed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 登入失敗。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1141,6 +1147,9 @@
       <Item ItemId=";bundle.++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading Azure databases.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[載入 Azure 資料庫時發生錯誤。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1354,6 +1363,9 @@
       <Item ItemId=";bundle.++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[載入訂用帳戶 {0} ({1}) 的 Azure 資料庫時發生錯誤。確認您擁有權限。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1558,6 +1570,9 @@
       <Item ItemId=";bundle.++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No subscriptions set in VS Code's Azure account filter.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[VS Code 的 Azure 帳戶篩選中未設定任何訂用帳戶。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2131,6 +2146,9 @@
       <Item ItemId=";bundle.++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server name not set.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未設定伺服器名稱。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3460,6 +3478,9 @@
       <Item ItemId=";bundle.++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Restore panel size]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[還原面板大小]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3502,6 +3523,9 @@
       <Item ItemId=";bundle.++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Script copied to clipboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[指令碼已複製到剪貼簿]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

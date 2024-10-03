@@ -29,7 +29,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         width: "800px",
-        maxWidth: "100%",
+        maxWidth: "calc(100% - 20px)",
         "> *": {
             marginBottom: "15px",
         },
