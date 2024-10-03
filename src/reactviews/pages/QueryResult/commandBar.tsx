@@ -27,12 +27,17 @@ const useStyles = makeStyles({
     },
 });
 
-const CommandBar = () => {
+export interface CommandBarProps {
+    uri?: string;
+    resultSetSummary?: qr.ResultSetSummary;
+}
+
+const CommandBar = (props: CommandBarProps) => {
     const context = useContext(QueryResultContext);
     if (context === undefined) {
         return undefined;
     }
-    const queryResultState = context.state;
+
     const webViewState = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
@@ -41,11 +46,11 @@ const CommandBar = () => {
 
     const saveResults = (buttonLabel: string) => {
         webViewState.extensionRpc.call("saveResults", {
-            uri: queryResultState?.uri,
-            batchId: queryResultState?.resultSetSummary?.batchId,
-            resultId: queryResultState?.resultSetSummary?.id,
+            uri: props.uri,
+            batchId: props.resultSetSummary?.batchId,
+            resultId: props.resultSetSummary?.id,
             format: buttonLabel,
-            selection: queryResultState?.resultSetSummary?.rowCount, //TODO: do for only user selection
+            selection: props.resultSetSummary?.rowCount, //TODO: do for only user selection
         });
     };
 

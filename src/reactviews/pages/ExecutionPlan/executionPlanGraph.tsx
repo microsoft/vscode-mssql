@@ -25,7 +25,9 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         width: "100%",
+        height: "100%",
         position: "relative",
+        overflowY: "hidden",
     },
     planContainer: {
         display: "flex",

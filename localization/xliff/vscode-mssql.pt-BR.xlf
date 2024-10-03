@@ -1369,6 +1369,10 @@
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">Mostrar saída do MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
+        <source xml:lang="en">Showplan XML</source>
+        <target state="new">Showplan XML</target>
+      </trans-unit>
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
         <target state="translated">Entrar</target>

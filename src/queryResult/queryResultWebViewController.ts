@@ -29,7 +29,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         private untitledSqlDocumentService: UntitledSqlDocumentService,
     ) {
         super(context, "queryResult", {
-            value: "",
+            resultSetSummaries: {},
             messages: [],
             tabStates: {
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
@@ -156,7 +156,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public addQueryResultState(uri: string, isExecutionPlan?: boolean): void {
         let currentState = {
-            value: "",
+            resultSetSummaries: {},
             messages: [],
             tabStates: {
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,

@@ -135,7 +135,7 @@
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
-        <target state="new">Azure sign in failed.</target>
+        <target state="translated">Azure 登入失敗。</target>
       </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -552,11 +552,11 @@
         <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
         <note>{0} is the subscription name
 {1} is the subscription id</note>
-        <target state="new">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</target>
+        <target state="translated">載入訂用帳戶 {0} ({1}) 的 Azure 資料庫時發生錯誤。確認您擁有權限。</target>
       </trans-unit>
       <trans-unit id="++CODE++4eca430ed6ea02cdcd0e956ce27d238e2659997f15a4f580b0fd3385cfd815a0">
         <source xml:lang="en">Error loading Azure databases.</source>
-        <target state="new">Error loading Azure databases.</target>
+        <target state="translated">載入 Azure 資料庫時發生錯誤。</target>
       </trans-unit>
       <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
         <source xml:lang="en">Error loading Azure subscriptions.</source>
@@ -871,7 +871,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
-        <target state="new">Maximize panel size</target>
+        <target state="translated">最大化面板大小</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -986,7 +986,7 @@
       </trans-unit>
       <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
         <source xml:lang="en">No subscriptions set in VS Code's Azure account filter.</source>
-        <target state="new">No subscriptions set in VS Code's Azure account filter.</target>
+        <target state="translated">VS Code 的 Azure 帳戶篩選中未設定任何訂用帳戶。</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1239,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
-        <target state="new">Restore panel size</target>
+        <target state="translated">還原面板大小</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -1311,7 +1311,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
-        <target state="new">Script copied to clipboard</target>
+        <target state="translated">指令碼已複製到剪貼簿</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1351,7 +1351,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9e28d8dd2c02f540827e4ea6f0fb6d1340a82e35a653a2ea2cc3ef0ce1ba0ce3">
         <source xml:lang="en">Server name not set.</source>
-        <target state="new">Server name not set.</target>
+        <target state="translated">未設定伺服器名稱。</target>
       </trans-unit>
       <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
         <source xml:lang="en">Server name or ADO.NET connection string</source>
@@ -1368,6 +1368,10 @@
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">顯示 MSSQL 輸出</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
+        <source xml:lang="en">Showplan XML</source>
+        <target state="new">Showplan XML</target>
       </trans-unit>
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
