@@ -232,7 +232,7 @@ export class LocConstants {
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
-            openSnapshot: l10n.t("Open Snapshot in a new tab"),
+            openSnapshot: l10n.t("Open snapshot in a new tab"),
             showplanXML: l10n.t("Showplan XML"),
             showFilter: l10n.t("Show Filter"),
             sortAscending: l10n.t("Sort Ascending"),

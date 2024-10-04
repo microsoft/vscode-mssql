@@ -802,14 +802,14 @@
     <trans-unit id="++CODE++404eb1204c0e313b45f63c32657b2cabf3f3930b7a731969c82b5bc3061311ff">
       <source xml:lang="en">Open Query History</source>
     </trans-unit>
-    <trans-unit id="++CODE++80629d32621984a90bd940a3b23f48972883849f1731c6a4140414658afade97">
-      <source xml:lang="en">Open Snapshot in a new tab</source>
-    </trans-unit>
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++118472ff293c5f2f2e92dc305493b2a97887f4a9f42f6a37fe4ac38bc110d0ea">
+      <source xml:lang="en">Open snapshot in a new tab</source>
     </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
