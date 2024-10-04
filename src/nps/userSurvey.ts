@@ -232,10 +232,6 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
             this._onCancel.fire();
         });
     }
-
-    updateState(state: UserSurveyState): void {
-        this.state = state;
-    }
 }
 
 export function getStandardNPSQuestions(featureName?: string): UserSurveyState {

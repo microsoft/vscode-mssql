@@ -287,9 +287,10 @@ export abstract class ReactWebviewBaseController<State, Reducers>
 
     /**
      * Updates the state in the webview
+     * @param state The new state object.  If not provided, `this.state` is used.
      */
-    protected updateState() {
-        this.state = this.state;
+    public updateState(state?: State) {
+        this.state = state ?? this.state;
     }
 
     /**
