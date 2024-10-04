@@ -8,7 +8,7 @@ import { useContext } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 import {
     saveAsCsvIcon,
     saveAsExcelIcon,
@@ -67,7 +67,7 @@ const CommandBar = (props: CommandBarProps) => {
                     />
                 }
                 className="codicon saveCsv"
-                title={l10n.t("Save as CSV")}
+                title={locConstants.queryResult.saveAsCsv}
             />
             <Button
                 onClick={(_event) => {
@@ -80,7 +80,7 @@ const CommandBar = (props: CommandBarProps) => {
                     />
                 }
                 className="codicon saveJson"
-                title={l10n.t("Save as JSON")}
+                title={locConstants.queryResult.saveAsJson}
             />
             <Button
                 onClick={(_event) => {
@@ -93,7 +93,7 @@ const CommandBar = (props: CommandBarProps) => {
                     />
                 }
                 className="codicon saveExcel"
-                title={l10n.t("Save as Excel")}
+                title={locConstants.queryResult.saveAsExcel}
             />
         </div>
     );
