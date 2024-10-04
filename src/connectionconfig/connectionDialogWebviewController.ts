@@ -858,6 +858,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this._connectionToEditCopy = structuredClone(payload.connection);
             this.clearFormError();
             this.state.connectionProfile = payload.connection;
+
+            this.state.selectedInputMode = this._connectionToEditCopy
+                .connectionString
+                ? ConnectionInputMode.ConnectionString
+                : ConnectionInputMode.Parameters;
             await this.updateItemVisibility();
             await this.handleAzureMFAEdits("azureAuthType");
             await this.handleAzureMFAEdits("accountId");
