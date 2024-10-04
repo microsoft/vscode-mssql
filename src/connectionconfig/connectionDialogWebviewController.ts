@@ -118,7 +118,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private async initializeDialog() {
         try {
-            await this.loadRecentConnections();
+            this.state.recentConnections = await this.loadRecentConnections();
+            this.updateState();
         } catch (err) {
             vscode.window.showErrorMessage(getErrorMessage(err));
         }
@@ -166,7 +167,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         this.state = this.state;
     }
 
-    private async loadRecentConnections() {
+    private async loadRecentConnections(): Promise<IConnectionDialogProfile[]> {
         const recentConnections =
             this._mainController.connectionManager.connectionStore
                 .loadAllConnections(true)
@@ -177,8 +178,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 await this.initializeConnectionForDialog(recentConnections[i]),
             );
         }
-        this.state.recentConnections = dialogConnections;
-        this.state = this.state;
+
+        return dialogConnections;
     }
 
     private async loadConnectionToEdit() {
@@ -570,6 +571,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         const result: Record<
             keyof IConnectionDialogProfile,
             ConnectionDialogFormItemSpec
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         > = {} as any; // force empty record for intial blank state
 
         for (const option of connectionOptions) {
@@ -842,6 +844,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             } else {
                 (this.state.connectionProfile[
                     payload.event.propertyName
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ] as any) = payload.event.value;
                 await this.validateFormComponents(payload.event.propertyName);
                 await this.handleAzureMFAEdits(payload.event.propertyName);
@@ -875,6 +878,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 if (option.hidden) {
                     (this.state.connectionProfile[
                         option.propertyName as keyof IConnectionDialogProfile
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ] as any) = undefined;
                 }
             }
@@ -890,6 +894,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 try {
                     const result =
                         await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             this.state.connectionProfile as any,
                         );
 
@@ -913,20 +918,24 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     ]);
 
                     await this._mainController.connectionManager.connectionStore.removeProfile(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         this._connectionToEditCopy as any,
                     );
-                    await this._objectExplorerProvider.refresh(undefined);
+                    this._objectExplorerProvider.refresh(undefined);
                 }
 
                 await this._mainController.connectionManager.connectionUI.saveProfile(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     this.state.connectionProfile as any,
                 );
                 const node =
                     await this._mainController.createObjectExplorerSessionFromDialog(
                         this.state.connectionProfile,
                     );
-                await this._objectExplorerProvider.refresh(undefined);
-                await this.loadRecentConnections();
+
+                this._objectExplorerProvider.refresh(undefined);
+                state.recentConnections = await this.loadRecentConnections();
+                this.updateState();
                 this.state.connectionStatus = ApiStatus.Loaded;
                 await this._mainController.objectExplorerTree.reveal(node, {
                     focus: true,
@@ -935,7 +944,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 });
                 await this.panel.dispose();
                 await UserSurvey.getInstance().promptUserForNPSFeedback();
-            } catch (error) {
+            } catch {
                 this.state.connectionStatus = ApiStatus.Error;
                 return state;
             }
@@ -947,6 +956,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 state,
                 payload.subscriptionId,
             );
+
+            return state;
+        });
+
+        this.registerReducer("refreshMruConnections", async (state) => {
+            state.recentConnections = await this.loadRecentConnections();
+            this.updateState();
 
             return state;
         });

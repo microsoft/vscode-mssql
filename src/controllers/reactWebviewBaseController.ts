@@ -286,6 +286,13 @@ export abstract class ReactWebviewBaseController<State, Reducers>
     }
 
     /**
+     * Updates the state in the webview
+     */
+    protected updateState() {
+        this.state = this.state;
+    }
+
+    /**
      * Gets whether the controller has been disposed
      */
     public get isDisposed(): boolean {
