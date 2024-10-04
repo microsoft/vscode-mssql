@@ -225,6 +225,24 @@ export class LocConstants {
             privacyStatement: l10n.t("Privacy Statement"),
         };
     }
+
+    public get queryResult() {
+        return {
+            results: l10n.t("Results"),
+            messages: l10n.t("Messages"),
+            timestamp: l10n.t("Timestamp"),
+            message: l10n.t("Message"),
+            openSnapshot: l10n.t("Open Snapshot in a new tab"),
+            showplanXML: l10n.t("Showplan XML"),
+            showFilter: l10n.t("Show Filter"),
+            sortAscending: l10n.t("Sort Ascending"),
+            sortDescending: l10n.t("Sort Descending"),
+            cancel: l10n.t("Cancel"),
+            saveAsCsv: l10n.t("Save as CSV"),
+            saveAsExcel: l10n.t("Save as Excel"),
+            saveAsJson: l10n.t("Save as JSON"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();
