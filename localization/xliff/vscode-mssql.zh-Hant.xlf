@@ -1064,9 +1064,9 @@
         <source xml:lang="en">Open in editor</source>
         <target state="translated">在編輯器中開啟</target>
       </trans-unit>
-      <trans-unit id="++CODE++506fed169e8f53044e70f0b6fc27a11ac7f978d8af2b02e7b284de0fcf2f467e">
-        <source xml:lang="en">Open snapshot in new tab</source>
-        <target state="translated">在新索引標籤中開啟快照</target>
+      <trans-unit id="++CODE++118472ff293c5f2f2e92dc305493b2a97887f4a9f42f6a37fe4ac38bc110d0ea">
+        <source xml:lang="en">Open snapshot in a new tab</source>
+        <target state="new">Open snapshot in a new tab</target>
       </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
