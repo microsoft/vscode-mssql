@@ -165,8 +165,4 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         }
         return sum;
     }
-
-    private updateState() {
-        this.state = this.state;
-    }
 }
