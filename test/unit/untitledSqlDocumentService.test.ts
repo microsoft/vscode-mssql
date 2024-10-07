@@ -78,7 +78,7 @@ suite("UntitledSqlDocumentService Tests", () => {
         };
         fixture = createUntitledSqlDocumentService(fixture);
 
-        fixture.service.newQuery().then((result) => {
+        void fixture.service.newQuery().then((_) => {
             fixture.vscodeWrapper.verify(
                 (x) => x.openMsSqlTextDocument(),
                 TypeMoq.Times.once(),

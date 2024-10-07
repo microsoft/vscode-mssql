@@ -96,7 +96,7 @@ suite("Object Explorer Provider Tests", () => {
                     );
                 });
             });
-        objectExplorerProvider
+        void objectExplorerProvider
             .createSession(promise, undefined)
             .then(async () => {
                 expect(
@@ -123,11 +123,14 @@ suite("Object Explorer Provider Tests", () => {
         objectExplorerService
             .setup((s) => s.refreshNode(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(TypeMoq.It.isAny()));
-        objectExplorerProvider.refreshNode(treeNode.object).then((node) => {
-            expect(node, "Refreshed node should not be undefined").is.not.equal(
-                undefined,
-            );
-        });
+        void objectExplorerProvider
+            .refreshNode(treeNode.object)
+            .then((node) => {
+                expect(
+                    node,
+                    "Refreshed node should not be undefined",
+                ).is.not.equal(undefined);
+            });
         done();
     });
 
@@ -179,7 +182,7 @@ suite("Object Explorer Provider Tests", () => {
         objectExplorerService
             .setup((s) => s.getChildren(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve([childTreeNode.object]));
-        objectExplorerProvider
+        void objectExplorerProvider
             .getChildren(parentTreeNode.object)
             .then((children) => {
                 children.forEach((child) =>
@@ -317,7 +320,7 @@ suite("Object Explorer Provider Tests", () => {
         let node: any = {
             connectionCredentials: undefined,
         };
-        objectExplorerProvider.expandNode(node, "test_session", undefined);
+        void objectExplorerProvider.expandNode(node, "test_session", undefined);
         objectExplorerService.verify(
             (s) =>
                 s.expandNode(
@@ -362,7 +365,7 @@ suite("Object Explorer Provider Tests", () => {
             s.removeConnectionNodes(TypeMoq.It.isAny()),
         );
         let connections: any[] = [{ server: "test_server" }];
-        objectExplorerProvider.removeConnectionNodes(connections);
+        void objectExplorerProvider.removeConnectionNodes(connections);
         objectExplorerService.verify(
             (s) => s.removeConnectionNodes(connections),
             TypeMoq.Times.once(),

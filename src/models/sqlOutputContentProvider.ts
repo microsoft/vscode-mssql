@@ -123,7 +123,7 @@ export class SqlOutputContentProvider {
         selection: Interfaces.ISlickRange[],
         includeHeaders?: boolean,
     ): void {
-        this._queryResultsMap
+        void this._queryResultsMap
             .get(uri)
             .queryRunner.copyResults(
                 selection,
@@ -137,7 +137,7 @@ export class SqlOutputContentProvider {
         uri: string,
         selection: ISelectionData,
     ): void {
-        this._queryResultsMap
+        void this._queryResultsMap
             .get(uri)
             .queryRunner.setEditorSelection(selection);
     }
@@ -617,7 +617,7 @@ export class SqlOutputContentProvider {
                     this.cancelQuery(queryRunnerState.queryRunner);
                 } else {
                     // We need to explicitly dispose the query
-                    queryRunnerState.queryRunner.dispose();
+                    void queryRunnerState.queryRunner.dispose();
                 }
             } else {
                 queryRunnerState.timeout = this.setRunnerDeletionTimeout(uri);

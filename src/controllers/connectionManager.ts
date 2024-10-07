@@ -1657,7 +1657,9 @@ export default class ConnectionManager {
                             } else {
                                 await this._accountStore.pruneAccounts();
                             }
-                            this.azureController.removeAccount(answers.account);
+                            void this.azureController.removeAccount(
+                                answers.account,
+                            );
                             this.vscodeWrapper.showInformationMessage(
                                 LocalizedConstants.accountRemovedSuccessfully,
                             );

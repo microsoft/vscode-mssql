@@ -829,7 +829,7 @@ suite("Per File Connection Tests", () => {
         );
 
         // Attempt to run a query without connecting
-        controller.onRunQuery();
+        void controller.onRunQuery();
         connectionManagerMock.verify(
             (x) => x.onNewConnection(),
             TypeMoq.Times.once(),
@@ -869,38 +869,42 @@ suite("Per File Connection Tests", () => {
         // Open a connection using the connection manager
         let connectionCreds = createTestCredentials();
 
-        connectionManager.connect(testFile, connectionCreds).then((result) => {
-            assert.equal(result, true);
+        void connectionManager
+            .connect(testFile, connectionCreds)
+            .then((result) => {
+                assert.equal(result, true);
 
-            // Check that the connection was established
-            assert.equal(connectionManager.isConnected(testFile), true);
-            assert.equal(
-                connectionManager.getConnectionInfo(testFile).credentials
-                    .database,
-                connectionCreds.database,
-            );
+                // Check that the connection was established
+                assert.equal(connectionManager.isConnected(testFile), true);
+                assert.equal(
+                    connectionManager.getConnectionInfo(testFile).credentials
+                        .database,
+                    connectionCreds.database,
+                );
 
-            // Simulate a connection changed notification
-            let parameters = new ConnectionContracts.ConnectionChangedParams();
-            parameters.ownerUri = testFile;
-            parameters.connection = new ConnectionContracts.ConnectionSummary();
-            parameters.connection.serverName = connectionCreds.server;
-            parameters.connection.databaseName = "myOtherDatabase";
-            parameters.connection.userName = connectionCreds.user;
+                // Simulate a connection changed notification
+                let parameters =
+                    new ConnectionContracts.ConnectionChangedParams();
+                parameters.ownerUri = testFile;
+                parameters.connection =
+                    new ConnectionContracts.ConnectionSummary();
+                parameters.connection.serverName = connectionCreds.server;
+                parameters.connection.databaseName = "myOtherDatabase";
+                parameters.connection.userName = connectionCreds.user;
 
-            let notificationObject =
-                connectionManager.handleConnectionChangedNotification();
-            notificationObject.call(connectionManager, parameters);
+                let notificationObject =
+                    connectionManager.handleConnectionChangedNotification();
+                notificationObject.call(connectionManager, parameters);
 
-            // Verify that the connection changed to the other database for the file
-            assert.equal(
-                connectionManager.getConnectionInfo(testFile).credentials
-                    .database,
-                "myOtherDatabase",
-            );
+                // Verify that the connection changed to the other database for the file
+                assert.equal(
+                    connectionManager.getConnectionInfo(testFile).credentials
+                        .database,
+                    "myOtherDatabase",
+                );
 
-            done();
-        });
+                done();
+            });
     });
 
     test("Should use actual database name instead of <default>", (done) => {

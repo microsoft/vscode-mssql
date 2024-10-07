@@ -108,12 +108,12 @@ export class HybridDataProvider<T extends Slick.SlickData>
 
     public async filter(columns: FilterableColumn<T>[]) {
         await this.initializeCacheIfNeeded();
-        this.provider.filter(columns);
+        void this.provider.filter(columns);
     }
 
     public async sort(options: Slick.OnSortEventArgs<T>) {
         await this.initializeCacheIfNeeded();
-        this.provider.sort(options);
+        void this.provider.sort(options);
     }
 
     private get thresholdReached(): boolean {
