@@ -26,9 +26,9 @@ import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import SlickGrid, { SlickGridHandle } from "./slickgrid";
-import * as l10n from "@vscode/l10n";
+import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -52,12 +52,10 @@ const useStyles = makeStyles({
         ...shorthands.flex(1),
         width: "100%",
         height: "100%",
-        display: "flex",
         ...shorthands.overflow("auto"),
     },
     queryResultContainer: {
         width: "100%",
-        height: "100%",
         position: "relative",
         display: "flex",
     },
@@ -83,12 +81,6 @@ const useStyles = makeStyles({
     },
 });
 
-const RESULTS = l10n.t("Results");
-const MESSAGES = l10n.t("Messages");
-const TIMESTAMP = l10n.t("Timestamp");
-const MESSAGE = l10n.t("Message");
-const OPEN_SNAPSHOT_IN_NEW_TAB = l10n.t("Open snapshot in new tab");
-
 export const QueryResultPane = () => {
     const classes = useStyles();
     const state = useContext(QueryResultContext);
@@ -101,11 +93,11 @@ export const QueryResultPane = () => {
     const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
         createTableColumn({
             columnId: "time",
-            renderHeaderCell: () => <>{TIMESTAMP}</>,
+            renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
         }),
         createTableColumn({
             columnId: "message",
-            renderHeaderCell: () => <>{MESSAGE}</>,
+            renderHeaderCell: () => <>{locConstants.queryResult.message}</>,
         }),
     ];
     const gridParentRef = useRef<HTMLDivElement>(null);
@@ -171,7 +163,92 @@ export const QueryResultPane = () => {
         return null;
     }
 
-    const gridRef = useRef<SlickGridHandle>(null);
+    const gridRef = useRef<ResultGridHandle>(null);
+
+    const renderGrid = (idx: number) => {
+        const divId = `grid-parent-${idx}`;
+        return (
+            <div
+                id={divId}
+                className={classes.queryResultContainer}
+                style={{
+                    height:
+                        Object.keys(metadata?.resultSetSummaries ?? [])
+                            .length === 1
+                            ? "100%"
+                            : "50%",
+                }}
+            >
+                <ResultGrid
+                    loadFunc={(
+                        offset: number,
+                        count: number,
+                    ): Thenable<any[]> => {
+                        return webViewState.extensionRpc
+                            .call("getRows", {
+                                uri: metadata?.uri,
+                                batchId:
+                                    metadata?.resultSetSummaries[idx]?.batchId,
+                                resultId: metadata?.resultSetSummaries[idx]?.id,
+                                rowStart: offset,
+                                numberOfRows: count,
+                            })
+                            .then((response) => {
+                                if (!response) {
+                                    return [];
+                                }
+                                let r = response as qr.ResultSetSubset;
+                                var columnLength =
+                                    metadata?.resultSetSummaries[idx]
+                                        ?.columnInfo?.length;
+                                return r.rows.map((r) => {
+                                    let dataWithSchema: {
+                                        [key: string]: any;
+                                    } = {};
+                                    // skip the first column since its a number column
+                                    for (
+                                        let i = 1;
+                                        columnLength && i < columnLength + 1;
+                                        i++
+                                    ) {
+                                        const displayValue =
+                                            r[i - 1].displayValue ?? "";
+                                        const ariaLabel = displayValue;
+                                        dataWithSchema[(i - 1).toString()] = {
+                                            displayValue: displayValue,
+                                            ariaLabel: ariaLabel,
+                                            isNull: r[i - 1].isNull,
+                                            invariantCultureDisplayValue:
+                                                displayValue,
+                                        };
+                                    }
+                                    return dataWithSchema;
+                                });
+                            });
+                    }}
+                    ref={gridRef}
+                    resultSetSummary={metadata?.resultSetSummaries[idx]}
+                    divId={divId}
+                />
+                <CommandBar
+                    uri={metadata?.uri}
+                    resultSetSummary={metadata?.resultSetSummaries[idx]}
+                />
+            </div>
+        );
+    };
+
+    const renderGridPanel = () => {
+        const grids = [];
+        for (
+            let i = 0;
+            i < Object.keys(metadata?.resultSetSummaries ?? []).length;
+            i++
+        ) {
+            grids.push(renderGrid(i));
+        }
+        return grids;
+    };
 
     return (
         <div className={classes.root} ref={gridParentRef}>
@@ -186,23 +263,22 @@ export const QueryResultPane = () => {
                     }}
                     className={classes.queryResultPaneTabs}
                 >
-                    {metadata.resultSetSummary && (
+                    {Object.keys(metadata.resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
                             key={qr.QueryResultPaneTabs.Results}
                         >
-                            {RESULTS}
+                            {locConstants.queryResult.results}
                         </Tab>
                     )}
                     <Tab
                         value={qr.QueryResultPaneTabs.Messages}
                         key={qr.QueryResultPaneTabs.Messages}
                     >
-                        {MESSAGES}
+                        {locConstants.queryResult.messages}
                     </Tab>
                 </TabList>
-                {metadata.tabStates!.resultPaneTab ==
-                    qr.QueryResultPaneTabs.Results && (
+                {false && ( // hide divider until we implement snapshot
                     <Divider
                         vertical
                         style={{
@@ -211,7 +287,7 @@ export const QueryResultPane = () => {
                     />
                 )}
 
-                {
+                {false && ( // hide button until we implement snapshot
                     <Button
                         appearance="transparent"
                         icon={<OpenFilled />}
@@ -219,80 +295,15 @@ export const QueryResultPane = () => {
                             console.log("todo: open in new tab");
                             // gridRef.current.refreshGrid();
                         }}
-                        title={OPEN_SNAPSHOT_IN_NEW_TAB}
+                        title={locConstants.queryResult.openSnapshot}
                     ></Button>
-                }
+                )}
             </div>
             <div className={classes.tabContent}>
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Results &&
-                    metadata.resultSetSummary && (
-                        <div
-                            id={"grid-parent"}
-                            className={classes.queryResultContainer}
-                        >
-                            <SlickGrid
-                                loadFunc={(
-                                    offset: number,
-                                    count: number,
-                                ): Thenable<any[]> => {
-                                    return webViewState.extensionRpc
-                                        .call("getRows", {
-                                            uri: metadata?.uri,
-                                            batchId:
-                                                metadata?.resultSetSummary
-                                                    ?.batchId,
-                                            resultId:
-                                                metadata?.resultSetSummary?.id,
-                                            rowStart: offset,
-                                            numberOfRows: count,
-                                        })
-                                        .then((response) => {
-                                            if (!response) {
-                                                return [];
-                                            }
-                                            let r =
-                                                response as qr.ResultSetSubset;
-                                            var columnLength =
-                                                metadata?.resultSetSummary
-                                                    ?.columnInfo?.length;
-                                            return r.rows.map((r) => {
-                                                let dataWithSchema: {
-                                                    [key: string]: any;
-                                                } = {};
-                                                // skip the first column since its a number column
-                                                for (
-                                                    let i = 1;
-                                                    columnLength &&
-                                                    i < columnLength + 1;
-                                                    i++
-                                                ) {
-                                                    const displayValue =
-                                                        r[i - 1].displayValue ??
-                                                        "";
-                                                    const ariaLabel =
-                                                        displayValue;
-                                                    dataWithSchema[
-                                                        (i - 1).toString()
-                                                    ] = {
-                                                        displayValue:
-                                                            displayValue,
-                                                        ariaLabel: ariaLabel,
-                                                        isNull: r[i - 1].isNull,
-                                                        invariantCultureDisplayValue:
-                                                            displayValue,
-                                                    };
-                                                }
-                                                return dataWithSchema;
-                                            });
-                                        });
-                                }}
-                                ref={gridRef}
-                                resultSetSummary={metadata.resultSetSummary}
-                            />
-                            <CommandBar />
-                        </div>
-                    )}
+                    Object.keys(metadata.resultSetSummaries).length > 0 &&
+                    renderGridPanel()}
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Messages && (
                     <div className={classes.messagesContainer}>

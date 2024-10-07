@@ -392,7 +392,7 @@ export class SqlOutputContentProvider {
                     } else {
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
-                        ).resultSetSummary = resultSet;
+                        ).resultSetSummaries[resultSet.batchId] = resultSet;
                     }
                 },
             );

@@ -24,8 +24,7 @@ export interface QueryResultTabStates {
 
 export interface QueryResultWebviewState {
     uri?: string;
-    resultSetSummary?: ResultSetSummary;
-    value?: string;
+    resultSetSummaries: { [key: number]: ResultSetSummary };
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
 }
