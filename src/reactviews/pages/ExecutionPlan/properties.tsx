@@ -455,7 +455,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     }
                     onChange={(e) => {
                         setInputValue(e.target.value);
-                        handleFilter(e.target.value);
+                        void handleFilter(e.target.value);
                     }}
                 />
             </Toolbar>

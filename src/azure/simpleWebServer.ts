@@ -93,7 +93,7 @@ export class SimpleWebServer {
             clearTimeout(portTimeout);
         };
 
-        portPromise.finally(clearPortTimeout);
+        void portPromise.finally(clearPortTimeout);
 
         return portPromise;
     }

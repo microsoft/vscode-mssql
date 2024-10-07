@@ -24,7 +24,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
         });
-        this.initialize();
+
+        void this.initialize();
     }
 
     private async initialize() {

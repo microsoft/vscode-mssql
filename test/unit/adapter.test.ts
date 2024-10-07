@@ -71,10 +71,10 @@ suite("Code Adapter Tests", () => {
     });
 
     test("promptSingle and promptCallback should call prompt", () => {
-        adapter.promptSingle(testQuestion);
+        void adapter.promptSingle(testQuestion);
         adapter.promptCallback([testQuestion], () => true);
         // Error case
-        adapter.prompt([{ type: "test", message: "test", name: "test" }]);
+        void adapter.prompt([{ type: "test", message: "test", name: "test" }]);
     });
 
     test("prompting a checkbox question should call fixQuestion", () => {
@@ -84,9 +84,9 @@ suite("Code Adapter Tests", () => {
             name: "test_checkbox",
             choices: [{ name: "test_choice", value: "test_choice" }],
         };
-        adapter.promptSingle(formattedQuestion);
+        void adapter.promptSingle(formattedQuestion);
         let question: any = Object.assign({}, formattedQuestion);
         question.choices[0] = "test";
-        adapter.promptSingle(question);
+        void adapter.promptSingle(question);
     });
 });

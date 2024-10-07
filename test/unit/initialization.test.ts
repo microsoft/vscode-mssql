@@ -32,7 +32,7 @@ function waitForExtensionToBeActive(resolve): void {
 suite("Initialization Tests", () => {
     test("Connection manager is initialized properly", (done) => {
         // Wait for the extension to activate
-        ensureExtensionIsActive().then(async () => {
+        void ensureExtensionIsActive().then(async () => {
             // Verify that the connection manager was initialized properly
             let controller: MainController = await Extension.getController();
             let connectionManager: ConnectionManager =

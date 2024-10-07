@@ -72,7 +72,7 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        serviceClient
+        void serviceClient
             .initializeForPlatform(fixture.platformInfo, undefined)
             .then((result) => {
                 assert.notEqual(result, undefined);
@@ -98,7 +98,7 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        serviceClient
+        void serviceClient
             .initializeForPlatform(fixture.platformInfo, undefined)
             .then((result) => {
                 assert.notEqual(result, undefined);
@@ -165,7 +165,7 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        serviceClient
+        void serviceClient
             .initializeForPlatform(fixture.platformInfo, undefined)
             .then((result) => {
                 assert.equal(serviceVersion, 1);
@@ -213,7 +213,7 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        serviceClient
+        void serviceClient
             .initializeForPlatform(fixture.platformInfo, undefined)
             .then((result) => {
                 assert.equal(serviceVersion, 0);

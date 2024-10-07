@@ -222,10 +222,10 @@ export class ObjectExplorerService {
                     errorNumber ===
                     Constants.errorSSLCertificateValidationFailed
                 ) {
-                    self._connectionManager.showInstructionTextAsWarning(
+                    void self._connectionManager.showInstructionTextAsWarning(
                         self._currentNode.connectionInfo,
                         async (updatedProfile) => {
-                            self.reconnectProfile(
+                            void self.reconnectProfile(
                                 self._currentNode,
                                 updatedProfile,
                             );
@@ -251,7 +251,7 @@ export class ObjectExplorerService {
                             self._currentNode.connectionInfo
                         );
                         self.updateNode(self._currentNode);
-                        self._connectionManager.connectionUI.handleFirewallError(
+                        void self._connectionManager.connectionUI.handleFirewallError(
                             nodeUri,
                             profile,
                             handleFirewallResult.ipAddress,
@@ -273,7 +273,7 @@ export class ObjectExplorerService {
                     await this.refreshAccount(account, profile);
                     // Do not await when performing reconnect to allow
                     // OE node to expand after connection is established.
-                    this.reconnectProfile(self._currentNode, profile);
+                    void this.reconnectProfile(self._currentNode, profile);
                 } else {
                     self._connectionManager.vscodeWrapper.showErrorMessage(
                         error,
@@ -311,7 +311,7 @@ export class ObjectExplorerService {
                     profile,
                 )
             ) {
-                this.refreshNode(node);
+                void this.refreshNode(node);
             }
         } else {
             this._connectionManager.vscodeWrapper.showErrorMessage(
@@ -765,7 +765,10 @@ export class ObjectExplorerService {
                         (!azureController.isSqlAuthProviderEnabled() ||
                             needsRefresh)
                     ) {
-                        this.refreshAccount(account, connectionCredentials);
+                        void this.refreshAccount(
+                            account,
+                            connectionCredentials,
+                        );
                     }
                 }
             }

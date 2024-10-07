@@ -55,7 +55,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 ),
             },
         );
-        this.initialize();
+        void this.initialize();
     }
 
     private async initialize() {
