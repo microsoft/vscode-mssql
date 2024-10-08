@@ -19,6 +19,7 @@ import {
 
 import { locConstants } from "../../../common/locConstants";
 import { connectionCertValidationReadMoreUrl } from "../connectionConstants";
+import { ConnectionInputMode } from "../../../../sharedInterfaces/connectionDialog";
 
 export const TrustServerCertificateDialog = ({}) => {
     const context = useContext(ConnectionDialogContext)!;
@@ -52,11 +53,27 @@ export const TrustServerCertificateDialog = ({}) => {
                             appearance="primary"
                             onClick={() => {
                                 context.cancelTrustServerCertDialog();
-                                context.formAction({
-                                    propertyName: "trustServerCertificate",
-                                    value: true,
-                                    isAction: false,
-                                });
+                                if (
+                                    context.state.selectedInputMode ===
+                                    ConnectionInputMode.ConnectionString
+                                ) {
+                                    context.formAction({
+                                        propertyName: "connectionString",
+                                        value: setConnectionStringProperty(
+                                            context.state.formState
+                                                .connectionString ?? "",
+                                            "trustServerCertificate",
+                                            true,
+                                        ),
+                                        isAction: false,
+                                    });
+                                } else {
+                                    context.formAction({
+                                        propertyName: "trustServerCertificate",
+                                        value: true,
+                                        isAction: false,
+                                    });
+                                }
                                 context.connect();
                             }}
                         >
@@ -79,3 +96,18 @@ export const TrustServerCertificateDialog = ({}) => {
         </Dialog>
     );
 };
+
+function setConnectionStringProperty(
+    connectionString: string,
+    propertyName: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value: any,
+): string {
+    const regex = new RegExp(`${propertyName}\\s*=`);
+    if (regex.test(connectionString)) {
+        const valueRegex = new RegExp(`${propertyName}\\s*=\\s*[^;]*`);
+        return connectionString.replace(valueRegex, `${propertyName}=${value}`);
+    } else {
+        return `${connectionString};${propertyName}=${value}`;
+    }
+}
