@@ -26,7 +26,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     } as Slick.GridOptions<T>;
 }
 
-const ACTIONBAR_WIDTH = 36; //px
+export const ACTIONBAR_WIDTH = 36; //px
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     protected styleElement: HTMLStyleElement;

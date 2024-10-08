@@ -29,6 +29,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
+import { ACTIONBAR_WIDTH } from "./table/table";
 
 const useStyles = makeStyles({
     root: {
@@ -109,19 +110,33 @@ export const QueryResultPane = () => {
             return;
         }
         const observer = new ResizeObserver(() => {
-            if (!gridRef.current) {
+            if (!gridRefs.current) {
                 return;
             }
             if (!ribbonRef.current) {
                 return;
             }
+
             if (gridParent.clientWidth && gridParent.clientHeight) {
-                gridRef.current.resizeGrid(
-                    gridParent.clientWidth,
-                    gridParent.clientHeight -
-                        ribbonRef.current.clientHeight -
-                        5,
-                );
+                //TODO: add case for multiple result grid
+                if (gridRefs.current.length > 1) {
+                    gridRefs.current.forEach((gridRef) => {
+                        gridRef.resizeGrid(
+                            gridParent.clientWidth - ACTIONBAR_WIDTH,
+                            (gridParent.clientHeight -
+                                ribbonRef.current!.clientHeight -
+                                gridRefs.current.length * 5) /
+                                gridRefs.current.length,
+                        );
+                    });
+                } else if (gridRefs.current.length === 1) {
+                    gridRefs.current[0].resizeGrid(
+                        gridParent.clientWidth - ACTIONBAR_WIDTH,
+                        gridParent.clientHeight -
+                            ribbonRef.current.clientHeight -
+                            5,
+                    );
+                }
             }
         });
         observer.observe(gridParent);
@@ -163,7 +178,7 @@ export const QueryResultPane = () => {
         return null;
     }
 
-    const gridRef = useRef<ResultGridHandle>(null);
+    const gridRefs = useRef<ResultGridHandle[]>([]);
 
     const renderGrid = (idx: number) => {
         const divId = `grid-parent-${idx}`;
@@ -226,7 +241,7 @@ export const QueryResultPane = () => {
                                 });
                             });
                     }}
-                    ref={gridRef}
+                    ref={(el) => (gridRefs.current[idx] = el!)}
                     resultSetSummary={metadata?.resultSetSummaries[idx]}
                     divId={divId}
                 />
