@@ -103,9 +103,9 @@ function setConnectionStringProperty(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any,
 ): string {
-    const regex = new RegExp(`${propertyName}\\s*=`);
+    const regex = new RegExp(`${propertyName}\\s*=`); // check for existence of the property
     if (regex.test(connectionString)) {
-        const valueRegex = new RegExp(`${propertyName}\\s*=\\s*[^;]*`);
+        const valueRegex = new RegExp(`${propertyName}\\s*=\\s*[^;]*`); // grab the entirety of "propertyName=value"
         return connectionString.replace(valueRegex, `${propertyName}=${value}`);
     } else {
         return `${connectionString};${propertyName}=${value}`;
