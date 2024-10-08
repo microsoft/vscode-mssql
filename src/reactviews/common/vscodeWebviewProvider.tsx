@@ -115,10 +115,10 @@ export function VscodeWebviewProvider<State, Reducers>({
             setLocalization(true);
         }
 
-        getTheme();
-        getState();
-        loadStats();
-        getLocalization();
+        void getTheme();
+        void getState();
+        void loadStats();
+        void getLocalization();
     }, []);
 
     extensionRpc.subscribe("onDidChangeTheme", (params) => {

@@ -194,7 +194,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             startColumn: 0,
             startLine: 0,
         };
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -204,7 +204,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         // Run function with properties declared below
         let title2 = "Test_Title2";
         let uri2 = "Test_URI2";
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri2,
             querySelection,
@@ -230,7 +230,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -239,7 +239,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         // Ensure all side effects occurred as intended
         assert.equal(mockMap.get(uri).queryRunner.isExecutingQuery, true);
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -263,7 +263,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -294,7 +294,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -333,7 +333,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -343,7 +343,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(testUri), true);
 
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -373,7 +373,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -384,7 +384,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(resultUri), true);
 
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -416,7 +416,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -427,7 +427,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(testUri), true);
 
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,
@@ -456,7 +456,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         };
 
         // Setup the function to call base and run it
-        mockContentProvider.object.runQuery(
+        void mockContentProvider.object.runQuery(
             statusView.object,
             uri,
             querySelection,

@@ -69,6 +69,9 @@ const ConnectionDialogStateProvider: React.FC<
                         "cancelTrustServerCertDialog",
                     );
                 },
+                refreshMruConnections: function (): void {
+                    webviewState.extensionRpc.action("refreshMruConnections");
+                },
             }}
         >
             {children}

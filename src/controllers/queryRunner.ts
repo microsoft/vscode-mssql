@@ -515,7 +515,7 @@ export default class QueryRunner {
             this._vscodeWrapper.showErrorMessage(
                 "Something went wrong getting more rows: " + error.message,
             );
-            Promise.reject(error);
+            void Promise.reject(error);
         }
     }
 
@@ -536,7 +536,7 @@ export default class QueryRunner {
             this._vscodeWrapper.showErrorMessage(
                 "Failed disposing query: " + error.message,
             );
-            Promise.reject(error);
+            void Promise.reject(error);
         }
     }
 

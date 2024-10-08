@@ -165,7 +165,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             "#sort-ascending",
             (_e: JQuery.ClickEvent) => {
-                this.handleMenuItemClick("sort-asc", this.columnDef);
+                void this.handleMenuItemClick("sort-asc", this.columnDef);
                 closePopup($popup);
             },
         );
@@ -173,7 +173,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             "#sort-descending",
             (_e: JQuery.ClickEvent) => {
-                this.handleMenuItemClick("sort-desc", this.columnDef);
+                void this.handleMenuItemClick("sort-desc", this.columnDef);
                 closePopup($popup);
             },
         );

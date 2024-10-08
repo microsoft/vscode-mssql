@@ -453,7 +453,7 @@ export default class SqlToolsServiceClient {
             serverOptions,
             clientOptions,
         );
-        client.onReady().then(() => {
+        void client.onReady().then(() => {
             client.onNotification(
                 LanguageServiceContracts.StatusChangedNotification.type,
                 this.handleLanguageServiceStatusNotification(),

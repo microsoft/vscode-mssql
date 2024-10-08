@@ -52,7 +52,7 @@ suite("Credential Store Tests", () => {
     });
 
     test("Read credential should send a ReadCredentialRequest", () => {
-        credentialStore.readCredential("test_credential").then(() => {
+        void credentialStore.readCredential("test_credential").then(() => {
             client.verify(
                 (c) =>
                     c.sendRequest(
@@ -65,7 +65,7 @@ suite("Credential Store Tests", () => {
     });
 
     test("Save credential should send a SaveCredentialRequest", () => {
-        credentialStore
+        void credentialStore
             .saveCredential("test_credential", "test_password")
             .then(() => {
                 client.verify(
@@ -80,7 +80,7 @@ suite("Credential Store Tests", () => {
     });
 
     test("Delete credential should send a DeleteCredentialRequest", () => {
-        credentialStore.deleteCredential("test_credential").then(() => {
+        void credentialStore.deleteCredential("test_credential").then(() => {
             client.verify(
                 (c) =>
                     c.sendRequest(

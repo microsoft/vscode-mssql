@@ -33,7 +33,7 @@ suite("Server Status View Tests", () => {
                 resolve();
             }, 300);
         });
-        p.then(() => done());
+        void p.then(() => done());
     });
 
     test("Test update service download progress status", () => {

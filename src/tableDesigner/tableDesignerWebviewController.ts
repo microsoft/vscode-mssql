@@ -60,7 +60,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 ),
             },
         );
-        this.initialize();
+        void this.initialize();
     }
 
     private async initialize() {

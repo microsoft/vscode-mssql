@@ -143,6 +143,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     cancelTrustServerCertDialog: () => void;
+    refreshMruConnections: () => void;
 }
 
 export enum AuthenticationType {
@@ -166,4 +167,5 @@ export interface ConnectionDialogReducers {
         subscriptionId: string;
     };
     cancelTrustServerCertDialog: {};
+    refreshMruConnections: {};
 }

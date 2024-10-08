@@ -886,7 +886,7 @@ suite("Query Runner tests", () => {
                 testVscodeWrapper.object,
             );
             queryRunner.uri = testuri;
-            queryRunner.copyResults(testRange, 0, 0).then(() => {
+            void queryRunner.copyResults(testRange, 0, 0).then(() => {
                 testVscodeWrapper.verify<void>(
                     (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
                     TypeMoq.Times.once(),

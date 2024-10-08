@@ -100,7 +100,7 @@ suite("MainController Tests", () => {
 
     // Standard closed document event test
     test("onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager", () => {
-        mainController.onDidCloseTextDocument(document);
+        void mainController.onDidCloseTextDocument(document);
         try {
             connectionManager.verify(
                 (x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()),
@@ -125,7 +125,7 @@ suite("MainController Tests", () => {
 
         // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
         mainController.onDidSaveTextDocument(newDocument);
-        mainController.onDidCloseTextDocument(document2);
+        void mainController.onDidCloseTextDocument(document2);
         try {
             connectionManager.verify(
                 (x) =>
@@ -147,7 +147,7 @@ suite("MainController Tests", () => {
     test("onDidCloseTextDocument should call renamedDoc function when rename occurs", (done) => {
         // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
         mainController.onDidOpenTextDocument(newDocument);
-        mainController.onDidCloseTextDocument(document);
+        void mainController.onDidCloseTextDocument(document);
 
         // Verify renameDoc function was called
         try {
@@ -175,7 +175,7 @@ suite("MainController Tests", () => {
 
         // Cause event time out (above 10 ms should work)
         setTimeout(() => {
-            mainController.onDidCloseTextDocument(document);
+            void mainController.onDidCloseTextDocument(document);
             try {
                 connectionManager.verify(
                     (x) =>
@@ -250,7 +250,7 @@ suite("MainController Tests", () => {
         // None of the TextDocument events should throw exceptions, they should cleanly exit instead.
         controller.onDidOpenTextDocument(document);
         controller.onDidSaveTextDocument(document);
-        controller.onDidCloseTextDocument(document);
+        void controller.onDidCloseTextDocument(document);
         done();
     });
 
