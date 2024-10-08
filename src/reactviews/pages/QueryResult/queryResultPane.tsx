@@ -191,7 +191,12 @@ export const QueryResultPane = () => {
                         Object.keys(metadata?.resultSetSummaries ?? [])
                             .length === 1
                             ? "100%"
-                            : "50%",
+                            : (
+                                  100 /
+                                  Object.keys(
+                                      metadata?.resultSetSummaries ?? [],
+                                  ).length
+                              ).toString() + "%",
                 }}
             >
                 <ResultGrid
