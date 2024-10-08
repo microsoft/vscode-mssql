@@ -139,6 +139,7 @@ export const QueryResultPane = () => {
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
+    const [executionPlanXmls, setExecutionPlanXmls] = useState<string[]>([]);
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -213,9 +214,10 @@ export const QueryResultPane = () => {
                                 // if the result is an execution plan xml,
                                 // get the execution plan graph from it
                                 if (metadata?.isExecutionPlan) {
-                                    getExecutionPlanGraphs(
+                                    setExecutionPlanXmls([
+                                        ...executionPlanXmls,
                                         r.rows[0][0].displayValue,
-                                    );
+                                    ]);
                                 }
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
@@ -266,19 +268,28 @@ export const QueryResultPane = () => {
         return grids;
     };
 
-    const getExecutionPlanGraphs = async (contents: string) => {
-        if (
-            metadata &&
-            metadata.executionPlanState.executionPlanGraphs &&
-            !metadata.executionPlanState.executionPlanGraphs.length
-        ) {
-            let planFile: ExecutionPlanGraphInfo = {
-                graphFileContent: contents,
-                graphFileType: ".sqlplan",
-            };
-            await state!.provider.getExecutionPlan(planFile);
+    useEffect(() => {
+        const getExecutionPlanGraphs = async () => {
+            if (
+                metadata &&
+                metadata.executionPlanState?.executionPlanGraphs &&
+                !metadata.executionPlanState.executionPlanGraphs.length
+            ) {
+                const planFile: ExecutionPlanGraphInfo = {
+                    graphFileContent: mergePlans(executionPlanXmls),
+                    graphFileType: ".sqlplan",
+                };
+                await state!.provider.getExecutionPlan(planFile);
+            }
+        };
+
+        const gridsLength = Object.keys(
+            metadata?.resultSetSummaries ?? [],
+        ).length;
+        if (gridsLength && gridsLength === executionPlanXmls.length) {
+            getExecutionPlanGraphs();
         }
-    };
+    }, [metadata?.resultSetSummaries, executionPlanXmls, metadata]);
 
     return (
         <div className={classes.root} ref={gridParentRef}>
@@ -419,3 +430,43 @@ export const QueryResultPane = () => {
         </div>
     );
 };
+
+function mergePlans(sqlPlanContents: string[]): string {
+    let combinedXmls = sqlPlanContents[0];
+
+    // If there's only one XML, return it as is
+    if (sqlPlanContents.length === 1) {
+        return combinedXmls;
+    }
+
+    // else, compile the xmls of each statment into one
+    for (let i = 1; i < sqlPlanContents.length; i++) {
+        const plan = sqlPlanContents[i];
+
+        // insert each plan's sql statement xml into the combined plan
+        // and then update the id
+        let statements = plan.match(/<StmtSimple[\s\S]*?<\/StmtSimple>/g);
+        if (statements) {
+            statements.forEach((statement) => {
+                statement = statement.replace(
+                    /StatementId="\d+"/,
+                    `StatementId="${i + 1}"`,
+                );
+                statement = statement.replace(
+                    /StatementCompId="\d+"/,
+                    `StatementCompId="${i + 1}"`,
+                );
+
+                const lastStmtSimpleIndex =
+                    combinedXmls.lastIndexOf("</StmtSimple>") +
+                    "</StmtSimple>".length;
+
+                combinedXmls =
+                    combinedXmls.slice(0, lastStmtSimpleIndex) +
+                    statement +
+                    combinedXmls.slice(lastStmtSimpleIndex);
+            });
+        }
+    }
+    return combinedXmls;
+}
