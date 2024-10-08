@@ -390,11 +390,11 @@
     <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
       <source xml:lang="en">Encrypt</source>
     </trans-unit>
-    <trans-unit id="++CODE++d78a29d101e6f39c86fe84a8f6a8ed6c4a41f17473f51cba6e31327fab2c331b">
-      <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or enable &apos;Trust server certificate&apos; in the connection dialog.</source>
+    <trans-unit id="++CODE++ac8fee089cebcddef6529d9c8b467120173dbd02a46992ecbaf62fe25c925ae0">
+      <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable &apos;Trust server certificate&apos; in the connection dialog.</source>
     </trans-unit>
-    <trans-unit id="++CODE++476c508b94c7f515d2276689b1eb5c8d1eb0d109b274cced59a3e1a1e3a247c9">
-      <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set &apos;Trust server certificate&apos; to &apos;true&apos; in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
+    <trans-unit id="++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8">
+      <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set &apos;Trust server certificate&apos; to &apos;true&apos; in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
     </trans-unit>
     <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
       <source xml:lang="en">End IP Address</source>
