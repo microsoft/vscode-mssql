@@ -138,6 +138,7 @@ export interface ConnectionDialogContextProps
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
+    refreshMruConnections: () => void;
 }
 
 export enum AuthenticationType {
@@ -160,4 +161,5 @@ export interface ConnectionDialogReducers {
     loadAzureServers: {
         subscriptionId: string;
     };
+    refreshMruConnections: {};
 }

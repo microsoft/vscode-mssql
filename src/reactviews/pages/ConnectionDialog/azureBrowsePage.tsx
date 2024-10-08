@@ -370,12 +370,16 @@ const AzureBrowseDropdown = ({
         <div className={formStyles.formComponentDiv}>
             <Field
                 label={
-                    <div className={loadableStyles.loadable}>
-                        {label}
-                        {loadState === ApiStatus.Loading && (
-                            <Spinner size="tiny" />
-                        )}
-                    </div>
+                    loadState === ApiStatus.Loading ? (
+                        <div className={loadableStyles.loadable}>
+                            {label}
+                            {loadState === ApiStatus.Loading && (
+                                <Spinner size="tiny" />
+                            )}
+                        </div>
+                    ) : (
+                        label
+                    )
                 }
                 orientation="horizontal"
                 required={required}

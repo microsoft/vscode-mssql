@@ -51,7 +51,7 @@ export const ConnectionInfoFormContainer = () => {
         <div className={formStyles.formRoot}>
             <ConnectionHeader />
 
-            <div className={formStyles.formDiv}>
+            <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {connectionDialogContext?.state.formError && (
                     <MessageBar intent="error">
                         {connectionDialogContext.state.formError}
@@ -101,9 +101,7 @@ export const ConnectionInfoFormContainer = () => {
                         </RadioGroup>
                     </Field>
                 </div>
-                <div style={{ overflow: "auto" }}>
-                    {renderContent(connectionDialogContext)}
-                </div>
+                {renderContent(connectionDialogContext)}
             </div>
         </div>
     );

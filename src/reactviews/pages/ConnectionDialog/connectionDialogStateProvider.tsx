@@ -64,6 +64,9 @@ const ConnectionDialogStateProvider: React.FC<
                         subscriptionId: subscriptionId,
                     });
                 },
+                refreshMruConnections: function (): void {
+                    webviewState.extensionRpc.action("refreshMruConnections");
+                },
             }}
         >
             {children}
