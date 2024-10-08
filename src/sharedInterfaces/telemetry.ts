@@ -8,6 +8,7 @@ export enum TelemetryViews {
     CommandPalette = "CommandPalette",
     SqlProjects = "SqlProjects",
     QueryEditor = "QueryEditor",
+    QueryResult = "QueryResult",
     ResultsGrid = "ResultsGrid",
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
@@ -41,4 +42,5 @@ export enum TelemetryActions {
     ContinueEditing = "ContinueEditing",
     Close = "Close",
     SurverySubmit = "SurveySubmit",
+    SaveResults = "SaveResults",
 }
