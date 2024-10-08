@@ -49,6 +49,7 @@ import {
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { l10n } from "vscode";
 import { UserSurvey } from "../nps/userSurvey";
+import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -86,6 +87,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 formError: "",
                 loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
                 loadingAzureServersStatus: ApiStatus.NotStarted,
+                trustServerCertError: undefined,
             }),
             vscode.ViewColumn.Active,
             {
@@ -903,7 +905,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             this.state.connectionProfile as any,
                         );
 
-                    if (result?.errorMessage) {
+                    if (result.errorMessage) {
+                        if (
+                            result.errorNumber ===
+                            connectionCertValidationFailedErrorCode
+                        ) {
+                            this.state.connectionStatus = ApiStatus.Error;
+                            this.state.trustServerCertError =
+                                result.errorMessage;
+                            return state;
+                        }
                         this.state.formError = result.errorMessage;
                         this.state.connectionStatus = ApiStatus.Error;
                         return state;
@@ -962,6 +973,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 payload.subscriptionId,
             );
 
+            return state;
+        });
+
+        this.registerReducer("cancelTrustServerCertDialog", async (state) => {
+            state.trustServerCertError = undefined;
             return state;
         });
 
