@@ -129,7 +129,7 @@ jobs:
           echo "### PR Changes" > results.md
           echo "| Category                      | Main Branch        | PR Branch         | Difference           |" > results.md
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
-          echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }} ${{ '}\$\$' }} |" >> results.md
+          echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}}\\\\% ${{ '}\$\$' }} |" >> results.md
           echo "| VSIX Size                    | ${{ env.main_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
           echo "| Webview Bundle Size          | ${{ env.main_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ '\$\${\color{' }}${{ env.webview_text_color }}} ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
 
