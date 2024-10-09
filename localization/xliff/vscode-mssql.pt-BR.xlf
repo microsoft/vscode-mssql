@@ -153,6 +153,10 @@
         <source xml:lang="en">Azure: Sign In with Device Code</source>
         <target state="translated">Azure: entrar com o Código do Dispositivo</target>
       </trans-unit>
+      <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
+        <source xml:lang="en">Back to preview</source>
+        <target state="new">Back to preview</target>
+      </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
         <note>{0} is the batch time</note>
@@ -381,6 +385,10 @@
         <source xml:lang="en">Continue Editing</source>
         <target state="translated">Continuar Editando</target>
       </trans-unit>
+      <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
+        <source xml:lang="en">Copied</source>
+        <target state="new">Copied</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
         <target state="translated">Copiar</target>
@@ -488,15 +496,15 @@
       </trans-unit>
       <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
         <source xml:lang="en">Dissatisfied</source>
-        <target state="new">Dissatisfied</target>
+        <target state="translated">Insatisfeito</target>
       </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
-        <target state="new">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</target>
+        <target state="translated">Você pode fazer uma pesquisa rápida de comentários sobre a Extensão MSSQL para VS Code?</target>
       </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
-        <target state="new">Don't Show Again</target>
+        <target state="translated">Não Mostrar Novamente</target>
       </trans-unit>
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
@@ -572,7 +580,7 @@
       </trans-unit>
       <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
         <source xml:lang="en">Error loading Azure subscriptions.</source>
-        <target state="new">Error loading Azure subscriptions.</target>
+        <target state="translated">Erro ao carregar assinaturas do Azure.</target>
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
@@ -636,7 +644,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
         <source xml:lang="en">Extremely likely</source>
-        <target state="new">Extremely likely</target>
+        <target state="translated">Extremamente provável</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -670,6 +678,10 @@
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
         <target state="translated">Falha ao salvar os resultados. </target>
+      </trans-unit>
+      <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
+        <source xml:lang="en">Filter Azure subscriptions</source>
+        <target state="new">Filter Azure subscriptions</target>
       </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
@@ -768,12 +780,12 @@
       </trans-unit>
       <trans-unit id="++CODE++cdcc527989217aea79f51128ad3c86fa74d6c9def496f199f6b8d9728791d3b4">
         <source xml:lang="en">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</source>
-        <target state="new">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</target>
+        <target state="translated">Qual é a probabilidade de você recomendar a extensão MSSQL para um amigo ou colega?</target>
       </trans-unit>
       <trans-unit id="++CODE++31a89f9bfc36d6f9ecf0a7e2e82cb5a9a0f1e7b1702f08bd3aced239c4f48a0b">
         <source xml:lang="en">How likely it is that you would recommend {0} to a friend or colleague?</source>
         <note>{0} is the feature name</note>
-        <target state="new">How likely it is that you would recommend {0} to a friend or colleague?</target>
+        <target state="translated">Qual é a probabilidade de você recomendar o {0} a um amigo ou colega?</target>
       </trans-unit>
       <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
@@ -849,6 +861,10 @@
         <source xml:lang="en">Loading</source>
         <target state="translated">Carregando</target>
       </trans-unit>
+      <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
+        <source xml:lang="en">Loading Report</source>
+        <target state="new">Loading Report</target>
+      </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">Carregando Designer de Tabela</target>
@@ -863,7 +879,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
         <source xml:lang="en">MSSQL Feedback</source>
-        <target state="new">MSSQL Feedback</target>
+        <target state="translated">Comentários do MSSQL</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -920,11 +936,11 @@
       </trans-unit>
       <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
         <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
-        <target state="new">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</target>
+        <target state="translated">A Microsoft examina seus comentários para melhorar nossos produtos, portanto, não compartilhe nenhum dado pessoal ou conteúdo confidencial ou de proprietário.</target>
       </trans-unit>
       <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
         <source xml:lang="en">Microsoft would like your feedback</source>
-        <target state="new">Microsoft would like your feedback</target>
+        <target state="translated">A Microsoft gostaria de receber seus comentários</target>
       </trans-unit>
       <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
         <source xml:lang="en">Move Down</source>
@@ -996,9 +1012,9 @@
 {1} is the uri</note>
         <target state="translated">Não é necessário atualizar o token da conta do Microsoft Entra para a conexão {0} com o URI {1}</target>
       </trans-unit>
-      <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
-        <source xml:lang="en">No subscriptions set in VS Code's Azure account filter.</source>
-        <target state="translated">Nenhuma assinatura definida no filtro de conta do VS Code do Azure.</target>
+      <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
+        <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
+        <target state="new">No subscriptions available.  Adjust your subscription filters to try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1026,7 +1042,7 @@
       </trans-unit>
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
-        <target state="new">Not likely at all</target>
+        <target state="translated">Totalmente improvável</target>
       </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
@@ -1082,7 +1098,7 @@
       </trans-unit>
       <trans-unit id="++CODE++118472ff293c5f2f2e92dc305493b2a97887f4a9f42f6a37fe4ac38bc110d0ea">
         <source xml:lang="en">Open snapshot in a new tab</source>
-        <target state="new">Open snapshot in a new tab</target>
+        <target state="translated">Abrir o instantâneo em uma nova guia</target>
       </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -1098,12 +1114,12 @@
       </trans-unit>
       <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
         <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
-        <target state="new">Overall, how satisfied are you with the MSSQL extension?</target>
+        <target state="translated">No geral, qual é o seu nível de satisfação com a extensão MSSQL?</target>
       </trans-unit>
       <trans-unit id="++CODE++cd184ad9e92906aa47b1a2a184c7d63d4c3642b0ee74079f2d428841ff17036c">
         <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
         <note>{0} is the feature name</note>
-        <target state="new">Overall, how satisfied are you with {0}?</target>
+        <target state="translated">No geral, qual é seu nível de satisfação com {0}?</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -1155,7 +1171,7 @@
       </trans-unit>
       <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
         <source xml:lang="en">Privacy Statement</source>
-        <target state="new">Privacy Statement</target>
+        <target state="translated">Política de Privacidade</target>
       </trans-unit>
       <trans-unit id="++CODE++a423b47777783386516c79baa19b0dfcd12cb40e4fba79348ad14ab0169402cd">
         <source xml:lang="en">Profile Name</source>
@@ -1234,7 +1250,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b69ef66763bd411348c2bf030ab4cd0881dc36c538ce1a05966e92b927d2675c">
         <source xml:lang="en">Remind Me Later</source>
-        <target state="new">Remind Me Later</target>
+        <target state="translated">Lembre-me Mais Tarde</target>
       </trans-unit>
       <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
         <source xml:lang="en">Remove</source>
@@ -1283,7 +1299,7 @@
       </trans-unit>
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
-        <target state="new">Satisfied</target>
+        <target state="translated">Satisfeito</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -1345,6 +1361,10 @@
         <source xml:lang="en">Select profile to remove</source>
         <target state="translated">Selecione um perfil para remover</target>
       </trans-unit>
+      <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
+        <source xml:lang="en">Select subscriptions</source>
+        <target state="new">Select subscriptions</target>
+      </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">Conta do Microsoft Entra selecionada removida com sucesso.</target>
@@ -1387,7 +1407,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
-        <target state="new">Showplan XML</target>
+        <target state="translated">XML do plano de execução</target>
       </trans-unit>
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
@@ -1444,7 +1464,7 @@
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
-        <target state="new">Submit</target>
+        <target state="translated">Enviar</target>
       </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
@@ -1483,7 +1503,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
-        <target state="new">Take Survey</target>
+        <target state="translated">Responder Pesquisa</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -1666,11 +1686,11 @@
       </trans-unit>
       <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
         <source xml:lang="en">Very Dissatisfied</source>
-        <target state="new">Very Dissatisfied</target>
+        <target state="translated">Muito Insatisfeito</target>
       </trans-unit>
       <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
         <source xml:lang="en">Very Satisfied</source>
-        <target state="new">Very Satisfied</target>
+        <target state="translated">Muito Satisfeito</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -1682,7 +1702,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
-        <target state="new">What can we do to improve?</target>
+        <target state="translated">O que podemos fazer para melhorar?</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -2030,7 +2050,7 @@
       </trans-unit>
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Give Feedback</source>
-        <target state="new">Give Feedback</target>
+        <target state="translated">Enviar Comentários</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
