@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, JSX } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
@@ -14,6 +14,7 @@ import {
     Spinner,
     makeStyles,
 } from "@fluentui/react-components";
+import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -185,7 +186,22 @@ export const AzureBrowsePage = () => {
             <AzureBrowseDropdown
                 label={Loc.connectionDialog.subscription}
                 clearable
-                loadState={context.state.loadingAzureSubscriptionsStatus}
+                decoration={
+                    <>
+                        <Button
+                            icon={<Filter16Filled />}
+                            appearance="subtle"
+                            title={Loc.connectionDialog.filterSubscriptions}
+                            onClick={() => {
+                                context.filterAzureSubscriptions();
+                            }}
+                        />
+                        {context.state.loadingAzureSubscriptionsStatus ===
+                        ApiStatus.Loading ? (
+                            <Spinner size="tiny" />
+                        ) : undefined}
+                    </>
+                }
                 content={{
                     valueList: subscriptions,
                     setValue: (sub) => {
@@ -240,7 +256,12 @@ export const AzureBrowsePage = () => {
             <AzureBrowseDropdown
                 label={Loc.connectionDialog.server}
                 required
-                loadState={context.state.loadingAzureServersStatus}
+                decoration={
+                    context.state.loadingAzureServersStatus ===
+                    ApiStatus.Loading ? (
+                        <Spinner size="tiny" />
+                    ) : undefined
+                }
                 content={{
                     valueList: servers,
                     setValue: (srv) => {
@@ -318,7 +339,6 @@ export const AzureBrowsePage = () => {
             />
             <div className={formStyles.formNavTray}>
                 <Button
-                    shape="square"
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}
@@ -334,8 +354,8 @@ export const AzureBrowsePage = () => {
     );
 };
 
-const useLoadableStyles = makeStyles({
-    loadable: {
+const useFieldDecorationStyles = makeStyles({
+    decoration: {
         display: "flex",
         alignItems: "center",
         columnGap: "4px",
@@ -346,21 +366,21 @@ const AzureBrowseDropdown = ({
     label,
     required,
     clearable,
-    loadState,
     content,
+    decoration,
 }: {
     label: string;
     required?: boolean;
     clearable?: boolean;
-    loadState?: ApiStatus;
     content: {
         valueList: string[];
         setValue: (value: string | undefined) => void;
         currentValue?: string;
     };
+    decoration?: JSX.Element;
 }) => {
     const formStyles = useFormStyles();
-    const loadableStyles = useLoadableStyles();
+    const decorationStyles = useFieldDecorationStyles();
 
     const onInput = (ev: React.ChangeEvent<HTMLInputElement>) => {
         content.setValue(ev.target.value);
@@ -370,12 +390,10 @@ const AzureBrowseDropdown = ({
         <div className={formStyles.formComponentDiv}>
             <Field
                 label={
-                    loadState === ApiStatus.Loading ? (
-                        <div className={loadableStyles.loadable}>
+                    decoration ? (
+                        <div className={decorationStyles.decoration}>
                             {label}
-                            {loadState === ApiStatus.Loading && (
-                                <Spinner size="tiny" />
-                            )}
+                            {decoration}
                         </div>
                     ) : (
                         label

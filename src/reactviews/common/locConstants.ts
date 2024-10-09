@@ -151,6 +151,7 @@ export class LocConstants {
             location: l10n.t("Location"),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
+            filterSubscriptions: l10n.t("Filter Azure subscriptions"),
             connectionErrorTitle: l10n.t("Connection Error"),
             trustServerCertMessage: l10n.t(
                 "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.",
