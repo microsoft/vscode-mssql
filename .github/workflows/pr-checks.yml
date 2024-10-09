@@ -76,10 +76,8 @@ jobs:
           line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
           echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
-          coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "green"; fi)
+          coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "coverage_text_color=$coverage_text_color" >> $GITHUB_ENV
-          code_coverage_increase_decrease=$(if [ $line_rate_diff -gt 0 ]; then echo "decrease"; else echo "increase"; fi)
-          echo "code_coverage_increase_decrease=$code_coverage_increase_decrease" >> $GITHUB_ENV
 
       - name: Package both branches
         run: |
@@ -102,10 +100,8 @@ jobs:
           echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
           echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
           echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
-          webview_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "green"; fi)
+          webview_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "webview_text_color=$webview_text_color" >> $GITHUB_ENV
-          webview_increase_decrease=$(if [ $percentage_change -gt 0 ]; then echo "increase"; else echo "decrease"; fi)
-          echo "webview_increase_decrease=$webview_increase_decrease" >> $GITHUB_ENV
 
       - name: Calculate vsix file sizes
         run: |
@@ -125,27 +121,17 @@ jobs:
           echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
           echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-          vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "green"; fi)
+          vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "vsix_text_color=$vsix_text_color" >> $GITHUB_ENV
-          vsix_increase_decrease=$(if [ $percentage_change -gt 0 ]; then echo "increase"; else echo "decrease"; fi)
-          echo "vsix_increase_decrease=$vsix_increase_decrease" >> $GITHUB_ENV
 
-      - name: Write coverage results to markdown
+      - name: Write PR results to markdown
         run: |
-          echo "### Code Coverage" > results.md
-          echo "Merging into main will ${{ env.code_coverage_increase_decrease }} the code coverage from ${{ env.line_rate_main }}% to ${{ env.line_rate_pr }}% ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}\\\\% ${{ '}\$\$' }}" >> results.md
-
-      - name: Write VSIX result to markdown
-        if: ${{ env.vsix_size_diff != 0 }}
-        run: |
-          echo "### VSIX Size Comparison" > results.md
-          echo "Merging into main will ${{ env.vsix_increase_decrease }} the size of the VSIX file from ${{ env.main_vsix_size }} KB to ${{ env.pr_vsix_size }} KB ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }}  " >> results.md
-
-      - name: Write webview bundle result to markdown
-        if: ${{ env.webview_size_diff != 0 }}
-        run: |
-          echo "### React Webview Bundle Size Comparison" >> results.md
-          echo "Merging into main will ${{ env.webview_increase_decrease }} the size of the webview bundle from ${{ env.main_webview_bundle_size }} KB to ${{ env.pr_webview_bundle_size }} KB ${{ '\$\${\color{' }}${{ env.webview_text_color }}} ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) ${{ '}\$\$' }}  " >> results.md
+          echo "### PR Changes" > results.md
+          echo "| Category                      | Main Branch        | PR Branch         | Difference           |" > results.md
+          echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
+          echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }} ${{ '}\$\$' }} |" >> results.md
+          echo "| VSIX Size                    | ${{ env.main_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
+          echo "| Webview Bundle Size          | ${{ env.main_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ '\$\${\color{' }}${{ env.webview_text_color }}} ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
@@ -154,7 +140,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-includes: |
-            ### Code Coverage
+            ### PR Changes
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4
