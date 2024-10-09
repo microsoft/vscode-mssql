@@ -339,7 +339,6 @@ export const AzureBrowsePage = () => {
             />
             <div className={formStyles.formNavTray}>
                 <Button
-                    shape="square"
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}
