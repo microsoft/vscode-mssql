@@ -10,7 +10,7 @@ import { FilterableColumn } from "../interfaces";
 import { append, $ } from "../dom";
 import { instanceOfIDisposableDataProvider } from "../dataProvider";
 import "./headerFilter.css";
-import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../../../common/locConstants";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -20,7 +20,7 @@ export interface CommandEventArgs<T extends Slick.SlickData> {
     command: HeaderFilterCommands;
 }
 
-const ShowFilterText = l10n.t("Show Filter");
+const ShowFilterText = locConstants.queryResult.showFilter;
 
 export const FilterButtonWidth: number = 34;
 
@@ -125,9 +125,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         var $popup = jQuery(
             '<div id="popup-menu">' +
-                `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${l10n.t("Sort Ascending")}</button>` +
-                `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${l10n.t("Sort Descending")}</button>` +
-                `<button id="close-popup" type="button" class="sort-btn">${l10n.t("Cancel")}</button>` +
+                `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
+                `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
+                `<button id="close-popup" type="button" class="sort-btn">${locConstants.queryResult.cancel}</button>` +
                 "</div>",
         );
 
@@ -165,7 +165,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             "#sort-ascending",
             (_e: JQuery.ClickEvent) => {
-                this.handleMenuItemClick("sort-asc", this.columnDef);
+                void this.handleMenuItemClick("sort-asc", this.columnDef);
                 closePopup($popup);
             },
         );
@@ -173,7 +173,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             "#sort-descending",
             (_e: JQuery.ClickEvent) => {
-                this.handleMenuItemClick("sort-desc", this.columnDef);
+                void this.handleMenuItemClick("sort-desc", this.columnDef);
                 closePopup($popup);
             },
         );

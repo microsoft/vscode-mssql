@@ -139,7 +139,7 @@ suite("ConnectionCredentials Tests", () => {
                     answers[LocalizedConstants.passwordPrompt] = emptyPassword
                         ? ""
                         : "newPassword";
-                    passwordQuestion[0].onAnswered(
+                    void passwordQuestion[0].onAnswered(
                         answers[LocalizedConstants.passwordPrompt],
                     );
                 })
@@ -315,7 +315,7 @@ suite("ConnectionCredentials Tests", () => {
         )[0];
 
         let connectionString = "server=some-server";
-        serverQuestion.onAnswered(connectionString);
+        void serverQuestion.onAnswered(connectionString);
 
         // Verify that the remaining questions will not prompt
         let otherQuestions = questions.filter(
@@ -336,14 +336,14 @@ suite("ConnectionCredentials Tests", () => {
         )[0];
 
         let connectionString = "server=some-server";
-        serverQuestion.onAnswered(connectionString);
+        void serverQuestion.onAnswered(connectionString);
 
         // Verify that the question updated the connection string
         assert.equal(credentials.connectionString, connectionString);
         assert.notEqual(credentials.server, connectionString);
 
         let serverName = "some-server";
-        serverQuestion.onAnswered(serverName);
+        void serverQuestion.onAnswered(serverName);
         assert.equal(credentials.server, serverName);
         assert.notEqual(credentials.connectionString, serverName);
     });

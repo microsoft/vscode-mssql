@@ -28,7 +28,7 @@ import {
     ResultSetSummary,
 } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
-import * as l10n from "@vscode/l10n";
+import { locConstants } from "../../common/locConstants";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -83,7 +83,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                         name:
                             c.columnName ===
                             "Microsoft SQL Server 2005 XML Showplan"
-                                ? l10n.t("Showplan XML")
+                                ? locConstants.queryResult.showplanXML
                                 : escape(c.columnName),
                         field: i.toString(),
                         formatter:

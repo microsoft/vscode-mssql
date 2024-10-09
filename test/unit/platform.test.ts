@@ -19,7 +19,7 @@ function getPlatform(): Promise<Runtime> {
 
 suite("Platform Tests", () => {
     test("getCurrentPlatform should return valid value", (done) => {
-        getPlatform().then((platform) => {
+        void getPlatform().then((platform) => {
             assert.notEqual(platform, Runtime.UnknownRuntime);
             done();
         });

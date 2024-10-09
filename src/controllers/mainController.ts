@@ -146,7 +146,7 @@ export default class MainController implements vscode.Disposable {
      * Disposes the controller
      */
     dispose(): void {
-        this.deactivate();
+        void this.deactivate();
     }
 
     /**
@@ -182,18 +182,18 @@ export default class MainController implements vscode.Disposable {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
             this._event.on(Constants.cmdConnect, () => {
-                this.runAndLogErrors(this.onNewConnection());
+                void this.runAndLogErrors(this.onNewConnection());
             });
             this.registerCommand(Constants.cmdDisconnect);
             this._event.on(Constants.cmdDisconnect, () => {
-                this.runAndLogErrors(this.onDisconnect());
+                void this.runAndLogErrors(this.onDisconnect());
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
-                UserSurvey.getInstance().promptUserForNPSFeedback();
+                void UserSurvey.getInstance().promptUserForNPSFeedback();
                 this._executionPlanOptions.includeEstimatedExecutionPlanXml =
                     false;
-                this.onRunQuery();
+                void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => {
@@ -205,19 +205,19 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
-                this.onRunCurrentStatement();
+                void this.onRunCurrentStatement();
             });
             this.registerCommand(Constants.cmdChangeDatabase);
             this._event.on(Constants.cmdChangeDatabase, () => {
-                this.runAndLogErrors(this.onChooseDatabase());
+                void this.runAndLogErrors(this.onChooseDatabase());
             });
             this.registerCommand(Constants.cmdChooseDatabase);
             this._event.on(Constants.cmdChooseDatabase, () => {
-                this.runAndLogErrors(this.onChooseDatabase());
+                void this.runAndLogErrors(this.onChooseDatabase());
             });
             this.registerCommand(Constants.cmdChooseLanguageFlavor);
             this._event.on(Constants.cmdChooseLanguageFlavor, () => {
-                this.runAndLogErrors(this.onChooseLanguageFlavor());
+                void this.runAndLogErrors(this.onChooseLanguageFlavor());
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
@@ -266,14 +266,11 @@ export default class MainController implements vscode.Disposable {
                 this.onClearAzureTokenCache(),
             );
             this.registerCommand(Constants.cmdShowExecutionPlanInResults);
-            this._event.on(
-                Constants.cmdShowExecutionPlanInResults,
-                async () => {
-                    this._executionPlanOptions.includeEstimatedExecutionPlanXml =
-                        true;
-                    this.onRunQuery();
-                },
-            );
+            this._event.on(Constants.cmdShowExecutionPlanInResults, () => {
+                this._executionPlanOptions.includeEstimatedExecutionPlanXml =
+                    true;
+                void this.onRunQuery();
+            });
             this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(
@@ -562,7 +559,7 @@ export default class MainController implements vscode.Disposable {
 
         // Shows first time notifications on extension installation or update
         // This call is intentionally not awaited to avoid blocking extension activation
-        this.showFirstLaunchPrompts();
+        void this.showFirstLaunchPrompts();
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
@@ -1295,7 +1292,7 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             const fileUri = this._vscodeWrapper.activeTextEditorUri;
             if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
-                this._connectionMgr.onChooseLanguageFlavor();
+                void this._connectionMgr.onChooseLanguageFlavor();
             } else {
                 this._vscodeWrapper.showWarningMessage(
                     LocalizedConstants.msgOpenSqlFile,
@@ -2025,7 +2022,7 @@ export default class MainController implements vscode.Disposable {
                 (await this._objectExplorerProvider.getChildren()).forEach(
                     (n: TreeNodeInfo) => {
                         try {
-                            this._objectExplorerProvider.refreshNode(n);
+                            void this._objectExplorerProvider.refreshNode(n);
                         } catch (e) {
                             errorFoundWhileRefreshing = true;
                             this._connectionMgr.client.logger.error(e);
@@ -2107,11 +2104,11 @@ export default class MainController implements vscode.Disposable {
     }
 
     public removeAadAccount(prompter: IPrompter): void {
-        this.connectionManager.removeAccount(prompter);
+        void this.connectionManager.removeAccount(prompter);
     }
 
     public addAadAccount(): void {
-        this.connectionManager.addAccount();
+        void this.connectionManager.addAccount();
     }
 
     public onClearAzureTokenCache(): void {

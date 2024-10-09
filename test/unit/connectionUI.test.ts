@@ -317,7 +317,7 @@ suite("Connection UI tests", () => {
         prompter
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
-        connectionUI.promptToManageProfiles();
+        void connectionUI.promptToManageProfiles();
         prompter.verify(
             (p) => p.promptSingle(TypeMoq.It.isAny()),
             TypeMoq.Times.once(),

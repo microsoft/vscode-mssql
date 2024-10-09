@@ -43,7 +43,7 @@ suite("Webview Panel Controller Tests", () => {
 
     test("Initializing a controller should create and open a new webview panel", (done) => {
         assert.equal(webviewPanel, undefined);
-        mockWebviewPanelController.object.init();
+        void mockWebviewPanelController.object.init();
         assert.notEqual(webviewPanel, undefined);
         assert.equal(mockWebviewPanelController.object.isDisposed, false);
         mockWebviewPanelController.object.dispose();
@@ -51,7 +51,7 @@ suite("Webview Panel Controller Tests", () => {
     });
 
     test("Closing the Webview Panel should dispose the webview", (done) => {
-        mockWebviewPanelController.object.init();
+        void mockWebviewPanelController.object.init();
         assert.notEqual(webviewPanel, undefined);
         assert.equal(mockWebviewPanelController.object.isDisposed, false);
         mockWebviewPanelController.object.dispose();

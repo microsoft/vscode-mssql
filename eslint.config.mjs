@@ -125,7 +125,7 @@ export default [
       ],
       "deprecation/deprecation": "warn",
       "@typescript-eslint/no-floating-promises": [
-        "warn",
+        "error",
         {
           ignoreVoid: true,
         },

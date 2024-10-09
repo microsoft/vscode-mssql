@@ -74,7 +74,7 @@ export class MsalAzureController extends AzureController {
 
         let azureAuth = await this.getAzureAuthInstance(authType!);
         await this.clearOldCacheIfExists();
-        azureAuth.loadTokenCache();
+        void azureAuth.loadTokenCache();
     }
 
     public async clearTokenCache(): Promise<void> {

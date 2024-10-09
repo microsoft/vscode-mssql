@@ -7,7 +7,7 @@ import { WebviewApi } from "vscode-webview";
 import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../../sharedInterfaces/telemetry";
+} from "../../sharedInterfaces/webview";
 
 /**
  * Rpc to communicate with the extension.
@@ -83,7 +83,7 @@ export class WebviewRpc<Reducers> {
         method: MethodName,
         payload?: Reducers[MethodName],
     ) {
-        this.call("action", { type: method, payload });
+        void this.call("action", { type: method, payload });
     }
 
     public subscribe(method: string, callback: (params: unknown) => void) {
@@ -94,10 +94,10 @@ export class WebviewRpc<Reducers> {
     }
 
     public sendActionEvent(event: WebviewTelemetryActionEvent) {
-        this.call("sendActionEvent", event);
+        void this.call("sendActionEvent", event);
     }
 
     public sendErrorEvent(event: WebviewTelemetryErrorEvent) {
-        this.call("sendErrorEvent", event);
+        void this.call("sendErrorEvent", event);
     }
 }

@@ -36,7 +36,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             executionPlanState: {},
         });
-        this.initialize();
+
+        void this.initialize();
     }
 
     private async initialize() {
@@ -247,9 +248,5 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             sum += graph.root.cost + graph.root.subTreeCost;
         }
         return sum;
-    }
-
-    private updateState() {
-        this.state = this.state;
     }
 }

@@ -153,7 +153,7 @@ class MessageProxy implements Disposable {
                 deferred.resolve(message.response);
             }
         } else {
-            Promise.resolve(
+            void Promise.resolve(
                 this.handler[message.method].apply(
                     this.handler,
                     message.passArguments,

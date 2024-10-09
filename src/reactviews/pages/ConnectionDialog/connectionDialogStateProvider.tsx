@@ -64,6 +64,14 @@ const ConnectionDialogStateProvider: React.FC<
                         subscriptionId: subscriptionId,
                     });
                 },
+                cancelTrustServerCertDialog: function (): void {
+                    webviewState?.extensionRpc.action(
+                        "cancelTrustServerCertDialog",
+                    );
+                },
+                refreshMruConnections: function (): void {
+                    webviewState.extensionRpc.action("refreshMruConnections");
+                },
             }}
         >
             {children}

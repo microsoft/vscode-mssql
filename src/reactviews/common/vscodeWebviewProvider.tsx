@@ -115,10 +115,10 @@ export function VscodeWebviewProvider<State, Reducers>({
             setLocalization(true);
         }
 
-        getTheme();
-        getState();
-        loadStats();
-        getLocalization();
+        void getTheme();
+        void getState();
+        void loadStats();
+        void getLocalization();
     }, []);
 
     extensionRpc.subscribe("onDidChangeTheme", (params) => {
@@ -140,6 +140,10 @@ export function VscodeWebviewProvider<State, Reducers>({
         setState(params as State);
     });
 
+    function isInitialized(): boolean {
+        return state !== undefined;
+    }
+
     return (
         <VscodeWebviewContext.Provider
             value={{
@@ -158,7 +162,10 @@ export function VscodeWebviewProvider<State, Reducers>({
                 }}
                 theme={theme}
             >
-                {children}
+                {
+                    // don't render webview unless necessary dependencies are initialized
+                    isInitialized() && children
+                }
             </FluentProvider>
         </VscodeWebviewContext.Provider>
     );

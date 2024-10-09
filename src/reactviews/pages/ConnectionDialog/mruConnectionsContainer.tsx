@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Button,
     Text,
     Tree,
     TreeItem,
@@ -11,7 +12,7 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { ServerRegular } from "@fluentui/react-icons";
+import { ServerRegular, ArrowClockwise16Filled } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { locConstants } from "../../common/locConstants";
@@ -20,6 +21,7 @@ const useStyles = makeStyles({
     paneTitle: {
         marginTop: "12px",
         marginBottom: "12px",
+        marginRight: "12px",
     },
     main: {
         gap: "36px",
@@ -48,7 +50,11 @@ const useStyles = makeStyles({
 
 export const MruConnectionsContainer = () => {
     const styles = useStyles();
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+    const context = useContext(ConnectionDialogContext);
+
+    if (context === undefined) {
+        return undefined;
+    }
 
     return (
         <div>
@@ -56,28 +62,30 @@ export const MruConnectionsContainer = () => {
                 <Text weight="semibold" className={styles.paneTitle}>
                     {locConstants.connectionDialog.recentConnections}
                 </Text>
+                <Button
+                    icon={<ArrowClockwise16Filled />}
+                    appearance="subtle"
+                    onClick={context.refreshMruConnections}
+                />
             </div>
             <Tree>
-                {connectionDialogContext?.state?.recentConnections?.map(
-                    (connection, index) => {
-                        return (
-                            <TreeItem
-                                itemType="leaf"
-                                key={"mru" + index}
-                                className={styles.card}
-                                onClick={() => {
-                                    connectionDialogContext.loadConnection(
-                                        connection,
-                                    );
-                                }}
-                            >
-                                <TreeItemLayout iconBefore={<ServerRegular />}>
-                                    {connection.displayName}
-                                </TreeItemLayout>
-                            </TreeItem>
-                        );
-                    },
-                )}
+                {// state may not be initialized yet due to async loading of context
+                context.state?.recentConnections.map((connection, index) => {
+                    return (
+                        <TreeItem
+                            itemType="leaf"
+                            key={"mru" + index}
+                            className={styles.card}
+                            onClick={() => {
+                                context.loadConnection(connection);
+                            }}
+                        >
+                            <TreeItemLayout iconBefore={<ServerRegular />}>
+                                {connection.displayName}
+                            </TreeItemLayout>
+                        </TreeItem>
+                    );
+                })}
             </Tree>
         </div>
     );

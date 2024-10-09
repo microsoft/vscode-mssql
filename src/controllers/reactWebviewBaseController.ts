@@ -9,9 +9,11 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import {
     TelemetryActions,
     TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../sharedInterfaces/telemetry";
+} from "../sharedInterfaces/webview";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -283,6 +285,14 @@ export abstract class ReactWebviewBaseController<State, Reducers>
     public set state(value: State) {
         this._state = value;
         this.postNotification(DefaultWebviewNotifications.updateState, value);
+    }
+
+    /**
+     * Updates the state in the webview
+     * @param state The new state object.  If not provided, `this.state` is used.
+     */
+    public updateState(state?: State) {
+        this.state = state ?? this.state;
     }
 
     /**

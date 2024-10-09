@@ -139,7 +139,7 @@ suite.skip("Utility tests - Timer Class", () => {
                 resolve();
             }, 100);
         });
-        p.then(() => done());
+        void p.then(() => done());
     });
 
     test("timer should end when ended", (done) => {
@@ -152,6 +152,6 @@ suite.skip("Utility tests - Timer Class", () => {
                 resolve();
             }, 100);
         });
-        p.then(() => done());
+        void p.then(() => done());
     });
 });

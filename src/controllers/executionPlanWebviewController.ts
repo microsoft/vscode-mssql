@@ -56,7 +56,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 ),
             },
         );
-        this.initialize();
+        void this.initialize();
     }
 
     private async initialize() {
@@ -178,9 +178,5 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             sum += graph.root.cost + graph.root.subTreeCost;
         }
         return sum;
-    }
-
-    private updateState() {
-        this.state = this.state;
     }
 }

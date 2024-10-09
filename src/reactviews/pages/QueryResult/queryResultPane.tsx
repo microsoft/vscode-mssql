@@ -28,8 +28,8 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { ExecutionPlanGraphInfo } from "../ExecutionPlan/executionPlanInterfaces";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
-import * as l10n from "@vscode/l10n";
 import CommandBar from "./commandBar";
+import { locConstants } from "../../common/locConstants";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 
 const useStyles = makeStyles({
@@ -83,13 +83,6 @@ const useStyles = makeStyles({
     },
 });
 
-const RESULTS = l10n.t("Results");
-const MESSAGES = l10n.t("Messages");
-const TIMESTAMP = l10n.t("Timestamp");
-const MESSAGE = l10n.t("Message");
-const QUERY_PLAN = l10n.t("Query Plan");
-const OPEN_SNAPSHOT_IN_NEW_TAB = l10n.t("Open snapshot in new tab");
-
 export const QueryResultPane = () => {
     const classes = useStyles();
     const state = useContext(QueryResultContext);
@@ -102,11 +95,11 @@ export const QueryResultPane = () => {
     const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
         createTableColumn({
             columnId: "time",
-            renderHeaderCell: () => <>{TIMESTAMP}</>,
+            renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
         }),
         createTableColumn({
             columnId: "message",
-            renderHeaderCell: () => <>{MESSAGE}</>,
+            renderHeaderCell: () => <>{locConstants.queryResult.message}</>,
         }),
     ];
     const gridParentRef = useRef<HTMLDivElement>(null);
@@ -314,14 +307,14 @@ export const QueryResultPane = () => {
                             value={qr.QueryResultPaneTabs.Results}
                             key={qr.QueryResultPaneTabs.Results}
                         >
-                            {RESULTS}
+                            {locConstants.queryResult.results}
                         </Tab>
                     )}
                     <Tab
                         value={qr.QueryResultPaneTabs.Messages}
                         key={qr.QueryResultPaneTabs.Messages}
                     >
-                        {MESSAGES}
+                        {locConstants.queryResult.messages}
                     </Tab>
                     {Object.keys(metadata.resultSetSummaries).length > 0 &&
                         metadata.isExecutionPlan && (
@@ -329,7 +322,7 @@ export const QueryResultPane = () => {
                                 value={qr.QueryResultPaneTabs.ExecutionPlan}
                                 key={qr.QueryResultPaneTabs.ExecutionPlan}
                             >
-                                {QUERY_PLAN}
+                                {locConstants.queryResult.queryPlan}
                             </Tab>
                         )}
                 </TabList>
@@ -349,7 +342,7 @@ export const QueryResultPane = () => {
                             console.log("todo: open in new tab");
                             // gridRef.current.refreshGrid();
                         }}
-                        title={OPEN_SNAPSHOT_IN_NEW_TAB}
+                        title={locConstants.queryResult.openSnapshot}
                     ></Button>
                 )}
             </div>
