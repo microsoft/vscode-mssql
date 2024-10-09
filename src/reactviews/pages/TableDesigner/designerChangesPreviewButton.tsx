@@ -162,7 +162,11 @@ export const DesignerChangesPreviewButton = () => {
                             intent="error"
                             style={{ paddingRight: "12px" }}
                         >
-                            <MessageBarBody>
+                            <MessageBarBody
+                                style={{
+                                    textAlign: "justify",
+                                }}
+                            >
                                 {metadata?.publishingError ?? ""}
                             </MessageBarBody>
                             <MessageBarActions>
