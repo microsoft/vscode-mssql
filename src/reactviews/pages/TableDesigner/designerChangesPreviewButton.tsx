@@ -163,7 +163,7 @@ export const DesignerChangesPreviewButton = () => {
                                 width: "200px",
                             }}
                         >
-                            {locConstants.tableDesigner.retryUpdatingDatabase}
+                            {locConstants.tableDesigner.retry}
                         </Button>
                         <Button
                             onClick={() => {

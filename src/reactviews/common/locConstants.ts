@@ -133,8 +133,7 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
-            retryUpdatingDatabase: l10n.t("Retry updating database"),
-            backToPreview: l10n.t("Back to preview report"),
+            backToPreview: l10n.t("Back to preview"),
         };
     }
 
