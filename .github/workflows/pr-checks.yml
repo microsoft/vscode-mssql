@@ -49,19 +49,15 @@ jobs:
           echo "Installing gulp"
           npm install --global gulp@4.0.2
 
-      - name: Build main branch
-        run: |
-          cd main
-          yarn --frozen-lockfile
-          yarn build --prod
-          yarn gulp package:online
+      - name: Install dependencies and build main extension
+        uses: ./.github/actions/build-extension
+        with:
+          source-dir: './main'
 
-      - name: Build PR branch
-        run: |
-          cd pr
-          yarn --frozen-lockfile
-          yarn build --prod
-          yarn gulp package:online
+      - name: Install dependencies and build PR extension
+        uses: ./.github/actions/build-extension
+        with:
+          source-dir: './pr'
 
       - name: Code coverage
         run: |
@@ -80,6 +76,13 @@ jobs:
           line_rate_pr=$((line_rate_pr * 100))
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
           echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
+
+      - name: Package both branches
+        run: |
+          cd main
+          yarn gulp package:online
+          cd ../pr
+          yarn gulp package:online
 
       - name: Calculate webview bundle sizes
         run: |

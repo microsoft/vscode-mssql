@@ -1,0 +1,47 @@
+name: Build Extension.
+
+description: Assumes extension is already checked out and cwd is the root of the extension.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up xvfb
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+        sudo cp build/xvfb.init /etc/init.d/xvfb
+        sudo chmod +x /etc/init.d/xvfb
+        sudo update-rc.d xvfb defaults
+        sudo service xvfb start
+
+    - name: Install tools
+      run: |
+        echo "Installing Yarn"
+        npm install --global yarn@1.22.19
+        echo "Installing Gulp CLI"
+        npm install --global gulp-cli@2.3.0
+        echo "Installing VSCE"
+        npm install --global vsce@2.9.2
+        echo "Installing gulp"
+        npm install --global gulp@4.0.2
+
+    - name: Install extension dependencies
+      run: |
+        cd ${{ inputs.source-dir }}
+        yarn --frozen-lockfile
+
+    - name: Install playwright dependencies
+      run: |
+        cd ${{ inputs.source-dir }}
+        npx playwright install --with-deps
+
+    - name: Build extension
+      run: |
+        cd ${{ inputs.source-dir }}
+        yarn build --prod
+
+inputs:
+  source-dir:
+    description: 'The source directory to build'
+    required: false
+    default: '.'
