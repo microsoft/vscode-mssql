@@ -1,11 +1,11 @@
 name: Build Extension.
 
 description: Assumes extension is already checked out and cwd is the root of the extension.
-shell: bash
 runs:
   using: "composite"
   steps:
     - name: Set up xvfb
+      shell: bash
       run: |
         sudo apt-get update
         sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
@@ -15,6 +15,7 @@ runs:
         sudo service xvfb start
 
     - name: Install tools
+      shell: bash
       run: |
         echo "Installing Yarn"
         npm install --global yarn@1.22.19
@@ -26,16 +27,19 @@ runs:
         npm install --global gulp@4.0.2
 
     - name: Install extension dependencies
+      shell: bash
       run: |
         cd ${{ inputs.source-dir }}
         yarn --frozen-lockfile
 
     - name: Install playwright dependencies
+      shell: bash
       run: |
         cd ${{ inputs.source-dir }}
         npx playwright install --with-deps
 
     - name: Build extension
+      shell: bash
       run: |
         cd ${{ inputs.source-dir }}
         yarn build --prod
