@@ -4,6 +4,7 @@ description: Assumes extension is already checked out and cwd is the root of the
 
 runs:
   using: "composite"
+  shell: bash
   steps:
     - name: Set up xvfb
       run: |
