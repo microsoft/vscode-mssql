@@ -67,7 +67,7 @@ jobs:
           xml_coverage_main=$(find ./coverage -name 'cobertura-coverage.xml')
           line_rate_main=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_main" | sed 's/line-rate="\([0-9.]*\)"/\1/')
           line_rate_main=$((line_rate_main * 100))
-          echo "line_rate_main=$((line_rate_main * 100))" >> $GITHUB_ENV
+          echo "line_rate_main=$line_rate_main" >> $GITHUB_ENV
           cd ../pr
           DISPLAY=:10 yarn test --coverage --log
           yarn gulp cover
