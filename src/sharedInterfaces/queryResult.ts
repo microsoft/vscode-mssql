@@ -6,6 +6,9 @@
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     ExecutionPlanGraph,
+    ExecutionPlanProvider,
+    ExecutionPlanReducers,
+    ExecutionPlanState,
     GetExecutionPlanResult,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
@@ -15,7 +18,8 @@ export enum QueryResultLoadState {
     Error = "Error",
 }
 
-export interface QueryResultReactProvider {
+export interface QueryResultReactProvider
+    extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     /**
      * Gets the execution plan graph from the provider for a given plan file
@@ -28,30 +32,6 @@ export interface QueryResultReactProvider {
      * @param plan the xml plan contents to be added
      */
     addXmlPlan(plan: string): void;
-
-    /**
-     * Handles saving the execution plan file through the vscode extension api
-     * @param sqlPlanContent the xml file content of the execution plan
-     */
-    saveExecutionPlan(sqlPlanContent: string): void;
-
-    /**
-     * Opens the execution plan xml content in another window
-     * @param sqlPlanContent the xml file content of the execution plan
-     */
-    showPlanXml(sqlPlanContent: string): void;
-
-    /**
-     * Opens the execution plan query in another window
-     * @param sqlPlanContent the query of the execution plan
-     */
-    showQuery(query: string): void;
-
-    /**
-     * Adds the specified cost to the total cost of the execution plan script
-     * @param addedCost the cost of the current execution plan graph
-     */
-    updateTotalCost(addedCost: number): void;
 }
 
 export enum QueryResultPaneTabs {
@@ -64,14 +44,9 @@ export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
 }
 
-export interface QueryResultWebviewState {
-    uri?: string;
-    resultSetSummaries: { [key: number]: ResultSetSummary };
-    messages: IMessage[];
-    tabStates?: QueryResultTabStates;
-    isExecutionPlan?: boolean;
+// make this properly extend so it doesn't have ot be written twice:
+export interface ExecutionPlanWebviewState {
     executionPlanState: {
-        xmlPlans?: string[];
         sqlPlanContent?: string;
         executionPlan?: GetExecutionPlanResult;
         executionPlanGraphs?: ExecutionPlanGraph[];
@@ -82,7 +57,19 @@ export interface QueryResultWebviewState {
     };
 }
 
-export interface QueryResultReducers {
+export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
+    uri?: string;
+    resultSetSummaries: { [key: number]: ResultSetSummary };
+    messages: IMessage[];
+    tabStates?: QueryResultTabStates;
+    isExecutionPlan?: boolean;
+    executionPlanState: ExecutionPlanState & {
+        xmlPlans?: string[];
+    };
+}
+
+export interface QueryResultReducers
+    extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
     };
@@ -91,18 +78,6 @@ export interface QueryResultReducers {
     };
     addXmlPlan: {
         xmlPlan: string;
-    };
-    saveExecutionPlan: {
-        sqlPlanContent: string;
-    };
-    showPlanXml: {
-        sqlPlanContent: string;
-    };
-    showQuery: {
-        query: string;
-    };
-    updateTotalCost: {
-        addedCost: number;
     };
 }
 

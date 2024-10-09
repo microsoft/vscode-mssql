@@ -6,15 +6,17 @@
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export interface ExecutionPlanWebviewState {
-    executionPlanState: {
-        sqlPlanContent?: string;
-        executionPlan?: GetExecutionPlanResult;
-        executionPlanGraphs?: ExecutionPlanGraph[];
-        theme?: string;
-        totalCost?: number;
-        loadState?: ApiStatus;
-        errorMessage?: string;
-    };
+    executionPlanState: ExecutionPlanState;
+}
+
+export interface ExecutionPlanState {
+    sqlPlanContent?: string;
+    executionPlan?: GetExecutionPlanResult;
+    executionPlanGraphs?: ExecutionPlanGraph[];
+    theme?: string;
+    totalCost?: number;
+    loadState?: ApiStatus;
+    errorMessage?: string;
 }
 
 export interface ExecutionPlanReducers {
