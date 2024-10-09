@@ -3,13 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ApiStatus } from "../sharedInterfaces/webview";
 import {
-    ExecutionPlanGraph,
     ExecutionPlanProvider,
     ExecutionPlanReducers,
     ExecutionPlanState,
-    GetExecutionPlanResult,
+    ExecutionPlanWebviewState,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
 export enum QueryResultLoadState {
@@ -42,19 +40,6 @@ export enum QueryResultPaneTabs {
 
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
-}
-
-// make this properly extend so it doesn't have ot be written twice:
-export interface ExecutionPlanWebviewState {
-    executionPlanState: {
-        sqlPlanContent?: string;
-        executionPlan?: GetExecutionPlanResult;
-        executionPlanGraphs?: ExecutionPlanGraph[];
-        theme?: string;
-        totalCost?: number;
-        loadState?: ApiStatus;
-        errorMessage?: string;
-    };
 }
 
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
