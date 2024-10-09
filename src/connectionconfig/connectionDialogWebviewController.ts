@@ -38,10 +38,7 @@ import {
     FormItemType,
 } from "../reactviews/common/forms/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import {
-    AzureSubscription,
-    VSCodeAzureSubscriptionProvider,
-} from "@microsoft/vscode-azext-azureauth";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import {
     GenericResourceExpanded,
     ResourceManagementClient,
