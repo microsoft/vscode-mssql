@@ -94,6 +94,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     const executionPlanState = state?.state.executionPlanState;
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
+    const [xml, setXml] = useState("");
     const [cost, setCost] = useState(0);
     const [executionPlanView, setExecutionPlanView] =
         useState<ExecutionPlanView | null>(null);
@@ -176,6 +177,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     }
                 }
                 setQuery(tempQuery);
+                setXml(
+                    executionPlanState.executionPlanGraphs[graphIndex].graphFile
+                        .graphFileContent,
+                );
                 setCost(executionPlanView.getTotalRelativeCost());
             } else {
                 return;
@@ -339,6 +344,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 setHighlightOpsClicked={setHighlightOpsClicked}
                 setPropertiesClicked={setPropertiesClicked}
                 query={query}
+                xml={xml}
                 context={context}
             />
         </div>

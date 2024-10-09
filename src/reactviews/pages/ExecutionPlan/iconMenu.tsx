@@ -48,6 +48,7 @@ interface IconStackProps {
     setHighlightOpsClicked: any;
     setPropertiesClicked: any;
     query: string;
+    xml: string;
     context?: QueryResultState;
 }
 
@@ -60,6 +61,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     setHighlightOpsClicked,
     setPropertiesClicked,
     query,
+    xml,
     context,
 }) => {
     const classes = useStyles();
@@ -93,7 +95,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     };
 
     const handleShowXml = async () => {
-        await state!.provider.showPlanXml(executionPlanState!.sqlPlanContent!);
+        await state!.provider.showPlanXml(xml);
     };
 
     const handleShowQuery = async () => {

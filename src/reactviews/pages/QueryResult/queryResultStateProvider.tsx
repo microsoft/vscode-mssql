@@ -7,7 +7,6 @@ import { ReactNode, createContext } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Theme } from "@fluentui/react-components";
-import { ExecutionPlanGraphInfo } from "../ExecutionPlan/executionPlanInterfaces";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
@@ -42,11 +41,9 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             tabId: tabId,
                         });
                     },
-                    getExecutionPlan: function (
-                        planFile: ExecutionPlanGraphInfo,
-                    ): void {
+                    getExecutionPlan: function (xmlPlans: string[]): void {
                         webViewState?.extensionRpc.action("getExecutionPlan", {
-                            sqlPlanContent: planFile.graphFileContent,
+                            xmlPlans: xmlPlans,
                         });
                     },
                     addXmlPlan: function (plan: string): void {

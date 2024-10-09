@@ -21,7 +21,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> =
         new Map<string, qr.QueryResultWebviewState>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
-    private _executionPlanContents: string;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -74,21 +73,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            this._executionPlanContents = payload.sqlPlanContent;
-            await this.createExecutionPlanGraphs();
+            await this.createExecutionPlanGraphs(state, payload.xmlPlans);
             state.executionPlanState.loadState = ApiStatus.Loaded;
             state.tabStates.resultPaneTab =
                 qr.QueryResultPaneTabs.ExecutionPlan;
-            return {
-                ...state,
-                executionPlanState: {
-                    ...state.executionPlanState,
-                    sqlPlanContent: payload.sqlPlanContent,
-                    executionPlan: this.state.executionPlanState.executionPlan,
-                    executionPlanGraphs:
-                        this.state.executionPlanState.executionPlanGraphs,
-                },
-            };
+            return state;
         });
         this.registerReducer("addXmlPlan", async (state, payload) => {
             state.executionPlanState.xmlPlans = [
@@ -215,36 +204,40 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.untitledSqlDocumentService = service;
     }
 
-    private async createExecutionPlanGraphs() {
-        if (!this.state.executionPlanState.executionPlan) {
+    private async createExecutionPlanGraphs(
+        state: qr.QueryResultWebviewState,
+        xmlPlans: string[],
+    ) {
+        for (const plan of xmlPlans) {
             const planFile: ExecutionPlanGraphInfo = {
-                graphFileContent: this._executionPlanContents,
+                graphFileContent: plan,
                 graphFileType: ".sqlplan",
             };
             try {
-                this.state.executionPlanState.executionPlan =
+                state.executionPlanState.executionPlan =
                     await this.executionPlanService.getExecutionPlan(planFile);
-                this.state.executionPlanState.executionPlanGraphs =
-                    this.state.executionPlanState.executionPlan.graphs;
-                this.state.executionPlanState.loadState = ApiStatus.Loaded;
-                this.state.executionPlanState.totalCost =
-                    this.calculateTotalCost();
+                state.executionPlanState.executionPlanGraphs =
+                    state.executionPlanState.executionPlanGraphs.concat(
+                        state.executionPlanState.executionPlan.graphs,
+                    );
+                state.executionPlanState.loadState = ApiStatus.Loaded;
             } catch (e) {
-                this.state.executionPlanState.loadState = ApiStatus.Error;
-                this.state.executionPlanState.errorMessage = e.toString();
+                state.executionPlanState.loadState = ApiStatus.Error;
+                state.executionPlanState.errorMessage = e.toString();
             }
-            this.updateState();
         }
+        state.executionPlanState.totalCost = this.calculateTotalCost(state);
+        this.updateState();
     }
 
-    private calculateTotalCost(): number {
-        if (!this.state.executionPlanState.executionPlanGraphs) {
-            this.state.executionPlanState.loadState = ApiStatus.Error;
+    private calculateTotalCost(state: qr.QueryResultWebviewState): number {
+        if (!state.executionPlanState.executionPlanGraphs) {
+            state.executionPlanState.loadState = ApiStatus.Error;
             return 0;
         }
 
         let sum = 0;
-        for (const graph of this.state.executionPlanState.executionPlanGraphs) {
+        for (const graph of state.executionPlanState.executionPlanGraphs) {
             sum += graph.root.cost + graph.root.subTreeCost;
         }
         return sum;

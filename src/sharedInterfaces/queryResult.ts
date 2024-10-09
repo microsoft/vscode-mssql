@@ -6,7 +6,6 @@
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     ExecutionPlanGraph,
-    ExecutionPlanGraphInfo,
     GetExecutionPlanResult,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
@@ -22,7 +21,7 @@ export interface QueryResultReactProvider {
      * Gets the execution plan graph from the provider for a given plan file
      * @param planFile file that contains the execution plan
      */
-    getExecutionPlan(planFile: ExecutionPlanGraphInfo): void;
+    getExecutionPlan(xmlPlans: string[]): void;
 
     /**
      * Gets the execution plan graph from the provider for a given plan file
@@ -88,7 +87,7 @@ export interface QueryResultReducers {
         tabId: QueryResultPaneTabs;
     };
     getExecutionPlan: {
-        sqlPlanContent: string;
+        xmlPlans: string[];
     };
     addXmlPlan: {
         xmlPlan: string;
