@@ -126,8 +126,8 @@ jobs:
 
       - name: Write PR results to markdown
         run: |
-          echo "### PR Changes" > results.md
-          echo "| Category                      | Main Branch        | PR Branch         | Difference           |" > results.md
+          echo "### PR Changes" >> results.md
+          echo "| Category                      | Main Branch        | PR Branch         | Difference           |" >> results.md
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
           echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}}\\\\% ${{ '}\$\$' }} |" >> results.md
           echo "| VSIX Size                    | ${{ env.main_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
