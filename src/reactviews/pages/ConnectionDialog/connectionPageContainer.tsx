@@ -25,6 +25,7 @@ import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
 import { locConstants } from "../../common/locConstants";
 import { AzureBrowsePage } from "./azureBrowsePage";
+import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -40,28 +41,24 @@ function renderContent(
 }
 
 export const ConnectionInfoFormContainer = () => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+    const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
-
-    if (!connectionDialogContext?.state) {
-        return undefined;
-    }
 
     return (
         <div className={formStyles.formRoot}>
             <ConnectionHeader />
 
-            <div className={formStyles.formDiv}>
-                {connectionDialogContext?.state.formError && (
+            <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+                {context.state.formError && (
                     <MessageBar intent="error">
-                        {connectionDialogContext.state.formError}
+                        {context.state.formError}
                     </MessageBar>
                 )}
+                <TrustServerCertificateDialog />
                 <FormField
-                    context={connectionDialogContext}
+                    context={context}
                     component={
-                        connectionDialogContext.state.connectionComponents
-                            .components[
+                        context.state.connectionComponents.components[
                             "profileName"
                         ] as FormItemSpec<IConnectionDialogProfile>
                     }
@@ -73,13 +70,11 @@ export const ConnectionInfoFormContainer = () => {
                     <Field label="Input type" orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                connectionDialogContext.setConnectionInputType(
+                                context.setConnectionInputType(
                                     data.value as ConnectionInputMode,
                                 );
                             }}
-                            value={
-                                connectionDialogContext.state.selectedInputMode
-                            }
+                            value={context.state.selectedInputMode}
                         >
                             <Radio
                                 value={ConnectionInputMode.Parameters}
@@ -101,9 +96,7 @@ export const ConnectionInfoFormContainer = () => {
                         </RadioGroup>
                     </Field>
                 </div>
-                <div style={{ overflow: "auto" }}>
-                    {renderContent(connectionDialogContext)}
-                </div>
+                {renderContent(context)}
             </div>
         </div>
     );

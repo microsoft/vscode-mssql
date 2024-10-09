@@ -44,6 +44,7 @@ export class ConnectionDialogWebviewState
     public formError: string;
     public loadingAzureSubscriptionsStatus: ApiStatus;
     public loadingAzureServersStatus: ApiStatus;
+    public trustServerCertError: string | undefined;
 
     constructor({
         connectionProfile,
@@ -56,6 +57,7 @@ export class ConnectionDialogWebviewState
         formError,
         loadingAzureSubscriptionsStatus,
         loadingAzureServersStatus,
+        trustServerCertError,
     }: {
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
@@ -78,6 +80,7 @@ export class ConnectionDialogWebviewState
         formError: string;
         loadingAzureSubscriptionsStatus: ApiStatus;
         loadingAzureServersStatus: ApiStatus;
+        trustServerCertError: string | undefined;
     }) {
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
@@ -89,6 +92,7 @@ export class ConnectionDialogWebviewState
         this.formError = formError;
         this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
         this.loadingAzureServersStatus = loadingAzureServersStatus;
+        this.trustServerCertError = trustServerCertError;
     }
 }
 
@@ -138,6 +142,8 @@ export interface ConnectionDialogContextProps
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
+    cancelTrustServerCertDialog: () => void;
+    refreshMruConnections: () => void;
 }
 
 export enum AuthenticationType {
@@ -160,4 +166,6 @@ export interface ConnectionDialogReducers {
     loadAzureServers: {
         subscriptionId: string;
     };
+    cancelTrustServerCertDialog: {};
+    refreshMruConnections: {};
 }
