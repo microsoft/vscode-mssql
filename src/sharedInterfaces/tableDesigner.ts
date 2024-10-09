@@ -708,6 +708,7 @@ export interface TableDesignerWebviewState {
     apiState?: DesignerAPIState;
     tabStates?: DesignerTabStates;
     propertiesPaneData?: PropertiesPaneData;
+    publishingError?: string;
 }
 
 export interface DesignerView {

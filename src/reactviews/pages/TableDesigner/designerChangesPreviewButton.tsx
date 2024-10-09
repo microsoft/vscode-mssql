@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Checkbox, Spinner, makeStyles } from "@fluentui/react-components";
+import {
+    DatabaseArrowDownRegular,
+    ErrorCircleRegular,
+} from "@fluentui/react-icons";
 import {
     Dialog,
     DialogActions,
@@ -12,17 +17,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@fluentui/react-dialog";
-import { ToolbarButton } from "@fluentui/react-toolbar";
-import {
-    DatabaseArrowDownRegular,
-    ErrorCircleRegular,
-} from "@fluentui/react-icons";
-import { Button } from "@fluentui/react-button";
-import { Checkbox, Spinner, makeStyles } from "@fluentui/react-components";
-import ReactMarkdown from "react-markdown";
 import { useContext, useState } from "react";
-import { TableDesignerContext } from "./tableDesignerStateProvider";
+
+import { Button } from "@fluentui/react-button";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
+import ReactMarkdown from "react-markdown";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { ToolbarButton } from "@fluentui/react-toolbar";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -83,6 +84,20 @@ export const DesignerChangesPreviewButton = () => {
         }
     };
 
+    const getDialogCloseButton = () => {
+        return (
+            <DialogTrigger disableButtonEnhancement>
+                <Button
+                    size="medium"
+                    appearance="secondary"
+                    onClick={() => setIsConfirmationChecked(false)}
+                >
+                    {locConstants.tableDesigner.close}
+                </Button>
+            </DialogTrigger>
+        );
+    };
+
     const getDialogContent = () => {
         if (metadata?.apiState?.publishState === LoadState.Loading) {
             return (
@@ -119,13 +134,43 @@ export const DesignerChangesPreviewButton = () => {
                             <Button
                                 size="medium"
                                 appearance="secondary"
-                                onClick={
-                                    designerContext.provider.continueEditing
-                                }
+                                onClick={() => {
+                                    setIsConfirmationChecked(false);
+                                    designerContext.provider.continueEditing;
+                                }}
                             >
                                 {locConstants.tableDesigner.continueEditing}
                             </Button>
                         </DialogTrigger>
+                    </DialogActions>
+                </>
+            );
+        }
+        if (metadata?.apiState?.publishState === LoadState.Error) {
+            return (
+                <>
+                    <DialogContent className={classes.dialogContent}>
+                        <ErrorCircleRegular className={classes.errorIcon} />
+                        <div>{metadata?.publishingError ?? ""}</div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            appearance="primary"
+                            onClick={() => {
+                                designerContext.provider.publishChanges();
+                            }}
+                        >
+                            {locConstants.tableDesigner.retry}
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setIsConfirmationChecked(false);
+                                designerContext.provider.generatePreviewReport();
+                            }}
+                        >
+                            Back
+                        </Button>
+                        {getDialogCloseButton()}
                     </DialogActions>
                 </>
             );
@@ -136,7 +181,7 @@ export const DesignerChangesPreviewButton = () => {
                     <DialogContent className={classes.dialogContent}>
                         <Spinner
                             label={
-                                locConstants.tableDesigner.loadingTableDesigner
+                                locConstants.tableDesigner.loadingPreviewReport
                             }
                             labelPosition="below"
                         />
@@ -152,6 +197,8 @@ export const DesignerChangesPreviewButton = () => {
                         <div>
                             {locConstants.tableDesigner.errorLoadingPreview}
                         </div>
+                    </DialogContent>
+                    <DialogActions>
                         <Button
                             className={classes.retryButton}
                             onClick={() => {
@@ -160,7 +207,7 @@ export const DesignerChangesPreviewButton = () => {
                         >
                             {locConstants.tableDesigner.retry}
                         </Button>
-                    </DialogContent>
+                    </DialogActions>
                 </>
             );
         }
@@ -178,6 +225,7 @@ export const DesignerChangesPreviewButton = () => {
                                 locConstants.tableDesigner
                                     .designerPreviewConfirmation
                             }
+                            checked={isConfirmationChecked}
                             onChange={(_event, data) => {
                                 setIsConfirmationChecked(
                                     data.checked as boolean,
@@ -219,11 +267,7 @@ export const DesignerChangesPreviewButton = () => {
                                 {locConstants.tableDesigner.generateScript}
                             </Button>
                         </DialogTrigger>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button size="medium" appearance="secondary">
-                                {locConstants.tableDesigner.close}
-                            </Button>
-                        </DialogTrigger>
+                        {getDialogCloseButton()}
                     </DialogActions>
                 </>
             );
