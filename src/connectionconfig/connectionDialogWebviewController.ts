@@ -49,6 +49,11 @@ import {
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { l10n } from "vscode";
 import { UserSurvey } from "../nps/userSurvey";
+import {
+    azureSubscriptionFilterConfigKey,
+    confirmVscodeAzureSignin,
+    promptForAzureSubscriptionFilter,
+} from "./azureHelper";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -164,7 +169,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.groupAdvancedOptions(this.state.connectionComponents);
 
         await this.updateItemVisibility();
-        this.state = this.state;
+        this.updateState();
     }
 
     private async loadRecentConnections(): Promise<IConnectionDialogProfile[]> {
@@ -196,7 +201,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 connection.connectionString && connection.server === undefined
                     ? ConnectionInputMode.ConnectionString
                     : ConnectionInputMode.Parameters;
-            this.state = this.state;
+            this.updateState();
         }
     }
 
@@ -684,7 +689,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 if (accountsComponent) {
                     accountsComponent.options = await this.getAccounts();
                     this.state.connectionProfile.accountId = account.key.id;
-                    this.state = this.state;
+                    this.updateState();
                     await this.handleAzureMFAEdits("accountId");
                 }
             },
@@ -815,7 +820,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             async (state, payload) => {
                 this.state.selectedInputMode = payload.inputMode;
                 await this.updateItemVisibility();
-                this.state = this.state;
+                this.updateState();
 
                 if (
                     this.state.selectedInputMode ===
@@ -874,7 +879,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.clearFormError();
             this.state.connectionStatus = ApiStatus.Loading;
             this.state.formError = "";
-            this.state = this.state;
+            this.updateState();
 
             // Clear the options that aren't being used (due to form selections, like authType)
             for (const option of Object.values(
@@ -971,37 +976,37 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
             return state;
         });
+
+        this.registerReducer("filterAzureSubscriptions", async (state) => {
+            await promptForAzureSubscriptionFilter(state);
+            await this.loadAllAzureServers(state);
+
+            return state;
+        });
     }
 
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
         try {
-            const auth: VSCodeAzureSubscriptionProvider =
-                new VSCodeAzureSubscriptionProvider();
+            const auth = await confirmVscodeAzureSignin();
 
-            if (!(await auth.isSignedIn())) {
-                const result = await auth.signIn();
-
-                if (!result) {
-                    state.formError = l10n.t("Azure sign in failed.");
-                    return undefined;
-                }
+            if (!auth) {
+                state.formError = l10n.t("Azure sign in failed.");
+                return undefined;
             }
 
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
-            this.state = state; // trigger UI update
+            this.updateState();
 
             // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
-            // we can't controll which config setting it uses, but the Azure Resources extension (ms-azuretools.vscode-azureresourcegroups) sets this config setting,
-            // so that's the easiest way for a user to control their subscription filters.
+            // The specific vscode config setting it uses is hardcoded into the VS Code Azure SDK, so we need to use the same value here.
             const shouldUseFilter =
                 vscode.workspace
                     .getConfiguration()
                     .get<
                         string[] | undefined
-                    >("azureResourceGroups.selectedSubscriptions") !==
-                undefined;
+                    >(azureSubscriptionFilterConfigKey) !== undefined;
 
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(shouldUseFilter)).map((s) => [
@@ -1029,27 +1034,34 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.azureSubscriptions = subs;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
 
-            this.state = state; // trigger UI update
+            this.updateState();
 
             return tenantSubMap;
         } catch (error) {
             state.formError = l10n.t("Error loading Azure subscriptions.");
+            state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
             return undefined;
         }
     }
 
-    private async loadAllAzureServers(state: ConnectionDialogWebviewState) {
+    private async loadAllAzureServers(
+        state: ConnectionDialogWebviewState,
+    ): Promise<void> {
         try {
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
+            if (!tenantSubMap) {
+                return;
+            }
+
             if (tenantSubMap.size === 0) {
                 state.formError = l10n.t(
-                    "No subscriptions set in VS Code's Azure account filter.",
+                    "No subscriptions available.  Adjust your subscription filters to try again.",
                 );
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
-                this.state = state; // update state mid-reducer so the UI is more responsive
+                this.updateState();
 
                 const promiseArray: Promise<void>[] = [];
                 for (const t of tenantSubMap.keys()) {
@@ -1065,13 +1077,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 await Promise.all(promiseArray);
 
                 state.loadingAzureServersStatus = ApiStatus.Loaded;
-                return state;
+                return;
             }
         } catch (error) {
             state.formError = l10n.t("Error loading Azure databases.");
             state.loadingAzureServersStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
-            return state;
+            return;
         }
     }
 
@@ -1088,7 +1100,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             const servers = await this.fetchServersFromAzure(azSub);
             state.azureServers.push(...servers);
             stateSub.loaded = true;
-            this.state = state; // update state mid-reducer so the UI is more responsive
+            this.updateState();
             console.log(
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );

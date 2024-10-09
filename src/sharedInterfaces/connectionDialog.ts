@@ -139,6 +139,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     refreshMruConnections: () => void;
+    filterAzureSubscriptions: () => void;
 }
 
 export enum AuthenticationType {
@@ -162,4 +163,5 @@ export interface ConnectionDialogReducers {
         subscriptionId: string;
     };
     refreshMruConnections: {};
+    filterAzureSubscriptions: {};
 }

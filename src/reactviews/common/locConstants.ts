@@ -151,6 +151,7 @@ export class LocConstants {
             location: l10n.t("Location"),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
+            filterSubscriptions: l10n.t("Filter Azure subscriptions"),
         };
     }
 
