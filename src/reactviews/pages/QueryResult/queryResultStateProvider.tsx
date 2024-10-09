@@ -7,10 +7,7 @@ import { ReactNode, createContext } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { Theme } from "@fluentui/react-components";
-import {
-    ExecutionPlanGraphInfo,
-    GetExecutionPlanResult,
-} from "../ExecutionPlan/executionPlanInterfaces";
+import { ExecutionPlanGraphInfo } from "../ExecutionPlan/executionPlanInterfaces";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
@@ -47,25 +44,15 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                     },
                     getExecutionPlan: function (
                         planFile: ExecutionPlanGraphInfo,
-                    ): Promise<GetExecutionPlanResult> {
+                    ): void {
                         webViewState?.extensionRpc.action("getExecutionPlan", {
                             sqlPlanContent: planFile.graphFileContent,
                         });
-
-                        if (
-                            webViewState &&
-                            webViewState.state &&
-                            webViewState.state.executionPlanState.executionPlan
-                        ) {
-                            return Promise.resolve(
-                                webViewState.state.executionPlanState
-                                    .executionPlan,
-                            );
-                        }
-
-                        return Promise.reject(
-                            new Error("Execution plan is undefined"),
-                        );
+                    },
+                    addXmlPlan: function (plan: string): void {
+                        webViewState?.extensionRpc.action("addXmlPlan", {
+                            xmlPlan: plan,
+                        });
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {
                         webViewState?.extensionRpc.action("saveExecutionPlan", {

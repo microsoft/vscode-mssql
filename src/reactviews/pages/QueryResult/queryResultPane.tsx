@@ -139,7 +139,6 @@ export const QueryResultPane = () => {
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
-    const [executionPlanXmls, setExecutionPlanXmls] = useState<string[]>([]);
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -214,10 +213,9 @@ export const QueryResultPane = () => {
                                 // if the result is an execution plan xml,
                                 // get the execution plan graph from it
                                 if (metadata?.isExecutionPlan) {
-                                    setExecutionPlanXmls([
-                                        ...executionPlanXmls,
+                                    state?.provider.addXmlPlan(
                                         r.rows[0][0].displayValue,
-                                    ]);
+                                    );
                                 }
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
@@ -269,27 +267,34 @@ export const QueryResultPane = () => {
     };
 
     useEffect(() => {
-        const getExecutionPlanGraphs = async () => {
+        const getExecutionPlanGraphs = (contents: string) => {
             if (
                 metadata &&
                 metadata.executionPlanState?.executionPlanGraphs &&
                 !metadata.executionPlanState.executionPlanGraphs.length
             ) {
-                const planFile: ExecutionPlanGraphInfo = {
-                    graphFileContent: mergePlans(executionPlanXmls),
+                let planFile: ExecutionPlanGraphInfo = {
+                    graphFileContent: contents,
                     graphFileType: ".sqlplan",
                 };
-                await state!.provider.getExecutionPlan(planFile);
+
+                state!.provider.getExecutionPlan(planFile);
             }
         };
 
-        const gridsLength = Object.keys(
-            metadata?.resultSetSummaries ?? [],
-        ).length;
-        if (gridsLength && gridsLength === executionPlanXmls.length) {
-            getExecutionPlanGraphs();
+        if (
+            metadata &&
+            metadata.resultSetSummaries &&
+            metadata.executionPlanState.xmlPlans &&
+            Object.keys(metadata.resultSetSummaries).length > 0 &&
+            Object.keys(metadata.resultSetSummaries).length ===
+                metadata.executionPlanState.xmlPlans.length
+        ) {
+            getExecutionPlanGraphs(
+                mergePlans(metadata.executionPlanState.xmlPlans),
+            );
         }
-    }, [metadata?.resultSetSummaries, executionPlanXmls, metadata]);
+    });
 
     return (
         <div className={classes.root} ref={gridParentRef}>

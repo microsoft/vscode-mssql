@@ -89,6 +89,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 },
             };
         });
+        this.registerReducer("addXmlPlan", async (state, payload) => {
+            state.executionPlanState.xmlPlans = [
+                ...state.executionPlanState.xmlPlans,
+                payload.xmlPlan,
+            ];
+            return state;
+        });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
             let folder = vscode.Uri.file(homedir());
             let filename: vscode.Uri;
@@ -175,6 +182,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     executionPlan: undefined,
                     executionPlanGraphs: [],
                     totalCost: 0,
+                    xmlPlans: [],
                 },
             }),
         };

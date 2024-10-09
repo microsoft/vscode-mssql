@@ -22,9 +22,13 @@ export interface QueryResultReactProvider {
      * Gets the execution plan graph from the provider for a given plan file
      * @param planFile file that contains the execution plan
      */
-    getExecutionPlan(
-        planFile: ExecutionPlanGraphInfo,
-    ): Thenable<GetExecutionPlanResult>;
+    getExecutionPlan(planFile: ExecutionPlanGraphInfo): void;
+
+    /**
+     * Gets the execution plan graph from the provider for a given plan file
+     * @param plan the xml plan contents to be added
+     */
+    addXmlPlan(plan: string): void;
 
     /**
      * Handles saving the execution plan file through the vscode extension api
@@ -68,6 +72,7 @@ export interface QueryResultWebviewState {
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
     executionPlanState: {
+        xmlPlans?: string[];
         sqlPlanContent?: string;
         executionPlan?: GetExecutionPlanResult;
         executionPlanGraphs?: ExecutionPlanGraph[];
@@ -84,6 +89,9 @@ export interface QueryResultReducers {
     };
     getExecutionPlan: {
         sqlPlanContent: string;
+    };
+    addXmlPlan: {
+        xmlPlan: string;
     };
     saveExecutionPlan: {
         sqlPlanContent: string;
