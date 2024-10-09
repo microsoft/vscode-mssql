@@ -118,7 +118,6 @@ export const QueryResultPane = () => {
             }
 
             if (gridParent.clientWidth && gridParent.clientHeight) {
-                //TODO: add case for multiple result grid
                 if (gridRefs.current.length > 1) {
                     gridRefs.current.forEach((gridRef) => {
                         gridRef.resizeGrid(
@@ -246,7 +245,7 @@ export const QueryResultPane = () => {
                                 });
                             });
                     }}
-                    ref={(el) => (gridRefs.current[idx] = el!)}
+                    ref={(gridRef) => (gridRefs.current[idx] = gridRef!)}
                     resultSetSummary={metadata?.resultSetSummaries[idx]}
                     divId={divId}
                 />
