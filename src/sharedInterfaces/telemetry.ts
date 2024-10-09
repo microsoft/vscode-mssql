@@ -8,8 +8,8 @@ export enum TelemetryViews {
     CommandPalette = "CommandPalette",
     SqlProjects = "SqlProjects",
     QueryEditor = "QueryEditor",
-    QueryResult = "QueryResult",
-    ResultsGrid = "ResultsGrid",
+    QueryResult = "QueryResult", // react query result pane
+    ResultsGrid = "ResultsGrid", // angular results grid
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",

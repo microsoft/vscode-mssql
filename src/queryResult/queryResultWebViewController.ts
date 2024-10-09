@@ -61,6 +61,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 TelemetryActions.SaveResults,
                 {
                     correlationId: this._correlationId,
+                    format: message.format,
+                    // TODO: add selection to telemetry when it's supported
+                    // TODO: add action origin (context/toolbar) to telemetry
                 },
             );
             return await this._sqlOutputContentProvider.saveResultsRequestHandler(
