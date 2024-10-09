@@ -646,6 +646,9 @@
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
     </trans-unit>
+    <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
+      <source xml:lang="en">Loading Report</source>
+    </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
