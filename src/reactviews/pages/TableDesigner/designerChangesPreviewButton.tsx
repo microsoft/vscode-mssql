@@ -4,6 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Checkbox,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Spinner,
+    makeStyles,
+} from "@fluentui/react-components";
+import {
+    CopyRegular,
+    DatabaseArrowDownRegular,
+    ErrorCircleRegular,
+} from "@fluentui/react-icons";
+import {
     Dialog,
     DialogActions,
     DialogBody,
@@ -12,17 +25,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@fluentui/react-dialog";
-import { ToolbarButton } from "@fluentui/react-toolbar";
-import {
-    DatabaseArrowDownRegular,
-    ErrorCircleRegular,
-} from "@fluentui/react-icons";
-import { Button } from "@fluentui/react-button";
-import { Checkbox, Spinner, makeStyles } from "@fluentui/react-components";
-import ReactMarkdown from "react-markdown";
 import { useContext, useState } from "react";
-import { TableDesignerContext } from "./tableDesignerStateProvider";
+
+import { Button } from "@fluentui/react-button";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
+import ReactMarkdown from "react-markdown";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { ToolbarButton } from "@fluentui/react-toolbar";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -83,150 +92,211 @@ export const DesignerChangesPreviewButton = () => {
         }
     };
 
+    const getDialogCloseButton = () => {
+        return (
+            <DialogTrigger disableButtonEnhancement>
+                <Button
+                    size="medium"
+                    appearance="secondary"
+                    onClick={() => setIsConfirmationChecked(false)}
+                >
+                    {locConstants.tableDesigner.close}
+                </Button>
+            </DialogTrigger>
+        );
+    };
+
+    const publishingLoadingDialogContents = () => (
+        <>
+            <DialogContent className={classes.dialogContent}>
+                <Spinner
+                    label={locConstants.tableDesigner.publishingChanges}
+                    labelPosition="below"
+                />
+            </DialogContent>
+        </>
+    );
+
+    const publishingErrorDialogContents = () => (
+        <>
+            <DialogContent>
+                <MessageBar intent="error" style={{ paddingRight: "12px" }}>
+                    <MessageBarBody
+                        style={{
+                            textAlign: "justify",
+                        }}
+                    >
+                        {metadata?.publishingError ?? ""}
+                    </MessageBarBody>
+                    <MessageBarActions>
+                        <Button
+                            onClick={() =>
+                                designerContext.provider.copyPublishErrorToClipboard()
+                            }
+                            icon={<CopyRegular />}
+                        >
+                            {locConstants.tableDesigner.copy}
+                        </Button>
+                    </MessageBarActions>
+                </MessageBar>
+            </DialogContent>
+            <DialogActions>
+                <Button
+                    appearance="primary"
+                    onClick={() => {
+                        designerContext.provider.publishChanges();
+                    }}
+                >
+                    {locConstants.tableDesigner.retry}
+                </Button>
+                <Button
+                    onClick={() => {
+                        setIsConfirmationChecked(false);
+                        designerContext.provider.generatePreviewReport();
+                    }}
+                    style={{
+                        width: "150px",
+                    }}
+                >
+                    {locConstants.tableDesigner.backToPreview}
+                </Button>
+                {getDialogCloseButton()}
+            </DialogActions>
+        </>
+    );
+
+    const publishingSuccessDialogContents = () => (
+        <>
+            <DialogContent className={classes.dialogContent}>
+                <div>
+                    {locConstants.tableDesigner.changesPublishedSuccessfully}
+                </div>
+            </DialogContent>
+            <DialogActions>
+                <Button
+                    size="medium"
+                    appearance="primary"
+                    onClick={designerContext.provider.closeDesigner}
+                >
+                    {locConstants.tableDesigner.closeDesigner}
+                </Button>
+                <DialogTrigger action="close">
+                    <Button
+                        size="medium"
+                        appearance="secondary"
+                        onClick={() => {
+                            setIsConfirmationChecked(false);
+                            designerContext.provider.continueEditing;
+                        }}
+                    >
+                        {locConstants.tableDesigner.continueEditing}
+                    </Button>
+                </DialogTrigger>
+            </DialogActions>
+        </>
+    );
+
+    const previewLoadingDialogContents = () => (
+        <>
+            <DialogContent className={classes.dialogContent}>
+                <Spinner
+                    label={locConstants.tableDesigner.loadingPreviewReport}
+                    labelPosition="below"
+                />
+            </DialogContent>
+        </>
+    );
+
+    const previewLoadingErrorDialogContents = () => (
+        <>
+            <DialogContent className={classes.dialogContent}>
+                <ErrorCircleRegular className={classes.errorIcon} />
+                <div>{locConstants.tableDesigner.errorLoadingPreview}</div>
+            </DialogContent>
+            <DialogActions>
+                <Button
+                    className={classes.retryButton}
+                    onClick={() => {
+                        designerContext.provider.generatePreviewReport();
+                    }}
+                >
+                    {locConstants.tableDesigner.retry}
+                </Button>
+            </DialogActions>
+        </>
+    );
+
+    const previewLoadedSuccessDialogContents = () => (
+        <>
+            <DialogContent>
+                <div className={classes.markdownContainer}>
+                    <ReactMarkdown>
+                        {metadata?.generatePreviewReportResult?.report}
+                    </ReactMarkdown>
+                </div>
+                <Checkbox
+                    label={
+                        locConstants.tableDesigner.designerPreviewConfirmation
+                    }
+                    checked={isConfirmationChecked}
+                    onChange={(_event, data) => {
+                        setIsConfirmationChecked(data.checked as boolean);
+                    }}
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button
+                    className={classes.updateDatabase}
+                    disabled={
+                        !(
+                            isConfirmationChecked &&
+                            metadata.apiState?.previewState === LoadState.Loaded
+                        )
+                    }
+                    appearance="primary"
+                    onClick={() => {
+                        designerContext.provider.publishChanges();
+                    }}
+                >
+                    {locConstants.tableDesigner.updateDatabase}
+                </Button>
+                <DialogTrigger action="close">
+                    <Button
+                        icon={generateScriptIcon()}
+                        iconPosition="after"
+                        className={classes.openScript}
+                        disabled={
+                            metadata.apiState?.previewState !== LoadState.Loaded
+                        }
+                        appearance="primary"
+                        onClick={designerContext.provider.generateScript}
+                    >
+                        {locConstants.tableDesigner.generateScript}
+                    </Button>
+                </DialogTrigger>
+                {getDialogCloseButton()}
+            </DialogActions>
+        </>
+    );
+
     const getDialogContent = () => {
         if (metadata?.apiState?.publishState === LoadState.Loading) {
-            return (
-                <>
-                    <DialogContent className={classes.dialogContent}>
-                        <Spinner
-                            label={locConstants.tableDesigner.publishingChanges}
-                            labelPosition="below"
-                        />
-                    </DialogContent>
-                </>
-            );
+            return publishingLoadingDialogContents();
         }
         if (metadata?.apiState?.publishState === LoadState.Loaded) {
-            return (
-                <>
-                    <DialogContent className={classes.dialogContent}>
-                        <div>
-                            {
-                                locConstants.tableDesigner
-                                    .changesPublishedSuccessfully
-                            }
-                        </div>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            size="medium"
-                            appearance="primary"
-                            onClick={designerContext.provider.closeDesigner}
-                        >
-                            {locConstants.tableDesigner.closeDesigner}
-                        </Button>
-                        <DialogTrigger action="close">
-                            <Button
-                                size="medium"
-                                appearance="secondary"
-                                onClick={
-                                    designerContext.provider.continueEditing
-                                }
-                            >
-                                {locConstants.tableDesigner.continueEditing}
-                            </Button>
-                        </DialogTrigger>
-                    </DialogActions>
-                </>
-            );
+            return publishingSuccessDialogContents();
+        }
+        if (metadata?.apiState?.publishState === LoadState.Error) {
+            return publishingErrorDialogContents();
         }
         if (metadata?.apiState?.previewState === LoadState.Loading) {
-            return (
-                <>
-                    <DialogContent className={classes.dialogContent}>
-                        <Spinner
-                            label={
-                                locConstants.tableDesigner.loadingTableDesigner
-                            }
-                            labelPosition="below"
-                        />
-                    </DialogContent>
-                </>
-            );
+            return previewLoadingDialogContents();
         }
         if (metadata?.apiState?.previewState === LoadState.Error) {
-            return (
-                <>
-                    <DialogContent className={classes.dialogContent}>
-                        <ErrorCircleRegular className={classes.errorIcon} />
-                        <div>
-                            {locConstants.tableDesigner.errorLoadingPreview}
-                        </div>
-                        <Button
-                            className={classes.retryButton}
-                            onClick={() => {
-                                designerContext.provider.generatePreviewReport();
-                            }}
-                        >
-                            {locConstants.tableDesigner.retry}
-                        </Button>
-                    </DialogContent>
-                </>
-            );
+            return previewLoadingErrorDialogContents();
         }
         if (metadata?.apiState?.previewState === LoadState.Loaded) {
-            return (
-                <>
-                    <DialogContent>
-                        <div className={classes.markdownContainer}>
-                            <ReactMarkdown>
-                                {metadata?.generatePreviewReportResult?.report}
-                            </ReactMarkdown>
-                        </div>
-                        <Checkbox
-                            label={
-                                locConstants.tableDesigner
-                                    .designerPreviewConfirmation
-                            }
-                            onChange={(_event, data) => {
-                                setIsConfirmationChecked(
-                                    data.checked as boolean,
-                                );
-                            }}
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            className={classes.updateDatabase}
-                            disabled={
-                                !(
-                                    isConfirmationChecked &&
-                                    metadata.apiState?.previewState ===
-                                        LoadState.Loaded
-                                )
-                            }
-                            appearance="primary"
-                            onClick={() => {
-                                designerContext.provider.publishChanges();
-                            }}
-                        >
-                            {locConstants.tableDesigner.updateDatabase}
-                        </Button>
-                        <DialogTrigger action="close">
-                            <Button
-                                icon={generateScriptIcon()}
-                                iconPosition="after"
-                                className={classes.openScript}
-                                disabled={
-                                    metadata.apiState?.previewState !==
-                                    LoadState.Loaded
-                                }
-                                appearance="primary"
-                                onClick={
-                                    designerContext.provider.generateScript
-                                }
-                            >
-                                {locConstants.tableDesigner.generateScript}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button size="medium" appearance="secondary">
-                                {locConstants.tableDesigner.close}
-                            </Button>
-                        </DialogTrigger>
-                    </DialogActions>
-                </>
-            );
+            return previewLoadedSuccessDialogContents();
         }
     };
 
