@@ -293,6 +293,9 @@
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
+      <source xml:lang="en">Copied</source>
+    </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
     </trans-unit>

@@ -182,6 +182,7 @@
     ]
   },
   "Back to preview": "Back to preview",
+  "Copy": "Copy",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -595,7 +596,6 @@
   "JSON": "JSON",
   "Excel": "Excel",
   "Select all": "Select all",
-  "Copy": "Copy",
   "Copy with Headers": "Copy with Headers",
   "Executing query...": "Executing query...",
   "Query executed": "Query executed",
@@ -673,6 +673,7 @@
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
   "Script copied to clipboard": "Script copied to clipboard",
+  "Copied": "Copied",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
