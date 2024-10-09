@@ -1,10 +1,9 @@
 name: Build Extension.
 
 description: Assumes extension is already checked out and cwd is the root of the extension.
-
+shells: bash
 runs:
   using: "composite"
-  shell: bash
   steps:
     - name: Set up xvfb
       run: |
