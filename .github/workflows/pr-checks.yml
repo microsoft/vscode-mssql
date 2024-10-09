@@ -77,6 +77,7 @@ jobs:
           line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
           echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
+          coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "green"; fi)
 
       - name: Package both branches
         run: |
@@ -137,6 +138,7 @@ jobs:
           echo "- **Main branch line rate**: ${{ env.line_rate_main }}%" >> results.md
           echo "- **PR branch line rate**: ${{ env.line_rate_pr }}%" >> results.md
           echo "- **Line rate difference**: ${{ env.line_rate_diff }}%" >> results.md
+          echo "- **Line rate color**: ${{ '\$\${\color{' }}${{ env.coverage_text_color }}  ${{ env.line_rate_diff }}%  ${{ '}\$\$' }}  " >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
