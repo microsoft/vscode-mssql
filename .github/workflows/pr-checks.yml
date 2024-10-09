@@ -50,12 +50,12 @@ jobs:
           npm install --global gulp@4.0.2
 
       - name: Install dependencies and build main extension
-        uses: ./.github/actions/build-extension
+        uses: ./pr/.github/actions/build-extension
         with:
           source-dir: './main'
 
       - name: Install dependencies and build PR extension
-        uses: ./.github/actions/build-extension
+        uses: ./pr/.github/actions/build-extension
         with:
           source-dir: './pr'
 
