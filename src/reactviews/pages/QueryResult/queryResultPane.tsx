@@ -29,7 +29,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
-import { ACTIONBAR_WIDTH } from "./table/table";
+import { ACTIONBAR_WIDTH_PX } from "./table/table";
 
 const useStyles = makeStyles({
     root: {
@@ -121,7 +121,7 @@ export const QueryResultPane = () => {
                 if (gridRefs.current.length > 1) {
                     gridRefs.current.forEach((gridRef) => {
                         gridRef.resizeGrid(
-                            gridParent.clientWidth - ACTIONBAR_WIDTH,
+                            gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
                             (gridParent.clientHeight -
                                 ribbonRef.current!.clientHeight -
                                 gridRefs.current.length * 5) /
@@ -130,7 +130,7 @@ export const QueryResultPane = () => {
                     });
                 } else if (gridRefs.current.length === 1) {
                     gridRefs.current[0].resizeGrid(
-                        gridParent.clientWidth - ACTIONBAR_WIDTH,
+                        gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
                         gridParent.clientHeight -
                             ribbonRef.current.clientHeight -
                             5,
