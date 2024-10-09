@@ -130,27 +130,22 @@ jobs:
           vsix_increase_decrease=$(if [ $percentage_change -gt 0 ]; then echo "increase"; else echo "decrease"; fi)
           echo "vsix_increase_decrease=$vsix_increase_decrease" >> $GITHUB_ENV
 
-      - name: Write results as Markdown file
+      - name: Write coverage results to markdown
         run: |
-          echo "### Code Coverage" >> results.md
+          echo "### Code Coverage" > results.md
           echo "Merging into main will ${{ env.code_coverage_increase_decrease }} the code coverage from ${{ env.line_rate_main }}% to ${{ env.line_rate_pr }}% ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}\\\\% ${{ '}\$\$' }}" >> results.md
+
+      - name: Write VSIX result to markdown
+        if: ${{ env.vsix_size_diff != 0 }}
+        run: |
           echo "### VSIX Size Comparison" > results.md
           echo "Merging into main will ${{ env.vsix_increase_decrease }} the size of the VSIX file from ${{ env.main_vsix_size }} KB to ${{ env.pr_vsix_size }} KB ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }}  " >> results.md
+
+      - name: Write webview bundle result to markdown
+        if: ${{ env.webview_size_diff != 0 }}
+        run: |
           echo "### React Webview Bundle Size Comparison" >> results.md
           echo "Merging into main will ${{ env.webview_increase_decrease }} the size of the webview bundle from ${{ env.main_webview_bundle_size }} KB to ${{ env.pr_webview_bundle_size }} KB ${{ '\$\${\color{' }}${{ env.webview_text_color }}} ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) ${{ '}\$\$' }}  " >> results.md
-
-# echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} KB" >> results.md
-# echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} KB" >> results.md
-# echo "- **Size difference**: ${{ '\$\${\color{' }}${{env.vsix_text_color}}}  ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%)  ${{ '}\$\$' }}  " >> results.md
-# echo "### React Webview Bundle Size Comparison" >> results.md
-# echo "- **Main branch bundle size**: ${{ env.main_webview_bundle_size }} KB" >> results.md
-# echo "- **PR branch bundle size**: ${{ env.pr_webview_bundle_size }} KB" >> results.md
-# echo "- **Size difference**: ${{ '\$\${\color{' }}${{env.webview_text_color}}}  ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%)  ${{ '}\$\$' }}  " >> results.md
-# echo "### Code Coverage" >> results.md
-# echo "- **Main branch line rate**: ${{ env.line_rate_main }}%" >> results.md
-# echo "- **PR branch line rate**: ${{ env.line_rate_pr }}%" >> results.md
-# echo "- **Line rate difference**: ${{ env.line_rate_diff }}%" >> results.md
-# echo "- **Line rate color**: ${{ '\$\${\color{' }}${{ env.coverage_text_color }}}  ${{ env.line_rate_diff }}\\\\%  ${{ '}\$\$' }}  " >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
