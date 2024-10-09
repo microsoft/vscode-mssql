@@ -132,12 +132,12 @@ jobs:
 
       - name: Write results as Markdown file
         run: |
-          echo "### VSIX Size Comparison" > results.md
-          echo "Merging into main will ${{ env.vsix_increase_decrease }} the size of the VSIX file by ${{ '\$\${\color{' }}${{env.vsix_text_color}}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }}  to ${{ env.pr_vsix_size }} KB" >> results.md
-          echo "### React Webview Bundle Size Comparison" >> results.md
-          echo "Merging into main will ${{ env.webview_increase_decrease }} the size of the webview bundle by ${{ '\$\${\color{' }}${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) to ${{ env.pr_webview_bundle_size }} KB" >> results.md
           echo "### Code Coverage" >> results.md
-          echo "Merging into main will ${{ env.code_coverage_increase_decrease }} the code coverage by ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}\\\\% ${{ '}\$\$' }}" >> results.md
+          echo "Merging into main will ${{ env.code_coverage_increase_decrease }} the code coverage from ${{ env.line_rate_main }}% to ${{ env.line_rate_pr }}% ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}\\\\% ${{ '}\$\$' }}" >> results.md
+          echo "### VSIX Size Comparison" > results.md
+          echo "Merging into main will ${{ env.vsix_increase_decrease }} the size of the VSIX file from ${{ env.main_vsix_size }} KB to ${{ env.pr_vsix_size }} KB ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }}  " >> results.md
+          echo "### React Webview Bundle Size Comparison" >> results.md
+          echo "Merging into main will ${{ env.webview_increase_decrease }} the size of the webview bundle from ${{ env.main_webview_bundle_size }} KB to ${{ env.pr_webview_bundle_size }} KB ${{ '\$\${\color{' }}${{ env.webview_text_color }}} ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) ${{ '}\$\$' }}  " >> results.md
 
 # echo "- **Main branch VSIX size**: ${{ env.main_vsix_size }} KB" >> results.md
 # echo "- **PR branch VSIX size**: ${{ env.pr_vsix_size }} KB" >> results.md
@@ -159,7 +159,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-includes: |
-            ### VSIX Size Comparison
+            ### Code Coverage
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4
