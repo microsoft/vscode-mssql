@@ -159,16 +159,22 @@ export const DesignerChangesPreviewButton = () => {
                             onClick={() => {
                                 designerContext.provider.publishChanges();
                             }}
+                            style={{
+                                width: "200px",
+                            }}
                         >
-                            {locConstants.tableDesigner.retry}
+                            {locConstants.tableDesigner.retryUpdatingDatabase}
                         </Button>
                         <Button
                             onClick={() => {
                                 setIsConfirmationChecked(false);
                                 designerContext.provider.generatePreviewReport();
                             }}
+                            style={{
+                                width: "250px",
+                            }}
                         >
-                            Back
+                            {locConstants.tableDesigner.backToPreview}
                         </Button>
                         {getDialogCloseButton()}
                     </DialogActions>
