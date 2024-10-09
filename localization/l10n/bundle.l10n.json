@@ -194,6 +194,7 @@
   "Location": "Location",
   "Server": "Server",
   "Database": "Database",
+  "Filter Azure subscriptions": "Filter Azure subscriptions",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -708,7 +709,8 @@
     ]
   },
   "Azure sign in failed.": "Azure sign in failed.",
+  "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
-  "No subscriptions set in VS Code's Azure account filter.": "No subscriptions set in VS Code's Azure account filter.",
+  "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
   "Error loading Azure databases.": "Error loading Azure databases."
 }
