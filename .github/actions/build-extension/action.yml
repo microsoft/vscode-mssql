@@ -1,7 +1,7 @@
 name: Build Extension.
 
 description: Assumes extension is already checked out and cwd is the root of the extension.
-shells: bash
+shell: bash
 runs:
   using: "composite"
   steps:
