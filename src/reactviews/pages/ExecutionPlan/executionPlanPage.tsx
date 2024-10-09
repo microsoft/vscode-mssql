@@ -42,7 +42,6 @@ export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
     context,
 }) => {
     const classes = useStyles();
-    console.log(context);
     const provider = context ? context : useContext(ExecutionPlanContext);
     const executionPlanState = provider?.state?.executionPlanState;
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;

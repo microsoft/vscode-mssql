@@ -125,7 +125,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
             if (saveUri) {
                 // Write the content to the new file
-                vscode.workspace.fs.writeFile(
+                void vscode.workspace.fs.writeFile(
                     saveUri,
                     Buffer.from(payload.sqlPlanContent),
                 );
@@ -139,12 +139,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 language: "xml",
             });
 
-            vscode.window.showTextDocument(planXmlDoc);
+            void vscode.window.showTextDocument(planXmlDoc);
 
             return state;
         });
         this.registerReducer("showQuery", async (state, payload) => {
-            this.untitledSqlDocumentService.newQuery(payload.query);
+            void this.untitledSqlDocumentService.newQuery(payload.query);
 
             return state;
         });
