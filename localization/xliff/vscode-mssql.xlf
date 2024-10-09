@@ -115,8 +115,8 @@
     <trans-unit id="++CODE++29852e83a6613ccf439cb69654f96550fd0ce1de27609b5167992cef02a9ea55">
       <source xml:lang="en">Azure: Sign In with Device Code</source>
     </trans-unit>
-    <trans-unit id="++CODE++8a10260d36d778f02c9fcc88f6db3cdfec76ad442cf489a1f31de5e30577b32a">
-      <source xml:lang="en">Back to preview report</source>
+    <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
+      <source xml:lang="en">Back to preview</source>
     </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
@@ -966,9 +966,6 @@
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
-    </trans-unit>
-    <trans-unit id="++CODE++32f2d91ef6eeaba6e4b506823ffb140a5a12e7badcca4e678577fd4b7f08db36">
-      <source xml:lang="en">Retry updating database</source>
     </trans-unit>
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
