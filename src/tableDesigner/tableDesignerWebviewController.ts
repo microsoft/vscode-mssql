@@ -162,9 +162,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
         } catch (e) {
-            await vscode.window.showErrorMessage(
-                "Error initializing table designer: " + e,
-            );
             this.state.apiState.initializeState = designer.LoadState.Error;
             this.state = this.state;
         }
