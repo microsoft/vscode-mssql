@@ -150,6 +150,7 @@
   "Close Designer": "Close Designer",
   "Continue Editing": "Continue Editing",
   "Loading Table Designer": "Loading Table Designer",
+  "Loading Report": "Loading Report",
   "Error loading preview": "Error loading preview",
   "Retry": "Retry",
   "Update Database": "Update Database",
@@ -180,6 +181,8 @@
       "{0} is the object type"
     ]
   },
+  "Back to preview": "Back to preview",
+  "Copy": "Copy",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -594,7 +597,6 @@
   "JSON": "JSON",
   "Excel": "Excel",
   "Select all": "Select all",
-  "Copy": "Copy",
   "Copy with Headers": "Copy with Headers",
   "Executing query...": "Executing query...",
   "Query executed": "Query executed",
@@ -672,6 +674,7 @@
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
   "Script copied to clipboard": "Script copied to clipboard",
+  "Copied": "Copied",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",

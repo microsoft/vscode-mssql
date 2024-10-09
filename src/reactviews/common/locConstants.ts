@@ -95,6 +95,7 @@ export class LocConstants {
             closeDesigner: l10n.t("Close Designer"),
             continueEditing: l10n.t("Continue Editing"),
             loadingTableDesigner: l10n.t("Loading Table Designer"),
+            loadingPreviewReport: l10n.t("Loading Report"),
             errorLoadingPreview: l10n.t("Error loading preview"),
             retry: l10n.t("Retry"),
             updateDatabase: l10n.t("Update Database"),
@@ -132,6 +133,8 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            backToPreview: l10n.t("Back to preview"),
+            copy: l10n.t("Copy"),
         };
     }
 
