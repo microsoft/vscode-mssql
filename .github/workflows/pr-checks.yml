@@ -77,6 +77,7 @@ jobs:
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
           echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
           coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "green"; fi)
+          echo "coverage_text_color=$coverage_text_color" >> $GITHUB_ENV
 
       - name: Package both branches
         run: |
