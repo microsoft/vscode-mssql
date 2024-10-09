@@ -134,6 +134,7 @@ export class LocConstants {
                     comment: ["{0} is the object type"],
                 }),
             backToPreview: l10n.t("Back to preview"),
+            copy: l10n.t("Copy"),
         };
     }
 

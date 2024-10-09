@@ -3,8 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Checkbox, Spinner, makeStyles } from "@fluentui/react-components";
 import {
+    Checkbox,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Spinner,
+    makeStyles,
+} from "@fluentui/react-components";
+import {
+    CopyRegular,
     DatabaseArrowDownRegular,
     ErrorCircleRegular,
 } from "@fluentui/react-icons";
@@ -149,18 +157,31 @@ export const DesignerChangesPreviewButton = () => {
         if (metadata?.apiState?.publishState === LoadState.Error) {
             return (
                 <>
-                    <DialogContent className={classes.dialogContent}>
-                        <ErrorCircleRegular className={classes.errorIcon} />
-                        <div>{metadata?.publishingError ?? ""}</div>
+                    <DialogContent>
+                        <MessageBar
+                            intent="error"
+                            style={{ paddingRight: "12px" }}
+                        >
+                            <MessageBarBody>
+                                {metadata?.publishingError ?? ""}
+                            </MessageBarBody>
+                            <MessageBarActions>
+                                <Button
+                                    onClick={() =>
+                                        designerContext.provider.copyPublishErrorToClipboard()
+                                    }
+                                    icon={<CopyRegular />}
+                                >
+                                    {locConstants.tableDesigner.copy}
+                                </Button>
+                            </MessageBarActions>
+                        </MessageBar>
                     </DialogContent>
                     <DialogActions>
                         <Button
                             appearance="primary"
                             onClick={() => {
                                 designerContext.provider.publishChanges();
-                            }}
-                            style={{
-                                width: "200px",
                             }}
                         >
                             {locConstants.tableDesigner.retry}
@@ -171,7 +192,7 @@ export const DesignerChangesPreviewButton = () => {
                                 designerContext.provider.generatePreviewReport();
                             }}
                             style={{
-                                width: "250px",
+                                width: "150px",
                             }}
                         >
                             {locConstants.tableDesigner.backToPreview}

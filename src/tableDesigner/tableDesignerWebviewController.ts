@@ -16,7 +16,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { scriptCopiedToClipboard } from "../constants/locConstants";
+import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
@@ -401,6 +401,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     correlationId: this._correlationId,
                 },
             );
+            return state;
+        });
+        this.registerReducer("copyPublishErrorToClipboard", async (state) => {
+            await vscode.env.clipboard.writeText(state.publishingError ?? "");
+            void vscode.window.showInformationMessage(copied);
             return state;
         });
     }
