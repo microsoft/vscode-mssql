@@ -282,7 +282,7 @@ export let msgPromptRetryConnectionDifferentCredentials = l10n.t(
     "Error: Login failed. Retry using different credentials?",
 );
 export let msgPromptSSLCertificateValidationFailed = l10n.t(
-    "Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
+    "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
 );
 export let msgPromptRetryFirewallRuleNotSignedIn = l10n.t(
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
@@ -641,6 +641,7 @@ export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
+export let copied = l10n.t("Copied");
 
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");

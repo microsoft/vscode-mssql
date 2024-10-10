@@ -482,9 +482,17 @@ export class SqlOutputContentProvider {
                                 uri,
                             );
                         vscode.commands.executeCommand("queryResult.focus");
+                        const tabState =
+                            Object.keys(
+                                this._queryResultWebviewController.getQueryResultState(
+                                    uri,
+                                ).resultSetSummaries,
+                            ).length > 0
+                                ? QueryResultPaneTabs.Results
+                                : QueryResultPaneTabs.Messages;
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
-                        ).tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+                        ).tabStates.resultPaneTab = tabState;
                         this._queryResultWebviewController.state =
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,

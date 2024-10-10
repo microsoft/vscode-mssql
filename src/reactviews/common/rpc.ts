@@ -7,7 +7,7 @@ import { WebviewApi } from "vscode-webview";
 import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../../sharedInterfaces/telemetry";
+} from "../../sharedInterfaces/webview";
 
 /**
  * Rpc to communicate with the extension.
