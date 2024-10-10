@@ -203,6 +203,12 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     correlationId: this._correlationId,
                 },
             );
+            if (editResponse.inputValidationError) {
+                void vscode.window.showErrorMessage(
+                    editResponse.inputValidationError,
+                );
+                return state;
+            }
             if (editResponse.issues?.length === 0) {
                 state.tabStates.resultPaneTab =
                     designer.DesignerResultPaneTabs.Script;
