@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useRef, useState } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+
+import { ReactNode, createContext, useRef, useState } from "react";
+
 import { Theme } from "@fluentui/react-components";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 export interface TableDesignerState {
     provider: designer.TableDesignerReactProvider;
@@ -169,6 +171,12 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                     continueEditing: function (): void {
                         webviewState?.extensionRpc.action(
                             "continueEditing",
+                            {},
+                        );
+                    },
+                    copyPublishErrorToClipboard: function (): void {
+                        webviewState?.extensionRpc.action(
+                            "copyPublishErrorToClipboard",
                             {},
                         );
                     },

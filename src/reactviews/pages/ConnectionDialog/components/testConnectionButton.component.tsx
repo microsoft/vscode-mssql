@@ -23,7 +23,6 @@ export const TestConnectionButton = ({
 
     return (
         <Button
-            shape="square"
             onClick={(_event) => {
                 // TODO: connectionDialogContext.testConnection();
             }}

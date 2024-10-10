@@ -95,6 +95,7 @@ export class LocConstants {
             closeDesigner: l10n.t("Close Designer"),
             continueEditing: l10n.t("Continue Editing"),
             loadingTableDesigner: l10n.t("Loading Table Designer"),
+            loadingPreviewReport: l10n.t("Loading Report"),
             errorLoadingPreview: l10n.t("Error loading preview"),
             retry: l10n.t("Retry"),
             updateDatabase: l10n.t("Update Database"),
@@ -133,6 +134,8 @@ export class LocConstants {
                     comment: ["{0} is the object type"],
                 }),
             schema: l10n.t("Schema"),
+            backToPreview: l10n.t("Back to preview"),
+            copy: l10n.t("Copy"),
         };
     }
 
@@ -152,6 +155,19 @@ export class LocConstants {
             location: l10n.t("Location"),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
+            filterSubscriptions: l10n.t("Filter Azure subscriptions"),
+            connectionErrorTitle: l10n.t("Connection Error"),
+            trustServerCertMessage: l10n.t(
+                "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.",
+            ),
+            trustServerCertPrompt: l10n.t(
+                "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
+            ),
+            readMore: l10n.t("Read more"),
+            enableTrustServerCertificateButton: l10n.t(
+                "Enable 'Trust Server Certificate'",
+            ),
+            close: l10n.t("Close"),
         };
     }
 
