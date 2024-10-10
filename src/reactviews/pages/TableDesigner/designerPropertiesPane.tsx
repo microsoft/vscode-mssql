@@ -260,7 +260,7 @@ export const DesignerPropertiesPane = () => {
                 />
             </div>
             <div className={classes.stack}>
-                <Accordion multiple collapsible defaultOpenItems={groups}>
+                <Accordion multiple collapsible defaultOpenItems={[groups[0]]}>
                     {data &&
                         groups?.map((group) => {
                             const groupItems = parentTableProperties
