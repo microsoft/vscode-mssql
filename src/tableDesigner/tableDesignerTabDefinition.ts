@@ -6,31 +6,13 @@
 import * as designer from "../sharedInterfaces/tableDesigner";
 import * as vscode from "vscode";
 
-export function getAboutTableComponents(
+export function getAdvancedOptionsComponents(
     viewDefinition: designer.TableDesignerView | undefined,
 ): designer.DesignerDataPropertyInfo[] {
     if (!viewDefinition) {
         return [];
     }
     const tabComponents: designer.DesignerDataPropertyInfo[] = [
-        {
-            componentType: "input",
-            propertyName: designer.TableColumnProperty.Name,
-            description: vscode.l10n.t("The name of the table object."),
-            componentProperties: {
-                title: vscode.l10n.t("Table name"),
-                width: 350,
-            },
-        },
-        {
-            componentType: "dropdown",
-            propertyName: designer.TableProperty.Schema,
-            description: vscode.l10n.t("The schema that contains the table."),
-            componentProperties: {
-                title: vscode.l10n.t("Schema"),
-                width: 350,
-            },
-        },
         {
             componentType: "textarea",
             propertyName: designer.TableProperty.Description,
@@ -86,7 +68,7 @@ export function getColumnsTabComponents(
                 "Displays the unified data type (including length, scale and precision) for the column",
             ),
             componentProperties: {
-                title: vscode.l10n.t("Advanced Type"),
+                title: vscode.l10n.t("Data Type"),
                 width: 120,
                 isEditable: true,
             },
@@ -175,6 +157,7 @@ export function getColumnsTabComponents(
         designer.TableColumnProperty.Name,
         designer.TableColumnProperty.Type,
         designer.TableColumnProperty.IsPrimaryKey,
+        designer.TableColumnProperty.IsIdentity,
         designer.TableColumnProperty.AllowNulls,
         designer.TableColumnProperty.DefaultValue,
     ]);
@@ -687,9 +670,9 @@ export function getDesignerView(
                 components: getCheckConstraintsTabComponents(view),
             },
             {
-                title: vscode.l10n.t("General"),
+                title: vscode.l10n.t("Advanced Options"),
                 id: designer.DesignerMainPaneTabs.AboutTable,
-                components: getAboutTableComponents(view),
+                components: getAdvancedOptionsComponents(view),
             },
         ],
     };

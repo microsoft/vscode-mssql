@@ -132,6 +132,7 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            schema: l10n.t("Schema"),
         };
     }
 
