@@ -29,6 +29,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
+import { ACTIONBAR_WIDTH_PX, TABLE_ALIGN_PX } from "./table/table";
 
 const useStyles = makeStyles({
     root: {
@@ -109,19 +110,32 @@ export const QueryResultPane = () => {
             return;
         }
         const observer = new ResizeObserver(() => {
-            if (!gridRef.current) {
+            if (!gridRefs.current) {
                 return;
             }
             if (!ribbonRef.current) {
                 return;
             }
+
             if (gridParent.clientWidth && gridParent.clientHeight) {
-                gridRef.current.resizeGrid(
-                    gridParent.clientWidth,
-                    gridParent.clientHeight -
-                        ribbonRef.current.clientHeight -
-                        5,
-                );
+                if (gridRefs.current.length > 1) {
+                    gridRefs.current.forEach((gridRef) => {
+                        gridRef.resizeGrid(
+                            gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
+                            (gridParent.clientHeight -
+                                ribbonRef.current!.clientHeight -
+                                gridRefs.current.length * TABLE_ALIGN_PX) /
+                                gridRefs.current.length,
+                        );
+                    });
+                } else if (gridRefs.current.length === 1) {
+                    gridRefs.current[0].resizeGrid(
+                        gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
+                        gridParent.clientHeight -
+                            ribbonRef.current.clientHeight -
+                            TABLE_ALIGN_PX,
+                    );
+                }
             }
         });
         observer.observe(gridParent);
@@ -163,7 +177,7 @@ export const QueryResultPane = () => {
         return null;
     }
 
-    const gridRef = useRef<ResultGridHandle>(null);
+    const gridRefs = useRef<ResultGridHandle[]>([]);
 
     const renderGrid = (idx: number) => {
         const divId = `grid-parent-${idx}`;
@@ -176,7 +190,12 @@ export const QueryResultPane = () => {
                         Object.keys(metadata?.resultSetSummaries ?? [])
                             .length === 1
                             ? "100%"
-                            : "50%",
+                            : (
+                                  100 /
+                                  Object.keys(
+                                      metadata?.resultSetSummaries ?? [],
+                                  ).length
+                              ).toString() + "%",
                 }}
             >
                 <ResultGrid
@@ -226,7 +245,7 @@ export const QueryResultPane = () => {
                                 });
                             });
                     }}
-                    ref={gridRef}
+                    ref={(gridRef) => (gridRefs.current[idx] = gridRef!)}
                     resultSetSummary={metadata?.resultSetSummaries[idx]}
                     divId={divId}
                 />
