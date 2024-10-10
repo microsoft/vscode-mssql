@@ -125,7 +125,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             // const menuLeft = offset.left + filterButton.offsetWidth + this.menu.offsetWidth <= window.innerWidth ? offset.left + filterButton.offsetWidth : window.innerWidth - this.menu.offsetWidth;
         }
 
-        let $popup = jQuery(
+        const $popup = jQuery(
             '<div id="popup-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
                 `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
