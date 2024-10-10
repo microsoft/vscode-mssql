@@ -60,11 +60,7 @@ export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
                 const executionPlanGraphs =
                     executionPlanState?.executionPlanGraphs ?? [];
                 return executionPlanGraphs?.map((_: any, index: number) => (
-                    <ExecutionPlanGraph
-                        key={index}
-                        graphIndex={index}
-                        context={context}
-                    />
+                    <ExecutionPlanGraph key={index} graphIndex={index} />
                 ));
             case ApiStatus.Error:
                 return (

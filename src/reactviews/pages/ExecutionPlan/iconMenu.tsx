@@ -9,7 +9,6 @@ import * as utils from "./queryPlanSetup";
 import "./executionPlan.css";
 import { makeStyles, Toolbar, ToolbarButton } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
-import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
@@ -49,7 +48,6 @@ interface IconStackProps {
     setPropertiesClicked: any;
     query: string;
     xml: string;
-    context?: QueryResultState;
 }
 
 export const IconStack: React.FC<IconStackProps> = ({
@@ -62,10 +60,9 @@ export const IconStack: React.FC<IconStackProps> = ({
     setPropertiesClicked,
     query,
     xml,
-    context,
 }) => {
     const classes = useStyles();
-    const state = context ?? useContext(ExecutionPlanContext);
+    const state = useContext(ExecutionPlanContext);
     const theme = state!.theme;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {

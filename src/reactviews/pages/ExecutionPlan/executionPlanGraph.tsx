@@ -18,7 +18,6 @@ import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { locConstants } from "../../common/locConstants";
 import { PropertiesPane } from "./properties";
-import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -82,15 +81,13 @@ const useStyles = makeStyles({
 
 interface ExecutionPlanGraphProps {
     graphIndex: number;
-    context?: QueryResultState;
 }
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     graphIndex,
-    context,
 }) => {
     const classes = useStyles();
-    const state = context ?? useContext(ExecutionPlanContext);
+    const state = useContext(ExecutionPlanContext);
     const executionPlanState = state?.state.executionPlanState;
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
@@ -299,7 +296,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         setExecutionPlanView={setExecutionPlanView}
                         findNodeOptions={findNodeOptions}
                         setFindNodeClicked={setFindNodeClicked}
-                        context={context}
                     />
                 </Popover>
                 <Popover open={highlightOpsClicked}>
@@ -308,7 +304,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         executionPlanView={executionPlanView!}
                         setExecutionPlanView={setExecutionPlanView}
                         setHighlightOpsClicked={setHighlightOpsClicked}
-                        context={context}
                     />
                 </Popover>
                 {propertiesClicked && (
@@ -326,7 +321,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                                 // guaranteed to be non-null
                                 executionPlanView={executionPlanView!}
                                 setPropertiesClicked={setPropertiesClicked}
-                                context={context}
                             />
                         </Popover>
                     </div>
@@ -342,7 +336,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 setPropertiesClicked={setPropertiesClicked}
                 query={query}
                 xml={xml}
-                context={context}
             />
         </div>
     );

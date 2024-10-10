@@ -21,7 +21,6 @@ import {
 } from "@fluentui/react-icons";
 import * as ep from "./executionPlanInterfaces";
 import { locConstants } from "../../common/locConstants";
-import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
@@ -55,7 +54,6 @@ interface FindNodeProps {
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;
-    context?: QueryResultState;
 }
 
 export const FindNode: React.FC<FindNodeProps> = ({
@@ -63,10 +61,9 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setExecutionPlanView,
     findNodeOptions,
     setFindNodeClicked,
-    context,
 }) => {
     const classes = useStyles();
-    const state = context ?? useContext(ExecutionPlanContext);
+    const state = useContext(ExecutionPlanContext);
     const theme = state!.theme;
     const findNodeComparisonOptions: string[] = [
         locConstants.executionPlan.equals,

@@ -30,7 +30,6 @@ import {
 import * as ep from "./executionPlanInterfaces";
 import "./executionPlan.css";
 import { locConstants } from "../../common/locConstants";
-import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
@@ -111,16 +110,14 @@ const useStyles = makeStyles({
 interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanView;
     setPropertiesClicked: any;
-    context?: QueryResultState;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
-    context,
 }) => {
     const classes = useStyles();
-    const state = context ?? useContext(ExecutionPlanContext);
+    const state = useContext(ExecutionPlanContext);
     const theme = state!.theme;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);

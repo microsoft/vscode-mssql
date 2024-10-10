@@ -30,6 +30,7 @@ import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
+import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 
 const useStyles = makeStyles({
     root: {
@@ -416,7 +417,9 @@ export const QueryResultPane = () => {
                             className={classes.queryResultContainer}
                             style={{ height: "100%", minHeight: "300px" }}
                         >
-                            <ExecutionPlanPage context={state} />
+                            <ExecutionPlanStateProvider>
+                                <ExecutionPlanPage />
+                            </ExecutionPlanStateProvider>
                         </div>
                     )}
             </div>
