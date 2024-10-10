@@ -3,35 +3,66 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import {
+    ExecutionPlanProvider,
+    ExecutionPlanReducers,
+    ExecutionPlanState,
+    ExecutionPlanWebviewState,
+} from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+
 export enum QueryResultLoadState {
     Loading = "Loading",
     Loaded = "Loaded",
     Error = "Error",
 }
 
-export interface QueryResultReactProvider {
+export interface QueryResultReactProvider
+    extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
+    /**
+     * Gets the execution plan graph from the provider for a given plan file
+     * @param planFile file that contains the execution plan
+     */
+    getExecutionPlan(xmlPlans: string[]): void;
+
+    /**
+     * Gets the execution plan graph from the provider for a given plan file
+     * @param plan the xml plan contents to be added
+     */
+    addXmlPlan(plan: string): void;
 }
 
 export enum QueryResultPaneTabs {
     Results = "results",
     Messages = "messages",
+    ExecutionPlan = "executionPlan",
 }
 
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
 }
 
-export interface QueryResultWebviewState {
+export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     uri?: string;
     resultSetSummaries: { [key: number]: ResultSetSummary };
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
+    isExecutionPlan?: boolean;
+    executionPlanState: ExecutionPlanState & {
+        xmlPlans?: string[];
+    };
 }
 
-export interface QueryResultReducers {
+export interface QueryResultReducers
+    extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
+    };
+    getExecutionPlan: {
+        xmlPlans: string[];
+    };
+    addXmlPlan: {
+        xmlPlan: string;
     };
 }
 

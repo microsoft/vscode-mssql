@@ -5,7 +5,6 @@
 
 import { useContext, useState } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import * as utils from "./queryPlanSetup";
 import "./executionPlan.css";
 import {
     Button,
@@ -22,6 +21,7 @@ import {
 } from "@fluentui/react-icons";
 import * as ep from "./executionPlanInterfaces";
 import { locConstants } from "../../common/locConstants";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     inputContainer: {
@@ -50,7 +50,7 @@ const useStyles = makeStyles({
 });
 
 interface FindNodeProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;
@@ -64,8 +64,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
 }) => {
     const classes = useStyles();
     const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
-
+    const theme = state!.theme;
     const findNodeComparisonOptions: string[] = [
         locConstants.executionPlan.equals,
         locConstants.executionPlan.contains,
@@ -144,7 +143,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             id="findNodeInputContainer"
             className={classes.inputContainer}
             style={{
-                background: utils.iconBackground(executionPlanState!.theme!),
+                background: theme.colorNeutralBackground1,
             }}
         >
             <div>{locConstants.executionPlan.findNodes}</div>

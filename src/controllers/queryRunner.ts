@@ -27,6 +27,7 @@ import {
     QueryExecutionOptionsParams,
     QueryExecutionOptions,
     DbCellValue,
+    ExecutionPlanOptions,
 } from "../models/contracts/queryExecute";
 import {
     QueryDisposeParams,
@@ -197,12 +198,14 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     public async runQuery(
         selection: ISelectionData,
+        executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
         await this.doRunQuery(selection, async (onSuccess, onError) => {
             // Put together the request
             let queryDetails: QueryExecuteParams = {
                 ownerUri: this._ownerUri,
+                executionPlanOptions: executionPlanOptions,
                 querySelection: selection,
             };
 

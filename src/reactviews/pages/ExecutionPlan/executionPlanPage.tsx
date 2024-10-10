@@ -9,6 +9,7 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ExecutionPlanGraph } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -33,10 +34,17 @@ const useStyles = makeStyles({
     },
 });
 
-export const ExecutionPlanPage = () => {
+interface ExecutionPlanPageProps {
+    context?: QueryResultState;
+}
+
+export const ExecutionPlanPage: React.FC<ExecutionPlanPageProps> = ({
+    context,
+}) => {
     const classes = useStyles();
-    const provider = useContext(ExecutionPlanContext);
-    const loadState = provider?.state?.loadState ?? ApiStatus.Loading;
+    const provider = context ? context : useContext(ExecutionPlanContext);
+    const executionPlanState = provider?.state?.executionPlanState;
+    const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     const renderMainContent = () => {
         switch (loadState) {
             case ApiStatus.Loading:
@@ -50,8 +58,8 @@ export const ExecutionPlanPage = () => {
                 );
             case ApiStatus.Loaded:
                 const executionPlanGraphs =
-                    provider?.state?.executionPlanGraphs ?? [];
-                return executionPlanGraphs?.map((_, index) => (
+                    executionPlanState?.executionPlanGraphs ?? [];
+                return executionPlanGraphs?.map((_: any, index: number) => (
                     <ExecutionPlanGraph key={index} graphIndex={index} />
                 ));
             case ApiStatus.Error:
@@ -59,7 +67,7 @@ export const ExecutionPlanPage = () => {
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
                         <Text size={400}>
-                            {provider?.state?.errorMessage ?? ""}
+                            {executionPlanState?.errorMessage ?? ""}
                         </Text>
                     </div>
                 );

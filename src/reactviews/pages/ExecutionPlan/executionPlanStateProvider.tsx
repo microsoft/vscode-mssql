@@ -29,27 +29,16 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
         ep.ExecutionPlanWebviewState,
         ep.ExecutionPlanReducers
     >();
-    const executionPlanState = webviewState?.state;
     return (
         <ExecutionPlanContext.Provider
             value={{
                 provider: {
                     getExecutionPlan: function (
                         planFile: ep.ExecutionPlanGraphInfo,
-                    ): Promise<ep.GetExecutionPlanResult> {
+                    ): void {
                         webviewState?.extensionRpc.action("getExecutionPlan", {
                             sqlPlanContent: planFile.graphFileContent,
                         });
-
-                        if (!executionPlanState.executionPlan) {
-                            return Promise.reject(
-                                new Error("Execution plan is undefined"),
-                            );
-                        }
-
-                        return Promise.resolve(
-                            executionPlanState.executionPlan,
-                        );
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {
                         webviewState?.extensionRpc.action("saveExecutionPlan", {
@@ -66,9 +55,9 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
                             query: query,
                         });
                     },
-                    updateTotalCost: function (totalCost: number): void {
+                    updateTotalCost: function (addedCost: number): void {
                         webviewState?.extensionRpc.action("updateTotalCost", {
-                            totalCost: totalCost,
+                            addedCost: addedCost,
                         });
                     },
                 },
