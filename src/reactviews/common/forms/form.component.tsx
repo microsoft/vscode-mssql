@@ -170,7 +170,6 @@ export const FormField = <
                     {component.actionButtons?.map((actionButton, idx) => {
                         return (
                             <Button
-                                shape="square"
                                 key={idx + actionButton.id}
                                 appearance="outline"
                                 style={{

@@ -115,6 +115,9 @@
     <trans-unit id="++CODE++29852e83a6613ccf439cb69654f96550fd0ce1de27609b5167992cef02a9ea55">
       <source xml:lang="en">Azure: Sign In with Device Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
+      <source xml:lang="en">Back to preview</source>
+    </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
@@ -289,6 +292,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
+      <source xml:lang="en">Copied</source>
     </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
@@ -511,6 +517,9 @@
     <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
       <source xml:lang="en">Failed to save results. </source>
     </trans-unit>
+    <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
+      <source xml:lang="en">Filter Azure subscriptions</source>
+    </trans-unit>
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
     </trans-unit>
@@ -646,6 +655,9 @@
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
     </trans-unit>
+    <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
+      <source xml:lang="en">Loading Report</source>
+    </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
@@ -757,8 +769,8 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
-    <trans-unit id="++CODE++65913cf146a086bd775fa3e53bf77106c406c3808f1c6a1dc65cce561daac76f">
-      <source xml:lang="en">No subscriptions set in VS Code&apos;s Azure account filter.</source>
+    <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
+      <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
       <source xml:lang="en">None</source>
@@ -1023,6 +1035,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
+    </trans-unit>
+    <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
+      <source xml:lang="en">Select subscriptions</source>
     </trans-unit>
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>

@@ -422,6 +422,11 @@
           "group": "MS_SQL@10"
         },
         {
+          "command": "mssql.refreshObjectExplorerNode",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+          "group": "inline@9999"
+        },
+        {
           "command": "mssql.disconnectObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
           "group": "MS_SQL@3"
@@ -691,7 +696,8 @@
       {
         "command": "mssql.refreshObjectExplorerNode",
         "title": "%mssql.refreshObjectExplorerNode%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": "$(refresh)"
       },
       {
         "command": "mssql.disconnectObjectExplorerNode",

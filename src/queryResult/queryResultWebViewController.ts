@@ -7,6 +7,12 @@ import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
+import { sendActionEvent } from "../telemetry/telemetry";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { randomUUID } from "crypto";
 import { exists } from "../utils/utils";
 import { homedir } from "os";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -21,6 +27,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> =
         new Map<string, qr.QueryResultWebviewState>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
+    private _correlationId: string = randomUUID();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -60,6 +67,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             );
         });
         this.registerRequestHandler("saveResults", async (message) => {
+            sendActionEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.SaveResults,
+                {
+                    correlationId: this._correlationId,
+                    format: message.format,
+                    // TODO: add selection to telemetry when it's supported
+                    // TODO: add action origin (context/toolbar) to telemetry
+                },
+            );
             return await this._sqlOutputContentProvider.saveResultsRequestHandler(
                 message.uri,
                 message.batchId,

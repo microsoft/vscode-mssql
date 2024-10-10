@@ -29,7 +29,6 @@ export const ConnectButton = ({
                 connectionDialogContext.state.connectionStatus ===
                 ApiStatus.Loading
             }
-            shape="square"
             onClick={(_event) => {
                 connectionDialogContext.connect();
             }}

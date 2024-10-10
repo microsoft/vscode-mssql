@@ -72,6 +72,11 @@ const ConnectionDialogStateProvider: React.FC<
                 refreshMruConnections: function (): void {
                     webviewState.extensionRpc.action("refreshMruConnections");
                 },
+                filterAzureSubscriptions: function (): void {
+                    webviewState.extensionRpc.action(
+                        "filterAzureSubscriptions",
+                    );
+                },
             }}
         >
             {children}
