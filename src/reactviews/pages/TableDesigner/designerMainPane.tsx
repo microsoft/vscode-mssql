@@ -158,6 +158,7 @@ export const DesignerMainPane = () => {
                         onChange={(_event, data) => {
                             setTableName(data.value);
                         }}
+                        autoFocus // initial focus
                         onBlur={(_event) => {
                             state.provider.processTableEdit({
                                 source: "TabsView",
