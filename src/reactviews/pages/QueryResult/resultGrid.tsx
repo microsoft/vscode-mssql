@@ -29,6 +29,7 @@ import {
 } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
+import { makeStyles } from "@fluentui/react-components";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -47,6 +48,21 @@ declare global {
     }
 }
 
+const useStyles = makeStyles({
+    gridContainer: {
+        // overflow: "hidden",
+    },
+});
+
+export const ROW_HEIGHT = 25;
+const HEADER_HEIGHT = 28;
+const MIN_GRID_HEIGHT_ROWS = 8;
+const ESTIMATED_SCROLL_BAR_HEIGHT = 15;
+const MIN_GRID_HEIGHT =
+    MIN_GRID_HEIGHT_ROWS * ROW_HEIGHT +
+    HEADER_HEIGHT +
+    ESTIMATED_SCROLL_BAR_HEIGHT;
+
 export interface ResultGridProps {
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
     resultSetSummary?: ResultSetSummary;
@@ -61,17 +77,22 @@ export interface ResultGridHandle {
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
     (props: ResultGridProps, ref) => {
         let table: Table<any>;
+        const classes = useStyles();
         const gridContainerRef = useRef<HTMLDivElement>(null);
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
             setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
-            const dimension = new DOM.Dimension(width, height);
+            let dimension: DOM.Dimension;
+            if (height < MIN_GRID_HEIGHT) {
+                dimension = new DOM.Dimension(width, MIN_GRID_HEIGHT);
+            } else {
+                dimension = new DOM.Dimension(width, height);
+            }
             table?.layout(dimension);
         };
         useEffect(() => {
-            const ROW_HEIGHT = 25;
             if (!props.resultSetSummary) {
                 return;
             }
@@ -222,7 +243,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             resizeGrid,
         }));
 
-        return <div ref={gridContainerRef}></div>;
+        return (
+            <div ref={gridContainerRef} className={classes.gridContainer}></div>
+        );
     },
 );
 
