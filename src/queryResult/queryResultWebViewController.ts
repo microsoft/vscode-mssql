@@ -201,26 +201,31 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         state: qr.QueryResultWebviewState,
         xmlPlans: string[],
     ) {
+        let newState = {
+            ...state.executionPlanState,
+        };
         for (const plan of xmlPlans) {
             const planFile: ExecutionPlanGraphInfo = {
                 graphFileContent: plan,
                 graphFileType: ".sqlplan",
             };
             try {
-                state.executionPlanState.executionPlanGraphs =
-                    state.executionPlanState.executionPlanGraphs.concat(
+                newState.executionPlanGraphs =
+                    newState.executionPlanGraphs.concat(
                         (
                             await this.executionPlanService.getExecutionPlan(
                                 planFile,
                             )
                         ).graphs,
                     );
-                state.executionPlanState.loadState = ApiStatus.Loaded;
+
+                newState.loadState = ApiStatus.Loaded;
             } catch (e) {
-                state.executionPlanState.loadState = ApiStatus.Error;
-                state.executionPlanState.errorMessage = e.toString();
+                newState.loadState = ApiStatus.Error;
+                newState.errorMessage = e.toString();
             }
         }
+        state.executionPlanState = newState;
         state.executionPlanState.totalCost = this.calculateTotalCost(state);
         this.updateState();
     }
