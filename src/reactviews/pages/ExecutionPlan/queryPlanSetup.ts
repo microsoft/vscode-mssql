@@ -395,7 +395,23 @@ export function getCollapseExpandPaths() {
     };
 }
 
-export const save = (theme: string) => {
+// this function determines whether to use dark or light icons,
+// since we can't access vscode's api in the react tsx
+const isDarkerOrLighter = (hexColor: string): string => {
+    const color = hexColor.startsWith("#") ? hexColor.slice(1) : hexColor;
+
+    // Convert hex to RGB values
+    const r = parseInt(color.slice(0, 2), 16);
+    const g = parseInt(color.slice(2, 4), 16);
+    const b = parseInt(color.slice(4, 6), 16);
+
+    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    return brightness < 128 ? "dark" : "light";
+};
+
+export const save = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const saveIcon =
         theme === "dark"
             ? require("./icons/saveDark.svg")
@@ -403,7 +419,8 @@ export const save = (theme: string) => {
     return saveIcon;
 };
 
-export const openPlanFile = (theme: string) => {
+export const openPlanFile = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const openPlanFileIcon =
         theme === "dark"
             ? require("./icons/openPlanFileDark.svg")
@@ -411,7 +428,8 @@ export const openPlanFile = (theme: string) => {
     return openPlanFileIcon;
 };
 
-export const openQuery = (theme: string) => {
+export const openQuery = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const openQueryIcon =
         theme === "dark"
             ? require("./icons/openQueryDark.svg")
@@ -419,7 +437,8 @@ export const openQuery = (theme: string) => {
     return openQueryIcon;
 };
 
-export const zoomIn = (theme: string) => {
+export const zoomIn = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const zoomInIcon =
         theme === "dark"
             ? require("./icons/zoomInDark.svg")
@@ -427,7 +446,8 @@ export const zoomIn = (theme: string) => {
     return zoomInIcon;
 };
 
-export const zoomOut = (theme: string) => {
+export const zoomOut = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const zoomOutIcon =
         theme === "dark"
             ? require("./icons/zoomOutDark.svg")
@@ -435,7 +455,8 @@ export const zoomOut = (theme: string) => {
     return zoomOutIcon;
 };
 
-export const zoomToFit = (theme: string) => {
+export const zoomToFit = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const zoomToFitIcon =
         theme === "dark"
             ? require("./icons/zoomToFitDark.svg")
@@ -443,7 +464,8 @@ export const zoomToFit = (theme: string) => {
     return zoomToFitIcon;
 };
 
-export const customZoom = (theme: string) => {
+export const customZoom = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const customZoomIcon =
         theme === "dark"
             ? require("./icons/customZoomDark.svg")
@@ -451,7 +473,8 @@ export const customZoom = (theme: string) => {
     return customZoomIcon;
 };
 
-export const search = (theme: string) => {
+export const search = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const searchIcon =
         theme === "dark"
             ? require("./icons/searchDark.svg")
@@ -459,7 +482,8 @@ export const search = (theme: string) => {
     return searchIcon;
 };
 
-export const properties = (theme: string) => {
+export const properties = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const propertiesIcon =
         theme === "dark"
             ? require("./icons/openPropertiesDark.svg")
@@ -467,7 +491,8 @@ export const properties = (theme: string) => {
     return propertiesIcon;
 };
 
-export const highlightOps = (theme: string) => {
+export const highlightOps = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const highlightOpsIcon =
         theme === "dark"
             ? require("./icons/highlightExpensiveOperationDark.svg")
@@ -475,7 +500,8 @@ export const highlightOps = (theme: string) => {
     return highlightOpsIcon;
 };
 
-export const enableTooltip = (theme: string) => {
+export const enableTooltip = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const enableTooltipIcon =
         theme === "dark"
             ? require("./icons/enableTooltipDark.svg")
@@ -483,7 +509,8 @@ export const enableTooltip = (theme: string) => {
     return enableTooltipIcon;
 };
 
-export const disableTooltip = (theme: string) => {
+export const disableTooltip = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const disableTooltipIcon =
         theme === "dark"
             ? require("./icons/disableTooltipDark.svg")
@@ -491,7 +518,8 @@ export const disableTooltip = (theme: string) => {
     return disableTooltipIcon;
 };
 
-export const sortByImportance = (theme: string) => {
+export const sortByImportance = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const sortByImportanceIcon =
         theme === "dark"
             ? require("./icons/sortByDisplayOrderDark.svg")
@@ -499,7 +527,8 @@ export const sortByImportance = (theme: string) => {
     return sortByImportanceIcon;
 };
 
-export const sortAlphabetically = (theme: string) => {
+export const sortAlphabetically = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const sortAlphabeticallyIcon =
         theme === "dark"
             ? require("./icons/sortAlphabeticallyDark.svg")
@@ -507,7 +536,8 @@ export const sortAlphabetically = (theme: string) => {
     return sortAlphabeticallyIcon;
 };
 
-export const sortReverseAlphabetically = (theme: string) => {
+export const sortReverseAlphabetically = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const sortReverseAlphabeticallyIcon =
         theme === "dark"
             ? require("./icons/sortReverseAlphabeticallyDark.svg")
@@ -515,7 +545,8 @@ export const sortReverseAlphabetically = (theme: string) => {
     return sortReverseAlphabeticallyIcon;
 };
 
-export const filterIcon = (theme: string) => {
+export const filterIcon = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const filterIcon =
         theme === "dark"
             ? require("./icons/filterDark.svg")
@@ -523,7 +554,8 @@ export const filterIcon = (theme: string) => {
     return filterIcon;
 };
 
-export const expandAll = (theme: string) => {
+export const expandAll = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const expandAllIcon =
         theme === "dark"
             ? require("./icons/expandAllDark.svg")
@@ -531,26 +563,11 @@ export const expandAll = (theme: string) => {
     return expandAllIcon;
 };
 
-export const collapseAll = (theme: string) => {
+export const collapseAll = (color: string) => {
+    const theme = isDarkerOrLighter(color);
     const collapseAllIcon =
         theme === "dark"
             ? require("./icons/collapseAllDark.svg")
             : require("./icons/collapseAll.svg");
     return collapseAllIcon;
-};
-
-export const background = (theme: string) => {
-    return theme === "dark" ? "#1E1E1E" : "#F2F2F2";
-};
-
-export const iconBackground = (theme: string) => {
-    return theme === "dark" ? "#282C2C" : "#F2F2F2";
-};
-
-export const seperator = (theme: string) => {
-    return theme === "dark" ? "#7C7C7C" : "#D6D6D6";
-};
-
-export const tableBackground = (theme: string) => {
-    return theme === "dark" ? "#333334" : "#E5E5E5";
 };

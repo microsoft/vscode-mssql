@@ -10,10 +10,7 @@ export interface ExecutionPlanWebviewState {
 }
 
 export interface ExecutionPlanState {
-    sqlPlanContent?: string;
-    executionPlan?: GetExecutionPlanResult;
     executionPlanGraphs?: ExecutionPlanGraph[];
-    theme?: string;
     totalCost?: number;
     loadState?: ApiStatus;
     errorMessage?: string;
@@ -42,9 +39,7 @@ export interface ExecutionPlanProvider {
      * Gets the execution plan graph from the provider for a given plan file
      * @param planFile file that contains the execution plan
      */
-    getExecutionPlan(
-        planFile: ExecutionPlanGraphInfo,
-    ): Thenable<GetExecutionPlanResult>;
+    getExecutionPlan(planFile: ExecutionPlanGraphInfo): void;
 
     /**
      * Handles saving the execution plan file through the vscode extension api

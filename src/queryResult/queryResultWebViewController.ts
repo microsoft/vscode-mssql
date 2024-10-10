@@ -163,13 +163,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             ...(isExecutionPlan && {
                 executionPlanState: {
                     loadState: ApiStatus.Loading,
-                    sqlPlanContent: "",
-                    theme:
-                        vscode.window.activeColorTheme.kind ===
-                        vscode.ColorThemeKind.Dark
-                            ? "dark"
-                            : "light",
-                    executionPlan: undefined,
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: [],
@@ -214,11 +207,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 graphFileType: ".sqlplan",
             };
             try {
-                state.executionPlanState.executionPlan =
-                    await this.executionPlanService.getExecutionPlan(planFile);
                 state.executionPlanState.executionPlanGraphs =
                     state.executionPlanState.executionPlanGraphs.concat(
-                        state.executionPlanState.executionPlan.graphs,
+                        (
+                            await this.executionPlanService.getExecutionPlan(
+                                planFile,
+                            )
+                        ).graphs,
                     );
                 state.executionPlanState.loadState = ApiStatus.Loaded;
             } catch (e) {

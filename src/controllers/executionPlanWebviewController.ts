@@ -30,14 +30,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             "executionPlan",
             {
                 executionPlanState: {
-                    sqlPlanContent: executionPlanContents,
-                    theme:
-                        vscode.window.activeColorTheme.kind ===
-                        vscode.ColorThemeKind.Dark
-                            ? "dark"
-                            : "light",
                     loadState: ApiStatus.Loading,
-                    executionPlan: undefined,
                     executionPlanGraphs: [],
                     totalCost: 0,
                 },
@@ -62,19 +55,17 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     private async initialize() {
         this.state.executionPlanState.loadState = ApiStatus.Loading;
         this.updateState();
-        await this.createExecutionPlanGraphs();
+        await this.createExecutionPlanGraphs(this.executionPlanContents);
         this.registerRpcHandlers();
     }
 
     private registerRpcHandlers() {
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            await this.createExecutionPlanGraphs();
+            await this.createExecutionPlanGraphs(payload.sqlPlanContent);
             return {
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    sqlPlanContent: payload.sqlPlanContent,
-                    executionPlan: this.state.executionPlanState.executionPlan,
                     executionPlanGraphs:
                         this.state.executionPlanState.executionPlanGraphs,
                 },
@@ -145,26 +136,22 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         });
     }
 
-    private async createExecutionPlanGraphs() {
-        if (!this.state.executionPlanState.executionPlan) {
-            const planFile: ep.ExecutionPlanGraphInfo = {
-                graphFileContent: this.executionPlanContents,
-                graphFileType: ".sqlplan",
-            };
-            try {
-                this.state.executionPlanState.executionPlan =
-                    await this.executionPlanService.getExecutionPlan(planFile);
-                this.state.executionPlanState.executionPlanGraphs =
-                    this.state.executionPlanState.executionPlan.graphs;
-                this.state.executionPlanState.loadState = ApiStatus.Loaded;
-                this.state.executionPlanState.totalCost =
-                    this.calculateTotalCost();
-            } catch (e) {
-                this.state.executionPlanState.loadState = ApiStatus.Error;
-                this.state.executionPlanState.errorMessage = e.toString();
-            }
-            this.updateState();
+    private async createExecutionPlanGraphs(content: string) {
+        const planFile: ep.ExecutionPlanGraphInfo = {
+            graphFileContent: content,
+            graphFileType: ".sqlplan",
+        };
+        try {
+            this.state.executionPlanState.executionPlanGraphs = (
+                await this.executionPlanService.getExecutionPlan(planFile)
+            ).graphs;
+            this.state.executionPlanState.loadState = ApiStatus.Loaded;
+            this.state.executionPlanState.totalCost = this.calculateTotalCost();
+        } catch (e) {
+            this.state.executionPlanState.loadState = ApiStatus.Error;
+            this.state.executionPlanState.errorMessage = e.toString();
         }
+        this.updateState();
     }
 
     private calculateTotalCost(): number {

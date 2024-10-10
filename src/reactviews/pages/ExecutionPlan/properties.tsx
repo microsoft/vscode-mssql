@@ -121,7 +121,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 }) => {
     const classes = useStyles();
     const state = context ?? useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state.executionPlanState;
+    const theme = state!.theme;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
@@ -335,14 +335,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             id="propertiesPanelContainer"
             className={classes.paneContainer}
             style={{
-                background: utils.background(executionPlanState!.theme!),
-                borderLeft: `2px solid ${utils.tableBackground(executionPlanState!.theme!)}`,
+                background: theme.colorNeutralBackground2,
+                borderLeft: `2px solid ${theme.colorNeutralBackground6}`,
             }}
         >
             <div
                 className={classes.propertiesHeader}
                 style={{
-                    background: utils.background(executionPlanState!.theme!),
+                    background: theme.colorNeutralBackground2,
                 }}
             >
                 <div>{PROPERTIES}</div>
@@ -350,9 +350,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <Button
                         className={classes.dismissButton}
                         style={{
-                            background: utils.background(
-                                executionPlanState!.theme!,
-                            ),
+                            background: theme.colorNeutralBackground2,
                         }}
                         onClick={() => setPropertiesClicked(false)}
                         icon={<Dismiss12Regular />}
@@ -362,9 +360,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <div
                 className={classes.nameContainer}
                 style={{
-                    background: utils.tableBackground(
-                        executionPlanState!.theme!,
-                    ),
+                    background: theme.colorNeutralBackground6,
                 }}
             >
                 {name}
@@ -377,7 +373,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         <img
                             className={classes.buttonImg}
                             src={utils.sortByImportance(
-                                executionPlanState!.theme!,
+                                theme.colorNeutralBackground2,
                             )}
                             alt={IMPORTANCE}
                         />
@@ -393,7 +389,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         <img
                             className={classes.buttonImg}
                             src={utils.sortAlphabetically(
-                                executionPlanState!.theme!,
+                                theme.colorNeutralBackground2,
                             )}
                             alt={ALPHABETICAL}
                         />
@@ -409,7 +405,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         <img
                             className={classes.buttonImg}
                             src={utils.sortReverseAlphabetically(
-                                executionPlanState!.theme!,
+                                theme.colorNeutralBackground2,
                             )}
                             alt={REVERSE_ALPHABETICAL}
                         />
@@ -426,7 +422,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.expandAll(executionPlanState!.theme!)}
+                            src={utils.expandAll(theme.colorNeutralBackground2)}
                             alt={EXPAND_ALL}
                         />
                     }
@@ -440,7 +436,9 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.collapseAll(executionPlanState!.theme!)}
+                            src={utils.collapseAll(
+                                theme.colorNeutralBackground2,
+                            )}
                             alt={COLLAPSE_ALL}
                         />
                     }
@@ -456,7 +454,9 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     placeholder={FILTER_ANY_FIELD}
                     contentBefore={
                         <img
-                            src={utils.filterIcon(executionPlanState!.theme!)}
+                            src={utils.filterIcon(
+                                theme.colorNeutralBackground2,
+                            )}
                             alt={FILTER_ANY_FIELD}
                             style={{ width: "20px", height: "20px" }}
                         />
@@ -478,9 +478,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <DataGridHeader
                         className={classes.tableHeader}
                         style={{
-                            background: utils.tableBackground(
-                                executionPlanState!.theme!,
-                            ),
+                            background: theme.colorNeutralBackground6,
                         }}
                     >
                         <DataGridRow className={classes.tableRow}>

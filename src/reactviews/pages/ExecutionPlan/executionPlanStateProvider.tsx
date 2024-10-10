@@ -35,25 +35,10 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
                 provider: {
                     getExecutionPlan: function (
                         planFile: ep.ExecutionPlanGraphInfo,
-                    ): Promise<ep.GetExecutionPlanResult> {
+                    ): void {
                         webviewState?.extensionRpc.action("getExecutionPlan", {
                             sqlPlanContent: planFile.graphFileContent,
                         });
-
-                        if (
-                            webviewState &&
-                            webviewState.state &&
-                            webviewState.state.executionPlanState.executionPlan
-                        ) {
-                            return Promise.resolve(
-                                webviewState.state.executionPlanState
-                                    .executionPlan,
-                            );
-                        }
-
-                        return Promise.reject(
-                            new Error("Execution plan is undefined"),
-                        );
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {
                         webviewState?.extensionRpc.action("saveExecutionPlan", {
