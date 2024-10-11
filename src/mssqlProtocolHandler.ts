@@ -80,14 +80,14 @@ export class MssqlProtocolHandler {
     private async readProfileFromArgs(
         query: string,
     ): Promise<IConnectionInfo | undefined> {
+        if (!query) {
+            return undefined;
+        }
+
         const capabilitiesResult: CapabilitiesResult =
             await this.client.sendRequest(GetCapabilitiesRequest.type, {});
         const connectionOptions =
             capabilitiesResult.capabilities.connectionProvider.options;
-
-        if (!query) {
-            return undefined;
-        }
 
         const connectionInfo = {};
         const args = new URLSearchParams(query);
