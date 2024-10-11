@@ -713,6 +713,12 @@
       "{0} is the feature name"
     ]
   },
+  "The {0} has been close. Would you like to restore it?/{0} is the webview name": {
+    "message": "The {0} has been close. Would you like to restore it?",
+    "comment": [
+      "{0} is the webview name"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
