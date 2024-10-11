@@ -718,7 +718,7 @@ export class UserSurvey {
 export class Webview {
     public static webviewRestorePrompt = (webviewName: string) =>
         l10n.t({
-            message: "The {0} has been close. Would you like to restore it?",
+            message: "The {0} has been closed. Would you like to restore it?",
             args: [webviewName],
             comment: ["{0} is the webview name"],
         });
