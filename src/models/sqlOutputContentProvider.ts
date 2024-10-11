@@ -216,7 +216,6 @@ export class SqlOutputContentProvider {
         );
     }
 
-    // Use a separate flag so it won't be enabled with the experimental features flag
     private get isRichExperiencesEnabled(): boolean {
         return this._vscodeWrapper
             .getConfiguration()
