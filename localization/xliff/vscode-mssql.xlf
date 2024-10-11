@@ -1229,9 +1229,6 @@
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
-    <trans-unit id="++CODE++2b8198974f44b4a37d366cb6535153e3646f2c9de308f0ca05bf90513b0a4630">
-      <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
-    </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
     </trans-unit>
@@ -1289,6 +1286,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
+      <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
@@ -1533,6 +1533,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.xactAbortOn">
       <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableRichExperiences.description">
+      <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;</source>

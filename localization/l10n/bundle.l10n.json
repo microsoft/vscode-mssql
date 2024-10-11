@@ -665,7 +665,7 @@
   "An error occurred refreshing nodes. See the MSSQL output channel for more details.": "An error occurred refreshing nodes. See the MSSQL output channel for more details.",
   "Show MSSQL output": "Show MSSQL output",
   "Authentication Library has changed, please reload Visual Studio Code.": "Authentication Library has changed, please reload Visual Studio Code.",
-  "This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.": "This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.",
+  "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.": "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.",
   "Reload Visual Studio Code": "Reload Visual Studio Code",
   "Switch to MSAL": "Switch to MSAL",
   "Dismiss": "Dismiss",
