@@ -142,7 +142,6 @@ suite("MssqlProtocolHandler Tests", () => {
         );
     });
 
-    // "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&authenticationType=SqlLogin"
     test("handleUri - with no command and empty query - returns undefined", async () => {
         const connInfo = await mssqlProtocolHandler.handleUri(
             Uri.parse("vscode://ms-mssql.mssql/"),
