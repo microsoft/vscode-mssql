@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
+
 import {
     AuthenticationType,
     AzureSqlServerInfo,
@@ -15,43 +15,45 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../sharedInterfaces/connectionDialog";
-import { IConnectionInfo } from "vscode-mssql";
-import MainController from "../controllers/mainController";
-import { getConnectionDisplayName } from "../models/connectionInfo";
-import { AzureController } from "../azure/azureController";
-import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import {
     CapabilitiesResult,
     GetCapabilitiesRequest,
 } from "../models/contracts/connection";
-import { ConnectionOption } from "azdata";
-import { Logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import {
+    FormItemActionButton,
+    FormItemOptions,
+    FormItemSpec,
+    FormItemType,
+} from "../reactviews/common/forms/form";
+import {
+    GenericResourceExpanded,
+    ResourceManagementClient,
+} from "@azure/arm-resources";
 import {
     ConnectionDialog as Loc,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
-    FormItemSpec,
-    FormItemActionButton,
-    FormItemOptions,
-    FormItemType,
-} from "../reactviews/common/forms/form";
-import { ApiStatus } from "../sharedInterfaces/webview";
-import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
-import {
-    GenericResourceExpanded,
-    ResourceManagementClient,
-} from "@azure/arm-resources";
-import { getErrorMessage, listAllIterator } from "../utils/utils";
-import { l10n } from "vscode";
-import { UserSurvey } from "../nps/userSurvey";
-import {
     azureSubscriptionFilterConfigKey,
     confirmVscodeAzureSignin,
     promptForAzureSubscriptionFilter,
 } from "./azureHelper";
+import { getErrorMessage, listAllIterator } from "../utils/utils";
+
+import { ApiStatus } from "../sharedInterfaces/webview";
+import { AzureController } from "../azure/azureController";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
+import { ConnectionOption } from "azdata";
+import { IConnectionInfo } from "vscode-mssql";
+import { Logger } from "../models/logger";
+import MainController from "../controllers/mainController";
+import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { UserSurvey } from "../nps/userSurvey";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
+import { getConnectionDisplayName } from "../models/connectionInfo";
+import { l10n } from "vscode";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -70,7 +72,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     ) {
         super(
             context,
-            Loc.connectionDialog,
             "connectionDialog",
             new ConnectionDialogWebviewState({
                 connectionProfile: {} as IConnectionDialogProfile,
@@ -91,18 +92,21 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 loadingAzureServersStatus: ApiStatus.NotStarted,
                 trustServerCertError: undefined,
             }),
-            vscode.ViewColumn.Active,
             {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_light.svg",
-                ),
+                title: Loc.connectionDialog,
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_light.svg",
+                    ),
+                },
             },
         );
 

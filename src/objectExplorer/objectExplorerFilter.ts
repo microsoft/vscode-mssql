@@ -3,20 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
-import * as vscodeMssql from "vscode-mssql";
 import * as vscode from "vscode";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import * as vscodeMssql from "vscode-mssql";
+
 import {
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../sharedInterfaces/objectExplorerFilter";
-import { sendActionEvent } from "../telemetry/telemetry";
 import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+
+import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { TreeNodeInfo } from "./treeNodeInfo";
 import { randomUUID } from "crypto";
+import { sendActionEvent } from "../telemetry/telemetry";
 
 export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPanelController<
     ObjectExplorerFilterState,
@@ -37,25 +39,27 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
     ) {
         super(
             context,
-            vscode.l10n.t("Object Explorer Filter"),
             "objectExplorerFilter",
             data ?? {
                 filterProperties: [],
                 existingFilters: [],
                 nodePath: "",
             },
-            vscode.ViewColumn.Beside,
             {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "filter_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "filter_light.svg",
-                ),
+                title: vscode.l10n.t("Object Explorer Filter"),
+                viewColumn: vscode.ViewColumn.Beside,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "filter_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "filter_light.svg",
+                    ),
+                },
             },
         );
 

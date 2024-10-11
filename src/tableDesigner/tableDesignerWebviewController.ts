@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { randomUUID } from "crypto";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
+import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
@@ -35,7 +35,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
     ) {
         super(
             context,
-            "Table Designer",
             "tableDesigner",
             {
                 apiState: {
@@ -46,18 +45,22 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     initializeState: designer.LoadState.Loading,
                 },
             },
-            vscode.ViewColumn.Active,
             {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "tableDesignerEditor_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "tableDesignerEditor_light.svg",
-                ),
+                title: "Table Designer",
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "tableDesignerEditor_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "tableDesignerEditor_light.svg",
+                    ),
+                },
+                showRestorePromptAfterClose: true,
             },
         );
         void this.initialize();
@@ -181,6 +184,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
     }
 
     public override dispose() {
+        this._tableDesignerService.disposeTableDesigner(this.state.tableInfo);
         super.dispose();
         sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
             correlationId: this._correlationId,
@@ -260,6 +264,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     },
                 };
                 this.panel.title = state.tableInfo.title;
+                this.showRestorePromptAfterClose = false;
                 await UserSurvey.getInstance().promptUserForNPSFeedback();
             } catch (e) {
                 state = {
@@ -394,6 +399,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
         this.registerReducer("continueEditing", async (state) => {
             this.state.apiState.publishState = designer.LoadState.NotStarted;
+            this.showRestorePromptAfterClose = true;
             sendActionEvent(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.ContinueEditing,

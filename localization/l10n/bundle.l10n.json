@@ -717,6 +717,12 @@
     ]
   },
   "Learn More": "Learn More",
+  "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
+    "message": "{0} has been closed. Would you like to restore it?",
+    "comment": [
+      "{0} is the webview name"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

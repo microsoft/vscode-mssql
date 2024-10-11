@@ -725,3 +725,13 @@ export class Common {
     public static dontShowAgain = l10n.t("Don't Show Again");
     public static learnMore = l10n.t("Learn More");
 }
+
+export class Webview {
+    public static webviewRestorePrompt = (webviewName: string) =>
+        l10n.t({
+            message: "{0} has been closed. Would you like to restore it?",
+            args: [webviewName],
+            comment: ["{0} is the webview name"],
+        });
+    public static Restore = l10n.t("Restore");
+}
