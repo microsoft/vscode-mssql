@@ -675,6 +675,8 @@
   "Execution Plan": "Execution Plan",
   "Script copied to clipboard": "Script copied to clipboard",
   "Copied": "Copied",
+  "The MSSQL extension has some new GUI-based experiences! Would you like to enable them?": "The MSSQL extension has some new GUI-based experiences! Would you like to enable them?",
+  "Enable Rich Experiences": "Enable Rich Experiences",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -715,6 +717,7 @@
       "{0} is the feature name"
     ]
   },
+  "Learn More": "Learn More",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
