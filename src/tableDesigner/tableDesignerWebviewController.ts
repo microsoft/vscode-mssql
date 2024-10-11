@@ -264,6 +264,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     },
                 };
                 this.panel.title = state.tableInfo.title;
+                this.showRestorePromptAfterClose = false;
                 await UserSurvey.getInstance().promptUserForNPSFeedback();
             } catch (e) {
                 state = {
@@ -398,6 +399,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
         this.registerReducer("continueEditing", async (state) => {
             this.state.apiState.publishState = designer.LoadState.NotStarted;
+            this.showRestorePromptAfterClose = true;
             sendActionEvent(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.ContinueEditing,

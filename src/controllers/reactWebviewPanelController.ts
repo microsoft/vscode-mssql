@@ -118,4 +118,8 @@ export class ReactWebviewPanelController<
             },
         );
     }
+
+    public set showRestorePromptAfterClose(value: boolean) {
+        this._options.showRestorePromptAfterClose = value;
+    }
 }
