@@ -714,3 +714,13 @@ export class UserSurvey {
             comment: ["{0} is the feature name"],
         });
 }
+
+export class Webview {
+    public static webviewRestorePrompt = (webviewName: string) =>
+        l10n.t({
+            message: "{0} has been closed. Would you like to restore it?",
+            args: [webviewName],
+            comment: ["{0} is the webview name"],
+        });
+    public static Restore = l10n.t("Restore");
+}
