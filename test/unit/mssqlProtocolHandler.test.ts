@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import { /*expect,*/ assert } from "chai";
+import { assert } from "chai";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
