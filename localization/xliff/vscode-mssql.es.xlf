@@ -518,6 +518,10 @@
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">Habilitar "certificado de servidor de confianza"</target>
       </trans-unit>
+      <trans-unit id="++CODE++952bc2eaca6c7bdfa690c327fa623692420a6821a4e386af25f6e333e31e30b2">
+        <source xml:lang="en">Enable Rich Experiences</source>
+        <target state="new">Enable Rich Experiences</target>
+      </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Habilitar certificado de servidor de confianza</target>
@@ -839,6 +843,10 @@
       <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
         <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
         <target state="translated">Las claves para la caché de tokens no se pudieron guardar en el almacén de credenciales, lo que puede causar problemas de persistencia del token de acceso de Microsoft Entra Id e inestabilidades en la conexión. Es probable que SqlTools haya alcanzado el límite de almacenamiento de credenciales en Windows. Borre al menos 2 credenciales que comiencen con "Microsoft.SqlTools|" en el Administrador de credenciales de Windows y vuelva a cargar.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
+        <source xml:lang="en">Learn More</source>
+        <target state="new">Learn More</target>
       </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
@@ -1529,6 +1537,10 @@
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">Probar el perfil de conexión...</target>
       </trans-unit>
+      <trans-unit id="++CODE++bf0625b7472379f6e2c58de0495e3375908927e805a30b25fcc0052af4539bc6">
+        <source xml:lang="en">The MSSQL extension has some new GUI-based experiences! Would you like to enable them?</source>
+        <target state="new">The MSSQL extension has some new GUI-based experiences! Would you like to enable them?</target>
+      </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">Comportamiento cuando un usuario intenta eliminar una fila con datos que intervienen en una relación de clave externa.</target>
@@ -1615,10 +1627,6 @@
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
         <target state="translated">Tabla que contiene la columna de clave principal o única.</target>
       </trans-unit>
-      <trans-unit id="++CODE++2b8198974f44b4a37d366cb6535153e3646f2c9de308f0ca05bf90513b0a4630">
-        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
-        <target state="translated">Esta configuración requiere que Visual Studio Code se vuelva a iniciar, vuelva a cargar Visual Studio Code.</target>
-      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Marca de tiempo</target>
@@ -1695,6 +1703,10 @@
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">¿Desea ver mssql para Visual Studio Code notas de la versión?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
+        <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
+        <target state="new">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
@@ -1925,6 +1937,10 @@
         <source xml:lang="en">Disconnect</source>
         <target state="translated">Desconectar</target>
       </trans-unit>
+      <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
+        <source xml:lang="en">Do not show prompts to enables UI-based features</source>
+        <target state="new">Do not show prompts to enables UI-based features</target>
+      </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
         <target state="translated">Editar conexión</target>
@@ -2020,6 +2036,10 @@
       <trans-unit id="mssql.query.xactAbortOn">
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">Habilitar la opción SET XACT_ABORT ON</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableRichExperiences.description">
+        <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
+        <target state="new">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
@@ -2172,6 +2192,10 @@
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Seleccionar los primeros 1000</target>
+      </trans-unit>
+      <trans-unit id="mssql.selectedSubscriptions">
+        <source xml:lang="en">Selected Subscriptions</source>
+        <target state="new">Selected Subscriptions</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
