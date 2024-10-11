@@ -1786,6 +1786,11 @@
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (フィルター処理済み)</target>
       </trans-unit>
+      <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
+        <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
+        <note>{0} is the webview name</note>
+        <target state="new">{0} has been closed. Would you like to restore it?</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
