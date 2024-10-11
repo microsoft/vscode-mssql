@@ -120,7 +120,7 @@ export const QueryResultPane = () => {
             if (gridParent.clientWidth && gridParent.clientHeight) {
                 if (gridRefs.current.length > 1) {
                     gridRefs.current.forEach((gridRef) => {
-                        gridRef.resizeGrid(
+                        gridRef?.resizeGrid(
                             gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
                             (gridParent.clientHeight -
                                 ribbonRef.current!.clientHeight -
@@ -129,7 +129,7 @@ export const QueryResultPane = () => {
                         );
                     });
                 } else if (gridRefs.current.length === 1) {
-                    gridRefs.current[0].resizeGrid(
+                    gridRefs.current[0]?.resizeGrid(
                         gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
                         gridParent.clientHeight -
                             ribbonRef.current.clientHeight -
@@ -178,6 +178,10 @@ export const QueryResultPane = () => {
     }
 
     const gridRefs = useRef<ResultGridHandle[]>([]);
+
+    webViewState.extensionRpc.subscribe("refreshGrid", (_) => {
+        gridRefs.current.forEach((r) => r.refreshGrid());
+    });
 
     const renderGrid = (idx: number) => {
         const divId = `grid-parent-${idx}`;
@@ -312,7 +316,6 @@ export const QueryResultPane = () => {
                         icon={<OpenFilled />}
                         onClick={async () => {
                             console.log("todo: open in new tab");
-                            // gridRef.current.refreshGrid();
                         }}
                         title={locConstants.queryResult.openSnapshot}
                     ></Button>

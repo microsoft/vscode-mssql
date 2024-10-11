@@ -33,6 +33,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
 
         void this.initialize();
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            if (
+                this._queryResultStateMap.has(editor?.document?.uri?.toString())
+            ) {
+                this.state = this.getQueryResultState(
+                    editor.document.uri.toString(),
+                );
+                this.postNotification("refreshGrid", undefined);
+            }
+        });
     }
 
     private async initialize() {

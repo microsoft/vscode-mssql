@@ -376,6 +376,7 @@ export class SqlOutputContentProvider {
                 if (!this.isNewQueryResultFeatureEnabled) {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                 } else {
+                    this._queryResultWebviewController.addQueryResultState(uri);
                     await vscode.commands.executeCommand("queryResult.focus");
                     this._queryResultWebviewController.getQueryResultState(
                         uri,
@@ -497,10 +498,6 @@ export class SqlOutputContentProvider {
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
                             );
-                        // reset query result state for the editor
-                        this._queryResultWebviewController.addQueryResultState(
-                            uri,
-                        );
                     }
                 },
             );
