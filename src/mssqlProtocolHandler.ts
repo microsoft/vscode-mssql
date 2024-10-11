@@ -91,15 +91,16 @@ export class MssqlProtocolHandler {
 
         const connectionInfo = {};
         const args = new URLSearchParams(query);
-        const connectionString = args.get("connectionString");
-        if (connectionString) {
-            connectionInfo["connectionString"] = connectionString;
-            return connectionInfo as IConnectionInfo;
-        }
 
         const profileName = args.get("profileName");
         if (profileName) {
             connectionInfo["profileName"] = profileName;
+        }
+
+        const connectionString = args.get("connectionString");
+        if (connectionString) {
+            connectionInfo["connectionString"] = connectionString;
+            return connectionInfo as IConnectionInfo;
         }
 
         const connectionOptionProperties: ConnectionOptionProperty[] =
