@@ -387,7 +387,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
         <source xml:lang="en">Copied</source>
-        <target state="new">Copied</target>
+        <target state="translated">Copiado</target>
       </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
@@ -1210,6 +1210,10 @@
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Publicando Alterações</target>
       </trans-unit>
+      <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
+        <source xml:lang="en">Query Plan</source>
+        <target state="new">Query Plan</target>
+      </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
         <target state="translated">Consulta executada</target>
@@ -1363,7 +1367,7 @@
       </trans-unit>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
-        <target state="new">Select subscriptions</target>
+        <target state="translated">Selecionar as assinaturas</target>
       </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
@@ -2023,6 +2027,10 @@
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">Permite o uso do Provedor de Autenticação Sql para o modo de autenticação "Microsoft Entra ID Interactive" quando o usuário seleciona a autenticação "AzureMFA". Isso permite a integração de ponto de extremidade de recurso do lado do servidor ao buscar tokens de acesso. Essa opção só tem suporte para a Biblioteca de Autenticação ''MSAL''. Reinicie o Visual Studio Code após alterar essa opção.</target>
+      </trans-unit>
+      <trans-unit id="mssql.showExecutionPlanInResults">
+        <source xml:lang="en">Estimated Plan</source>
+        <target state="new">Estimated Plan</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>

@@ -30,6 +30,8 @@ import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
 import { ACTIONBAR_WIDTH_PX, TABLE_ALIGN_PX } from "./table/table";
+import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
+import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 
 const useStyles = makeStyles({
     root: {
@@ -220,6 +222,13 @@ export const QueryResultPane = () => {
                                 var columnLength =
                                     metadata?.resultSetSummaries[idx]
                                         ?.columnInfo?.length;
+                                // if the result is an execution plan xml,
+                                // get the execution plan graph from it
+                                if (metadata?.isExecutionPlan) {
+                                    state?.provider.addXmlPlan(
+                                        r.rows[0][0].displayValue,
+                                    );
+                                }
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
                                         [key: string]: any;
@@ -269,6 +278,28 @@ export const QueryResultPane = () => {
         return grids;
     };
 
+    useEffect(() => {
+        if (
+            // makes sure state is defined
+            metadata &&
+            // makes sure result sets are defined
+            metadata.resultSetSummaries &&
+            // makes sure the xml plans set by results are defined
+            metadata.executionPlanState.xmlPlans &&
+            // makes sure xml plans have been fully updated- necessary for multiple results sets
+            Object.keys(metadata.resultSetSummaries).length ===
+                metadata.executionPlanState.xmlPlans.length &&
+            // checks that we haven't already gotten the graphs
+            metadata.executionPlanState?.executionPlanGraphs &&
+            !metadata.executionPlanState.executionPlanGraphs.length
+        ) {
+            // get execution plan graphs
+            state!.provider.getExecutionPlan(
+                metadata.executionPlanState.xmlPlans,
+            );
+        }
+    });
+
     return (
         <div className={classes.root} ref={gridParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
@@ -296,6 +327,15 @@ export const QueryResultPane = () => {
                     >
                         {locConstants.queryResult.messages}
                     </Tab>
+                    {Object.keys(metadata.resultSetSummaries).length > 0 &&
+                        metadata.isExecutionPlan && (
+                            <Tab
+                                value={qr.QueryResultPaneTabs.ExecutionPlan}
+                                key={qr.QueryResultPaneTabs.ExecutionPlan}
+                            >
+                                {locConstants.queryResult.queryPlan}
+                            </Tab>
+                        )}
                 </TabList>
                 {false && ( // hide divider until we implement snapshot
                     <Divider
@@ -305,7 +345,6 @@ export const QueryResultPane = () => {
                         }}
                     />
                 )}
-
                 {false && ( // hide button until we implement snapshot
                     <Button
                         appearance="transparent"
@@ -385,6 +424,19 @@ export const QueryResultPane = () => {
                         </Table>
                     </div>
                 )}
+                {metadata.tabStates!.resultPaneTab ===
+                    qr.QueryResultPaneTabs.ExecutionPlan &&
+                    Object.keys(metadata.resultSetSummaries).length > 0 && (
+                        <div
+                            id={"executionPlanResultsTab"}
+                            className={classes.queryResultContainer}
+                            style={{ height: "100%", minHeight: "300px" }}
+                        >
+                            <ExecutionPlanStateProvider>
+                                <ExecutionPlanPage />
+                            </ExecutionPlanStateProvider>
+                        </div>
+                    )}
             </div>
         </div>
     );

@@ -6,10 +6,11 @@
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export interface ExecutionPlanWebviewState {
-    sqlPlanContent?: string;
-    executionPlan?: GetExecutionPlanResult;
+    executionPlanState: ExecutionPlanState;
+}
+
+export interface ExecutionPlanState {
     executionPlanGraphs?: ExecutionPlanGraph[];
-    theme?: string;
     totalCost?: number;
     loadState?: ApiStatus;
     errorMessage?: string;
@@ -29,7 +30,7 @@ export interface ExecutionPlanReducers {
         query: string;
     };
     updateTotalCost: {
-        totalCost: number;
+        addedCost: number;
     };
 }
 
@@ -38,17 +39,31 @@ export interface ExecutionPlanProvider {
      * Gets the execution plan graph from the provider for a given plan file
      * @param planFile file that contains the execution plan
      */
-    getExecutionPlan(
-        planFile: ExecutionPlanGraphInfo,
-    ): Thenable<GetExecutionPlanResult>;
+    getExecutionPlan(planFile: ExecutionPlanGraphInfo): void;
 
+    /**
+     * Handles saving the execution plan file through the vscode extension api
+     * @param sqlPlanContent the xml file content of the execution plan
+     */
     saveExecutionPlan(sqlPlanContent: string): void;
 
+    /**
+     * Opens the execution plan xml content in another window
+     * @param sqlPlanContent the xml file content of the execution plan
+     */
     showPlanXml(sqlPlanContent: string): void;
 
+    /**
+     * Opens the execution plan query in another window
+     * @param sqlPlanContent the query of the execution plan
+     */
     showQuery(query: string): void;
 
-    updateTotalCost(totalCost: number): void;
+    /**
+     * Adds the specified cost to the total cost of the execution plan script
+     * @param addedCost the cost of the current execution plan graph
+     */
+    updateTotalCost(addedCost: number): void;
 }
 
 export interface ExecutionPlanGraph {
