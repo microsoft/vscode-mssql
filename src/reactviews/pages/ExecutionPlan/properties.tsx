@@ -369,9 +369,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.sortByImportance(
-                                theme.colorNeutralBackground2,
-                            )}
+                            src={utils.sortByImportance(theme)}
                             alt={IMPORTANCE}
                         />
                     }
@@ -385,9 +383,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.sortAlphabetically(
-                                theme.colorNeutralBackground2,
-                            )}
+                            src={utils.sortAlphabetically(theme)}
                             alt={ALPHABETICAL}
                         />
                     }
@@ -401,9 +397,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.sortReverseAlphabetically(
-                                theme.colorNeutralBackground2,
-                            )}
+                            src={utils.sortReverseAlphabetically(theme)}
                             alt={REVERSE_ALPHABETICAL}
                         />
                     }
@@ -419,7 +413,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.expandAll(theme.colorNeutralBackground2)}
+                            src={utils.expandAll(theme)}
                             alt={EXPAND_ALL}
                         />
                     }
@@ -433,9 +427,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.collapseAll(
-                                theme.colorNeutralBackground2,
-                            )}
+                            src={utils.collapseAll(theme)}
                             alt={COLLAPSE_ALL}
                         />
                     }
@@ -451,9 +443,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     placeholder={FILTER_ANY_FIELD}
                     contentBefore={
                         <img
-                            src={utils.filterIcon(
-                                theme.colorNeutralBackground2,
-                            )}
+                            src={utils.filterIcon(theme)}
                             alt={FILTER_ANY_FIELD}
                             style={{ width: "20px", height: "20px" }}
                         />
