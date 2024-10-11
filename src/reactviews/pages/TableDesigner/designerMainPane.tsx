@@ -6,16 +6,20 @@
 import { Tab, TabList } from "@fluentui/react-tabs";
 import {
     CounterBadge,
+    Dropdown,
+    Field,
     Input,
+    Option,
     Text,
     makeStyles,
     shorthands,
 } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
     DesignerEditType,
     DesignerMainPaneTabs,
+    DropDownProperties,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
@@ -31,6 +35,13 @@ const useStyles = makeStyles({
     },
     title: {
         ...shorthands.margin("10px", "5px", "5px", "5px"),
+        gap: "10px",
+        width: "400px",
+        maxWidth: "100%",
+        padding: "10px",
+        "> *": {
+            marginBottom: "10px",
+        },
     },
     separator: {
         ...shorthands.margin("0px", "-20px", "0px", "0px"),
@@ -63,6 +74,15 @@ export const DesignerMainPane = () => {
     const [tableName, setTableName] = useState(
         (metadata.model!["name"] as InputBoxProperties).value,
     );
+    const [schema, setSchema] = useState(
+        (metadata.model!["schema"] as InputBoxProperties).value,
+    );
+
+    useEffect(() => {
+        setTableName((metadata.model!["name"] as InputBoxProperties).value);
+        setSchema((metadata.model!["schema"] as InputBoxProperties).value);
+    }, [metadata.model]);
+
     const getCurrentTabIssuesCount = (tabId: string) => {
         const tabComponents = metadata.view?.tabs.find(
             (tab) => tab.id === tabId,
@@ -128,24 +148,54 @@ export const DesignerMainPane = () => {
     return (
         <div className={classes.root}>
             <div className={classes.title}>
-                <Text className={classes.title} size={300} weight="semibold">
-                    {locConstants.tableDesigner.tableName}
-                </Text>
-                <Input
-                    size="medium"
-                    value={tableName}
-                    onChange={(_event, data) => {
-                        setTableName(data.value);
-                    }}
-                    onBlur={(_event) => {
-                        state.provider.processTableEdit({
-                            source: "TabsView",
-                            type: DesignerEditType.Update,
-                            path: ["name"],
-                            value: tableName,
-                        });
-                    }}
-                />
+                <Field
+                    label={locConstants.tableDesigner.tableName}
+                    orientation="horizontal"
+                >
+                    <Input
+                        size="medium"
+                        value={tableName}
+                        onChange={(_event, data) => {
+                            setTableName(data.value);
+                        }}
+                        autoFocus // initial focus
+                        onBlur={(_event) => {
+                            state.provider.processTableEdit({
+                                source: "TabsView",
+                                type: DesignerEditType.Update,
+                                path: ["name"],
+                                value: tableName,
+                            });
+                        }}
+                    />
+                </Field>
+                <Field
+                    label={locConstants.tableDesigner.schema}
+                    orientation="horizontal"
+                >
+                    <Dropdown
+                        size="medium"
+                        value={schema}
+                        onOptionSelect={(_event, data) => {
+                            if (!data.optionValue) {
+                                return;
+                            }
+                            setSchema(data?.optionValue);
+                            state.provider.processTableEdit({
+                                source: "TabsView",
+                                type: DesignerEditType.Update,
+                                path: ["schema"],
+                                value: data.optionValue,
+                            });
+                        }}
+                    >
+                        {(
+                            metadata.model?.["schema"] as DropDownProperties
+                        )?.values.map((option) => {
+                            return <Option>{option}</Option>;
+                        })}
+                    </Dropdown>
+                </Field>
             </div>
             <TabList
                 size="small"

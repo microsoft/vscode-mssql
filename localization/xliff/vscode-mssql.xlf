@@ -51,8 +51,8 @@
     <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
       <source xml:lang="en">Advanced Connection Settings</source>
     </trans-unit>
-    <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
-      <source xml:lang="en">Advanced Type</source>
+    <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
+      <source xml:lang="en">Advanced Options</source>
     </trans-unit>
     <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
       <source xml:lang="en">Allow Nulls</source>
@@ -326,6 +326,9 @@
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
     </trans-unit>
+    <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
+      <source xml:lang="en">Data Type</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
       <source xml:lang="en">Database</source>
     </trans-unit>
@@ -570,9 +573,6 @@
     <trans-unit id="++CODE++463124bedefc986e5dc0c3e34607c881ba0337297037552decc1df70945e57e8">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
-    </trans-unit>
-    <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
-      <source xml:lang="en">General</source>
     </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
@@ -1212,14 +1212,8 @@
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
     </trans-unit>
-    <trans-unit id="++CODE++289db14dbc3d213c4ac28f356bcfc37eb02f473e07ee63bcea2fa7075c888822">
-      <source xml:lang="en">The name of the table object.</source>
-    </trans-unit>
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++c9d2c41f4eeba094c6db66ab88d3c5190e34865d80fe230483b6fdcaddf79e8a">
-      <source xml:lang="en">The schema that contains the table.</source>
     </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>

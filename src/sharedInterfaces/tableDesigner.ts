@@ -150,6 +150,7 @@ export enum TableColumnProperty {
     IsPrimaryKey = "isPrimaryKey",
     Precision = "precision",
     Scale = "scale",
+    IsIdentity = "isIdentity",
 }
 
 /**
