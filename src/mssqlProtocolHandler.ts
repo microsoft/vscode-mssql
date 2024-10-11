@@ -97,6 +97,11 @@ export class MssqlProtocolHandler {
             return connectionInfo as IConnectionInfo;
         }
 
+        const profileName = args.get("profileName");
+        if (profileName) {
+            connectionInfo["profileName"] = profileName;
+        }
+
         const connectionOptionProperties: ConnectionOptionProperty[] =
             connectionOptions.map(
                 (option) =>
