@@ -32,6 +32,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
     public onCommand = new Slick.Event<CommandEventArgs<T>>();
     public enabled: boolean = true;
 
+    private activePopup: JQuery<HTMLElement> | null = null;
+
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
     private columnDef!: FilterableColumn<T>;
@@ -123,7 +125,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             // const menuLeft = offset.left + filterButton.offsetWidth + this.menu.offsetWidth <= window.innerWidth ? offset.left + filterButton.offsetWidth : window.innerWidth - this.menu.offsetWidth;
         }
 
-        var $popup = jQuery(
+        const $popup = jQuery(
             '<div id="popup-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
                 `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
@@ -143,7 +145,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
 
         $popup.appendTo(document.body);
+        if (this.activePopup) {
+            this.activePopup.fadeOut();
+            this.activePopup = null;
+        }
         openPopup($popup);
+        this.activePopup = $popup;
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
             // const $popup = jQuery('#popup-menu');
             const $target = jQuery(e.target);
@@ -153,7 +160,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 !$target.closest("#anchor-btn").length &&
                 !$target.closest("#popup-menu").length
             ) {
-                $popup.fadeOut();
+                this.activePopup!.fadeOut();
+                this.activePopup = null;
             }
         });
 

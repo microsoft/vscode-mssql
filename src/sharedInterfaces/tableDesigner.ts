@@ -708,6 +708,7 @@ export interface TableDesignerWebviewState {
     apiState?: DesignerAPIState;
     tabStates?: DesignerTabStates;
     propertiesPaneData?: PropertiesPaneData;
+    publishingError?: string;
 }
 
 export interface DesignerView {
@@ -749,6 +750,7 @@ export interface TableDesignerReducers {
     };
     closeDesigner: {};
     continueEditing: {};
+    copyPublishErrorToClipboard: {};
 }
 
 export type DesignerUIArea =
@@ -841,4 +843,9 @@ export interface TableDesignerReactProvider {
      * Continue editing the table.
      */
     continueEditing: () => void;
+
+    /**
+     * Copy the publish error to the clipboard.
+     */
+    copyPublishErrorToClipboard: () => void;
 }

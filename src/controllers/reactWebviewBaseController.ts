@@ -9,9 +9,11 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import {
     TelemetryActions,
     TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../sharedInterfaces/telemetry";
+} from "../sharedInterfaces/webview";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides

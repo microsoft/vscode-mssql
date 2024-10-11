@@ -53,7 +53,6 @@ export const ConnectionFormPage = () => {
             />
             <div className={formStyles.formNavTray}>
                 <Button
-                    shape="square"
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}

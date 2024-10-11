@@ -16,7 +16,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { scriptCopiedToClipboard } from "../constants/locConstants";
+import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
@@ -162,9 +162,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
         } catch (e) {
-            await vscode.window.showErrorMessage(
-                "Error initializing table designer: " + e,
-            );
             this.state.apiState.initializeState = designer.LoadState.Error;
             this.state = this.state;
         }
@@ -238,28 +235,42 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     publishState: designer.LoadState.Loading,
                 },
             };
-            const publishResponse =
-                await this._tableDesignerService.publishChanges(payload.table);
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Publish,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
-            state = {
-                ...state,
-                tableInfo: publishResponse.newTableInfo,
-                view: getDesignerView(publishResponse.view),
-                model: publishResponse.viewModel,
-                apiState: {
-                    ...state.apiState,
-                    publishState: designer.LoadState.Loaded,
-                    previewState: designer.LoadState.NotStarted,
-                },
-            };
-            this.panel.title = state.tableInfo.title;
-            await UserSurvey.getInstance().promptUserForNPSFeedback();
+            try {
+                const publishResponse =
+                    await this._tableDesignerService.publishChanges(
+                        payload.table,
+                    );
+
+                sendActionEvent(
+                    TelemetryViews.TableDesigner,
+                    TelemetryActions.Publish,
+                    {
+                        correlationId: this._correlationId,
+                    },
+                );
+                state = {
+                    ...state,
+                    tableInfo: publishResponse.newTableInfo,
+                    view: getDesignerView(publishResponse.view),
+                    model: publishResponse.viewModel,
+                    apiState: {
+                        ...state.apiState,
+                        publishState: designer.LoadState.Loaded,
+                        previewState: designer.LoadState.NotStarted,
+                    },
+                };
+                this.panel.title = state.tableInfo.title;
+                await UserSurvey.getInstance().promptUserForNPSFeedback();
+            } catch (e) {
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        publishState: designer.LoadState.Error,
+                    },
+                    publishingError: e.toString(),
+                };
+            }
             return state;
         });
 
@@ -301,7 +312,9 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     apiState: {
                         ...this.state.apiState,
                         previewState: designer.LoadState.Loading,
+                        publishState: designer.LoadState.NotStarted,
                     },
+                    publishingError: undefined,
                 };
                 const previewReport =
                     await this._tableDesignerService.generatePreviewReport(
@@ -319,6 +332,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     apiState: {
                         ...state.apiState,
                         previewState: designer.LoadState.Loaded,
+                        publishState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: previewReport,
                 };
@@ -387,6 +401,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     correlationId: this._correlationId,
                 },
             );
+            return state;
+        });
+        this.registerReducer("copyPublishErrorToClipboard", async (state) => {
+            await vscode.env.clipboard.writeText(state.publishingError ?? "");
+            void vscode.window.showInformationMessage(copied);
             return state;
         });
     }
