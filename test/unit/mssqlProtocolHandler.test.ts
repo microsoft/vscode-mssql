@@ -186,4 +186,45 @@ suite("MssqlProtocolHandler Tests", () => {
         assert.equal(connInfo.connectTimeout, 15);
         assert.isTrue(connInfo.trustServerCertificate);
     });
+
+    test("handleUri - with connect command and query with invalid bool value for trust server cert - trust server cert is false and parses valid params", async () => {
+        const connInfo = await mssqlProtocolHandler.handleUri(
+            Uri.parse(
+                "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&trustServerCertificate=yes",
+            ),
+        );
+
+        assert.isDefined(connInfo);
+        assert.equal(connInfo.server, "myServer");
+        assert.equal(connInfo.database, "dbName");
+        assert.isFalse(connInfo.trustServerCertificate);
+    });
+
+    test("handleUri - with connect command and query with invalid numerical value for connect timeout - timeout is undefined and parses valid params", async () => {
+        const connInfo = await mssqlProtocolHandler.handleUri(
+            Uri.parse(
+                "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&connectTimeout=twenty",
+            ),
+        );
+
+        assert.isDefined(connInfo);
+        assert.equal(connInfo.server, "myServer");
+        assert.equal(connInfo.database, "dbName");
+        assert.isUndefined(connInfo.connectTimeout);
+    });
+
+    test("handleUri - with connect command and query invalid parameter - invalid param is undefined", async () => {
+        const connInfo = await mssqlProtocolHandler.handleUri(
+            Uri.parse(
+                "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&madeUpParam=great",
+            ),
+        );
+
+        assert.isDefined(connInfo);
+        assert.equal(connInfo.server, "myServer");
+        assert.equal(connInfo.database, "dbName");
+
+        const madeUpParam = "madeUpParam";
+        assert.isUndefined(connInfo[madeUpParam]);
+    });
 });
