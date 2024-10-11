@@ -159,12 +159,8 @@ export default class MainController implements vscode.Disposable {
         );
     }
 
-    // Use a separate flag so it won't be enabled with the experimental features flag
-    public get isNewQueryResultFeatureEnabled(): boolean {
-        let config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-        );
-        return config.get(Constants.configEnableNewQueryResultFeature);
+    public get isRichExperiencesEnabled(): boolean {
+        return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
     /**
@@ -348,20 +344,16 @@ export default class MainController implements vscode.Disposable {
                 providerInstance,
             );
 
-            const self = this;
             const uriHandler: vscode.UriHandler = {
                 handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
-                    if (self.isExperimentalEnabled) {
-                        const mssqlProtocolHandler = new MssqlProtocolHandler();
+                    const mssqlProtocolHandler = new MssqlProtocolHandler();
 
-                        const connectionInfo =
-                            mssqlProtocolHandler.handleUri(uri);
+                    const connectionInfo = mssqlProtocolHandler.handleUri(uri);
 
-                        vscode.commands.executeCommand(
-                            Constants.cmdAddObjectExplorer,
-                            connectionInfo,
-                        );
-                    }
+                    vscode.commands.executeCommand(
+                        Constants.cmdAddObjectExplorer,
+                        connectionInfo,
+                    );
                 },
             };
             vscode.window.registerUriHandler(uriHandler);
@@ -707,8 +699,9 @@ export default class MainController implements vscode.Disposable {
 
         // Add Object Explorer Node
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (!this.isExperimentalEnabled) {
+            if (!this.isRichExperiencesEnabled) {
                 if (!self._objectExplorerProvider.objectExplorerExists) {
                     self._objectExplorerProvider.objectExplorerExists = true;
                 }
@@ -845,7 +838,7 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        if (this.isExperimentalEnabled) {
+        if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
@@ -959,9 +952,7 @@ export default class MainController implements vscode.Disposable {
                     },
                 ),
             );
-        }
 
-        if (this.isNewQueryResultFeatureEnabled) {
             this._context.subscriptions.push(
                 vscode.window.registerWebviewViewProvider(
                     "queryResult",
@@ -2018,27 +2009,17 @@ export default class MainController implements vscode.Disposable {
                 this.updatePiiLoggingLevel();
             }
 
-            // Prompt to reload VS Code when below settings are updated.
-            if (
-                e.affectsConfiguration(
-                    Constants.enableSqlAuthenticationProvider,
-                )
-            ) {
-                await this.displayReloadMessage(
-                    LocalizedConstants.reloadPromptGeneric,
-                );
-            }
-
-            // Prompt to reload VS Code when below settings are updated.
-            if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
-                await this.displayReloadMessage(
-                    LocalizedConstants.reloadPromptGeneric,
-                );
-            }
+            // Prompt to reload VS Code when any of these settings are updated.
+            const configSettingsRequiringReload = [
+                Constants.enableSqlAuthenticationProvider,
+                Constants.enableConnectionPooling,
+                Constants.configEnableExperimentalFeatures,
+                Constants.configEnableRichExperiences,
+            ];
 
             if (
-                e.affectsConfiguration(
-                    Constants.configEnableExperimentalFeatures,
+                configSettingsRequiringReload.some((setting) =>
+                    e.affectsConfiguration(setting),
                 )
             ) {
                 await this.displayReloadMessage(

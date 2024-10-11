@@ -109,7 +109,7 @@ export default class VscodeWrapper {
      * @param resource The optional URI, as a URI object or a string, to use to get resource-scoped configurations
      */
     public getConfiguration(
-        extensionName: string,
+        extensionName?: string,
         resource?: vscode.Uri | string,
     ): vscode.WorkspaceConfiguration {
         if (typeof resource === "string") {

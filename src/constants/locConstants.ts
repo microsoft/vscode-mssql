@@ -629,7 +629,7 @@ export let reloadPrompt = l10n.t(
     "Authentication Library has changed, please reload Visual Studio Code.",
 );
 export let reloadPromptGeneric = l10n.t(
-    "This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.",
+    "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.",
 );
 export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");

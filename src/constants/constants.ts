@@ -183,7 +183,7 @@ export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configEnableExperimentalFeatures =
     "mssql.enableExperimentalFeatures";
-export const configEnableNewQueryResultFeature = "enableNewQueryResultFeature";
+export const configEnableRichExperiences = "mssql.enableRichExperiences";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
