@@ -30,6 +30,7 @@ import {
 import * as ep from "./executionPlanInterfaces";
 import "./executionPlan.css";
 import { locConstants } from "../../common/locConstants";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -107,7 +108,7 @@ const useStyles = makeStyles({
 });
 
 interface PropertiesPaneProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setPropertiesClicked: any;
 }
 
@@ -117,7 +118,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 }) => {
     const classes = useStyles();
     const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const theme = state!.theme;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
@@ -145,9 +146,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         // check whether items is actively filtered so it doesn't rerender if there
         // are no filter results
         if (!items.length && !isFiltered) {
+            const selectedElement = executionPlanView.getSelectedElement();
             const element: ep.ExecutionPlanNode =
-                executionPlanView.getSelectedElement() ??
-                executionPlanView.getRoot();
+                selectedElement && "name" in selectedElement
+                    ? selectedElement
+                    : executionPlanView.getRoot();
             loadItems(element);
         }
     }, [items, isFiltered]);
@@ -155,9 +158,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     useEffect(() => {
         // poll for whether there has been a new element selected in the graph
         const intervalId = setInterval(() => {
+            const selectedElement = executionPlanView.getSelectedElement();
             const element: ep.ExecutionPlanNode =
-                executionPlanView.getSelectedElement() ??
-                executionPlanView.getRoot();
+                selectedElement && "name" in selectedElement
+                    ? selectedElement
+                    : executionPlanView.getRoot();
 
             // Check if the element has changed, if so, reload items based on new element
             if (element.id !== id) {
@@ -327,14 +332,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             id="propertiesPanelContainer"
             className={classes.paneContainer}
             style={{
-                background: utils.background(executionPlanState!.theme!),
-                borderLeft: `2px solid ${utils.tableBackground(executionPlanState!.theme!)}`,
+                background: theme.colorNeutralBackground2,
+                borderLeft: `2px solid ${theme.colorNeutralBackground6}`,
             }}
         >
             <div
                 className={classes.propertiesHeader}
                 style={{
-                    background: utils.background(executionPlanState!.theme!),
+                    background: theme.colorNeutralBackground2,
                 }}
             >
                 <div>{PROPERTIES}</div>
@@ -342,9 +347,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <Button
                         className={classes.dismissButton}
                         style={{
-                            background: utils.background(
-                                executionPlanState!.theme!,
-                            ),
+                            background: theme.colorNeutralBackground2,
                         }}
                         onClick={() => setPropertiesClicked(false)}
                         icon={<Dismiss12Regular />}
@@ -354,9 +357,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             <div
                 className={classes.nameContainer}
                 style={{
-                    background: utils.tableBackground(
-                        executionPlanState!.theme!,
-                    ),
+                    background: theme.colorNeutralBackground6,
                 }}
             >
                 {name}
@@ -368,9 +369,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.sortByImportance(
-                                executionPlanState!.theme!,
-                            )}
+                            src={utils.sortByImportance(theme)}
                             alt={IMPORTANCE}
                         />
                     }
@@ -384,9 +383,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.sortAlphabetically(
-                                executionPlanState!.theme!,
-                            )}
+                            src={utils.sortAlphabetically(theme)}
                             alt={ALPHABETICAL}
                         />
                     }
@@ -400,9 +397,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.sortReverseAlphabetically(
-                                executionPlanState!.theme!,
-                            )}
+                            src={utils.sortReverseAlphabetically(theme)}
                             alt={REVERSE_ALPHABETICAL}
                         />
                     }
@@ -418,7 +413,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.expandAll(executionPlanState!.theme!)}
+                            src={utils.expandAll(theme)}
                             alt={EXPAND_ALL}
                         />
                     }
@@ -432,7 +427,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={utils.collapseAll(executionPlanState!.theme!)}
+                            src={utils.collapseAll(theme)}
                             alt={COLLAPSE_ALL}
                         />
                     }
@@ -448,7 +443,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     placeholder={FILTER_ANY_FIELD}
                     contentBefore={
                         <img
-                            src={utils.filterIcon(executionPlanState!.theme!)}
+                            src={utils.filterIcon(theme)}
                             alt={FILTER_ANY_FIELD}
                             style={{ width: "20px", height: "20px" }}
                         />
@@ -470,9 +465,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <DataGridHeader
                         className={classes.tableHeader}
                         style={{
-                            background: utils.tableBackground(
-                                executionPlanState!.theme!,
-                            ),
+                            background: theme.colorNeutralBackground6,
                         }}
                     >
                         <DataGridRow className={classes.tableRow}>

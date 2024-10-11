@@ -3,19 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
 import * as constants from "../constants/constants";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewController";
-import {
-    UserSurveyReducers,
-    UserSurveyState,
-} from "../sharedInterfaces/userSurvey";
 import * as locConstants from "../constants/locConstants";
-import { sendActionEvent } from "../telemetry/telemetry";
+import * as vscode from "vscode";
+
 import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import {
+    UserSurveyReducers,
+    UserSurveyState,
+} from "../sharedInterfaces/userSurvey";
+
+import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { sendActionEvent } from "../telemetry/telemetry";
 
 const PROBABILITY = 0.15;
 const SESSION_COUNT_KEY = "nps/sessionCount";
@@ -190,13 +192,10 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
     constructor(context: vscode.ExtensionContext, state?: UserSurveyState) {
-        super(
-            context,
-            locConstants.UserSurvey.mssqlFeedback,
-            "userSurvey",
-            state,
-            undefined,
-            {
+        super(context, "userSurvey", state, {
+            title: locConstants.UserSurvey.mssqlFeedback,
+            viewColumn: vscode.ViewColumn.Active,
+            iconPath: {
                 dark: vscode.Uri.joinPath(
                     context.extensionUri,
                     "media",
@@ -208,7 +207,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                     "feedback_light.svg",
                 ),
             },
-        );
+        });
 
         this.registerReducer("submit", async (state, payload) => {
             this._onSubmit.fire(payload.answers);

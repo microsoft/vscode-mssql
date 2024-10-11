@@ -925,6 +925,9 @@
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
+      <source xml:lang="en">Query Plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
     </trans-unit>
@@ -1359,6 +1362,10 @@
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
     </trans-unit>
+    <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
+      <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
+      <note>{0} is the webview name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>
@@ -1542,6 +1549,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableSqlAuthenticationProvider">
       <source xml:lang="en">Enables use of the Sql Authentication Provider for &apos;Microsoft Entra Id Interactive&apos; authentication mode when user selects &apos;AzureMFA&apos; authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for &apos;MSAL&apos; Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+    </trans-unit>
+    <trans-unit id="mssql.showExecutionPlanInResults">
+      <source xml:lang="en">Estimated Plan</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
       <source xml:lang="en">Execute Current Statement</source>

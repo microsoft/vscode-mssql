@@ -262,6 +262,7 @@ export class LocConstants {
                 "No result found for the current active editor, please run a query or switch to another editor.",
             ),
             clickHereToHideThisPanel: l10n.t("Click here to hide this panel"),
+            queryPlan: l10n.t("Query Plan"),
         };
     }
 }

@@ -7,11 +7,8 @@ import {
     Button,
     Tab,
     TabList,
-    Theme,
     makeStyles,
     shorthands,
-    teamsHighContrastTheme,
-    webDarkTheme,
 } from "@fluentui/react-components";
 import { useContext } from "react";
 import {
@@ -33,6 +30,7 @@ import {
 } from "../../../sharedInterfaces/tableDesigner";
 import { locConstants } from "../../common/locConstants";
 import { List, ListItem } from "@fluentui/react-list-preview";
+import { getVscodeThemeType } from "../../common/utils";
 
 const useStyles = makeStyles({
     root: {
@@ -100,16 +98,6 @@ export const DesignerResultPane = () => {
     const classes = useStyles();
     const state = useContext(TableDesignerContext);
     const metadata = state?.state;
-    const getVscodeTheme = (theme: Theme) => {
-        switch (theme) {
-            case webDarkTheme:
-                return "vs-dark";
-            case teamsHighContrastTheme:
-                return "hc-black";
-            default:
-                return "light";
-        }
-    };
 
     const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
         const issuePath = issue.propertyPath ?? [];
@@ -304,7 +292,7 @@ export const DesignerResultPane = () => {
                             height={"100%"}
                             width={"100%"}
                             language="sql"
-                            theme={getVscodeTheme(state!.theme!)}
+                            theme={getVscodeThemeType(state!.theme!)}
                             value={
                                 (
                                     metadata?.model![

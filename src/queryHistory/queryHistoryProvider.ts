@@ -176,6 +176,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
                 uri,
                 undefined,
                 title,
+                {}, // empty execution plan options
                 queryPromise,
             );
             await queryPromise;
