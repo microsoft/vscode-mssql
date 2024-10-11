@@ -30,6 +30,7 @@ import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
 import { ACTIONBAR_WIDTH_PX, TABLE_ALIGN_PX } from "./table/table";
+import { hasResultsOrMessages } from "./queryResultUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -173,10 +174,6 @@ export const QueryResultPane = () => {
     );
     const rows = getRows();
 
-    if (!metadata) {
-        return null;
-    }
-
     const gridRefs = useRef<ResultGridHandle[]>([]);
 
     const renderGrid = (idx: number) => {
@@ -270,122 +267,144 @@ export const QueryResultPane = () => {
         return grids;
     };
 
-    return (
-        <div className={classes.root} ref={gridParentRef}>
-            <div className={classes.ribbon} ref={ribbonRef}>
-                <TabList
-                    size="medium"
-                    selectedValue={metadata.tabStates!.resultPaneTab}
-                    onTabSelect={(_event, data) => {
-                        state?.provider.setResultTab(
-                            data.value as qr.QueryResultPaneTabs,
-                        );
-                    }}
-                    className={classes.queryResultPaneTabs}
-                >
-                    {Object.keys(metadata.resultSetSummaries).length > 0 && (
-                        <Tab
-                            value={qr.QueryResultPaneTabs.Results}
-                            key={qr.QueryResultPaneTabs.Results}
-                        >
-                            {locConstants.queryResult.results}
-                        </Tab>
-                    )}
-                    <Tab
-                        value={qr.QueryResultPaneTabs.Messages}
-                        key={qr.QueryResultPaneTabs.Messages}
-                    >
-                        {locConstants.queryResult.messages}
-                    </Tab>
-                </TabList>
-                {false && ( // hide divider until we implement snapshot
-                    <Divider
-                        vertical
-                        style={{
-                            flex: "0",
-                        }}
-                    />
-                )}
-
-                {false && ( // hide button until we implement snapshot
-                    <Button
-                        appearance="transparent"
-                        icon={<OpenFilled />}
+    const res =
+        !metadata || !hasResultsOrMessages(metadata) ? (
+            <div>
+                <div>{locConstants.queryResult.noResultMessage}</div>
+                <div>
+                    <Link
                         onClick={async () => {
-                            console.log("todo: open in new tab");
+                            await webViewState.extensionRpc.call(
+                                "executeCommand",
+                                {
+                                    command: "workbench.action.togglePanel",
+                                },
+                            );
                         }}
-                        title={locConstants.queryResult.openSnapshot}
-                    ></Button>
-                )}
+                    >
+                        {locConstants.queryResult.clickHereToHideThisPanel}
+                    </Link>
+                </div>
             </div>
-            <div className={classes.tabContent}>
-                {metadata.tabStates!.resultPaneTab ===
-                    qr.QueryResultPaneTabs.Results &&
-                    Object.keys(metadata.resultSetSummaries).length > 0 &&
-                    renderGridPanel()}
-                {metadata.tabStates!.resultPaneTab ===
-                    qr.QueryResultPaneTabs.Messages && (
-                    <div className={classes.messagesContainer}>
-                        <Table
-                            size="small"
-                            as="table"
-                            {...columnSizing_unstable.getTableProps()}
-                            ref={tableRef}
+        ) : (
+            <div className={classes.root} ref={gridParentRef}>
+                <div className={classes.ribbon} ref={ribbonRef}>
+                    <TabList
+                        size="medium"
+                        selectedValue={metadata?.tabStates!.resultPaneTab}
+                        onTabSelect={(_event, data) => {
+                            state?.provider.setResultTab(
+                                data.value as qr.QueryResultPaneTabs,
+                            );
+                        }}
+                        className={classes.queryResultPaneTabs}
+                    >
+                        {Object.keys(metadata?.resultSetSummaries ?? [])
+                            .length > 0 && (
+                            <Tab
+                                value={qr.QueryResultPaneTabs.Results}
+                                key={qr.QueryResultPaneTabs.Results}
+                            >
+                                {locConstants.queryResult.results}
+                            </Tab>
+                        )}
+                        <Tab
+                            value={qr.QueryResultPaneTabs.Messages}
+                            key={qr.QueryResultPaneTabs.Messages}
                         >
-                            <TableBody>
-                                {rows.map((row, index) => {
-                                    return (
-                                        <TableRow key={index}>
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "time",
-                                                )}
-                                            >
-                                                {row.item.batchId === undefined
-                                                    ? row.item.time
-                                                    : null}
-                                            </TableCell>
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "message",
-                                                )}
-                                            >
-                                                {row.item.message}
-                                                {row.item.link?.text &&
-                                                    row.item.selection && (
-                                                        <>
-                                                            {" "}
-                                                            <Link
-                                                                onClick={async () => {
-                                                                    await webViewState.extensionRpc.call(
-                                                                        "setEditorSelection",
-                                                                        {
-                                                                            uri: metadata?.uri,
-                                                                            selectionData:
-                                                                                row
-                                                                                    .item
-                                                                                    .selection,
-                                                                        },
-                                                                    );
-                                                                }}
-                                                            >
-                                                                {
-                                                                    row.item
-                                                                        ?.link
-                                                                        ?.text
-                                                                }
-                                                            </Link>
-                                                        </>
+                            {locConstants.queryResult.messages}
+                        </Tab>
+                    </TabList>
+                    {false && ( // hide divider until we implement snapshot
+                        <Divider
+                            vertical
+                            style={{
+                                flex: "0",
+                            }}
+                        />
+                    )}
+
+                    {false && ( // hide button until we implement snapshot
+                        <Button
+                            appearance="transparent"
+                            icon={<OpenFilled />}
+                            onClick={async () => {
+                                console.log("todo: open in new tab");
+                            }}
+                            title={locConstants.queryResult.openSnapshot}
+                        ></Button>
+                    )}
+                </div>
+                <div className={classes.tabContent}>
+                    {metadata?.tabStates!.resultPaneTab ===
+                        qr.QueryResultPaneTabs.Results &&
+                        Object.keys(metadata?.resultSetSummaries).length > 0 &&
+                        renderGridPanel()}
+                    {metadata?.tabStates!.resultPaneTab ===
+                        qr.QueryResultPaneTabs.Messages && (
+                        <div className={classes.messagesContainer}>
+                            <Table
+                                size="small"
+                                as="table"
+                                {...columnSizing_unstable.getTableProps()}
+                                ref={tableRef}
+                            >
+                                <TableBody>
+                                    {rows.map((row, index) => {
+                                        return (
+                                            <TableRow key={index}>
+                                                <TableCell
+                                                    {...columnSizing_unstable.getTableCellProps(
+                                                        "time",
                                                     )}
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-                )}
+                                                >
+                                                    {row.item.batchId ===
+                                                    undefined
+                                                        ? row.item.time
+                                                        : null}
+                                                </TableCell>
+                                                <TableCell
+                                                    {...columnSizing_unstable.getTableCellProps(
+                                                        "message",
+                                                    )}
+                                                >
+                                                    {row.item.message}
+                                                    {row.item.link?.text &&
+                                                        row.item.selection && (
+                                                            <>
+                                                                {" "}
+                                                                <Link
+                                                                    onClick={async () => {
+                                                                        await webViewState.extensionRpc.call(
+                                                                            "setEditorSelection",
+                                                                            {
+                                                                                uri: metadata?.uri,
+                                                                                selectionData:
+                                                                                    row
+                                                                                        .item
+                                                                                        .selection,
+                                                                            },
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        row.item
+                                                                            ?.link
+                                                                            ?.text
+                                                                    }
+                                                                </Link>
+                                                            </>
+                                                        )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    return res;
 };

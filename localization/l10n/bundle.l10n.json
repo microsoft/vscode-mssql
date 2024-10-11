@@ -256,6 +256,8 @@
   "Save as CSV": "Save as CSV",
   "Save as Excel": "Save as Excel",
   "Save as JSON": "Save as JSON",
+  "No result found for the current active editor, please run a query or switch to another editor.": "No result found for the current active editor, please run a query or switch to another editor.",
+  "Click here to hide this panel": "Click here to hide this panel",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "View More": "View More",
