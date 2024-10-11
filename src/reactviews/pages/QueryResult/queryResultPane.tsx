@@ -179,10 +179,6 @@ export const QueryResultPane = () => {
 
     const gridRefs = useRef<ResultGridHandle[]>([]);
 
-    webViewState.extensionRpc.subscribe("refreshGrid", (_) => {
-        gridRefs.current.forEach((r) => r.refreshGrid());
-    });
-
     const renderGrid = (idx: number) => {
         const divId = `grid-parent-${idx}`;
         return (
@@ -263,6 +259,7 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
+        gridRefs.current.forEach((r) => r?.refreshGrid());
         for (
             let i = 0;
             i < Object.keys(metadata?.resultSetSummaries ?? []).length;

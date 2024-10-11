@@ -40,7 +40,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 this.state = this.getQueryResultState(
                     editor.document.uri.toString(),
                 );
-                this.postNotification("refreshGrid", undefined);
             }
         });
     }
