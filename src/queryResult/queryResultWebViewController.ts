@@ -34,12 +34,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         void this.initialize();
         vscode.window.onDidChangeActiveTextEditor((editor) => {
-            if (
-                this._queryResultStateMap.has(editor?.document?.uri?.toString())
-            ) {
-                this.state = this.getQueryResultState(
-                    editor.document.uri.toString(),
-                );
+            const uri = editor?.document?.uri?.toString(true);
+            if (uri && this._queryResultStateMap.has(uri)) {
+                this.state = this.getQueryResultState(uri);
             }
         });
     }
