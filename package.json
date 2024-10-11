@@ -852,6 +852,20 @@
           "description": "%mssql.enableRichExperiences.description%",
           "scope": "application"
         },
+        "mssql.enableRichExperiencesDoNotShowPrompt": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
+          "scope": "application"
+        },
+        "azureResourceGroups.selectedSubscriptions": {
+          "type": "array",
+          "description": "%mssql.selectedSubscriptions%",
+          "items": {
+              "type": "string"
+          },
+          "$comment": "This setting must be registered in case the user does not have the Azure Resource Groups extension installed.  All extensions using this configuration must register this setting."
+        },
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",

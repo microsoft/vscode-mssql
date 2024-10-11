@@ -643,6 +643,11 @@ export let executionPlan = l10n.t("Execution Plan");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 
+export let enableRichExperiencesPrompt = l10n.t(
+    "The MSSQL extension has some new GUI-based experiences! Would you like to enable them?",
+);
+export let enableRichExperiences = l10n.t("Enable Rich Experiences");
+
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
     public static azureAccount = l10n.t("Azure Account");
@@ -713,4 +718,10 @@ export class UserSurvey {
             args: [featureName],
             comment: ["{0} is the feature name"],
         });
+}
+
+export class Common {
+    public static remindMeLater = l10n.t("Remind Me Later");
+    public static dontShowAgain = l10n.t("Don't Show Again");
+    public static learnMore = l10n.t("Learn More");
 }

@@ -526,9 +526,7 @@ export default class MainController implements vscode.Disposable {
             this._prompter,
         );
 
-        // Shows first time notifications on extension installation or update
-        // This call is intentionally not awaited to avoid blocking extension activation
-        void this.showFirstLaunchPrompts();
+        void this.showOnLaunchPrompts();
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
@@ -1620,6 +1618,57 @@ export default class MainController implements vscode.Disposable {
     private canRunV2Command(): boolean {
         let version: number = SqlToolsServerClient.instance.getServiceVersion();
         return version > 1;
+    }
+
+    private async showOnLaunchPrompts(): Promise<void> {
+        // All prompts should be async and _not_ awaited so that we don't block the rest of the extension
+        void this.showFirstLaunchPrompts();
+        void this.showEnableRichExperiencesPrompt();
+    }
+
+    /**
+     * Prompts the user to enable rich experiences
+     */
+    private async showEnableRichExperiencesPrompt(): Promise<void> {
+        if (
+            this._vscodeWrapper
+                .getConfiguration()
+                .get<boolean>(
+                    Constants.configEnableRichExperiencesDoNotShowPrompt,
+                ) ||
+            this._vscodeWrapper
+                .getConfiguration()
+                .get<boolean>(Constants.configEnableRichExperiences)
+        ) {
+            return;
+        }
+
+        const response = await this._vscodeWrapper.showInformationMessage(
+            LocalizedConstants.enableRichExperiencesPrompt,
+            LocalizedConstants.enableRichExperiences,
+            LocalizedConstants.Common.learnMore,
+            LocalizedConstants.Common.dontShowAgain,
+        );
+
+        if (response === LocalizedConstants.enableRichExperiences) {
+            await this._vscodeWrapper
+                .getConfiguration()
+                .update(
+                    Constants.configEnableRichExperiences,
+                    true,
+                    vscode.ConfigurationTarget.Global,
+                );
+        } else if (response === LocalizedConstants.Common.learnMore) {
+            // open github page with more information
+        } else if (response === LocalizedConstants.Common.dontShowAgain) {
+            await this._vscodeWrapper
+                .getConfiguration()
+                .update(
+                    Constants.configEnableRichExperiencesDoNotShowPrompt,
+                    true,
+                    vscode.ConfigurationTarget.Global,
+                );
+        }
     }
 
     /**

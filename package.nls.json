@@ -150,5 +150,7 @@
 "mssql.openExecutionPlanFile":"Open Execution Plan File",
 "mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiences.description":"Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
-"mssql.userFeedback":"Give Feedback"
+"mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enables UI-based features",
+"mssql.userFeedback":"Give Feedback",
+"mssql.selectedSubscriptions":"Selected Subscriptions"
 }
