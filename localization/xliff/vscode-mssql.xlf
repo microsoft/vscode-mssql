@@ -1223,8 +1223,8 @@
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
-    <trans-unit id="++CODE++faed4cb00fef13c83cb76d001570fe70be89cfce627e317a9391f17f9a0d452d">
-      <source xml:lang="en">The {0} has been close. Would you like to restore it?</source>
+    <trans-unit id="++CODE++ac94ff0eb69149fc72ac5b94b2e54a3d65e5ddb07b45dd4ba9324e33e6c33666">
+      <source xml:lang="en">The {0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
     </trans-unit>
     <trans-unit id="++CODE++2b8198974f44b4a37d366cb6535153e3646f2c9de308f0ca05bf90513b0a4630">

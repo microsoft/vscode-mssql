@@ -713,8 +713,8 @@
       "{0} is the feature name"
     ]
   },
-  "The {0} has been close. Would you like to restore it?/{0} is the webview name": {
-    "message": "The {0} has been close. Would you like to restore it?",
+  "The {0} has been closed. Would you like to restore it?/{0} is the webview name": {
+    "message": "The {0} has been closed. Would you like to restore it?",
     "comment": [
       "{0} is the webview name"
     ]
