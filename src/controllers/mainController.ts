@@ -164,12 +164,8 @@ export default class MainController implements vscode.Disposable {
         );
     }
 
-    // Use a separate flag so it won't be enabled with the experimental features flag
-    public get isNewQueryResultFeatureEnabled(): boolean {
-        let config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-        );
-        return config.get(Constants.configEnableNewQueryResultFeature);
+    public get isRichExperiencesEnabled(): boolean {
+        return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
     /**
@@ -371,19 +367,17 @@ export default class MainController implements vscode.Disposable {
             const self = this;
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
-                    if (self.isExperimentalEnabled) {
-                        const mssqlProtocolHandler = new MssqlProtocolHandler(
-                            self._connectionMgr.client,
-                        );
+                    const mssqlProtocolHandler = new MssqlProtocolHandler(
+                        self._connectionMgr.client,
+                    );
 
-                        const connectionInfo =
-                            await mssqlProtocolHandler.handleUri(uri);
+                    const connectionInfo =
+                        await mssqlProtocolHandler.handleUri(uri);
 
-                        vscode.commands.executeCommand(
-                            Constants.cmdAddObjectExplorer,
-                            connectionInfo,
-                        );
-                    }
+                    vscode.commands.executeCommand(
+                        Constants.cmdAddObjectExplorer,
+                        connectionInfo,
+                    );
                 },
             };
             vscode.window.registerUriHandler(uriHandler);
@@ -559,9 +553,7 @@ export default class MainController implements vscode.Disposable {
             this._prompter,
         );
 
-        // Shows first time notifications on extension installation or update
-        // This call is intentionally not awaited to avoid blocking extension activation
-        void this.showFirstLaunchPrompts();
+        void this.showOnLaunchPrompts();
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
@@ -732,8 +724,9 @@ export default class MainController implements vscode.Disposable {
 
         // Add Object Explorer Node
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (!this.isExperimentalEnabled) {
+            if (!this.isRichExperiencesEnabled) {
                 if (!self._objectExplorerProvider.objectExplorerExists) {
                     self._objectExplorerProvider.objectExplorerExists = true;
                 }
@@ -870,7 +863,7 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        if (this.isExperimentalEnabled) {
+        if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
@@ -984,9 +977,7 @@ export default class MainController implements vscode.Disposable {
                     },
                 ),
             );
-        }
 
-        if (this.isNewQueryResultFeatureEnabled) {
             this._context.subscriptions.push(
                 vscode.window.registerWebviewViewProvider(
                     "queryResult",
@@ -1660,6 +1651,59 @@ export default class MainController implements vscode.Disposable {
         return version > 1;
     }
 
+    private async showOnLaunchPrompts(): Promise<void> {
+        // All prompts should be async and _not_ awaited so that we don't block the rest of the extension
+        void this.showFirstLaunchPrompts();
+        void this.showEnableRichExperiencesPrompt();
+    }
+
+    /**
+     * Prompts the user to enable rich experiences
+     */
+    private async showEnableRichExperiencesPrompt(): Promise<void> {
+        if (
+            this._vscodeWrapper
+                .getConfiguration()
+                .get<boolean>(
+                    Constants.configEnableRichExperiencesDoNotShowPrompt,
+                ) ||
+            this._vscodeWrapper
+                .getConfiguration()
+                .get<boolean>(Constants.configEnableRichExperiences)
+        ) {
+            return;
+        }
+
+        const response = await this._vscodeWrapper.showInformationMessage(
+            LocalizedConstants.enableRichExperiencesPrompt,
+            LocalizedConstants.enableRichExperiences,
+            LocalizedConstants.Common.learnMore,
+            LocalizedConstants.Common.dontShowAgain,
+        );
+
+        if (response === LocalizedConstants.enableRichExperiences) {
+            await this._vscodeWrapper
+                .getConfiguration()
+                .update(
+                    Constants.configEnableRichExperiences,
+                    true,
+                    vscode.ConfigurationTarget.Global,
+                );
+        } else if (response === LocalizedConstants.Common.learnMore) {
+            await vscode.env.openExternal(
+                vscode.Uri.parse(Constants.richFeaturesLearnMoreLink),
+            );
+        } else if (response === LocalizedConstants.Common.dontShowAgain) {
+            await this._vscodeWrapper
+                .getConfiguration()
+                .update(
+                    Constants.configEnableRichExperiencesDoNotShowPrompt,
+                    true,
+                    vscode.ConfigurationTarget.Global,
+                );
+        }
+    }
+
     /**
      * Prompts the user to view release notes, if this is a new extension install
      */
@@ -2047,27 +2091,17 @@ export default class MainController implements vscode.Disposable {
                 this.updatePiiLoggingLevel();
             }
 
-            // Prompt to reload VS Code when below settings are updated.
-            if (
-                e.affectsConfiguration(
-                    Constants.enableSqlAuthenticationProvider,
-                )
-            ) {
-                await this.displayReloadMessage(
-                    LocalizedConstants.reloadPromptGeneric,
-                );
-            }
-
-            // Prompt to reload VS Code when below settings are updated.
-            if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
-                await this.displayReloadMessage(
-                    LocalizedConstants.reloadPromptGeneric,
-                );
-            }
+            // Prompt to reload VS Code when any of these settings are updated.
+            const configSettingsRequiringReload = [
+                Constants.enableSqlAuthenticationProvider,
+                Constants.enableConnectionPooling,
+                Constants.configEnableExperimentalFeatures,
+                Constants.configEnableRichExperiences,
+            ];
 
             if (
-                e.affectsConfiguration(
-                    Constants.configEnableExperimentalFeatures,
+                configSettingsRequiringReload.some((setting) =>
+                    e.affectsConfiguration(setting),
                 )
             ) {
                 await this.displayReloadMessage(

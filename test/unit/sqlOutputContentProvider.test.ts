@@ -520,10 +520,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     test("A query runner should only exist if a query is run", async () => {
         vscodeWrapper
             .setup((v) =>
-                v.getConfiguration(
-                    Constants.extensionConfigSectionName,
-                    TypeMoq.It.isAny(),
-                ),
+                v.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             )
             .returns(() => {
                 let configResult: { [key: string]: any } = {};

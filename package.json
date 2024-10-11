@@ -234,7 +234,7 @@
           "type": "webview",
           "id": "queryResult",
           "name": "%extension.queryResult%",
-          "when": "config.mssql.enableNewQueryResultFeature"
+          "when": "config.mssql.enableRichExperiences"
         }
       ],
       "objectExplorer": [
@@ -381,30 +381,30 @@
         },
         {
           "command": "mssql.filterNode",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
           "group": "inline@1"
         },
         {
           "command": "mssql.filterNodeWithExistingFilters",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
           "group": "inline@1"
         },
         {
           "command": "mssql.clearFilters",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
           "group": "inline@2"
         },
         {
           "command": "mssql.filterNode",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/"
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/"
         },
         {
           "command": "mssql.filterNodeWithExistingFilters",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
         },
         {
           "command": "mssql.clearFilters",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/"
         },
         {
           "command": "mssql.removeObjectExplorerNode",
@@ -413,7 +413,7 @@
         },
         {
           "command": "mssql.editConnection",
-          "when": "view == objectExplorer && config.mssql.enableExperimentalFeatures && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
           "group": "inline"
         },
         {
@@ -458,12 +458,12 @@
         },
         {
           "command": "mssql.newTable",
-          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableExperimentalFeatures",
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableRichExperiences",
           "group": "inline"
         },
         {
           "command": "mssql.editTable",
-          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableExperimentalFeatures",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
           "group": "inline"
         },
         {
@@ -545,11 +545,11 @@
         },
         {
           "command": "mssql.newTable",
-          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableExperimentalFeatures"
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableRichExperiences"
         },
         {
           "command": "mssql.editTable",
-          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableExperimentalFeatures"
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences"
         }
       ]
     },
@@ -859,6 +859,26 @@
           "default": false,
           "description": "%mssql.enableExperimentalFeatures.description%",
           "scope": "application"
+        },
+        "mssql.enableRichExperiences": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableRichExperiences.description%",
+          "scope": "application"
+        },
+        "mssql.enableRichExperiencesDoNotShowPrompt": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
+          "scope": "application"
+        },
+        "azureResourceGroups.selectedSubscriptions": {
+          "type": "array",
+          "description": "%mssql.selectedSubscriptions%",
+          "items": {
+              "type": "string"
+          },
+          "$comment": "This setting must be registered in case the user does not have the Azure Resource Groups extension installed.  All extensions using this configuration must register this setting."
         },
         "mssql.azureActiveDirectory": {
           "type": "string",
