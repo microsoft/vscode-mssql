@@ -1223,10 +1223,6 @@
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ac94ff0eb69149fc72ac5b94b2e54a3d65e5ddb07b45dd4ba9324e33e6c33666">
-      <source xml:lang="en">The {0} has been closed. Would you like to restore it?</source>
-      <note>{0} is the webview name</note>
-    </trans-unit>
     <trans-unit id="++CODE++2b8198974f44b4a37d366cb6535153e3646f2c9de308f0ca05bf90513b0a4630">
       <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
     </trans-unit>
@@ -1356,6 +1352,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
+      <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
+      <note>{0} is the webview name</note>
     </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
