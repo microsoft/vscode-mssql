@@ -280,25 +280,24 @@ export const QueryResultPane = () => {
 
     useEffect(() => {
         const getExecutionPlanGraphs = () => {
-            if (
-                metadata &&
-                metadata.executionPlanState.xmlPlans &&
-                metadata.executionPlanState?.executionPlanGraphs &&
-                !metadata.executionPlanState.executionPlanGraphs.length
-            ) {
-                state!.provider.getExecutionPlan(
-                    metadata.executionPlanState.xmlPlans,
-                );
-            }
+            state!.provider.getExecutionPlan(
+                metadata.executionPlanState.xmlPlans,
+            );
         };
 
         if (
+            // makes sure state is defined
             metadata &&
+            // makes sure result sets are defined
             metadata.resultSetSummaries &&
+            // makes sure the xml plans set by results are defined
             metadata.executionPlanState.xmlPlans &&
-            Object.keys(metadata.resultSetSummaries).length > 0 &&
+            // makes sure xml plans have been fully updated- necessary for multiple results sets
             Object.keys(metadata.resultSetSummaries).length ===
-                metadata.executionPlanState.xmlPlans.length
+                metadata.executionPlanState.xmlPlans.length &&
+            // checks that we haven't already gotten the graphs
+            metadata.executionPlanState?.executionPlanGraphs &&
+            !metadata.executionPlanState.executionPlanGraphs.length
         ) {
             getExecutionPlanGraphs();
         }

@@ -56,7 +56,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 
@@ -1269,7 +1269,9 @@ export default class MainController implements vscode.Disposable {
             let uri = this._vscodeWrapper.activeTextEditorUri;
             this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
-            console.warn(`Unexpected error cancelling query : ${err}`);
+            console.warn(
+                `Unexpected error cancelling query : ${getErrorMessage(err)}`,
+            );
         }
     }
 

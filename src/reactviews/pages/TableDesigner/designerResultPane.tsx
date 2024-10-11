@@ -30,7 +30,7 @@ import {
 } from "../../../sharedInterfaces/tableDesigner";
 import { locConstants } from "../../common/locConstants";
 import { List, ListItem } from "@fluentui/react-list-preview";
-import { getVscodeTheme } from "../../common/utils";
+import { getVscodeThemeType } from "../../common/utils";
 
 const useStyles = makeStyles({
     root: {
@@ -292,7 +292,7 @@ export const DesignerResultPane = () => {
                             height={"100%"}
                             width={"100%"}
                             language="sql"
-                            theme={getVscodeTheme(state!.theme!)}
+                            theme={getVscodeThemeType(state!.theme!)}
                             value={
                                 (
                                     metadata?.model![

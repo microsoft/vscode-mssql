@@ -215,6 +215,7 @@ export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
     "https://www.microsoft.com/en-us/privacy/privacystatement";
+export const sqlPlanFileExtension = ".sqlplan";
 
 export enum Platform {
     Windows = "win32",

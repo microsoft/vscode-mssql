@@ -27,7 +27,11 @@ export function formatString(str: string, ...args: any[]): string {
     return result;
 }
 
-export const getVscodeTheme = (theme: Theme) => {
+/**
+ * Gets the theme type based on the theme passed in
+ * @param theme the theme of the react webview
+ */
+export function getVscodeThemeType(theme: Theme): string {
     switch (theme) {
         case webDarkTheme:
             return "vs-dark";
@@ -36,4 +40,4 @@ export const getVscodeTheme = (theme: Theme) => {
         default:
             return "light";
     }
-};
+}

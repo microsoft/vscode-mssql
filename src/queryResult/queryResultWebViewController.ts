@@ -108,7 +108,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             let filename: vscode.Uri;
 
             // make the default filename of the plan to be saved-
-            // start ad plan.sqlplan, then plan1.sqlplan, ...
+            // start at plan.sqlplan, then plan1.sqlplan, ...
             let counter = 1;
             if (await exists(`plan.sqlplan`, folder)) {
                 while (await exists(`plan${counter}.sqlplan`, folder)) {

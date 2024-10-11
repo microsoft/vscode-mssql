@@ -10,6 +10,7 @@ import { homedir } from "os";
 import { exists } from "../utils/utils";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import { sqlPlanFileExtension } from "../constants/constants";
 
 export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -76,7 +77,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             let filename: vscode.Uri;
 
             // make the default filename of the plan to be saved-
-            // start ad plan.sqlplan, then plan1.sqlplan, ...
+            // start at plan.sqlplan, then plan1.sqlplan, ...
             let counter = 1;
             if (await exists(`plan.sqlplan`, folder)) {
                 while (await exists(`plan${counter}.sqlplan`, folder)) {
@@ -139,7 +140,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     private async createExecutionPlanGraphs(content: string) {
         const planFile: ep.ExecutionPlanGraphInfo = {
             graphFileContent: content,
-            graphFileType: ".sqlplan",
+            graphFileType: sqlPlanFileExtension,
         };
         try {
             this.state.executionPlanState.executionPlanGraphs = (
