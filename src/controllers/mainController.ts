@@ -364,6 +364,7 @@ export default class MainController implements vscode.Disposable {
                 providerInstance,
             );
 
+            const self = this;
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
                     const mssqlProtocolHandler = new MssqlProtocolHandler(
