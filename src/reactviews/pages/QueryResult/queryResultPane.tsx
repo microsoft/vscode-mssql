@@ -279,12 +279,6 @@ export const QueryResultPane = () => {
     };
 
     useEffect(() => {
-        const getExecutionPlanGraphs = () => {
-            state!.provider.getExecutionPlan(
-                metadata.executionPlanState.xmlPlans,
-            );
-        };
-
         if (
             // makes sure state is defined
             metadata &&
@@ -299,7 +293,10 @@ export const QueryResultPane = () => {
             metadata.executionPlanState?.executionPlanGraphs &&
             !metadata.executionPlanState.executionPlanGraphs.length
         ) {
-            getExecutionPlanGraphs();
+            // get execution plan graphs
+            state!.provider.getExecutionPlan(
+                metadata.executionPlanState.xmlPlans,
+            );
         }
     });
 
