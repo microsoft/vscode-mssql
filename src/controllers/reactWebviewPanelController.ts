@@ -3,7 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
+
+import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
 
 /**
@@ -30,22 +33,21 @@ export class ReactWebviewPanelController<
      */
     constructor(
         _context: vscode.ExtensionContext,
-        title: string,
         sourceFile: string,
         initialData: State,
-        viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
-        private _iconPath?:
-            | vscode.Uri
-            | {
-                  readonly light: vscode.Uri;
-                  readonly dark: vscode.Uri;
-              },
+        private _options: MssqlWebviewPanelOptions,
     ) {
         super(_context, sourceFile, initialData);
+        this.createWebviewPanel();
+        // This call sends messages to the Webview so it's called after the Webview creation.
+        this.initializeBase();
+    }
+
+    private createWebviewPanel() {
         this._panel = vscode.window.createWebviewPanel(
             "mssql-react-webview",
-            title,
-            viewColumn,
+            this._options.title,
+            this._options.viewColumn,
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
@@ -56,20 +58,25 @@ export class ReactWebviewPanelController<
         );
 
         this._panel.webview.html = this._getHtmlTemplate();
-        this._panel.iconPath = this._iconPath;
+        this._panel.iconPath = this._options.iconPath;
         this.registerDisposable(
             this._panel.webview.onDidReceiveMessage(
                 this._webviewMessageHandler,
             ),
         );
         this.registerDisposable(
-            this._panel.onDidDispose(() => {
+            this._panel.onDidDispose(async () => {
+                let prompt;
+                if (this._options.showRestorePromptAfterClose) {
+                    prompt = await this.showRestorePrompt();
+                }
+                if (prompt) {
+                    await prompt.run();
+                    return;
+                }
                 this.dispose();
             }),
         );
-
-        // This call sends messages to the Webview so it's called after the Webview creation.
-        this.initializeBase();
     }
 
     protected _getWebview(): vscode.Webview {
@@ -91,5 +98,24 @@ export class ReactWebviewPanelController<
         viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
     ): void {
         this._panel.reveal(viewColumn, true);
+    }
+
+    private async showRestorePrompt(): Promise<{
+        title: string;
+        run: () => Promise<void>;
+    }> {
+        return await vscode.window.showInformationMessage(
+            locConstants.Webview.webviewRestorePrompt(this._options.title),
+            {
+                modal: true,
+            },
+            {
+                title: locConstants.Webview.Restore,
+                run: async () => {
+                    await this.createWebviewPanel();
+                    this._panel.reveal(this._options.viewColumn);
+                },
+            },
+        );
     }
 }

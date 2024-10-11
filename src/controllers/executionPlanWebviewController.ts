@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import { ReactWebviewPanelController } from "./reactWebviewController";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
-import { homedir } from "os";
-import { exists } from "../utils/utils";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import * as path from "path";
+import * as vscode from "vscode";
+
 import { ApiStatus } from "../sharedInterfaces/webview";
+import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import { exists } from "../utils/utils";
+import { homedir } from "os";
 
 export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -27,7 +28,6 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     ) {
         super(
             context,
-            `${xmlPlanFileName}`, // Sets the webview title
             "executionPlan",
             {
                 sqlPlanContent: executionPlanContents,
@@ -41,18 +41,21 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 executionPlanGraphs: [],
                 totalCost: 0,
             },
-            vscode.ViewColumn.Active,
             {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "executionPlan_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "executionPlan_light.svg",
-                ),
+                title: `${xmlPlanFileName}`, // Sets the webview title
+                viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "executionPlan_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "executionPlan_light.svg",
+                    ),
+                },
             },
         );
         void this.initialize();
