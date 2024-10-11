@@ -5,7 +5,6 @@
 
 import { useContext, useState } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import * as utils from "./queryPlanSetup";
 import "./executionPlan.css";
 import {
     Button,
@@ -16,6 +15,8 @@ import {
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import * as ep from "./executionPlanInterfaces";
 import { locConstants } from "../../common/locConstants";
+import { QueryResultState } from "../QueryResult/queryResultStateProvider";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     inputContainer: {
@@ -37,17 +38,23 @@ const useStyles = makeStyles({
 });
 
 interface HighlightExpensiveOperationsProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
+    context?: QueryResultState;
 }
 
 export const HighlightExpensiveOperations: React.FC<
     HighlightExpensiveOperationsProps
-> = ({ executionPlanView, setExecutionPlanView, setHighlightOpsClicked }) => {
+> = ({
+    executionPlanView,
+    setExecutionPlanView,
+    setHighlightOpsClicked,
+    context,
+}) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const state = context ?? useContext(ExecutionPlanContext);
+    const theme = state!.theme;
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
 
     const highlightMetricOptions: string[] = [
@@ -105,7 +112,7 @@ export const HighlightExpensiveOperations: React.FC<
             id="highlightExpensiveOpsContainer"
             className={classes.inputContainer}
             style={{
-                background: utils.iconBackground(executionPlanState!.theme!),
+                background: theme.colorNeutralBackground1,
             }}
         >
             <div>{locConstants.executionPlan.metric}</div>

@@ -79,6 +79,7 @@ export const cmdAzureSignInToCloud = "azure-account.loginToCloud";
 export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
+export const cmdShowExecutionPlanInResults = "mssql.showExecutionPlanInResults";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
@@ -214,6 +215,7 @@ export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
     "https://www.microsoft.com/en-us/privacy/privacystatement";
+export const sqlPlanFileExtension = ".sqlplan";
 
 export enum Platform {
     Windows = "win32",

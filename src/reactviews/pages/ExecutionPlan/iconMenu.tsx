@@ -9,6 +9,7 @@ import * as utils from "./queryPlanSetup";
 import "./executionPlan.css";
 import { makeStyles, Toolbar, ToolbarButton } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
+import { ExecutionPlanView } from "./executionPlanView";
 
 const useStyles = makeStyles({
     iconStack: {
@@ -38,14 +39,15 @@ const useStyles = makeStyles({
 });
 
 interface IconStackProps {
-    executionPlanView: any;
+    executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setZoomNumber: any;
     setCustomZoomClicked: any;
     setFindNodeClicked: any;
     setHighlightOpsClicked: any;
     setPropertiesClicked: any;
-    query: any;
+    query: string;
+    xml: string;
 }
 
 export const IconStack: React.FC<IconStackProps> = ({
@@ -57,10 +59,11 @@ export const IconStack: React.FC<IconStackProps> = ({
     setHighlightOpsClicked,
     setPropertiesClicked,
     query,
+    xml,
 }) => {
     const classes = useStyles();
     const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const theme = state!.theme;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {
         CustomZoom,
@@ -83,13 +86,11 @@ export const IconStack: React.FC<IconStackProps> = ({
     const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
 
     const handleSavePlan = async () => {
-        await state!.provider.saveExecutionPlan(
-            executionPlanState!.sqlPlanContent!,
-        );
+        await state!.provider.saveExecutionPlan(xml);
     };
 
     const handleShowXml = async () => {
-        await state!.provider.showPlanXml(executionPlanState!.sqlPlanContent!);
+        await state!.provider.showPlanXml(xml);
     };
 
     const handleShowQuery = async () => {
@@ -156,7 +157,8 @@ export const IconStack: React.FC<IconStackProps> = ({
         <Toolbar
             className={classes.iconStack}
             style={{
-                background: `${utils.background(executionPlanState!.theme!)}`,
+                background: `${theme.colorNeutralBackground2}`,
+                minHeight: "300px",
             }}
             vertical
         >
@@ -166,7 +168,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.save(executionPlanState!.theme!)}
+                        src={utils.save(theme)}
                         alt={SAVE_PLAN}
                     />
                 }
@@ -180,7 +182,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.openPlanFile(executionPlanState!.theme!)}
+                        src={utils.openPlanFile(theme)}
                         alt={OPEN_XML}
                     />
                 }
@@ -194,7 +196,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.openQuery(executionPlanState!.theme!)}
+                        src={utils.openQuery(theme)}
                         alt={OPEN_QUERY}
                     />
                 }
@@ -205,7 +207,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             <hr
                 className={classes.seperator}
                 style={{
-                    background: utils.seperator(executionPlanState!.theme!),
+                    background: theme.colorNeutralStroke1,
                 }}
             ></hr>
             <ToolbarButton
@@ -214,7 +216,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.zoomIn(executionPlanState!.theme!)}
+                        src={utils.zoomIn(theme)}
                         alt={ZOOM_IN}
                     />
                 }
@@ -228,7 +230,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.zoomOut(executionPlanState!.theme!)}
+                        src={utils.zoomOut(theme)}
                         alt={ZOOM_OUT}
                     />
                 }
@@ -242,7 +244,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.zoomToFit(executionPlanState!.theme!)}
+                        src={utils.zoomToFit(theme)}
                         alt={ZOOM_TO_FIT}
                     />
                 }
@@ -256,7 +258,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.customZoom(executionPlanState!.theme!)}
+                        src={utils.customZoom(theme)}
                         alt={CUSTOM_ZOOM}
                     />
                 }
@@ -267,7 +269,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             <hr
                 className={classes.seperator}
                 style={{
-                    background: utils.seperator(executionPlanState!.theme!),
+                    background: theme.colorNeutralStroke1,
                 }}
             ></hr>
             <ToolbarButton
@@ -276,7 +278,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.search(executionPlanState!.theme!)}
+                        src={utils.search(theme)}
                         alt={FIND_NODE}
                     />
                 }
@@ -290,7 +292,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.properties(executionPlanState!.theme!)}
+                        src={utils.properties(theme)}
                         alt={PROPERTIES}
                     />
                 }
@@ -304,7 +306,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 icon={
                     <img
                         className={classes.buttonImg}
-                        src={utils.highlightOps(executionPlanState!.theme!)}
+                        src={utils.highlightOps(theme)}
                         alt={HIGHLIGHT_OPS}
                     />
                 }
@@ -321,12 +323,8 @@ export const IconStack: React.FC<IconStackProps> = ({
                         className={classes.buttonImg}
                         src={
                             tooltipsEnabled
-                                ? utils.enableTooltip(
-                                      executionPlanState!.theme!,
-                                  )
-                                : utils.disableTooltip(
-                                      executionPlanState!.theme!,
-                                  )
+                                ? utils.enableTooltip(theme)
+                                : utils.disableTooltip(theme)
                         }
                         alt={TOGGLE_TOOLTIPS}
                     />

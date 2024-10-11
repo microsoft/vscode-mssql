@@ -258,6 +258,7 @@ export class LocConstants {
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
+            queryPlan: l10n.t("Query Plan"),
         };
     }
 }
