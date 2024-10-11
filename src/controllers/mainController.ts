@@ -1690,7 +1690,9 @@ export default class MainController implements vscode.Disposable {
                     vscode.ConfigurationTarget.Global,
                 );
         } else if (response === LocalizedConstants.Common.learnMore) {
-            // open github page with more information
+            await vscode.env.openExternal(
+                vscode.Uri.parse(Constants.richFeaturesLearnMoreLink),
+            );
         } else if (response === LocalizedConstants.Common.dontShowAgain) {
             await this._vscodeWrapper
                 .getConfiguration()

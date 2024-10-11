@@ -187,6 +187,7 @@ export const configEnableExperimentalFeatures =
 export const configEnableRichExperiences = "mssql.enableRichExperiences";
 export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
+export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
