@@ -68,9 +68,9 @@
         <source xml:lang="en">Advanced Connection Settings</source>
         <target state="translated">Дополнительные параметры подключения</target>
       </trans-unit>
-      <trans-unit id="++CODE++232bbbc747fa6709e2940f4d0eec4b819b3b007acfdacaec8f3e2e1536799bd7">
-        <source xml:lang="en">Advanced Type</source>
-        <target state="translated">Расширенный тип</target>
+      <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
+        <source xml:lang="en">Advanced Options</source>
+        <target state="new">Advanced Options</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -155,7 +155,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
         <source xml:lang="en">Back to preview</source>
-        <target state="new">Back to preview</target>
+        <target state="translated">Вернуться к предварительному просмотру</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -350,7 +350,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
-        <target state="new">Connection Error</target>
+        <target state="translated">Ошибка подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++52d8d284995954ca5f68adbc705bb4ff2a930cc1ff2a3885a1002ff477394eee">
         <source xml:lang="en">Connection Errors</source>
@@ -387,7 +387,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
         <source xml:lang="en">Copied</source>
-        <target state="new">Copied</target>
+        <target state="translated">Скопировано</target>
       </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
@@ -428,6 +428,10 @@
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">Пользовательское увеличение</target>
+      </trans-unit>
+      <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
+        <source xml:lang="en">Data Type</source>
+        <target state="new">Data Type</target>
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
@@ -512,7 +516,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
-        <target state="new">Enable 'Trust Server Certificate'</target>
+        <target state="translated">Включить параметр "Доверять сертификату сервера"</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -524,11 +528,11 @@
       </trans-unit>
       <trans-unit id="++CODE++ac8fee089cebcddef6529d9c8b467120173dbd02a46992ecbaf62fe25c925ae0">
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.</source>
-        <target state="new">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.</target>
+        <target state="translated">Для этого подключения включено шифрование. Просмотрите SSL и конфигурацию сертификата для целевого сервера SQL Server или включите параметр "Доверять сертификату сервера" в диалоговом окне подключения.</target>
       </trans-unit>
       <trans-unit id="++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8">
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="new">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+        <target state="translated">Для этого подключения включено шифрование. Просмотрите SSL и конфигурацию сертификата для целевого сервера SQL Server или установите для параметра "Доверять сертификату сервера" значение "true" в файле настроек. Примечание. Самозаверяющий сертификат обеспечивает ограниченную защиту, и его не рекомендуется применять в производственных средах. Включить параметр "Доверять сертификату сервера" для этого подключения и повторить попытку?</target>
       </trans-unit>
       <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
         <source xml:lang="en">End IP Address</source>
@@ -681,7 +685,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
-        <target state="new">Filter Azure subscriptions</target>
+        <target state="translated">Фильтрация подписок Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
@@ -749,10 +753,6 @@
         <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
         <note>{0} is the uri</note>
         <target state="translated">Найдено ожидающее обещание повторного подключения для URI {0}, ждем.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
-        <source xml:lang="en">General</source>
-        <target state="translated">Общее</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -863,7 +863,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
-        <target state="new">Loading Report</target>
+        <target state="translated">Загрузка отчета</target>
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
@@ -1014,7 +1014,7 @@
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
-        <target state="new">No subscriptions available.  Adjust your subscription filters to try again.</target>
+        <target state="translated">Нет доступных подписок.  Настройте фильтры подписки, чтобы повторить попытку.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1050,7 +1050,7 @@
       </trans-unit>
       <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
         <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="new">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+        <target state="translated">Примечание. Самозаверяющий сертификат обеспечивает ограниченную защиту, и его не рекомендуется применять в производственных средах. Включить параметр "Доверять сертификату сервера" для этого подключения и повторить попытку?</target>
       </trans-unit>
       <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
         <source xml:lang="en">Number of Rows Read</source>
@@ -1210,6 +1210,10 @@
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Публикуем изменения…</target>
       </trans-unit>
+      <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
+        <source xml:lang="en">Query Plan</source>
+        <target state="new">Query Plan</target>
+      </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
         <target state="translated">Запрос выполнен</target>
@@ -1363,7 +1367,7 @@
       </trans-unit>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
-        <target state="new">Select subscriptions</target>
+        <target state="translated">Выбрать подписки</target>
       </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
@@ -1597,17 +1601,9 @@
         <source xml:lang="en">The name of the index.</source>
         <target state="translated">Имя индекса.</target>
       </trans-unit>
-      <trans-unit id="++CODE++289db14dbc3d213c4ac28f356bcfc37eb02f473e07ee63bcea2fa7075c888822">
-        <source xml:lang="en">The name of the table object.</source>
-        <target state="translated">Имя объекта таблицы.</target>
-      </trans-unit>
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">Список последних подключений был очищен, но при удалении некоторых связанных с ним учетных данных возникли ошибки. Просмотрите ошибки в канале выдачи MSSQL.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c9d2c41f4eeba094c6db66ab88d3c5190e34865d80fe230483b6fdcaddf79e8a">
-        <source xml:lang="en">The schema that contains the table.</source>
-        <target state="translated">Схема, содержащая таблицу.</target>
       </trans-unit>
       <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -2031,6 +2027,10 @@
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">Разрешает использование поставщика проверки подлинности SQL для режима проверки подлинности "Microsoft Entra Id Interactive", когда пользователь выбирает проверку подлинности "AzureMFA". Это разрешает интеграцию конечной точки ресурсов на стороне сервера при получении маркеров доступа. Этот параметр поддерживается только для библиотеки проверки подлинности "MSAL". Перезапустите Visual Studio Code после изменения этого параметра.</target>
+      </trans-unit>
+      <trans-unit id="mssql.showExecutionPlanInResults">
+        <source xml:lang="en">Estimated Plan</source>
+        <target state="new">Estimated Plan</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>

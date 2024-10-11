@@ -21,6 +21,7 @@ import { DesignerDropdown } from "./designerDropdown";
 import { DesignerTable } from "./designerTable";
 import {
     CheckBoxProperties,
+    DesignerDataPropertyInfo,
     DesignerTableProperties,
     DropDownProperties,
     InputBoxProperties,
@@ -113,7 +114,10 @@ export const DesignerPropertiesPane = () => {
         );
     }
 
-    const renderAccordionItem = (group: string | undefined) => {
+    const renderAccordionItem = (
+        group: string | undefined,
+        groupItem: DesignerDataPropertyInfo[],
+    ) => {
         if (!group) {
             return undefined;
         }
@@ -122,93 +126,81 @@ export const DesignerPropertiesPane = () => {
                 <AccordionHeader>{group}</AccordionHeader>
                 <AccordionPanel>
                     <div className={classes.group}>
-                        {parentTableProperties
-                            .itemProperties!.filter(
-                                (i) =>
-                                    (group === "General" && !i.group) ||
-                                    group === i.group,
-                            )
-                            .filter(
-                                (item) => item.showInPropertiesView !== false,
-                            )
-                            .map((item) => {
-                                if (!data) {
-                                    return undefined;
-                                }
-                                const modelValue = data![item.propertyName];
-                                if (!modelValue) {
-                                    return undefined;
-                                }
-                                switch (item.componentType) {
-                                    case "checkbox":
-                                        return (
-                                            <DesignerCheckbox
-                                                UiArea="PropertiesView"
-                                                component={item}
-                                                model={
-                                                    modelValue as CheckBoxProperties
-                                                }
-                                                componentPath={[
-                                                    ...propertiesPaneData!
-                                                        .componentPath,
-                                                    item.propertyName,
-                                                ]}
-                                                key={`${group}-${item.propertyName}`}
-                                            />
-                                        );
-                                    case "input":
-                                        return (
-                                            <DesignerInputBox
-                                                UiArea="PropertiesView"
-                                                component={item}
-                                                model={
-                                                    modelValue as InputBoxProperties
-                                                }
-                                                componentPath={[
-                                                    ...propertiesPaneData!
-                                                        .componentPath,
-                                                    item.propertyName,
-                                                ]}
-                                                horizontal
-                                                key={`${group}-${item.propertyName}`}
-                                            />
-                                        );
-                                    case "dropdown":
-                                        return (
-                                            <DesignerDropdown
-                                                UiArea="PropertiesView"
-                                                component={item}
-                                                model={
-                                                    modelValue as DropDownProperties
-                                                }
-                                                componentPath={[
-                                                    ...propertiesPaneData!
-                                                        .componentPath,
-                                                    item.propertyName,
-                                                ]}
-                                                horizontal
-                                                key={`${group}-${item.propertyName}`}
-                                            />
-                                        );
-                                    case "table":
-                                        return (
-                                            <DesignerTable
-                                                UiArea="PropertiesView"
-                                                component={item}
-                                                model={
-                                                    modelValue as DesignerTableProperties
-                                                }
-                                                componentPath={[
-                                                    ...propertiesPaneData!
-                                                        .componentPath,
-                                                    item.propertyName,
-                                                ]}
-                                                loadPropertiesTabData={false}
-                                                key={`${group}-${item.propertyName}`}
-                                            />
-                                        );
-                                }
-                            })}
+                        {groupItem.map((item) => {
+                            if (!data) {
+                                return undefined;
+                            }
+                            const modelValue = data![item.propertyName];
+                            switch (item.componentType) {
+                                case "checkbox":
+                                    return (
+                                        <DesignerCheckbox
+                                            UiArea="PropertiesView"
+                                            component={item}
+                                            model={
+                                                modelValue as CheckBoxProperties
+                                            }
+                                            componentPath={[
+                                                ...propertiesPaneData!
+                                                    .componentPath,
+                                                item.propertyName,
+                                            ]}
+                                            key={`${group}-${item.propertyName}`}
+                                        />
+                                    );
+                                case "input":
+                                    return (
+                                        <DesignerInputBox
+                                            UiArea="PropertiesView"
+                                            component={item}
+                                            model={
+                                                modelValue as InputBoxProperties
+                                            }
+                                            componentPath={[
+                                                ...propertiesPaneData!
+                                                    .componentPath,
+                                                item.propertyName,
+                                            ]}
+                                            horizontal
+                                            key={`${group}-${item.propertyName}`}
+                                        />
+                                    );
+                                case "dropdown":
+                                    return (
+                                        <DesignerDropdown
+                                            UiArea="PropertiesView"
+                                            component={item}
+                                            model={
+                                                modelValue as DropDownProperties
+                                            }
+                                            componentPath={[
+                                                ...propertiesPaneData!
+                                                    .componentPath,
+                                                item.propertyName,
+                                            ]}
+                                            horizontal
+                                            key={`${group}-${item.propertyName}`}
+                                        />
+                                    );
+                                case "table":
+                                    return (
+                                        <DesignerTable
+                                            UiArea="PropertiesView"
+                                            component={item}
+                                            model={
+                                                modelValue as DesignerTableProperties
+                                            }
+                                            componentPath={[
+                                                ...propertiesPaneData!
+                                                    .componentPath,
+                                                item.propertyName,
+                                            ]}
+                                            loadPropertiesTabData={false}
+                                            key={`${group}-${item.propertyName}`}
+                                        />
+                                    );
+                            }
+                        })}
                     </div>
                 </AccordionPanel>
             </AccordionItem>
@@ -268,10 +260,39 @@ export const DesignerPropertiesPane = () => {
                 />
             </div>
             <div className={classes.stack}>
-                <Accordion multiple collapsible defaultOpenItems={groups}>
+                <Accordion multiple collapsible defaultOpenItems={[groups[0]]}>
                     {data &&
                         groups?.map((group) => {
-                            return renderAccordionItem(group);
+                            const groupItems = parentTableProperties
+                                .itemProperties!.filter(
+                                    (i) =>
+                                        (group === "General" && !i.group) ||
+                                        group === i.group,
+                                )
+                                .filter((item) => {
+                                    if (item.showInPropertiesView === false) {
+                                        return false;
+                                    }
+                                    const modelValue = data![item.propertyName];
+                                    if (!modelValue) {
+                                        return false;
+                                    }
+                                    if (
+                                        (
+                                            modelValue as
+                                                | InputBoxProperties
+                                                | CheckBoxProperties
+                                                | DropDownProperties
+                                        )?.enabled === false
+                                    ) {
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                            if (groupItems.length === 0) {
+                                return undefined;
+                            }
+                            return renderAccordionItem(group, groupItems);
                         })}
                 </Accordion>
             </div>

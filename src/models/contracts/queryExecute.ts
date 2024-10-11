@@ -104,6 +104,7 @@ export namespace QueryExecuteStatementRequest {
 
 export class QueryExecuteParams {
     ownerUri: string;
+    executionPlanOptions?: ExecutionPlanOptions;
     querySelection: ISelectionData;
 }
 
@@ -114,6 +115,11 @@ export class QueryExecuteStatementParams {
 }
 
 export class QueryExecuteResult {}
+
+export class ExecutionPlanOptions {
+    includeActualExecutionPlanXml?: boolean;
+    includeEstimatedExecutionPlanXml?: boolean;
+}
 
 // ------------------------------- < Query Results Request > ------------------------------------
 export namespace QueryExecuteSubsetRequest {

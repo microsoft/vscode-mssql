@@ -24,13 +24,16 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         width: "100%",
+        height: "100%",
         position: "relative",
+        overflowY: "hidden",
     },
     planContainer: {
         display: "flex",
         flexDirection: "column",
         flexGrow: 1,
         width: "100%",
+        minHeight: "300px",
     },
     inputContainer: {
         position: "absolute",
@@ -53,7 +56,7 @@ const useStyles = makeStyles({
         opacity: 1,
         height: "100%",
         width: "100%",
-        overflow: "auto",
+        overflowX: "auto",
     },
     resizable: {
         position: "absolute",
@@ -85,9 +88,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 }) => {
     const classes = useStyles();
     const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state;
+    const executionPlanState = state?.state.executionPlanState;
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
+    const [xml, setXml] = useState("");
     const [cost, setCost] = useState(0);
     const [executionPlanView, setExecutionPlanView] =
         useState<ExecutionPlanView | null>(null);
@@ -100,6 +104,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
+    const theme = state!.theme;
 
     useEffect(() => {
         if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -170,6 +175,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     }
                 }
                 setQuery(tempQuery);
+                setXml(
+                    executionPlanState.executionPlanGraphs[graphIndex].graphFile
+                        .graphFileContent,
+                );
                 setCost(executionPlanView.getTotalRelativeCost());
             } else {
                 return;
@@ -227,9 +236,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     id="queryCostContainer"
                     className={classes.queryCostContainer}
                     style={{
-                        background: utils.background(
-                            executionPlanState!.theme!,
-                        ),
+                        background: theme.colorNeutralBackground2,
                     }}
                 >
                     {locConstants.executionPlan.queryCostRelativeToScript(
@@ -254,9 +261,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         id="customZoomInputContainer"
                         className={classes.inputContainer}
                         style={{
-                            background: utils.iconBackground(
-                                executionPlanState!.theme!,
-                            ),
+                            background: theme.colorNeutralBackground1,
                         }}
                     >
                         <Input
@@ -285,7 +290,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 </Popover>
                 <Popover open={findNodeClicked}>
                     <FindNode
-                        executionPlanView={executionPlanView}
+                        // guaranteed to be non-null, because the plan will only
+                        // show if it's non-null
+                        executionPlanView={executionPlanView!}
                         setExecutionPlanView={setExecutionPlanView}
                         findNodeOptions={findNodeOptions}
                         setFindNodeClicked={setFindNodeClicked}
@@ -293,7 +300,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 </Popover>
                 <Popover open={highlightOpsClicked}>
                     <HighlightExpensiveOperations
-                        executionPlanView={executionPlanView}
+                        // guaranteed to be non-null
+                        executionPlanView={executionPlanView!}
                         setExecutionPlanView={setExecutionPlanView}
                         setHighlightOpsClicked={setHighlightOpsClicked}
                     />
@@ -310,7 +318,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         ></div>
                         <Popover open={propertiesClicked}>
                             <PropertiesPane
-                                executionPlanView={executionPlanView}
+                                // guaranteed to be non-null
+                                executionPlanView={executionPlanView!}
                                 setPropertiesClicked={setPropertiesClicked}
                             />
                         </Popover>
@@ -318,7 +327,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 )}
             </div>
             <IconStack
-                executionPlanView={executionPlanView}
+                executionPlanView={executionPlanView!}
                 setExecutionPlanView={setExecutionPlanView}
                 setZoomNumber={setZoomNumber}
                 setCustomZoomClicked={setCustomZoomClicked}
@@ -326,6 +335,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 setHighlightOpsClicked={setHighlightOpsClicked}
                 setPropertiesClicked={setPropertiesClicked}
                 query={query}
+                xml={xml}
             />
         </div>
     );

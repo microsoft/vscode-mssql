@@ -14,7 +14,11 @@ import VscodeWrapper from "./../controllers/vscodeWrapper";
 import { ISelectionData, ISlickRange } from "./interfaces";
 import { WebviewPanelController } from "../controllers/webviewController";
 import { IServerProxy, Deferred } from "../protocol";
-import { ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
+import {
+    ExecutionPlanOptions,
+    ResultSetSubset,
+    ResultSetSummary,
+} from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
@@ -163,6 +167,7 @@ export class SqlOutputContentProvider {
         uri: string,
         selection: ISelectionData,
         title: string,
+        executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
         // execute the query with a query runner
@@ -178,9 +183,14 @@ export class SqlOutputContentProvider {
                             this._panels.get(uri).revealToForeground(uri);
                         }
                     }
-                    await queryRunner.runQuery(selection, promise);
+                    await queryRunner.runQuery(
+                        selection,
+                        executionPlanOptions,
+                        promise,
+                    );
                 }
             },
+            executionPlanOptions,
         );
     }
 
@@ -218,6 +228,7 @@ export class SqlOutputContentProvider {
         uri: string,
         title: string,
         queryCallback: any,
+        executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
         let queryRunner = await this.createQueryRunner(
             statusView ? statusView : this._statusView,
@@ -238,7 +249,10 @@ export class SqlOutputContentProvider {
                 await this.createWebviewController(uri, title, queryRunner);
             }
         } else {
-            this._queryResultWebviewController.addQueryResultState(uri);
+            this._queryResultWebviewController.addQueryResultState(
+                uri,
+                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false,
+            );
         }
         if (queryRunner) {
             queryCallback(queryRunner);

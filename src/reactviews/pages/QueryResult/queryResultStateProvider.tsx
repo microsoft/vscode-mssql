@@ -41,7 +41,38 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             tabId: tabId,
                         });
                     },
+                    getExecutionPlan: function (xmlPlans: string[]): void {
+                        webViewState?.extensionRpc.action("getExecutionPlan", {
+                            xmlPlans: xmlPlans,
+                        });
+                    },
+                    addXmlPlan: function (plan: string): void {
+                        webViewState?.extensionRpc.action("addXmlPlan", {
+                            xmlPlan: plan,
+                        });
+                    },
+                    saveExecutionPlan: function (sqlPlanContent: string): void {
+                        webViewState?.extensionRpc.action("saveExecutionPlan", {
+                            sqlPlanContent: sqlPlanContent,
+                        });
+                    },
+                    showPlanXml: function (sqlPlanContent: string): void {
+                        webViewState?.extensionRpc.action("showPlanXml", {
+                            sqlPlanContent: sqlPlanContent,
+                        });
+                    },
+                    showQuery: function (query: string): void {
+                        webViewState?.extensionRpc.action("showQuery", {
+                            query: query,
+                        });
+                    },
+                    updateTotalCost: function (addedCost: number): void {
+                        webViewState?.extensionRpc.action("updateTotalCost", {
+                            addedCost: addedCost,
+                        });
+                    },
                 },
+
                 state: webViewState?.state as qr.QueryResultWebviewState,
                 theme: webViewState?.theme,
             }}

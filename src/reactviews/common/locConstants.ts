@@ -133,6 +133,7 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            schema: l10n.t("Schema"),
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
         };
@@ -257,6 +258,7 @@ export class LocConstants {
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
+            queryPlan: l10n.t("Query Plan"),
         };
     }
 }

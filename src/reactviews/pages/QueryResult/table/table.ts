@@ -26,7 +26,8 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     } as Slick.GridOptions<T>;
 }
 
-const ACTIONBAR_WIDTH = 36; //px
+export const ACTIONBAR_WIDTH_PX = 36;
+export const TABLE_ALIGN_PX = 5;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     protected styleElement: HTMLStyleElement;
@@ -74,8 +75,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         // this._tableContainer.className = //TODO: class name for styles
         let gridParent = document.getElementById(divId!);
         if (gridParent) {
-            this._tableContainer.style.width = `${(gridParent?.clientWidth - ACTIONBAR_WIDTH).toString()}px`;
-            const height = gridParent?.clientHeight - 5;
+            this._tableContainer.style.width = `${(gridParent?.clientWidth - ACTIONBAR_WIDTH_PX).toString()}px`;
+            const height = gridParent?.clientHeight - TABLE_ALIGN_PX;
             this._tableContainer.style.height = `${height.toString()}px`;
         }
         this._container.appendChild(this._tableContainer);
