@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Theme, webLightTheme } from "@fluentui/react-components";
+import { QueryResultWebviewState } from "../../../sharedInterfaces/queryResult";
 
 export const saveAsCsvIcon = (theme: Theme) => {
     return theme === webLightTheme
@@ -22,3 +23,10 @@ export const saveAsExcelIcon = (theme: Theme) => {
         ? require("../../media/saveExcel.svg")
         : require("../../media/saveExcel_inverse.svg");
 };
+
+export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
+    return (
+        Object.keys(state.resultSetSummaries).length > 0 ||
+        state.messages.length > 0
+    );
+}

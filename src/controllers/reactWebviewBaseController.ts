@@ -239,6 +239,18 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                 return undefined;
             }
         };
+
+        this._webviewRequestHandlers["executeCommand"] = async (message) => {
+            if (!message?.command) {
+                console.log("No command provided to execute");
+                return;
+            }
+            const args = message?.args ?? [];
+            return await vscode.commands.executeCommand(
+                message.command,
+                ...args,
+            );
+        };
     }
 
     /**

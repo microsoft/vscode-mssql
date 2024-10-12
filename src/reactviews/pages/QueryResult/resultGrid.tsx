@@ -64,6 +64,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         const gridContainerRef = useRef<HTMLDivElement>(null);
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
+            if (gridContainerRef.current) {
+                while (gridContainerRef.current.firstChild) {
+                    gridContainerRef.current.removeChild(
+                        gridContainerRef.current.firstChild,
+                    );
+                }
+            }
             setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
@@ -222,7 +229,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             resizeGrid,
         }));
 
-        return <div ref={gridContainerRef}></div>;
+        return <div id="gridContainter" ref={gridContainerRef}></div>;
     },
 );
 
