@@ -209,9 +209,6 @@
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
     </trans-unit>
-    <trans-unit id="++CODE++03d4264d6e3d32d53426911034f775f0bc001efdcfea284f845b894df144f6a9">
-      <source xml:lang="en">Click here to hide this panel</source>
-    </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
     </trans-unit>
@@ -592,6 +589,9 @@
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
     </trans-unit>
+    <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
+      <source xml:lang="en">Hide this panel</source>
+    </trans-unit>
     <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
       <source xml:lang="en">Highlight Expensive Operation</source>
     </trans-unit>
@@ -772,8 +772,8 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
-    <trans-unit id="++CODE++2e71994c5a8b82a9f44993fe73960ab6c84267ec9bc96ba4109626b8ae349b4e">
-      <source xml:lang="en">No result found for the current active editor, please run a query or switch to another editor.</source>
+    <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
+      <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
     </trans-unit>
     <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
       <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>

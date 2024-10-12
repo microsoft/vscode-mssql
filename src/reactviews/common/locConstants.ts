@@ -259,9 +259,9 @@ export class LocConstants {
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
             noResultMessage: l10n.t(
-                "No result found for the current active editor, please run a query or switch to another editor.",
+                "No result found for the active editor; please run a query or switch to another editor.",
             ),
-            clickHereToHideThisPanel: l10n.t("Click here to hide this panel"),
+            clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: l10n.t("Query Plan"),
         };
     }
