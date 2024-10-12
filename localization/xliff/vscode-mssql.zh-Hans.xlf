@@ -778,6 +778,10 @@
         <source xml:lang="en">Help</source>
         <target state="translated">帮助</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
+        <source xml:lang="en">Hide this panel</source>
+        <target state="new">Hide this panel</target>
+      </trans-unit>
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">突出显示高开销操作</target>
@@ -1019,6 +1023,10 @@
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">无需刷新 URI {1} 的连接 {0} 的 Microsoft Entra 帐户令牌</target>
+      </trans-unit>
+      <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
+        <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
+        <target state="new">No result found for the active editor; please run a query or switch to another editor.</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
