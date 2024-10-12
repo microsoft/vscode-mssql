@@ -282,6 +282,8 @@ export const QueryResultPane = () => {
             metadata &&
             // makes sure result sets are defined
             metadata.resultSetSummaries &&
+            // makes sure this is an execution plan
+            metadata.isExecutionPlan &&
             // makes sure the xml plans set by results are defined
             metadata.executionPlanState.xmlPlans &&
             // makes sure xml plans have been fully updated- necessary for multiple results sets

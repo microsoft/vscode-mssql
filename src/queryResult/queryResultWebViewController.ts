@@ -54,6 +54,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     resultSetSummaries: {},
                     messages: [],
                     tabStates: undefined,
+                    isExecutionPlan: false,
                     executionPlanState: {},
                 };
             }
