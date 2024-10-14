@@ -121,12 +121,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
         this.registerRequestHandler("copyAllHeaders", async (message) => {
             // sendActionEvent();
-            return await this._sqlOutputContentProvider.copyRequestHandler(
+            return await this._sqlOutputContentProvider.copyHeadersRequestHandler(
                 message.uri,
                 message.batchId,
                 message.resultId,
-                undefined,
-                true,
             );
         });
         this.registerReducer("setResultTab", async (state, payload) => {

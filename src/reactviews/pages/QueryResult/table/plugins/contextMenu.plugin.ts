@@ -126,7 +126,6 @@ export class ContextMenu<T extends Slick.SlickData> {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
-                    selection: undefined,
                 });
                 console.log("Copy Headers action triggered");
                 break;

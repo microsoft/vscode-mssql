@@ -120,6 +120,16 @@ export class SqlOutputContentProvider {
         this.openLink(content, columnName, linkType);
     }
 
+    public copyHeadersRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyHeaders(batchId, resultId);
+    }
+
     public copyRequestHandler(
         uri: string,
         batchId: number,

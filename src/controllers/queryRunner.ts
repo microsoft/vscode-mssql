@@ -561,6 +561,27 @@ export default class QueryRunner {
         return headers;
     }
 
+    public async copyHeaders(batchId: number, resultId: number): Promise<void> {
+        let headers = this.getColumnHeaders(batchId, resultId, {
+            fromCell: 0,
+            fromRow: 0,
+            toCell: this.batchSets[batchId].resultSetSummaries[resultId]
+                .columnInfo.length,
+            toRow: this.batchSets[batchId].resultSetSummaries[resultId]
+                .columnInfo.length,
+        });
+        let headerString = headers.join("\t");
+        let oldLang: string;
+        if (process.platform === "darwin") {
+            oldLang = process.env["LANG"];
+            process.env["LANG"] = "en_US.UTF-8";
+        }
+        await this._vscodeWrapper.clipboardWriteText(headerString);
+        if (process.platform === "darwin") {
+            process.env["LANG"] = oldLang;
+        }
+    }
+
     /**
      * Copy the result range to the system clip-board
      * @param selection The selection range array to copy
