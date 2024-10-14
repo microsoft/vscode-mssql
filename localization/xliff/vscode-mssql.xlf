@@ -335,6 +335,9 @@
     <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
       <source xml:lang="en">Database name</source>
     </trans-unit>
+    <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
+      <source xml:lang="en">Default</source>
+    </trans-unit>
     <trans-unit id="++CODE++647cc4253428b25fe686fa8d5d5da5841fed53ad85395cdd43920d0226900c1d">
       <source xml:lang="en">Default Value</source>
     </trans-unit>
@@ -1041,6 +1044,10 @@
     </trans-unit>
     <trans-unit id="++CODE++8b43c4bf79e62cb8e9f61b4fddc6e921b87020df8bca991bbf77a39628ec9106">
       <source xml:lang="en">Select a valid {0} from the dropdown</source>
+      <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ddecdde0b066d896f4645177f566fe89c22434f5e84d453da4c78ed90f4dc15d">
+      <source xml:lang="en">Select a {0} to filter by</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">

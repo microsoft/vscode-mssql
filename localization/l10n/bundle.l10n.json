@@ -206,12 +206,19 @@
   "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
   "Read more": "Read more",
   "Enable 'Trust Server Certificate'": "Enable 'Trust Server Certificate'",
+  "Select a {0} to filter by/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
+    "message": "Select a {0} to filter by",
+    "comment": [
+      "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'"
+    ]
+  },
   "Select a valid {0} from the dropdown/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
     "message": "Select a valid {0} from the dropdown",
     "comment": [
       "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'"
     ]
   },
+  "Default": "Default",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
