@@ -52,11 +52,11 @@ export class ContextMenu<T extends Slick.SlickData> {
         e.preventDefault();
         let mouseEvent = e as MouseEvent;
         const $contextMenu = jQuery(
-            `<ul id="contextMenu" style="display:none; position:absolute; background:#fff; border:1px solid #ccc; list-style:none; padding:5px;">` +
-                `<li data-action="select-all" style="padding:5px; cursor:pointer;">Select All</li>` +
-                `<li data-action="copy" style="padding:5px; cursor:pointer;">Copy</li>` +
-                `<li data-action="copy-with-headers" style="padding:5px; cursor:pointer;">Copy with Headers</li>` +
-                `<li data-action="copy-headers" style="padding:5px; cursor:pointer;">Copy Headers</li>` +
+            `<ul id="contextMenu">` +
+                `<li data-action="select-all" class="contextMenu">Select All</li>` +
+                `<li data-action="copy" class="contextMenu">Copy</li>` +
+                `<li data-action="copy-with-headers" class="contextMenu">Copy with Headers</li>` +
+                `<li data-action="copy-headers" class="contextMenu">Copy Headers</li>` +
                 `</ul>`,
         );
         // Remove any existing context menus to avoid duplication
@@ -121,7 +121,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 console.log("Copy with Headers action triggered");
                 break;
             case "copy-headers":
-                await this.webViewState.extensionRpc.call("copyWithHeaders", {
+                await this.webViewState.extensionRpc.call("copyAllHeaders", {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
