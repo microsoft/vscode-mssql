@@ -13,6 +13,7 @@ import {
     Combobox,
     Spinner,
     makeStyles,
+    ComboboxProps,
 } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -204,7 +205,7 @@ export const AzureBrowsePage = () => {
                 }
                 content={{
                     valueList: subscriptions,
-                    setValue: (sub) => {
+                    setSelection: (sub) => {
                         setSelectedSubscription(sub);
 
                         if (sub === undefined) {
@@ -240,7 +241,7 @@ export const AzureBrowsePage = () => {
                 clearable
                 content={{
                     valueList: resourceGroups,
-                    setValue: setSelectedResourceGroup,
+                    setSelection: setSelectedResourceGroup,
                     currentValue: selectedResourceGroup,
                 }}
             />
@@ -249,7 +250,7 @@ export const AzureBrowsePage = () => {
                 clearable
                 content={{
                     valueList: locations,
-                    setValue: setSelectedLocation,
+                    setSelection: setSelectedLocation,
                     currentValue: selectedLocation,
                 }}
             />
@@ -264,7 +265,7 @@ export const AzureBrowsePage = () => {
                 }
                 content={{
                     valueList: servers,
-                    setValue: (srv) => {
+                    setSelection: (srv) => {
                         setSelectedServer(srv);
                         setConnectionProperty(
                             "server",
@@ -292,7 +293,7 @@ export const AzureBrowsePage = () => {
                         clearable
                         content={{
                             valueList: databases,
-                            setValue: (db) => {
+                            setSelection: (db) => {
                                 setSelectedDatabase(db);
                                 setConnectionProperty("database", db ?? "");
                             },
@@ -368,23 +369,33 @@ const AzureBrowseDropdown = ({
     clearable,
     content,
     decoration,
+    props,
 }: {
     label: string;
     required?: boolean;
     clearable?: boolean;
     content: {
         valueList: string[];
-        setValue: (value: string | undefined) => void;
+        setSelection: (value: string | undefined) => void;
         currentValue?: string;
     };
     decoration?: JSX.Element;
+    props?: Partial<ComboboxProps>;
 }) => {
     const formStyles = useFormStyles();
     const decorationStyles = useFieldDecorationStyles();
+    const [value, setValue] = useState<string>("");
 
-    const onInput = (ev: React.ChangeEvent<HTMLInputElement>) => {
-        content.setValue(ev.target.value);
+    const onOptionSelect: (typeof props)["onOptionSelect"] = (ev, data) => {
+        content.setSelection(
+            data.selectedOptions.length > 0 ? data.selectedOptions[0] : "",
+        );
+        setValue(data.optionText ?? "");
     };
+
+    function onInput(ev: React.ChangeEvent<HTMLInputElement>) {
+        setValue(ev.target.value);
+    }
 
     return (
         <div className={formStyles.formComponentDiv}>
@@ -403,19 +414,14 @@ const AzureBrowseDropdown = ({
                 required={required}
             >
                 <Combobox
-                    value={content.currentValue ?? ""}
+                    {...props}
+                    value={value}
                     selectedOptions={
                         content.currentValue ? [content.currentValue] : []
                     }
-                    clearable={clearable}
                     onInput={onInput}
-                    onOptionSelect={(_event, data) => {
-                        if (data.optionValue === content.currentValue) {
-                            return;
-                        }
-
-                        content.setValue(data.optionValue);
-                    }}
+                    onOptionSelect={onOptionSelect}
+                    clearable={clearable}
                 >
                     {content.valueList.map((val, idx) => {
                         return (
