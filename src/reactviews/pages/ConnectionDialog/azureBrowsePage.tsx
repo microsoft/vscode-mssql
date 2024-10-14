@@ -185,7 +185,7 @@ export const AzureBrowsePage = () => {
     return (
         <div>
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.subscription}
+                label={Loc.connectionDialog.subscriptionLabel}
                 clearable
                 decoration={
                     <>
@@ -234,28 +234,40 @@ export const AzureBrowsePage = () => {
                         context.loadAzureServers(subId);
                     },
                     currentValue: selectedSubscription,
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.subscription,
+                        ),
                 }}
             />
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.resourceGroup}
+                label={Loc.connectionDialog.resourceGroupLabel}
                 clearable
                 content={{
                     valueList: resourceGroups,
                     setSelection: setSelectedResourceGroup,
                     currentValue: selectedResourceGroup,
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.resourceGroup,
+                        ),
                 }}
             />
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.location}
+                label={Loc.connectionDialog.locationLabel}
                 clearable
                 content={{
                     valueList: locations,
                     setSelection: setSelectedLocation,
                     currentValue: selectedLocation,
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.location,
+                        ),
                 }}
             />
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.server}
+                label={Loc.connectionDialog.serverLabel}
                 required
                 decoration={
                     context.state.loadingAzureServersStatus ===
@@ -273,6 +285,10 @@ export const AzureBrowsePage = () => {
                         );
                     },
                     currentValue: selectedServer,
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.server,
+                        ),
                 }}
             />
 
@@ -289,7 +305,7 @@ export const AzureBrowsePage = () => {
                         props={{ orientation: "horizontal" }}
                     />
                     <AzureBrowseDropdown
-                        label={Loc.connectionDialog.database}
+                        label={Loc.connectionDialog.databaseLabel}
                         clearable
                         content={{
                             valueList: databases,
@@ -298,6 +314,10 @@ export const AzureBrowsePage = () => {
                                 setConnectionProperty("database", db ?? "");
                             },
                             currentValue: selectedDatabase,
+                            invalidOptionErrorMessage:
+                                Loc.connectionDialog.invalidAzureBrowse(
+                                    Loc.connectionDialog.database,
+                                ),
                         }}
                     />
                     {context.state.connectionComponents.mainOptions
@@ -378,6 +398,7 @@ const AzureBrowseDropdown = ({
         valueList: string[];
         setSelection: (value: string | undefined) => void;
         currentValue?: string;
+        invalidOptionErrorMessage: string;
     };
     decoration?: JSX.Element;
     props?: Partial<ComboboxProps>;
@@ -385,6 +406,21 @@ const AzureBrowseDropdown = ({
     const formStyles = useFormStyles();
     const decorationStyles = useFieldDecorationStyles();
     const [value, setValue] = useState<string>("");
+    const [validationMessage, setValidationMessage] = useState<string>("");
+
+    // clear validation message as soon as value is valid
+    useEffect(() => {
+        if (content.valueList.includes(value)) {
+            setValidationMessage("");
+        }
+    }, [value]);
+
+    // only display validation error if focus leaves the field and the value is not valid
+    const onBlur = () => {
+        if (value && !content.valueList.includes(value)) {
+            setValidationMessage(content.invalidOptionErrorMessage);
+        }
+    };
 
     const onOptionSelect: (typeof props)["onOptionSelect"] = (ev, data) => {
         content.setSelection(
@@ -412,6 +448,8 @@ const AzureBrowseDropdown = ({
                 }
                 orientation="horizontal"
                 required={required}
+                validationMessage={validationMessage}
+                onBlur={onBlur}
             >
                 <Combobox
                     {...props}
