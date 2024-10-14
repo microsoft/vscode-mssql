@@ -9,6 +9,7 @@ import {
     QueryResultWebviewState,
     ResultSetSummary,
 } from "../../../../../sharedInterfaces/queryResult";
+import { locConstants } from "../../../../common/locConstants";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
 import { tryCombineSelectionsForResults } from "../utils";
@@ -53,10 +54,10 @@ export class ContextMenu<T extends Slick.SlickData> {
         let mouseEvent = e as MouseEvent;
         const $contextMenu = jQuery(
             `<ul id="contextMenu">` +
-                `<li data-action="select-all" class="contextMenu">Select All</li>` +
-                `<li data-action="copy" class="contextMenu">Copy</li>` +
-                `<li data-action="copy-with-headers" class="contextMenu">Copy with Headers</li>` +
-                `<li data-action="copy-headers" class="contextMenu">Copy Headers</li>` +
+                `<li data-action="select-all" class="contextMenu">${locConstants.queryResult.selectAll}</li>` +
+                `<li data-action="copy" class="contextMenu">${locConstants.queryResult.copy}</li>` +
+                `<li data-action="copy-with-headers" class="contextMenu">${locConstants.queryResult.copyWithHeaders}</li>` +
+                `<li data-action="copy-headers" class="contextMenu">${locConstants.queryResult.copyHeaders}</li>` +
                 `</ul>`,
         );
         // Remove any existing context menus to avoid duplication
