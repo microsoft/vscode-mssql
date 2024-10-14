@@ -435,12 +435,19 @@ const AzureBrowseDropdown = ({
     required?: boolean;
     clearable?: boolean;
     content: {
+        /** list of valid values for the combo box */
         valueList: string[];
+        /** currently-selected value from `valueList` */
         selection?: string;
+        /** callback when the user has selected a value from `valueList` */
         setSelection: (value: string | undefined) => void;
+        /** currently-entered text in the combox, may not be a valid selection value if the user is typing */
         value: string;
+        /** callback when the user types in the combobox */
         setValue: (value: string) => void;
+        /** placeholder text for the combobox */
         placeholder?: string;
+        /** message displayed if focus leaves this combobox and `value` is not a valid value from `valueList` */
         invalidOptionErrorMessage: string;
     };
     decoration?: JSX.Element;
