@@ -173,7 +173,14 @@ export class LocConstants {
                 "Enable 'Trust Server Certificate'",
             ),
             close: l10n.t("Close"),
-
+            azureFilterPlaceholder: (dropdownContentType: string) =>
+                l10n.t({
+                    message: "Select a {0} to filter by",
+                    args: [dropdownContentType],
+                    comment: [
+                        "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'",
+                    ],
+                }),
             invalidAzureBrowse: (dropdownContentType: string) =>
                 l10n.t({
                     message: "Select a valid {0} from the dropdown",
@@ -182,6 +189,7 @@ export class LocConstants {
                         "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'",
                     ],
                 }),
+            default: l10n.t("Default"),
         };
     }
 

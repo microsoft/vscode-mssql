@@ -68,6 +68,8 @@ export const AzureBrowsePage = () => {
     >(undefined);
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
+    // #region Effects
+
     useEffect(() => {
         const subs = removeDuplicates(
             context.state.azureSubscriptions.map(
@@ -191,6 +193,8 @@ export const AzureBrowsePage = () => {
         setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
     }, [selectedServer]);
 
+    // #endregion
+
     function setConnectionProperty(
         propertyName: keyof IConnectionDialogProfile,
         value: string,
@@ -252,6 +256,9 @@ export const AzureBrowsePage = () => {
 
                         context.loadAzureServers(subId);
                     },
+                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                        Loc.connectionDialog.subscription,
+                    ),
                     invalidOptionErrorMessage:
                         Loc.connectionDialog.invalidAzureBrowse(
                             Loc.connectionDialog.subscription,
@@ -267,6 +274,9 @@ export const AzureBrowsePage = () => {
                     setValue: setResourceGroupValue,
                     selection: selectedResourceGroup,
                     setSelection: setSelectedResourceGroup,
+                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                        Loc.connectionDialog.resourceGroup,
+                    ),
                     invalidOptionErrorMessage:
                         Loc.connectionDialog.invalidAzureBrowse(
                             Loc.connectionDialog.resourceGroup,
@@ -282,6 +292,9 @@ export const AzureBrowsePage = () => {
                     setValue: setLocationValue,
                     selection: selectedLocation,
                     setSelection: setSelectedLocation,
+                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                        Loc.connectionDialog.location,
+                    ),
                     invalidOptionErrorMessage:
                         Loc.connectionDialog.invalidAzureBrowse(
                             Loc.connectionDialog.location,
@@ -340,6 +353,7 @@ export const AzureBrowsePage = () => {
                                 setSelectedDatabase(db);
                                 setConnectionProperty("database", db ?? "");
                             },
+                            placeholder: `<${Loc.connectionDialog.default}>`,
                             invalidOptionErrorMessage:
                                 Loc.connectionDialog.invalidAzureBrowse(
                                     Loc.connectionDialog.database,
@@ -426,6 +440,7 @@ const AzureBrowseDropdown = ({
         setSelection: (value: string | undefined) => void;
         value: string;
         setValue: (value: string) => void;
+        placeholder?: string;
         invalidOptionErrorMessage: string;
     };
     decoration?: JSX.Element;
@@ -493,6 +508,7 @@ const AzureBrowseDropdown = ({
                     }
                     onInput={onInput}
                     onOptionSelect={onOptionSelect}
+                    placeholder={content.placeholder}
                     clearable={clearable}
                 >
                     {content.valueList.map((val, idx) => {
