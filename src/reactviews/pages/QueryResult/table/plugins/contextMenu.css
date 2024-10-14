@@ -1,0 +1,21 @@
+#contextMenu {
+    border: 1px solid;
+    padding: 2px;
+    display: inline-block;
+    min-width: 100px;
+    z-index: 99999;
+    color: var(--vscode-activityBar-background);
+    background-color: var(--vscode-activityBar-background);
+    border-color: var(--vscode-menu-border);
+    font-family: var(--vscode-font-family);
+}
+
+#contextMenu li {
+    padding: 4px 4px 4px 14px;
+    list-style: none;
+    cursor: pointer;
+}
+
+#contextMenu li:hover {
+    background-color: white;
+}
