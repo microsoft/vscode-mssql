@@ -417,8 +417,12 @@ const AzureBrowseDropdown = ({
 
     // only display validation error if focus leaves the field and the value is not valid
     const onBlur = () => {
-        if (value && !content.valueList.includes(value)) {
-            setValidationMessage(content.invalidOptionErrorMessage);
+        if (value) {
+            setValidationMessage(
+                content.valueList.includes(value)
+                    ? ""
+                    : content.invalidOptionErrorMessage,
+            );
         }
     };
 
