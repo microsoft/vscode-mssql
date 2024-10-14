@@ -11,6 +11,7 @@ import {
     Radio,
     RadioGroup,
     Image,
+    Theme,
 } from "@fluentui/react-components";
 import { SlideText20Regular, Form20Regular } from "@fluentui/react-icons";
 import {
@@ -28,6 +29,7 @@ import { FormItemSpec } from "../../common/forms/form";
 import { locConstants } from "../../common/locConstants";
 import { AzureBrowsePage } from "./azureBrowsePage";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
+import { themeType } from "../../common/utils";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -45,6 +47,15 @@ function renderContent(
 export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
+
+    function azureIcon(colorTheme: Theme) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../media/azure-inverse.svg")
+                : require("../../media/azure.svg");
+        return saveIcon;
+    }
 
     return (
         <div className={formStyles.formRoot}>
@@ -126,7 +137,7 @@ export const ConnectionInfoFormContainer = () => {
                                         }}
                                     >
                                         <Image
-                                            src={require("../../media/azure.svg")}
+                                            src={azureIcon(context.theme)}
                                             alt="Azure"
                                             height={20}
                                             width={20}
