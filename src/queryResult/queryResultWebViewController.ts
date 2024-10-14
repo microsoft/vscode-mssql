@@ -100,6 +100,35 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 message.selection,
             );
         });
+        this.registerRequestHandler("copySelection", async (message) => {
+            // sendActionEvent();
+            return await this._sqlOutputContentProvider.copyRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+            );
+        });
+        this.registerRequestHandler("copyWithHeaders", async (message) => {
+            // sendActionEvent();
+            return await this._sqlOutputContentProvider.copyRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                true,
+            );
+        });
+        this.registerRequestHandler("copyAllHeaders", async (message) => {
+            // sendActionEvent();
+            return await this._sqlOutputContentProvider.copyRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                undefined,
+                true,
+            );
+        });
         this.registerReducer("setResultTab", async (state, payload) => {
             state.tabStates.resultPaneTab = payload.tabId;
             return state;
