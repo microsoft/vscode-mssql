@@ -1014,10 +1014,6 @@
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
         <target state="translated">Nenhuma conexão foi encontrada. Conecte-se a um servidor primeiro.</target>
       </trans-unit>
-      <trans-unit id="++CODE++3b41ba9c7cb8c5d6530c12eec5000c4e2ad0c48b2d4b9149a3ef6d2a23802819">
-        <source xml:lang="en">No data</source>
-        <target state="translated">Não há dados</target>
-      </trans-unit>
       <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
         <note>{0} is the connection id
