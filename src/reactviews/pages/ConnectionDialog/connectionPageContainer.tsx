@@ -10,7 +10,9 @@ import {
     MessageBar,
     Radio,
     RadioGroup,
+    Image,
 } from "@fluentui/react-components";
+import { SlideText20Regular, Form20Regular } from "@fluentui/react-icons";
 import {
     ConnectionDialogContextProps,
     IConnectionDialogProfile,
@@ -78,19 +80,63 @@ export const ConnectionInfoFormContainer = () => {
                         >
                             <Radio
                                 value={ConnectionInputMode.Parameters}
-                                label={locConstants.connectionDialog.parameters}
+                                label={
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Form20Regular
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {
+                                            locConstants.connectionDialog
+                                                .parameters
+                                        }
+                                    </div>
+                                }
                             />
                             <Radio
                                 value={ConnectionInputMode.ConnectionString}
                                 label={
-                                    locConstants.connectionDialog
-                                        .connectionString
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <SlideText20Regular
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {
+                                            locConstants.connectionDialog
+                                                .connectionString
+                                        }
+                                    </div>
                                 }
                             />
                             <Radio
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
-                                    locConstants.connectionDialog.browseAzure
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Image
+                                            src={require("../../media/azure.svg")}
+                                            alt="Azure"
+                                            height={20}
+                                            width={20}
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {
+                                            locConstants.connectionDialog
+                                                .browseAzure
+                                        }
+                                    </div>
                                 }
                             />
                         </RadioGroup>
