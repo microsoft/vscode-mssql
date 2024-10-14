@@ -83,8 +83,6 @@
       "{1} is the number of issues"
     ]
   },
-  "Generate Script": "Generate Script",
-  "Script As Create": "Script As Create",
   "Properties": "Properties",
   "No data": "No data",
   "Move Up": "Move Up",
@@ -150,10 +148,12 @@
   "Error loading preview": "Error loading preview",
   "Retry": "Retry",
   "Update Database": "Update Database",
+  "Generate Script": "Generate Script",
   "Publish": "Publish",
   "Preview Database Updates": "Preview Database Updates",
   "Error loading designer": "Error loading designer",
   "Severity": "Severity",
+  "Script As Create": "Script As Create",
   "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
   "Copy script": "Copy script",
   "Open in editor": "Open in editor",
