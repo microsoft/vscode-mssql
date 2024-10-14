@@ -23,7 +23,6 @@ import {
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
-import { QueryResultState } from "../queryResultStateProvider";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -55,22 +54,22 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private uri: string;
     private resultSetSummary: ResultSetSummary;
     private webViewState: VscodeWebviewContext<
-        QueryResultState,
+        QueryResultWebviewState,
         QueryResultReducers
     >;
 
     constructor(
         parent: HTMLElement,
         styles: ITableStyles,
+        uri: string,
+        resultSetSummary: ResultSetSummary,
+        webViewState: VscodeWebviewContext<
+            QueryResultWebviewState,
+            QueryResultReducers
+        >,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         divId?: string,
-        uri?: string,
-        resultSetSummary?: ResultSetSummary,
-        webViewState?: VscodeWebviewContext<
-            QueryResultState,
-            QueryResultReducers
-        >,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;

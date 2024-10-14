@@ -26,11 +26,11 @@ import {
 import {
     DbCellValue,
     QueryResultReducers,
+    QueryResultWebviewState,
     ResultSetSummary,
 } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
-import { QueryResultState } from "./queryResultStateProvider";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 
 window.jQuery = $ as any;
@@ -55,7 +55,10 @@ export interface ResultGridProps {
     resultSetSummary?: ResultSetSummary;
     divId?: string;
     uri?: string;
-    webViewState?: VscodeWebviewContext<QueryResultState, QueryResultReducers>;
+    webViewState?: VscodeWebviewContext<
+        QueryResultWebviewState,
+        QueryResultReducers
+    >;
 }
 
 export interface ResultGridHandle {
@@ -216,12 +219,12 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             table = new Table(
                 div,
                 defaultTableStyles,
+                props.uri!,
+                props.resultSetSummary!,
+                props.webViewState!,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.divId,
-                props.uri,
-                props.resultSetSummary,
-                props.webViewState,
             );
 
             collection.setCollectionChangedCallback((startIndex, count) => {

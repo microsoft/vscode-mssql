@@ -6,10 +6,10 @@
 // import { locConstants } from "../../../../common/locConstants";
 import {
     QueryResultReducers,
+    QueryResultWebviewState,
     ResultSetSummary,
 } from "../../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-import { QueryResultState } from "../../queryResultStateProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
 import { tryCombineSelectionsForResults } from "../utils";
 import "./contextMenu.css";
@@ -20,7 +20,7 @@ export class ContextMenu<T extends Slick.SlickData> {
     private uri: string;
     private resultSetSummary: ResultSetSummary;
     private webViewState: VscodeWebviewContext<
-        QueryResultState,
+        QueryResultWebviewState,
         QueryResultReducers
     >;
 
@@ -28,7 +28,7 @@ export class ContextMenu<T extends Slick.SlickData> {
         uri: string,
         resultSetSummary: ResultSetSummary,
         webViewState: VscodeWebviewContext<
-            QueryResultState,
+            QueryResultWebviewState,
             QueryResultReducers
         >,
     ) {
@@ -39,10 +39,8 @@ export class ContextMenu<T extends Slick.SlickData> {
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
-        this.handler.subscribe(
-            this.grid.onContextMenu,
-            (e: Event, args: Slick.OnContextMenuEventArgs<T>) =>
-                this.handleContextMenu(e, args),
+        this.handler.subscribe(this.grid.onContextMenu, (e: Event) =>
+            this.handleContextMenu(e),
         );
     }
 
@@ -50,12 +48,9 @@ export class ContextMenu<T extends Slick.SlickData> {
         this.handler.unsubscribeAll();
     }
 
-    private handleContextMenu(
-        e: Event,
-        args: Slick.OnContextMenuEventArgs<T>,
-    ): void {
+    private handleContextMenu(e: Event): void {
         e.preventDefault();
-
+        let mouseEvent = e as MouseEvent;
         const $contextMenu = jQuery(
             `<ul id="contextMenu" style="display:none; position:absolute; background:#fff; border:1px solid #ccc; list-style:none; padding:5px;">` +
                 `<li data-action="select-all" style="padding:5px; cursor:pointer;">Select All</li>` +
@@ -73,8 +68,8 @@ export class ContextMenu<T extends Slick.SlickData> {
         let cell = this.grid.getCellFromEvent(e);
         $contextMenu
             .data("row", cell.row)
-            .css("top", e.pageY)
-            .css("left", e.pageX)
+            .css("top", mouseEvent.pageY)
+            .css("left", mouseEvent.pageX)
             .show();
 
         jQuery("body").one("click", function () {
@@ -83,12 +78,12 @@ export class ContextMenu<T extends Slick.SlickData> {
 
         $contextMenu.on("click", "li", async (event) => {
             const action = jQuery(event.target).data("action");
-            await this.handleMenuAction(action, args);
+            await this.handleMenuAction(action);
             $contextMenu.hide(); // Hide the menu after an action is clicked
         });
     }
 
-    private async handleMenuAction(action: string, args): Promise<void> {
+    private async handleMenuAction(action: string): Promise<void> {
         let selectedRanges = this.grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
         switch (action) {
