@@ -1046,8 +1046,8 @@
       <source xml:lang="en">Select a valid {0} from the dropdown</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
     </trans-unit>
-    <trans-unit id="++CODE++ddecdde0b066d896f4645177f566fe89c22434f5e84d453da4c78ed90f4dc15d">
-      <source xml:lang="en">Select a {0} to filter by</source>
+    <trans-unit id="++CODE++80b038a0f08e46d4b5120af7d3bd36a6cfe0ea5d7042ebea2168944f8d14e588">
+      <source xml:lang="en">Select a {0} to for filtering</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
