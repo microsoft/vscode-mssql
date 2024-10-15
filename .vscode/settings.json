@@ -43,5 +43,16 @@
     },
     "[html]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "mochaExplorer.ui": "tdd",
+    "mochaExplorer.launcherScript": "node_modules/mocha-explorer-launcher-scripts/vscode-test",
+    "mochaExplorer.autoload": false,
+    "mochaExplorer.ipcRole": "server",
+    "mochaExplorer.ipcTimeout": 10000,
+    "mochaExplorer.env": {
+      "VSCODE_VERSION": "insiders",
+      "ELECTRON_RUN_AS_NODE": null
+    },
+    "mochaExplorer.files": "out/test/unit/**/*.test.js",
+    "mochaExplorer.require": "source-map-support/register",
 }

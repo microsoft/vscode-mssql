@@ -15,7 +15,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import * as assert from "assert";
 
-suite("MainController Tests", () => {
+suite("MainController Tests", function () {
     let document: vscode.TextDocument;
     let newDocument: vscode.TextDocument;
     let mainController: MainController;
@@ -27,6 +27,9 @@ suite("MainController Tests", () => {
     let newDocUriCallback: string;
 
     setup(async () => {
+        const extensionId = "ms-mssql.mssql";
+        const extension = vscode.extensions.getExtension(extensionId);
+        await extension.activate();
         // Setup a standard document and a new document
         docUri = "docURI.sql";
         newDocUri = "newDocURI.sql";
@@ -52,7 +55,6 @@ suite("MainController Tests", () => {
         // Resetting call back variables
         docUriCallback = "";
         newDocUriCallback = "";
-
         // Using the mainController that was instantiated with the extension
         mainController = await Extension.getController();
 

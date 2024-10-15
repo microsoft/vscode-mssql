@@ -6,6 +6,7 @@
 		"EditorConfig.EditorConfig",
 		"GitHub.vscode-pull-request-github",
 		"ms-playwright.playwright",
-		"esbenp.prettier-vscode"
+		"esbenp.prettier-vscode",
+		"hbenl.vscode-mocha-test-adapter"
 	]
 }
