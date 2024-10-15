@@ -10,7 +10,10 @@ import {
     MessageBar,
     Radio,
     RadioGroup,
+    Image,
+    Theme,
 } from "@fluentui/react-components";
+import { SlideText20Regular, Form20Regular } from "@fluentui/react-icons";
 import {
     ConnectionDialogContextProps,
     IConnectionDialogProfile,
@@ -26,6 +29,7 @@ import { FormItemSpec } from "../../common/forms/form";
 import { locConstants } from "../../common/locConstants";
 import { AzureBrowsePage } from "./azureBrowsePage";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
+import { themeType } from "../../common/utils";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -43,6 +47,15 @@ function renderContent(
 export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
+
+    function azureIcon(colorTheme: Theme) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../media/azure-inverse.svg")
+                : require("../../media/azure.svg");
+        return saveIcon;
+    }
 
     return (
         <div className={formStyles.formRoot}>
@@ -78,19 +91,63 @@ export const ConnectionInfoFormContainer = () => {
                         >
                             <Radio
                                 value={ConnectionInputMode.Parameters}
-                                label={locConstants.connectionDialog.parameters}
+                                label={
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Form20Regular
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {
+                                            locConstants.connectionDialog
+                                                .parameters
+                                        }
+                                    </div>
+                                }
                             />
                             <Radio
                                 value={ConnectionInputMode.ConnectionString}
                                 label={
-                                    locConstants.connectionDialog
-                                        .connectionString
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <SlideText20Regular
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {
+                                            locConstants.connectionDialog
+                                                .connectionString
+                                        }
+                                    </div>
                                 }
                             />
                             <Radio
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
-                                    locConstants.connectionDialog.browseAzure
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Image
+                                            src={azureIcon(context.theme)}
+                                            alt="Azure"
+                                            height={20}
+                                            width={20}
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {
+                                            locConstants.connectionDialog
+                                                .browseAzure
+                                        }
+                                    </div>
                                 }
                             />
                         </RadioGroup>
