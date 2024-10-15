@@ -46,7 +46,8 @@
     },
     "mochaExplorer.ui": "tdd",
     "mochaExplorer.launcherScript": "node_modules/mocha-explorer-launcher-scripts/vscode-test",
-    "mochaExplorer.autoload": false,
+    "mochaExplorer.autoload": true,
+    "mochaExplorer.timeout": 5000,
     "mochaExplorer.ipcRole": "server",
     "mochaExplorer.ipcTimeout": 10000,
     "mochaExplorer.env": {
