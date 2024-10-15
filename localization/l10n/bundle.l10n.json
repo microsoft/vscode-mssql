@@ -83,8 +83,6 @@
       "{1} is the number of issues"
     ]
   },
-  "Properties": "Properties",
-  "No data": "No data",
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
@@ -245,6 +243,7 @@
   "Find Node": "Find Node",
   "Highlight Expensive Operation": "Highlight Expensive Operation",
   "Toggle Tooltips": "Toggle Tooltips",
+  "Properties": "Properties",
   "Importance": "Importance",
   "Alphabetical": "Alphabetical",
   "Reverse Alphabetical": "Reverse Alphabetical",
