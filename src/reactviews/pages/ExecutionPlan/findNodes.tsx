@@ -156,7 +156,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 id="findNodeDropdown"
                 className={classes.inputs}
                 size="small"
-                input={{ style: { width: "85px", textOverflow: "ellipsis" } }}
+                input={{ style: { width: "130px", textOverflow: "ellipsis" } }}
                 listbox={{ style: { minWidth: "fit-content" } }}
                 defaultValue={findNodeOptions[0]}
                 onOptionSelect={(_, data) => {
