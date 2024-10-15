@@ -643,10 +643,15 @@ export let executionPlan = l10n.t("Execution Plan");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 
-export let enableRichExperiencesPrompt = l10n.t(
-    "The MSSQL extension has some new GUI-based experiences! Would you like to enable them?",
-);
-export let enableRichExperiences = l10n.t("Enable Rich Experiences");
+export function enableRichExperiencesPrompt(learnMoreUrl: string) {
+    return l10n.t({
+        message:
+            "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
+        args: [learnMoreUrl],
+        comment: ["{0} is a url to learn more about the new features"],
+    });
+}
+export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
