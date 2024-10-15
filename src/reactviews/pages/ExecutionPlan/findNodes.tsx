@@ -37,15 +37,16 @@ const useStyles = makeStyles({
         gap: "2px",
         opacity: 1,
     },
-    combobox: {
-        minWidth: "50px",
-        width: "100px",
-        maxWidth: "100px",
-        overflow: "hidden",
+    inputs: {
+        minWidth: "unset",
+        maxWidth: "unset",
     },
-    dropdown: {
-        minWidth: "50px",
-        width: "100px",
+    option: {
+        fontSize: "12px",
+        whiteSpace: "nowrap",
+        textAlign: "left",
+        marginLeft: "0px",
+        paddingLeft: "0px",
     },
 });
 
@@ -149,7 +150,10 @@ export const FindNode: React.FC<FindNodeProps> = ({
             <div>{locConstants.executionPlan.findNodes}</div>
             <Combobox
                 id="findNodeDropdown"
-                className={classes.combobox}
+                className={classes.inputs}
+                size="small"
+                input={{ style: { width: "85px", textOverflow: "ellipsis" } }}
+                listbox={{ style: { minWidth: "fit-content" } }}
                 defaultValue={findNodeOptions[0]}
                 onOptionSelect={(_, data) => {
                     setFindNodeSelection(data.optionText ?? findNodeOptions[0]);
@@ -157,15 +161,17 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResults([]);
                 }}
             >
-                <div style={{ maxHeight: "250px", maxWidth: "100px" }}>
-                    {findNodeOptions.map((option) => (
-                        <Option key={option}>{option}</Option>
-                    ))}
-                </div>
+                {findNodeOptions.map((option) => (
+                    <Option key={option} className={classes.option}>
+                        {option}
+                    </Option>
+                ))}
             </Combobox>
             <Dropdown
                 id="findNodeComparisonDropdown"
-                className={classes.dropdown}
+                size="small"
+                className={classes.inputs}
+                style={{ width: "80px", textOverflow: "ellipsis" }}
                 defaultValue={findNodeComparisonOptions[0]}
                 onOptionSelect={(_, data) => {
                     setFindNodeComparisonSelection(
@@ -176,13 +182,17 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 }}
             >
                 {findNodeComparisonOptions.map((option) => (
-                    <Option key={option}>{option}</Option>
+                    <Option key={option} className={classes.option}>
+                        {option}
+                    </Option>
                 ))}
             </Dropdown>
             <Input
                 id="findNodeInputBox"
+                size="small"
                 type="text"
-                className={classes.combobox}
+                className={classes.inputs}
+                input={{ style: { width: "85px", textOverflow: "ellipsis" } }}
                 onChange={(e) => {
                     setFindNodeSearchValue(e.target.value);
                     setFindNodeResultsIndex(-1);
@@ -191,15 +201,18 @@ export const FindNode: React.FC<FindNodeProps> = ({
             />
             <Button
                 onClick={() => handleFoundNode(-1)}
+                size="small"
                 icon={<ArrowUp20Regular />}
             />
             <Button
                 onClick={() => handleFoundNode(1)}
+                size="small"
                 icon={<ArrowDown20Regular />}
             />
             <Button
-                icon={<Dismiss20Regular />}
                 onClick={() => setFindNodeClicked(false)}
+                size="small"
+                icon={<Dismiss20Regular />}
             />
         </div>
     );
