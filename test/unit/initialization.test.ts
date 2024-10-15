@@ -9,18 +9,13 @@ import * as vscode from "vscode";
 
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
+import { activateExtension } from "./utils";
 
-function ensureExtensionIsActive(): Promise<any> {
-    return new Promise((resolve, reject) => {
-        void waitForExtensionToBeActive(resolve);
+function ensureExtensionIsActive(): Promise<void> {
+    return new Promise(async (resolve) => {
+        await activateExtension();
+        resolve();
     });
-}
-
-async function waitForExtensionToBeActive(resolve): Promise<void> {
-    const extensionId = "ms-mssql.mssql";
-    const extension = vscode.extensions.getExtension(extensionId);
-    await extension.activate();
-    resolve();
 }
 
 suite("Initialization Tests", () => {

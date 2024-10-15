@@ -14,6 +14,7 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import * as assert from "assert";
+import { activateExtension } from "./utils";
 
 suite("MainController Tests", function () {
     let document: vscode.TextDocument;
@@ -27,9 +28,9 @@ suite("MainController Tests", function () {
     let newDocUriCallback: string;
 
     setup(async () => {
-        const extensionId = "ms-mssql.mssql";
-        const extension = vscode.extensions.getExtension(extensionId);
-        await extension.activate();
+        // Need to activate the extension to get the mainController
+        await activateExtension();
+
         // Setup a standard document and a new document
         docUri = "docURI.sql";
         newDocUri = "newDocURI.sql";
