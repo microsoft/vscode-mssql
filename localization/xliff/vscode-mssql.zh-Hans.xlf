@@ -441,6 +441,10 @@
         <source xml:lang="en">Database name</source>
         <target state="translated">数据库名称</target>
       </trans-unit>
+      <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
+        <source xml:lang="en">Default</source>
+        <target state="new">Default</target>
+      </trans-unit>
       <trans-unit id="++CODE++647cc4253428b25fe686fa8d5d5da5841fed53ad85395cdd43920d0226900c1d">
         <source xml:lang="en">Default Value</source>
         <target state="translated">默认值</target>
@@ -1365,6 +1369,16 @@
         <source xml:lang="en">Select a tenant</source>
         <target state="translated">选择租户</target>
       </trans-unit>
+      <trans-unit id="++CODE++8b43c4bf79e62cb8e9f61b4fddc6e921b87020df8bca991bbf77a39628ec9106">
+        <source xml:lang="en">Select a valid {0} from the dropdown</source>
+        <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
+        <target state="new">Select a valid {0} from the dropdown</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
+        <source xml:lang="en">Select a {0} for filtering</source>
+        <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
+        <target state="new">Select a {0} for filtering</target>
+      </trans-unit>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
         <target state="translated">全选</target>
@@ -1770,6 +1784,10 @@
         <source xml:lang="en">authenticationType</source>
         <target state="translated">authenticationType</target>
       </trans-unit>
+      <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
+        <source xml:lang="en">database</source>
+        <target state="new">database</target>
+      </trans-unit>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
         <target state="translated">加密</target>
@@ -1782,9 +1800,25 @@
         <source xml:lang="en">intelliSenseUpdated</source>
         <target state="translated">intelliSenseUpdated</target>
       </trans-unit>
+      <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
+        <source xml:lang="en">location</source>
+        <target state="new">location</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
         <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
         <target state="translated">需要 macOS Sierra 或更高版本才能使用该功能。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
+        <source xml:lang="en">resource group</source>
+        <target state="new">resource group</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
+        <source xml:lang="en">server</source>
+        <target state="new">server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
+        <source xml:lang="en">subscription</source>
+        <target state="new">subscription</target>
       </trans-unit>
       <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
         <source xml:lang="en">test</source>
