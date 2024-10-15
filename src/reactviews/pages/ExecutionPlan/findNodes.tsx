@@ -48,6 +48,9 @@ const useStyles = makeStyles({
         marginLeft: "0px",
         paddingLeft: "0px",
     },
+    spacer: {
+        padding: "1px",
+    },
 });
 
 interface FindNodeProps {
@@ -147,7 +150,8 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 background: theme.colorNeutralBackground1,
             }}
         >
-            <div>{locConstants.executionPlan.findNodes}</div>
+            {locConstants.executionPlan.findNodes}
+            <div style={{ paddingRight: "12px" }} />
             <Combobox
                 id="findNodeDropdown"
                 className={classes.inputs}
@@ -167,11 +171,16 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     </Option>
                 ))}
             </Combobox>
+            <div className={classes.spacer}></div>
             <Dropdown
                 id="findNodeComparisonDropdown"
                 size="small"
                 className={classes.inputs}
-                style={{ width: "80px", textOverflow: "ellipsis" }}
+                style={{
+                    width: "80px",
+                    textOverflow: "ellipsis",
+                    height: "24px",
+                }}
                 defaultValue={findNodeComparisonOptions[0]}
                 onOptionSelect={(_, data) => {
                     setFindNodeComparisonSelection(
@@ -187,6 +196,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     </Option>
                 ))}
             </Dropdown>
+            <div className={classes.spacer}></div>
             <Input
                 id="findNodeInputBox"
                 size="small"
@@ -199,19 +209,23 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResults([]);
                 }}
             />
+            <div className={classes.spacer}></div>
             <Button
                 onClick={() => handleFoundNode(-1)}
                 size="small"
+                appearance="subtle"
                 icon={<ArrowUp20Regular />}
             />
             <Button
                 onClick={() => handleFoundNode(1)}
                 size="small"
+                appearance="subtle"
                 icon={<ArrowDown20Regular />}
             />
             <Button
                 onClick={() => setFindNodeClicked(false)}
                 size="small"
+                appearance="subtle"
                 icon={<Dismiss20Regular />}
             />
         </div>
