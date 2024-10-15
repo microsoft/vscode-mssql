@@ -275,6 +275,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     },
                     publishingError: e.toString(),
                 };
+                sendActionEvent(
+                    TelemetryViews.TableDesigner,
+                    TelemetryActions.Publish,
+                    {
+                        correlationId: this._correlationId,
+                        error: "true",
+                    },
+                );
             }
             return state;
         });
