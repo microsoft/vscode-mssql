@@ -41,3 +41,11 @@ export function getVscodeThemeType(theme: Theme): string {
             return "light";
     }
 }
+
+export function themeType(theme: Theme): string {
+    const themeType = getVscodeThemeType(theme);
+    if (themeType !== "light") {
+        return "dark";
+    }
+    return themeType;
+}
