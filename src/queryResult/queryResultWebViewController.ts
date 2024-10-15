@@ -48,7 +48,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             const uri = editor?.document?.uri?.toString(true);
             if (uri && this._queryResultStateMap.has(uri)) {
                 this.state = this.getQueryResultState(uri);
-                vscode.commands.executeCommand("queryResult.focus");
             } else {
                 this.state = {
                     resultSetSummaries: {},
