@@ -159,11 +159,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ],
             topAdvancedOptions: [
                 "port",
-                "connectTimeout",
+                "applicationName",
                 // TODO: 'autoDisconnect',
                 // TODO: 'sslConfiguration',
-                "applicationName",
-                "replication",
+                "connectTimeout",
+                "multiSubnetFailover",
             ],
             groupedAdvancedOptions: {}, // computed below
         };
@@ -211,6 +211,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadEmptyConnection() {
         const emptyConnection = {
             authenticationType: AuthenticationType.SqlLogin,
+            connectTimeout: 15, // seconds
+            applicationName: "vscode-mssql",
         } as IConnectionDialogProfile;
         this.state.connectionProfile = emptyConnection;
     }
