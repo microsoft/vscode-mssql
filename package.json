@@ -108,7 +108,8 @@
     "@typescript-eslint/parser": "^8.7.0",
     "@vscode/l10n": "^0.0.18",
     "@vscode/l10n-dev": "^0.0.35",
-    "@vscode/test-electron": "^2.3.9",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.1.1",
     "@xmldom/xmldom": "0.8.4",
     "angular-in-memory-web-api": "0.1.13",
@@ -330,7 +331,7 @@
         },
         {
           "command": "mssql.showExecutionPlanInResults",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences",
           "group": "navigation@4"
         }
       ],
