@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Theme } from "@fluentui/react-components";
-import { getVscodeThemeType } from "../../common/utils";
+import { themeType } from "../../common/utils";
 
 const iterator_catch_all = require("./icons/iterator_catch_all.png");
 const cursor_catch_all = require("./icons/cursor_catch_all.png");
@@ -396,14 +396,6 @@ export function getCollapseExpandPaths() {
 
         collapse: collapseButton,
     };
-}
-
-function themeType(theme: Theme): string {
-    const themeType = getVscodeThemeType(theme);
-    if (themeType !== "light") {
-        return "dark";
-    }
-    return themeType;
 }
 
 export const save = (colorTheme: Theme) => {

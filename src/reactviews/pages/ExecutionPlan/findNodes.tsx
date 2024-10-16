@@ -37,15 +37,19 @@ const useStyles = makeStyles({
         gap: "2px",
         opacity: 1,
     },
-    combobox: {
-        minWidth: "50px",
-        width: "100px",
-        maxWidth: "100px",
-        overflow: "hidden",
+    inputs: {
+        minWidth: "unset",
+        maxWidth: "unset",
     },
-    dropdown: {
-        minWidth: "50px",
-        width: "100px",
+    option: {
+        fontSize: "12px",
+        whiteSpace: "nowrap",
+        textAlign: "left",
+        marginLeft: "0px",
+        paddingLeft: "0px",
+    },
+    spacer: {
+        padding: "1px",
     },
 });
 
@@ -146,10 +150,14 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 background: theme.colorNeutralBackground1,
             }}
         >
-            <div>{locConstants.executionPlan.findNodes}</div>
+            {locConstants.executionPlan.findNodes}
+            <div style={{ paddingRight: "12px" }} />
             <Combobox
                 id="findNodeDropdown"
-                className={classes.combobox}
+                className={classes.inputs}
+                size="small"
+                input={{ style: { width: "130px", textOverflow: "ellipsis" } }}
+                listbox={{ style: { minWidth: "fit-content" } }}
                 defaultValue={findNodeOptions[0]}
                 onOptionSelect={(_, data) => {
                     setFindNodeSelection(data.optionText ?? findNodeOptions[0]);
@@ -157,15 +165,22 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResults([]);
                 }}
             >
-                <div style={{ maxHeight: "250px", maxWidth: "100px" }}>
-                    {findNodeOptions.map((option) => (
-                        <Option key={option}>{option}</Option>
-                    ))}
-                </div>
+                {findNodeOptions.map((option) => (
+                    <Option key={option} className={classes.option}>
+                        {option}
+                    </Option>
+                ))}
             </Combobox>
+            <div className={classes.spacer}></div>
             <Dropdown
                 id="findNodeComparisonDropdown"
-                className={classes.dropdown}
+                size="small"
+                className={classes.inputs}
+                style={{
+                    width: "80px",
+                    textOverflow: "ellipsis",
+                    height: "24px",
+                }}
                 defaultValue={findNodeComparisonOptions[0]}
                 onOptionSelect={(_, data) => {
                     setFindNodeComparisonSelection(
@@ -176,30 +191,42 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 }}
             >
                 {findNodeComparisonOptions.map((option) => (
-                    <Option key={option}>{option}</Option>
+                    <Option key={option} className={classes.option}>
+                        {option}
+                    </Option>
                 ))}
             </Dropdown>
+            <div className={classes.spacer}></div>
             <Input
                 id="findNodeInputBox"
+                size="small"
                 type="text"
-                className={classes.combobox}
+                className={classes.inputs}
+                input={{ style: { width: "85px", textOverflow: "ellipsis" } }}
                 onChange={(e) => {
                     setFindNodeSearchValue(e.target.value);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
             />
+            <div className={classes.spacer}></div>
             <Button
                 onClick={() => handleFoundNode(-1)}
+                size="small"
+                appearance="subtle"
                 icon={<ArrowUp20Regular />}
             />
             <Button
                 onClick={() => handleFoundNode(1)}
+                size="small"
+                appearance="subtle"
                 icon={<ArrowDown20Regular />}
             />
             <Button
-                icon={<Dismiss20Regular />}
                 onClick={() => setFindNodeClicked(false)}
+                size="small"
+                appearance="subtle"
+                icon={<Dismiss20Regular />}
             />
         </div>
     );

@@ -1653,15 +1653,16 @@ export default class MainController implements vscode.Disposable {
 
     private async showOnLaunchPrompts(): Promise<void> {
         // All prompts should be async and _not_ awaited so that we don't block the rest of the extension
-        void this.showFirstLaunchPrompts();
-        void this.showEnableRichExperiencesPrompt();
+
+        if (this.shouldShowEnableRichExperiencesPrompt()) {
+            void this.showEnableRichExperiencesPrompt();
+        } else {
+            void this.showFirstLaunchPrompts();
+        }
     }
 
-    /**
-     * Prompts the user to enable rich experiences
-     */
-    private async showEnableRichExperiencesPrompt(): Promise<void> {
-        if (
+    private shouldShowEnableRichExperiencesPrompt(): boolean {
+        return !(
             this._vscodeWrapper
                 .getConfiguration()
                 .get<boolean>(
@@ -1670,16 +1671,34 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper
                 .getConfiguration()
                 .get<boolean>(Constants.configEnableRichExperiences)
-        ) {
+        );
+    }
+
+    /**
+     * Prompts the user to enable rich experiences
+     */
+    private async showEnableRichExperiencesPrompt(): Promise<void> {
+        if (!this.shouldShowEnableRichExperiencesPrompt()) {
             return;
         }
 
         const response = await this._vscodeWrapper.showInformationMessage(
-            LocalizedConstants.enableRichExperiencesPrompt,
+            LocalizedConstants.enableRichExperiencesPrompt(
+                Constants.richFeaturesLearnMoreLink,
+            ),
             LocalizedConstants.enableRichExperiences,
-            LocalizedConstants.Common.learnMore,
             LocalizedConstants.Common.dontShowAgain,
         );
+
+        await sendActionEvent(
+            TelemetryViews.General,
+            TelemetryActions.EnableRichExperiencesPrompt,
+            {
+                response,
+            },
+        );
+
+        this.doesExtensionLaunchedFileExist(); // create the "extensionLaunched" file since this takes the place of the release notes prompt
 
         if (response === LocalizedConstants.enableRichExperiences) {
             await this._vscodeWrapper
@@ -1689,9 +1708,10 @@ export default class MainController implements vscode.Disposable {
                     true,
                     vscode.ConfigurationTarget.Global,
                 );
-        } else if (response === LocalizedConstants.Common.learnMore) {
-            await vscode.env.openExternal(
-                vscode.Uri.parse(Constants.richFeaturesLearnMoreLink),
+
+            // reload immediately
+            await vscode.commands.executeCommand(
+                "workbench.action.reloadWindow",
             );
         } else if (response === LocalizedConstants.Common.dontShowAgain) {
             await this._vscodeWrapper

@@ -15,6 +15,7 @@ export enum TelemetryViews {
     ObjectExplorerFilter = "ObjectExplorerFilter",
     TableDesigner = "TableDesigner",
     UserSurvey = "UserSurvey",
+    General = "General",
 }
 
 export enum TelemetryActions {
@@ -46,4 +47,6 @@ export enum TelemetryActions {
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
     CopyHeaders = "CopyHeaders",
+    EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
+    Restore = "Restore",
 }

@@ -13,6 +13,9 @@ import {
     Combobox,
     Spinner,
     makeStyles,
+    ComboboxProps,
+    OptionOnSelectData,
+    SelectionEvents,
 } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -39,26 +42,33 @@ export const AzureBrowsePage = () => {
     const [selectedSubscription, setSelectedSubscription] = useState<
         string | undefined
     >(undefined);
+    const [subscriptionValue, setSubscriptionValue] = useState<string>("");
 
     const [resourceGroups, setResourceGroups] = useState<string[]>([]);
     const [selectedResourceGroup, setSelectedResourceGroup] = useState<
         string | undefined
     >(undefined);
+    const [resourceGroupValue, setResourceGroupValue] = useState<string>("");
 
     const [locations, setLocations] = useState<string[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<
         string | undefined
     >(undefined);
+    const [locationValue, setLocationValue] = useState<string>("");
 
     const [servers, setServers] = useState<string[]>([]);
     const [selectedServer, setSelectedServer] = useState<string | undefined>(
         undefined,
     );
+    const [serverValue, setServerValue] = useState<string>("");
 
     const [databases, setDatabases] = useState<string[]>([]);
     const [selectedDatabase, setSelectedDatabase] = useState<
         string | undefined
     >(undefined);
+    const [databaseValue, setDatabaseValue] = useState<string>("");
+
+    // #region Effects
 
     useEffect(() => {
         const subs = removeDuplicates(
@@ -148,10 +158,19 @@ export const AzureBrowsePage = () => {
         );
         setServers(srvs.sort());
 
-        // if current selection is no longer in the list of options,
-        // set selection to undefined (if multiple options) or the only option (if only one)
-        if (selectedServer && !srvs.includes(selectedServer)) {
-            setSelectedServer(srvs.length === 1 ? srvs[0] : undefined);
+        // intentionally cleared
+        if (selectedServer === "") {
+            setServerValue("");
+        } else {
+            // if there is no current selection or if the selection is no longer in the list of options (due to changed filters),
+            // set selection to the first option (if any)
+            if (
+                selectedServer === undefined ||
+                !srvs.includes(selectedServer)
+            ) {
+                setSelectedServer(srvs.length > 0 ? srvs[0] : undefined);
+                setServerValue(srvs.length > 0 ? srvs[0] : "");
+            }
         }
     }, [locations, selectedLocation, context.state.azureServers]);
 
@@ -174,6 +193,8 @@ export const AzureBrowsePage = () => {
         setSelectedDatabase(dbs.length === 1 ? dbs[0] : undefined);
     }, [selectedServer]);
 
+    // #endregion
+
     function setConnectionProperty(
         propertyName: keyof IConnectionDialogProfile,
         value: string,
@@ -184,7 +205,7 @@ export const AzureBrowsePage = () => {
     return (
         <div>
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.subscription}
+                label={Loc.connectionDialog.subscriptionLabel}
                 clearable
                 decoration={
                     <>
@@ -204,7 +225,10 @@ export const AzureBrowsePage = () => {
                 }
                 content={{
                     valueList: subscriptions,
-                    setValue: (sub) => {
+                    value: subscriptionValue,
+                    setValue: setSubscriptionValue,
+                    selection: selectedSubscription,
+                    setSelection: (sub) => {
                         setSelectedSubscription(sub);
 
                         if (sub === undefined) {
@@ -232,29 +256,53 @@ export const AzureBrowsePage = () => {
 
                         context.loadAzureServers(subId);
                     },
-                    currentValue: selectedSubscription,
+                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                        Loc.connectionDialog.subscription,
+                    ),
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.subscription,
+                        ),
                 }}
             />
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.resourceGroup}
+                label={Loc.connectionDialog.resourceGroupLabel}
                 clearable
                 content={{
                     valueList: resourceGroups,
-                    setValue: setSelectedResourceGroup,
-                    currentValue: selectedResourceGroup,
+                    value: resourceGroupValue,
+                    setValue: setResourceGroupValue,
+                    selection: selectedResourceGroup,
+                    setSelection: setSelectedResourceGroup,
+                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                        Loc.connectionDialog.resourceGroup,
+                    ),
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.resourceGroup,
+                        ),
                 }}
             />
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.location}
+                label={Loc.connectionDialog.locationLabel}
                 clearable
                 content={{
                     valueList: locations,
-                    setValue: setSelectedLocation,
-                    currentValue: selectedLocation,
+                    value: locationValue,
+                    setValue: setLocationValue,
+                    selection: selectedLocation,
+                    setSelection: setSelectedLocation,
+                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                        Loc.connectionDialog.location,
+                    ),
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.location,
+                        ),
                 }}
             />
             <AzureBrowseDropdown
-                label={Loc.connectionDialog.server}
+                label={Loc.connectionDialog.serverLabel}
                 required
                 decoration={
                     context.state.loadingAzureServersStatus ===
@@ -264,14 +312,20 @@ export const AzureBrowsePage = () => {
                 }
                 content={{
                     valueList: servers,
-                    setValue: (srv) => {
+                    value: serverValue,
+                    setValue: setServerValue,
+                    selection: selectedServer,
+                    setSelection: (srv) => {
                         setSelectedServer(srv);
                         setConnectionProperty(
                             "server",
                             srv ? srv + ".database.windows.net" : "",
                         );
                     },
-                    currentValue: selectedServer,
+                    invalidOptionErrorMessage:
+                        Loc.connectionDialog.invalidAzureBrowse(
+                            Loc.connectionDialog.server,
+                        ),
                 }}
             />
 
@@ -288,15 +342,22 @@ export const AzureBrowsePage = () => {
                         props={{ orientation: "horizontal" }}
                     />
                     <AzureBrowseDropdown
-                        label={Loc.connectionDialog.database}
+                        label={Loc.connectionDialog.databaseLabel}
                         clearable
                         content={{
                             valueList: databases,
-                            setValue: (db) => {
+                            value: databaseValue,
+                            setValue: setDatabaseValue,
+                            selection: selectedDatabase,
+                            setSelection: (db) => {
                                 setSelectedDatabase(db);
                                 setConnectionProperty("database", db ?? "");
                             },
-                            currentValue: selectedDatabase,
+                            placeholder: `<${Loc.connectionDialog.default}>`,
+                            invalidOptionErrorMessage:
+                                Loc.connectionDialog.invalidAzureBrowse(
+                                    Loc.connectionDialog.database,
+                                ),
                         }}
                     />
                     {context.state.connectionComponents.mainOptions
@@ -368,23 +429,65 @@ const AzureBrowseDropdown = ({
     clearable,
     content,
     decoration,
+    props,
 }: {
     label: string;
     required?: boolean;
     clearable?: boolean;
     content: {
+        /** list of valid values for the combo box */
         valueList: string[];
-        setValue: (value: string | undefined) => void;
-        currentValue?: string;
+        /** currently-selected value from `valueList` */
+        selection?: string;
+        /** callback when the user has selected a value from `valueList` */
+        setSelection: (value: string | undefined) => void;
+        /** currently-entered text in the combox, may not be a valid selection value if the user is typing */
+        value: string;
+        /** callback when the user types in the combobox */
+        setValue: (value: string) => void;
+        /** placeholder text for the combobox */
+        placeholder?: string;
+        /** message displayed if focus leaves this combobox and `value` is not a valid value from `valueList` */
+        invalidOptionErrorMessage: string;
     };
     decoration?: JSX.Element;
+    props?: Partial<ComboboxProps>;
 }) => {
     const formStyles = useFormStyles();
     const decorationStyles = useFieldDecorationStyles();
+    const [validationMessage, setValidationMessage] = useState<string>("");
 
-    const onInput = (ev: React.ChangeEvent<HTMLInputElement>) => {
-        content.setValue(ev.target.value);
+    // clear validation message as soon as value is valid
+    useEffect(() => {
+        if (content.valueList.includes(content.value)) {
+            setValidationMessage("");
+        }
+    }, [content.value]);
+
+    // only display validation error if focus leaves the field and the value is not valid
+    const onBlur = () => {
+        if (content.value) {
+            setValidationMessage(
+                content.valueList.includes(content.value)
+                    ? ""
+                    : content.invalidOptionErrorMessage,
+            );
+        }
     };
+
+    const onOptionSelect: (
+        _: SelectionEvents,
+        data: OptionOnSelectData,
+    ) => void = (_, data: OptionOnSelectData) => {
+        content.setSelection(
+            data.selectedOptions.length > 0 ? data.selectedOptions[0] : "",
+        );
+        content.setValue(data.optionText ?? "");
+    };
+
+    function onInput(ev: React.ChangeEvent<HTMLInputElement>) {
+        content.setValue(ev.target.value);
+    }
 
     return (
         <div className={formStyles.formComponentDiv}>
@@ -401,21 +504,19 @@ const AzureBrowseDropdown = ({
                 }
                 orientation="horizontal"
                 required={required}
+                validationMessage={validationMessage}
+                onBlur={onBlur}
             >
                 <Combobox
-                    value={content.currentValue ?? ""}
+                    {...props}
+                    value={content.value}
                     selectedOptions={
-                        content.currentValue ? [content.currentValue] : []
+                        content.selection ? [content.selection] : []
                     }
-                    clearable={clearable}
                     onInput={onInput}
-                    onOptionSelect={(_event, data) => {
-                        if (data.optionValue === content.currentValue) {
-                            return;
-                        }
-
-                        content.setValue(data.optionValue);
-                    }}
+                    onOptionSelect={onOptionSelect}
+                    placeholder={content.placeholder}
+                    clearable={clearable}
                 >
                     {content.valueList.map((val, idx) => {
                         return (

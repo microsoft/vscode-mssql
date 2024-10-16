@@ -83,10 +83,6 @@
       "{1} is the number of issues"
     ]
   },
-  "Generate Script": "Generate Script",
-  "Script As Create": "Script As Create",
-  "Properties": "Properties",
-  "No data": "No data",
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
@@ -150,10 +146,12 @@
   "Error loading preview": "Error loading preview",
   "Retry": "Retry",
   "Update Database": "Update Database",
+  "Generate Script": "Generate Script",
   "Publish": "Publish",
   "Preview Database Updates": "Preview Database Updates",
   "Error loading designer": "Error loading designer",
   "Severity": "Severity",
+  "Script As Create": "Script As Create",
   "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
   "Copy script": "Copy script",
   "Open in editor": "Open in editor",
@@ -191,16 +189,34 @@
   "Browse Azure": "Browse Azure",
   "Recent Connections": "Recent Connections",
   "Subscription": "Subscription",
+  "subscription": "subscription",
   "Resource Group": "Resource Group",
+  "resource group": "resource group",
   "Location": "Location",
+  "location": "location",
   "Server": "Server",
+  "server": "server",
   "Database": "Database",
+  "database": "database",
   "Filter Azure subscriptions": "Filter Azure subscriptions",
   "Connection Error": "Connection Error",
   "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.": "Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.",
   "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
   "Read more": "Read more",
   "Enable 'Trust Server Certificate'": "Enable 'Trust Server Certificate'",
+  "Select a {0} for filtering/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
+    "message": "Select a {0} for filtering",
+    "comment": [
+      "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'"
+    ]
+  },
+  "Select a valid {0} from the dropdown/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
+    "message": "Select a valid {0} from the dropdown",
+    "comment": [
+      "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'"
+    ]
+  },
+  "Default": "Default",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -227,6 +243,7 @@
   "Find Node": "Find Node",
   "Highlight Expensive Operation": "Highlight Expensive Operation",
   "Toggle Tooltips": "Toggle Tooltips",
+  "Properties": "Properties",
   "Importance": "Importance",
   "Alphabetical": "Alphabetical",
   "Reverse Alphabetical": "Reverse Alphabetical",
@@ -678,8 +695,13 @@
   "Execution Plan": "Execution Plan",
   "Script copied to clipboard": "Script copied to clipboard",
   "Copied": "Copied",
-  "The MSSQL extension has some new GUI-based experiences! Would you like to enable them?": "The MSSQL extension has some new GUI-based experiences! Would you like to enable them?",
-  "Enable Rich Experiences": "Enable Rich Experiences",
+  "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})/{0} is a url to learn more about the new features": {
+    "message": "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
+    "comment": [
+      "{0} is a url to learn more about the new features"
+    ]
+  },
+  "Enable Experiences & Reload": "Enable Experiences & Reload",
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
