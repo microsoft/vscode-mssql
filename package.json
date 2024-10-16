@@ -325,7 +325,7 @@
         },
         {
           "command": "mssql.showExecutionPlanInResults",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences",
           "group": "navigation@4"
         }
       ],

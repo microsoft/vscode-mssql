@@ -1690,6 +1690,14 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.Common.dontShowAgain,
         );
 
+        await sendActionEvent(
+            TelemetryViews.General,
+            TelemetryActions.EnableRichExperiencesPrompt,
+            {
+                response,
+            },
+        );
+
         this.doesExtensionLaunchedFileExist(); // create the "extensionLaunched" file since this takes the place of the release notes prompt
 
         if (response === LocalizedConstants.enableRichExperiences) {
