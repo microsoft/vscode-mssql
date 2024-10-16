@@ -80,6 +80,8 @@ const useStyles = makeStyles({
         },
     },
     messagesRows: {
+        height: "18px",
+        fontSize: "12px",
         flexDirection: "row",
         ...shorthands.padding("10px"),
         "> *": {
@@ -405,7 +407,10 @@ export const QueryResultPane = () => {
                             <TableBody>
                                 {rows.map((row, index) => {
                                     return (
-                                        <TableRow key={index}>
+                                        <TableRow
+                                            key={index}
+                                            className={classes.messagesRows}
+                                        >
                                             <TableCell
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     "time",
