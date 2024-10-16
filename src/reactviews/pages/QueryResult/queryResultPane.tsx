@@ -178,23 +178,22 @@ export const QueryResultPane = () => {
 
     const gridRefs = useRef<ResultGridHandle[]>([]);
 
-    const renderGrid = (idx: number) => {
-        const divId = `grid-parent-${idx}`;
+    const renderGrid = (
+        batchId: number,
+        resultId: number,
+        gridCount: number,
+        totalResultCount: number,
+    ) => {
+        const divId = `grid-parent-${batchId}-${resultId}`;
         return (
             <div
                 id={divId}
                 className={classes.queryResultContainer}
                 style={{
                     height:
-                        Object.keys(metadata?.resultSetSummaries ?? [])
-                            .length === 1
+                        totalResultCount === 1
                             ? "100%"
-                            : (
-                                  100 /
-                                  Object.keys(
-                                      metadata?.resultSetSummaries ?? [],
-                                  ).length
-                              ).toString() + "%",
+                            : (100 / totalResultCount).toString() + "%",
                 }}
             >
                 <ResultGrid
@@ -205,9 +204,8 @@ export const QueryResultPane = () => {
                         return webViewState.extensionRpc
                             .call("getRows", {
                                 uri: metadata?.uri,
-                                batchId:
-                                    metadata?.resultSetSummaries[idx]?.batchId,
-                                resultId: metadata?.resultSetSummaries[idx]?.id,
+                                batchId: batchId,
+                                resultId: resultId,
                                 rowStart: offset,
                                 numberOfRows: count,
                             })
@@ -217,8 +215,9 @@ export const QueryResultPane = () => {
                                 }
                                 let r = response as qr.ResultSetSubset;
                                 var columnLength =
-                                    metadata?.resultSetSummaries[idx]
-                                        ?.columnInfo?.length;
+                                    metadata?.resultSetSummaries[batchId][
+                                        resultId
+                                    ]?.columnInfo?.length;
                                 // if the result is an execution plan xml,
                                 // get the execution plan graph from it
                                 if (metadata?.isExecutionPlan) {
@@ -251,13 +250,17 @@ export const QueryResultPane = () => {
                                 });
                             });
                     }}
-                    ref={(gridRef) => (gridRefs.current[idx] = gridRef!)}
-                    resultSetSummary={metadata?.resultSetSummaries[idx]}
+                    ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
+                    resultSetSummary={
+                        metadata?.resultSetSummaries[batchId][resultId]
+                    }
                     divId={divId}
                 />
                 <CommandBar
                     uri={metadata?.uri}
-                    resultSetSummary={metadata?.resultSetSummaries[idx]}
+                    resultSetSummary={
+                        metadata?.resultSetSummaries[batchId][resultId]
+                    }
                 />
             </div>
         );
@@ -266,12 +269,22 @@ export const QueryResultPane = () => {
     const renderGridPanel = () => {
         const grids = [];
         gridRefs.current.forEach((r) => r?.refreshGrid());
+        let totalResultCount = 0;
+        Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
+            totalResultCount += Object.keys(v).length;
+        });
+
+        let count = 0;
         for (
             let i = 0;
             i < Object.keys(metadata?.resultSetSummaries ?? []).length;
             i++
         ) {
-            grids.push(renderGrid(i));
+            var batch = metadata?.resultSetSummaries[i];
+            for (let j = 0; j < Object.keys(batch ?? []).length; j++) {
+                grids.push(renderGrid(i, j, count, totalResultCount));
+                count++;
+            }
         }
         return grids;
     };
