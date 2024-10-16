@@ -101,7 +101,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             );
         });
         this.registerRequestHandler("copySelection", async (message) => {
-            // sendActionEvent();
+            sendActionEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CopyResults,
+                {
+                    correlationId: this._correlationId,
+                    format: message.format,
+                    // TODO: add selection to telemetry when it's supported
+                    // TODO: add action origin (context/toolbar) to telemetry
+                },
+            );
             return await this._sqlOutputContentProvider.copyRequestHandler(
                 message.uri,
                 message.batchId,
@@ -110,17 +119,35 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             );
         });
         this.registerRequestHandler("copyWithHeaders", async (message) => {
-            // sendActionEvent();
+            sendActionEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CopyResultsHeaders,
+                {
+                    correlationId: this._correlationId,
+                    format: message.format,
+                    // TODO: add selection to telemetry when it's supported
+                    // TODO: add action origin (context/toolbar) to telemetry
+                },
+            );
             return await this._sqlOutputContentProvider.copyRequestHandler(
                 message.uri,
                 message.batchId,
                 message.resultId,
                 message.selection,
-                true,
+                true, //copy headers flag
             );
         });
         this.registerRequestHandler("copyAllHeaders", async (message) => {
-            // sendActionEvent();
+            sendActionEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CopyHeaders,
+                {
+                    correlationId: this._correlationId,
+                    format: message.format,
+                    // TODO: add selection to telemetry when it's supported
+                    // TODO: add action origin (context/toolbar) to telemetry
+                },
+            );
             return await this._sqlOutputContentProvider.copyHeadersRequestHandler(
                 message.uri,
                 message.batchId,
