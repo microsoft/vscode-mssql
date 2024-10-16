@@ -5,7 +5,6 @@
 
 import * as Extension from "../../src/extension";
 import * as assert from "assert";
-import * as vscode from "vscode";
 
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
