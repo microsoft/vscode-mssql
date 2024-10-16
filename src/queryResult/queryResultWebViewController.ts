@@ -48,7 +48,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             const uri = editor?.document?.uri?.toString(true);
             if (uri && this._queryResultStateMap.has(uri)) {
                 this.state = this.getQueryResultState(uri);
-                vscode.commands.executeCommand("queryResult.focus");
             } else {
                 this.state = {
                     resultSetSummaries: {},
@@ -257,6 +256,19 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             throw new Error(`No query result state found for uri ${uri}`);
         }
         return res;
+    }
+
+    public addResultSetSummary(
+        uri: string,
+        resultSetSummary: qr.ResultSetSummary,
+    ) {
+        let state = this.getQueryResultState(uri);
+        const batchId = resultSetSummary.batchId;
+        const resultId = resultSetSummary.id;
+        if (!state.resultSetSummaries[batchId]) {
+            state.resultSetSummaries[batchId] = {};
+        }
+        state.resultSetSummaries[batchId][resultId] = resultSetSummary;
     }
 
     public setSqlOutputContentProvider(
