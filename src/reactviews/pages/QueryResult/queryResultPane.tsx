@@ -87,6 +87,7 @@ const useStyles = makeStyles({
         "> *": {
             marginRight: "10px",
         },
+        borderBottom: "none",
     },
     noResultMessage: {
         fontSize: "14px",
