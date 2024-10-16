@@ -522,9 +522,9 @@
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">启用“信任服务器证书”</target>
       </trans-unit>
-      <trans-unit id="++CODE++952bc2eaca6c7bdfa690c327fa623692420a6821a4e386af25f6e333e31e30b2">
-        <source xml:lang="en">Enable Rich Experiences</source>
-        <target state="new">Enable Rich Experiences</target>
+      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
+        <source xml:lang="en">Enable Experiences &amp; Reload</source>
+        <target state="new">Enable Experiences &amp; Reload</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -1555,9 +1555,10 @@
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">正在测试连接配置文件...</target>
       </trans-unit>
-      <trans-unit id="++CODE++bf0625b7472379f6e2c58de0495e3375908927e805a30b25fcc0052af4539bc6">
-        <source xml:lang="en">The MSSQL extension has some new GUI-based experiences! Would you like to enable them?</source>
-        <target state="new">The MSSQL extension has some new GUI-based experiences! Would you like to enable them?</target>
+      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
+        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
+        <note>{0} is a url to learn more about the new features</note>
+        <target state="new">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
