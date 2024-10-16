@@ -311,7 +311,7 @@
         },
         {
           "command": "mssql.revealQueryResultPanel",
-          "when": "editorLangId == sql && view.queryResult.visible == false",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && view.queryResult.visible == false",
           "group": "navigation@2"
         },
         {
