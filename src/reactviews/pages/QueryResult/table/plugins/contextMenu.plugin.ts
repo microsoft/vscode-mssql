@@ -121,10 +121,11 @@ export class ContextMenu<T extends Slick.SlickData> {
                 console.log("Copy with Headers action triggered");
                 break;
             case "copy-headers":
-                await this.webViewState.extensionRpc.call("copyAllHeaders", {
+                await this.webViewState.extensionRpc.call("copyHeaders", {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
+                    selection: selection,
                 });
                 console.log("Copy Headers action triggered");
                 break;

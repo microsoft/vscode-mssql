@@ -137,7 +137,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 true, //copy headers flag
             );
         });
-        this.registerRequestHandler("copyAllHeaders", async (message) => {
+        this.registerRequestHandler("copyHeaders", async (message) => {
             sendActionEvent(
                 TelemetryViews.QueryResult,
                 TelemetryActions.CopyHeaders,
@@ -152,6 +152,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 message.uri,
                 message.batchId,
                 message.resultId,
+                message.selection,
             );
         });
         this.registerReducer("setResultTab", async (state, payload) => {

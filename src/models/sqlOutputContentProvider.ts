@@ -125,10 +125,11 @@ export class SqlOutputContentProvider {
         uri: string,
         batchId: number,
         resultId: number,
+        selection,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyHeaders(batchId, resultId);
+            .queryRunner.copyHeaders(batchId, resultId, selection);
     }
 
     public copyRequestHandler(
