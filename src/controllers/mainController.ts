@@ -1086,7 +1086,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdrevealQueryResultPanel,
                 () => {
-                    this._queryResultWebviewController.revealToForeground();
+                    vscode.commands.executeCommand("queryResult.focus");
                 },
             ),
         );
