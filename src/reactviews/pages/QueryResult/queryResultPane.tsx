@@ -62,6 +62,9 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
+        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+        fontWeight: "normal",
+        fontSize: "12px",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
