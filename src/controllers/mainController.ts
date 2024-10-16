@@ -1680,7 +1680,13 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.Common.learnMore,
             LocalizedConstants.Common.dontShowAgain,
         );
-
+        await sendActionEvent(
+            TelemetryViews.General,
+            TelemetryActions.EnableRichExperiencesPrompt,
+            {
+                response,
+            },
+        );
         if (response === LocalizedConstants.enableRichExperiences) {
             await this._vscodeWrapper
                 .getConfiguration()
