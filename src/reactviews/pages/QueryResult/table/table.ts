@@ -16,6 +16,13 @@ import { IDisposableDataProvider } from "./dataProvider";
 import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
 import { HeaderFilter } from "./plugins/headerFilter.plugin";
+import { ContextMenu } from "./plugins/contextMenu.plugin";
+import {
+    QueryResultReducers,
+    QueryResultWebviewState,
+    ResultSetSummary,
+} from "../../../../sharedInterfaces/queryResult";
+import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -44,14 +51,29 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private selectionModel = new CellSelectionModel<T>({
         hasRowSelector: true,
     });
+    private uri: string;
+    private resultSetSummary: ResultSetSummary;
+    private webViewState: VscodeWebviewContext<
+        QueryResultWebviewState,
+        QueryResultReducers
+    >;
 
     constructor(
         parent: HTMLElement,
         styles: ITableStyles,
+        uri: string,
+        resultSetSummary: ResultSetSummary,
+        webViewState: VscodeWebviewContext<
+            QueryResultWebviewState,
+            QueryResultReducers
+        >,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         divId?: string,
     ) {
+        this.uri = uri;
+        this.resultSetSummary = resultSetSummary;
+        this.webViewState = webViewState;
         if (
             !configuration ||
             !configuration.dataProvider ||
@@ -88,6 +110,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             newOptions,
         );
         this.registerPlugin(new HeaderFilter());
+        this.registerPlugin(
+            new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
+        );
 
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;

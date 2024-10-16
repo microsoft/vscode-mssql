@@ -285,6 +285,10 @@ export class LocConstants {
             ),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: l10n.t("Query Plan"),
+            selectAll: l10n.t("Select All"),
+            copy: l10n.t("Copy"),
+            copyWithHeaders: l10n.t("Copy with Headers"),
+            copyHeaders: l10n.t("Copy Headers"),
         };
     }
 }

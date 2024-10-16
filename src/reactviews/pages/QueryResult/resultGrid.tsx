@@ -25,10 +25,13 @@ import {
 } from "./table/formatters";
 import {
     DbCellValue,
+    QueryResultReducers,
+    QueryResultWebviewState,
     ResultSetSummary,
 } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
+import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -51,6 +54,11 @@ export interface ResultGridProps {
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
     resultSetSummary?: ResultSetSummary;
     divId?: string;
+    uri?: string;
+    webViewState?: VscodeWebviewContext<
+        QueryResultWebviewState,
+        QueryResultReducers
+    >;
 }
 
 export interface ResultGridHandle {
@@ -211,6 +219,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             table = new Table(
                 div,
                 defaultTableStyles,
+                props.uri!,
+                props.resultSetSummary!,
+                props.webViewState!,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.divId,

@@ -561,6 +561,46 @@ export default class QueryRunner {
         return headers;
     }
 
+    public async copyHeaders(
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+    ): Promise<void> {
+        let copyString = "";
+        let firstCol: number;
+        let lastCol: number;
+        for (let range of selection) {
+            if (firstCol === undefined || range.fromCell < firstCol) {
+                firstCol = range.fromCell;
+            }
+            if (lastCol === undefined || range.toCell > lastCol) {
+                lastCol = range.toCell;
+            }
+        }
+        let columnRange: ISlickRange = {
+            fromCell: firstCol,
+            toCell: lastCol,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+        let columnHeaders = this.getColumnHeaders(
+            batchId,
+            resultId,
+            columnRange,
+        );
+        copyString += columnHeaders.join("\t");
+
+        let oldLang: string;
+        if (process.platform === "darwin") {
+            oldLang = process.env["LANG"];
+            process.env["LANG"] = "en_US.UTF-8";
+        }
+        await this._vscodeWrapper.clipboardWriteText(copyString);
+        if (process.platform === "darwin") {
+            process.env["LANG"] = oldLang;
+        }
+    }
+
     /**
      * Copy the result range to the system clip-board
      * @param selection The selection range array to copy

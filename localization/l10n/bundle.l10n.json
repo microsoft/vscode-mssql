@@ -276,6 +276,9 @@
   "No result found for the active editor; please run a query or switch to another editor.": "No result found for the active editor; please run a query or switch to another editor.",
   "Hide this panel": "Hide this panel",
   "Query Plan": "Query Plan",
+  "Select All": "Select All",
+  "Copy with Headers": "Copy with Headers",
+  "Copy Headers": "Copy Headers",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "View More": "View More",
@@ -615,7 +618,6 @@
   "JSON": "JSON",
   "Excel": "Excel",
   "Select all": "Select all",
-  "Copy with Headers": "Copy with Headers",
   "Executing query...": "Executing query...",
   "Query executed": "Query executed",
   "Total execution time: {0}/{0} is the elapsed time": {

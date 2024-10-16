@@ -46,4 +46,7 @@ export enum TelemetryActions {
     SaveResults = "SaveResults",
     EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     Restore = "Restore",
+    CopyResults = "CopyResults",
+    CopyResultsHeaders = "CopyResultsHeaders",
+    CopyHeaders = "CopyHeaders",
 }

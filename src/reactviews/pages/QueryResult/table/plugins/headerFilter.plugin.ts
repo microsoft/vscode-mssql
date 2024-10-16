@@ -152,7 +152,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         openPopup($popup);
         this.activePopup = $popup;
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
-            // const $popup = jQuery('#popup-menu');
             const $target = jQuery(e.target);
 
             // If the clicked target is not the button or the menu, close the menu
