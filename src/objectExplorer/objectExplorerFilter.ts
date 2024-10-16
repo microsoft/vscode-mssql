@@ -122,17 +122,20 @@ export class ObjectExplorerFilter {
             }
             this._filterWebviewController.revealToForeground();
             this._filterWebviewController.onSubmit((e) => {
-                sendActionEvent(
-                    TelemetryViews.ObjectExplorerFilter,
-                    TelemetryActions.Submit,
-                    {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
-                    },
-                    {
-                        filterCount: e.length,
-                    },
-                );
+                if (e) {
+                    sendActionEvent(
+                        TelemetryViews.ObjectExplorerFilter,
+                        TelemetryActions.Submit,
+                        {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                            filters: JSON.stringify(e.map((e) => e.name)),
+                        },
+                        {
+                            filterCount: e.length,
+                        },
+                    );
+                }
                 resolve(e);
             });
             this._filterWebviewController.onCancel(() => {

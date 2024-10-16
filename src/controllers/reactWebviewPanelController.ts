@@ -6,8 +6,14 @@
 import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
+import { sendActionEvent } from "../telemetry/telemetry";
 
 /**
  * ReactWebviewPanelController is a class that manages a vscode.WebviewPanel and provides
@@ -112,6 +118,12 @@ export class ReactWebviewPanelController<
             {
                 title: locConstants.Webview.Restore,
                 run: async () => {
+                    sendActionEvent(
+                        TelemetryViews.WebviewController,
+                        TelemetryActions.Restore,
+                        {},
+                        {},
+                    );
                     await this.createWebviewPanel();
                     this._panel.reveal(this._options.viewColumn);
                 },
