@@ -270,6 +270,8 @@ export const QueryResultPane = () => {
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
                     divId={divId}
+                    uri={metadata?.uri}
+                    webViewState={webViewState}
                 />
                 <CommandBar
                     uri={metadata?.uri}
