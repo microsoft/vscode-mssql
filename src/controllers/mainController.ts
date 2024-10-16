@@ -1080,6 +1080,16 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
+
+        // Reveal Query Results command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdrevealQueryResultPanel,
+                () => {
+                    this._queryResultWebviewController.revealToForeground();
+                },
+            ),
+        );
     }
 
     /**
