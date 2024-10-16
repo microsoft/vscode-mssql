@@ -55,6 +55,7 @@ export class SqlOutputContentProvider {
     >();
     private _panels = new Map<string, WebviewPanelController>();
     private _queryResultWebviewController: QueryResultWebviewController;
+    private _executionPlanOptions: ExecutionPlanOptions = {};
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(
@@ -248,9 +249,15 @@ export class SqlOutputContentProvider {
                 await this.createWebviewController(uri, title, queryRunner);
             }
         } else {
+            if (executionPlanOptions) {
+                this._executionPlanOptions = executionPlanOptions;
+            } else {
+                this._executionPlanOptions = {};
+            }
             this._queryResultWebviewController.addQueryResultState(
                 uri,
-                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false,
+                this._executionPlanOptions?.includeEstimatedExecutionPlanXml ??
+                    false,
             );
         }
         if (queryRunner) {
@@ -388,7 +395,11 @@ export class SqlOutputContentProvider {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                 } else {
-                    this._queryResultWebviewController.addQueryResultState(uri);
+                    this._queryResultWebviewController.addQueryResultState(
+                        uri,
+                        this._executionPlanOptions
+                            ?.includeEstimatedExecutionPlanXml ?? false,
+                    );
                     await vscode.commands.executeCommand("queryResult.focus");
                     this._queryResultWebviewController.getQueryResultState(
                         uri,
