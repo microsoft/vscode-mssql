@@ -254,6 +254,8 @@ export const QueryResultPane = () => {
                     ref={(gridRef) => (gridRefs.current[idx] = gridRef!)}
                     resultSetSummary={metadata?.resultSetSummaries[idx]}
                     divId={divId}
+                    uri={metadata?.uri}
+                    webViewState={webViewState}
                 />
                 <CommandBar
                     uri={metadata?.uri}

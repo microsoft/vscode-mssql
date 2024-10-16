@@ -43,4 +43,7 @@ export enum TelemetryActions {
     Close = "Close",
     SurverySubmit = "SurveySubmit",
     SaveResults = "SaveResults",
+    CopyResults = "CopyResults",
+    CopyResultsHeaders = "CopyResultsHeaders",
+    CopyHeaders = "CopyHeaders",
 }
