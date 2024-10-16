@@ -4,9 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as constants from "../../src/constants/constants";
+import * as sinon from "sinon";
+import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
 
+// Launches and activates the extension.
 export async function activateExtension() {
     const extension = vscode.extensions.getExtension(constants.extensionId);
     await extension.activate();
+}
+
+// Stubs the telemetry code
+export function stubTelemetery(sandbox: sinon.SinonSandbox) {
+    if (sandbox) {
+        sandbox.stub(telemetry, "sendActionEvent").callsFake(() => {});
+        sandbox.stub(telemetry, "sendErrorEvent").callsFake(() => {});
+    } else {
+        sinon.stub(telemetry, "sendActionEvent").callsFake(() => {});
+        sinon.stub(telemetry, "sendErrorEvent").callsFake(() => {});
+    }
 }
