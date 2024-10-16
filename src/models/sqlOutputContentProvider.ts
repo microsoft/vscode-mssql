@@ -121,6 +121,17 @@ export class SqlOutputContentProvider {
         this.openLink(content, columnName, linkType);
     }
 
+    public copyHeadersRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyHeaders(batchId, resultId, selection);
+    }
+
     public copyRequestHandler(
         uri: string,
         batchId: number,
@@ -414,9 +425,10 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("resultSet", resultSet);
                     } else {
-                        this._queryResultWebviewController.getQueryResultState(
+                        this._queryResultWebviewController.addResultSetSummary(
                             uri,
-                        ).resultSetSummaries[resultSet.batchId] = resultSet;
+                            resultSet,
+                        );
                     }
                 },
             );

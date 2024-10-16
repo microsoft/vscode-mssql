@@ -299,6 +299,9 @@
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
     </trans-unit>
+    <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
+      <source xml:lang="en">Copy Headers</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
     </trans-unit>
@@ -1036,6 +1039,9 @@
     <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
       <source xml:lang="en">Script copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
+      <source xml:lang="en">Select All</source>
+    </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
     </trans-unit>
@@ -1675,6 +1681,9 @@
     </trans-unit>
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="mssql.revealQueryResultPanel">
+      <source xml:lang="en">Reveal Query Result Panel</source>
     </trans-unit>
     <trans-unit id="mssql.runQueryHistory">
       <source xml:lang="en">Run Query</source>

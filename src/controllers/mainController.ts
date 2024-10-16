@@ -1080,6 +1080,16 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
+
+        // Reveal Query Results command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdrevealQueryResultPanel,
+                () => {
+                    vscode.commands.executeCommand("queryResult.focus");
+                },
+            ),
+        );
     }
 
     /**
@@ -1689,7 +1699,6 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.enableRichExperiences,
             LocalizedConstants.Common.dontShowAgain,
         );
-
         await sendActionEvent(
             TelemetryViews.General,
             TelemetryActions.EnableRichExperiencesPrompt,
