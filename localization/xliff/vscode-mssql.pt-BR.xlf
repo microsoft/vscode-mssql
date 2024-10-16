@@ -2216,6 +2216,10 @@
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Remover Conta do Microsoft Entra</target>
       </trans-unit>
+      <trans-unit id="mssql.revealQueryResultPanel">
+        <source xml:lang="en">Reveal Query Result Panel</source>
+        <target state="new">Reveal Query Result Panel</target>
+      </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
         <target state="translated">Executar Consulta</target>
