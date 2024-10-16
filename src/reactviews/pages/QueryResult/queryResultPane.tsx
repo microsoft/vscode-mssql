@@ -88,6 +88,15 @@ const useStyles = makeStyles({
             marginRight: "10px",
         },
     },
+    noResultMessage: {
+        fontSize: "14px",
+        margin: "10px 0 0 10px",
+    },
+    hidePanelLink: {
+        fontSize: "14px",
+        margin: "10px 0 0 10px",
+        cursor: "pointer",
+    },
 });
 
 export const QueryResultPane = () => {
@@ -320,9 +329,12 @@ export const QueryResultPane = () => {
 
     return !metadata || !hasResultsOrMessages(metadata) ? (
         <div>
-            <div>{locConstants.queryResult.noResultMessage}</div>
+            <div className={classes.noResultMessage}>
+                {locConstants.queryResult.noResultMessage}
+            </div>
             <div>
                 <Link
+                    className={classes.hidePanelLink}
                     onClick={async () => {
                         await webViewState.extensionRpc.call("executeCommand", {
                             command: "workbench.action.togglePanel",
