@@ -776,6 +776,17 @@ export class ObjectExplorerService {
                 ConnectionCredentials.createConnectionDetails(
                     connectionCredentials,
                 );
+
+            if ((connectionCredentials as IConnectionProfile).profileName) {
+                this._nodePathToNodeLabelMap.set(
+                    // using the server name as the key because that's what the rest of the OE service expects.
+                    // TODO: this service should be refactored to use something guaranteed to be unique across all connections,
+                    // but that likely involves a larger refactor of connection management.
+                    connectionCredentials.server,
+                    (connectionCredentials as IConnectionProfile).profileName,
+                );
+            }
+
             const response: CreateSessionResponse =
                 await this._connectionManager.client.sendRequest(
                     CreateSessionRequest.type,
