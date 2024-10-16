@@ -106,9 +106,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 TelemetryActions.CopyResults,
                 {
                     correlationId: this._correlationId,
-                    format: message.format,
-                    // TODO: add selection to telemetry when it's supported
-                    // TODO: add action origin (context/toolbar) to telemetry
                 },
             );
             return await this._sqlOutputContentProvider.copyRequestHandler(
@@ -124,9 +121,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 TelemetryActions.CopyResultsHeaders,
                 {
                     correlationId: this._correlationId,
-                    format: message.format,
-                    // TODO: add selection to telemetry when it's supported
-                    // TODO: add action origin (context/toolbar) to telemetry
                 },
             );
             return await this._sqlOutputContentProvider.copyRequestHandler(
