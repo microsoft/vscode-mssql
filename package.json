@@ -309,6 +309,11 @@
           "group": "navigation@2"
         },
         {
+          "command": "mssql.revealQueryResultPanel",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && view.queryResult.visible == false",
+          "group": "navigation@2"
+        },
+        {
           "command": "mssql.connect",
           "when": "editorLangId == sql && resource not in mssql.connections",
           "group": "navigation@3"
@@ -570,6 +575,12 @@
         "title": "%mssql.cancelQuery%",
         "category": "MS SQL",
         "icon": "$(debug-stop)"
+      },
+      {
+        "command": "mssql.revealQueryResultPanel",
+        "title": "%mssql.revealQueryResultPanel%",
+        "category": "MS SQL",
+        "icon": "media/revealQueryResult.svg"
       },
       {
         "command": "mssql.connect",

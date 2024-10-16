@@ -1681,6 +1681,9 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
+    <trans-unit id="mssql.revealQueryResultPanel">
+      <source xml:lang="en">Reveal Query Result Panel</source>
+    </trans-unit>
     <trans-unit id="mssql.runQueryHistory">
       <source xml:lang="en">Run Query</source>
     </trans-unit>

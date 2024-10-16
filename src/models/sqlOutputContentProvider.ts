@@ -425,9 +425,10 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("resultSet", resultSet);
                     } else {
-                        this._queryResultWebviewController.getQueryResultState(
+                        this._queryResultWebviewController.addResultSetSummary(
                             uri,
-                        ).resultSetSummaries[resultSet.batchId] = resultSet;
+                            resultSet,
+                        );
                     }
                 },
             );

@@ -38,12 +38,17 @@ export class ReactWebviewViewController<State, Reducers>
     }
 
     /**
-     * Displays the webview in the foreground
-     * @param viewColumn The view column that the webview will be displayed in
+     * returns if the webview is visible
      */
-    public revealToForeground(
-        viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
-    ): void {}
+    public isVisible(): boolean {
+        return this._webviewView.visible;
+    }
+    /**
+     * Displays the webview in the foreground
+     */
+    public revealToForeground(): void {
+        this._webviewView.show(true);
+    }
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
