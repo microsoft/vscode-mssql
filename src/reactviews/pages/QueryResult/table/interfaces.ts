@@ -74,6 +74,6 @@ export const defaultTableStyles: ITableStyles = {
     listSelectionOutline: "var(--vscode-contrastActiveBorder)",
     listHoverOutline: "var(--vscode-contrastActiveBorder)",
     listInactiveFocusOutline: "var(--vscode-list-inactiveFocusOutline)",
-    tableHeaderBackground: "var(--vscode-table-headerBackground)",
+    tableHeaderBackground: "var(--vscode-badge-background)",
     tableHeaderForeground: "var(--vscode-table-headerForeground)",
 };
