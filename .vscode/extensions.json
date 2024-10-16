@@ -7,6 +7,6 @@
 		"GitHub.vscode-pull-request-github",
 		"ms-playwright.playwright",
 		"esbenp.prettier-vscode",
-		"hbenl.vscode-mocha-test-adapter"
+		"ms-vscode.extension-test-runner"
 	]
 }
