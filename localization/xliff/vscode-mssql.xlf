@@ -1326,6 +1326,9 @@
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>
     </trans-unit>
+    <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
+      <source xml:lang="en">You must review and accept the terms to proceed</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
       <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
       <note>{0} is the resource</note>
