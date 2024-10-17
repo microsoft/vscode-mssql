@@ -100,6 +100,15 @@ const useStyles = makeStyles({
     },
 });
 
+const MIN_GRID_HEIGHT = 273; // Minimum height for a grid
+
+function getAvailableHeight(
+    gridParent: HTMLDivElement,
+    ribbonRef: HTMLDivElement,
+) {
+    return gridParent.clientHeight - ribbonRef.clientHeight;
+}
+
 export const QueryResultPane = () => {
     const classes = useStyles();
     const state = useContext(QueryResultContext);
@@ -123,42 +132,62 @@ export const QueryResultPane = () => {
     const ribbonRef = useRef<HTMLDivElement>(null);
     // Resize grid when parent element resizes
     useEffect(() => {
+        const hasGrids =
+            metadata &&
+            Object.keys(metadata.resultSetSummaries ?? {}).length > 0;
+
+        if (!hasGrids) {
+            return; // Exit if there are no grids to render
+        }
+
         const gridParent = gridParentRef.current;
         if (!gridParent) {
             return;
         }
         const observer = new ResizeObserver(() => {
-            if (!gridRefs.current) {
-                return;
-            }
-            if (!ribbonRef.current) {
+            if (!gridRefs.current || !ribbonRef.current) {
                 return;
             }
 
-            if (gridParent.clientWidth && gridParent.clientHeight) {
-                if (gridRefs.current.length > 1) {
+            const availableHeight = getAvailableHeight(
+                gridParent,
+                ribbonRef.current,
+            );
+            const gridCount = gridRefs.current.length;
+
+            if (gridParent.clientWidth && availableHeight) {
+                if (gridCount > 1) {
+                    // Calculate the grid height, ensuring it's not smaller than the minimum height
+                    const gridHeight = Math.max(
+                        (availableHeight - gridCount * TABLE_ALIGN_PX) /
+                            gridCount,
+                        MIN_GRID_HEIGHT,
+                    );
+
                     gridRefs.current.forEach((gridRef) => {
                         gridRef?.resizeGrid(
                             gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
-                            (gridParent.clientHeight -
-                                ribbonRef.current!.clientHeight -
-                                gridRefs.current.length * TABLE_ALIGN_PX) /
-                                gridRefs.current.length,
+                            gridHeight,
                         );
                     });
-                } else if (gridRefs.current.length === 1) {
+                } else if (gridCount === 1) {
+                    const singleGridHeight = Math.max(
+                        availableHeight - TABLE_ALIGN_PX,
+                        MIN_GRID_HEIGHT,
+                    );
+
                     gridRefs.current[0]?.resizeGrid(
                         gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
-                        gridParent.clientHeight -
-                            ribbonRef.current.clientHeight -
-                            TABLE_ALIGN_PX,
+                        singleGridHeight,
                     );
                 }
             }
         });
+
         observer.observe(gridParent);
+
         return () => observer.disconnect();
-    }, []);
+    }, [metadata?.resultSetSummaries]);
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
@@ -201,16 +230,7 @@ export const QueryResultPane = () => {
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
         return (
-            <div
-                id={divId}
-                className={classes.queryResultContainer}
-                style={{
-                    height:
-                        totalResultCount === 1
-                            ? "100%"
-                            : (100 / totalResultCount).toString() + "%",
-                }}
-            >
+            <div id={divId} className={classes.queryResultContainer}>
                 <ResultGrid
                     loadFunc={(
                         offset: number,
