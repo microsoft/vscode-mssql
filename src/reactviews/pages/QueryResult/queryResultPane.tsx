@@ -132,11 +132,11 @@ export const QueryResultPane = () => {
     const ribbonRef = useRef<HTMLDivElement>(null);
     // Resize grid when parent element resizes
     useEffect(() => {
-        const hasGrids =
-            metadata &&
-            Object.keys(metadata.resultSetSummaries ?? {}).length > 0;
-
-        if (!hasGrids) {
+        let gridCount = 0;
+        Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
+            gridCount += Object.keys(v).length;
+        });
+        if (gridCount === 0) {
             return; // Exit if there are no grids to render
         }
 
@@ -153,7 +153,6 @@ export const QueryResultPane = () => {
                 gridParent,
                 ribbonRef.current,
             );
-            const gridCount = gridRefs.current.length;
 
             if (gridParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
@@ -311,10 +310,6 @@ export const QueryResultPane = () => {
         if (!metadata?.isExecutionPlan) {
             gridRefs.current.forEach((r) => r?.refreshGrid());
         }
-        let totalResultCount = 0;
-        Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
-            totalResultCount += Object.keys(v).length;
-        });
 
         let count = 0;
         for (
