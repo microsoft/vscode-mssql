@@ -55,6 +55,7 @@ export class SqlOutputContentProvider {
     >();
     private _panels = new Map<string, WebviewPanelController>();
     private _queryResultWebviewController: QueryResultWebviewController;
+    private _executionPlanOptions: ExecutionPlanOptions = {};
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(
@@ -118,6 +119,17 @@ export class SqlOutputContentProvider {
         linkType: string,
     ): void {
         this.openLink(content, columnName, linkType);
+    }
+
+    public copyHeadersRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyHeaders(batchId, resultId, selection);
     }
 
     public copyRequestHandler(
@@ -248,9 +260,15 @@ export class SqlOutputContentProvider {
                 await this.createWebviewController(uri, title, queryRunner);
             }
         } else {
+            if (executionPlanOptions) {
+                this._executionPlanOptions = executionPlanOptions;
+            } else {
+                this._executionPlanOptions = {};
+            }
             this._queryResultWebviewController.addQueryResultState(
                 uri,
-                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false,
+                this._executionPlanOptions?.includeEstimatedExecutionPlanXml ??
+                    false,
             );
         }
         if (queryRunner) {
@@ -388,7 +406,11 @@ export class SqlOutputContentProvider {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                 } else {
-                    this._queryResultWebviewController.addQueryResultState(uri);
+                    this._queryResultWebviewController.addQueryResultState(
+                        uri,
+                        this._executionPlanOptions
+                            ?.includeEstimatedExecutionPlanXml ?? false,
+                    );
                     await vscode.commands.executeCommand("queryResult.focus");
                     this._queryResultWebviewController.getQueryResultState(
                         uri,
@@ -403,9 +425,10 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("resultSet", resultSet);
                     } else {
-                        this._queryResultWebviewController.getQueryResultState(
+                        this._queryResultWebviewController.addResultSetSummary(
                             uri,
-                        ).resultSetSummaries[resultSet.batchId] = resultSet;
+                            resultSet,
+                        );
                     }
                 },
             );

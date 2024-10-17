@@ -21,7 +21,7 @@ import { LocConstants } from "./locConstants";
  * @template State interface that contains definitions for all state properties.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
-interface VscodeWebviewContext<State, Reducers> {
+export interface VscodeWebviewContext<State, Reducers> {
     /**
      * The vscode api instance.
      */

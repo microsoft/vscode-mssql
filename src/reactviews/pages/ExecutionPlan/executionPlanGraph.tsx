@@ -110,7 +110,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         if (!executionPlanState || isExecutionPlanLoaded) return;
 
         setContainerHeight(
-            executionPlanState!.executionPlanGraphs!.length > 1
+            executionPlanState!.executionPlanGraphs!.length > 1 &&
+                graphIndex !==
+                    executionPlanState!.executionPlanGraphs!.length - 1
                 ? "500px"
                 : "100%",
         );

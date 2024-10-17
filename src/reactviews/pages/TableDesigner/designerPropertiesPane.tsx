@@ -31,7 +31,6 @@ import {
     ChevronLeftFilled,
     DismissRegular,
 } from "@fluentui/react-icons";
-import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -98,20 +97,8 @@ export const DesignerPropertiesPane = () => {
     );
     groups?.unshift("General");
 
-    const PROPERTIES = l10n.t("Properties");
-    const NO_DATA = l10n.t("No data");
-
     if (!data) {
-        return (
-            <div className={classes.root}>
-                <Text className={classes.title} size={500}>
-                    {PROPERTIES}
-                </Text>
-                <div className={classes.stack}>
-                    <Text>{NO_DATA}</Text>
-                </div>
-            </div>
-        );
+        return undefined;
     }
 
     const renderAccordionItem = (
@@ -260,7 +247,7 @@ export const DesignerPropertiesPane = () => {
                 />
             </div>
             <div className={classes.stack}>
-                <Accordion multiple collapsible defaultOpenItems={[groups[0]]}>
+                <Accordion multiple collapsible defaultOpenItems={groups}>
                     {data &&
                         groups?.map((group) => {
                             const groupItems = parentTableProperties

@@ -136,6 +136,9 @@ export class LocConstants {
             schema: l10n.t("Schema"),
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
+            youMustReviewAndAccept: l10n.t(
+                "You must review and accept the terms to proceed",
+            ),
         };
     }
 
@@ -150,11 +153,16 @@ export class LocConstants {
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
             recentConnections: l10n.t("Recent Connections"),
-            subscription: l10n.t("Subscription"),
-            resourceGroup: l10n.t("Resource Group"),
-            location: l10n.t("Location"),
-            server: l10n.t("Server"),
-            database: l10n.t("Database"),
+            subscriptionLabel: l10n.t("Subscription"),
+            subscription: l10n.t("subscription"),
+            resourceGroupLabel: l10n.t("Resource Group"),
+            resourceGroup: l10n.t("resource group"),
+            locationLabel: l10n.t("Location"),
+            location: l10n.t("location"),
+            serverLabel: l10n.t("Server"),
+            server: l10n.t("server"),
+            databaseLabel: l10n.t("Database"),
+            database: l10n.t("database"),
             filterSubscriptions: l10n.t("Filter Azure subscriptions"),
             connectionErrorTitle: l10n.t("Connection Error"),
             trustServerCertMessage: l10n.t(
@@ -168,6 +176,23 @@ export class LocConstants {
                 "Enable 'Trust Server Certificate'",
             ),
             close: l10n.t("Close"),
+            azureFilterPlaceholder: (dropdownContentType: string) =>
+                l10n.t({
+                    message: "Select a {0} for filtering",
+                    args: [dropdownContentType],
+                    comment: [
+                        "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'",
+                    ],
+                }),
+            invalidAzureBrowse: (dropdownContentType: string) =>
+                l10n.t({
+                    message: "Select a valid {0} from the dropdown",
+                    args: [dropdownContentType],
+                    comment: [
+                        "{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'",
+                    ],
+                }),
+            default: l10n.t("Default"),
         };
     }
 
@@ -263,6 +288,10 @@ export class LocConstants {
             ),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: l10n.t("Query Plan"),
+            selectAll: l10n.t("Select All"),
+            copy: l10n.t("Copy"),
+            copyWithHeaders: l10n.t("Copy with Headers"),
+            copyHeaders: l10n.t("Copy Headers"),
         };
     }
 }
