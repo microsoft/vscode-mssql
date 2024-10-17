@@ -207,6 +207,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this._mainController.connectionManager.connectionStore
                 .loadAllConnections(true)
                 .map((c) => c.connectionCreds);
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadRecentConnections,
+            undefined, // additionalProperties
+            {
+                recentConnectionsCount: recentConnections.length,
+            },
+        );
+
         const dialogConnections: IConnectionDialogProfile[] = [];
         for (let i = 0; i < recentConnections.length; i++) {
             dialogConnections.push(
