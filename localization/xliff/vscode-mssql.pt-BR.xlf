@@ -70,7 +70,7 @@
       </trans-unit>
       <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
         <source xml:lang="en">Advanced Options</source>
-        <target state="new">Advanced Options</target>
+        <target state="translated">Opções Avançadas</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -155,7 +155,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
         <source xml:lang="en">Back to preview</source>
-        <target state="new">Back to preview</target>
+        <target state="translated">Voltar à versão prévia</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -393,6 +393,10 @@
         <source xml:lang="en">Copy</source>
         <target state="translated">Copiar</target>
       </trans-unit>
+      <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
+        <source xml:lang="en">Copy Headers</source>
+        <target state="new">Copy Headers</target>
+      </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">Copiar o código e abrir a página da Web</target>
@@ -431,7 +435,7 @@
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
-        <target state="new">Data Type</target>
+        <target state="translated">Tipo de Dados</target>
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
@@ -440,6 +444,10 @@
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
         <target state="translated">Nome do banco de dados</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
+        <source xml:lang="en">Default</source>
+        <target state="translated">Padrão</target>
       </trans-unit>
       <trans-unit id="++CODE++647cc4253428b25fe686fa8d5d5da5841fed53ad85395cdd43920d0226900c1d">
         <source xml:lang="en">Default Value</source>
@@ -518,9 +526,9 @@
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
         <target state="translated">Habilitar ''Certificado do Servidor de Confiança''</target>
       </trans-unit>
-      <trans-unit id="++CODE++952bc2eaca6c7bdfa690c327fa623692420a6821a4e386af25f6e333e31e30b2">
-        <source xml:lang="en">Enable Rich Experiences</source>
-        <target state="new">Enable Rich Experiences</target>
+      <trans-unit id="++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a">
+        <source xml:lang="en">Enable Experiences &amp; Reload</source>
+        <target state="new">Enable Experiences &amp; Reload</target>
       </trans-unit>
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
@@ -689,7 +697,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
-        <target state="new">Filter Azure subscriptions</target>
+        <target state="translated">Filtrar assinaturas do Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
@@ -780,7 +788,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
         <source xml:lang="en">Hide this panel</source>
-        <target state="new">Hide this panel</target>
+        <target state="translated">Ocultar esse painel</target>
       </trans-unit>
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
@@ -850,7 +858,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
-        <target state="new">Learn More</target>
+        <target state="translated">Saiba Mais</target>
       </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
@@ -875,7 +883,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
-        <target state="new">Loading Report</target>
+        <target state="translated">Carregando Relatório</target>
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
@@ -1014,10 +1022,6 @@
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
         <target state="translated">Nenhuma conexão foi encontrada. Conecte-se a um servidor primeiro.</target>
       </trans-unit>
-      <trans-unit id="++CODE++3b41ba9c7cb8c5d6530c12eec5000c4e2ad0c48b2d4b9149a3ef6d2a23802819">
-        <source xml:lang="en">No data</source>
-        <target state="translated">Não há dados</target>
-      </trans-unit>
       <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
         <note>{0} is the connection id
@@ -1026,11 +1030,11 @@
       </trans-unit>
       <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
         <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-        <target state="new">No result found for the active editor; please run a query or switch to another editor.</target>
+        <target state="translated">Nenhum resultado encontrado para o editor ativo; execute uma consulta ou alterne para outro editor.</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
-        <target state="new">No subscriptions available.  Adjust your subscription filters to try again.</target>
+        <target state="translated">Nenhuma assinatura disponível.  Ajuste os filtros de assinatura para tentar novamente.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1228,7 +1232,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
-        <target state="new">Query Plan</target>
+        <target state="translated">Plano de Consulta</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1365,9 +1369,23 @@
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">Script copiado para a área de transferência</target>
       </trans-unit>
+      <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
+        <source xml:lang="en">Select All</source>
+        <target state="new">Select All</target>
+      </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
         <target state="translated">Selecionar um locatário</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b43c4bf79e62cb8e9f61b4fddc6e921b87020df8bca991bbf77a39628ec9106">
+        <source xml:lang="en">Select a valid {0} from the dropdown</source>
+        <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
+        <target state="new">Select a valid {0} from the dropdown</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
+        <source xml:lang="en">Select a {0} for filtering</source>
+        <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
+        <target state="new">Select a {0} for filtering</target>
       </trans-unit>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
@@ -1383,7 +1401,7 @@
       </trans-unit>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
-        <target state="translated">Selecionar as assinaturas</target>
+        <target state="translated">Selecionar assinaturas</target>
       </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
@@ -1545,9 +1563,10 @@
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">Testando perfil de conexão...</target>
       </trans-unit>
-      <trans-unit id="++CODE++bf0625b7472379f6e2c58de0495e3375908927e805a30b25fcc0052af4539bc6">
-        <source xml:lang="en">The MSSQL extension has some new GUI-based experiences! Would you like to enable them?</source>
-        <target state="new">The MSSQL extension has some new GUI-based experiences! Would you like to enable them?</target>
+      <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
+        <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
+        <note>{0} is a url to learn more about the new features</note>
+        <target state="new">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -1714,7 +1733,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
-        <target state="new">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</target>
+        <target state="translated">O Visual Studio Code deve ser reiniciado para que essa configuração entre em vigor.  Recarregue o Visual Studio Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
@@ -1727,6 +1746,10 @@
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
         <target state="translated">Sim</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
+        <source xml:lang="en">You must review and accept the terms to proceed</source>
+        <target state="new">You must review and accept the terms to proceed</target>
       </trans-unit>
       <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
         <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
@@ -1774,6 +1797,10 @@
         <source xml:lang="en">authenticationType</source>
         <target state="translated">authenticationType</target>
       </trans-unit>
+      <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
+        <source xml:lang="en">database</source>
+        <target state="translated">banco de dados</target>
+      </trans-unit>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
         <target state="translated">criptografar</target>
@@ -1786,9 +1813,25 @@
         <source xml:lang="en">intelliSenseUpdated</source>
         <target state="translated">intelliSenseUpdated</target>
       </trans-unit>
+      <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
+        <source xml:lang="en">location</source>
+        <target state="translated">local</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
         <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
         <target state="translated">Para usar este recurso é necessário o macOS Sierra ou mais recente.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
+        <source xml:lang="en">resource group</source>
+        <target state="translated">grupo de recursos</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
+        <source xml:lang="en">server</source>
+        <target state="translated">servidor</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
+        <source xml:lang="en">subscription</source>
+        <target state="translated">assinatura</target>
       </trans-unit>
       <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
         <source xml:lang="en">test</source>
@@ -1809,7 +1852,7 @@
       <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
         <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
         <note>{0} is the webview name</note>
-        <target state="new">{0} has been closed. Would you like to restore it?</target>
+        <target state="translated">{0} foi fechado. Você gostaria de restaurá-lo?</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
@@ -1947,7 +1990,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to enables UI-based features</source>
-        <target state="new">Do not show prompts to enables UI-based features</target>
+        <target state="translated">Não mostrar as solicitações para habilitar os recursos baseados em interface do usuário</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
@@ -2047,7 +2090,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">Habilita recursos baseados em interface do usuário na extensão MSSQL para recursos mais avançados e poderosos. Reinicie o Visual Studio Code após alterar essa configuração.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
@@ -2063,7 +2106,7 @@
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="new">Estimated Plan</target>
+        <target state="translated">Plano Estimado</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -2177,6 +2220,10 @@
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Remover Conta do Microsoft Entra</target>
       </trans-unit>
+      <trans-unit id="mssql.revealQueryResultPanel">
+        <source xml:lang="en">Reveal Query Result Panel</source>
+        <target state="new">Reveal Query Result Panel</target>
+      </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
         <target state="translated">Executar Consulta</target>
@@ -2203,7 +2250,7 @@
       </trans-unit>
       <trans-unit id="mssql.selectedSubscriptions">
         <source xml:lang="en">Selected Subscriptions</source>
-        <target state="new">Selected Subscriptions</target>
+        <target state="translated">Assinaturas Selecionadas</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

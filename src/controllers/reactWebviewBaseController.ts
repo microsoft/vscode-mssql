@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { getNonce } from "../utils/utils";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+
 import {
     TelemetryActions,
     TelemetryViews,
@@ -14,6 +13,9 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+
+import { getNonce } from "../utils/utils";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides

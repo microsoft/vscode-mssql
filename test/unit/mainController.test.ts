@@ -14,8 +14,9 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import * as assert from "assert";
+import { activateExtension } from "./utils";
 
-suite("MainController Tests", () => {
+suite("MainController Tests", function () {
     let document: vscode.TextDocument;
     let newDocument: vscode.TextDocument;
     let mainController: MainController;
@@ -27,6 +28,9 @@ suite("MainController Tests", () => {
     let newDocUriCallback: string;
 
     setup(async () => {
+        // Need to activate the extension to get the mainController
+        await activateExtension();
+
         // Setup a standard document and a new document
         docUri = "docURI.sql";
         newDocUri = "newDocURI.sql";
@@ -52,7 +56,6 @@ suite("MainController Tests", () => {
         // Resetting call back variables
         docUriCallback = "";
         newDocUriCallback = "";
-
         // Using the mainController that was instantiated with the extension
         mainController = await Extension.getController();
 

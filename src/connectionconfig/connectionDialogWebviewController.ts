@@ -54,6 +54,11 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { l10n } from "vscode";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -119,9 +124,18 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
 
         this.registerRpcHandlers();
-        this.initializeDialog().catch((err) =>
-            vscode.window.showErrorMessage(getErrorMessage(err)),
-        );
+        this.initializeDialog().catch((err) => {
+            void vscode.window.showErrorMessage(getErrorMessage(err));
+
+            // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
+            // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.Initialize,
+                err,
+                true, // includeErrorMessage
+            );
+        });
     }
 
     private async initializeDialog() {
@@ -129,7 +143,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.state.recentConnections = await this.loadRecentConnections();
             this.updateState();
         } catch (err) {
-            vscode.window.showErrorMessage(getErrorMessage(err));
+            void vscode.window.showErrorMessage(getErrorMessage(err));
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.Initialize,
+                err,
+                false, // includeErrorMessage
+            );
         }
 
         try {
@@ -140,7 +160,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             }
         } catch (err) {
             await this.loadEmptyConnection();
-            vscode.window.showErrorMessage(getErrorMessage(err));
+            void vscode.window.showErrorMessage(getErrorMessage(err));
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.Initialize,
+                err,
+                false, // includeErrorMessage
+            );
         }
 
         this.state.connectionComponents = {
@@ -159,11 +186,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ],
             topAdvancedOptions: [
                 "port",
-                "connectTimeout",
+                "applicationName",
                 // TODO: 'autoDisconnect',
                 // TODO: 'sslConfiguration',
-                "applicationName",
-                "replication",
+                "connectTimeout",
+                "multiSubnetFailover",
             ],
             groupedAdvancedOptions: {}, // computed below
         };
@@ -180,6 +207,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this._mainController.connectionManager.connectionStore
                 .loadAllConnections(true)
                 .map((c) => c.connectionCreds);
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadRecentConnections,
+            undefined, // additionalProperties
+            {
+                recentConnectionsCount: recentConnections.length,
+            },
+        );
+
         const dialogConnections: IConnectionDialogProfile[] = [];
         for (let i = 0; i < recentConnections.length; i++) {
             dialogConnections.push(
@@ -211,6 +248,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadEmptyConnection() {
         const emptyConnection = {
             authenticationType: AuthenticationType.SqlLogin,
+            connectTimeout: 15, // seconds
+            applicationName: "vscode-mssql",
         } as IConnectionDialogProfile;
         this.state.connectionProfile = emptyConnection;
     }
@@ -422,8 +461,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     }),
                 };
             default:
-                ConnectionDialogWebviewController._logger.log(
-                    `Unhandled connection option type: ${connOption.valueType}`,
+                const error = `Unhandled connection option type: ${connOption.valueType}`;
+                ConnectionDialogWebviewController._logger.log(error);
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadConnectionProperties,
+                    new Error(error),
+                    true, // includeErrorMessage
                 );
         }
     }
@@ -863,6 +907,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("loadConnection", async (state, payload) => {
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadConnection,
+            );
+
             this._connectionToEditCopy = structuredClone(payload.connection);
             this.clearFormError();
             this.state.connectionProfile = payload.connection;
@@ -919,17 +968,70 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             this.state.connectionStatus = ApiStatus.Error;
                             this.state.trustServerCertError =
                                 result.errorMessage;
+
+                            // connection failing because the user didn't trust the server cert is not an error worth logging;
+                            // just prompt the user to trust the cert
+
                             return state;
                         }
+
                         this.state.formError = result.errorMessage;
                         this.state.connectionStatus = ApiStatus.Error;
+
+                        sendActionEvent(
+                            TelemetryViews.ConnectionDialog,
+                            TelemetryActions.CreateConnection,
+                            {
+                                result: "connectionError",
+                                errorNumber: String(result.errorNumber),
+                                newOrEditedConnection: this
+                                    ._connectionToEditCopy
+                                    ? "edited"
+                                    : "new",
+                                connectionInputType:
+                                    this.state.selectedInputMode,
+                                authMode:
+                                    this.state.connectionProfile
+                                        .authenticationType,
+                            },
+                        );
+
                         return state;
                     }
                 } catch (error) {
                     this.state.formError = getErrorMessage(error);
                     this.state.connectionStatus = ApiStatus.Error;
+
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.CreateConnection,
+                        error,
+                        false, // includeErrorMessage
+                        undefined, // errorCode
+                        undefined, // errorType
+                        {
+                            connectionInputType: this.state.selectedInputMode,
+                            authMode:
+                                this.state.connectionProfile.authenticationType,
+                        },
+                    );
+
                     return state;
                 }
+
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.CreateConnection,
+                    {
+                        result: "success",
+                        newOrEditedConnection: this._connectionToEditCopy
+                            ? "edited"
+                            : "new",
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode:
+                            this.state.connectionProfile.authenticationType,
+                    },
+                );
 
                 if (this._connectionToEditCopy) {
                     await this._mainController.connectionManager.getUriForConnection(
@@ -966,8 +1068,23 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 });
                 await this.panel.dispose();
                 await UserSurvey.getInstance().promptUserForNPSFeedback();
-            } catch {
+            } catch (error) {
                 this.state.connectionStatus = ApiStatus.Error;
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.CreateConnection,
+                    error,
+                    undefined, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode:
+                            this.state.connectionProfile.authenticationType,
+                    },
+                );
+
                 return state;
             }
             return state;
@@ -1066,6 +1183,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         state: ConnectionDialogWebviewState,
     ): Promise<void> {
         try {
+            const startTime = Date.now();
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
             if (!tenantSubMap) {
@@ -1093,6 +1211,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 }
                 await Promise.all(promiseArray);
 
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadAzureServers,
+                    undefined, // additionalProperties
+                    {
+                        subscriptionCount: promiseArray.length,
+                        msToLoadServers: Date.now() - startTime,
+                    },
+                );
+
                 state.loadingAzureServersStatus = ApiStatus.Loaded;
                 return;
             }
@@ -1100,6 +1228,19 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.formError = l10n.t("Error loading Azure databases.");
             state.loadingAzureServersStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureServers,
+                error,
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                {
+                    connectionInputType: this.state.selectedInputMode,
+                },
+            );
+
             return;
         }
     }
@@ -1128,6 +1269,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     azSub.subscriptionId,
                 ),
                 +"\n" + getErrorMessage(error),
+            );
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureServers,
+                error,
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
             );
         }
     }
