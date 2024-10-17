@@ -16,6 +16,7 @@ export enum TelemetryViews {
     TableDesigner = "TableDesigner",
     UserSurvey = "UserSurvey",
     General = "General",
+    ConnectionDialog = "ConnectionDialog",
 }
 
 export enum TelemetryActions {
@@ -49,4 +50,8 @@ export enum TelemetryActions {
     CopyHeaders = "CopyHeaders",
     EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     Restore = "Restore",
+    LoadConnection = "LoadConnection",
+    LoadAzureServers = "LoadAzureServers",
+    LoadConnectionProperties = "LoadConnectionProperties",
+    LoadRecentConnections = "LoadRecentConnections",
 }
