@@ -289,7 +289,7 @@ export const DesignerChangesPreviewButton = () => {
                         title={
                             !isConfirmationChecked
                                 ? locConstants.tableDesigner
-                                      .pleaseIndicateThatYouHaveReviewed
+                                      .youMustReviewAndAccept
                                 : locConstants.tableDesigner.updateDatabase
                         }
                         appearance="primary"

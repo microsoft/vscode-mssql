@@ -136,8 +136,8 @@ export class LocConstants {
             schema: l10n.t("Schema"),
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
-            pleaseIndicateThatYouHaveReviewed: l10n.t(
-                "Please indicate that you review and agree to the terms",
+            youMustReviewAndAccept: l10n.t(
+                "You must review and accept the terms to proceed",
             ),
         };
     }
