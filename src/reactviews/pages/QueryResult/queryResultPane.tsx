@@ -226,7 +226,6 @@ export const QueryResultPane = () => {
         batchId: number,
         resultId: number,
         gridCount: number,
-        totalResultCount: number,
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
         return (
@@ -325,7 +324,7 @@ export const QueryResultPane = () => {
         ) {
             var batch = metadata?.resultSetSummaries[i];
             for (let j = 0; j < Object.keys(batch ?? []).length; j++) {
-                grids.push(renderGrid(i, j, count, totalResultCount));
+                grids.push(renderGrid(i, j, count));
                 count++;
             }
         }
