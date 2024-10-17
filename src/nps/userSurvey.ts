@@ -237,6 +237,7 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
     return {
         questions: [
             {
+                id: "nps",
                 label: featureName
                     ? locConstants.UserSurvey.howLikelyAreYouToRecommendFeature(
                           featureName,
@@ -247,6 +248,7 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                 required: true,
             },
             {
+                id: "nsat",
                 label: featureName
                     ? locConstants.UserSurvey.overallHowStatisfiedAreYouWithFeature(
                           featureName,
@@ -260,6 +262,7 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                 type: "divider",
             },
             {
+                id: "comments",
                 label: locConstants.UserSurvey.whatCanWeDoToImprove,
                 type: "textarea",
                 required: false,

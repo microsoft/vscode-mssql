@@ -30,6 +30,10 @@ export type Question = NpsQuestion | NsatQuestion | TextareaQuestion | Divider;
 
 export interface BaseQuestion {
     /**
+     * Unique id of the question to identify in telemetry.
+     */
+    id: string;
+    /**
      * The label of the question.
      */
     label: string;

@@ -69,7 +69,7 @@ export const UserSurveyPage = () => {
             if (!(question as BaseQuestion)?.required) {
                 continue;
             }
-            if (!userAnswers[question.label]) {
+            if (!userAnswers[question.id]) {
                 setIsSubmitDisabled(true);
                 return;
             }
@@ -77,8 +77,8 @@ export const UserSurveyPage = () => {
         setIsSubmitDisabled(false);
     };
 
-    const onAnswerChange = (label: string, answer: string) => {
-        userAnswers[label] = answer;
+    const onAnswerChange = (id: string, answer: string) => {
+        userAnswers[id] = answer;
         setUserAnswers(userAnswers);
         updateSubmitButtonState();
     };
@@ -108,9 +108,7 @@ export const UserSurveyPage = () => {
                             <NSATQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) =>
-                                    onAnswerChange(question.label, d)
-                                }
+                                onChange={(d) => onAnswerChange(question.id, d)}
                             />
                         );
                     case "nps":
@@ -118,9 +116,7 @@ export const UserSurveyPage = () => {
                             <NPSQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) =>
-                                    onAnswerChange(question.label, d)
-                                }
+                                onChange={(d) => onAnswerChange(question.id, d)}
                             />
                         );
                     case "textarea":
@@ -128,9 +124,7 @@ export const UserSurveyPage = () => {
                             <TextAreaQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) =>
-                                    onAnswerChange(question.label, d)
-                                }
+                                onChange={(d) => onAnswerChange(question.id, d)}
                             />
                         );
                     case "divider":
