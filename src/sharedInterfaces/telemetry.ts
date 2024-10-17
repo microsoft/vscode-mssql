@@ -16,6 +16,7 @@ export enum TelemetryViews {
     TableDesigner = "TableDesigner",
     UserSurvey = "UserSurvey",
     General = "General",
+    ConnectionDialog = "ConnectionDialog",
 }
 
 export enum TelemetryActions {

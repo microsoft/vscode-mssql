@@ -54,6 +54,11 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { l10n } from "vscode";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -921,17 +926,54 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             this.state.connectionStatus = ApiStatus.Error;
                             this.state.trustServerCertError =
                                 result.errorMessage;
+
+                            // connection failing because the user didn't trust the server cert is not an error worth logging;
+                            // just prompt the user to trust the cert
+
                             return state;
                         }
+
                         this.state.formError = result.errorMessage;
                         this.state.connectionStatus = ApiStatus.Error;
+
+                        sendActionEvent(
+                            TelemetryViews.ConnectionDialog,
+                            TelemetryActions.CreateConnection,
+                            {
+                                result: "connectionError",
+                                errorNumber: String(result.errorNumber),
+                                newOrEditedConnection: this
+                                    ._connectionToEditCopy
+                                    ? "edited"
+                                    : "new",
+                            },
+                        );
+
                         return state;
                     }
                 } catch (error) {
                     this.state.formError = getErrorMessage(error);
                     this.state.connectionStatus = ApiStatus.Error;
+
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.CreateConnection,
+                        error,
+                    );
+
                     return state;
                 }
+
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.CreateConnection,
+                    {
+                        result: "success",
+                        newOrEditedConnection: this._connectionToEditCopy
+                            ? "edited"
+                            : "new",
+                    },
+                );
 
                 if (this._connectionToEditCopy) {
                     await this._mainController.connectionManager.getUriForConnection(
@@ -968,8 +1010,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 });
                 await this.panel.dispose();
                 await UserSurvey.getInstance().promptUserForNPSFeedback();
-            } catch {
+            } catch (error) {
                 this.state.connectionStatus = ApiStatus.Error;
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.CreateConnection,
+                    error,
+                );
+
                 return state;
             }
             return state;
