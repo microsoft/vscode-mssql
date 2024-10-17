@@ -70,7 +70,7 @@
       </trans-unit>
       <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
         <source xml:lang="en">Advanced Options</source>
-        <target state="new">Advanced Options</target>
+        <target state="translated">高级选项</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -435,7 +435,7 @@
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
-        <target state="new">Data Type</target>
+        <target state="translated">数据类型</target>
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
@@ -447,7 +447,7 @@
       </trans-unit>
       <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
         <source xml:lang="en">Default</source>
-        <target state="new">Default</target>
+        <target state="translated">默认</target>
       </trans-unit>
       <trans-unit id="++CODE++647cc4253428b25fe686fa8d5d5da5841fed53ad85395cdd43920d0226900c1d">
         <source xml:lang="en">Default Value</source>
@@ -788,7 +788,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
         <source xml:lang="en">Hide this panel</source>
-        <target state="new">Hide this panel</target>
+        <target state="translated">隐藏此面板</target>
       </trans-unit>
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
@@ -858,7 +858,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
-        <target state="new">Learn More</target>
+        <target state="translated">了解详细信息</target>
       </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
@@ -1030,7 +1030,7 @@
       </trans-unit>
       <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
         <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-        <target state="new">No result found for the active editor; please run a query or switch to another editor.</target>
+        <target state="translated">未找到活动编辑器的结果; 请运行查询或切换到其他编辑器。</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
@@ -1232,7 +1232,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
-        <target state="new">Query Plan</target>
+        <target state="translated">查询计划</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -1380,12 +1380,12 @@
       <trans-unit id="++CODE++8b43c4bf79e62cb8e9f61b4fddc6e921b87020df8bca991bbf77a39628ec9106">
         <source xml:lang="en">Select a valid {0} from the dropdown</source>
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
-        <target state="new">Select a valid {0} from the dropdown</target>
+        <target state="translated">从下拉列表中选择有效的 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
         <source xml:lang="en">Select a {0} for filtering</source>
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
-        <target state="new">Select a {0} for filtering</target>
+        <target state="translated">选择 {0} 以进行筛选</target>
       </trans-unit>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
@@ -1733,7 +1733,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
-        <target state="new">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</target>
+        <target state="translated">必须重新启动 Visual Studio Code 才能使此设置生效。请重新加载 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
@@ -1746,6 +1746,10 @@
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
         <target state="translated">是</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
+        <source xml:lang="en">You must review and accept the terms to proceed</source>
+        <target state="new">You must review and accept the terms to proceed</target>
       </trans-unit>
       <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
         <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
@@ -1795,7 +1799,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
         <source xml:lang="en">database</source>
-        <target state="new">database</target>
+        <target state="translated">数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
@@ -1811,7 +1815,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
         <source xml:lang="en">location</source>
-        <target state="new">location</target>
+        <target state="translated">位置</target>
       </trans-unit>
       <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
         <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
@@ -1819,15 +1823,15 @@
       </trans-unit>
       <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
         <source xml:lang="en">resource group</source>
-        <target state="new">resource group</target>
+        <target state="translated">资源组</target>
       </trans-unit>
       <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
         <source xml:lang="en">server</source>
-        <target state="new">server</target>
+        <target state="translated">服务器</target>
       </trans-unit>
       <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
         <source xml:lang="en">subscription</source>
-        <target state="new">subscription</target>
+        <target state="translated">订阅</target>
       </trans-unit>
       <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
         <source xml:lang="en">test</source>
@@ -1848,7 +1852,7 @@
       <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
         <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
         <note>{0} is the webview name</note>
-        <target state="new">{0} has been closed. Would you like to restore it?</target>
+        <target state="translated">{0} 已关闭。是否要还原它?</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
@@ -1986,7 +1990,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to enables UI-based features</source>
-        <target state="new">Do not show prompts to enables UI-based features</target>
+        <target state="translated">不显示启用基于 UI 的功能的提示</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
@@ -2086,7 +2090,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">在 MSSQL 扩展中启用基于 UI 的功能，以获得更丰富、更强大的功能。请在更改此设置后重启 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
@@ -2102,7 +2106,7 @@
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="new">Estimated Plan</target>
+        <target state="translated">估计计划</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -2246,7 +2250,7 @@
       </trans-unit>
       <trans-unit id="mssql.selectedSubscriptions">
         <source xml:lang="en">Selected Subscriptions</source>
-        <target state="new">Selected Subscriptions</target>
+        <target state="translated">所选的订阅</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
