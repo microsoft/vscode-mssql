@@ -882,9 +882,6 @@
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
     </trans-unit>
-    <trans-unit id="++CODE++2964ac7f10b8f8660382e896f77942c4eacc663c68e6fa92e9fb4fd73d8291e3">
-      <source xml:lang="en">Please indicate that you review and agree to the terms</source>
-    </trans-unit>
     <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
       <source xml:lang="en">Precision</source>
     </trans-unit>
@@ -1328,6 +1325,9 @@
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
+      <source xml:lang="en">You must review and accept the terms to proceed</source>
     </trans-unit>
     <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
       <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
