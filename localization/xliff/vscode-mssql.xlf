@@ -882,6 +882,9 @@
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
     </trans-unit>
+    <trans-unit id="++CODE++2964ac7f10b8f8660382e896f77942c4eacc663c68e6fa92e9fb4fd73d8291e3">
+      <source xml:lang="en">Please indicate that you review and agree to the terms</source>
+    </trans-unit>
     <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
       <source xml:lang="en">Precision</source>
     </trans-unit>
