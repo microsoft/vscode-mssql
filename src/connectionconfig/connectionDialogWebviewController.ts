@@ -140,7 +140,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.state.recentConnections = await this.loadRecentConnections();
             this.updateState();
         } catch (err) {
-            vscode.window.showErrorMessage(getErrorMessage(err));
+            void vscode.window.showErrorMessage(getErrorMessage(err));
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.Initialize,
+                err,
+                false, // includeErrorMessage
+            );
         }
 
         try {
@@ -151,7 +157,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             }
         } catch (err) {
             await this.loadEmptyConnection();
-            vscode.window.showErrorMessage(getErrorMessage(err));
+            void vscode.window.showErrorMessage(getErrorMessage(err));
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.Initialize,
+                err,
+                false, // includeErrorMessage
+            );
         }
 
         this.state.connectionComponents = {
@@ -980,7 +993,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.CreateConnection,
                         error,
-                        undefined, // includeErrorMessage
+                        false, // includeErrorMessage
                         undefined, // errorCode
                         undefined, // errorType
                         {
