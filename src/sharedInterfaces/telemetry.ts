@@ -50,4 +50,7 @@ export enum TelemetryActions {
     CopyHeaders = "CopyHeaders",
     EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     Restore = "Restore",
+    LoadConnection = "LoadConnection",
+    LoadAzureServers = "LoadAzureServers",
+    LoadConnectionProperties = "LoadConnectionProperties",
 }

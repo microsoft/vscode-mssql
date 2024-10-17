@@ -124,9 +124,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
 
         this.registerRpcHandlers();
-        this.initializeDialog().catch((err) =>
-            vscode.window.showErrorMessage(getErrorMessage(err)),
-        );
+        this.initializeDialog().catch((err) => {
+            void vscode.window.showErrorMessage(getErrorMessage(err));
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.Initialize,
+                err,
+                true, // includeErrorMessage
+            );
+        });
     }
 
     private async initializeDialog() {
@@ -429,8 +435,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     }),
                 };
             default:
-                ConnectionDialogWebviewController._logger.log(
-                    `Unhandled connection option type: ${connOption.valueType}`,
+                const error = `Unhandled connection option type: ${connOption.valueType}`;
+                ConnectionDialogWebviewController._logger.log(error);
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadConnectionProperties,
+                    new Error(error),
+                    true, // includeErrorMessage
                 );
         }
     }
@@ -870,6 +881,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("loadConnection", async (state, payload) => {
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadConnection,
+            );
+
             this._connectionToEditCopy = structuredClone(payload.connection);
             this.clearFormError();
             this.state.connectionProfile = payload.connection;
@@ -946,6 +962,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                                     ._connectionToEditCopy
                                     ? "edited"
                                     : "new",
+                                connectionInputType:
+                                    this.state.selectedInputMode,
+                                authMode:
+                                    this.state.connectionProfile
+                                        .authenticationType,
                             },
                         );
 
@@ -959,6 +980,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.CreateConnection,
                         error,
+                        undefined, // includeErrorMessage
+                        undefined, // errorCode
+                        undefined, // errorType
+                        {
+                            connectionInputType: this.state.selectedInputMode,
+                            authMode:
+                                this.state.connectionProfile.authenticationType,
+                        },
                     );
 
                     return state;
@@ -972,6 +1001,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         newOrEditedConnection: this._connectionToEditCopy
                             ? "edited"
                             : "new",
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode:
+                            this.state.connectionProfile.authenticationType,
                     },
                 );
 
@@ -1017,6 +1049,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.CreateConnection,
                     error,
+                    undefined, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode:
+                            this.state.connectionProfile.authenticationType,
+                    },
                 );
 
                 return state;
@@ -1117,6 +1157,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         state: ConnectionDialogWebviewState,
     ): Promise<void> {
         try {
+            const startTime = Date.now();
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
             if (!tenantSubMap) {
@@ -1144,6 +1185,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 }
                 await Promise.all(promiseArray);
 
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadAzureServers,
+                    undefined, // additionalProperties
+                    {
+                        subscriptionCount: promiseArray.length,
+                        msToLoadServers: Date.now() - startTime,
+                    },
+                );
+
                 state.loadingAzureServersStatus = ApiStatus.Loaded;
                 return;
             }
@@ -1151,6 +1202,19 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.formError = l10n.t("Error loading Azure databases.");
             state.loadingAzureServersStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureServers,
+                error,
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                {
+                    connectionInputType: this.state.selectedInputMode,
+                },
+            );
+
             return;
         }
     }
@@ -1179,6 +1243,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     azSub.subscriptionId,
                 ),
                 +"\n" + getErrorMessage(error),
+            );
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureServers,
+                error,
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
             );
         }
     }
