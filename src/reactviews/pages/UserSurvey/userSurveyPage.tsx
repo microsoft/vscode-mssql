@@ -4,25 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    Button,
-    Divider,
-    Field,
-    Link,
-    makeStyles,
-    Radio,
-    RadioGroup,
-    Text,
-    Textarea,
-} from "@fluentui/react-components";
-import { useContext, useState } from "react";
-import { UserSurveyContext } from "./userSurveryStateProvider";
-import { locConstants } from "../../common/locConstants";
-import {
     BaseQuestion,
     NpsQuestion,
     NsatQuestion,
     TextareaQuestion,
 } from "../../../sharedInterfaces/userSurvey";
+import {
+    Button,
+    Divider,
+    Field,
+    Link,
+    Radio,
+    RadioGroup,
+    Text,
+    Textarea,
+    makeStyles,
+} from "@fluentui/react-components";
+import { useContext, useState } from "react";
+
+import { UserSurveyContext } from "./userSurveryStateProvider";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -189,19 +190,19 @@ export const NSATQuestion = ({
                 onChange={(_e, d) => onChange(d.value)}
             >
                 <Radio
-                    value={locConstants.userFeedback.veryDissatisfied}
+                    value={"0"}
                     label={locConstants.userFeedback.veryDissatisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.dissatisfied}
+                    value={"1"}
                     label={locConstants.userFeedback.dissatisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.satisfied}
+                    value={"2"}
                     label={locConstants.userFeedback.satisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.verySatisfied}
+                    value={"3"}
                     label={locConstants.userFeedback.verySatisfied}
                 />
             </RadioGroup>
