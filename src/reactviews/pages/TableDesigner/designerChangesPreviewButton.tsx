@@ -226,58 +226,83 @@ export const DesignerChangesPreviewButton = () => {
         </>
     );
 
-    const previewLoadedSuccessDialogContents = () => (
-        <>
-            <DialogContent>
-                <div className={classes.markdownContainer}>
-                    <ReactMarkdown>
-                        {metadata?.generatePreviewReportResult?.report}
-                    </ReactMarkdown>
-                </div>
-                <Checkbox
-                    label={
-                        locConstants.tableDesigner.designerPreviewConfirmation
-                    }
-                    checked={isConfirmationChecked}
-                    onChange={(_event, data) => {
-                        setIsConfirmationChecked(data.checked as boolean);
-                    }}
-                />
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    className={classes.updateDatabase}
-                    disabled={
-                        !(
-                            isConfirmationChecked &&
-                            metadata.apiState?.previewState === LoadState.Loaded
-                        )
-                    }
-                    appearance="primary"
-                    onClick={() => {
-                        designerContext.provider.publishChanges();
-                    }}
-                >
-                    {locConstants.tableDesigner.updateDatabase}
-                </Button>
-                <DialogTrigger action="close">
+    const previewLoadedSuccessDialogContents = () => {
+        return (
+            <>
+                <DialogContent>
+                    <div className={classes.markdownContainer}>
+                        <ReactMarkdown>
+                            {metadata?.generatePreviewReportResult?.report}
+                        </ReactMarkdown>
+                    </div>
+                    <Checkbox
+                        label={
+                            locConstants.tableDesigner
+                                .designerPreviewConfirmation
+                        }
+                        required
+                        checked={isConfirmationChecked}
+                        onChange={(_event, data) => {
+                            setIsConfirmationChecked(data.checked as boolean);
+                        }}
+                        // Setting initial focus on the checkbox when it is rendered.
+                        autoFocus
+                        /**
+                         * The focus outline is not visible on the checkbox when it is focused programmatically.
+                         * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
+                         * This is most likely a bug in the browser.
+                         */
+                        onFocus={(event) => {
+                            if (event.target.parentElement) {
+                                event.target.parentElement.style.outlineStyle =
+                                    "solid";
+                            }
+                        }}
+                        onBlur={(event) => {
+                            if (event.target.parentElement) {
+                                event.target.parentElement.style.outline =
+                                    "none";
+                            }
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    {getDialogCloseButton()}
+                    <DialogTrigger action="close">
+                        <Button
+                            icon={generateScriptIcon()}
+                            iconPosition="after"
+                            className={classes.openScript}
+                            disabled={
+                                metadata.apiState?.previewState !==
+                                LoadState.Loaded
+                            }
+                            appearance="secondary"
+                            onClick={designerContext.provider.generateScript}
+                        >
+                            {locConstants.tableDesigner.generateScript}
+                        </Button>
+                    </DialogTrigger>
                     <Button
-                        icon={generateScriptIcon()}
-                        iconPosition="after"
-                        className={classes.openScript}
-                        disabled={
-                            metadata.apiState?.previewState !== LoadState.Loaded
+                        className={classes.updateDatabase}
+                        disabled={!isConfirmationChecked}
+                        title={
+                            !isConfirmationChecked
+                                ? locConstants.tableDesigner
+                                      .youMustReviewAndAccept
+                                : locConstants.tableDesigner.updateDatabase
                         }
                         appearance="primary"
-                        onClick={designerContext.provider.generateScript}
+                        onClick={() => {
+                            designerContext.provider.publishChanges();
+                        }}
                     >
-                        {locConstants.tableDesigner.generateScript}
+                        {locConstants.tableDesigner.updateDatabase}
                     </Button>
-                </DialogTrigger>
-                {getDialogCloseButton()}
-            </DialogActions>
-        </>
-    );
+                </DialogActions>
+            </>
+        );
+    };
 
     const getDialogContent = () => {
         if (metadata?.apiState?.publishState === LoadState.Loading) {
