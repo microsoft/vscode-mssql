@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Answers,
     BaseQuestion,
     NpsQuestion,
     NsatQuestion,
@@ -58,7 +59,7 @@ export const UserSurveyPage = () => {
     const classes = useStyles();
     const userSurveryProvider = useContext(UserSurveyContext);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
-    const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+    const [userAnswers, setUserAnswers] = useState<Answers>({});
 
     const updateSubmitButtonState = () => {
         for (let i = 0; i < userSurveryProvider!.state!.questions.length; i++) {
@@ -78,7 +79,7 @@ export const UserSurveyPage = () => {
         setIsSubmitDisabled(false);
     };
 
-    const onAnswerChange = (id: string, answer: string) => {
+    const onAnswerChange = (id: string, answer: string | number) => {
         userAnswers[id] = answer;
         setUserAnswers(userAnswers);
         updateSubmitButtonState();
@@ -163,7 +164,7 @@ export const UserSurveyPage = () => {
 
 export interface QuestionProps<T> {
     question: T;
-    onChange: (data: string) => void;
+    onChange: (data: string | number) => void;
 }
 
 export const NSATQuestion = ({
@@ -187,7 +188,7 @@ export const NSATQuestion = ({
         >
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(d.value)}
+                onChange={(_e, d) => onChange(parseInt(d.value))}
             >
                 <Radio
                     value={"0"}
@@ -228,7 +229,7 @@ export const NPSQuestion = ({
         >
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(d.value)}
+                onChange={(_e, d) => onChange(parseInt(d.value))}
             >
                 <Radio
                     value={"0"}
