@@ -285,7 +285,9 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
-        // gridRefs.current.forEach((r) => r?.refreshGrid());
+        if (!metadata?.isExecutionPlan) {
+            gridRefs.current.forEach((r) => r?.refreshGrid());
+        }
         let totalResultCount = 0;
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             totalResultCount += Object.keys(v).length;
