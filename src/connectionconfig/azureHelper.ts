@@ -5,9 +5,19 @@
 
 import * as vscode from "vscode";
 import { l10n } from "vscode";
-import { ConnectionDialogWebviewState } from "../sharedInterfaces/connectionDialog";
-import { getErrorMessage } from "../utils/utils";
-import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
+import {
+    AzureSqlServerInfo,
+    ConnectionDialogWebviewState,
+} from "../sharedInterfaces/connectionDialog";
+import { getErrorMessage, listAllIterator } from "../utils/utils";
+import {
+    AzureSubscription,
+    VSCodeAzureSubscriptionProvider,
+} from "@microsoft/vscode-azext-azureauth";
+import {
+    GenericResourceExpanded,
+    ResourceManagementClient,
+} from "@azure/arm-resources";
 
 export const azureSubscriptionFilterConfigKey =
     "azureResourceGroups.selectedSubscriptions";
@@ -96,4 +106,75 @@ export async function getQuickPickItems(
         .sort((a, b) => a.label.localeCompare(b.label));
 
     return quickPickItems;
+}
+
+const serverResourceString = "Microsoft.Sql/servers";
+const databaseResourceString = "Microsoft.Sql/servers/databases";
+
+export async function fetchServersFromAzure(
+    sub: AzureSubscription,
+): Promise<AzureSqlServerInfo[]> {
+    const result: AzureSqlServerInfo[] = [];
+    const client = new ResourceManagementClient(
+        sub.credential,
+        sub.subscriptionId,
+    );
+
+    const serversPromise = await listAllIterator<GenericResourceExpanded>(
+        client.resources.list({
+            filter: `resourceType eq '${serverResourceString}'`,
+        }),
+    );
+    const databasesPromise = listAllIterator<GenericResourceExpanded>(
+        client.resources.list({
+            filter: `resourceType eq '${databaseResourceString}'`,
+        }),
+    );
+
+    for (const server of await serversPromise) {
+        result.push({
+            server: server.name,
+            databases: [],
+            location: server.location,
+            resourceGroup: this.extractFromResourceId(
+                server.id,
+                "resourceGroups",
+            ),
+            subscription: `${sub.name} (${sub.subscriptionId})`,
+        });
+    }
+
+    for (const database of await databasesPromise) {
+        const serverName = extractFromResourceId(database.id, "servers");
+        const server = result.find((s) => s.server === serverName);
+        if (server) {
+            server.databases.push(
+                database.name.substring(serverName.length + 1),
+            ); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+        }
+    }
+
+    return result;
+}
+
+function extractFromResourceId(
+    resourceId: string,
+    property: string,
+): string | undefined {
+    if (!property.endsWith("/")) {
+        property += "/";
+    }
+
+    let startIndex = resourceId.indexOf(property);
+
+    if (startIndex === -1) {
+        return undefined;
+    } else {
+        startIndex += property.length;
+    }
+
+    return resourceId.substring(
+        startIndex,
+        resourceId.indexOf("/", startIndex),
+    );
 }
