@@ -126,6 +126,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         this.registerRpcHandlers();
         this.initializeDialog().catch((err) => {
             void vscode.window.showErrorMessage(getErrorMessage(err));
+
+            // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
+            // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.Initialize,
