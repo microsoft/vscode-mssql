@@ -30,6 +30,10 @@ export type Question = NpsQuestion | NsatQuestion | TextareaQuestion | Divider;
 
 export interface BaseQuestion {
     /**
+     * Unique id of the question to identify in telemetry.
+     */
+    id: string;
+    /**
      * The label of the question.
      */
     label: string;
@@ -67,15 +71,17 @@ export interface Divider {
 
 export interface UserSurveyContextProps {
     state: UserSurveyState;
-    submit(answers: Record<string, string>): void;
+    submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;
 }
 
 export interface UserSurveyReducers {
     submit: {
-        answers: Record<string, string>;
+        answers: Answers;
     };
     cancel: {};
     openPrivacyStatement: {};
 }
+
+export type Answers = Record<string, string | number>;
