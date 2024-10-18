@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
+import * as Constants from "../constants/constants";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -19,6 +20,7 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanGraphInfo } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -33,6 +35,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         context: vscode.ExtensionContext,
         private executionPlanService: ExecutionPlanService,
         private untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _vscodeWrapper: VscodeWrapper,
     ) {
         super(context, "queryResult", {
             resultSetSummaries: {},
@@ -44,24 +47,35 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
 
         void this.initialize();
-        vscode.window.onDidChangeActiveTextEditor((editor) => {
-            const uri = editor?.document?.uri?.toString(true);
-            if (uri && this._queryResultStateMap.has(uri)) {
-                this.state = this.getQueryResultState(uri);
-            } else {
-                this.state = {
-                    resultSetSummaries: {},
-                    messages: [],
-                    tabStates: undefined,
-                    isExecutionPlan: false,
-                    executionPlanState: {},
-                };
-            }
-        });
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
+        if (this.isRichExperiencesEnabled) {
+            vscode.window.onDidChangeActiveTextEditor((editor) => {
+                const uri = editor?.document?.uri?.toString(true);
+                if (uri && this._queryResultStateMap.has(uri)) {
+                    this.state = this.getQueryResultState(uri);
+                } else {
+                    this.state = {
+                        resultSetSummaries: {},
+                        messages: [],
+                        tabStates: undefined,
+                        isExecutionPlan: false,
+                        executionPlanState: {},
+                    };
+                }
+            });
+        }
     }
 
     private async initialize() {
         this.registerRpcHandlers();
+    }
+
+    private get isRichExperiencesEnabled(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration()
+            .get(Constants.configEnableRichExperiences);
     }
 
     private registerRpcHandlers() {
