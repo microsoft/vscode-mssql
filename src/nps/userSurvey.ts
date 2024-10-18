@@ -8,13 +8,14 @@ import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 
 import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
-import {
+    Answers,
     UserSurveyReducers,
     UserSurveyState,
 } from "../sharedInterfaces/userSurvey";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -93,26 +94,16 @@ export class UserSurvey {
                 }
                 this._webviewController.revealToForeground();
 
-                const answers = await new Promise<Record<string, string>>(
-                    (resolve) => {
-                        this._webviewController.onSubmit((e) => {
-                            resolve(e);
-                        });
+                const answers = await new Promise<Answers>((resolve) => {
+                    this._webviewController.onSubmit((e) => {
+                        resolve(e);
+                    });
 
-                        this._webviewController.onCancel(() => {
-                            resolve({});
-                        });
-                    },
-                );
-
-                sendActionEvent(
-                    TelemetryViews.UserSurvey,
-                    TelemetryActions.SurverySubmit,
-                    {
-                        surveyId: "nps",
-                        ...answers,
-                    },
-                );
+                    this._webviewController.onCancel(() => {
+                        resolve({});
+                    });
+                });
+                sendSurveyTelemetry("nps", answers);
                 await globalState.update(IS_CANDIDATE_KEY, false);
                 await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             },
@@ -144,7 +135,7 @@ export class UserSurvey {
     public async launchSurvey(
         surveyId: string,
         survey: UserSurveyState,
-    ): Promise<Record<string, string>> {
+    ): Promise<Answers> {
         const state: UserSurveyState = survey;
         if (!this._webviewController || this._webviewController.isDisposed) {
             this._webviewController = new UserSurveyWebviewController(
@@ -156,7 +147,7 @@ export class UserSurvey {
         }
         this._webviewController.revealToForeground();
 
-        const answers = await new Promise<Record<string, string>>((resolve) => {
+        const answers = await new Promise<Answers>((resolve) => {
             this._webviewController.onSubmit((e) => {
                 resolve(e);
             });
@@ -165,27 +156,45 @@ export class UserSurvey {
                 resolve({});
             });
         });
-
-        sendActionEvent(
-            TelemetryViews.UserSurvey,
-            TelemetryActions.SurverySubmit,
-            {
-                surveyId: surveyId,
-                ...answers,
-            },
-        );
+        sendSurveyTelemetry(surveyId, answers);
         return answers;
     }
+}
+
+export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
+    // Separate string answers from number answers
+    const stringAnswers = Object.keys(answers).reduce((acc, key) => {
+        if (typeof answers[key] === "string") {
+            acc[key] = answers[key];
+        }
+        return acc;
+    }, {});
+    const numericalAnswers = Object.keys(answers).reduce((acc, key) => {
+        if (typeof answers[key] === "number") {
+            acc[key] = answers[key];
+        }
+        return acc;
+    }, {});
+
+    sendActionEvent(
+        TelemetryViews.UserSurvey,
+        TelemetryActions.SurverySubmit,
+        {
+            surveyId: surveyId,
+            ...stringAnswers,
+        },
+        numericalAnswers,
+    );
 }
 
 class UserSurveyWebviewController extends ReactWebviewPanelController<
     UserSurveyState,
     UserSurveyReducers
 > {
-    private _onSubmit: vscode.EventEmitter<Record<string, string>> =
-        new vscode.EventEmitter<Record<string, string>>();
-    public readonly onSubmit: vscode.Event<Record<string, string>> =
-        this._onSubmit.event;
+    private _onSubmit: vscode.EventEmitter<Answers> = new vscode.EventEmitter<
+        Record<string, string>
+    >();
+    public readonly onSubmit: vscode.Event<Answers> = this._onSubmit.event;
 
     private _onCancel: vscode.EventEmitter<void> =
         new vscode.EventEmitter<void>();
@@ -237,6 +246,7 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
     return {
         questions: [
             {
+                id: "nps",
                 label: featureName
                     ? locConstants.UserSurvey.howLikelyAreYouToRecommendFeature(
                           featureName,
@@ -247,6 +257,7 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                 required: true,
             },
             {
+                id: "nsat",
                 label: featureName
                     ? locConstants.UserSurvey.overallHowStatisfiedAreYouWithFeature(
                           featureName,
@@ -260,6 +271,7 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
                 type: "divider",
             },
             {
+                id: "comments",
                 label: locConstants.UserSurvey.whatCanWeDoToImprove,
                 type: "textarea",
                 required: false,
