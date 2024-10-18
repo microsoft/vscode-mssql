@@ -22,7 +22,7 @@ export class WebviewRpc<Reducers> {
         };
     } = {};
     private _methodSubscriptions: {
-        [method: string]: ((params: unknown) => void)[];
+        [method: string]: Record<string, (params: unknown) => void>;
     } = {};
     private static _instance: WebviewRpc<any>;
     public static getInstance<Reducers>(
@@ -51,8 +51,8 @@ export class WebviewRpc<Reducers> {
             if (message.type === "notification") {
                 const { method, params } = message;
                 if (this._methodSubscriptions[method]) {
-                    this._methodSubscriptions[method].forEach((callback) =>
-                        callback(params),
+                    Object.values(this._methodSubscriptions[method]).forEach(
+                        (cb) => cb(params),
                     );
                 }
             }
@@ -86,11 +86,15 @@ export class WebviewRpc<Reducers> {
         void this.call("action", { type: method, payload });
     }
 
-    public subscribe(method: string, callback: (params: unknown) => void) {
+    public subscribe(
+        callerId: string,
+        method: string,
+        callback: (params: unknown) => void,
+    ) {
         if (!this._methodSubscriptions[method]) {
-            this._methodSubscriptions[method] = [];
+            this._methodSubscriptions[method] = {};
         }
-        this._methodSubscriptions[method].push(callback);
+        this._methodSubscriptions[method][callerId] = callback;
     }
 
     public sendActionEvent(event: WebviewTelemetryActionEvent) {

@@ -121,22 +121,26 @@ export function VscodeWebviewProvider<State, Reducers>({
         void getLocalization();
     }, []);
 
-    extensionRpc.subscribe("onDidChangeTheme", (params) => {
-        const kind = params as ColorThemeKind;
-        switch (kind) {
-            case ColorThemeKind.Dark:
-                setTheme(webDarkTheme);
-                break;
-            case ColorThemeKind.HighContrast:
-                setTheme(teamsHighContrastTheme);
-                break;
-            default:
-                setTheme(webLightTheme);
-                break;
-        }
-    });
+    extensionRpc.subscribe(
+        "vscodeWebviewProvider",
+        "onDidChangeTheme",
+        (params) => {
+            const kind = params as ColorThemeKind;
+            switch (kind) {
+                case ColorThemeKind.Dark:
+                    setTheme(webDarkTheme);
+                    break;
+                case ColorThemeKind.HighContrast:
+                    setTheme(teamsHighContrastTheme);
+                    break;
+                default:
+                    setTheme(webLightTheme);
+                    break;
+            }
+        },
+    );
 
-    extensionRpc.subscribe("updateState", (params) => {
+    extensionRpc.subscribe("vscodeWebviewProvider", "updateState", (params) => {
         setState(params as State);
     });
 
