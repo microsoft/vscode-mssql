@@ -79,6 +79,7 @@ export const AzureBrowsePage = () => {
         setSubscriptions(subs.sort());
 
         if (!selectedSubscription && subs.length === 1) {
+            setSubscriptionValue(subs[0]);
             setSelectedSubscription(subs[0]);
         }
     }, [context.state.azureSubscriptions]);
