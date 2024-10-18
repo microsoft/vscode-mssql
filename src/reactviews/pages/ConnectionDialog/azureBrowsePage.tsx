@@ -29,6 +29,24 @@ function removeDuplicates<T>(array: T[]): T[] {
     return Array.from(new Set(array));
 }
 
+function updateFilterSelection(
+    /** current selected (valid) option */
+    selected: string,
+    /** callback to set the selected (valid) option */
+    setSelected: (s: string) => void,
+    /** callback to set the displayed value (not guaranteed to be valid if the user has manually typed something) */
+    setValue: (v: string) => void,
+    /** list of valid options */
+    optionList: string[],
+) {
+    // if current selection is no longer in the list of options,
+    // set selection to undefined (if multiple options) or the only option (if only one)
+    if (selected && !optionList.includes(selected)) {
+        setSelected(optionList.length === 1 ? optionList[0] : undefined);
+        setValue(optionList.length === 1 ? optionList[0] : "");
+    }
+}
+
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
     const formStyles = useFormStyles();
@@ -78,9 +96,12 @@ export const AzureBrowsePage = () => {
         );
         setSubscriptions(subs.sort());
 
-        if (!selectedSubscription && subs.length === 1) {
-            setSelectedSubscription(subs[0]);
-        }
+        updateFilterSelection(
+            selectedSubscription,
+            setSelectedSubscription,
+            setSubscriptionValue,
+            subs,
+        );
     }, [context.state.azureSubscriptions]);
 
     useEffect(() => {
@@ -97,11 +118,12 @@ export const AzureBrowsePage = () => {
         );
         setResourceGroups(rgs.sort());
 
-        // if current selection is no longer in the list of options,
-        // set selection to undefined (if multiple options) or the only option (if only one)
-        if (selectedResourceGroup && !rgs.includes(selectedResourceGroup)) {
-            setSelectedResourceGroup(rgs.length === 1 ? rgs[0] : undefined);
-        }
+        updateFilterSelection(
+            selectedResourceGroup,
+            setSelectedResourceGroup,
+            setResourceGroupValue,
+            rgs,
+        );
     }, [subscriptions, selectedSubscription, context.state.azureServers]);
 
     useEffect(() => {
@@ -125,11 +147,12 @@ export const AzureBrowsePage = () => {
 
         setLocations(locs.sort());
 
-        // if current selection is no longer in the list of options,
-        // set selection to undefined (if multiple options) or the only option (if only one)
-        if (selectedLocation && !locs.includes(selectedLocation)) {
-            setSelectedLocation(locs.length === 1 ? locs[0] : undefined);
-        }
+        updateFilterSelection(
+            selectedLocation,
+            setSelectedLocation,
+            setLocationValue,
+            locs,
+        );
     }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
 
     useEffect(() => {
@@ -162,15 +185,12 @@ export const AzureBrowsePage = () => {
         if (selectedServer === "") {
             setServerValue("");
         } else {
-            // if there is no current selection or if the selection is no longer in the list of options (due to changed filters),
-            // set selection to the first option (if any)
-            if (
-                selectedServer === undefined ||
-                !srvs.includes(selectedServer)
-            ) {
-                setSelectedServer(srvs.length > 0 ? srvs[0] : undefined);
-                setServerValue(srvs.length > 0 ? srvs[0] : "");
-            }
+            updateFilterSelection(
+                selectedServer,
+                setSelectedServer,
+                setServerValue,
+                srvs,
+            );
         }
     }, [locations, selectedLocation, context.state.azureServers]);
 
