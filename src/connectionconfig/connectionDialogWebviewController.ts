@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 
 import {
     AuthenticationType,
-    AzureSqlServerInfo,
     AzureSubscriptionInfo,
     ConnectionDialogFormItemSpec,
     ConnectionDialogReducers,
@@ -26,19 +25,16 @@ import {
     FormItemType,
 } from "../reactviews/common/forms/form";
 import {
-    GenericResourceExpanded,
-    ResourceManagementClient,
-} from "@azure/arm-resources";
-import {
     ConnectionDialog as Loc,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
     azureSubscriptionFilterConfigKey,
     confirmVscodeAzureSignin,
+    fetchServersFromAzure,
     promptForAzureSubscriptionFilter,
 } from "./azureHelper";
-import { getErrorMessage, listAllIterator } from "../utils/utils";
+import { getErrorMessage } from "../utils/utils";
 
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
@@ -1116,7 +1112,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         );
 
         try {
-            const servers = await this.fetchServersFromAzure(azSub);
+            const servers = await fetchServersFromAzure(azSub);
             state.azureServers.push(...servers);
             stateSub.loaded = true;
             this.updateState();
@@ -1143,75 +1139,5 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             rv.get(keyValue)!.push(x);
             return rv;
         }, new Map<K, V[]>());
-    }
-
-    private async fetchServersFromAzure(
-        sub: AzureSubscription,
-    ): Promise<AzureSqlServerInfo[]> {
-        const result: AzureSqlServerInfo[] = [];
-        const client = new ResourceManagementClient(
-            sub.credential,
-            sub.subscriptionId,
-        );
-        const servers = await listAllIterator<GenericResourceExpanded>(
-            client.resources.list({
-                filter: "resourceType eq 'Microsoft.Sql/servers'",
-            }),
-        );
-        const databasesPromise = listAllIterator<GenericResourceExpanded>(
-            client.resources.list({
-                filter: "resourceType eq 'Microsoft.Sql/servers/databases'",
-            }),
-        );
-
-        for (const server of servers) {
-            result.push({
-                server: server.name,
-                databases: [],
-                location: server.location,
-                resourceGroup: this.extractFromResourceId(
-                    server.id,
-                    "resourceGroups",
-                ),
-                subscription: `${sub.name} (${sub.subscriptionId})`,
-            });
-        }
-
-        for (const database of await databasesPromise) {
-            const serverName = this.extractFromResourceId(
-                database.id,
-                "servers",
-            );
-            const server = result.find((s) => s.server === serverName);
-            if (server) {
-                server.databases.push(
-                    database.name.substring(serverName.length + 1),
-                ); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
-            }
-        }
-
-        return result;
-    }
-
-    private extractFromResourceId(
-        resourceId: string,
-        property: string,
-    ): string | undefined {
-        if (!property.endsWith("/")) {
-            property += "/";
-        }
-
-        let startIndex = resourceId.indexOf(property);
-
-        if (startIndex === -1) {
-            return undefined;
-        } else {
-            startIndex += property.length;
-        }
-
-        return resourceId.substring(
-            startIndex,
-            resourceId.indexOf("/", startIndex),
-        );
     }
 }
