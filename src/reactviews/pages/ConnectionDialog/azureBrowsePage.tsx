@@ -24,10 +24,7 @@ import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDi
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-
-function removeDuplicates<T>(array: T[]): T[] {
-    return Array.from(new Set(array));
-}
+import { removeDuplicates } from "../../common/utils";
 
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -78,10 +75,12 @@ export const AzureBrowsePage = () => {
         );
         setSubscriptions(subs.sort());
 
-        if (!selectedSubscription && subs.length === 1) {
-            setSubscriptionValue(subs[0]);
-            setSelectedSubscription(subs[0]);
-        }
+        updateFilterSelection(
+            selectedSubscription,
+            setSelectedSubscription,
+            setSubscriptionValue,
+            subs,
+        );
     }, [context.state.azureSubscriptions]);
 
     useEffect(() => {
@@ -98,11 +97,12 @@ export const AzureBrowsePage = () => {
         );
         setResourceGroups(rgs.sort());
 
-        // if current selection is no longer in the list of options,
-        // set selection to undefined (if multiple options) or the only option (if only one)
-        if (selectedResourceGroup && !rgs.includes(selectedResourceGroup)) {
-            setSelectedResourceGroup(rgs.length === 1 ? rgs[0] : undefined);
-        }
+        updateFilterSelection(
+            selectedResourceGroup,
+            setSelectedResourceGroup,
+            setResourceGroupValue,
+            rgs,
+        );
     }, [subscriptions, selectedSubscription, context.state.azureServers]);
 
     useEffect(() => {
@@ -126,11 +126,12 @@ export const AzureBrowsePage = () => {
 
         setLocations(locs.sort());
 
-        // if current selection is no longer in the list of options,
-        // set selection to undefined (if multiple options) or the only option (if only one)
-        if (selectedLocation && !locs.includes(selectedLocation)) {
-            setSelectedLocation(locs.length === 1 ? locs[0] : undefined);
-        }
+        updateFilterSelection(
+            selectedLocation,
+            setSelectedLocation,
+            setLocationValue,
+            locs,
+        );
     }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
 
     useEffect(() => {
@@ -163,15 +164,13 @@ export const AzureBrowsePage = () => {
         if (selectedServer === "") {
             setServerValue("");
         } else {
-            // if there is no current selection or if the selection is no longer in the list of options (due to changed filters),
-            // set selection to the first option (if any)
-            if (
-                selectedServer === undefined ||
-                !srvs.includes(selectedServer)
-            ) {
-                setSelectedServer(srvs.length > 0 ? srvs[0] : undefined);
-                setServerValue(srvs.length > 0 ? srvs[0] : "");
-            }
+            updateFilterSelection(
+                selectedServer,
+                setSelectedServer,
+                setServerValue,
+                srvs,
+                true, // shouldSelectIfAny
+            );
         }
     }, [locations, selectedLocation, context.state.azureServers]);
 
@@ -531,3 +530,37 @@ const AzureBrowseDropdown = ({
         </div>
     );
 };
+
+function updateFilterSelection(
+    /** current selected (valid) option */
+    selected: string | undefined,
+    /** callback to set the selected (valid) option */
+    setSelected: (s: string | undefined) => void,
+    /** callback to set the displayed value (not guaranteed to be valid if the user has manually typed something) */
+    setValue: (v: string) => void,
+    /** list of valid options */
+    optionList: string[],
+    /** if true, will set to the first value in the list of values; if false, will set to undefined */
+    shouldSelectIfAny: boolean = false,
+) {
+    // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
+    // then select the only option if there is only one option,
+    // or either the first option or none if there are multiple options, depending on how shouldSelectIfAny is set
+
+    if (
+        selected === undefined ||
+        (selected && !optionList.includes(selected))
+    ) {
+        let optionToSelect: string | undefined = undefined;
+
+        if (optionList.length > 0) {
+            optionToSelect =
+                optionList.length === 1 || shouldSelectIfAny // list only has one item or it should always pick something
+                    ? optionList[0]
+                    : undefined;
+        }
+
+        setSelected(optionToSelect); // selected value's unselected state should be undefined
+        setValue(optionToSelect ?? ""); // displayed value's unselected state should be an empty string
+    }
+}
