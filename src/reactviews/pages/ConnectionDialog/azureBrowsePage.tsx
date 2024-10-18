@@ -31,19 +31,38 @@ function removeDuplicates<T>(array: T[]): T[] {
 
 function updateFilterSelection(
     /** current selected (valid) option */
-    selected: string,
+    selected: string | undefined,
     /** callback to set the selected (valid) option */
-    setSelected: (s: string) => void,
+    setSelected: (s: string | undefined) => void,
     /** callback to set the displayed value (not guaranteed to be valid if the user has manually typed something) */
     setValue: (v: string) => void,
     /** list of valid options */
     optionList: string[],
+    /** if true, will set to the first value in the list of values; if false, will set to undefined */
+    shouldSelectIfAny?: boolean,
 ) {
     // if current selection is no longer in the list of options,
     // set selection to undefined (if multiple options) or the only option (if only one)
-    if (selected && !optionList.includes(selected)) {
-        setSelected(optionList.length === 1 ? optionList[0] : undefined);
-        setValue(optionList.length === 1 ? optionList[0] : "");
+
+    // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
+    // then select the only option if there is only one option,
+    // or either the first option or none if there are multiple options, depending on how shouldSelectIfAny is set
+
+    if (
+        selected === undefined ||
+        (selected && !optionList.includes(selected))
+    ) {
+        let optionToSelect: string | undefined = undefined;
+
+        if (optionList.length > 0) {
+            optionToSelect =
+                optionList.length === 1 || shouldSelectIfAny // list only has one item or it should always pick something
+                    ? optionList[0]
+                    : undefined;
+        }
+
+        setSelected(optionToSelect); // selected value's unselected state should be undefined
+        setValue(optionToSelect ?? ""); // displayed value's unselected state should be an empty string
     }
 }
 
@@ -190,6 +209,7 @@ export const AzureBrowsePage = () => {
                 setSelectedServer,
                 setServerValue,
                 srvs,
+                true, // shouldSelectIfAny
             );
         }
     }, [locations, selectedLocation, context.state.azureServers]);
