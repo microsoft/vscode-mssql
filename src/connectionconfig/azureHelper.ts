@@ -108,8 +108,9 @@ export async function getQuickPickItems(
     return quickPickItems;
 }
 
-const serverResourceString = "Microsoft.Sql/servers";
-const databaseResourceString = "Microsoft.Sql/servers/databases";
+const serverResourceType = "Microsoft.Sql/servers";
+const databaseResourceType = "Microsoft.Sql/servers/databases";
+const elasticPoolsResourceType = "Microsoft.Sql/servers/elasticpools";
 
 export async function fetchServersFromAzure(
     sub: AzureSubscription,
@@ -120,31 +121,32 @@ export async function fetchServersFromAzure(
         sub.subscriptionId,
     );
 
-    const serversPromise = await listAllIterator<GenericResourceExpanded>(
-        client.resources.list({
-            filter: `resourceType eq '${serverResourceString}'`,
-        }),
-    );
-    const databasesPromise = listAllIterator<GenericResourceExpanded>(
-        client.resources.list({
-            filter: `resourceType eq '${databaseResourceString}'`,
-        }),
+    // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
+    // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases'"
+    // no idea why, so we're fetching all resources and filtering them ourselves
+
+    const resources = await listAllIterator<GenericResourceExpanded>(
+        client.resources.list(),
     );
 
-    for (const server of await serversPromise) {
+    const servers = resources.filter((r) => r.type === serverResourceType);
+    const databases = resources.filter(
+        (r) =>
+            r.type === databaseResourceType ||
+            r.type === elasticPoolsResourceType,
+    );
+
+    for (const server of servers) {
         result.push({
             server: server.name,
             databases: [],
             location: server.location,
-            resourceGroup: this.extractFromResourceId(
-                server.id,
-                "resourceGroups",
-            ),
+            resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
             subscription: `${sub.name} (${sub.subscriptionId})`,
         });
     }
 
-    for (const database of await databasesPromise) {
+    for (const database of databases) {
         const serverName = extractFromResourceId(database.id, "servers");
         const server = result.find((s) => s.server === serverName);
         if (server) {
