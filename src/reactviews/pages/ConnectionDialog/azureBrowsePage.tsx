@@ -24,47 +24,7 @@ import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDi
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-
-function removeDuplicates<T>(array: T[]): T[] {
-    return Array.from(new Set(array));
-}
-
-function updateFilterSelection(
-    /** current selected (valid) option */
-    selected: string | undefined,
-    /** callback to set the selected (valid) option */
-    setSelected: (s: string | undefined) => void,
-    /** callback to set the displayed value (not guaranteed to be valid if the user has manually typed something) */
-    setValue: (v: string) => void,
-    /** list of valid options */
-    optionList: string[],
-    /** if true, will set to the first value in the list of values; if false, will set to undefined */
-    shouldSelectIfAny?: boolean,
-) {
-    // if current selection is no longer in the list of options,
-    // set selection to undefined (if multiple options) or the only option (if only one)
-
-    // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
-    // then select the only option if there is only one option,
-    // or either the first option or none if there are multiple options, depending on how shouldSelectIfAny is set
-
-    if (
-        selected === undefined ||
-        (selected && !optionList.includes(selected))
-    ) {
-        let optionToSelect: string | undefined = undefined;
-
-        if (optionList.length > 0) {
-            optionToSelect =
-                optionList.length === 1 || shouldSelectIfAny // list only has one item or it should always pick something
-                    ? optionList[0]
-                    : undefined;
-        }
-
-        setSelected(optionToSelect); // selected value's unselected state should be undefined
-        setValue(optionToSelect ?? ""); // displayed value's unselected state should be an empty string
-    }
-}
+import { removeDuplicates } from "../../common/utils";
 
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -570,3 +530,37 @@ const AzureBrowseDropdown = ({
         </div>
     );
 };
+
+function updateFilterSelection(
+    /** current selected (valid) option */
+    selected: string | undefined,
+    /** callback to set the selected (valid) option */
+    setSelected: (s: string | undefined) => void,
+    /** callback to set the displayed value (not guaranteed to be valid if the user has manually typed something) */
+    setValue: (v: string) => void,
+    /** list of valid options */
+    optionList: string[],
+    /** if true, will set to the first value in the list of values; if false, will set to undefined */
+    shouldSelectIfAny: boolean = false,
+) {
+    // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
+    // then select the only option if there is only one option,
+    // or either the first option or none if there are multiple options, depending on how shouldSelectIfAny is set
+
+    if (
+        selected === undefined ||
+        (selected && !optionList.includes(selected))
+    ) {
+        let optionToSelect: string | undefined = undefined;
+
+        if (optionList.length > 0) {
+            optionToSelect =
+                optionList.length === 1 || shouldSelectIfAny // list only has one item or it should always pick something
+                    ? optionList[0]
+                    : undefined;
+        }
+
+        setSelected(optionToSelect); // selected value's unselected state should be undefined
+        setValue(optionToSelect ?? ""); // displayed value's unselected state should be an empty string
+    }
+}
