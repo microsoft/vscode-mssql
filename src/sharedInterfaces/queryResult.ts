@@ -44,7 +44,7 @@ export interface QueryResultTabStates {
 
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     uri?: string;
-    resultSetSummaries: Record<number, Record<number, ResultSetSummary>>;
+    resultSetSummaries: { [key: number]: ResultSetSummary };
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;

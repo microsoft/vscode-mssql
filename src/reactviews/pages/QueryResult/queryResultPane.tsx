@@ -62,9 +62,6 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-        fontWeight: "normal",
-        fontSize: "12px",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -80,23 +77,11 @@ const useStyles = makeStyles({
         },
     },
     messagesRows: {
-        height: "18px",
-        fontSize: "12px",
         flexDirection: "row",
         ...shorthands.padding("10px"),
         "> *": {
             marginRight: "10px",
         },
-        borderBottom: "none",
-    },
-    noResultMessage: {
-        fontSize: "14px",
-        margin: "10px 0 0 10px",
-    },
-    hidePanelLink: {
-        fontSize: "14px",
-        margin: "10px 0 0 10px",
-        cursor: "pointer",
     },
 });
 
@@ -193,22 +178,23 @@ export const QueryResultPane = () => {
 
     const gridRefs = useRef<ResultGridHandle[]>([]);
 
-    const renderGrid = (
-        batchId: number,
-        resultId: number,
-        gridCount: number,
-        totalResultCount: number,
-    ) => {
-        const divId = `grid-parent-${batchId}-${resultId}`;
+    const renderGrid = (idx: number) => {
+        const divId = `grid-parent-${idx}`;
         return (
             <div
                 id={divId}
                 className={classes.queryResultContainer}
                 style={{
                     height:
-                        totalResultCount === 1
+                        Object.keys(metadata?.resultSetSummaries ?? [])
+                            .length === 1
                             ? "100%"
-                            : (100 / totalResultCount).toString() + "%",
+                            : (
+                                  100 /
+                                  Object.keys(
+                                      metadata?.resultSetSummaries ?? [],
+                                  ).length
+                              ).toString() + "%",
                 }}
             >
                 <ResultGrid
@@ -219,8 +205,9 @@ export const QueryResultPane = () => {
                         return webViewState.extensionRpc
                             .call("getRows", {
                                 uri: metadata?.uri,
-                                batchId: batchId,
-                                resultId: resultId,
+                                batchId:
+                                    metadata?.resultSetSummaries[idx]?.batchId,
+                                resultId: metadata?.resultSetSummaries[idx]?.id,
                                 rowStart: offset,
                                 numberOfRows: count,
                             })
@@ -230,9 +217,8 @@ export const QueryResultPane = () => {
                                 }
                                 let r = response as qr.ResultSetSubset;
                                 var columnLength =
-                                    metadata?.resultSetSummaries[batchId][
-                                        resultId
-                                    ]?.columnInfo?.length;
+                                    metadata?.resultSetSummaries[idx]
+                                        ?.columnInfo?.length;
                                 // if the result is an execution plan xml,
                                 // get the execution plan graph from it
                                 if (metadata?.isExecutionPlan) {
@@ -265,19 +251,15 @@ export const QueryResultPane = () => {
                                 });
                             });
                     }}
-                    ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
-                    resultSetSummary={
-                        metadata?.resultSetSummaries[batchId][resultId]
-                    }
+                    ref={(gridRef) => (gridRefs.current[idx] = gridRef!)}
+                    resultSetSummary={metadata?.resultSetSummaries[idx]}
                     divId={divId}
                     uri={metadata?.uri}
                     webViewState={webViewState}
                 />
                 <CommandBar
                     uri={metadata?.uri}
-                    resultSetSummary={
-                        metadata?.resultSetSummaries[batchId][resultId]
-                    }
+                    resultSetSummary={metadata?.resultSetSummaries[idx]}
                 />
             </div>
         );
@@ -303,11 +285,7 @@ export const QueryResultPane = () => {
             i < Object.keys(metadata?.resultSetSummaries ?? []).length;
             i++
         ) {
-            var batch = metadata?.resultSetSummaries[i];
-            for (let j = 0; j < Object.keys(batch ?? []).length; j++) {
-                grids.push(renderGrid(i, j, count, totalResultCount));
-                count++;
-            }
+            grids.push(renderGrid(i));
         }
         return grids;
     };
@@ -338,12 +316,9 @@ export const QueryResultPane = () => {
 
     return !metadata || !hasResultsOrMessages(metadata) ? (
         <div>
-            <div className={classes.noResultMessage}>
-                {locConstants.queryResult.noResultMessage}
-            </div>
+            <div>{locConstants.queryResult.noResultMessage}</div>
             <div>
                 <Link
-                    className={classes.hidePanelLink}
                     onClick={async () => {
                         await webViewState.extensionRpc.call("executeCommand", {
                             command: "workbench.action.togglePanel",
@@ -428,10 +403,7 @@ export const QueryResultPane = () => {
                             <TableBody>
                                 {rows.map((row, index) => {
                                     return (
-                                        <TableRow
-                                            key={index}
-                                            className={classes.messagesRows}
-                                        >
+                                        <TableRow key={index}>
                                             <TableCell
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     "time",
