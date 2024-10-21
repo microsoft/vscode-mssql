@@ -1,5 +1,13 @@
 # Change Log
 
+## Version 1.25.0
+* Release date: October 23, 2024
+* Release status: GA
+### What's new in 1.25.0
+* Added `mssql.enableRichExperiences` setting to enable modern experiences (public preview), including a connection dialog, table designer, new query results pane, query plan viewing, and object explorer filtering.  [Learn more](https://github.com/microsoft/vscode-mssql/blob/main/FEATURES.md#modern-features-in-mssql-for-visual-studio-code)
+* Added multiple result set support in new query results pane
+* Added browsing your Azure subscriptions to connect to a SQL database
+
 ## Version 1.24.0
 * Release date: September, 4, 2024
 * Release status: GA
