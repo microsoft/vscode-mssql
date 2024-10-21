@@ -274,12 +274,7 @@ export const QueryResultPane = () => {
         if (!metadata?.isExecutionPlan) {
             gridRefs.current.forEach((r) => r?.refreshGrid());
         }
-        let totalResultCount = 0;
-        Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
-            totalResultCount += Object.keys(v).length;
-        });
 
-        let count = 0;
         for (
             let i = 0;
             i < Object.keys(metadata?.resultSetSummaries ?? []).length;
