@@ -12,6 +12,11 @@ import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentServic
 import { exists } from "../utils/utils";
 import { homedir } from "os";
 import { sqlPlanFileExtension } from "../constants/constants";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
 
 export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -141,6 +146,10 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
     }
 
     private async createExecutionPlanGraphs(content: string) {
+        sendActionEvent(
+            TelemetryViews.QueryPlan,
+            TelemetryActions.OpenQueryPlan,
+        );
         const planFile: ep.ExecutionPlanGraphInfo = {
             graphFileContent: content,
             graphFileType: sqlPlanFileExtension,
