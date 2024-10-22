@@ -1,5 +1,3 @@
-![browse Azure servers](images/ux/connectionDialog-azure.png)
-
 # Modern features in MSSQL for Visual Studio Code
 
 ## Overview
@@ -13,16 +11,21 @@ Some new dialog-based features in MSSQL for Visual Studio Code are under develop
 
 ## Enabling the new features
 After installing the latest version of the MSSQL extension, you can enable the new UI features via prompt:
+![enable new UI experience](images/ux/enable-features.png)
 
 Or via Visual Studio Code – User settings (JSON):
+![modify JSON settings 1](images/ux/enable-features-json-1.png)
+![modify JSON settings 2](images/ux/enable-features-json-2.png)
 
 ## Connection Dialog
 The Connection Dialog allows users to quickly connect to a SQL Server or Azure SQL database through a simple and intuitive interface. It provides multiple input options to cater to different scenarios:
 
 - **Parameters**: Enter individual connection details such as server name, database name, username, and password.
+  ![connection dialog parameters](images/ux/connection-dialog-parameters.png)
 - **Connection String**: Directly input a full connection string for more advanced configurations.
+  ![connection connection string](images/ux/connection-dialog-connection-string.png)
 - **Browse Azure**: Browse available SQL servers and databases in your Azure account, with options to filter by subscription, resource group, and location.
-
+  ![connection brow azure](images/ux/connection-dialog-browse-azure.png)
 In addition to creating new connections, the dialog now includes a Recent Connections panel, making it easier to reconnect to previously used servers. Users can edit and save their connections efficiently, with an improved layout that offers better navigation and usability. The enhanced UI ensures that modifying connection details or switching databases is smoother than ever.
 
 ## Object Explorer (filtering)
