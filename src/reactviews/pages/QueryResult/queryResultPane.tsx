@@ -29,7 +29,11 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
-import { ACTIONBAR_WIDTH_PX, SCROLL_BAR_PX, TABLE_ALIGN_PX } from "./table/table";
+import {
+    ACTIONBAR_WIDTH_PX,
+    SCROLLBAR_PX,
+    TABLE_ALIGN_PX,
+} from "./table/table";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 import { hasResultsOrMessages } from "./queryResultUtils";
@@ -156,7 +160,10 @@ export const QueryResultPane = () => {
 
             if (gridParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
-                    let scrollbarAdjustment = gridCount * MIN_GRID_HEIGHT >= availableHeight ? SCROLL_BAR_PX : 0;
+                    let scrollbarAdjustment =
+                        gridCount * MIN_GRID_HEIGHT >= availableHeight
+                            ? SCROLLBAR_PX
+                            : 0;
 
                     // Calculate the grid height, ensuring it's not smaller than the minimum height
                     const gridHeight = Math.max(
@@ -167,14 +174,16 @@ export const QueryResultPane = () => {
 
                     gridRefs.current.forEach((gridRef) => {
                         gridRef?.resizeGrid(
-                            gridParent.clientWidth - ACTIONBAR_WIDTH_PX - scrollbarAdjustment,
+                            gridParent.clientWidth -
+                                ACTIONBAR_WIDTH_PX -
+                                scrollbarAdjustment,
                             gridHeight,
                         );
                     });
                 } else if (gridCount === 1) {
                     gridRefs.current[0]?.resizeGrid(
                         gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
-                        availableHeight - TABLE_ALIGN_PX
+                        availableHeight - TABLE_ALIGN_PX,
                     );
                 }
             }

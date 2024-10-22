@@ -35,7 +35,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 
 export const ACTIONBAR_WIDTH_PX = 36;
 export const TABLE_ALIGN_PX = 7;
-export const SCROLL_BAR_PX = 15;
+export const SCROLLBAR_PX = 15;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     protected styleElement: HTMLStyleElement;
