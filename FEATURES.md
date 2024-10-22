@@ -24,6 +24,9 @@ Close the `settings.json` file, save the changes, and proceed to restart VS Code
 ## New features
 The latest version of the MSSQL extension introduces a set of powerful new UI features that enhance the development experience. These features make connecting to databases, managing database objects, and analyzing query performance more intuitive and efficient.
 
+[!IMPORTANT]
+All the UI features described below are currently in Public Preview.
+
 ### Connection Dialog
 The Connection Dialog allows users to quickly connect to a SQL Server or Azure SQL database through a simple and intuitive interface. It provides multiple input options to cater to different scenarios:
 
