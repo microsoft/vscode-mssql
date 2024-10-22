@@ -3,20 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState, JSX } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import {
-    Field,
-    Option,
-    Button,
-    Combobox,
-    Spinner,
-    makeStyles,
-    ComboboxProps,
-    OptionOnSelectData,
-    SelectionEvents,
-} from "@fluentui/react-components";
+import { Button, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
@@ -25,6 +15,11 @@ import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.compon
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
+import {
+    DefaultSelectionMode,
+    updateComboboxSelection,
+} from "../../common/comboboxHelper";
+import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -76,7 +71,7 @@ export const AzureBrowsePage = () => {
         );
         setSubscriptions(subs.sort());
 
-        updateFilterSelection(
+        updateComboboxSelection(
             selectedSubscription,
             setSelectedSubscription,
             setSubscriptionValue,
@@ -100,7 +95,7 @@ export const AzureBrowsePage = () => {
         );
         setResourceGroups(rgs.sort());
 
-        updateFilterSelection(
+        updateComboboxSelection(
             selectedResourceGroup,
             setSelectedResourceGroup,
             setResourceGroupValue,
@@ -131,7 +126,7 @@ export const AzureBrowsePage = () => {
 
         setLocations(locs.sort());
 
-        updateFilterSelection(
+        updateComboboxSelection(
             selectedLocation,
             setSelectedLocation,
             setLocationValue,
@@ -171,7 +166,7 @@ export const AzureBrowsePage = () => {
         if (selectedServer === "") {
             setServerValue("");
         } else {
-            updateFilterSelection(
+            updateComboboxSelection(
                 selectedServer,
                 setSelectedServer,
                 setServerValue,
@@ -211,7 +206,7 @@ export const AzureBrowsePage = () => {
 
     return (
         <div>
-            <AzureBrowseDropdown
+            <AzureFilterCombobox
                 label={Loc.connectionDialog.subscriptionLabel}
                 clearable
                 decoration={
@@ -272,7 +267,7 @@ export const AzureBrowsePage = () => {
                         ),
                 }}
             />
-            <AzureBrowseDropdown
+            <AzureFilterCombobox
                 label={Loc.connectionDialog.resourceGroupLabel}
                 clearable
                 content={{
@@ -290,7 +285,7 @@ export const AzureBrowsePage = () => {
                         ),
                 }}
             />
-            <AzureBrowseDropdown
+            <AzureFilterCombobox
                 label={Loc.connectionDialog.locationLabel}
                 clearable
                 content={{
@@ -308,7 +303,7 @@ export const AzureBrowsePage = () => {
                         ),
                 }}
             />
-            <AzureBrowseDropdown
+            <AzureFilterCombobox
                 label={Loc.connectionDialog.serverLabel}
                 required
                 decoration={
@@ -348,7 +343,7 @@ export const AzureBrowsePage = () => {
                         idx={0}
                         props={{ orientation: "horizontal" }}
                     />
-                    <AzureBrowseDropdown
+                    <AzureFilterCombobox
                         label={Loc.connectionDialog.databaseLabel}
                         clearable
                         content={{
@@ -421,172 +416,3 @@ export const AzureBrowsePage = () => {
         </div>
     );
 };
-
-const useFieldDecorationStyles = makeStyles({
-    decoration: {
-        display: "flex",
-        alignItems: "center",
-        columnGap: "4px",
-    },
-});
-
-const AzureBrowseDropdown = ({
-    label,
-    required,
-    clearable,
-    content,
-    decoration,
-    props,
-}: {
-    label: string;
-    required?: boolean;
-    clearable?: boolean;
-    content: {
-        /** list of valid values for the combo box */
-        valueList: string[];
-        /** currently-selected value from `valueList` */
-        selection?: string;
-        /** callback when the user has selected a value from `valueList` */
-        setSelection: (value: string | undefined) => void;
-        /** currently-entered text in the combox, may not be a valid selection value if the user is typing */
-        value: string;
-        /** callback when the user types in the combobox */
-        setValue: (value: string) => void;
-        /** placeholder text for the combobox */
-        placeholder?: string;
-        /** message displayed if focus leaves this combobox and `value` is not a valid value from `valueList` */
-        invalidOptionErrorMessage: string;
-    };
-    decoration?: JSX.Element;
-    props?: Partial<ComboboxProps>;
-}) => {
-    const formStyles = useFormStyles();
-    const decorationStyles = useFieldDecorationStyles();
-    const [validationMessage, setValidationMessage] = useState<string>("");
-
-    // clear validation message as soon as value is valid
-    useEffect(() => {
-        if (content.valueList.includes(content.value)) {
-            setValidationMessage("");
-        }
-    }, [content.value]);
-
-    // only display validation error if focus leaves the field and the value is not valid
-    const onBlur = () => {
-        if (content.value) {
-            setValidationMessage(
-                content.valueList.includes(content.value)
-                    ? ""
-                    : content.invalidOptionErrorMessage,
-            );
-        }
-    };
-
-    const onOptionSelect: (
-        _: SelectionEvents,
-        data: OptionOnSelectData,
-    ) => void = (_, data: OptionOnSelectData) => {
-        content.setSelection(
-            data.selectedOptions.length > 0 ? data.selectedOptions[0] : "",
-        );
-        content.setValue(data.optionText ?? "");
-    };
-
-    function onInput(ev: React.ChangeEvent<HTMLInputElement>) {
-        content.setValue(ev.target.value);
-    }
-
-    return (
-        <div className={formStyles.formComponentDiv}>
-            <Field
-                label={
-                    decoration ? (
-                        <div className={decorationStyles.decoration}>
-                            {label}
-                            {decoration}
-                        </div>
-                    ) : (
-                        label
-                    )
-                }
-                orientation="horizontal"
-                required={required}
-                validationMessage={validationMessage}
-                onBlur={onBlur}
-            >
-                <Combobox
-                    {...props}
-                    value={content.value}
-                    selectedOptions={
-                        content.selection ? [content.selection] : []
-                    }
-                    onInput={onInput}
-                    onOptionSelect={onOptionSelect}
-                    placeholder={content.placeholder}
-                    clearable={clearable}
-                >
-                    {content.valueList.map((val, idx) => {
-                        return (
-                            <Option key={idx} value={val}>
-                                {val}
-                            </Option>
-                        );
-                    })}
-                </Combobox>
-            </Field>
-        </div>
-    );
-};
-
-/** Behavior for how the default selection is determined */
-enum DefaultSelectionMode {
-    /** If there are any options, the first is always selected.  Otherwise, selects nothing. */
-    SelectFirstIfAny,
-    /** Always selects nothing, regardless of if there are available options */
-    AlwaysSelectNone,
-    /** Selects the only option if there's only one.  Otherwise (many or no options) selects nothing. */
-    SelectOnlyOrNone,
-}
-
-function updateFilterSelection(
-    /** current selected (valid) option */
-    selected: string | undefined,
-    /** callback to set the selected (valid) option */
-    setSelected: (s: string | undefined) => void,
-    /** callback to set the displayed value (not guaranteed to be valid if the user has manually typed something) */
-    setValue: (v: string) => void,
-    /** list of valid options */
-    optionList: string[],
-    /** behavior for choosing the default selected value */
-    defaultSelectionMode: DefaultSelectionMode = DefaultSelectionMode.AlwaysSelectNone,
-) {
-    // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
-    // then select the only option if there is only one option,
-    // or either the first option or none if there are multiple options, depending on how shouldSelectIfAny is set
-
-    if (
-        selected === undefined ||
-        (selected && !optionList.includes(selected))
-    ) {
-        let optionToSelect: string | undefined = undefined;
-
-        if (optionList.length > 0) {
-            switch (defaultSelectionMode) {
-                case DefaultSelectionMode.SelectFirstIfAny:
-                    optionToSelect =
-                        optionList.length > 0 ? optionList[0] : undefined;
-                    break;
-                case DefaultSelectionMode.SelectOnlyOrNone:
-                    optionToSelect =
-                        optionList.length === 1 ? optionList[0] : undefined;
-                    break;
-                case DefaultSelectionMode.AlwaysSelectNone:
-                default:
-                    optionToSelect = undefined;
-            }
-        }
-
-        setSelected(optionToSelect); // selected value's unselected state should be undefined
-        setValue(optionToSelect ?? ""); // displayed value's unselected state should be an empty string
-    }
-}
