@@ -52,6 +52,24 @@ Within the designer, the **Script As Create** panel provides an automatically ge
 - **Publish the Script**: Apply your changes directly to the database by selecting **Publish**. This action is powered by DacFX (Data-tier Application Framework), ensuring smooth and reliable deployment of your schema updates.
 - **Copy script**: You can either copy the generated T-SQL script from the preview panel for manual execution or open it directly in the editor for further adjustments and modifications as needed.
 
+## Query Results pane
+The MSSQL extension provides an enhanced query results experience, designed to help developers visualize and understand data output efficiently. The query results are displayed within the same panel that also hosts the integrated terminal, output, debug console, and other tools, providing a unified interface for easy access.
+
+Key features of the query results pane include:
+
+- **Grid View**: Displays query results in a familiar grid format, allowing for easy inspection of the data. You can sort columns in ascending or descending order for quick analysis.
+
+- **Copy Options**: Provides several options for copying data, including copying selected rows, copying with headers, or copying the entire dataset. These options make it easier to transfer data for use in other applications or to share results with others.
+
+- **Export Results**: Includes the ability to export query results to multiple formats such as JSON, Excel, and CSV, allowing you to work with the data outside of Visual Studio Code.
+
+- **Inline Sorting**: You can sort the data by clicking on the column headers directly in the query results view. Sorting can be done in ascending or descending order to make it easier to analyze specific subsets of the data.
+
+- **Estimated Plan**: In addition to running queries, you can now generate an "Estimated Plan" directly from the toolbar, next to the "Run Query" button. This feature allows developers to preview the potential execution plan of a query without actually running it, providing insight into query performance and helping identify any potential inefficiencies.
+
+This updated query results experience is designed to offer flexibility and improved workflow integration, empowering developers to work more effectively with their data.
+
+
 ## Query Plan Visualizer
 The Query Plan Visualizer in the MSSQL extension allows developers to analyze SQL query performance by displaying detailed execution plans. This tool provides insights into how SQL queries are executed, helping developers identify bottlenecks and optimize their queries.
 
