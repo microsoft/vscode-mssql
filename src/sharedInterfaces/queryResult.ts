@@ -9,6 +9,7 @@ import {
     ExecutionPlanState,
     ExecutionPlanWebviewState,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
 
 export enum QueryResultLoadState {
     Loading = "Loading",
@@ -48,6 +49,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
+    selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState & {
         xmlPlans?: string[];
     };

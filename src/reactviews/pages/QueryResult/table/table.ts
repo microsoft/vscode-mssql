@@ -49,9 +49,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _autoscroll?: boolean;
     private _container: HTMLElement;
     protected _tableContainer: HTMLElement;
-    private selectionModel = new CellSelectionModel<T>({
-        hasRowSelector: true,
-    });
+    private selectionModel: CellSelectionModel<T>;
     private uri: string;
     private resultSetSummary: ResultSetSummary;
     private webViewState: VscodeWebviewContext<
@@ -75,6 +73,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
         this.webViewState = webViewState;
+        this.selectionModel = new CellSelectionModel<T>(
+            {
+                hasRowSelector: true,
+            },
+            webViewState,
+        );
         if (
             !configuration ||
             !configuration.dataProvider ||
