@@ -20,10 +20,10 @@ export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     /**
-     * Gets the execution plan graph from the provider for a given plan file
-     * @param planFile file that contains the execution plan
+     * Gets the execution plan graph from the provider for a result set
+     * @param uri the uri of the query result state this request is associated with
      */
-    getExecutionPlan(xmlPlans: string[]): void;
+    getExecutionPlan(uri: string): void;
 
     /**
      * Gets the execution plan graph from the provider for a given plan file
@@ -59,7 +59,7 @@ export interface QueryResultReducers
         tabId: QueryResultPaneTabs;
     };
     getExecutionPlan: {
-        xmlPlans: string[];
+        uri: string;
     };
     addXmlPlan: {
         xmlPlan: string;

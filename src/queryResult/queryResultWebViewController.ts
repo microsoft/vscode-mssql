@@ -80,13 +80,22 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private registerRpcHandlers() {
         this.registerRequestHandler("getRows", async (message) => {
-            return await this._sqlOutputContentProvider.rowRequestHandler(
+            let result = await this._sqlOutputContentProvider.rowRequestHandler(
                 message.uri,
                 message.batchId,
                 message.resultId,
                 message.rowStart,
                 message.numberOfRows,
             );
+            let currentState = this.getQueryResultState(message.uri);
+            if (currentState.isExecutionPlan) {
+                currentState.executionPlanState.xmlPlans =
+                    currentState.executionPlanState.xmlPlans.concat(
+                        result.rows[0][0].displayValue,
+                    );
+            }
+            this._queryResultStateMap.set(message.uri, currentState);
+            return result;
         });
         this.registerRequestHandler("setEditorSelection", async (message) => {
             return await this._sqlOutputContentProvider.editorSelectionRequestHandler(
@@ -164,10 +173,23 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            await this.createExecutionPlanGraphs(state, payload.xmlPlans);
-            state.executionPlanState.loadState = ApiStatus.Loaded;
-            state.tabStates.resultPaneTab =
-                qr.QueryResultPaneTabs.ExecutionPlan;
+            const currentResultState = this.getQueryResultState(payload.uri);
+            console.log(currentResultState);
+            if (
+                currentResultState.executionPlanState.xmlPlans.length &&
+                currentResultState.executionPlanState.xmlPlans.length ===
+                    Object.keys(currentResultState.resultSetSummaries).length &&
+                currentResultState.executionPlanState.executionPlanGraphs
+                    .length === 0
+            ) {
+                await this.createExecutionPlanGraphs(
+                    state,
+                    currentResultState.executionPlanState.xmlPlans,
+                );
+                state.executionPlanState.loadState = ApiStatus.Loaded;
+                state.tabStates.resultPaneTab =
+                    qr.QueryResultPaneTabs.ExecutionPlan;
+            }
             return state;
         });
         this.registerReducer("addXmlPlan", async (state, payload) => {
