@@ -105,18 +105,17 @@ export abstract class ReactWebviewBaseController<State, Reducers>
 
     protected _getHtmlTemplate() {
         const nonce = getNonce();
-        const baseUrl =
-            this._getWebview()
-                .asWebviewUri(
-                    vscode.Uri.joinPath(
-                        this._context.extensionUri,
-                        "out",
-                        "src",
-                        "reactviews",
-                        "assets",
-                    ),
-                )
-                .toString() + "/";
+
+        const baseUrl = this._getWebview().asWebviewUri(
+            vscode.Uri.joinPath(
+                this._context.extensionUri,
+                "out",
+                "src",
+                "reactviews",
+                "assets",
+            ),
+        );
+        const baseUrlString = baseUrl.toString() + "/";
 
         return `
 		<!DOCTYPE html>
@@ -125,7 +124,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
 					<meta charset="UTF-8">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<title>mssqlwebview</title>
-					<base href="${baseUrl}"> <!-- Required for loading relative resources in the webview -->
+					<base href="${baseUrlString}"> <!-- Required for loading relative resources in the webview -->
 				<style>
 					html, body {
 						margin: 0;
