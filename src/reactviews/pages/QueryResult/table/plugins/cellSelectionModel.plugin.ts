@@ -44,7 +44,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         } else {
             // this is added by the node requires above
             this.selector = new CellRangeSelector({
-                selectionCss: { border: "2px dashed grey" },
+                selectionCss: { border: "4px dashed grey" },
             });
         }
     }
