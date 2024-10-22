@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
-import { stubTelemetery as stubTelemetry } from "./utils";
+import { stubTelemetery, stubTelemetery as stubTelemetry } from "./utils";
 
 suite("ReactWebviewPanelController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -168,7 +168,7 @@ suite("ReactWebviewPanelController", () => {
         const options = {
             showRestorePromptAfterClose: true,
         };
-        const controller = createController(options);
+        createController(options);
         // Set up the stub to return the Restore option
         const restoreOption = {
             title: "Restore",
@@ -215,20 +215,87 @@ suite("ReactWebviewPanelController", () => {
             "Restore option run should be called once",
         );
 
-        // To test the side effects within run, we need to redefine run
-        sandbox.restore();
-        sandbox = sinon.createSandbox();
-        sendActionEventStub = sandbox
-            .stub(telemetry, "sendActionEvent")
-            .resolves();
-        showInformationMessageStub = sandbox.stub(
-            vscode.window,
-            "showInformationMessage",
+        // Disposing the panel should not be called
+        assert.strictEqual(
+            (mockPanel.dispose as sinon.SinonStub).calledOnce,
+            false,
+            "Panel should not be disposed",
         );
-        sandbox.stub(locConstants, "Webview").value({
-            webviewRestorePrompt: sandbox.stub().returns("Restore webview?"),
-            Restore: "Restore",
+    });
+
+    test("should dispose without showing restore prompt when showRestorePromptAfterClose is false", async () => {
+        const options = {
+            showRestorePromptAfterClose: false,
+        };
+
+        const onDidReceiveMessageStub =
+            mockWebview.onDidReceiveMessage as sinon.SinonStub;
+        onDidReceiveMessageStub.returns({
+            dispose: sinon.stub().returns(true),
         });
+
+        const onDidDispose = mockPanel.onDidDispose as sinon.SinonStub;
+        onDidDispose.returns({
+            dispose: sinon.stub().returns(true),
+        });
+        const controller = createController(options);
+        sandbox.stub(controller, "dispose").resolves();
+
+        // Simulate panel disposal
+        const disposeHandler = (mockPanel.onDidDispose as sinon.SinonStub)
+            .firstCall.args[0];
+        await disposeHandler();
+
+        // Expect showInformationMessage to not be called
+        assert.strictEqual(
+            showInformationMessageStub.calledOnce,
+            false,
+            "showInformationMessage should not be called",
+        );
+
+        // Disposing the panel should be called
+        assert.strictEqual(
+            (controller.dispose as sinon.SinonStub).calledOnce,
+            true,
+            "Panel should be disposed",
+        );
+    });
+
+    test("should set showRestorePromptAfterClose correctly via setter", () => {
+        const controller = createController();
+        controller.showRestorePromptAfterClose = true;
+
+        // To verify, we need to access the private _options
+        const options = (controller as any)._options;
+        assert.strictEqual(
+            options.showRestorePromptAfterClose,
+            true,
+            "showRestorePromptAfterClose should be set to true",
+        );
+    });
+
+    test("Should generate correct HTML template", () => {
+        const asWebviewUriStub = mockWebview.asWebviewUri as sinon.SinonStub;
+        asWebviewUriStub.returns(vscode.Uri.parse("https://example.com/"));
+        const controller = createController();
+        const html = controller["_getHtmlTemplate"]();
+        assert.strictEqual(typeof html, "string", "HTML should be a string");
+        assert.ok(
+            html.includes("testSource.css"),
+            "HTML should include testSource.css",
+        );
+        assert.ok(
+            html.includes("testSource.js"),
+            "HTML should include testSource.js",
+        );
+        assert.ok(
+            html.includes('nonce="test-nonce"'),
+            "HTML should include the nonce",
+        );
+        assert.ok(
+            html.includes('<base href="https://example.com//">'),
+            "HTML should include the correct base href",
+        );
     });
 });
 
