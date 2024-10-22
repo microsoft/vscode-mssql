@@ -1831,6 +1831,9 @@
       <Item ItemId=";bundle.++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You must review and accept the terms to proceed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[您必須檢閱並接受條款才能繼續]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
