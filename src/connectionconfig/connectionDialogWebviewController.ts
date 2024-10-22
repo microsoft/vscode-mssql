@@ -1211,6 +1211,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 );
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
+                state.azureServers = [];
                 this.updateState();
 
                 const startTime = Date.now();
