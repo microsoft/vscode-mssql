@@ -58,14 +58,10 @@ The MSSQL extension provides an enhanced query results experience, designed to h
 Key features of the query results pane include:
 
 - **Grid View**: Displays query results in a familiar grid format, allowing for easy inspection of the data. You can sort columns in ascending or descending order for quick analysis.
-
 - **Copy Options**: Provides several options for copying data, including copying selected rows, copying with headers, or copying the entire dataset. These options make it easier to transfer data for use in other applications or to share results with others.
-
 - **Export Results**: Includes the ability to export query results to multiple formats such as JSON, Excel, and CSV, allowing you to work with the data outside of Visual Studio Code.
-
 - **Inline Sorting**: You can sort the data by clicking on the column headers directly in the query results view. Sorting can be done in ascending or descending order to make it easier to analyze specific subsets of the data.
-
-- **Estimated Plan**: In addition to running queries, you can now generate an "Estimated Plan" directly from the toolbar, next to the "Run Query" button. This feature allows developers to preview the potential execution plan of a query without actually running it, providing insight into query performance and helping identify any potential inefficiencies.
+- **Estimated Plan**: The "Estimated Plan" button is located in the query toolbar, next to the "Run Query" button. It appears as a flowchart icon and allows you to generate an estimated execution plan without executing the query itself. This feature provides valuable insight into query performance, helping identify potential bottlenecks and inefficiencies before running the actual query.
 
 This updated query results experience is designed to offer flexibility and improved workflow integration, empowering developers to work more effectively with their data.
 
