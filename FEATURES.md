@@ -86,7 +86,7 @@ Key features and capabilities include:
 - **Zoom Controls**: The visualizer offers flexible zoom options to help you analyze the plan in detail. You can zoom in or out to adjust the level of detail, use the "zoom to fit" feature to resize the view and fit the entire plan on your screen, or set custom zoom levels for more precise examination of specific elements.
 - **Metrics and Highlighting**: The metrics toolbar allows you to analyze key performance indicators and highlight expensive operations. You can select metrics such as **Actual Elapsed Time**, **Cost**, **Subtree Cost**, or **Number of Rows Read** from the dropdown to identify bottlenecks and use these metrics to search for specific nodes within the query plan for deeper analysis.
 
-![query plan visualizer](images/ux/sql-plan-visualizer.png)
+![query pla visualizer](images/ux/sql-plan-visualizer.png)
 
 The right-hand sidebar provides quick access to additional actions:
   - **Save Plan**: Save the current execution plan for future reference.
@@ -94,3 +94,7 @@ The right-hand sidebar provides quick access to additional actions:
   - **Open Query**: View the query that generated the execution plan directly from the toolbar.
   - **Toggle Tooltips**: Enable or disable tooltips for additional details on each node.
   - **Properties**: View the properties of each node in the execution plan, with options to sort by importance or alphabetically.
+
+## Share Your Feedback
+
+We’d love to hear your thoughts on the new features! If you have any feedback or run into issues, please let us know by creating a GitHub issue at [https://github.com/microsoft/vscode-mssql/issues](https://github.com/microsoft/vscode-mssql/issues).
