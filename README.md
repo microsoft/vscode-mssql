@@ -1,23 +1,42 @@
 [![Daily Build and Test](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml/badge.svg?branch=main&event=schedule)](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
+## Welcome to **mssql** for Visual Studio Code!
 
-# mssql for Visual Studio Code
+This extension is designed to help developers seamlessly work with their databases, making it easier to use SQL Server or any Azure SQL service (including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs) as the backend for their applications. With a rich set of features, **mssql** for Visual Studio Code enhances the development experience, offering functionalities such as:
 
-Welcome to **mssql** for Visual Studio Code! An extension for developing Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere with a rich set of functionalities, including:
-
-* Connect to Microsoft SQL Server, Azure SQL Database and SQL Data Warehouses.
-* Create and manage connection profiles and most recently used connections.
-* Write T-SQL script with IntelliSense, Go to Definition, T-SQL snippets, syntax colorizations, T-SQL error validations and ```GO``` batch separator.
-* Execute your scripts and view results in a simple to use grid.
-* Save the result to json or csv file format and view in the editor.
-* Customizable extension options including command shortcuts and more.
-
-See [the mssql extension tutorial] for the step by step guide.
-
-See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
+- **Connect to Microsoft SQL Server and Azure SQL Database**: Seamlessly connect to your databases to manage and query data. The new **Connection Dialog (`Preview`)** offers a more intuitive interface, with options for entering parameters, connection strings, or browsing Azure databases. The Recent Connections panel provides quick access to previously used servers.
+- **Create and manage connection profiles**: Easily manage multiple connection profiles and quickly reconnect using your most recently used connections.
+- **Enhanced T-SQL Editing Experience**: Write T-SQL scripts with a range of powerful features, including:
+  - IntelliSense for faster and more accurate coding.
+  - Go to Definition for exploring database objects.
+  - T-SQL snippets to speed up repetitive tasks.
+  - Syntax colorizations and T-SQL error validations.
+  - Support for the `GO` batch separator.
+- **Execute queries and View Results (`Preview`)**: Run your scripts and view results in a simple, yet powerful, grid with improved data visualization features:
+  - View results in a unified interface alongside the integrated terminal and output panels.
+  - Sort results by clicking on column headers.
+  - Easily copy results with or without headers for use in other applications.
+  - Export results to multiple formats, including JSON, Excel, and CSV.
+- **Object Explorer (`Preview`)**: Navigate through your database objects, such as databases, tables, views, and programmability items. Enhanced filtering allows you to filter database objects by properties like name, owner, or creation date, making it easier to locate specific objects within large database hierarchies.
+- **Table Designer (`Preview`)**: A visual tool for creating and managing tables in your databases. Design every aspect of the table's structure, including:
+  - Adding columns, setting data types, and specifying default values.
+  - Defining primary keys and managing indexes to improve query performance.
+  - Setting up foreign keys to maintain data integrity across tables.
+  - Configuring advanced options like check constraints.
+  - **Script As Create**: Automatically generate T-SQL scripts for your table design and apply changes directly to the database.
+- **Query Plan Visualizer (`Preview`)**: Analyze SQL query performance with detailed execution plans. Key features include:
+  - **Node Navigation**: Interact with each step in the execution plan, including collapsing or expanding nodes for a simplified view.
+  - **Zoom Controls**: Zoom in or out to adjust the level of detail, or use "zoom to fit" for a complete view of the plan.
+  - **Metrics and Highlighting**: Highlight key performance indicators, such as elapsed time or subtree cost, to identify bottlenecks in query execution.
+- **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+
+Get started today and experience a streamlined SQL development workflow with **mssql** for Visual Studio Code!
+
+* See [the mssql extension tutorial] for the step by step guide.
+* See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
 
 ## Using
 
