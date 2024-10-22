@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
-import { stubTelemetery, stubTelemetery as stubTelemetry } from "./utils";
+import { stubTelemetry } from "./utils";
 
 suite("ReactWebviewPanelController", () => {
     let sandbox: sinon.SinonSandbox;

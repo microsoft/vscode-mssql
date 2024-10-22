@@ -15,7 +15,7 @@ export async function activateExtension() {
 }
 
 // Stubs the telemetry code
-export function stubTelemetery(sandbox?: sinon.SinonSandbox) {
+export function stubTelemetry(sandbox?: sinon.SinonSandbox) {
     if (sandbox) {
         return [
             sandbox.stub(telemetry, "sendActionEvent").callsFake(() => {}),
