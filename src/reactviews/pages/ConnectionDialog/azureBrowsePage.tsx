@@ -67,6 +67,7 @@ export const AzureBrowsePage = () => {
 
     // #region Effects
 
+    // subscriptions
     useEffect(() => {
         const subs = removeDuplicates(
             context.state.azureSubscriptions.map(
@@ -80,9 +81,11 @@ export const AzureBrowsePage = () => {
             setSelectedSubscription,
             setSubscriptionValue,
             subs,
+            DefaultSelectionMode.AlwaysSelectNone,
         );
     }, [context.state.azureSubscriptions]);
 
+    // resource groups
     useEffect(() => {
         let activeServers = context.state.azureServers;
 
@@ -102,9 +105,11 @@ export const AzureBrowsePage = () => {
             setSelectedResourceGroup,
             setResourceGroupValue,
             rgs,
+            DefaultSelectionMode.AlwaysSelectNone,
         );
     }, [subscriptions, selectedSubscription, context.state.azureServers]);
 
+    // locations
     useEffect(() => {
         let activeServers = context.state.azureServers;
 
@@ -131,9 +136,11 @@ export const AzureBrowsePage = () => {
             setSelectedLocation,
             setLocationValue,
             locs,
+            DefaultSelectionMode.AlwaysSelectNone,
         );
     }, [resourceGroups, selectedResourceGroup, context.state.azureServers]);
 
+    // servers
     useEffect(() => {
         let activeServers = context.state.azureServers;
 
@@ -169,7 +176,7 @@ export const AzureBrowsePage = () => {
                 setSelectedServer,
                 setServerValue,
                 srvs,
-                true, // shouldSelectIfAny
+                DefaultSelectionMode.SelectFirstIfAny,
             );
         }
     }, [locations, selectedLocation, context.state.azureServers]);
@@ -531,6 +538,16 @@ const AzureBrowseDropdown = ({
     );
 };
 
+/** Behavior for how the default selection is determined */
+enum DefaultSelectionMode {
+    /** If there are any options, the first is always selected.  Otherwise, selects nothing. */
+    SelectFirstIfAny,
+    /** Always selects nothing, regardless of if there are available options */
+    AlwaysSelectNone,
+    /** Selects the only option if there's only one.  Otherwise (many or no options) selects nothing. */
+    SelectOnlyOrNone,
+}
+
 function updateFilterSelection(
     /** current selected (valid) option */
     selected: string | undefined,
@@ -540,8 +557,8 @@ function updateFilterSelection(
     setValue: (v: string) => void,
     /** list of valid options */
     optionList: string[],
-    /** if true, will set to the first value in the list of values; if false, will set to undefined */
-    shouldSelectIfAny: boolean = false,
+    /** behavior for choosing the default selected value */
+    defaultSelectionMode: DefaultSelectionMode = DefaultSelectionMode.AlwaysSelectNone,
 ) {
     // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
     // then select the only option if there is only one option,
@@ -554,10 +571,19 @@ function updateFilterSelection(
         let optionToSelect: string | undefined = undefined;
 
         if (optionList.length > 0) {
-            optionToSelect =
-                optionList.length === 1 || shouldSelectIfAny // list only has one item or it should always pick something
-                    ? optionList[0]
-                    : undefined;
+            switch (defaultSelectionMode) {
+                case DefaultSelectionMode.SelectFirstIfAny:
+                    optionToSelect =
+                        optionList.length > 0 ? optionList[0] : undefined;
+                    break;
+                case DefaultSelectionMode.SelectOnlyOrNone:
+                    optionToSelect =
+                        optionList.length === 1 ? optionList[0] : undefined;
+                    break;
+                case DefaultSelectionMode.AlwaysSelectNone:
+                default:
+                    optionToSelect = undefined;
+            }
         }
 
         setSelected(optionToSelect); // selected value's unselected state should be undefined
