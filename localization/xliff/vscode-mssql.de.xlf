@@ -1749,7 +1749,7 @@
       </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
-        <target state="new">You must review and accept the terms to proceed</target>
+        <target state="translated">Sie müssen die Bedingungen überprüfen und akzeptieren, um fortzufahren.</target>
       </trans-unit>
       <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
         <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
