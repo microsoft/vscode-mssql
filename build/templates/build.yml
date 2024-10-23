@@ -60,7 +60,7 @@ steps:
     displayName: Publish code coverage
     inputs:
       summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
-\   condition: succeededOrFailed()
+    condition: succeededOrFailed()
 
   - task: gulp@1
     displayName: Package (online)
