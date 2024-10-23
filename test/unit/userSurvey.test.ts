@@ -113,9 +113,7 @@ suite("UserSurvey Tests", () => {
         );
 
         const userSurvey = UserSurvey.getInstance();
-        const launchSurveyStub = sandbox
-            .stub(userSurvey, "launchSurvey")
-            .resolves();
+        sandbox.stub(userSurvey, "launchSurvey").resolves();
         const onSubmitStub = sandbox.stub();
         const onCancelStub = sandbox.stub();
         // Mock the webview controller
