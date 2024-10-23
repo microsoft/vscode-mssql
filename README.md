@@ -1,7 +1,7 @@
 [![Daily Build and Test](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml/badge.svg?branch=main&event=schedule)](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
-## Welcome to **mssql** for Visual Studio Code!
+# mssql for Visual Studio Code
 
 This extension is designed to help developers seamlessly work with their databases, making it easier to use SQL Server or any Azure SQL service (including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs) as the backend for their applications. With a rich set of features, **mssql** for Visual Studio Code enhances the development experience, offering functionalities such as:
 
