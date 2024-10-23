@@ -167,4 +167,46 @@ suite("UserSurvey Tests", () => {
             "sendActionEvent should be called with correct arguments",
         );
     });
+
+    test('Should reduce session count when user clicks "Later"', async () => {
+        globalState.get.withArgs("nps/isCandidate").returns(true);
+        globalState.get.withArgs("nps/sessionCount").returns(5);
+
+        showInformationMessageStub.callsFake(
+            async (_text, takeButton, _laterButton, _neverButton) => {
+                return _laterButton;
+            },
+        );
+
+        const userSurvey = UserSurvey.getInstance();
+        sandbox.stub(userSurvey, "launchSurvey").resolves();
+
+        await userSurvey.promptUserForNPSFeedback();
+
+        assert.strictEqual(
+            globalState.update.calledWith("nps/sessionCount", 3),
+            true,
+            "session count should be decremented",
+        );
+    });
+
+    test("Should set never key when user clicks 'Never'", async () => {
+        globalState.get.withArgs("nps/isCandidate").returns(true);
+        showInformationMessageStub.callsFake(
+            async (_text, takeButton, _laterButton, neverButton) => {
+                return neverButton;
+            },
+        );
+
+        const userSurvey = UserSurvey.getInstance();
+        sandbox.stub(userSurvey, "launchSurvey").resolves();
+
+        await userSurvey.promptUserForNPSFeedback();
+
+        assert.strictEqual(
+            globalState.update.calledWith("nps/never", true),
+            true,
+            "should set never key",
+        );
+    });
 });
