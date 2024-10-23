@@ -186,7 +186,7 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
 
     sendActionEvent(
         TelemetryViews.UserSurvey,
-        TelemetryActions.SurverySubmit,
+        TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
             ...stringAnswers,
