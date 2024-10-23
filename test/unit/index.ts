@@ -30,8 +30,9 @@ if (!tty.getWindowSize) {
 
 export async function run(): Promise<void> {
     const testsRoot = path.resolve(__dirname, "..");
-    console.log("Test root", testsRoot);
-    console.log("Base config", path.join(__dirname, "..", ".."));
+
+    process.env.JUNIT_REPORT_PATH =
+        path.join(__dirname, "..", "..") + "/test-reports/test-results-ext.xml";
 
     // Setup coverage pre-test, including post-test hook to report
     const nyc = new NYC({
@@ -77,6 +78,17 @@ export async function run(): Promise<void> {
     const mocha = new Mocha({
         ui: "tdd",
         timeout: 10 * 1000,
+        reporter: "mocha-junit-reporter",
+        reporterOptions: {
+            mochaFile: path.join(
+                __dirname,
+                "..",
+                "..",
+                "..",
+                "test-reports",
+                "test-results-ext.xml",
+            ),
+        },
     });
     (mocha.options as any).color = true;
 
