@@ -188,3 +188,60 @@ export function createStyleSheet(
     container.appendChild(style);
     return style;
 }
+
+export const EventType = {
+    // Mouse
+    CLICK: "click",
+    AUXCLICK: "auxclick",
+    DBLCLICK: "dblclick",
+    MOUSE_UP: "mouseup",
+    MOUSE_DOWN: "mousedown",
+    MOUSE_OVER: "mouseover",
+    MOUSE_MOVE: "mousemove",
+    MOUSE_OUT: "mouseout",
+    MOUSE_ENTER: "mouseenter",
+    MOUSE_LEAVE: "mouseleave",
+    MOUSE_WHEEL: "wheel",
+    POINTER_UP: "pointerup",
+    POINTER_DOWN: "pointerdown",
+    POINTER_MOVE: "pointermove",
+    POINTER_LEAVE: "pointerleave",
+    CONTEXT_MENU: "contextmenu",
+    WHEEL: "wheel",
+    // Keyboard
+    KEY_DOWN: "keydown",
+    KEY_PRESS: "keypress",
+    KEY_UP: "keyup",
+    // HTML Document
+    LOAD: "load",
+    BEFORE_UNLOAD: "beforeunload",
+    UNLOAD: "unload",
+    PAGE_SHOW: "pageshow",
+    PAGE_HIDE: "pagehide",
+    ABORT: "abort",
+    ERROR: "error",
+    RESIZE: "resize",
+    SCROLL: "scroll",
+    FULLSCREEN_CHANGE: "fullscreenchange",
+    WK_FULLSCREEN_CHANGE: "webkitfullscreenchange",
+    // Form
+    SELECT: "select",
+    CHANGE: "change",
+    SUBMIT: "submit",
+    RESET: "reset",
+    FOCUS: "focus",
+    FOCUS_IN: "focusin",
+    FOCUS_OUT: "focusout",
+    BLUR: "blur",
+    INPUT: "input",
+    // Local Storage
+    STORAGE: "storage",
+    // Drag
+    DRAG_START: "dragstart",
+    DRAG: "drag",
+    DRAG_ENTER: "dragenter",
+    DRAG_LEAVE: "dragleave",
+    DRAG_OVER: "dragover",
+    DROP: "drop",
+    DRAG_END: "dragend",
+} as const;
