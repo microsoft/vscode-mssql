@@ -37,6 +37,8 @@ Get started today and experience a streamlined SQL development workflow with **m
 
 * See [the mssql extension tutorial] for the step by step guide.
 * See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
+* Discover more about developing locally with Azure SQL Database by following the [Azure SQL local development overview](https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-overview).
+* Explore a variety of resources for Azure SQL Database development by visiting [Azure SQL Database developer resources](https://azure.microsoft.com/en-us/products/azure-sql/database#tabs-pill-bar-oc0283_tab2).
 
 ## Using
 
@@ -107,7 +109,8 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.format.placeSelectStatementReferencesOnNewLine": false,
     "mssql.applyLocalization": false,
     "mssql.query.displayBitAsNumber": true,
-    "mssql.persistQueryResultTabs": false
+    "mssql.persistQueryResultTabs": false,
+    "mssql.enableRichExperiences": true
 }
 ```
 
