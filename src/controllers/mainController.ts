@@ -531,6 +531,7 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this.executionPlanService,
             this.untitledSqlDocumentService,
+            this._vscodeWrapper,
         );
 
         // Init content provider for results pane

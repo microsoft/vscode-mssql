@@ -4,25 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    Button,
-    Divider,
-    Field,
-    Link,
-    makeStyles,
-    Radio,
-    RadioGroup,
-    Text,
-    Textarea,
-} from "@fluentui/react-components";
-import { useContext, useState } from "react";
-import { UserSurveyContext } from "./userSurveryStateProvider";
-import { locConstants } from "../../common/locConstants";
-import {
+    Answers,
     BaseQuestion,
     NpsQuestion,
     NsatQuestion,
     TextareaQuestion,
 } from "../../../sharedInterfaces/userSurvey";
+import {
+    Button,
+    Divider,
+    Field,
+    Link,
+    Radio,
+    RadioGroup,
+    Text,
+    Textarea,
+    makeStyles,
+} from "@fluentui/react-components";
+import { useContext, useState } from "react";
+
+import { UserSurveyContext } from "./userSurveryStateProvider";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -57,7 +59,7 @@ export const UserSurveyPage = () => {
     const classes = useStyles();
     const userSurveryProvider = useContext(UserSurveyContext);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
-    const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+    const [userAnswers, setUserAnswers] = useState<Answers>({});
 
     const updateSubmitButtonState = () => {
         for (let i = 0; i < userSurveryProvider!.state!.questions.length; i++) {
@@ -69,7 +71,7 @@ export const UserSurveyPage = () => {
             if (!(question as BaseQuestion)?.required) {
                 continue;
             }
-            if (!userAnswers[question.label]) {
+            if (!userAnswers[question.id]) {
                 setIsSubmitDisabled(true);
                 return;
             }
@@ -77,8 +79,8 @@ export const UserSurveyPage = () => {
         setIsSubmitDisabled(false);
     };
 
-    const onAnswerChange = (label: string, answer: string) => {
-        userAnswers[label] = answer;
+    const onAnswerChange = (id: string, answer: string | number) => {
+        userAnswers[id] = answer;
         setUserAnswers(userAnswers);
         updateSubmitButtonState();
     };
@@ -108,9 +110,7 @@ export const UserSurveyPage = () => {
                             <NSATQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) =>
-                                    onAnswerChange(question.label, d)
-                                }
+                                onChange={(d) => onAnswerChange(question.id, d)}
                             />
                         );
                     case "nps":
@@ -118,9 +118,7 @@ export const UserSurveyPage = () => {
                             <NPSQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) =>
-                                    onAnswerChange(question.label, d)
-                                }
+                                onChange={(d) => onAnswerChange(question.id, d)}
                             />
                         );
                     case "textarea":
@@ -128,9 +126,7 @@ export const UserSurveyPage = () => {
                             <TextAreaQuestion
                                 key={index}
                                 question={question}
-                                onChange={(d) =>
-                                    onAnswerChange(question.label, d)
-                                }
+                                onChange={(d) => onAnswerChange(question.id, d)}
                             />
                         );
                     case "divider":
@@ -168,7 +164,7 @@ export const UserSurveyPage = () => {
 
 export interface QuestionProps<T> {
     question: T;
-    onChange: (data: string) => void;
+    onChange: (data: string | number) => void;
 }
 
 export const NSATQuestion = ({
@@ -192,22 +188,22 @@ export const NSATQuestion = ({
         >
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(d.value)}
+                onChange={(_e, d) => onChange(parseInt(d.value))}
             >
                 <Radio
-                    value={locConstants.userFeedback.veryDissatisfied}
+                    value={"0"}
                     label={locConstants.userFeedback.veryDissatisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.dissatisfied}
+                    value={"1"}
                     label={locConstants.userFeedback.dissatisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.satisfied}
+                    value={"2"}
                     label={locConstants.userFeedback.satisfied}
                 />
                 <Radio
-                    value={locConstants.userFeedback.verySatisfied}
+                    value={"3"}
                     label={locConstants.userFeedback.verySatisfied}
                 />
             </RadioGroup>
@@ -233,7 +229,7 @@ export const NPSQuestion = ({
         >
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(d.value)}
+                onChange={(_e, d) => onChange(parseInt(d.value))}
             >
                 <Radio
                     value={"0"}

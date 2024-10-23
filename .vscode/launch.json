@@ -33,7 +33,6 @@
 			"outFiles": [
 				"${workspaceRoot}/out/src/**/*.js",
 			],
-			"preLaunchTask": "watch",
 			"rendererDebugOptions": {
 				"pauseForSourceMap": true,
 				"sourceMapRenames": true,
@@ -65,7 +64,6 @@
 			"outFiles": [
 				"${workspaceRoot}/out/src/**/*.js",
 			],
-			"preLaunchTask": "watch",
 			"env": {
 				// Uncomment this to use a specified version of STS, see
 				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
