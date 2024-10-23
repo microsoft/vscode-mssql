@@ -37,7 +37,7 @@ jobs:
 
       - name: Run tests
         run: |
-          DISPLAY=:10 yarn test --coverage --log
+          DISPLAY=:10 yarn test
 
       - name: Unit Test Report
         uses: dorny/test-reporter@v1
@@ -47,11 +47,6 @@ jobs:
           path: ./test-reports/**/*.xml
           reporter: jest-junit
           badge-title: 'unit-tests'
-
-      - name: Generate Code Coverage Report
-        id: testcoverage
-        run: |
-          yarn gulp cover
 
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
