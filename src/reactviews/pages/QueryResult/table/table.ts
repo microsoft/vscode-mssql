@@ -45,6 +45,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     // protected _columns: Slick.Column<T>[];
     protected _data: IDisposableDataProvider<T>;
     private _sorter?: ITableSorter<T>;
+    private _classChangeTimeout: any;
 
     private _autoscroll?: boolean;
     private _container: HTMLElement;
@@ -95,6 +96,30 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
         this._container = document.createElement("div");
         this._container.className = "monaco-table";
+
+        DOM.addDisposableListener(
+            this._container,
+            DOM.EventType.FOCUS,
+            () => {
+                clearTimeout(this._classChangeTimeout);
+                this._classChangeTimeout = setTimeout(() => {
+                    this._container.classList.add("focused");
+                }, 100);
+            },
+            true,
+        );
+
+        DOM.addDisposableListener(
+            this._container,
+            DOM.EventType.BLUR,
+            () => {
+                clearTimeout(this._classChangeTimeout);
+                this._classChangeTimeout = setTimeout(() => {
+                    this._container.classList.remove("focused");
+                }, 100);
+            },
+            true,
+        );
 
         parent.appendChild(this._container);
         this.styleElement = DOM.createStyleSheet(this._container);
