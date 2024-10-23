@@ -17,6 +17,11 @@ export enum QueryResultLoadState {
     Error = "Error",
 }
 
+export enum QueryResultSaveAsTrigger {
+    ContextMenu = "ContextMenu",
+    Toolbar = "Toolbar",
+}
+
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;

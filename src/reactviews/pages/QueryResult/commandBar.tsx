@@ -14,6 +14,7 @@ import {
     saveAsExcelIcon,
     saveAsJsonIcon,
 } from "./queryResultUtils";
+import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -51,6 +52,7 @@ const CommandBar = (props: CommandBarProps) => {
             resultId: props.resultSetSummary?.id,
             format: buttonLabel,
             selection: webViewState.state.selection,
+            origin: QueryResultSaveAsTrigger.Toolbar,
         });
     };
 
