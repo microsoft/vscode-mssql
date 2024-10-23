@@ -25,3 +25,5 @@ tslint*.json
 **/*.map
 **/*.ts
 webviews-metafile.json
+images/ux
+FEATURES.md
