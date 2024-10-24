@@ -27,7 +27,7 @@ import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import ResultGrid from "./resultGrid";
+import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
 import {
@@ -123,22 +123,23 @@ export const QueryResultPane = () => {
     const gridParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
-    const [gridHeight, setGridHeight] = useState(0);
-    const [gridWidth, setGridWidth] = useState(0);
 
-    // Resize result grids and message pane when parent element resizes
+    // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
         });
+        if (gridCount === 0) {
+            return; // Exit if there are no grids to render
+        }
 
         const gridParent = gridParentRef.current;
         if (!gridParent) {
             return;
         }
         const observer = new ResizeObserver(() => {
-            if (!ribbonRef.current) {
+            if (!gridRefs.current || !ribbonRef.current) {
                 return;
             }
 
@@ -146,8 +147,6 @@ export const QueryResultPane = () => {
                 gridParent,
                 ribbonRef.current,
             );
-
-            setMessageGridHeight(availableHeight);
 
             if (gridParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
@@ -157,21 +156,25 @@ export const QueryResultPane = () => {
                             : 0;
 
                     // Calculate the grid height, ensuring it's not smaller than the minimum height
-                    const newGridHeight = Math.max(
+                    const gridHeight = Math.max(
                         (availableHeight - gridCount * TABLE_ALIGN_PX) /
                             gridCount,
                         MIN_GRID_HEIGHT,
                     );
 
-                    setGridHeight(newGridHeight);
-                    setGridWidth(
-                        gridParent.clientWidth -
-                            ACTIONBAR_WIDTH_PX -
-                            scrollbarAdjustment,
-                    );
+                    gridRefs.current.forEach((gridRef) => {
+                        gridRef?.resizeGrid(
+                            gridParent.clientWidth -
+                                ACTIONBAR_WIDTH_PX -
+                                scrollbarAdjustment,
+                            gridHeight,
+                        );
+                    });
                 } else if (gridCount === 1) {
-                    setGridHeight(availableHeight - TABLE_ALIGN_PX);
-                    setGridWidth(gridParent.clientWidth - ACTIONBAR_WIDTH_PX);
+                    gridRefs.current[0]?.resizeGrid(
+                        gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
+                        availableHeight - TABLE_ALIGN_PX,
+                    );
                 }
             }
         });
@@ -182,7 +185,12 @@ export const QueryResultPane = () => {
     }, [metadata?.resultSetSummaries]);
 
     // ========================= RESULT GRID =========================
-    const renderGrid = (batchId: number, resultId: number) => {
+    const gridRefs = useRef<ResultGridHandle[]>([]);
+    const renderGrid = (
+        batchId: number,
+        resultId: number,
+        gridCount: number,
+    ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
         return (
             <div id={divId} className={classes.queryResultContainer}>
@@ -240,14 +248,13 @@ export const QueryResultPane = () => {
                                 });
                             });
                     }}
+                    ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
                     resultSetSummary={
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
                     divId={divId}
                     uri={metadata?.uri}
                     webViewState={webViewState}
-                    height={gridHeight}
-                    width={gridWidth}
                 />
                 <CommandBar
                     uri={metadata?.uri}
@@ -261,7 +268,15 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
+        // execution plans only load after reading the resulting xml showplan
+        // of the query. therefore, it updates the state once the results
+        // are loaded, which causes a rendering loop if the grid
+        // gets refreshed
+        if (!metadata?.isExecutionPlan) {
+            gridRefs.current.forEach((r) => r?.refreshGrid());
+        }
 
+        let count = 0;
         for (
             let i = 0;
             i < Object.keys(metadata?.resultSetSummaries ?? []).length;
@@ -269,7 +284,8 @@ export const QueryResultPane = () => {
         ) {
             var batch = metadata?.resultSetSummaries[i];
             for (let j = 0; j < Object.keys(batch ?? []).length; j++) {
-                grids.push(renderGrid(i, j));
+                grids.push(renderGrid(i, j, count));
+                count++;
             }
         }
         return grids;
@@ -367,6 +383,29 @@ export const QueryResultPane = () => {
             </DataGrid>
         );
     };
+
+    useEffect(() => {
+        const gridParent = gridParentRef.current;
+        if (!gridParent) {
+            return;
+        }
+        const observer = new ResizeObserver(() => {
+            if (!gridRefs.current || !ribbonRef.current) {
+                return;
+            }
+
+            const availableHeight = getAvailableHeight(
+                gridParent,
+                ribbonRef.current,
+            );
+
+            setMessageGridHeight(availableHeight);
+        });
+
+        observer.observe(gridParent);
+
+        return () => observer.disconnect();
+    });
 
     // ========================= QUERY PLAN =========================
     useEffect(() => {
