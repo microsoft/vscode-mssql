@@ -85,13 +85,9 @@ const useStyles = makeStyles({
         },
     },
     messagesRows: {
-        height: "18px",
+        lineHeight: "18px",
         fontSize: "12px",
         flexDirection: "row",
-        ...shorthands.padding("10px"),
-        "> *": {
-            marginRight: "10px",
-        },
         borderBottom: "none",
     },
     noResultMessage: {
@@ -307,6 +303,7 @@ export const QueryResultPane = () => {
                                     );
                                 }}
                                 inline
+                                style={{ fontSize: "12px" }}
                             >
                                 {item?.link?.text}
                             </Link>
@@ -358,10 +355,11 @@ export const QueryResultPane = () => {
                 items={items}
                 columns={columns}
                 focusMode="cell"
+                resizableColumns
                 columnSizingOptions={columnSizingOption}
             >
                 <DataGridBody<qr.IMessage>
-                    itemSize={50}
+                    itemSize={18}
                     height={messageGridHeight}
                 >
                     {renderRow}
