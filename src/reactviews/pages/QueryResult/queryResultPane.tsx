@@ -127,17 +127,14 @@ export const QueryResultPane = () => {
     const gridParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridRefs = useRef<ResultGridHandle[]>([]);
+    const [messageGridHeight, setMessageGridHeight] = useState(0);
 
-    // ========================= RESULT GRID =========================
-    // Resize grid when parent element resizes
+    // Resize result grids and message pane when parent element resizes
     useEffect(() => {
         let gridCount = 0;
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
         });
-        if (gridCount === 0) {
-            return; // Exit if there are no grids to render
-        }
 
         const gridParent = gridParentRef.current;
         if (!gridParent) {
@@ -152,6 +149,8 @@ export const QueryResultPane = () => {
                 gridParent,
                 ribbonRef.current,
             );
+
+            setMessageGridHeight(availableHeight);
 
             if (gridParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
@@ -189,6 +188,7 @@ export const QueryResultPane = () => {
         return () => observer.disconnect();
     }, [metadata?.resultSetSummaries]);
 
+    // ========================= RESULT GRID =========================
     const renderGrid = (
         batchId: number,
         resultId: number,
@@ -366,29 +366,6 @@ export const QueryResultPane = () => {
 
     const [columnSizingOption] =
         useState<TableColumnSizingOptions>(sizingOptions);
-    const [messageGridHeight, setMessageGridHeight] = useState(0);
-    useEffect(() => {
-        const gridParent = gridParentRef.current;
-        const ribbon = ribbonRef.current;
-
-        const updateMessageGridHeight = () => {
-            if (gridParent && ribbon) {
-                setMessageGridHeight(
-                    gridParent.clientHeight - ribbon.clientHeight,
-                );
-            }
-        };
-        const resizeObserver = new ResizeObserver(() => {
-            updateMessageGridHeight();
-        });
-        if (gridParent) {
-            resizeObserver.observe(gridParent);
-        }
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, []);
 
     const renderMessageGrid = () => {
         return (
