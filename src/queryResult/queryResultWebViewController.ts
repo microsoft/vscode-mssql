@@ -305,6 +305,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         state: qr.QueryResultWebviewState,
         xmlPlans: string[],
     ) {
+        sendActionEvent(
+            TelemetryViews.QueryPlan,
+            TelemetryActions.OpenQueryPlan,
+        );
         let newState = {
             ...state.executionPlanState,
         };
@@ -327,6 +331,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             } catch (e) {
                 newState.loadState = ApiStatus.Error;
                 newState.errorMessage = e.toString();
+                sendActionEvent(
+                    TelemetryViews.QueryPlan,
+                    TelemetryActions.OpenQueryPlan,
+                );
             }
         }
         state.executionPlanState = newState;
