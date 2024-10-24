@@ -14,11 +14,12 @@ export interface ExecutionPlanState {
     totalCost?: number;
     loadState?: ApiStatus;
     errorMessage?: string;
+    xmlPlans?: string[];
 }
 
 export interface ExecutionPlanReducers {
     getExecutionPlan: {
-        sqlPlanContent: string;
+        xmlPlans: string[];
     };
     saveExecutionPlan: {
         sqlPlanContent: string;
@@ -36,10 +37,10 @@ export interface ExecutionPlanReducers {
 
 export interface ExecutionPlanProvider {
     /**
-     * Gets the execution plan graph from the provider for a given plan file
-     * @param planFile file that contains the execution plan
+     * Gets the execution plan graph from the provider for given xmls
+     * @param xmlPlans  the xmls to get the graphs for
      */
-    getExecutionPlan(planFile: ExecutionPlanGraphInfo): void;
+    getExecutionPlan(xmlPlans: string[]): void;
 
     /**
      * Handles saving the execution plan file through the vscode extension api

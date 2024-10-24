@@ -48,9 +48,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
-    executionPlanState: ExecutionPlanState & {
-        xmlPlans?: string[];
-    };
+    executionPlanState: ExecutionPlanState;
 }
 
 export interface QueryResultReducers
