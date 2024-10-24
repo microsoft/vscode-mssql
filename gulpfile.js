@@ -407,8 +407,6 @@ gulp.task('ext:smoke', run('npx playwright test'));
 
 gulp.task('test', gulp.series('ext:test'));
 
-require('./tasks/covertasks');
-
 gulp.task('clean', function (done) {
 	return del('out', done);
 });
@@ -429,5 +427,3 @@ gulp.task('watch-reactviews', function () {
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-reactviews')));
-
-gulp.task('cover', gulp.series('remap-coverage', 'cover:combine-json'));
