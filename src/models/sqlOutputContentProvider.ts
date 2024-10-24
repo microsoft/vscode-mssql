@@ -516,15 +516,6 @@ export class SqlOutputContentProvider {
                                     ),
                                 isError: hasError,
                             });
-                        this._queryResultWebviewController.getQueryResultState(
-                            uri,
-                        ).tabStates.resultPaneTab =
-                            QueryResultPaneTabs.Messages;
-                        this._queryResultWebviewController.state =
-                            this._queryResultWebviewController.getQueryResultState(
-                                uri,
-                            );
-                        vscode.commands.executeCommand("queryResult.focus");
                         const tabState =
                             Object.keys(
                                 this._queryResultWebviewController.getQueryResultState(
@@ -540,6 +531,7 @@ export class SqlOutputContentProvider {
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
                             );
+                        vscode.commands.executeCommand("queryResult.focus");
                     }
                 },
             );
