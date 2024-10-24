@@ -43,11 +43,10 @@ steps:
     workingDirectory: "$(Build.SourcesDirectory)"
 
 
-  - task: gulp@1
-    displayName: Run tests and compute coverage
-    inputs:
-      targets: test:cover --log
-      gulpFile: ${{ parameters.gulpfile }}
+  - pwsh: |
+      yarn test
+    displayName: Run tests
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: PublishTestResults@2
     displayName: Publish test results
@@ -56,11 +55,11 @@ steps:
       testResultsFiles: '$(Build.SourcesDirectory)/test-reports/test-results-ext.xml'
     condition: succeededOrFailed()
 
-  - task: gulp@1
-    displayName: Process test coverage
+  - task: PublishCodeCoverageResults@2
+    displayName: Publish code coverage
     inputs:
-      targets: cover
-      gulpFile: ${{ parameters.gulpfile }}
+      summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
+    condition: succeededOrFailed()
 
   - task: gulp@1
     displayName: Package (online)

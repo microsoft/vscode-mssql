@@ -62,15 +62,13 @@ jobs:
       - name: Code coverage
         run: |
           cd main
-          DISPLAY=:10 yarn test --coverage --log
-          yarn gulp cover
+          DISPLAY=:10 yarn test
           xml_coverage_main=$(find ./coverage -name 'cobertura-coverage.xml')
           line_rate_main=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_main" | sed 's/line-rate="\([0-9.]*\)"/\1/')
           line_rate_main=$(printf "%.2f" $(echo "$line_rate_main * 100" | bc))
           echo "line_rate_main=$line_rate_main" >> $GITHUB_ENV
           cd ../pr
-          DISPLAY=:10 yarn test --coverage --log
-          yarn gulp cover
+          DISPLAY=:10 yarn test
           xml_coverage_pr=$(find ./coverage -name 'cobertura-coverage.xml')
           line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
           line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))

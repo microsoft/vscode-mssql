@@ -3,39 +3,118 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-//
-// PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
-//
-// This file is providing the test runner to use when running extension tests.
-// By default the test runner in use is Mocha based.
-//
-// You can provide your own test runner if you want to override it by exporting
-// a function run(testRoot: string, clb: (error:Error) => void) that the extension
-// host can call to run the tests. The test runner is expected to use console.log
-// to report the results back to the caller. When the tests are finished, return
-// a possible error to the callback or null if none.
+"use strict";
 
-import * as testRunner from "./istanbultestrunner";
+// Recommended modules, loading them here to speed up NYC init
+// and minimize risk of race condition
+import "ts-node/register";
+import "source-map-support/register";
 
-// You can directly control Mocha options by uncommenting the following lines
-// See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
-testRunner.configure(
-    // Mocha Options
-    {
-        ui: "tdd", // the TDD UI is being used in extension.test.ts (suite, test, etc.)
-        reporter: "pm-mocha-jenkins-reporter",
+import * as Mocha from "mocha";
+// Simulates the recommended config option
+// extends: "@istanbuljs/nyc-config-typescript",
+import * as baseConfig from "@istanbuljs/nyc-config-typescript";
+import * as glob from "glob";
+import * as path from "path";
+
+const NYC = require("nyc");
+
+// Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
+// Since we are not running in a tty environment, we just implementt he method statically
+const tty = require("tty");
+if (!tty.getWindowSize) {
+    tty.getWindowSize = (): number[] => {
+        return [80, 75];
+    };
+}
+
+export async function run(): Promise<void> {
+    const testsRoot = path.resolve(__dirname, "..");
+
+    process.env.JUNIT_REPORT_PATH =
+        path.join(__dirname, "..", "..") + "/test-reports/test-results-ext.xml";
+
+    // Setup coverage pre-test, including post-test hook to report
+    const nyc = new NYC({
+        ...baseConfig,
+        cwd: path.join(__dirname, "..", "..", ".."),
+        reporter: ["text-summary", "html", "lcov", "cobertura"],
+        all: true,
+        silent: false,
+        instrument: true,
+        hookRequire: true,
+        hookRunInContext: true,
+        hookRunInThisContext: true,
+        include: ["out/**/*.js"],
+        exclude: [
+            "out/test/**",
+            "**/node_modules/**",
+            "**/libs/**",
+            "**/lib/**",
+            "**/htmlcontent/**/*.js",
+            "**/reactviews/**/*.js",
+            "**/*.bundle.js",
+        ],
+        tempDir: "./coverage/.nyc_output",
+    });
+    await nyc.reset();
+    await nyc.wrap();
+
+    // Print a warning for any module that should be instrumented and is already loaded,
+    // delete its cache entry and re-require
+    // NOTE: This would not be a good practice for production code (possible memory leaks), but can be accepted for unit tests
+    Object.keys(require.cache)
+        .filter((f) => nyc.exclude.shouldInstrument(f))
+        .forEach((m) => {
+            console.warn("Module loaded before NYC, invalidating:", m);
+            delete require.cache[m];
+            require(m);
+        });
+
+    // Debug which files will be included/excluded
+    // console.log('Glob verification', await nyc.exclude.glob(nyc.cwd));
+
+    // Create the mocha test
+    const mocha = new Mocha({
+        ui: "tdd",
+        timeout: 10 * 1000,
+        reporter: "mocha-junit-reporter",
         reporterOptions: {
-            junit_report_name: "Extension Tests",
-            junit_report_path:
-                __dirname + "../../test-reports/extension_tests.xml",
-            junit_report_stack: 1,
+            mochaFile: path.join(
+                __dirname,
+                "..",
+                "..",
+                "..",
+                "test-reports",
+                "test-results-ext.xml",
+            ),
         },
-        useColors: true, // colored output from test results
-    },
-    // Coverage configuration options
-    {
-        coverConfig: "../../../coverconfig.json",
-    },
-);
+    });
+    (mocha.options as any).color = true;
 
-module.exports = testRunner;
+    // Add all files to the test suite
+    const files = glob.sync("**/*.test.js", { cwd: testsRoot });
+    files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+
+    const failures: number = await new Promise((resolve) => mocha.run(resolve));
+    await nyc.writeCoverageFile();
+
+    // Capture text-summary reporter's output and log it in console
+    console.log(await captureStdout(nyc.report.bind(nyc)));
+
+    if (failures > 0) {
+        throw new Error(`${failures} tests failed.`);
+    }
+}
+
+async function captureStdout(fn) {
+    let w = process.stdout.write,
+        buffer = "";
+    process.stdout.write = (s) => {
+        buffer = buffer + s;
+        return true;
+    };
+    await fn();
+    process.stdout.write = w;
+    return buffer;
+}
