@@ -9,18 +9,19 @@ import {
     Link,
     Tab,
     TabList,
-    Table,
-    TableBody,
-    TableCell,
     TableColumnDefinition,
     TableColumnSizingOptions,
-    TableRow,
     createTableColumn,
     makeStyles,
     shorthands,
-    useTableColumnSizing_unstable,
-    useTableFeatures,
 } from "@fluentui/react-components";
+import {
+    DataGridBody,
+    DataGrid,
+    DataGridRow,
+    DataGridCell,
+    RowRenderer,
+} from "@fluentui-contrib/react-data-grid-react-window";
 import { useContext, useEffect, useRef, useState } from "react";
 import { OpenFilled } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
@@ -122,18 +123,12 @@ export const QueryResultPane = () => {
     >();
     webViewState;
     var metadata = state?.state;
-    const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
-        createTableColumn({
-            columnId: "time",
-            renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
-        }),
-        createTableColumn({
-            columnId: "message",
-            renderHeaderCell: () => <>{locConstants.queryResult.message}</>,
-        }),
-    ];
+
     const gridParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
+    const gridRefs = useRef<ResultGridHandle[]>([]);
+
+    // ========================= RESULT GRID =========================
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
@@ -193,39 +188,6 @@ export const QueryResultPane = () => {
 
         return () => observer.disconnect();
     }, [metadata?.resultSetSummaries]);
-    const [columns] =
-        useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items = metadata?.messages ?? [];
-
-    const sizingOptions: TableColumnSizingOptions = {
-        time: {
-            minWidth: 100,
-            idealWidth: 100,
-            defaultWidth: 100,
-        },
-        message: {
-            minWidth: 500,
-            idealWidth: 500,
-            defaultWidth: 500,
-        },
-    };
-
-    const [columnSizingOption] =
-        useState<TableColumnSizingOptions>(sizingOptions);
-    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
-        {
-            columns,
-            items: items,
-        },
-        [
-            useTableColumnSizing_unstable({
-                columnSizingOptions: columnSizingOption,
-            }),
-        ],
-    );
-    const rows = getRows();
-
-    const gridRefs = useRef<ResultGridHandle[]>([]);
 
     const renderGrid = (
         batchId: number,
@@ -332,6 +294,121 @@ export const QueryResultPane = () => {
         return grids;
     };
 
+    // ========================= MESSAGE GRID =========================
+    const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
+        createTableColumn({
+            columnId: "time",
+            renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
+            renderCell: (item) => (
+                <>{item.batchId === undefined ? item.time : null}</>
+            ),
+        }),
+        createTableColumn({
+            columnId: "message",
+            renderHeaderCell: () => <>{locConstants.queryResult.message}</>,
+            renderCell: (item) => {
+                if (item.link?.text && item.selection) {
+                    return (
+                        <div>
+                            {item.message}{" "}
+                            <Link
+                                onClick={async () => {
+                                    await webViewState.extensionRpc.call(
+                                        "setEditorSelection",
+                                        {
+                                            uri: metadata?.uri,
+                                            selectionData: item.selection,
+                                        },
+                                    );
+                                }}
+                                inline
+                            >
+                                {item?.link?.text}
+                            </Link>
+                        </div>
+                    );
+                } else {
+                    return <>{item.message}</>;
+                }
+            },
+        }),
+    ];
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => (
+        <DataGridRow<qr.IMessage>
+            key={rowId}
+            style={style}
+            className={classes.messagesRows}
+        >
+            {({ renderCell }) => (
+                <DataGridCell focusMode="group">
+                    {renderCell(item)}
+                </DataGridCell>
+            )}
+        </DataGridRow>
+    );
+
+    const [columns] =
+        useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
+    const items = metadata?.messages ?? [];
+
+    const sizingOptions: TableColumnSizingOptions = {
+        time: {
+            minWidth: 100,
+            idealWidth: 100,
+            defaultWidth: 100,
+        },
+        message: {
+            minWidth: 500,
+            idealWidth: 500,
+            defaultWidth: 500,
+        },
+    };
+
+    const [columnSizingOption] =
+        useState<TableColumnSizingOptions>(sizingOptions);
+    const [messageGridHeight, setMessageGridHeight] = useState(0);
+    useEffect(() => {
+        const gridParent = gridParentRef.current;
+        const ribbon = ribbonRef.current;
+
+        const updateMessageGridHeight = () => {
+            if (gridParent && ribbon) {
+                setMessageGridHeight(
+                    gridParent.clientHeight - ribbon.clientHeight,
+                );
+            }
+        };
+        const resizeObserver = new ResizeObserver(() => {
+            updateMessageGridHeight();
+        });
+        if (gridParent) {
+            resizeObserver.observe(gridParent);
+        }
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, []);
+
+    const renderMessageGrid = () => {
+        return (
+            <DataGrid
+                items={items}
+                columns={columns}
+                focusMode="cell"
+                columnSizingOptions={columnSizingOption}
+            >
+                <DataGridBody<qr.IMessage>
+                    itemSize={50}
+                    height={messageGridHeight}
+                >
+                    {renderRow}
+                </DataGridBody>
+            </DataGrid>
+        );
+    };
+
+    // ========================= QUERY PLAN =========================
     useEffect(() => {
         if (
             // makes sure state is defined
@@ -439,66 +516,7 @@ export const QueryResultPane = () => {
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Messages && (
                     <div className={classes.messagesContainer}>
-                        <Table
-                            size="small"
-                            as="table"
-                            {...columnSizing_unstable.getTableProps()}
-                            ref={tableRef}
-                        >
-                            <TableBody>
-                                {rows.map((row, index) => {
-                                    return (
-                                        <TableRow
-                                            key={index}
-                                            className={classes.messagesRows}
-                                        >
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "time",
-                                                )}
-                                            >
-                                                {row.item.batchId === undefined
-                                                    ? row.item.time
-                                                    : null}
-                                            </TableCell>
-                                            <TableCell
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    "message",
-                                                )}
-                                            >
-                                                {row.item.message}
-                                                {row.item.link?.text &&
-                                                    row.item.selection && (
-                                                        <>
-                                                            {" "}
-                                                            <Link
-                                                                onClick={async () => {
-                                                                    await webViewState.extensionRpc.call(
-                                                                        "setEditorSelection",
-                                                                        {
-                                                                            uri: metadata?.uri,
-                                                                            selectionData:
-                                                                                row
-                                                                                    .item
-                                                                                    .selection,
-                                                                        },
-                                                                    );
-                                                                }}
-                                                            >
-                                                                {
-                                                                    row.item
-                                                                        ?.link
-                                                                        ?.text
-                                                                }
-                                                            </Link>
-                                                        </>
-                                                    )}
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
+                        {renderMessageGrid()}
                     </div>
                 )}
                 {metadata.tabStates!.resultPaneTab ===
