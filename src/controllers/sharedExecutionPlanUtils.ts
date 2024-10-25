@@ -15,6 +15,11 @@ import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
@@ -100,6 +105,7 @@ export async function createExecutionPlanGraphs(
     let newState = {
         ...state.executionPlanState,
     };
+    const startTime = performance.now(); // timer for telemetry
     for (const plan of xmlPlans) {
         const planFile: ExecutionPlanGraphInfo = {
             graphFileContent: plan,
@@ -111,9 +117,31 @@ export async function createExecutionPlanGraphs(
             );
 
             newState.loadState = ApiStatus.Loaded;
+
+            sendActionEvent(
+                TelemetryViews.QueryPlan,
+                TelemetryActions.OpenQueryPlan,
+                {
+                    "Queries Opened":
+                        state.executionPlanState.executionPlanGraphs
+                            .map((graph) => graph.query)
+                            .toString(), // an array of the queries that this execution plan is for
+                },
+                {
+                    "Number of Plans":
+                        state.executionPlanState.executionPlanGraphs.length,
+                    "Load time": performance.now() - startTime,
+                },
+            );
         } catch (e) {
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = e.toString();
+            sendErrorEvent(
+                TelemetryViews.QueryPlan,
+                TelemetryActions.OpenQueryPlan,
+                e,
+                true, // includeErrorMessage
+            );
         }
     }
     state.executionPlanState = newState;

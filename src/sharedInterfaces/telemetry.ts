@@ -17,6 +17,7 @@ export enum TelemetryViews {
     UserSurvey = "UserSurvey",
     General = "General",
     ConnectionDialog = "ConnectionDialog",
+    QueryPlan = "QueryPlan",
 }
 
 export enum TelemetryActions {
@@ -54,4 +55,5 @@ export enum TelemetryActions {
     LoadAzureServers = "LoadAzureServers",
     LoadConnectionProperties = "LoadConnectionProperties",
     LoadRecentConnections = "LoadRecentConnections",
+    OpenQueryPlan = "OpenQueryPlan",
 }
