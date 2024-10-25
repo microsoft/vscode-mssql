@@ -26,8 +26,7 @@ export function updateComboboxSelection(
     defaultSelectionMode: DefaultSelectionMode = DefaultSelectionMode.AlwaysSelectNone,
 ) {
     // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
-    // then select the only option if there is only one option,
-    // or either the first option or none if there are multiple options, depending on how shouldSelectIfAny is set
+    // then select the only option if there is only one option, then make a default selection according to specified `defaultSelectionMode`
 
     if (
         selected === undefined ||
