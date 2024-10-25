@@ -117,14 +117,24 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.columnDef = $menuButton.data("column");
         }
 
-        const offset = jQuery(filterButton).offset();
-        if (offset) {
-            // If there is not enough vertical space under the filter button, we will move up the menu.
-            // const menuTop = offset.top + this.menu.offsetHeight <= window.innerHeight ? offset.top : window.innerHeight - this.menu.offsetHeight;
-            // Make sure the menu is on the screen horizontally.
-            // const menuLeft = offset.left + filterButton.offsetWidth + this.menu.offsetWidth <= window.innerWidth ? offset.left + filterButton.offsetWidth : window.innerWidth - this.menu.offsetWidth;
+        // Check if the active popup is for the same button
+        if (this.activePopup) {
+            const isSameButton =
+                this.activePopup.data("button") === filterButton;
+            if (isSameButton) {
+                // If clicking the same button, close the popup and reset activePopup
+                this.activePopup.fadeOut();
+                this.activePopup = null;
+                return; // Exit since we're just closing the popup
+            } else {
+                // If it's a different button, close the current popup before opening the new one
+                this.activePopup.fadeOut();
+                this.activePopup = null;
+            }
         }
 
+        // Proceed to open the new popup for the clicked column
+        const offset = jQuery(filterButton).offset();
         const $popup = jQuery(
             '<div id="popup-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
@@ -135,22 +145,22 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         if (offset) {
             $popup.css({
-                top: offset.top + $menuButton?.outerHeight()!, // Position below the anchor
+                top: offset.top + $menuButton?.outerHeight()!, // Position below the button
                 left: offset.left, // Align left edges
             });
-            // If there is not enough vertical space under the filter button, we will move up the menu.
-            // const menuTop = offset.top + this.menu.offsetHeight <= window.innerHeight ? offset.top : window.innerHeight - this.menu.offsetHeight;
-            // Make sure the menu is on the screen horizontally.
-            // const menuLeft = offset.left + filterButton.offsetWidth + this.menu.offsetWidth <= window.innerWidth ? offset.left + filterButton.offsetWidth : window.innerWidth - this.menu.offsetWidth;
         }
 
+        // Append and show the new popup
         $popup.appendTo(document.body);
-        if (this.activePopup) {
-            this.activePopup.fadeOut();
-            this.activePopup = null;
-        }
         openPopup($popup);
+
+        // Store the clicked button reference with the popup, so we can check it later
+        $popup.data("button", filterButton);
+
+        // Set the new popup as the active popup
         this.activePopup = $popup;
+
+        // Add event listeners for closing or interacting with the popup
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
             const $target = jQuery(e.target);
 
@@ -165,9 +175,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
         });
 
         // Close the pop-up when the close-popup button is clicked
-        jQuery(document).on("click", "#close-popup", function () {
+        jQuery(document).on("click", "#close-popup", () => {
             closePopup($popup);
         });
+
+        // Sorting button click handlers
         jQuery(document).on(
             "click",
             "#sort-ascending",
@@ -176,6 +188,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 closePopup($popup);
             },
         );
+
         jQuery(document).on(
             "click",
             "#sort-descending",

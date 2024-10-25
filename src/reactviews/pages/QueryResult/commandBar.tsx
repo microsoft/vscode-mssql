@@ -59,6 +59,7 @@ const CommandBar = (props: CommandBarProps) => {
     return (
         <div className={classes.commandBar}>
             <Button
+                appearance="subtle"
                 onClick={(_event) => {
                     saveResults("csv");
                 }}
@@ -72,6 +73,7 @@ const CommandBar = (props: CommandBarProps) => {
                 title={locConstants.queryResult.saveAsCsv}
             />
             <Button
+                appearance="subtle"
                 onClick={(_event) => {
                     saveResults("json");
                 }}
@@ -85,6 +87,7 @@ const CommandBar = (props: CommandBarProps) => {
                 title={locConstants.queryResult.saveAsJson}
             />
             <Button
+                appearance="subtle"
                 onClick={(_event) => {
                     saveResults("excel");
                 }}
