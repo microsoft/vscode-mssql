@@ -64,7 +64,7 @@ export async function showPlanXml(
     payload: ExecutionPlanReducers["showPlanXml"],
 ) {
     const planXmlDoc = await vscode.workspace.openTextDocument({
-        content: payload.sqlPlanContent,
+        content: formatXml(payload.sqlPlanContent),
         language: "xml",
     });
 
@@ -163,4 +163,27 @@ export function calculateTotalCost(
         sum += graph.root.cost + graph.root.subTreeCost;
     }
     return sum;
+}
+
+export function formatXml(xmlContents: string): string {
+    let formattedXml = "";
+    let currentLevel = 0;
+
+    const elements = xmlContents.match(/<[^>]*>/g);
+    for (const element of elements) {
+        if (element.startsWith("</")) {
+            // Closing tag: decrement the level
+            currentLevel--;
+        }
+        formattedXml += "\t".repeat(currentLevel) + element + "\n";
+        if (
+            element.startsWith("<") &&
+            !element.startsWith("</") &&
+            !element.endsWith("/>")
+        ) {
+            // Opening tag: increment the level
+            currentLevel++;
+        }
+    }
+    return formattedXml;
 }
