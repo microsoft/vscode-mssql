@@ -1138,6 +1138,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         string[] | undefined
                     >(azureSubscriptionFilterConfigKey) !== undefined;
 
+            const startTime = Date.now();
+
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(shouldUseFilter)).map((s) => [
                     s.subscriptionId,
@@ -1145,7 +1147,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 ]),
             );
             const tenantSubMap = this.groupBy<string, AzureSubscription>(
-                await auth.getSubscriptions(shouldUseFilter),
+                Array.from(this._azureSubscriptions.values()),
                 "tenantId",
             ); // TODO: replace with Object.groupBy once ES2024 is supported
 
@@ -1164,6 +1166,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.azureSubscriptions = subs;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
 
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureSubscriptions,
+                undefined, // additionalProperties
+                {
+                    subscriptionCount: subs.length,
+                    msToLoadSubscriptions: Date.now() - startTime,
+                },
+            );
+
             this.updateState();
 
             return tenantSubMap;
@@ -1171,6 +1183,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.formError = l10n.t("Error loading Azure subscriptions.");
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureSubscriptions,
+                error,
+                false, // includeErrorMessage
+            );
+
             return undefined;
         }
     }
@@ -1179,7 +1199,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         state: ConnectionDialogWebviewState,
     ): Promise<void> {
         try {
-            const startTime = Date.now();
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
             if (!tenantSubMap) {
@@ -1192,7 +1211,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 );
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
+                state.azureServers = [];
                 this.updateState();
+
+                const startTime = Date.now();
 
                 const promiseArray: Promise<void>[] = [];
                 for (const t of tenantSubMap.keys()) {
@@ -1229,12 +1251,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadAzureServers,
                 error,
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    connectionInputType: this.state.selectedInputMode,
-                },
+                false, // includeErrorMessage
             );
 
             return;

@@ -10,7 +10,7 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
-import { stubTelemetery as stubTelemetry } from "./utils";
+import { stubTelemetry } from "./utils";
 
 suite("ReactWebviewController Tests", () => {
     let controller: TestWebviewController;

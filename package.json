@@ -56,12 +56,13 @@
     "lint": "eslint --quiet --cache",
     "localization": "gulp ext:extract-localization-strings",
     "smoketest": "gulp ext:smoke",
-    "test": "gulp test:cover --log",
+    "test": "node ./out/test/unit/runTest.js",
     "package": "vsce package",
     "prepare": "husky",
     "lint-staged": "lint-staged --quiet",
     "precommit": "run-p lint-staged localization",
-    "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online"
+    "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
+    "testWithCoverage": "yarn test && yarn gulp cover"
   },
   "lint-staged": {
     "*.ts": "eslint --quiet --cache",
@@ -82,6 +83,7 @@
     "@eslint/js": "^9.5.0",
     "@fluentui/react-components": "^9.54.13",
     "@fluentui/react-list-preview": "^0.3.6",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
     "@monaco-editor/react": "^4.6.0",
     "@playwright/test": "^1.45.0",
@@ -145,8 +147,9 @@
     "husky": "^9.0.11",
     "istanbul": "^0.4.5",
     "lint-staged": "^15.2.10",
+    "mocha-junit-reporter": "^2.2.1",
     "npm-run-all": "^4.1.5",
-    "pm-mocha-jenkins-reporter": "^0.2.6",
+    "nyc": "^17.1.0",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -157,9 +160,11 @@
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
     "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.46",
+    "source-map-support": "^0.5.21",
     "systemjs": "0.19.40",
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
+    "ts-node": "^10.9.2",
     "typemoq": "^1.7.0",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0",
@@ -888,7 +893,7 @@
           "type": "array",
           "description": "%mssql.selectedSubscriptions%",
           "items": {
-              "type": "string"
+            "type": "string"
           },
           "$comment": "This setting must be registered in case the user does not have the Azure Resource Groups extension installed.  All extensions using this configuration must register this setting."
         },

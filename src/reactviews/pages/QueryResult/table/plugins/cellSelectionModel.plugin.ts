@@ -10,6 +10,12 @@ import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
 // import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
+import {
+    QueryResultWebviewState,
+    QueryResultReducers,
+} from "../../../../../sharedInterfaces/queryResult";
+import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { ISlickRange } from "../utils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -34,17 +40,30 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private selector: ICellRangeSelector<T>;
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
+    private webViewState: VscodeWebviewContext<
+        QueryResultWebviewState,
+        QueryResultReducers
+    >;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
-    constructor(private options: ICellSelectionModelOptions = defaults) {
+    constructor(
+        private options: ICellSelectionModelOptions = defaults,
+        webViewState: VscodeWebviewContext<
+            QueryResultWebviewState,
+            QueryResultReducers
+        >,
+    ) {
+        this.webViewState = webViewState;
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {
             this.selector = this.options.cellRangeSelector;
         } else {
             // this is added by the node requires above
             this.selector = new CellRangeSelector({
-                selectionCss: { border: "2px dashed grey" },
+                selectionCss: {
+                    border: `3px dashed ${this.webViewState.theme.colorBrandBackgroundHover}`,
+                },
             });
         }
     }
@@ -132,6 +151,14 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
+        this.webViewState.state.selection = JSON.parse(
+            JSON.stringify(this.ranges),
+        ) as ISlickRange[];
+        // Adjust selection to account for number column
+        this.webViewState.state.selection.forEach((range) => {
+            range.fromCell = range.fromCell - 1;
+            range.toCell = range.toCell - 1;
+        });
     }
 
     public getSelectedRanges() {
