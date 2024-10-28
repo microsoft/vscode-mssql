@@ -15,12 +15,27 @@ export async function activateExtension() {
 }
 
 // Stubs the telemetry code
-export function stubTelemetery(sandbox: sinon.SinonSandbox) {
+export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
+    sendActionEvent: sinon.SinonStub;
+    sendErrorEvent: sinon.SinonStub;
+} {
     if (sandbox) {
-        sandbox.stub(telemetry, "sendActionEvent").callsFake(() => {});
-        sandbox.stub(telemetry, "sendErrorEvent").callsFake(() => {});
+        return {
+            sendActionEvent: sandbox
+                .stub(telemetry, "sendActionEvent")
+                .callsFake(() => {}),
+            sendErrorEvent: sandbox
+                .stub(telemetry, "sendErrorEvent")
+                .callsFake(() => {}),
+        };
     } else {
-        sinon.stub(telemetry, "sendActionEvent").callsFake(() => {});
-        sinon.stub(telemetry, "sendErrorEvent").callsFake(() => {});
+        return {
+            sendActionEvent: sinon
+                .stub(telemetry, "sendActionEvent")
+                .callsFake(() => {}),
+            sendErrorEvent: sinon
+                .stub(telemetry, "sendErrorEvent")
+                .callsFake(() => {}),
+        };
     }
 }

@@ -9,11 +9,17 @@ import {
     ExecutionPlanState,
     ExecutionPlanWebviewState,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
 
 export enum QueryResultLoadState {
     Loading = "Loading",
     Loaded = "Loaded",
     Error = "Error",
+}
+
+export enum QueryResultSaveAsTrigger {
+    ContextMenu = "ContextMenu",
+    Toolbar = "Toolbar",
 }
 
 export interface QueryResultReactProvider
@@ -48,6 +54,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
+    selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState & {
         xmlPlans?: string[];
     };
