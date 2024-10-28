@@ -121,16 +121,11 @@ export async function createExecutionPlanGraphs(
             sendActionEvent(
                 TelemetryViews.QueryPlan,
                 TelemetryActions.OpenQueryPlan,
+                {},
                 {
-                    "Queries Opened":
-                        state.executionPlanState.executionPlanGraphs
-                            .map((graph) => graph.query)
-                            .toString(), // an array of the queries that this execution plan is for
-                },
-                {
-                    "Number of Plans":
+                    numberOfPlans:
                         state.executionPlanState.executionPlanGraphs.length,
-                    "Load time": performance.now() - startTime,
+                    LoadTimeInMs: performance.now() - startTime,
                 },
             );
         } catch (e) {

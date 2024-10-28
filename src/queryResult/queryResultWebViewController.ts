@@ -178,7 +178,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
             const currentResultState = this.getQueryResultState(payload.uri);
-            console.log(currentResultState);
             if (
                 currentResultState.executionPlanState.xmlPlans.length &&
                 currentResultState.executionPlanState.xmlPlans.length ===
