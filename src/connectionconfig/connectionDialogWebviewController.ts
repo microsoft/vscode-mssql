@@ -51,10 +51,15 @@ import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { l10n } from "vscode";
 import {
+    ActivityStatus,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+} from "../telemetry/telemetry";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -1178,8 +1183,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadAllAzureServers(
         state: ConnectionDialogWebviewState,
     ): Promise<void> {
+        const endActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadAzureServers,
+        );
         try {
-            const startTime = Date.now();
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
             if (!tenantSubMap) {
@@ -1206,14 +1214,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     }
                 }
                 await Promise.all(promiseArray);
-
-                sendActionEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.LoadAzureServers,
+                endActivity.end(
+                    ActivityStatus.Succeeded,
                     undefined, // additionalProperties
                     {
                         subscriptionCount: promiseArray.length,
-                        msToLoadServers: Date.now() - startTime,
                     },
                 );
 
@@ -1225,9 +1230,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.loadingAzureServersStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadAzureServers,
+            endActivity.endFailed(
                 error,
                 true, // includeErrorMessage
                 undefined, // errorCode
@@ -1236,7 +1239,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     connectionInputType: this.state.selectedInputMode,
                 },
             );
-
             return;
         }
     }

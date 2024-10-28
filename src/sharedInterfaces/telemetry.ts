@@ -55,3 +55,30 @@ export enum TelemetryActions {
     LoadConnectionProperties = "LoadConnectionProperties",
     LoadRecentConnections = "LoadRecentConnections",
 }
+
+export enum ActivityStatus {
+    Succeeded = "Succeeded",
+    Failed = "Failed",
+    Canceled = "Canceled",
+}
+
+export type FinishActivity = (
+    activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
+    additionalProperties?: Record<string, string>,
+    additionalMeasurements?: Record<string, number>,
+) => void;
+
+export type LogFailedActivity = (
+    error?: Error,
+    includeErrorMessage?: boolean,
+    errorCode?: string,
+    errorType?: string,
+    additionalProperties?: Record<string, string>,
+    additionalMeasurements?: Record<string, number>,
+) => void;
+
+export type ActivityEndObject = {
+    end: FinishActivity;
+    endFailed: LogFailedActivity;
+    correlationId: string;
+};

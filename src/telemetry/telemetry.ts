@@ -11,9 +11,12 @@ import * as vscodeMssql from "vscode-mssql";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscode from "vscode";
 import {
+    ActivityEndObject,
+    ActivityStatus,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { v4 as uuidv4 } from "uuid";
 
 const packageJson = vscode.extensions.getExtension(
     vscodeMssql.extension.name,
@@ -109,4 +112,71 @@ export function sendErrorEvent(
         errorEvent = errorEvent.withServerInfo(serverInfo);
     }
     errorEvent.send();
+}
+
+export function startActivity(
+    telemetryView: TelemetryViews,
+    telemetryAction: TelemetryActions,
+    correlationId?: string,
+    additionalProps: TelemetryEventProperties = {},
+    additionalMeasurements: TelemetryEventMeasures = {},
+): ActivityEndObject {
+    const startTime = performance.now();
+    if (!correlationId) {
+        correlationId = uuidv4();
+    }
+
+    sendActionEvent(telemetryView, telemetryAction, additionalProps, {
+        ...additionalMeasurements,
+        startTime: Math.round(startTime),
+    });
+
+    return {
+        correlationId: correlationId,
+        end: (
+            activityStatus: ActivityStatus,
+            additionalProps: TelemetryEventProperties,
+            additionalMeasurements: TelemetryEventMeasures,
+        ) => {
+            const endTime = performance.now();
+            sendActionEvent(
+                telemetryView,
+                telemetryAction,
+                {
+                    ...additionalProps,
+                    ActivityStatus: activityStatus,
+                },
+                {
+                    ...additionalMeasurements,
+                    durationMs: Math.round(endTime - startTime),
+                },
+            );
+        },
+        endFailed: (
+            error?: Error,
+            includeErrorMessage?: boolean,
+            errorCode?: string,
+            errorType?: string,
+            additionalProps?: TelemetryEventProperties,
+            additionalMeasurements?: TelemetryEventMeasures,
+        ) => {
+            const endTime = performance.now();
+            sendErrorEvent(
+                telemetryView,
+                telemetryAction,
+                error,
+                includeErrorMessage,
+                errorCode,
+                errorType,
+                {
+                    ...additionalProps,
+                    ActivityStatus: ActivityStatus.Failed,
+                },
+                {
+                    ...additionalMeasurements,
+                    durationMs: Math.round(endTime - startTime),
+                },
+            );
+        },
+    };
 }
