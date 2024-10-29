@@ -8,7 +8,7 @@ import * as vscodeMssql from "vscode-mssql";
 
 import {
     ActivityStatus,
-    FinishActivityObject,
+    ActivityObject,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
@@ -122,7 +122,7 @@ export function startActivity(
     correlationId?: string,
     additionalProps: TelemetryEventProperties = {},
     additionalMeasurements: TelemetryEventMeasures = {},
-): FinishActivityObject {
+): ActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
         correlationId = uuidv4();
@@ -133,52 +133,74 @@ export function startActivity(
         startTime: Math.round(startTime),
     });
 
+    function update(
+        additionalProps: TelemetryEventProperties,
+        additionalMeasurements: TelemetryEventMeasures,
+    ): void {
+        sendActionEvent(
+            telemetryView,
+            telemetryAction,
+            {
+                ...additionalProps,
+                activityStatus: ActivityStatus.Pending,
+            },
+            {
+                ...additionalMeasurements,
+                timeElapsedMs: Math.round(performance.now() - startTime),
+            },
+        );
+    }
+
+    function end(
+        activityStatus: ActivityStatus,
+        additionalProps: TelemetryEventProperties,
+        additionalMeasurements: TelemetryEventMeasures,
+    ) {
+        sendActionEvent(
+            telemetryView,
+            telemetryAction,
+            {
+                ...additionalProps,
+                activityStatus: activityStatus,
+            },
+            {
+                ...additionalMeasurements,
+                durationMs: Math.round(performance.now() - startTime),
+            },
+        );
+    }
+
+    function endFailed(
+        error?: Error,
+        includeErrorMessage?: boolean,
+        errorCode?: string,
+        errorType?: string,
+        additionalProps?: TelemetryEventProperties,
+        additionalMeasurements?: TelemetryEventMeasures,
+    ) {
+        sendErrorEvent(
+            telemetryView,
+            telemetryAction,
+            error,
+            includeErrorMessage,
+            errorCode,
+            errorType,
+            {
+                ...additionalProps,
+                activityStatus: ActivityStatus.Failed,
+            },
+            {
+                ...additionalMeasurements,
+                durationMs: Math.round(performance.now() - startTime),
+            },
+        );
+    }
+
     return {
-        correlationId: correlationId,
-        end: (
-            activityStatus: ActivityStatus,
-            additionalProps: TelemetryEventProperties,
-            additionalMeasurements: TelemetryEventMeasures,
-        ) => {
-            const endTime = performance.now();
-            sendActionEvent(
-                telemetryView,
-                telemetryAction,
-                {
-                    ...additionalProps,
-                    ActivityStatus: activityStatus,
-                },
-                {
-                    ...additionalMeasurements,
-                    durationMs: Math.round(endTime - startTime),
-                },
-            );
-        },
-        endFailed: (
-            error?: Error,
-            includeErrorMessage?: boolean,
-            errorCode?: string,
-            errorType?: string,
-            additionalProps?: TelemetryEventProperties,
-            additionalMeasurements?: TelemetryEventMeasures,
-        ) => {
-            const endTime = performance.now();
-            sendErrorEvent(
-                telemetryView,
-                telemetryAction,
-                error,
-                includeErrorMessage,
-                errorCode,
-                errorType,
-                {
-                    ...additionalProps,
-                    ActivityStatus: ActivityStatus.Failed,
-                },
-                {
-                    ...additionalMeasurements,
-                    durationMs: Math.round(endTime - startTime),
-                },
-            );
-        },
+        startTime,
+        correlationId,
+        update,
+        end,
+        endFailed,
     };
 }

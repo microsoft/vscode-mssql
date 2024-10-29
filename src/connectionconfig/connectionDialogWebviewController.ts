@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 
 import {
     ActivityStatus,
-    FinishActivityObject,
+    ActivityObject,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
@@ -1124,7 +1124,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
-        let endActivity: FinishActivityObject;
+        let endActivity: ActivityObject;
         try {
             const auth = await confirmVscodeAzureSignin();
 
