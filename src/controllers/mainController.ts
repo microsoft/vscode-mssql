@@ -891,6 +891,8 @@ export default class MainController implements vscode.Disposable {
                             this._connectionMgr,
                             this._untitledSqlDocumentService,
                             node,
+                            this._objectExplorerProvider,
+                            this.objectExplorerTree,
                         );
                         reactPanel.revealToForeground();
                     },
@@ -907,6 +909,8 @@ export default class MainController implements vscode.Disposable {
                             this._connectionMgr,
                             this._untitledSqlDocumentService,
                             node,
+                            this._objectExplorerProvider,
+                            this.objectExplorerTree,
                         );
                         reactPanel.revealToForeground();
                     },
@@ -1088,6 +1092,19 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdrevealQueryResultPanel,
                 () => {
                     vscode.commands.executeCommand("queryResult.focus");
+                },
+            ),
+        );
+
+        // Query Results copy messages command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCopyAll,
+                async (context) => {
+                    const uri = context.uri;
+                    await this._queryResultWebviewController.copyAllMessagesToClipboard(
+                        uri,
+                    );
                 },
             ),
         );
