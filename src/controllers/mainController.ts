@@ -1091,6 +1091,19 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
+
+        // Query Results copy messages command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCopyAll,
+                async (context) => {
+                    const uri = context.uri;
+                    await this._queryResultWebviewController.copyAllMessagesToClipboard(
+                        uri,
+                    );
+                },
+            ),
+        );
     }
 
     /**
