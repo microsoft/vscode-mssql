@@ -68,7 +68,7 @@ export type FinishActivity = (
     additionalMeasurements?: Record<string, number>,
 ) => void;
 
-export type LogFailedActivity = (
+export type FinishActivityFailed = (
     error?: Error,
     includeErrorMessage?: boolean,
     errorCode?: string,
@@ -77,8 +77,8 @@ export type LogFailedActivity = (
     additionalMeasurements?: Record<string, number>,
 ) => void;
 
-export type ActivityEndObject = {
+export type FinishActivityObject = {
     end: FinishActivity;
-    endFailed: LogFailedActivity;
+    endFailed: FinishActivityFailed;
     correlationId: string;
 };

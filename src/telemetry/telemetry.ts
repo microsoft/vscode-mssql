@@ -3,19 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
+import * as vscodeMssql from "vscode-mssql";
+
+import {
+    ActivityStatus,
+    FinishActivityObject,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 import AdsTelemetryReporter, {
     TelemetryEventMeasures,
     TelemetryEventProperties,
 } from "@microsoft/ads-extension-telemetry";
-import * as vscodeMssql from "vscode-mssql";
+
 import { IConnectionProfile } from "../models/interfaces";
-import * as vscode from "vscode";
-import {
-    ActivityEndObject,
-    ActivityStatus,
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
 import { v4 as uuidv4 } from "uuid";
 
 const packageJson = vscode.extensions.getExtension(
@@ -120,7 +122,7 @@ export function startActivity(
     correlationId?: string,
     additionalProps: TelemetryEventProperties = {},
     additionalMeasurements: TelemetryEventMeasures = {},
-): ActivityEndObject {
+): FinishActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
         correlationId = uuidv4();
