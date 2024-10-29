@@ -562,6 +562,12 @@
           "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences"
         }
+      ],
+      "webview/context": [
+        {
+          "command": "mssql.copyAll",
+          "when": "webviewId == 'queryResult' && webviewSection == 'queryResultMessagesPane'"
+        }
       ]
     },
     "commands": [
@@ -581,6 +587,11 @@
         "title": "%mssql.cancelQuery%",
         "category": "MS SQL",
         "icon": "$(debug-stop)"
+      },
+      {
+        "command": "mssql.copyAll",
+        "title": "%mssql.copyAll%",
+        "category": "MS SQL"
       },
       {
         "command": "mssql.revealQueryResultPanel",
