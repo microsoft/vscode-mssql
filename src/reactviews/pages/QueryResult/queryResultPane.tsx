@@ -151,7 +151,7 @@ export const QueryResultPane = () => {
         }
         const observer = new ResizeObserver(() => {
             if (!gridRefs.current || !ribbonRef.current) {
-                console.log("gridRefs or ribbonRef null");
+                console.log("gridRefs or ribbonRef is not defined");
                 return;
             }
 
