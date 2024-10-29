@@ -34,6 +34,9 @@ require("slickgrid/slick.core.js");
 require("slickgrid/slick.grid.js");
 require("slickgrid/plugins/slick.cellrangedecorator.js");
 
+//TODO: get hardcoded data & get gridpanel to render the hardcoded data
+// add console.log in the event handlers for example to onTableClick function
+
 declare global {
     interface Window {
         $: any;
@@ -182,6 +185,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                         if (!data || data.isNull) {
                             return undefined;
                         }
+                        // If the string only contains whitespaces, it will be treated as empty string to make the filtering easier.
+                        // Note: this is the display string and does not impact the export/copy features.
                         return data.displayValue.trim() === ""
                             ? ""
                             : data.displayValue;
@@ -244,18 +249,33 @@ function isXmlCell(value: DBCellValue): boolean {
     try {
         if (value && !value.isNull && value.displayValue.trim() !== "") {
             var parser = new DOMParser();
+            // Script elements if any are not evaluated during parsing
             var doc = parser.parseFromString(value.displayValue, "text/xml");
+            // For non-xmls, parsererror element is present in body element.
+
             var parserErrors =
                 doc.body?.getElementsByTagName("parsererror") ?? [];
             isXML = parserErrors?.length === 0;
         }
     } catch (e) {
+        // Ignore errors when parsing cell content, log and continue
         console.log(`An error occurred when parsing data as XML: ${e}`);
     }
     return isXML;
 }
 
+// The regex to check whether a string is a valid JSON string. It is used to determine:
+// 1. whether the cell should be rendered as a hyperlink.
+// 2. when user clicks a cell, whether the cell content should be displayed in a new text editor as json.
+// Based on the requirements, the solution doesn't need to be very accurate, a simple regex is enough since it is more
+// performant than trying to parse the string to object.
+// Regex explaination: after removing the trailing whitespaces and line breaks, the string must start with '[' (to support arrays)
+// or '{', and there must be a '}' or ']' to close it.
+
 const IsJsonRegex = /^\s*[\{|\[][\S\s]*[\}\]]\s*$/g;
+
+// The css class for null cell
+
 const NULL_CELL_CSS_CLASS = "cell-null";
 
 ResultGrid.displayName = "ResultGrid";

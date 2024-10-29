@@ -146,10 +146,12 @@ export const QueryResultPane = () => {
 
         const gridParent = gridParentRef.current;
         if (!gridParent) {
+            console.log("gridParent null");
             return;
         }
         const observer = new ResizeObserver(() => {
             if (!gridRefs.current || !ribbonRef.current) {
+                console.log("gridRefs or ribbonRef null");
                 return;
             }
 
@@ -157,6 +159,7 @@ export const QueryResultPane = () => {
                 gridParent,
                 ribbonRef.current,
             );
+            console.log(`available height: ${availableHeight}`);
 
             if (gridParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
