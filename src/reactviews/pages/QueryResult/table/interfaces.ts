@@ -60,9 +60,9 @@ export const defaultTableStyles: ITableStyles = {
     listActiveSelectionForeground:
         "var(--vscode-list-activeSelectionForeground)",
     listFocusAndSelectionBackground:
-        "var(--vscode-list-focusAndSelectionBackground)",
+        "var(--vscode-list-activeSelectionBackground)", // "var(--vscode-list-focusAndSelectionBackground)"  not defined
     listFocusAndSelectionForeground:
-        "var(--vscode-list-focusAndSelectionForeground)",
+        "var(--vscode-list-activeSelectionForeground)", // "var(--vscode-list-focusAndSelectionBackground)"  not defined
     listInactiveFocusBackground: undefined,
     listInactiveSelectionBackground:
         "var(--vscode-list-inactiveSelectionBackground)",

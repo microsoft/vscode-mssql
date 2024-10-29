@@ -1828,6 +1828,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You must review and accept the terms to proceed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[続行するには、条件を確認して同意する必要があります]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Account]]></Val>
@@ -2110,6 +2119,9 @@
       <Item ItemId=";bundle.++CODE++8b43c4bf79e62cb8e9f61b4fddc6e921b87020df8bca991bbf77a39628ec9106" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a valid {0} from the dropdown]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ドロップダウンから有効な {0} を選択]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2449,6 +2461,9 @@
       <Item ItemId=";bundle.++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a {0} for filtering]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[フィルターのための {0} を選択]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

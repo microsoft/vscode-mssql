@@ -25,6 +25,7 @@ const SESSION_COUNT_KEY = "nps/sessionCount";
 const LAST_SESSION_DATE_KEY = "nps/lastSessionDate";
 const SKIP_VERSION_KEY = "nps/skipVersion";
 const IS_CANDIDATE_KEY = "nps/isCandidate";
+const NEVER_KEY = "nps/never";
 
 export class UserSurvey {
     private static _instance: UserSurvey;
@@ -39,8 +40,19 @@ export class UserSurvey {
 
     public async promptUserForNPSFeedback(): Promise<void> {
         const globalState = this._context.globalState;
+
+        // If the user has opted out of the survey, don't prompt for feedback
+        const isNeverUser = globalState.get(NEVER_KEY, false);
+        if (isNeverUser) {
+            return;
+        }
+
+        // If the user has already been prompted for feedback in this version, don't prompt again
+        const extensionVersion =
+            vscode.extensions.getExtension(constants.extensionId).packageJSON
+                .version || "unknown";
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
-        if (skipVersion) {
+        if (skipVersion === extensionVersion) {
             return;
         }
 
@@ -69,9 +81,6 @@ export class UserSurvey {
 
         await globalState.update(IS_CANDIDATE_KEY, isCandidate);
 
-        const extensionVersion =
-            vscode.extensions.getExtension(constants.extensionId).packageJSON
-                .version || "unknown";
         if (!isCandidate) {
             await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             return;
@@ -118,8 +127,7 @@ export class UserSurvey {
             title: locConstants.UserSurvey.dontShowAgain,
             isSecondary: true,
             run: async () => {
-                await globalState.update(IS_CANDIDATE_KEY, false);
-                await globalState.update(SKIP_VERSION_KEY, extensionVersion);
+                await globalState.update(NEVER_KEY, true);
             },
         };
 
@@ -178,7 +186,7 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
 
     sendActionEvent(
         TelemetryViews.UserSurvey,
-        TelemetryActions.SurverySubmit,
+        TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
             ...stringAnswers,

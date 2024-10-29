@@ -34,7 +34,8 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 }
 
 export const ACTIONBAR_WIDTH_PX = 36;
-export const TABLE_ALIGN_PX = 5;
+export const TABLE_ALIGN_PX = 7;
+export const SCROLLBAR_PX = 15;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     protected styleElement: HTMLStyleElement;
@@ -44,13 +45,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     // protected _columns: Slick.Column<T>[];
     protected _data: IDisposableDataProvider<T>;
     private _sorter?: ITableSorter<T>;
+    private _classChangeTimeout: any;
 
     private _autoscroll?: boolean;
     private _container: HTMLElement;
     protected _tableContainer: HTMLElement;
-    private selectionModel = new CellSelectionModel<T>({
-        hasRowSelector: true,
-    });
+    private selectionModel: CellSelectionModel<T>;
     private uri: string;
     private resultSetSummary: ResultSetSummary;
     private webViewState: VscodeWebviewContext<
@@ -74,6 +74,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
         this.webViewState = webViewState;
+        this.selectionModel = new CellSelectionModel<T>(
+            {
+                hasRowSelector: true,
+            },
+            webViewState,
+        );
         if (
             !configuration ||
             !configuration.dataProvider ||
@@ -90,6 +96,30 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
         this._container = document.createElement("div");
         this._container.className = "monaco-table";
+
+        DOM.addDisposableListener(
+            this._container,
+            DOM.EventType.FOCUS,
+            () => {
+                clearTimeout(this._classChangeTimeout);
+                this._classChangeTimeout = setTimeout(() => {
+                    this._container.classList.add("focused");
+                }, 100);
+            },
+            true,
+        );
+
+        DOM.addDisposableListener(
+            this._container,
+            DOM.EventType.BLUR,
+            () => {
+                clearTimeout(this._classChangeTimeout);
+                this._classChangeTimeout = setTimeout(() => {
+                    this._container.classList.remove("focused");
+                }, 100);
+            },
+            true,
+        );
 
         parent.appendChild(this._container);
         this.styleElement = DOM.createStyleSheet(this._container);
