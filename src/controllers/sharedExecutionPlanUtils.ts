@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { exists } from "../utils/utils";
+import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { homedir } from "os";
 import {
     ExecutionPlanGraphInfo,
@@ -20,31 +20,27 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sqlPlanLanguageId } from "../constants/constants";
+import {
+    executionPlanFileBaseName,
+    executionPlanFileFilter,
+} from "../constants/locConstants";
 
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     payload: ExecutionPlanReducers["saveExecutionPlan"],
 ) {
     let folder = vscode.Uri.file(homedir());
-    let filename: vscode.Uri;
-
-    // make the default filename of the plan to be saved-
-    // start at plan.sqlplan, then plan1.sqlplan, ...
-    let counter = 1;
-    if (await exists(`plan.sqlplan`, folder)) {
-        while (await exists(`plan${counter}.sqlplan`, folder)) {
-            counter += 1;
-        }
-        filename = vscode.Uri.joinPath(folder, `plan${counter}.sqlplan`);
-    } else {
-        filename = vscode.Uri.joinPath(folder, "plan.sqlplan");
-    }
 
     // Show a save dialog to the user
     const saveUri = await vscode.window.showSaveDialog({
-        defaultUri: filename,
+        defaultUri: await getUniqueFilePath(
+            folder,
+            executionPlanFileBaseName,
+            sqlPlanLanguageId,
+        ),
         filters: {
-            "SQL Plan Files": ["sqlplan"],
+            executionPlanFileFilter: [`.${sqlPlanLanguageId}`],
         },
     });
 
@@ -109,7 +105,7 @@ export async function createExecutionPlanGraphs(
     for (const plan of xmlPlans) {
         const planFile: ExecutionPlanGraphInfo = {
             graphFileContent: plan,
-            graphFileType: ".sqlplan",
+            graphFileType: `.${sqlPlanLanguageId}`,
         };
         try {
             newState.executionPlanGraphs = newState.executionPlanGraphs.concat(
@@ -125,12 +121,12 @@ export async function createExecutionPlanGraphs(
                 {
                     numberOfPlans:
                         state.executionPlanState.executionPlanGraphs.length,
-                    LoadTimeInMs: performance.now() - startTime,
+                    letoadTimeInMs: performance.now() - startTime,
                 },
             );
         } catch (e) {
             newState.loadState = ApiStatus.Error;
-            newState.errorMessage = e.toString();
+            newState.errorMessage = getErrorMessage(e);
             sendErrorEvent(
                 TelemetryViews.QueryPlan,
                 TelemetryActions.OpenQueryPlan,
@@ -161,24 +157,28 @@ export function calculateTotalCost(
 }
 
 export function formatXml(xmlContents: string): string {
-    let formattedXml = "";
-    let currentLevel = 0;
+    try {
+        let formattedXml = "";
+        let currentLevel = 0;
 
-    const elements = xmlContents.match(/<[^>]*>/g);
-    for (const element of elements) {
-        if (element.startsWith("</")) {
-            // Closing tag: decrement the level
-            currentLevel--;
+        const elements = xmlContents.match(/<[^>]*>/g);
+        for (const element of elements) {
+            if (element.startsWith("</")) {
+                // Closing tag: decrement the level
+                currentLevel--;
+            }
+            formattedXml += "\t".repeat(currentLevel) + element + "\n";
+            if (
+                element.startsWith("<") &&
+                !element.startsWith("</") &&
+                !element.endsWith("/>")
+            ) {
+                // Opening tag: increment the level
+                currentLevel++;
+            }
         }
-        formattedXml += "\t".repeat(currentLevel) + element + "\n";
-        if (
-            element.startsWith("<") &&
-            !element.startsWith("</") &&
-            !element.endsWith("/>")
-        ) {
-            // Opening tag: increment the level
-            currentLevel++;
-        }
+        return formattedXml;
+    } catch {
+        return xmlContents;
     }
-    return formattedXml;
 }

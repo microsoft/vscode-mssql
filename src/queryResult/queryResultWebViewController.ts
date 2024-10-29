@@ -84,16 +84,19 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private registerRpcHandlers() {
         this.registerRequestHandler("getRows", async (message) => {
-            let result = await this._sqlOutputContentProvider.rowRequestHandler(
-                message.uri,
-                message.batchId,
-                message.resultId,
-                message.rowStart,
-                message.numberOfRows,
-            );
+            const result =
+                await this._sqlOutputContentProvider.rowRequestHandler(
+                    message.uri,
+                    message.batchId,
+                    message.resultId,
+                    message.rowStart,
+                    message.numberOfRows,
+                );
             let currentState = this.getQueryResultState(message.uri);
             if (currentState.isExecutionPlan) {
                 currentState.executionPlanState.xmlPlans =
+                    // this gets the xml plan returned by the get execution
+                    // plan query
                     currentState.executionPlanState.xmlPlans.concat(
                         result.rows[0][0].displayValue,
                     );
@@ -179,6 +182,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerReducer("getExecutionPlan", async (state, payload) => {
             const currentResultState = this.getQueryResultState(payload.uri);
             if (
+                // in the case of a multi-set result set, make sure the
+                // results have fully finished loading by checking that
+                // we have the same amount of xml plans as result sets
                 currentResultState.executionPlanState.xmlPlans.length &&
                 currentResultState.executionPlanState.xmlPlans.length ===
                     Object.keys(currentResultState.resultSetSummaries).length &&
