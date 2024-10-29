@@ -891,6 +891,8 @@ export default class MainController implements vscode.Disposable {
                             this._connectionMgr,
                             this._untitledSqlDocumentService,
                             node,
+                            this._objectExplorerProvider,
+                            this.objectExplorerTree,
                         );
                         reactPanel.revealToForeground();
                     },
@@ -907,6 +909,8 @@ export default class MainController implements vscode.Disposable {
                             this._connectionMgr,
                             this._untitledSqlDocumentService,
                             node,
+                            this._objectExplorerProvider,
+                            this.objectExplorerTree,
                         );
                         reactPanel.revealToForeground();
                     },
