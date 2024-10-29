@@ -44,8 +44,6 @@ import {
     sendActionEvent,
     sendErrorEvent,
     startActivity,
-    startActivity,
-    startActivity,
 } from "../telemetry/telemetry";
 
 import { ApiStatus } from "../sharedInterfaces/webview";
