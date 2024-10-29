@@ -24,6 +24,7 @@ export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
 export const cmdCancelQuery = "mssql.cancelQuery";
 export const cmdrevealQueryResultPanel = "mssql.revealQueryResultPanel";
+export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
 export const cmdChangeDatabase = "mssql.changeDatabase";
