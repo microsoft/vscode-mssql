@@ -152,6 +152,7 @@ export class LocConstants {
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
+            savedConnections: l10n.t("Saved Connections"),
             recentConnections: l10n.t("Recent Connections"),
             subscriptionLabel: l10n.t("Subscription"),
             subscription: l10n.t("subscription"),

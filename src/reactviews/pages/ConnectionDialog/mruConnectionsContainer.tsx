@@ -60,6 +60,35 @@ export const MruConnectionsContainer = () => {
         <div>
             <div className={styles.paneTitle}>
                 <Text weight="semibold" className={styles.paneTitle}>
+                    {locConstants.connectionDialog.savedConnections}
+                </Text>
+                <Button
+                    icon={<ArrowClockwise16Filled />}
+                    appearance="subtle"
+                    onClick={context.refreshMruConnections}
+                />
+            </div>
+            <Tree>
+                {// state may not be initialized yet due to async loading of context
+                context.state?.savedConnections.map((connection, index) => {
+                    return (
+                        <TreeItem
+                            itemType="leaf"
+                            key={"saved" + index}
+                            className={styles.card}
+                            onClick={() => {
+                                context.loadConnection(connection);
+                            }}
+                        >
+                            <TreeItemLayout iconBefore={<ServerRegular />}>
+                                {connection.displayName}
+                            </TreeItemLayout>
+                        </TreeItem>
+                    );
+                })}
+            </Tree>
+            <div className={styles.paneTitle}>
+                <Text weight="semibold" className={styles.paneTitle}>
                     {locConstants.connectionDialog.recentConnections}
                 </Text>
                 <Button

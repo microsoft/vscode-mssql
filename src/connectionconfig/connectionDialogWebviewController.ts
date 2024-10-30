@@ -59,7 +59,6 @@ import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
 } from "../models/interfaces";
-import { x } from "tar";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -81,6 +80,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             "connectionDialog",
             new ConnectionDialogWebviewState({
                 connectionProfile: {} as IConnectionDialogProfile,
+                savedConnections: [],
                 recentConnections: [],
                 selectedInputMode: ConnectionInputMode.Parameters,
                 connectionComponents: {
@@ -141,8 +141,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private async initializeDialog() {
         try {
-            const connections = await this.loadConnections();
-            this.state.recentConnections = connections.recentConnections;
+            await this.updateLoadedConnections(this.state);
             this.updateState();
         } catch (err) {
             void vscode.window.showErrorMessage(getErrorMessage(err));
@@ -202,52 +201,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         await this.updateItemVisibility();
         this.updateState();
-    }
-
-    private async loadConnections(): Promise<{
-        recentConnections: IConnectionDialogProfile[];
-        savedConnections: IConnectionDialogProfile[];
-    }> {
-        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
-            this._mainController.connectionManager.connectionStore.loadAllConnections(
-                true /* addRecentConnections */,
-            );
-
-        const recentConnections = unsortedConnections
-            .filter(
-                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
-            )
-            .map((c) => c.connectionCreds);
-        const savedConnections = unsortedConnections
-            .filter(
-                (c) =>
-                    c.quickPickItemType ===
-                    CredentialsQuickPickItemType.Profile,
-            )
-            .map((c) => c.connectionCreds);
-
-        sendActionEvent(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadRecentConnections,
-            undefined, // additionalProperties
-            {
-                recentConnectionsCount: recentConnections.length,
-                savedConnectionsCount: savedConnections.length,
-            },
-        );
-
-        return {
-            recentConnections: await Promise.all(
-                recentConnections.map((conn) =>
-                    this.initializeConnectionForDialog(conn),
-                ),
-            ),
-            savedConnections: await Promise.all(
-                savedConnections.map((conn) =>
-                    this.initializeConnectionForDialog(conn),
-                ),
-            ),
-        };
     }
 
     private async loadConnectionToEdit() {
@@ -1081,8 +1034,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     );
 
                 this._objectExplorerProvider.refresh(undefined);
-                state.recentConnections = await this.loadConnections();
+                await this.updateLoadedConnections(state);
                 this.updateState();
+
                 this.state.connectionStatus = ApiStatus.Loaded;
                 await this._mainController.objectExplorerTree.reveal(node, {
                     focus: true,
@@ -1128,7 +1082,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("refreshMruConnections", async (state) => {
-            state.recentConnections = await this.loadConnections();
+            await this.updateLoadedConnections(state);
             this.updateState();
 
             return state;
@@ -1141,6 +1095,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return state;
         });
     }
+
+    //#region Helpers
+
+    //#region Azure helpers
 
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
@@ -1305,6 +1263,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
     }
 
+    //#endregion
+
     private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
         return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
@@ -1315,4 +1275,60 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return rv;
         }, new Map<K, V[]>());
     }
+
+    private async loadConnections(): Promise<{
+        savedConnections: IConnectionDialogProfile[];
+        recentConnections: IConnectionDialogProfile[];
+    }> {
+        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
+            this._mainController.connectionManager.connectionStore.loadAllConnections(
+                true /* addRecentConnections */,
+            );
+
+        const savedConnections = unsortedConnections
+            .filter(
+                (c) =>
+                    c.quickPickItemType ===
+                    CredentialsQuickPickItemType.Profile,
+            )
+            .map((c) => c.connectionCreds);
+
+        const recentConnections = unsortedConnections
+            .filter(
+                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
+            )
+            .map((c) => c.connectionCreds);
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadRecentConnections,
+            undefined, // additionalProperties
+            {
+                savedConnectionsCount: savedConnections.length,
+                recentConnectionsCount: recentConnections.length,
+            },
+        );
+
+        return {
+            recentConnections: await Promise.all(
+                recentConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+            savedConnections: await Promise.all(
+                savedConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+        };
+    }
+
+    private async updateLoadedConnections(state: ConnectionDialogWebviewState) {
+        const loadedConnections = await this.loadConnections();
+
+        state.recentConnections = loadedConnections.recentConnections;
+        state.savedConnections = loadedConnections.savedConnections;
+    }
+
+    //#endregion
 }
