@@ -86,6 +86,7 @@ export default class MainController implements vscode.Disposable {
         includeEstimatedExecutionPlanXml: false,
         includeActualExecutionPlanXml: false,
     };
+    private _actualPlanStatuses: Set<string> = new Set<string>();
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -266,6 +267,10 @@ export default class MainController implements vscode.Disposable {
                 this._executionPlanOptions.includeEstimatedExecutionPlanXml =
                     true;
                 void this.onRunQuery();
+            });
+            this.registerCommand(Constants.cmdToggleActualPlan);
+            this._event.on(Constants.cmdToggleActualPlan, () => {
+                this.onToggleActualPlan();
             });
             this.initializeObjectExplorer();
 
@@ -1530,6 +1535,9 @@ export default class MainController implements vscode.Disposable {
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
+            self._executionPlanOptions.includeActualExecutionPlanXml =
+                self._actualPlanStatuses.has(uri);
+
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
             if (editor.selections?.length > 1) {
@@ -1630,6 +1638,18 @@ export default class MainController implements vscode.Disposable {
             );
             return undefined;
         });
+    }
+
+    public onToggleActualPlan(callbackThis?: MainController): void {
+        // the 'this' context is lost in retry callback, so capture it here
+        const self: MainController = callbackThis ? callbackThis : this;
+        const uri = self._vscodeWrapper.activeTextEditorUri;
+
+        if (this._actualPlanStatuses.has(uri)) {
+            this._actualPlanStatuses.delete(uri);
+        } else {
+            this._actualPlanStatuses.add(uri);
+        }
     }
 
     /**

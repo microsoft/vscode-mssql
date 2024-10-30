@@ -1769,6 +1769,9 @@
     <trans-unit id="mssql.objectExplorer.expandTimeout">
       <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
     </trans-unit>
+    <trans-unit id="mssql.toggleActualPlan">
+      <source xml:lang="en">Toggle Actual Plan</source>
+    </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
     </trans-unit>

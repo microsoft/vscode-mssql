@@ -845,6 +845,15 @@
           "dark": "media/executionPlan_dark.svg",
           "light": "media/executionPlan_light.svg"
         }
+      },
+      {
+        "command": "mssql.toggleActualPlan",
+        "title": "%mssql.toggleActualPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/enableActualExecutionPlan_dark.svg",
+          "light": "media/enableActualExecutionPlan_light.svg"
+        }
       }
     ],
     "keybindings": [

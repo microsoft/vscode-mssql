@@ -151,6 +151,7 @@
 "mssql.filterNode":"Filter",
 "mssql.clearFilters":"Clear Filters",
 "mssql.openExecutionPlanFile":"Open Execution Plan File",
+"mssql.toggleActualPlan": "Toggle Actual Plan",
 "mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiences.description":"Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enables UI-based features",

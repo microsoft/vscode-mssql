@@ -82,6 +82,7 @@ export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
 export const cmdShowExecutionPlanInResults = "mssql.showExecutionPlanInResults";
+export const cmdToggleActualPlan = "mssql.toggleActualPlan";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
