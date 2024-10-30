@@ -121,15 +121,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
         if (this.activePopup) {
             const isSameButton =
                 this.activePopup.data("button") === filterButton;
+            // close the popup and reset activePopup
+            this.activePopup.fadeOut();
+            this.activePopup = null;
             if (isSameButton) {
-                // If clicking the same button, close the popup and reset activePopup
-                this.activePopup.fadeOut();
-                this.activePopup = null;
-                return; // Exit since we're just closing the popup
-            } else {
-                // If it's a different button, close the current popup before opening the new one
-                this.activePopup.fadeOut();
-                this.activePopup = null;
+                return; // Exit since we're just closing the popup for the same button
             }
         }
 
