@@ -55,6 +55,11 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    CredentialsQuickPickItemType,
+    IConnectionCredentialsQuickPickItem,
+} from "../models/interfaces";
+import { x } from "tar";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -136,7 +141,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private async initializeDialog() {
         try {
-            this.state.recentConnections = await this.loadRecentConnections();
+            const connections = await this.loadConnections();
+            this.state.recentConnections = connections.recentConnections;
             this.updateState();
         } catch (err) {
             void vscode.window.showErrorMessage(getErrorMessage(err));
@@ -198,11 +204,27 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         this.updateState();
     }
 
-    private async loadRecentConnections(): Promise<IConnectionDialogProfile[]> {
-        const recentConnections =
-            this._mainController.connectionManager.connectionStore
-                .loadAllConnections(true)
-                .map((c) => c.connectionCreds);
+    private async loadConnections(): Promise<{
+        recentConnections: IConnectionDialogProfile[];
+        savedConnections: IConnectionDialogProfile[];
+    }> {
+        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
+            this._mainController.connectionManager.connectionStore.loadAllConnections(
+                true /* addRecentConnections */,
+            );
+
+        const recentConnections = unsortedConnections
+            .filter(
+                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
+            )
+            .map((c) => c.connectionCreds);
+        const savedConnections = unsortedConnections
+            .filter(
+                (c) =>
+                    c.quickPickItemType ===
+                    CredentialsQuickPickItemType.Profile,
+            )
+            .map((c) => c.connectionCreds);
 
         sendActionEvent(
             TelemetryViews.ConnectionDialog,
@@ -210,17 +232,22 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             undefined, // additionalProperties
             {
                 recentConnectionsCount: recentConnections.length,
+                savedConnectionsCount: savedConnections.length,
             },
         );
 
-        const dialogConnections: IConnectionDialogProfile[] = [];
-        for (let i = 0; i < recentConnections.length; i++) {
-            dialogConnections.push(
-                await this.initializeConnectionForDialog(recentConnections[i]),
-            );
-        }
-
-        return dialogConnections;
+        return {
+            recentConnections: await Promise.all(
+                recentConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+            savedConnections: await Promise.all(
+                savedConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+        };
     }
 
     private async loadConnectionToEdit() {
@@ -1054,7 +1081,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     );
 
                 this._objectExplorerProvider.refresh(undefined);
-                state.recentConnections = await this.loadRecentConnections();
+                state.recentConnections = await this.loadConnections();
                 this.updateState();
                 this.state.connectionStatus = ApiStatus.Loaded;
                 await this._mainController.objectExplorerTree.reveal(node, {
@@ -1101,7 +1128,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("refreshMruConnections", async (state) => {
-            state.recentConnections = await this.loadRecentConnections();
+            state.recentConnections = await this.loadConnections();
             this.updateState();
 
             return state;
@@ -1278,8 +1305,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
     }
 
-    private groupBy<K, V>(xs: V[], key: string): Map<K, V[]> {
-        return xs.reduce((rv, x) => {
+    private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
+        return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
             if (!rv.has(keyValue)) {
                 rv.set(keyValue, []);
