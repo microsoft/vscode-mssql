@@ -40,7 +40,7 @@ export async function saveExecutionPlan(
             sqlPlanLanguageId,
         ),
         filters: {
-            executionPlanFileFilter: [`.${sqlPlanLanguageId}`],
+            [executionPlanFileFilter]: [`.${sqlPlanLanguageId}`],
         },
     });
 
