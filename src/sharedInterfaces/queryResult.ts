@@ -63,9 +63,18 @@ export interface QueryResultReducers
     setResultTab: {
         tabId: QueryResultPaneTabs;
     };
+    /**
+     * Gets the execution plan graph from the provider for given uri
+     * @param uri  the uri for which to get graphs for
+     */
     getExecutionPlan: {
         uri: string;
     };
+    /**
+     * Adds an xml plan to the current execution plan state.
+     * This is useful for multi-result sets
+     * @param xmlPlans  the xml plan to add
+     */
     addXmlPlan: {
         xmlPlan: string;
     };

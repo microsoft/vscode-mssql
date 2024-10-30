@@ -49,7 +49,7 @@ export const ExecutionPlanPage = () => {
         ) {
             state.provider.getExecutionPlan(executionPlanState.xmlPlans!);
         }
-    }, [state, executionPlanState]);
+    }, [executionPlanState]);
 
     const renderMainContent = () => {
         switch (loadState) {

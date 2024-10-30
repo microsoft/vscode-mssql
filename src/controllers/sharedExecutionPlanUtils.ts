@@ -115,8 +115,8 @@ export async function createExecutionPlanGraphs(
             newState.loadState = ApiStatus.Loaded;
 
             sendActionEvent(
-                TelemetryViews.QueryPlan,
-                TelemetryActions.OpenQueryPlan,
+                TelemetryViews.ExecutionPlan,
+                TelemetryActions.OpenExecutionPlan,
                 {},
                 {
                     numberOfPlans:
@@ -128,8 +128,8 @@ export async function createExecutionPlanGraphs(
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
             sendErrorEvent(
-                TelemetryViews.QueryPlan,
-                TelemetryActions.OpenQueryPlan,
+                TelemetryViews.ExecutionPlan,
+                TelemetryActions.OpenExecutionPlan,
                 e,
                 true, // includeErrorMessage
             );

@@ -10,26 +10,55 @@ export interface ExecutionPlanWebviewState {
 }
 
 export interface ExecutionPlanState {
+    /**
+     * The execution plan graphs returned by the tools service
+     */
     executionPlanGraphs?: ExecutionPlanGraph[];
+    /**
+     * The total cost of the execution plan
+     */
     totalCost?: number;
     loadState?: ApiStatus;
     errorMessage?: string;
+    /**
+     * The xml plans associated with the execution plan
+     */
     xmlPlans?: string[];
 }
 
 export interface ExecutionPlanReducers {
+    /**
+     * Gets the execution plan graph from the provider for given xmls
+     * @param xmlPlans  the xmls to get the graphs for
+     */
     getExecutionPlan: {
         xmlPlans: string[];
     };
+    /**
+     * Saves the given execution plan
+     * @param sqlPlanContent the xml content to save
+     */
     saveExecutionPlan: {
         sqlPlanContent: string;
     };
+    /**
+     * Opens the xml content of the execution plan in another editor
+     * @param sqlPlanContent the xml content to show
+     */
     showPlanXml: {
         sqlPlanContent: string;
     };
+    /**
+     * Opens the query of the execution plan in another editor
+     * @param query the query to open
+     */
     showQuery: {
         query: string;
     };
+    /**
+     * Adds a cost to the overall total cost of an execution plan
+     * @param addedCost the cost to add
+     */
     updateTotalCost: {
         addedCost: number;
     };
