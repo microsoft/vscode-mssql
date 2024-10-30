@@ -1968,6 +1968,10 @@
         <source xml:lang="en">Connections</source>
         <target state="translated">連線</target>
       </trans-unit>
+      <trans-unit id="mssql.copyAll">
+        <source xml:lang="en">Copy All</source>
+        <target state="new">Copy All</target>
+      </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">複製物件名稱</target>
