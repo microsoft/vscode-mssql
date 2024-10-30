@@ -121,7 +121,7 @@ export async function createExecutionPlanGraphs(
                 {
                     numberOfPlans:
                         state.executionPlanState.executionPlanGraphs.length,
-                    letoadTimeInMs: performance.now() - startTime,
+                    loadTimeInMs: performance.now() - startTime,
                 },
             );
         } catch (e) {
