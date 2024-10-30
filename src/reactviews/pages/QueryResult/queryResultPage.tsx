@@ -99,7 +99,7 @@ export const QueryResult = () => {
     return (
         <div className={classes.root}>
             {
-                <div className={classes.mainContent}>
+                <div id={"resultPane"} className={classes.mainContent}>
                     <QueryResultPane />
                 </div>
             }

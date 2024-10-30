@@ -227,6 +227,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         };
 
         const resizeGrid = (width: number, height: number) => {
+            console.log(
+                "Resizing grid to width: " + width + " height: " + height,
+            );
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };

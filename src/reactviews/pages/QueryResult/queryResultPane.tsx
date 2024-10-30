@@ -194,8 +194,11 @@ export const QueryResultPane = () => {
 
         observer.observe(gridParent);
 
-        return () => observer.disconnect();
-    }, [metadata?.resultSetSummaries]);
+        return () => {
+            console.log("disconnect");
+            observer.disconnect();
+        };
+    }, [metadata?.resultSetSummaries, gridParentRef.current]);
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
@@ -235,9 +238,24 @@ export const QueryResultPane = () => {
         resultId: number,
         gridCount: number,
     ) => {
+        console.log(`rendering grid ${batchId}-${resultId}`);
         const divId = `grid-parent-${batchId}-${resultId}`;
         return (
-            <div id={divId} className={classes.queryResultContainer}>
+            <div
+                id={divId}
+                className={classes.queryResultContainer}
+                // style={{
+                //     height:
+                //         gridParentRef.current && ribbonRef.current
+                //             ? `${
+                //                   getAvailableHeight(
+                //                       gridParentRef.current!,
+                //                       ribbonRef.current!,
+                //                   ) - 7
+                //               }px`
+                //             : "",
+                // }}
+            >
                 <ResultGrid
                     loadFunc={(
                         offset: number,
