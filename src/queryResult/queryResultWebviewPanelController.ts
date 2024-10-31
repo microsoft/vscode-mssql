@@ -5,8 +5,7 @@
 
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
-import * as Constants from "../constants/constants";
-import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
+// import * as Constants from "../constants/constants";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { sendActionEvent } from "../telemetry/telemetry";
 import {
@@ -21,18 +20,14 @@ import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentServic
 import { ExecutionPlanGraphInfo } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
+import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 
-export class QueryResultWebviewController extends ReactWebviewViewController<
+export class QueryResultWebviewPanelController extends ReactWebviewPanelController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
 > {
     private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> =
         new Map<string, qr.QueryResultWebviewState>();
-    private _queryResultWebviewPanelControllerMap: Map<
-        string,
-        QueryResultWebviewPanelController
-    > = new Map<string, QueryResultWebviewPanelController>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
 
@@ -42,65 +37,68 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         private untitledSqlDocumentService: UntitledSqlDocumentService,
         private _vscodeWrapper: VscodeWrapper,
     ) {
-        super(context, "queryResult", {
-            resultSetSummaries: {},
-            messages: [],
-            tabStates: {
-                resultPaneTab: qr.QueryResultPaneTabs.Messages,
+        super(
+            context,
+            "queryResult",
+            {
+                resultSetSummaries: {},
+                messages: [],
+                tabStates: {
+                    resultPaneTab: qr.QueryResultPaneTabs.Messages,
+                },
+                executionPlanState: {},
             },
-            executionPlanState: {},
-        });
+            {
+                title: "Query Results",
+                viewColumn: vscode.ViewColumn.Two,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "revealQueryResult.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "revealQueryResult.svg",
+                    ),
+                },
+            },
+        );
 
         void this.initialize();
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
-        if (this.isRichExperiencesEnabled) {
-            vscode.window.onDidChangeActiveTextEditor((editor) => {
-                const uri = editor?.document?.uri?.toString(true);
-                if (uri && this._queryResultStateMap.has(uri)) {
-                    this.state = this.getQueryResultState(uri);
-                } else {
-                    this.state = {
-                        resultSetSummaries: {},
-                        messages: [],
-                        tabStates: undefined,
-                        isExecutionPlan: false,
-                        executionPlanState: {},
-                    };
-                }
-            });
-        }
+        // if (this.isRichExperiencesEnabled) {
+        //     vscode.window.onDidChangeActiveTextEditor((editor) => {
+        //         const uri = editor?.document?.uri?.toString(true);
+        //         if (uri && this._queryResultStateMap.has(uri)) {
+        //             this.state = this.getQueryResultState(uri);
+        //         } else {
+        //             this.state = {
+        //                 resultSetSummaries: {},
+        //                 messages: [],
+        //                 tabStates: undefined,
+        //                 isExecutionPlan: false,
+        //                 executionPlanState: {},
+        //             };
+        //         }
+        //     });
+        // }
     }
 
     private async initialize() {
         this.registerRpcHandlers();
     }
 
-    private get isRichExperiencesEnabled(): boolean {
-        return this._vscodeWrapper
-            .getConfiguration()
-            .get(Constants.configEnableRichExperiences);
-    }
+    // private get isRichExperiencesEnabled(): boolean {
+    //     return this._vscodeWrapper
+    //         .getConfiguration()
+    //         .get(Constants.configEnableRichExperiences);
+    // }
 
     private registerRpcHandlers() {
-        this.registerRequestHandler("openInNewTab", async (message) => {
-            const controller = new QueryResultWebviewPanelController(
-                this._context,
-                this.executionPlanService,
-                this.untitledSqlDocumentService,
-                this._vscodeWrapper,
-            );
-            controller.setSqlOutputContentProvider(
-                this._sqlOutputContentProvider,
-            );
-            controller.state = this.getQueryResultState(message.uri);
-            controller.revealToForeground();
-            this._queryResultWebviewPanelControllerMap.set(
-                message.uri,
-                controller,
-            );
-        });
         this.registerRequestHandler("getRows", async (message) => {
             return await this._sqlOutputContentProvider.rowRequestHandler(
                 message.uri,
@@ -283,14 +281,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             }),
         };
         this._queryResultStateMap.set(uri, currentState);
-    }
-
-    public updatePanelState(uri: string): void {
-        if (this._queryResultWebviewPanelControllerMap.has(uri)) {
-            this._queryResultWebviewPanelControllerMap
-                .get(uri)
-                .updateState(this.getQueryResultState(uri));
-        }
     }
 
     public getQueryResultState(uri: string): qr.QueryResultWebviewState {

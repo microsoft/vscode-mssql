@@ -411,25 +411,22 @@ export const QueryResultPane = () => {
                             </Tab>
                         )}
                 </TabList>
-                {false && ( // hide divider until we implement snapshot
-                    <Divider
-                        vertical
-                        style={{
-                            flex: "0",
-                        }}
-                    />
-                )}
-                {false && ( // hide button until we implement snapshot
+                {
                     <Button
                         appearance="transparent"
                         icon={<OpenFilled />}
                         onClick={async () => {
-                            console.log("todo: open in new tab");
-                            // gridRef.current.refreshGrid();
+                            console.log("open in new tab");
+                            await webViewState.extensionRpc.call(
+                                "openInNewTab",
+                                {
+                                    uri: metadata?.uri,
+                                },
+                            );
                         }}
                         title={locConstants.queryResult.openSnapshot}
                     ></Button>
-                )}
+                }
             </div>
             <div className={classes.tabContent}>
                 {metadata.tabStates!.resultPaneTab ===

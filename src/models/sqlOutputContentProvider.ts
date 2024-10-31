@@ -415,6 +415,7 @@ export class SqlOutputContentProvider {
                     this._queryResultWebviewController.getQueryResultState(
                         uri,
                     ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                    this._queryResultWebviewController.updatePanelState(uri);
                 }
             });
             queryRunner.eventEmitter.on(
@@ -428,6 +429,9 @@ export class SqlOutputContentProvider {
                         this._queryResultWebviewController.addResultSetSummary(
                             uri,
                             resultSet,
+                        );
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
                         );
                     }
                 },
@@ -465,6 +469,7 @@ export class SqlOutputContentProvider {
                             uri,
                         );
                     vscode.commands.executeCommand("queryResult.focus");
+                    this._queryResultWebviewController.updatePanelState(uri);
                 }
             });
             queryRunner.eventEmitter.on("message", (message) => {
@@ -482,6 +487,7 @@ export class SqlOutputContentProvider {
                             uri,
                         );
                     vscode.commands.executeCommand("queryResult.focus");
+                    this._queryResultWebviewController.updatePanelState(uri);
                 }
             });
             queryRunner.eventEmitter.on(
@@ -533,6 +539,9 @@ export class SqlOutputContentProvider {
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
                             );
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
+                        );
                     }
                 },
             );
