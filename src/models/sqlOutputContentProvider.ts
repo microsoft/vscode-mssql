@@ -268,6 +268,8 @@ export class SqlOutputContentProvider {
             this._queryResultWebviewController.addQueryResultState(
                 uri,
                 this.getIsExecutionPlan(),
+                this._executionPlanOptions?.includeActualExecutionPlanXml ??
+                    false,
             );
         }
         if (queryRunner) {
@@ -408,6 +410,8 @@ export class SqlOutputContentProvider {
                     this._queryResultWebviewController.addQueryResultState(
                         uri,
                         this.getIsExecutionPlan(),
+                        this._executionPlanOptions
+                            ?.includeActualExecutionPlanXml ?? false,
                     );
                     await vscode.commands.executeCommand("queryResult.focus");
                     this._queryResultWebviewController.getQueryResultState(

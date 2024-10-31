@@ -192,9 +192,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 // in the case of a multi-set result set, make sure the
                 // results have fully finished loading by checking that
                 // we have the same amount of xml plans as result sets
+                currentResultState.executionPlanState.xmlPlans &&
                 currentResultState.executionPlanState.xmlPlans.length &&
                 currentResultState.executionPlanState.xmlPlans.length ===
-                    Object.keys(currentResultState.resultSetSummaries).length &&
+                    this.getNumExecutionPlanResultSets(
+                        currentResultState.resultSetSummaries,
+                        currentResultState.actualPlanEnabled,
+                    ) &&
                 currentResultState.executionPlanState.executionPlanGraphs
                     .length === 0
             ) {
@@ -243,7 +247,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
     }
 
-    public addQueryResultState(uri: string, isExecutionPlan?: boolean): void {
+    public addQueryResultState(
+        uri: string,
+        isExecutionPlan?: boolean,
+        actualPlanEnabled?: boolean,
+    ): void {
         let currentState = {
             resultSetSummaries: {},
             messages: [],
@@ -252,6 +260,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             uri: uri,
             isExecutionPlan: isExecutionPlan,
+            actualPlanEnabled: actualPlanEnabled,
             ...(isExecutionPlan && {
                 executionPlanState: {
                     loadState: ApiStatus.Loading,
@@ -315,5 +324,23 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         const messageText = messages.join("\n");
         await this._vscodeWrapper.clipboardWriteText(messageText);
+    }
+
+    public getNumExecutionPlanResultSets(
+        resultSetSummaries: qr.QueryResultWebviewState["resultSetSummaries"],
+        actualPlanEnabled: boolean,
+    ): number {
+        const summariesLength = Object.keys(resultSetSummaries).length;
+        if (!actualPlanEnabled) {
+            return summariesLength;
+        }
+        // if actual plan is enabled, then
+        // every other resultSet is a query plan xml
+        // hence, count up the number of resultSets and divide by 2
+        let total = 0;
+        for (let i = 0; i < summariesLength; i++) {
+            total += Object.keys(resultSetSummaries[i]).length;
+        }
+        return total / 2;
     }
 }
