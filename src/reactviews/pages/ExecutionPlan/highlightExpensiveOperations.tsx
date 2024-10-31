@@ -35,6 +35,9 @@ const useStyles = makeStyles({
     dropdown: {
         maxHeight: "200px",
     },
+    spacer: {
+        padding: "1px",
+    },
 });
 
 interface HighlightExpensiveOperationsProps {
@@ -116,24 +119,31 @@ export const HighlightExpensiveOperations: React.FC<
             }}
         >
             <div>{locConstants.executionPlan.metric}</div>
+            <div style={{ paddingRight: "12px" }} />
             <Combobox
                 id="highlightExpensiveOpsDropdown"
+                size="small"
+                input={{ style: { textOverflow: "ellipsis" } }}
+                listbox={{ style: { minWidth: "fit-content" } }}
                 onOptionSelect={(_, data) =>
                     setHighlightMetricSelected(data.optionText ?? "")
                 }
             >
-                <div style={{ maxHeight: "250px" }}>
-                    {highlightMetricOptions.map((option) => (
-                        <Option key={option}>{option}</Option>
-                    ))}
-                </div>
+                {highlightMetricOptions.map((option) => (
+                    <Option key={option}>{option}</Option>
+                ))}
             </Combobox>
+            <div className={classes.spacer}></div>
             <Button
                 onClick={handleHighlightExpensiveOperation}
+                size="small"
+                appearance="subtle"
                 icon={<Checkmark20Regular />}
             />
             <Button
                 icon={<Dismiss20Regular />}
+                size="small"
+                appearance="subtle"
                 onClick={handleHighlightClose}
             />
         </div>

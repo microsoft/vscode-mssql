@@ -137,7 +137,6 @@ export const sqlToolsServiceCrashLink =
 export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const databaseString = "Database";
 export const localizedTexts = "localizedTexts";
-export const sqlPlanLanguageId = "sqlplan";
 export const ipAddressRegex =
     /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 /**
@@ -220,7 +219,7 @@ export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
     "https://www.microsoft.com/en-us/privacy/privacystatement";
-export const sqlPlanFileExtension = ".sqlplan";
+export const sqlPlanLanguageId = "sqlplan";
 
 export enum Platform {
     Windows = "win32",

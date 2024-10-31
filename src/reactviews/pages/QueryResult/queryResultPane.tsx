@@ -257,13 +257,6 @@ export const QueryResultPane = () => {
                                     metadata?.resultSetSummaries[batchId][
                                         resultId
                                     ]?.columnInfo?.length;
-                                // if the result is an execution plan xml,
-                                // get the execution plan graph from it
-                                if (metadata?.isExecutionPlan) {
-                                    state?.provider.addXmlPlan(
-                                        r.rows[0][0].displayValue,
-                                    );
-                                }
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
                                         [key: string]: any;
@@ -309,14 +302,6 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
-        // execution plans only load after reading the resulting xml showplan
-        // of the query. therefore, it updates the state once the results
-        // are loaded, which causes a rendering loop if the grid
-        // gets refreshed
-        if (!metadata?.isExecutionPlan) {
-            gridRefs.current.forEach((r) => r?.refreshGrid());
-        }
-
         let count = 0;
         for (
             let i = 0;
@@ -333,26 +318,9 @@ export const QueryResultPane = () => {
     };
 
     useEffect(() => {
-        if (
-            // makes sure state is defined
-            metadata &&
-            // makes sure result sets are defined
-            metadata.resultSetSummaries &&
-            // makes sure this is an execution plan
-            metadata.isExecutionPlan &&
-            // makes sure the xml plans set by results are defined
-            metadata.executionPlanState.xmlPlans &&
-            // makes sure xml plans have been fully updated- necessary for multiple results sets
-            Object.keys(metadata.resultSetSummaries).length ===
-                metadata.executionPlanState.xmlPlans.length &&
-            // checks that we haven't already gotten the graphs
-            metadata.executionPlanState?.executionPlanGraphs &&
-            !metadata.executionPlanState.executionPlanGraphs.length
-        ) {
-            // get execution plan graphs
-            state!.provider.getExecutionPlan(
-                metadata.executionPlanState.xmlPlans,
-            );
+        // gets execution plans
+        if (metadata && metadata.uri) {
+            state!.provider.getExecutionPlan(metadata!.uri!);
         }
     });
 

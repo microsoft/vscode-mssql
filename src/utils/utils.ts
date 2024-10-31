@@ -28,6 +28,34 @@ export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
 }
 
 /**
+ * Generates a unique URI for a file in the specified folder using the
+ * provided basename and file extension
+ */
+export async function getUniqueFilePath(
+    folder: vscode.Uri,
+    basename: string,
+    fileExtension: string,
+): Promise<vscode.Uri> {
+    let uniqueFileName: vscode.Uri;
+    let counter = 1;
+    if (await exists(`${basename}.${fileExtension}`, folder)) {
+        while (await exists(`${basename}${counter}.${fileExtension}`, folder)) {
+            counter += 1;
+        }
+        uniqueFileName = vscode.Uri.joinPath(
+            folder,
+            `${basename}${counter}.${fileExtension}`,
+        );
+    } else {
+        uniqueFileName = vscode.Uri.joinPath(
+            folder,
+            `${basename}.${fileExtension}`,
+        );
+    }
+    return uniqueFileName;
+}
+
+/**
  * Generates a random nonce value that can be used in a webview
  */
 export function getNonce(): string {

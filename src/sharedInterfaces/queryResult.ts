@@ -26,10 +26,10 @@ export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     /**
-     * Gets the execution plan graph from the provider for a given plan file
-     * @param planFile file that contains the execution plan
+     * Gets the execution plan graph from the provider for a result set
+     * @param uri the uri of the query result state this request is associated with
      */
-    getExecutionPlan(xmlPlans: string[]): void;
+    getExecutionPlan(uri: string): void;
 
     /**
      * Gets the execution plan graph from the provider for a given plan file
@@ -55,9 +55,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
     selection?: ISlickRange[];
-    executionPlanState: ExecutionPlanState & {
-        xmlPlans?: string[];
-    };
+    executionPlanState: ExecutionPlanState;
 }
 
 export interface QueryResultReducers
@@ -65,9 +63,18 @@ export interface QueryResultReducers
     setResultTab: {
         tabId: QueryResultPaneTabs;
     };
+    /**
+     * Gets the execution plan graph from the provider for given uri
+     * @param uri  the uri for which to get graphs for
+     */
     getExecutionPlan: {
-        xmlPlans: string[];
+        uri: string;
     };
+    /**
+     * Adds an xml plan to the current execution plan state.
+     * This is useful for multi-result sets
+     * @param xmlPlans  the xml plan to add
+     */
     addXmlPlan: {
         xmlPlan: string;
     };

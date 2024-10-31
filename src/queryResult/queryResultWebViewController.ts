@@ -14,13 +14,17 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
-import { exists } from "../utils/utils";
-import { homedir } from "os";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
-import { ExecutionPlanGraphInfo } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import {
+    createExecutionPlanGraphs,
+    saveExecutionPlan,
+    showPlanXml,
+    showQuery,
+    updateTotalCost,
+} from "../controllers/sharedExecutionPlanUtils";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -80,13 +84,25 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private registerRpcHandlers() {
         this.registerRequestHandler("getRows", async (message) => {
-            return await this._sqlOutputContentProvider.rowRequestHandler(
-                message.uri,
-                message.batchId,
-                message.resultId,
-                message.rowStart,
-                message.numberOfRows,
-            );
+            const result =
+                await this._sqlOutputContentProvider.rowRequestHandler(
+                    message.uri,
+                    message.batchId,
+                    message.resultId,
+                    message.rowStart,
+                    message.numberOfRows,
+                );
+            let currentState = this.getQueryResultState(message.uri);
+            if (currentState.isExecutionPlan) {
+                currentState.executionPlanState.xmlPlans =
+                    // this gets the xml plan returned by the get execution
+                    // plan query
+                    currentState.executionPlanState.xmlPlans.concat(
+                        result.rows[0][0].displayValue,
+                    );
+            }
+            this._queryResultStateMap.set(message.uri, currentState);
+            return result;
         });
         this.registerRequestHandler("setEditorSelection", async (message) => {
             return await this._sqlOutputContentProvider.editorSelectionRequestHandler(
@@ -164,10 +180,26 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            await this.createExecutionPlanGraphs(state, payload.xmlPlans);
-            state.executionPlanState.loadState = ApiStatus.Loaded;
-            state.tabStates.resultPaneTab =
-                qr.QueryResultPaneTabs.ExecutionPlan;
+            const currentResultState = this.getQueryResultState(payload.uri);
+            if (
+                // in the case of a multi-set result set, make sure the
+                // results have fully finished loading by checking that
+                // we have the same amount of xml plans as result sets
+                currentResultState.executionPlanState.xmlPlans.length &&
+                currentResultState.executionPlanState.xmlPlans.length ===
+                    Object.keys(currentResultState.resultSetSummaries).length &&
+                currentResultState.executionPlanState.executionPlanGraphs
+                    .length === 0
+            ) {
+                state = (await createExecutionPlanGraphs(
+                    state,
+                    this.executionPlanService,
+                    currentResultState.executionPlanState.xmlPlans,
+                )) as qr.QueryResultWebviewState;
+                state.executionPlanState.loadState = ApiStatus.Loaded;
+                state.tabStates.resultPaneTab =
+                    qr.QueryResultPaneTabs.ExecutionPlan;
+            }
             return state;
         });
         this.registerReducer("addXmlPlan", async (state, payload) => {
@@ -178,67 +210,29 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {
-            let folder = vscode.Uri.file(homedir());
-            let filename: vscode.Uri;
-
-            // make the default filename of the plan to be saved-
-            // start at plan.sqlplan, then plan1.sqlplan, ...
-            let counter = 1;
-            if (await exists(`plan.sqlplan`, folder)) {
-                while (await exists(`plan${counter}.sqlplan`, folder)) {
-                    counter += 1;
-                }
-                filename = vscode.Uri.joinPath(
-                    folder,
-                    `plan${counter}.sqlplan`,
-                );
-            } else {
-                filename = vscode.Uri.joinPath(folder, "plan.sqlplan");
-            }
-
-            // Show a save dialog to the user
-            const saveUri = await vscode.window.showSaveDialog({
-                defaultUri: filename,
-                filters: {
-                    "SQL Plan Files": ["sqlplan"],
-                },
-            });
-
-            if (saveUri) {
-                // Write the content to the new file
-                void vscode.workspace.fs.writeFile(
-                    saveUri,
-                    Buffer.from(payload.sqlPlanContent),
-                );
-            }
-
-            return state;
+            return (await saveExecutionPlan(
+                state,
+                payload,
+            )) as qr.QueryResultWebviewState;
         });
         this.registerReducer("showPlanXml", async (state, payload) => {
-            const planXmlDoc = await vscode.workspace.openTextDocument({
-                content: payload.sqlPlanContent,
-                language: "xml",
-            });
-
-            void vscode.window.showTextDocument(planXmlDoc);
-
-            return state;
+            return (await showPlanXml(
+                state,
+                payload,
+            )) as qr.QueryResultWebviewState;
         });
         this.registerReducer("showQuery", async (state, payload) => {
-            void this.untitledSqlDocumentService.newQuery(payload.query);
-
-            return state;
+            return (await showQuery(
+                state,
+                payload,
+                this.untitledSqlDocumentService,
+            )) as qr.QueryResultWebviewState;
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
-            this.state.executionPlanState.totalCost += payload.addedCost;
-
-            return {
-                ...state,
-                executionPlanState: {
-                    ...state.executionPlanState,
-                    totalCost: this.state.executionPlanState.totalCost,
-                },
-            };
+            return (await updateTotalCost(
+                state,
+                payload,
+            )) as qr.QueryResultWebviewState;
         });
     }
 
@@ -314,51 +308,5 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         const messageText = messages.join("\n");
         await this._vscodeWrapper.clipboardWriteText(messageText);
-    }
-
-    private async createExecutionPlanGraphs(
-        state: qr.QueryResultWebviewState,
-        xmlPlans: string[],
-    ) {
-        let newState = {
-            ...state.executionPlanState,
-        };
-        for (const plan of xmlPlans) {
-            const planFile: ExecutionPlanGraphInfo = {
-                graphFileContent: plan,
-                graphFileType: ".sqlplan",
-            };
-            try {
-                newState.executionPlanGraphs =
-                    newState.executionPlanGraphs.concat(
-                        (
-                            await this.executionPlanService.getExecutionPlan(
-                                planFile,
-                            )
-                        ).graphs,
-                    );
-
-                newState.loadState = ApiStatus.Loaded;
-            } catch (e) {
-                newState.loadState = ApiStatus.Error;
-                newState.errorMessage = e.toString();
-            }
-        }
-        state.executionPlanState = newState;
-        state.executionPlanState.totalCost = this.calculateTotalCost(state);
-        this.updateState();
-    }
-
-    private calculateTotalCost(state: qr.QueryResultWebviewState): number {
-        if (!state.executionPlanState.executionPlanGraphs) {
-            state.executionPlanState.loadState = ApiStatus.Error;
-            return 0;
-        }
-
-        let sum = 0;
-        for (const graph of state.executionPlanState.executionPlanGraphs) {
-            sum += graph.root.cost + graph.root.subTreeCost;
-        }
-        return sum;
     }
 }
