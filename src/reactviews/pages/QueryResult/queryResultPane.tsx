@@ -135,7 +135,7 @@ export const QueryResultPane = () => {
     const gridParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     // Resize grid when parent element resizes
-    useEffect(() => {
+    const resizeGrid = () => {
         let gridCount = 0;
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
@@ -191,8 +191,12 @@ export const QueryResultPane = () => {
 
         observer.observe(gridParent);
 
-        return () => observer.disconnect();
-    }, [metadata?.resultSetSummaries]);
+        return () => {
+            observer.disconnect();
+        };
+    };
+
+    useEffect(resizeGrid, [metadata?.resultSetSummaries]);
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
@@ -329,6 +333,7 @@ export const QueryResultPane = () => {
                 count++;
             }
         }
+        resizeGrid();
         return grids;
     };
 
