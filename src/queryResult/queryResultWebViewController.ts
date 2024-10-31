@@ -93,7 +93,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     message.numberOfRows,
                 );
             let currentState = this.getQueryResultState(message.uri);
-            if (currentState.isExecutionPlan) {
+            if (
+                currentState.isExecutionPlan &&
+                // check if the current result set is the result set that contains the xml plan
+                currentState.resultSetSummaries[message.batchId][
+                    message.resultId
+                ].columnInfo[0].columnName ===
+                    "Microsoft SQL Server 2005 XML Showplan"
+            ) {
                 currentState.executionPlanState.xmlPlans =
                     // this gets the xml plan returned by the get execution
                     // plan query

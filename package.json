@@ -338,6 +338,11 @@
           "command": "mssql.showExecutionPlanInResults",
           "when": "editorLangId == sql && config.mssql.enableRichExperiences",
           "group": "navigation@4"
+        },
+        {
+          "command": "mssql.toggleActualPlan",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences",
+          "group": "navigation@4"
         }
       ],
       "editor/context": [

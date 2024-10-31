@@ -1647,8 +1647,10 @@ export default class MainController implements vscode.Disposable {
 
         if (this._actualPlanStatuses.has(uri)) {
             this._actualPlanStatuses.delete(uri);
+            vscode.window.showInformationMessage("off");
         } else {
             this._actualPlanStatuses.add(uri);
+            vscode.window.showInformationMessage("on");
         }
     }
 
