@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-      "vscode": "^1.93.0"
+      "vscode": "^1.95.0"
   },
   "categories": [
     "Programming Languages",
@@ -93,7 +93,6 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "^1.90.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/test-electron": "^2.3.9",
     "@xmldom/xmldom": "0.8.4",

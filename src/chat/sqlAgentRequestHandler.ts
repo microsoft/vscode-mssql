@@ -71,7 +71,7 @@ export const createSqlAgentRequestHandler = (
 						return {
 							name: tool.functionName,
 							description: tool.functionDescription,
-							parametersSchema: JSON.parse(tool.functionParameters)
+							inputSchema: JSON.parse(tool.functionParameters)
 						};
 					});
 
@@ -93,7 +93,7 @@ export const createSqlAgentRequestHandler = (
 					const chatResponse = await model.sendRequest(messages, options, token);
 					let partIdx = 0;
 					for await (const part of chatResponse.stream) {
-						if (part instanceof vscode.LanguageModelChatResponseTextPart) {
+						if (part instanceof vscode.LanguageModelTextPart) {
 							if (partIdx === 0 && !functionCalledPreviously) {
 								break;
 							}
@@ -101,20 +101,20 @@ export const createSqlAgentRequestHandler = (
 							functionCalledPreviously = false;
 							replyText += part.value;
 							printTextout = true;
-						} else if (part instanceof vscode.LanguageModelChatResponseToolCallPart) {
+						} else if (part instanceof vscode.LanguageModelToolCallPart) {
 							functionCalledPreviously = true;
 							//const tool = vscode.lm.tools.find(tool => tool.id === part.name);
 							const tool = result.tools.find(tool => tool.functionName === part.name);
 							if (!tool) {
-								stream.markdown(`Tool lookup for: ${part.name} - ${part.parameters}.  Invoking external tool.`);
+								stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.  Invoking external tool.`);
 								continue;
 							}
 
 							sqlTool = tool;
 							try {
-								sqlToolParameters = JSON.stringify(JSON.parse(part.parameters));
+								sqlToolParameters = JSON.stringify(part.input);
 							} catch (err) {
-								throw new Error(`Got invalid tool use parameters: "${part.parameters}". (${(err as Error).message})`);
+								throw new Error(`Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${(err as Error).message})`);
 							}
 
 							// for (const message of result.requestMessages) {
@@ -123,7 +123,7 @@ export const createSqlAgentRequestHandler = (
 							// 	}
 							// }
 
-							stream.progress(`Calling tool: ${tool.functionName} with ${part.parameters}`);
+							stream.progress(`Calling tool: ${tool.functionName} with ${JSON.stringify(part.input)}`);
 
 							// replyText += `LLM Response: Calling tool: ${tool.functionName} with ${part.parameters}\n`;
 							// const result = await vscode.lm.invokeTool(tool.id,
