@@ -3,17 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
+import * as vscodeMssql from "vscode-mssql";
+
+import {
+    ActivityStatus,
+    ActivityObject,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 import AdsTelemetryReporter, {
     TelemetryEventMeasures,
     TelemetryEventProperties,
 } from "@microsoft/ads-extension-telemetry";
-import * as vscodeMssql from "vscode-mssql";
+
 import { IConnectionProfile } from "../models/interfaces";
-import * as vscode from "vscode";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { v4 as uuidv4 } from "uuid";
 
 const packageJson = vscode.extensions.getExtension(
     vscodeMssql.extension.name,
@@ -109,4 +114,93 @@ export function sendErrorEvent(
         errorEvent = errorEvent.withServerInfo(serverInfo);
     }
     errorEvent.send();
+}
+
+export function startActivity(
+    telemetryView: TelemetryViews,
+    telemetryAction: TelemetryActions,
+    correlationId?: string,
+    additionalProps: TelemetryEventProperties = {},
+    additionalMeasurements: TelemetryEventMeasures = {},
+): ActivityObject {
+    const startTime = performance.now();
+    if (!correlationId) {
+        correlationId = uuidv4();
+    }
+
+    sendActionEvent(telemetryView, telemetryAction, additionalProps, {
+        ...additionalMeasurements,
+        startTime: Math.round(startTime),
+    });
+
+    function update(
+        additionalProps: TelemetryEventProperties,
+        additionalMeasurements: TelemetryEventMeasures,
+    ): void {
+        sendActionEvent(
+            telemetryView,
+            telemetryAction,
+            {
+                ...additionalProps,
+                activityStatus: ActivityStatus.Pending,
+            },
+            {
+                ...additionalMeasurements,
+                timeElapsedMs: Math.round(performance.now() - startTime),
+            },
+        );
+    }
+
+    function end(
+        activityStatus: ActivityStatus,
+        additionalProps: TelemetryEventProperties,
+        additionalMeasurements: TelemetryEventMeasures,
+    ) {
+        sendActionEvent(
+            telemetryView,
+            telemetryAction,
+            {
+                ...additionalProps,
+                activityStatus: activityStatus,
+            },
+            {
+                ...additionalMeasurements,
+                durationMs: Math.round(performance.now() - startTime),
+            },
+        );
+    }
+
+    function endFailed(
+        error?: Error,
+        includeErrorMessage?: boolean,
+        errorCode?: string,
+        errorType?: string,
+        additionalProps?: TelemetryEventProperties,
+        additionalMeasurements?: TelemetryEventMeasures,
+    ) {
+        sendErrorEvent(
+            telemetryView,
+            telemetryAction,
+            error,
+            includeErrorMessage,
+            errorCode,
+            errorType,
+            {
+                ...additionalProps,
+                activityStatus: ActivityStatus.Failed,
+            },
+            {
+                ...additionalMeasurements,
+                durationMs: Math.round(performance.now() - startTime),
+            },
+        );
+    }
+
+    return {
+        startTime,
+        correlationId,
+        update,
+        end,
+        endFailed,
+    };
 }
