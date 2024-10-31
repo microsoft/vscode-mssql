@@ -1386,9 +1386,6 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
-    <trans-unit id="++CODE++64879f7d6b960a01909762d911a32d4582c20010c5641ee90278b644a9e3b525">
-      <source xml:lang="en">plan</source>
-    </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
     </trans-unit>

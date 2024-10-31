@@ -19,12 +19,9 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
-import {
-    executionPlanFileBaseName,
-    executionPlanFileFilter,
-} from "../constants/locConstants";
+import { executionPlanFileFilter } from "../constants/locConstants";
 
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
@@ -34,11 +31,7 @@ export async function saveExecutionPlan(
 
     // Show a save dialog to the user
     const saveUri = await vscode.window.showSaveDialog({
-        defaultUri: await getUniqueFilePath(
-            folder,
-            executionPlanFileBaseName,
-            sqlPlanLanguageId,
-        ),
+        defaultUri: await getUniqueFilePath(folder, `plan`, sqlPlanLanguageId),
         filters: {
             [executionPlanFileFilter]: [`.${sqlPlanLanguageId}`],
         },
@@ -111,7 +104,6 @@ export async function createExecutionPlanGraphs(
             newState.executionPlanGraphs = newState.executionPlanGraphs.concat(
                 (await executionPlanService.getExecutionPlan(planFile)).graphs,
             );
-
             newState.loadState = ApiStatus.Loaded;
 
             sendActionEvent(
@@ -125,14 +117,9 @@ export async function createExecutionPlanGraphs(
                 },
             );
         } catch (e) {
+            // malformed xml
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
-            sendErrorEvent(
-                TelemetryViews.ExecutionPlan,
-                TelemetryActions.OpenExecutionPlan,
-                e,
-                true, // includeErrorMessage
-            );
         }
     }
     state.executionPlanState = newState;
