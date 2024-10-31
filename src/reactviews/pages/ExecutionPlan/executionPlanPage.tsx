@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ExecutionPlanGraph } from "./executionPlanGraph";
@@ -35,9 +35,22 @@ const useStyles = makeStyles({
 
 export const ExecutionPlanPage = () => {
     const classes = useStyles();
-    const provider = useContext(ExecutionPlanContext);
-    const executionPlanState = provider?.state?.executionPlanState;
+    const state = useContext(ExecutionPlanContext);
+    const executionPlanState = state?.state?.executionPlanState;
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
+    useEffect(() => {
+        if (
+            state &&
+            state.provider &&
+            executionPlanState &&
+            // checks if execution plans have already been gotten
+            executionPlanState.executionPlanGraphs &&
+            !executionPlanState.executionPlanGraphs.length
+        ) {
+            state.provider.getExecutionPlan(executionPlanState.xmlPlans!);
+        }
+    }, [executionPlanState]);
+
     const renderMainContent = () => {
         switch (loadState) {
             case ApiStatus.Loading:
