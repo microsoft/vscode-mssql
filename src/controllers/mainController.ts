@@ -86,7 +86,7 @@ export default class MainController implements vscode.Disposable {
         includeEstimatedExecutionPlanXml: false,
         includeActualExecutionPlanXml: false,
     };
-    private _actualPlanStatuses: Set<string> = new Set<string>();
+    private _actualPlanStatuses: string[] = [];
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -268,9 +268,13 @@ export default class MainController implements vscode.Disposable {
                     true;
                 void this.onRunQuery();
             });
-            this.registerCommand(Constants.cmdToggleActualPlan);
-            this._event.on(Constants.cmdToggleActualPlan, () => {
-                this.onToggleActualPlan();
+            this.registerCommand(Constants.cmdEnableActualPlan);
+            this._event.on(Constants.cmdEnableActualPlan, () => {
+                this.onToggleActualPlan(true);
+            });
+            this.registerCommand(Constants.cmdDisableActualPlan);
+            this._event.on(Constants.cmdDisableActualPlan, () => {
+                this.onToggleActualPlan(false);
             });
             this.initializeObjectExplorer();
 
@@ -1536,7 +1540,7 @@ export default class MainController implements vscode.Disposable {
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
             self._executionPlanOptions.includeActualExecutionPlanXml =
-                self._actualPlanStatuses.has(uri);
+                self._actualPlanStatuses.includes(uri);
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
@@ -1640,18 +1644,28 @@ export default class MainController implements vscode.Disposable {
         });
     }
 
-    public onToggleActualPlan(callbackThis?: MainController): void {
+    public onToggleActualPlan(
+        isEnable: boolean,
+        callbackThis?: MainController,
+    ): void {
         // the 'this' context is lost in retry callback, so capture it here
         const self: MainController = callbackThis ? callbackThis : this;
         const uri = self._vscodeWrapper.activeTextEditorUri;
 
-        if (this._actualPlanStatuses.has(uri)) {
-            this._actualPlanStatuses.delete(uri);
-            vscode.window.showInformationMessage("off");
+        if (isEnable && !this._actualPlanStatuses.includes(uri)) {
+            this._actualPlanStatuses.push(uri);
         } else {
-            this._actualPlanStatuses.add(uri);
-            vscode.window.showInformationMessage("on");
+            const index = this._actualPlanStatuses.indexOf(uri);
+            if (index !== -1) {
+                this._actualPlanStatuses.splice(index, 1); // Remove the URI
+            }
         }
+
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.executionPlan.urisWithActualPlanEnabled",
+            this._actualPlanStatuses,
+        );
     }
 
     /**
@@ -1971,6 +1985,16 @@ export default class MainController implements vscode.Disposable {
             // Pass along the close event to the other handlers for a normal closed file
             await this._connectionMgr.onDidCloseTextDocument(doc);
             this._outputContentProvider.onDidCloseTextDocument(doc);
+        }
+
+        if (this._actualPlanStatuses.includes(closedDocumentUri)) {
+            const index = this._actualPlanStatuses.indexOf(closedDocumentUri);
+            this._actualPlanStatuses.splice(index, 1); // Remove the URI
+            vscode.commands.executeCommand(
+                "setContext",
+                "mssql.executionPlan.urisWithActualPlanEnabled",
+                this._actualPlanStatuses,
+            );
         }
 
         // Reset special case timers and events
