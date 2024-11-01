@@ -107,10 +107,10 @@ const useStyles = makeStyles({
 const MIN_GRID_HEIGHT = 273; // Minimum height for a grid
 
 function getAvailableHeight(
-    gridParent: HTMLDivElement,
+    resultPaneParent: HTMLDivElement,
     ribbonRef: HTMLDivElement,
 ) {
-    return gridParent.clientHeight - ribbonRef.clientHeight;
+    return resultPaneParent.clientHeight - ribbonRef.clientHeight;
 }
 
 export const QueryResultPane = () => {
@@ -132,8 +132,9 @@ export const QueryResultPane = () => {
             renderHeaderCell: () => <>{locConstants.queryResult.message}</>,
         }),
     ];
-    const gridParentRef = useRef<HTMLDivElement>(null);
+    const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
+    const gridParentRef = useRef<HTMLDivElement>(null);
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
@@ -144,9 +145,9 @@ export const QueryResultPane = () => {
             return; // Exit if there are no grids to render
         }
 
-        const gridParent = gridParentRef.current;
-        if (!gridParent) {
-            console.log("gridParent null");
+        const resultPaneParent = resultPaneParentRef.current;
+        if (!resultPaneParent) {
+            console.log("resultPaneParent null");
             return;
         }
         const observer = new ResizeObserver(() => {
@@ -156,12 +157,12 @@ export const QueryResultPane = () => {
             }
 
             const availableHeight = getAvailableHeight(
-                gridParent,
+                resultPaneParent,
                 ribbonRef.current,
             );
             console.log(`available height: ${availableHeight}`);
 
-            if (gridParent.clientWidth && availableHeight) {
+            if (resultPaneParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
                     let scrollbarAdjustment =
                         gridCount * MIN_GRID_HEIGHT >= availableHeight
@@ -177,28 +178,30 @@ export const QueryResultPane = () => {
 
                     gridRefs.current.forEach((gridRef) => {
                         gridRef?.resizeGrid(
-                            gridParent.clientWidth -
+                            resultPaneParent.clientWidth -
                                 ACTIONBAR_WIDTH_PX -
                                 scrollbarAdjustment,
                             gridHeight,
                         );
                     });
                 } else if (gridCount === 1) {
+                    gridParentRef.current.style.height = `${availableHeight - TABLE_ALIGN_PX}px`;
+                    gridParentRef.current.style.width = `${resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX}px`;
                     gridRefs.current[0]?.resizeGrid(
-                        gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
+                        resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX,
                         availableHeight - TABLE_ALIGN_PX,
                     );
                 }
             }
         });
 
-        observer.observe(gridParent);
+        observer.observe(resultPaneParent);
 
         return () => {
             console.log("disconnect");
             observer.disconnect();
         };
-    }, [metadata?.resultSetSummaries, gridParentRef.current]);
+    }, [metadata?.resultSetSummaries, resultPaneParentRef.current]);
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
@@ -244,17 +247,18 @@ export const QueryResultPane = () => {
             <div
                 id={divId}
                 className={classes.queryResultContainer}
-                // style={{
-                //     height:
-                //         gridParentRef.current && ribbonRef.current
-                //             ? `${
-                //                   getAvailableHeight(
-                //                       gridParentRef.current!,
-                //                       ribbonRef.current!,
-                //                   ) - 7
-                //               }px`
-                //             : "",
-                // }}
+                ref={gridParentRef}
+                style={{
+                    height:
+                        resultPaneParentRef.current && ribbonRef.current
+                            ? `${
+                                  getAvailableHeight(
+                                      resultPaneParentRef.current!,
+                                      ribbonRef.current!,
+                                  ) - TABLE_ALIGN_PX
+                              }px`
+                            : "",
+                }}
             >
                 <ResultGrid
                     loadFunc={(
@@ -314,7 +318,7 @@ export const QueryResultPane = () => {
                     resultSetSummary={
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
-                    divId={divId}
+                    gridParentRef={gridParentRef}
                     uri={metadata?.uri}
                     webViewState={webViewState}
                 />
@@ -396,7 +400,7 @@ export const QueryResultPane = () => {
             </div>
         </div>
     ) : (
-        <div className={classes.root} ref={gridParentRef}>
+        <div className={classes.root} ref={resultPaneParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
                 <TabList
                     size="medium"

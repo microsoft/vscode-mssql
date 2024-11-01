@@ -59,6 +59,7 @@ export interface ResultGridProps {
         QueryResultWebviewState,
         QueryResultReducers
     >;
+    gridParentRef?: React.RefObject<HTMLDivElement>;
 }
 
 export interface ResultGridHandle {
@@ -84,6 +85,14 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         const resizeGrid = (width: number, height: number) => {
             console.log(
                 "Resizing grid to width: " + width + " height: " + height,
+            );
+            props.gridParentRef?.current?.setAttribute(
+                "style",
+                `width: ${width}px`,
+            );
+            props.gridParentRef?.current?.setAttribute(
+                "style",
+                `height: ${height}px`,
             );
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
@@ -227,7 +236,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.webViewState!,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
-                props.divId,
+                props.gridParentRef,
             );
 
             collection.setCollectionChangedCallback((startIndex, count) => {
