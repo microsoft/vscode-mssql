@@ -192,7 +192,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 // in the case of a multi-set result set, make sure the
                 // results have fully finished loading by checking that
                 // we have the same amount of xml plans as result sets
-                currentResultState.executionPlanState.xmlPlans &&
+                currentResultState.executionPlanState &&
                 currentResultState.executionPlanState.xmlPlans.length &&
                 currentResultState.executionPlanState.xmlPlans.length ===
                     this.getNumExecutionPlanResultSets(
