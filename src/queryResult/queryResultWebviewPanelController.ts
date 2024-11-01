@@ -36,6 +36,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         private executionPlanService: ExecutionPlanService,
         private untitledSqlDocumentService: UntitledSqlDocumentService,
         private _vscodeWrapper: VscodeWrapper,
+        viewColumn: vscode.ViewColumn,
     ) {
         super(
             context,
@@ -50,7 +51,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             },
             {
                 title: "Query Results",
-                viewColumn: vscode.ViewColumn.Two,
+                viewColumn: viewColumn,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,

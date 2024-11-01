@@ -83,6 +83,40 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             .get(Constants.configEnableRichExperiences);
     }
 
+    public newResultPaneViewColumn(): vscode.ViewColumn {
+        // // Find configuration options
+        // let config = this._vscodeWrapper.getConfiguration(
+        //     Constants.extensionConfigSectionName,
+        //     queryUri,
+        // );
+        // let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn;
+
+        // switch (splitPaneSelection) {
+        //     case "current":
+        //         viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+        //         break;
+        //     case "end":
+        //         viewColumn = vscode.ViewColumn.Three;
+        //         break;
+        //     // default case where splitPaneSelection is next or anything else
+        //     default:
+        // if there's an active text editor
+        if (this._vscodeWrapper.isEditingSqlFile) {
+            viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+            if (viewColumn === vscode.ViewColumn.One) {
+                viewColumn = vscode.ViewColumn.Two;
+            } else {
+                viewColumn = vscode.ViewColumn.Three;
+            }
+        } else {
+            // otherwise take default results column
+            viewColumn = vscode.ViewColumn.Two;
+        }
+        // }
+        return viewColumn;
+    }
+
     private registerRpcHandlers() {
         this.registerRequestHandler("openInNewTab", async (message) => {
             const controller = new QueryResultWebviewPanelController(
@@ -90,15 +124,19 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 this.executionPlanService,
                 this.untitledSqlDocumentService,
                 this._vscodeWrapper,
+                this.newResultPaneViewColumn(),
             );
             controller.setSqlOutputContentProvider(
                 this._sqlOutputContentProvider,
             );
             controller.state = this.getQueryResultState(message.uri);
-            controller.revealToForeground();
+            controller.revealToForeground(2);
             this._queryResultWebviewPanelControllerMap.set(
                 message.uri,
                 controller,
+            );
+            await vscode.commands.executeCommand(
+                "workbench.action.togglePanel",
             );
         });
         this.registerRequestHandler("getRows", async (message) => {
@@ -290,7 +328,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
                 .updateState(this.getQueryResultState(uri));
+            this._queryResultWebviewPanelControllerMap
+                .get(uri)
+                .revealToForeground(2);
         }
+    }
+
+    public hasPanel(uri: string): boolean {
+        return this._queryResultWebviewPanelControllerMap.has(uri);
     }
 
     public getQueryResultState(uri: string): qr.QueryResultWebviewState {
