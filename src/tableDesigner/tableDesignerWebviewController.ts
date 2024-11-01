@@ -11,8 +11,9 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import {
+    ActivityStatus,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
@@ -70,7 +71,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
     }
 
     private async initialize() {
-        const intializeStartTime = Date.now();
         if (!this._targetNode) {
             await vscode.window.showErrorMessage(
                 "Unable to find object explorer node",
@@ -109,6 +109,16 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             return;
         }
 
+        const endActivity = startActivity(
+            TelemetryViews.TableDesigner,
+            TelemetryActions.Initialize,
+            this._correlationId,
+            {
+                correlationId: this._correlationId,
+                isEdit: this._isEdit.toString(),
+            },
+        );
+
         try {
             let tableInfo: designer.TableInfo;
             if (this._isEdit) {
@@ -135,28 +145,17 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 };
             }
             this.panel.title = tableInfo.title;
-            const intializeData =
+            const initializeResult =
                 await this._tableDesignerService.initializeTableDesigner(
                     tableInfo,
                 );
-            const intializeEndTime = Date.now();
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Initialize,
-                {
-                    correlationId: this._correlationId,
-                    isEdit: this._isEdit.toString(),
-                },
-                {
-                    durationMs: intializeEndTime - intializeStartTime,
-                },
-            );
-            intializeData.tableInfo.database = databaseName ?? "master";
+            endActivity.end(ActivityStatus.Succeeded);
+            initializeResult.tableInfo.database = databaseName ?? "master";
             this.state = {
                 tableInfo: tableInfo,
-                view: getDesignerView(intializeData.view),
-                model: intializeData.viewModel,
-                issues: intializeData.issues,
+                view: getDesignerView(initializeResult.view),
+                model: initializeResult.viewModel,
+                issues: initializeResult.issues,
                 isValid: true,
                 tabStates: {
                     mainPaneTab: designer.DesignerMainPaneTabs.Columns,
@@ -168,6 +167,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
         } catch (e) {
+            endActivity.endFailed(e, false);
             this.state.apiState.initializeState = designer.LoadState.Error;
             this.state = this.state;
         }
@@ -235,6 +235,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
+            const endActivity = startActivity(
+                TelemetryViews.TableDesigner,
+                TelemetryActions.Publish,
+                this._correlationId,
+                {
+                    correlationId: this._correlationId,
+                },
+            );
             this.state = {
                 ...this.state,
                 apiState: {
@@ -247,14 +255,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     await this._tableDesignerService.publishChanges(
                         payload.table,
                     );
-
-                sendActionEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Publish,
-                    {
-                        correlationId: this._correlationId,
-                    },
-                );
+                endActivity.end(ActivityStatus.Succeeded);
                 state = {
                     ...state,
                     tableInfo: publishResponse.newTableInfo,
@@ -278,14 +279,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     },
                     publishingError: e.toString(),
                 };
-                sendActionEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Publish,
-                    {
-                        correlationId: this._correlationId,
-                        error: "true",
-                    },
-                );
+                endActivity.endFailed(e, false);
             }
 
             let targetNode = this._targetNode;
