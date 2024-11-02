@@ -5,6 +5,8 @@
 
 import {
     Button,
+    Card,
+    CardHeader,
     Text,
     Tree,
     TreeItem,
@@ -12,7 +14,11 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { ServerRegular, ArrowClockwise16Filled } from "@fluentui/react-icons";
+import {
+    ServerRegular,
+    ArrowClockwise16Filled,
+    Delete16Filled,
+} from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { locConstants } from "../../common/locConstants";
@@ -24,17 +30,18 @@ const useStyles = makeStyles({
         marginRight: "12px",
     },
     main: {
-        gap: "36px",
+        gap: "5px",
         display: "flex",
         flexDirection: "column",
         flexWrap: "wrap",
     },
 
-    card: {
+    connectionContainer: {
         width: "100%",
         maxWidth: "100%",
         height: "fit-content",
-        marginBottom: "10px",
+        padding: "5px",
+        margin: "0px",
     },
     horizontalCardImage: {
         width: "50px",
@@ -44,8 +51,13 @@ const useStyles = makeStyles({
     caption: {
         color: tokens.colorNeutralForeground3,
     },
-
     text: { margin: "0" },
+    buttonContainer: {
+        visibility: "visible",
+    },
+    "&:hover .buttonContainer": {
+        visibility: "hidden",
+    },
 });
 
 export const MruConnectionsContainer = () => {
@@ -68,25 +80,41 @@ export const MruConnectionsContainer = () => {
                     onClick={context.refreshMruConnections}
                 />
             </div>
-            <Tree>
+            <div className={styles.main}>
                 {// state may not be initialized yet due to async loading of context
                 context.state?.savedConnections.map((connection, index) => {
                     return (
-                        <TreeItem
-                            itemType="leaf"
+                        <Card
                             key={"saved" + index}
-                            className={styles.card}
+                            className={styles.connectionContainer}
+                            appearance="subtle"
                             onClick={() => {
                                 context.loadConnection(connection);
                             }}
                         >
-                            <TreeItemLayout iconBefore={<ServerRegular />}>
-                                {connection.displayName}
-                            </TreeItemLayout>
-                        </TreeItem>
+                            <CardHeader
+                                image={<ServerRegular />}
+                                header={connection.displayName}
+                                action={
+                                    <div className={styles.buttonContainer}>
+                                        <Button
+                                            icon={<Delete16Filled />}
+                                            appearance="subtle"
+                                            onClick={(e) => {
+                                                console.log(
+                                                    `Remove connection: ${connection.displayName}`,
+                                                );
+                                                e.stopPropagation();
+                                            }}
+                                            title="Remove connection"
+                                        />
+                                    </div>
+                                }
+                            />
+                        </Card>
                     );
                 })}
-            </Tree>
+            </div>
             <div className={styles.paneTitle}>
                 <Text weight="semibold" className={styles.paneTitle}>
                     {locConstants.connectionDialog.recentConnections}
@@ -104,7 +132,7 @@ export const MruConnectionsContainer = () => {
                         <TreeItem
                             itemType="leaf"
                             key={"mru" + index}
-                            className={styles.card}
+                            className={styles.connectionContainer}
                             onClick={() => {
                                 context.loadConnection(connection);
                             }}
