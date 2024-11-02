@@ -50,4 +50,5 @@ export const webviewTheme: fluentui.Theme = {
         "var(--vscode-editorHoverWidget-highlightForeground)",
     colorNeutralBackgroundDisabled:
         "var(--vscode-list-inactiveSelectionBackground)",
+    colorNeutralStroke2: "var(--vscode-editorWidget-border)",
 };
