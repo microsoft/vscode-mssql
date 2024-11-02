@@ -3,6 +3,7 @@
 "mssql.runCurrentStatement":"Execute Current Statement",
 "mssql.cancelQuery":"Cancel Query",
 "mssql.revealQueryResultPanel":"Reveal Query Result Panel",
+"mssql.copyAll":"Copy All",
 "mssql.changeDatabase":"Change Database",
 "mssql.addObjectExplorer":"Add Connection",
 "mssql.scriptSelect":"Select Top 1000",

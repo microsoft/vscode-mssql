@@ -301,6 +301,21 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.untitledSqlDocumentService = service;
     }
 
+    public async copyAllMessagesToClipboard(uri: string): Promise<void> {
+        const messages = uri
+            ? this.getQueryResultState(uri)?.messages?.map(
+                  (message) => message.message,
+              )
+            : this.state?.messages?.map((message) => message.message);
+
+        if (!messages) {
+            return;
+        }
+
+        const messageText = messages.join("\n");
+        await this._vscodeWrapper.clipboardWriteText(messageText);
+    }
+
     private async createExecutionPlanGraphs(
         state: qr.QueryResultWebviewState,
         xmlPlans: string[],

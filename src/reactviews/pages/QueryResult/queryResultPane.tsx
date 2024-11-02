@@ -514,7 +514,13 @@ export const QueryResultPane = () => {
                     renderGridPanel()}
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Messages && (
-                    <div className={classes.messagesContainer}>
+                    <div
+                        className={classes.messagesContainer}
+                        data-vscode-context={JSON.stringify({
+                            webviewSection: "queryResultMessagesPane",
+                            uri: metadata?.uri,
+                        })}
+                    >
                         {renderMessageGrid()}
                     </div>
                 )}

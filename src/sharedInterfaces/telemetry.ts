@@ -54,4 +54,5 @@ export enum TelemetryActions {
     LoadAzureServers = "LoadAzureServers",
     LoadConnectionProperties = "LoadConnectionProperties",
     LoadRecentConnections = "LoadRecentConnections",
+    LoadAzureSubscriptions = "LoadAzureSubscriptions",
 }

@@ -18,6 +18,7 @@ import {
 } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
+import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -32,6 +33,8 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         private _connectionManager: ConnectionManager,
         private _untitledSqlDocumentService: UntitledSqlDocumentService,
         private _targetNode?: TreeNodeInfo,
+        private _objectExplorerProvider?: ObjectExplorerProvider,
+        private _objectExplorerTree?: vscode.TreeView<TreeNodeInfo>,
     ) {
         super(
             context,
@@ -283,6 +286,20 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                         error: "true",
                     },
                 );
+            }
+
+            let targetNode = this._targetNode;
+            // In case of table edit, we need to refresh the tables folder to get the new updated table
+            if (this._targetNode.context.subType !== "Tables") {
+                targetNode = this._targetNode.parentNode; // Setting the target node to the parent node to refresh the tables folder
+            }
+            if (targetNode) {
+                await this._objectExplorerTree.reveal(targetNode, {
+                    expand: true,
+                    select: true,
+                });
+                await this._objectExplorerProvider.refreshNode(targetNode);
+                await this._objectExplorerProvider.refresh(targetNode);
             }
             return state;
         });
