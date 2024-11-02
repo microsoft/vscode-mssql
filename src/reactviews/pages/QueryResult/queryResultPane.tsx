@@ -184,7 +184,7 @@ export const QueryResultPane = () => {
         return () => observer.disconnect();
     }, [metadata?.resultSetSummaries]);
 
-    // ========================= RESULT GRID =========================
+    //#region Result Grid
     const gridRefs = useRef<ResultGridHandle[]>([]);
     const renderGrid = (
         batchId: number,
@@ -290,8 +290,9 @@ export const QueryResultPane = () => {
         }
         return grids;
     };
+    //#endregion
 
-    // ========================= MESSAGE GRID =========================
+    //#region Message Grid
     const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
         createTableColumn({
             columnId: "time",
@@ -406,8 +407,9 @@ export const QueryResultPane = () => {
 
         return () => observer.disconnect();
     });
+    //#endregion
 
-    // ========================= QUERY PLAN =========================
+    //#region Query Plan
     useEffect(() => {
         if (
             // makes sure state is defined
@@ -431,6 +433,7 @@ export const QueryResultPane = () => {
             );
         }
     });
+    //#endregion
 
     return !metadata || !hasResultsOrMessages(metadata) ? (
         <div>
