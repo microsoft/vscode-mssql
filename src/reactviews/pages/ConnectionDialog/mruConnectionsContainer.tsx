@@ -23,6 +23,8 @@ import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { locConstants } from "../../common/locConstants";
 
+const buttonContainer = "buttonContainer";
+
 const useStyles = makeStyles({
     paneTitle: {
         marginTop: "12px",
@@ -42,11 +44,11 @@ const useStyles = makeStyles({
         height: "fit-content",
         padding: "5px",
         margin: "0px",
-        "& .buttonContainer": {
+        [`& .${buttonContainer}`]: {
             visibility: "hidden",
         },
         ":hover": {
-            "& .buttonContainer": {
+            [`& .${buttonContainer}`]: {
                 visibility: "visible",
             },
         },
@@ -98,7 +100,7 @@ export const MruConnectionsContainer = () => {
                                 image={<ServerRegular />}
                                 header={connection.displayName}
                                 action={
-                                    <div className="buttonContainer">
+                                    <div className={buttonContainer}>
                                         <Button
                                             icon={<Delete16Regular />}
                                             appearance="subtle"
