@@ -17,7 +17,7 @@ import {
 import {
     ServerRegular,
     ArrowClockwise16Filled,
-    Delete16Filled,
+    Delete16Regular,
 } from "@fluentui/react-icons";
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
@@ -53,10 +53,10 @@ const useStyles = makeStyles({
     },
     text: { margin: "0" },
     buttonContainer: {
-        visibility: "visible",
+        visibility: "visible", // hover state isn't currently working, so leave them all visible for now
     },
     "&:hover .buttonContainer": {
-        visibility: "hidden",
+        visibility: "visible",
     },
 });
 
@@ -98,7 +98,7 @@ export const MruConnectionsContainer = () => {
                                 action={
                                     <div className={styles.buttonContainer}>
                                         <Button
-                                            icon={<Delete16Filled />}
+                                            icon={<Delete16Regular />}
                                             appearance="subtle"
                                             onClick={(e) => {
                                                 console.log(
