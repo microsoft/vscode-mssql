@@ -42,6 +42,14 @@ const useStyles = makeStyles({
         height: "fit-content",
         padding: "5px",
         margin: "0px",
+        "& .buttonContainer": {
+            visibility: "hidden",
+        },
+        ":hover": {
+            "& .buttonContainer": {
+                visibility: "visible",
+            },
+        },
     },
     horizontalCardImage: {
         width: "50px",
@@ -52,12 +60,6 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     text: { margin: "0" },
-    buttonContainer: {
-        visibility: "visible", // hover state isn't currently working, so leave them all visible for now
-    },
-    "&:hover .buttonContainer": {
-        visibility: "visible",
-    },
 });
 
 export const MruConnectionsContainer = () => {
@@ -96,7 +98,7 @@ export const MruConnectionsContainer = () => {
                                 image={<ServerRegular />}
                                 header={connection.displayName}
                                 action={
-                                    <div className={styles.buttonContainer}>
+                                    <div className="buttonContainer">
                                         <Button
                                             icon={<Delete16Regular />}
                                             appearance="subtle"
