@@ -15,6 +15,7 @@ import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import * as l10n from "@vscode/l10n";
 import { LocConstants } from "./locConstants";
+import { webviewTheme } from "./theme";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -162,9 +163,8 @@ export function VscodeWebviewProvider<State, Reducers>({
                 style={{
                     height: "100%",
                     width: "100%",
-                    color: "var(--vscode-foreground)",
                 }}
-                theme={theme}
+                theme={webviewTheme}
             >
                 {
                     // don't render webview unless necessary dependencies are initialized

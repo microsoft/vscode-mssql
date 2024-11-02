@@ -16,6 +16,7 @@ import {
     Checkbox,
     Option,
     FieldProps,
+    Text,
 } from "@fluentui/react-components";
 import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
 import {
@@ -154,7 +155,13 @@ export const FormField = <
                                       {...slotProps}
                                       info={component.tooltip}
                                   >
-                                      {component.label}
+                                      <Text
+                                          style={{
+                                              color: "var(--vscode-editor-foreground)",
+                                          }}
+                                      >
+                                          {component.label}
+                                      </Text>
                                   </InfoLabel>
                               ),
                           }
