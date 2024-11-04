@@ -147,12 +147,10 @@ export const QueryResultPane = () => {
 
         const resultPaneParent = resultPaneParentRef.current;
         if (!resultPaneParent) {
-            console.log("resultPaneParent null");
             return;
         }
         const observer = new ResizeObserver(() => {
             if (!gridRefs.current || !ribbonRef.current) {
-                console.log("gridRefs or ribbonRef is not defined");
                 return;
             }
 
@@ -160,7 +158,6 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
-            console.log(`available height: ${availableHeight}`);
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,
@@ -184,7 +181,6 @@ export const QueryResultPane = () => {
         observer.observe(resultPaneParent);
 
         return () => {
-            console.log("disconnect");
             observer.disconnect();
         };
     }, [metadata?.resultSetSummaries, resultPaneParentRef.current]);
@@ -263,7 +259,6 @@ export const QueryResultPane = () => {
         resultId: number,
         gridCount: number,
     ) => {
-        console.log(`rendering grid ${batchId}-${resultId}`);
         const divId = `grid-parent-${batchId}-${resultId}`;
         return (
             <div
