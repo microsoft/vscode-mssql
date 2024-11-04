@@ -194,6 +194,8 @@ export class LocConstants {
                     ],
                 }),
             default: l10n.t("Default"),
+            deleteSavedConnection: l10n.t("Delete saved connection"),
+            removeRecentConnection: l10n.t("Remove recent connection"),
         };
     }
 

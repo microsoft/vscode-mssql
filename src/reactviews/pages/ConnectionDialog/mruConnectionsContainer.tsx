@@ -7,10 +7,9 @@ import {
     Button,
     Card,
     CardHeader,
+    Slot,
     Text,
     Tree,
-    TreeItem,
-    TreeItemLayout,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
@@ -19,9 +18,10 @@ import {
     ArrowClockwise16Filled,
     Delete16Regular,
 } from "@fluentui/react-icons";
-import { useContext } from "react";
+import { MouseEventHandler, useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { locConstants } from "../../common/locConstants";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
 const buttonContainer = "buttonContainer";
 
@@ -88,34 +88,20 @@ export const MruConnectionsContainer = () => {
                 {// state may not be initialized yet due to async loading of context
                 context.state?.savedConnections.map((connection, index) => {
                     return (
-                        <Card
+                        <ConnectionCard
+                            connection={connection}
                             key={"saved" + index}
-                            className={styles.connectionContainer}
-                            appearance="subtle"
-                            onClick={() => {
-                                context.loadConnection(connection);
+                            actionButton={{
+                                icon: <Delete16Regular />,
+                                onClick: (e) => {
+                                    context.deleteSavedConnection(connection);
+                                    e.stopPropagation();
+                                },
+                                tooltip:
+                                    locConstants.connectionDialog
+                                        .deleteSavedConnection,
                             }}
-                        >
-                            <CardHeader
-                                image={<ServerRegular />}
-                                header={connection.displayName}
-                                action={
-                                    <div className={buttonContainer}>
-                                        <Button
-                                            icon={<Delete16Regular />}
-                                            appearance="subtle"
-                                            onClick={(e) => {
-                                                console.log(
-                                                    `Remove connection: ${connection.displayName}`,
-                                                );
-                                                e.stopPropagation();
-                                            }}
-                                            title="Remove connection"
-                                        />
-                                    </div>
-                                }
-                            />
-                        </Card>
+                        />
                     );
                 })}
             </div>
@@ -133,21 +119,72 @@ export const MruConnectionsContainer = () => {
                 {// state may not be initialized yet due to async loading of context
                 context.state?.recentConnections.map((connection, index) => {
                     return (
-                        <TreeItem
-                            itemType="leaf"
+                        <ConnectionCard
+                            connection={connection}
                             key={"mru" + index}
-                            className={styles.connectionContainer}
-                            onClick={() => {
-                                context.loadConnection(connection);
+                            actionButton={{
+                                icon: <Delete16Regular />,
+                                onClick: (e) => {
+                                    context.removeRecentConnection(connection);
+                                    e.stopPropagation();
+                                },
+                                tooltip:
+                                    locConstants.connectionDialog
+                                        .removeRecentConnection,
                             }}
-                        >
-                            <TreeItemLayout iconBefore={<ServerRegular />}>
-                                {connection.displayName}
-                            </TreeItemLayout>
-                        </TreeItem>
+                        />
                     );
                 })}
             </Tree>
         </div>
+    );
+};
+
+export const ConnectionCard = ({
+    connection,
+    key,
+    actionButton,
+}: {
+    connection: IConnectionDialogProfile;
+    key?: string;
+    actionButton?: {
+        icon: Slot<"span">;
+        onClick: MouseEventHandler;
+        tooltip: string;
+    };
+}) => {
+    const styles = useStyles();
+    const context = useContext(ConnectionDialogContext);
+
+    if (context === undefined) {
+        return undefined;
+    }
+
+    return (
+        <Card
+            key={key}
+            className={styles.connectionContainer}
+            appearance="subtle"
+            onClick={() => {
+                context.loadConnection(connection);
+            }}
+        >
+            <CardHeader
+                image={<ServerRegular />}
+                header={connection.displayName}
+                action={
+                    actionButton && (
+                        <div className={buttonContainer}>
+                            <Button
+                                icon={actionButton.icon}
+                                appearance="subtle"
+                                onClick={actionButton.onClick}
+                                title={actionButton.tooltip}
+                            />
+                        </div>
+                    )
+                }
+            />
+        </Card>
     );
 };
