@@ -58,7 +58,9 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
+    IConnectionProfile,
 } from "../models/interfaces";
+import { locConstants } from "../reactviews/common/locConstants";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -1081,19 +1083,62 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return state;
         });
 
-        this.registerReducer("refreshMruConnections", async (state) => {
-            await this.updateLoadedConnections(state);
-            this.updateState();
-
-            return state;
-        });
-
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             await promptForAzureSubscriptionFilter(state);
             await this.loadAllAzureServers(state);
 
             return state;
         });
+
+        this.registerReducer("refreshConnectionsList", async (state) => {
+            await this.updateLoadedConnections(state);
+
+            return state;
+        });
+
+        this.registerReducer(
+            "deleteSavedConnection",
+            async (state, payload) => {
+                const confirm = await vscode.window.showQuickPick(
+                    [locConstants.common.Delete, locConstants.common.Cancel],
+                    {
+                        title: locConstants.common.AreYouSureYouWantTo(
+                            locConstants.connectionDialog.deleteTheSavedConnection(
+                                payload.connection.displayName,
+                            ),
+                        ),
+                    },
+                );
+
+                if (confirm !== locConstants.common.Delete) {
+                    return state;
+                }
+
+                const success =
+                    await this._mainController.connectionManager.connectionStore.removeProfile(
+                        payload.connection as IConnectionProfile,
+                    );
+
+                if (success) {
+                    await this.updateLoadedConnections(state);
+                }
+
+                return state;
+            },
+        );
+
+        this.registerReducer(
+            "removeRecentConnection",
+            async (state, payload) => {
+                await this._mainController.connectionManager.connectionStore.removeRecentlyUsed(
+                    payload.connection as IConnectionProfile,
+                );
+
+                await this.updateLoadedConnections(state);
+
+                return state;
+            },
+        );
     }
 
     //#region Helpers

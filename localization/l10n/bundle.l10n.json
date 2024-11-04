@@ -219,6 +219,8 @@
     ]
   },
   "Default": "Default",
+  "Delete saved connection": "Delete saved connection",
+  "Remove recent connection": "Remove recent connection",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [

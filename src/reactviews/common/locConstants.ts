@@ -17,6 +17,20 @@ export class LocConstants {
         LocConstants._instance = new LocConstants();
     }
 
+    public get common() {
+        return {
+            Delete: l10n.t("Delete"),
+            Cancel: l10n.t("Cancel"),
+            AreYouSure: l10n.t("Are you sure?"),
+            AreYouSureYouWantTo: (action: string) =>
+                l10n.t({
+                    message: "Are you sure you want to {0}?",
+                    args: [action],
+                    comment: ["{0} is the action being confirmed"],
+                }),
+        };
+    }
+
     public get objectExplorerFiltering() {
         return {
             error: l10n.t("Error"),
@@ -196,6 +210,13 @@ export class LocConstants {
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
             removeRecentConnection: l10n.t("Remove recent connection"),
+            deleteTheSavedConnection: (connectionName: string) => {
+                return l10n.t({
+                    message: "delete the saved connection: {0}?",
+                    args: [connectionName],
+                    comment: ["{0} is the connection name"],
+                });
+            },
         };
     }
 

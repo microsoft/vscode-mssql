@@ -147,8 +147,10 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     cancelTrustServerCertDialog: () => void;
-    refreshMruConnections: () => void;
     filterAzureSubscriptions: () => void;
+    refreshConnectionsList: () => void;
+    deleteSavedConnection(connection: IConnectionDialogProfile): void;
+    removeRecentConnection(connection: IConnectionDialogProfile): void;
 }
 
 export enum AuthenticationType {
@@ -172,6 +174,12 @@ export interface ConnectionDialogReducers {
         subscriptionId: string;
     };
     cancelTrustServerCertDialog: {};
-    refreshMruConnections: {};
     filterAzureSubscriptions: {};
+    refreshConnectionsList: {};
+    deleteSavedConnection: {
+        connection: IConnectionDialogProfile;
+    };
+    removeRecentConnection: {
+        connection: IConnectionDialogProfile;
+    };
 }

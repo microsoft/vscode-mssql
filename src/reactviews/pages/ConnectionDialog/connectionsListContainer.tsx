@@ -64,7 +64,7 @@ const useStyles = makeStyles({
     text: { margin: "0" },
 });
 
-export const MruConnectionsContainer = () => {
+export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
 
@@ -81,7 +81,7 @@ export const MruConnectionsContainer = () => {
                 <Button
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
-                    onClick={context.refreshMruConnections}
+                    onClick={context.refreshConnectionsList}
                 />
             </div>
             <div className={styles.main}>
@@ -112,7 +112,7 @@ export const MruConnectionsContainer = () => {
                 <Button
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
-                    onClick={context.refreshMruConnections}
+                    onClick={context.refreshConnectionsList}
                 />
             </div>
             <Tree>
