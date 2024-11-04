@@ -73,6 +73,13 @@
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
+    <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
+      <source xml:lang="en">Are you sure you want to {0}?</source>
+      <note>{0} is the action being confirmed</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
+      <source xml:lang="en">Are you sure?</source>
+    </trans-unit>
     <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
       <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
     </trans-unit>
@@ -1376,6 +1383,10 @@
     </trans-unit>
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
+      <source xml:lang="en">delete the saved connection: {0}?</source>
+      <note>{0} is the connection name</note>
     </trans-unit>
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>

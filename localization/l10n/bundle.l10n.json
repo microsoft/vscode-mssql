@@ -87,6 +87,14 @@
   "Move Down": "Move Down",
   "Delete": "Delete",
   "Filter Settings": "Filter Settings",
+  "Cancel": "Cancel",
+  "Are you sure?": "Are you sure?",
+  "Are you sure you want to {0}?/{0} is the action being confirmed": {
+    "message": "Are you sure you want to {0}?",
+    "comment": [
+      "{0} is the action being confirmed"
+    ]
+  },
   "Error": "Error",
   "Clear All": "Clear All",
   "Close": "Close",
@@ -221,6 +229,12 @@
   "Default": "Default",
   "Delete saved connection": "Delete saved connection",
   "Remove recent connection": "Remove recent connection",
+  "delete the saved connection: {0}?/{0} is the connection name": {
+    "message": "delete the saved connection: {0}?",
+    "comment": [
+      "{0} is the connection name"
+    ]
+  },
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -261,7 +275,6 @@
   "Dissatisfied": "Dissatisfied",
   "Very Dissatisfied": "Very Dissatisfied",
   "Submit": "Submit",
-  "Cancel": "Cancel",
   "Not likely at all": "Not likely at all",
   "Extremely likely": "Extremely likely",
   "Privacy Statement": "Privacy Statement",
