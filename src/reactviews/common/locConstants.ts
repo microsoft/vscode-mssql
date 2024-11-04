@@ -47,9 +47,9 @@ export class LocConstants {
             equals: l10n.t("Equals"),
             notEquals: l10n.t("Not Equals"),
             lessThan: l10n.t("Less Than"),
-            lessThanOrEquals: l10n.t("Less Than Or Equals"),
+            lessThanOrEquals: l10n.t("Less Than or Equals"),
             greaterThan: l10n.t("Greater Than"),
-            greaterThanOrEquals: l10n.t("Greater Than Or Equals"),
+            greaterThanOrEquals: l10n.t("Greater Than or Equals"),
             between: l10n.t("Between"),
             notBetween: l10n.t("Not Between"),
             path: (path: string) =>

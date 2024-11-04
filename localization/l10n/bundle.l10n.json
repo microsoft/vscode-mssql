@@ -109,9 +109,9 @@
   "Equals": "Equals",
   "Not Equals": "Not Equals",
   "Less Than": "Less Than",
-  "Less Than Or Equals": "Less Than Or Equals",
+  "Less Than or Equals": "Less Than or Equals",
   "Greater Than": "Greater Than",
-  "Greater Than Or Equals": "Greater Than Or Equals",
+  "Greater Than or Equals": "Greater Than or Equals",
   "Between": "Between",
   "Not Between": "Not Between",
   "Path: {0}/{0} is the path of the node in the object explorer": {

@@ -602,8 +602,8 @@
     <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
       <source xml:lang="en">Greater Than</source>
     </trans-unit>
-    <trans-unit id="++CODE++8885e80bb197b22bc702906ef86b149ad49d258c5cb14b09227c19ee4f01061e">
-      <source xml:lang="en">Greater Than Or Equals</source>
+    <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
+      <source xml:lang="en">Greater Than or Equals</source>
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
@@ -670,8 +670,8 @@
     <trans-unit id="++CODE++ab7e3aa3d0d8c78763c986b6a831726ff623b195a38a8d4b1191976c0becf72e">
       <source xml:lang="en">Less Than</source>
     </trans-unit>
-    <trans-unit id="++CODE++a408b91cd1b01aac0b9fa7eec7fafac233eb172b0aafcdf013d88575fac35c1f">
-      <source xml:lang="en">Less Than Or Equals</source>
+    <trans-unit id="++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842">
+      <source xml:lang="en">Less Than or Equals</source>
     </trans-unit>
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
