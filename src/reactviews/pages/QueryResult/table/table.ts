@@ -128,7 +128,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         let gridParent = gridParentRef?.current;
         if (gridParent) {
             this._tableContainer.style.width = `${(gridParent?.clientWidth - ACTIONBAR_WIDTH_PX).toString()}px`;
-            const height = gridParent?.clientHeight - TABLE_ALIGN_PX;
+            const height = gridParent?.clientHeight;
             this._tableContainer.style.height = `${height.toString()}px`;
             console.log(`table.ts height: ${height}`);
         }
