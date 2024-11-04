@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme } from "@fluentui/react-components";
+import { ColorThemeKind } from "../../common/vscodeWebviewProvider";
 import { themeType } from "../../common/utils";
 
 const iterator_catch_all = require("./icons/iterator_catch_all.png");
@@ -398,7 +398,7 @@ export function getCollapseExpandPaths() {
     };
 }
 
-export const save = (colorTheme: Theme) => {
+export const save = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const saveIcon =
         theme === "dark"
@@ -407,7 +407,7 @@ export const save = (colorTheme: Theme) => {
     return saveIcon;
 };
 
-export const openPlanFile = (colorTheme: Theme) => {
+export const openPlanFile = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const openPlanFileIcon =
         theme === "dark"
@@ -416,7 +416,7 @@ export const openPlanFile = (colorTheme: Theme) => {
     return openPlanFileIcon;
 };
 
-export const openQuery = (colorTheme: Theme) => {
+export const openQuery = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const openQueryIcon =
         theme === "dark"
@@ -425,7 +425,7 @@ export const openQuery = (colorTheme: Theme) => {
     return openQueryIcon;
 };
 
-export const zoomIn = (colorTheme: Theme) => {
+export const zoomIn = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const zoomInIcon =
         theme === "dark"
@@ -434,7 +434,7 @@ export const zoomIn = (colorTheme: Theme) => {
     return zoomInIcon;
 };
 
-export const zoomOut = (colorTheme: Theme) => {
+export const zoomOut = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const zoomOutIcon =
         theme === "dark"
@@ -443,7 +443,7 @@ export const zoomOut = (colorTheme: Theme) => {
     return zoomOutIcon;
 };
 
-export const zoomToFit = (colorTheme: Theme) => {
+export const zoomToFit = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const zoomToFitIcon =
         theme === "dark"
@@ -452,7 +452,7 @@ export const zoomToFit = (colorTheme: Theme) => {
     return zoomToFitIcon;
 };
 
-export const customZoom = (colorTheme: Theme) => {
+export const customZoom = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const customZoomIcon =
         theme === "dark"
@@ -461,7 +461,7 @@ export const customZoom = (colorTheme: Theme) => {
     return customZoomIcon;
 };
 
-export const search = (colorTheme: Theme) => {
+export const search = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const searchIcon =
         theme === "dark"
@@ -470,7 +470,7 @@ export const search = (colorTheme: Theme) => {
     return searchIcon;
 };
 
-export const properties = (colorTheme: Theme) => {
+export const properties = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const propertiesIcon =
         theme === "dark"
@@ -479,7 +479,7 @@ export const properties = (colorTheme: Theme) => {
     return propertiesIcon;
 };
 
-export const highlightOps = (colorTheme: Theme) => {
+export const highlightOps = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const highlightOpsIcon =
         theme === "dark"
@@ -488,7 +488,7 @@ export const highlightOps = (colorTheme: Theme) => {
     return highlightOpsIcon;
 };
 
-export const enableTooltip = (colorTheme: Theme) => {
+export const enableTooltip = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const enableTooltipIcon =
         theme === "dark"
@@ -497,7 +497,7 @@ export const enableTooltip = (colorTheme: Theme) => {
     return enableTooltipIcon;
 };
 
-export const disableTooltip = (colorTheme: Theme) => {
+export const disableTooltip = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const disableTooltipIcon =
         theme === "dark"
@@ -506,7 +506,7 @@ export const disableTooltip = (colorTheme: Theme) => {
     return disableTooltipIcon;
 };
 
-export const sortByImportance = (colorTheme: Theme) => {
+export const sortByImportance = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const sortByImportanceIcon =
         theme === "dark"
@@ -515,7 +515,7 @@ export const sortByImportance = (colorTheme: Theme) => {
     return sortByImportanceIcon;
 };
 
-export const sortAlphabetically = (colorTheme: Theme) => {
+export const sortAlphabetically = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const sortAlphabeticallyIcon =
         theme === "dark"
@@ -524,7 +524,7 @@ export const sortAlphabetically = (colorTheme: Theme) => {
     return sortAlphabeticallyIcon;
 };
 
-export const sortReverseAlphabetically = (colorTheme: Theme) => {
+export const sortReverseAlphabetically = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const sortReverseAlphabeticallyIcon =
         theme === "dark"
@@ -533,7 +533,7 @@ export const sortReverseAlphabetically = (colorTheme: Theme) => {
     return sortReverseAlphabeticallyIcon;
 };
 
-export const filterIcon = (colorTheme: Theme) => {
+export const filterIcon = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const filterIcon =
         theme === "dark"
@@ -542,7 +542,7 @@ export const filterIcon = (colorTheme: Theme) => {
     return filterIcon;
 };
 
-export const expandAll = (colorTheme: Theme) => {
+export const expandAll = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const expandAllIcon =
         theme === "dark"
@@ -551,7 +551,7 @@ export const expandAll = (colorTheme: Theme) => {
     return expandAllIcon;
 };
 
-export const collapseAll = (colorTheme: Theme) => {
+export const collapseAll = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const collapseAllIcon =
         theme === "dark"

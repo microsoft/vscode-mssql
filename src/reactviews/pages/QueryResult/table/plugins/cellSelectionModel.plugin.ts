@@ -7,15 +7,17 @@
 // heavily modified
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
+import {
+    QueryResultReducers,
+    QueryResultWebviewState,
+} from "../../../../../sharedInterfaces/queryResult";
+
+import { ISlickRange } from "../utils";
+import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 // import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
-import {
-    QueryResultWebviewState,
-    QueryResultReducers,
-} from "../../../../../sharedInterfaces/queryResult";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-import { ISlickRange } from "../utils";
+import { tokens } from "@fluentui/react-components";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -62,7 +64,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             // this is added by the node requires above
             this.selector = new CellRangeSelector({
                 selectionCss: {
-                    border: `3px dashed ${this.webViewState.theme.colorBrandBackgroundHover}`,
+                    border: `3px dashed ${tokens.colorStrokeFocus1}`,
                 },
             });
         }

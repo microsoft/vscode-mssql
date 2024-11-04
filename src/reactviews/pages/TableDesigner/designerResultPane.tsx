@@ -10,27 +10,28 @@ import {
     makeStyles,
     shorthands,
 } from "@fluentui/react-components";
-import { useContext } from "react";
 import {
-    OpenFilled,
-    ErrorCircleRegular,
-    WarningRegular,
-    InfoRegular,
-    CopyFilled,
-    ChevronUpFilled,
     ChevronDownFilled,
+    ChevronUpFilled,
+    CopyFilled,
+    ErrorCircleRegular,
+    InfoRegular,
+    OpenFilled,
+    WarningRegular,
 } from "@fluentui/react-icons";
-import Editor from "@monaco-editor/react";
-import { TableDesignerContext } from "./tableDesignerStateProvider";
 import {
     DesignerIssue,
     DesignerResultPaneTabs,
     InputBoxProperties,
     TableProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import { locConstants } from "../../common/locConstants";
 import { List, ListItem } from "@fluentui/react-list-preview";
+
+import Editor from "@monaco-editor/react";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { getVscodeThemeType } from "../../common/utils";
+import { locConstants } from "../../common/locConstants";
+import { useContext } from "react";
 
 const useStyles = makeStyles({
     root: {
@@ -292,7 +293,7 @@ export const DesignerResultPane = () => {
                             height={"100%"}
                             width={"100%"}
                             language="sql"
-                            theme={getVscodeThemeType(state!.theme!)}
+                            theme={getVscodeThemeType(state?.themeKind)}
                             value={
                                 (
                                     metadata?.model![

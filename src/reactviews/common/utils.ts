@@ -3,11 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Theme,
-    webDarkTheme,
-    teamsHighContrastTheme,
-} from "@fluentui/react-components";
+import { ColorThemeKind } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.
@@ -29,21 +25,21 @@ export function formatString(str: string, ...args: any[]): string {
 
 /**
  * Gets the theme type based on the theme passed in
- * @param theme the theme of the react webview
+ * @param themeKind the theme of the react webview
  */
-export function getVscodeThemeType(theme: Theme): string {
-    switch (theme) {
-        case webDarkTheme:
+export function getVscodeThemeType(themeKind: ColorThemeKind): string {
+    switch (themeKind) {
+        case ColorThemeKind.Dark:
             return "vs-dark";
-        case teamsHighContrastTheme:
+        case ColorThemeKind.HighContrast:
             return "hc-black";
         default:
             return "light";
     }
 }
 
-export function themeType(theme: Theme): string {
-    const themeType = getVscodeThemeType(theme);
+export function themeType(themeKind: ColorThemeKind): string {
+    const themeType = getVscodeThemeType(themeKind);
     if (themeType !== "light") {
         return "dark";
     }

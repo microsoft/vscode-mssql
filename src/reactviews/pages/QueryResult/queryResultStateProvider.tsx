@@ -3,15 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { Theme } from "@fluentui/react-components";
+
+import {
+    ColorThemeKind,
+    useVscodeWebview,
+} from "../../common/vscodeWebviewProvider";
+import { ReactNode, createContext } from "react";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
     state: qr.QueryResultWebviewState;
-    theme: Theme;
+    theme: ColorThemeKind;
 }
 
 const QueryResultContext = createContext<QueryResultState | undefined>(
@@ -74,7 +77,7 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                 },
 
                 state: webViewState?.state as qr.QueryResultWebviewState,
-                theme: webViewState?.theme,
+                theme: webViewState?.themeKind,
             }}
         >
             {children}
