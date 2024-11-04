@@ -82,18 +82,18 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             }
             setRefreshKey((prev) => prev + 1);
         };
+        // const gridParent = props.gridParentRef?.current;
         const resizeGrid = (width: number, height: number) => {
-            console.log(
-                "Resizing grid to width: " + width + " height: " + height,
-            );
-            props.gridParentRef?.current?.setAttribute(
-                "style",
-                `width: ${width}px`,
-            );
-            props.gridParentRef?.current?.setAttribute(
-                "style",
-                `height: ${height}px`,
-            );
+            let gridParent;
+            if (props.resultSetSummary) {
+                gridParent = document.getElementById(
+                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+                );
+            }
+            if (gridParent) {
+                gridParent.setAttribute("style", `width: ${width}px`);
+                gridParent.setAttribute("style", `height: ${height}px`);
+            }
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };
