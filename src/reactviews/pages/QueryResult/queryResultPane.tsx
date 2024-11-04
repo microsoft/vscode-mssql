@@ -162,34 +162,22 @@ export const QueryResultPane = () => {
             );
             console.log(`available height: ${availableHeight}`);
             if (resultPaneParent.clientWidth && availableHeight) {
+                const gridHeight = calculateGridHeight(
+                    resultPaneParent,
+                    gridCount,
+                    availableHeight,
+                );
+                const gridWidth = calculateGridWidth(
+                    resultPaneParent,
+                    gridCount,
+                    availableHeight,
+                );
                 if (gridCount > 1) {
-                    let scrollbarAdjustment =
-                        gridCount * MIN_GRID_HEIGHT >= availableHeight
-                            ? SCROLLBAR_PX
-                            : 0;
-
-                    // Calculate the grid height, ensuring it's not smaller than the minimum height
-                    const gridHeight = Math.max(
-                        (availableHeight - gridCount * TABLE_ALIGN_PX) /
-                            gridCount,
-                        MIN_GRID_HEIGHT,
-                    );
-
                     gridRefs.current.forEach((gridRef) => {
-                        gridRef?.resizeGrid(
-                            resultPaneParent.clientWidth -
-                                ACTIONBAR_WIDTH_PX -
-                                scrollbarAdjustment,
-                            gridHeight,
-                        );
+                        gridRef?.resizeGrid(gridWidth, gridHeight);
                     });
                 } else if (gridCount === 1) {
-                    gridParentRef.current.style.height = `${availableHeight - TABLE_ALIGN_PX}px`;
-                    gridParentRef.current.style.width = `${resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX}px`;
-                    gridRefs.current[0]?.resizeGrid(
-                        resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX,
-                        availableHeight - TABLE_ALIGN_PX,
-                    );
+                    gridRefs.current[0]?.resizeGrid(gridWidth, gridHeight);
                 }
             }
         });
@@ -210,34 +198,39 @@ export const QueryResultPane = () => {
         let gridHeight: number;
         if (resultPaneParent.clientWidth && availableHeight) {
             if (gridCount > 1) {
-                let scrollbarAdjustment =
-                    gridCount * MIN_GRID_HEIGHT >= availableHeight
-                        ? SCROLLBAR_PX
-                        : 0;
-
                 // Calculate the grid height, ensuring it's not smaller than the minimum height
                 gridHeight = Math.max(
                     (availableHeight - gridCount * TABLE_ALIGN_PX) / gridCount,
                     MIN_GRID_HEIGHT,
                 );
-
-                gridRefs.current.forEach((gridRef) => {
-                    gridRef?.resizeGrid(
-                        resultPaneParent.clientWidth -
-                            ACTIONBAR_WIDTH_PX -
-                            scrollbarAdjustment,
-                        gridHeight,
-                    );
-                });
             } else if (gridCount === 1) {
-                gridParentRef.current.style.height = `${availableHeight - TABLE_ALIGN_PX}px`;
-                gridParentRef.current.style.width = `${resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX}px`;
-                gridRefs.current[0]?.resizeGrid(
-                    resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX,
+                gridHeight = Math.max(
                     availableHeight - TABLE_ALIGN_PX,
+                    MIN_GRID_HEIGHT,
                 );
             }
             return gridHeight;
+        }
+    };
+
+    const calculateGridWidth = (
+        resultPaneParent: HTMLDivElement,
+        gridCount: number,
+        availableHeight: number,
+    ) => {
+        if (gridCount > 1) {
+            let scrollbarAdjustment =
+                gridCount * MIN_GRID_HEIGHT >= availableHeight
+                    ? SCROLLBAR_PX
+                    : 0;
+
+            return (
+                resultPaneParent.clientWidth -
+                ACTIONBAR_WIDTH_PX -
+                scrollbarAdjustment
+            );
+        } else if (gridCount === 1) {
+            return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
         }
     };
     const [columns] =
