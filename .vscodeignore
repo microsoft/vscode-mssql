@@ -5,6 +5,7 @@ coverage
 coverage-remapped
 lib
 localization
+! localization/l10n
 out/test
 packages
 samples
@@ -13,7 +14,7 @@ tasks
 test
 typings
 test-reports
-
+.husky
 .gitignore
 .mention-bot
 coverconfig.json
@@ -24,3 +25,5 @@ tslint*.json
 **/*.map
 **/*.ts
 webviews-metafile.json
+images/ux
+FEATURES.md

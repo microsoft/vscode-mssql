@@ -3,40 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as designer from '../sharedInterfaces/tableDesigner';
+import * as designer from "../sharedInterfaces/tableDesigner";
+import * as vscode from "vscode";
 
-export function getAboutTableComponents(viewDefinition: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
+export function getAdvancedOptionsComponents(
+    viewDefinition: designer.TableDesignerView | undefined,
+): designer.DesignerDataPropertyInfo[] {
     if (!viewDefinition) {
         return [];
     }
     const tabComponents: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'input',
-            propertyName: designer.TableColumnProperty.Name,
-            description: "The name of the table object.",
-            componentProperties: {
-                title: "Table name",
-                width: 350
-            }
-        },
-        {
-            componentType: 'dropdown',
-            propertyName: designer.TableProperty.Schema,
-            description: "The schema that contains the table.",
-            componentProperties: {
-                title: "Schema",
-                width: 350,
-            }
-        },
-        {
-            componentType: 'textarea',
+            componentType: "textarea",
             propertyName: designer.TableProperty.Description,
-            description: "Description for the table.",
+            description: vscode.l10n.t("Description for the table."),
             componentProperties: {
-                title: "Description",
-                width: 350
-            }
-        }
+                title: vscode.l10n.t("Description"),
+                width: 350,
+            },
+        },
     ];
 
     if (viewDefinition?.additionalTableProperties) {
@@ -46,7 +31,9 @@ export function getAboutTableComponents(viewDefinition: designer.TableDesignerVi
     return tabComponents;
 }
 
-export function getColumnsTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
+export function getColumnsTabComponents(
+    view: designer.TableDesignerView | undefined,
+): designer.DesignerDataPropertyInfo[] {
     if (!view || !view?.columnTableOptions) {
         return [];
     }
@@ -55,205 +42,260 @@ export function getColumnsTabComponents(view: designer.TableDesignerView | undef
 
     const columnTableColumnDefinitions: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'input',
+            componentType: "input",
             propertyName: designer.TableColumnProperty.Name,
-            description: "The name of the column object.",
+            description: vscode.l10n.t("The name of the column object."),
             componentProperties: {
-                title: "Name",
-                width: 150
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Name"),
+                width: 150,
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableColumnProperty.Description,
-            description: "Displays the description of the column",
+            description: vscode.l10n.t(
+                "Displays the description of the column",
+            ),
             componentProperties: {
-                title: "Description",
-                width: 400
-            }
-        }, {
-            componentType: 'dropdown',
+                title: vscode.l10n.t("Description"),
+                width: 400,
+            },
+        },
+        {
+            componentType: "dropdown",
             propertyName: designer.TableColumnProperty.AdvancedType,
-            description: "Displays the unified data type (including length, scale and precision) for the column",
+            description: vscode.l10n.t(
+                "Displays the unified data type (including length, scale and precision) for the column",
+            ),
             componentProperties: {
-                title: "Advanced Type",
+                title: vscode.l10n.t("Data Type"),
                 width: 120,
-                isEditable: true
-            }
-        }, {
-            componentType: 'dropdown',
+                isEditable: true,
+            },
+        },
+        {
+            componentType: "dropdown",
             propertyName: designer.TableColumnProperty.Type,
             showInPropertiesView: false,
-            description: "Displays the data type name for the column",
+            description: vscode.l10n.t(
+                "Displays the data type name for the column",
+            ),
             componentProperties: {
-                title: "Type",
-                width: 100
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Type"),
+                width: 100,
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableColumnProperty.Length,
-            description: "The maximum length (in characters) that can be stored in this database object.",
+            description: vscode.l10n.t(
+                "The maximum length (in characters) that can be stored in this database object.",
+            ),
             componentProperties: {
-                title: "Length",
-                width: 60
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Length"),
+                width: 60,
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableColumnProperty.DefaultValue,
-            description: "A predefined global default value for the column or binding.",
+            description: vscode.l10n.t(
+                "A predefined global default value for the column or binding.",
+            ),
             componentProperties: {
-                title: "Default Value",
-                width: 150
-            }
-        }, {
-            componentType: 'checkbox',
+                title: vscode.l10n.t("Default Value"),
+                width: 150,
+            },
+        },
+        {
+            componentType: "checkbox",
             propertyName: designer.TableColumnProperty.AllowNulls,
-            description: "Specifies whether the column may have a NULL value.",
+            description: vscode.l10n.t(
+                "Specifies whether the column may have a NULL value.",
+            ),
             componentProperties: {
-                title: "Allow Nulls",
-            }
-        }, {
-            componentType: 'checkbox',
+                title: vscode.l10n.t("Allow Nulls"),
+            },
+        },
+        {
+            componentType: "checkbox",
             propertyName: designer.TableColumnProperty.IsPrimaryKey,
-            description: "Specifies whether the column is included in the primary key for the table.",
+            description: vscode.l10n.t(
+                "Specifies whether the column is included in the primary key for the table.",
+            ),
             componentProperties: {
-                title: "Primary Key",
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Primary Key"),
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableColumnProperty.Precision,
-            description: "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
+            description: vscode.l10n.t(
+                "For numeric data, the maximum number of decimal digits that can be stored in this database object.",
+            ),
             componentProperties: {
-                title: "Precision",
+                title: vscode.l10n.t("Precision"),
                 width: 60,
-                inputType: designer.InputType.Number
-            }
-        }, {
-            componentType: 'input',
+                inputType: designer.InputType.Number,
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableColumnProperty.Scale,
-            description: "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
+            description: vscode.l10n.t(
+                "For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.",
+            ),
             componentProperties: {
-                title: "Scale",
+                title: vscode.l10n.t("Scale"),
                 width: 60,
-                inputType: designer.InputType.Number
-            }
-        }
+                inputType: designer.InputType.Number,
+            },
+        },
     ];
 
     const displayProperties = getTableDisplayProperties(columnTableOptions, [
         designer.TableColumnProperty.Name,
-        designer.TableColumnProperty.AdvancedType,
+        designer.TableColumnProperty.Type,
         designer.TableColumnProperty.IsPrimaryKey,
+        designer.TableColumnProperty.IsIdentity,
         designer.TableColumnProperty.AllowNulls,
         designer.TableColumnProperty.DefaultValue,
     ]);
 
     const tabComponents: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'table',
+            componentType: "table",
             propertyName: designer.TableProperty.Columns,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: "Columns",
+                ariaLabel: vscode.l10n.t("Columns"),
                 columns: displayProperties,
-                itemProperties: addAdditionalTableProperties(columnTableOptions, columnTableColumnDefinitions),
-                objectTypeDisplayName: "Column",
+                itemProperties: addAdditionalTableProperties(
+                    columnTableOptions,
+                    columnTableColumnDefinitions,
+                ),
+                objectTypeDisplayName: vscode.l10n.t("Column"),
                 canAddRows: columnTableOptions.canAddRows,
                 canInsertRows: columnTableOptions.canInsertRows,
                 canMoveRows: columnTableOptions.canMoveRows,
                 canRemoveRows: columnTableOptions.canRemoveRows,
-                removeRowConfirmationMessage: columnTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation: columnTableOptions.showRemoveRowConfirmation,
-                labelForAddNewButton: columnTableOptions.labelForAddNewButton ?? "New Column"
-            } as designer.DesignerTableProperties
+                removeRowConfirmationMessage:
+                    columnTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation:
+                    columnTableOptions.showRemoveRowConfirmation,
+                labelForAddNewButton:
+                    columnTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("New Column"),
+            } as designer.DesignerTableProperties,
         },
     ];
 
-    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.Columns, view.additionalComponents);
-    if(additionalComponents) {
+    const additionalComponents = getAdditionalComponentsForTab(
+        designer.TableProperty.Columns,
+        view.additionalComponents,
+    );
+    if (additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getPrimaryKeyTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
+export function getPrimaryKeyTabComponents(
+    view: designer.TableDesignerView | undefined,
+): designer.DesignerDataPropertyInfo[] {
     if (!view || !view.primaryKeyColumnSpecificationTableOptions) {
         return [];
     }
     const columnSpecProperties: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'dropdown',
+            componentType: "dropdown",
             propertyName: designer.TableIndexColumnSpecificationProperty.Column,
-            description: "The name of the column.",
+            description: vscode.l10n.t("The name of the column."),
             componentProperties: {
-                title: "Column",
-                width: 150
-            }
-        }
+                title: vscode.l10n.t("Column"),
+                width: 150,
+            },
+        },
     ];
 
     const tabComponents: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'input',
+            componentType: "input",
             propertyName: designer.TableProperty.PrimaryKeyName,
             showInPropertiesView: false,
-            description: "Name of the primary key.",
+            description: vscode.l10n.t("Name of the primary key."),
             componentProperties: {
-                title: "Name",
-                width: 250
-            }
+                title: vscode.l10n.t("Name"),
+                width: 250,
+            },
         },
         {
-            componentType: 'textarea',
+            componentType: "textarea",
             propertyName: designer.TableProperty.PrimaryKeyDescription,
             showInPropertiesView: false,
-            description: "The description of the primary key.",
+            description: vscode.l10n.t("The description of the primary key."),
             componentProperties: {
-                title: "Description",
-                width: 250
-            }
-        }
+                title: vscode.l10n.t("Description"),
+                width: 250,
+            },
+        },
     ];
 
     if (view.additionalPrimaryKeyProperties) {
-        view.additionalPrimaryKeyProperties.forEach(component => {
+        view.additionalPrimaryKeyProperties.forEach((component) => {
             const copy = { ...component };
             copy.showInPropertiesView = false;
             tabComponents.push(copy);
         });
     }
 
-    const primaryKeyTableOptions = view.primaryKeyColumnSpecificationTableOptions;
+    const primaryKeyTableOptions =
+        view.primaryKeyColumnSpecificationTableOptions;
     if (primaryKeyTableOptions) {
         tabComponents.push({
-            componentType: 'table',
+            componentType: "table",
             propertyName: designer.TableProperty.PrimaryKeyColumns,
             showInPropertiesView: false,
-            description: "Columns in the primary key.",
+            description: vscode.l10n.t("Columns in the primary key."),
             componentProperties: {
-                title: "Primary Key Columns",
-                ariaLabel: "Primary Key Columns",
-                columns: getTableDisplayProperties(primaryKeyTableOptions, [designer.TableIndexColumnSpecificationProperty.Column]),
-                itemProperties: addAdditionalTableProperties(primaryKeyTableOptions, columnSpecProperties),
-                objectTypeDisplayName: '',
+                title: vscode.l10n.t("Primary Key Columns"),
+                ariaLabel: vscode.l10n.t("Primary Key Columns"),
+                columns: getTableDisplayProperties(primaryKeyTableOptions, [
+                    designer.TableIndexColumnSpecificationProperty.Column,
+                ]),
+                itemProperties: addAdditionalTableProperties(
+                    primaryKeyTableOptions,
+                    columnSpecProperties,
+                ),
+                objectTypeDisplayName: "",
                 canAddRows: primaryKeyTableOptions.canAddRows,
                 canRemoveRows: primaryKeyTableOptions.canRemoveRows,
-                removeRowConfirmationMessage: primaryKeyTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation: primaryKeyTableOptions.showRemoveRowConfirmation,
+                removeRowConfirmationMessage:
+                    primaryKeyTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation:
+                    primaryKeyTableOptions.showRemoveRowConfirmation,
                 showItemDetailInPropertiesView: false,
-                labelForAddNewButton: primaryKeyTableOptions.labelForAddNewButton ?? "Add Column",
-                canMoveRows: primaryKeyTableOptions.canMoveRows
-            } as designer.DesignerTableProperties
+                labelForAddNewButton:
+                    primaryKeyTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("Add Column"),
+                canMoveRows: primaryKeyTableOptions.canMoveRows,
+            } as designer.DesignerTableProperties,
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.PrimaryKey, view.additionalComponents);
-    if(additionalComponents) {
+    const additionalComponents = getAdditionalComponentsForTab(
+        designer.TableProperty.PrimaryKey,
+        view.additionalComponents,
+    );
+    if (additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getIndexesTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
+export function getIndexesTabComponents(
+    view: designer.TableDesignerView | undefined,
+): designer.DesignerDataPropertyInfo[] {
     if (!view || !view.indexTableOptions) {
         return [];
     }
@@ -261,172 +303,213 @@ export function getIndexesTabComponents(view: designer.TableDesignerView | undef
     const columnSpecTableOptions = view.indexColumnSpecificationTableOptions;
     const columnSpecProperties: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'dropdown',
+            componentType: "dropdown",
             propertyName: designer.TableIndexColumnSpecificationProperty.Column,
-            description: "The name of the column.",
+            description: vscode.l10n.t("The name of the column."),
             componentProperties: {
-                title: "Column",
-                width: 100
-            }
-        }];
+                title: vscode.l10n.t("Column"),
+                width: 100,
+            },
+        },
+    ];
     const indexProperties: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'input',
+            componentType: "input",
             propertyName: designer.TableIndexProperty.Name,
-            description: "The name of the index.",
+            description: vscode.l10n.t("The name of the index."),
             componentProperties: {
-                title: "Name",
-                width: 200
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Name"),
+                width: 200,
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableIndexProperty.Description,
-            description: "The description of the index.",
+            description: vscode.l10n.t("The description of the index."),
             componentProperties: {
-                title: "Description",
-                width: 200
-            }
-        }
+                title: vscode.l10n.t("Description"),
+                width: 200,
+            },
+        },
     ];
 
     if (columnSpecTableOptions) {
-        indexProperties.push(
-            {
-                componentType: 'table',
-                propertyName: designer.TableIndexProperty.Columns,
-                description: "The columns of the index.",
-                group: "Columns",
-                componentProperties: {
-                    ariaLabel: "Columns",
-                    columns: getTableDisplayProperties(columnSpecTableOptions, [designer.TableIndexColumnSpecificationProperty.Column]),
-                    itemProperties: addAdditionalTableProperties(columnSpecTableOptions, columnSpecProperties),
-                    objectTypeDisplayName: '',
-                    canAddRows: columnSpecTableOptions.canAddRows,
-                    canRemoveRows: columnSpecTableOptions.canRemoveRows,
-                    removeRowConfirmationMessage: columnSpecTableOptions.removeRowConfirmationMessage,
-                    showRemoveRowConfirmation: columnSpecTableOptions.showRemoveRowConfirmation,
-                    labelForAddNewButton: columnSpecTableOptions.labelForAddNewButton ?? "Add Column"
-                } as designer.DesignerTableProperties
-            }
-        );
+        indexProperties.push({
+            componentType: "table",
+            propertyName: designer.TableIndexProperty.Columns,
+            description: vscode.l10n.t("The columns of the index."),
+            group: vscode.l10n.t("Columns"),
+            componentProperties: {
+                ariaLabel: vscode.l10n.t("Columns"),
+                columns: getTableDisplayProperties(columnSpecTableOptions, [
+                    designer.TableIndexColumnSpecificationProperty.Column,
+                ]),
+                itemProperties: addAdditionalTableProperties(
+                    columnSpecTableOptions,
+                    columnSpecProperties,
+                ),
+                objectTypeDisplayName: "",
+                canAddRows: columnSpecTableOptions.canAddRows,
+                canRemoveRows: columnSpecTableOptions.canRemoveRows,
+                removeRowConfirmationMessage:
+                    columnSpecTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation:
+                    columnSpecTableOptions.showRemoveRowConfirmation,
+                labelForAddNewButton:
+                    columnSpecTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("Add Column"),
+            } as designer.DesignerTableProperties,
+        });
     }
 
     const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
-    if(indexTableOptions) {
+    if (indexTableOptions) {
         tabComponents.push({
-            componentType: 'table',
+            componentType: "table",
             propertyName: designer.TableProperty.Indexes,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: "Indexes",
-                columns: getTableDisplayProperties(indexTableOptions, [designer.TableIndexProperty.Name]),
-                itemProperties: addAdditionalTableProperties(indexTableOptions, indexProperties),
-                objectTypeDisplayName: "Index",
+                ariaLabel: vscode.l10n.t("Indexes"),
+                columns: getTableDisplayProperties(indexTableOptions, [
+                    designer.TableIndexProperty.Name,
+                ]),
+                itemProperties: addAdditionalTableProperties(
+                    indexTableOptions,
+                    indexProperties,
+                ),
+                objectTypeDisplayName: vscode.l10n.t("Index"),
                 canAddRows: indexTableOptions.canAddRows,
                 canRemoveRows: indexTableOptions.canRemoveRows,
-                removeRowConfirmationMessage: indexTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation: indexTableOptions.showRemoveRowConfirmation,
-                labelForAddNewButton: indexTableOptions.labelForAddNewButton ?? "New Index"
-            } as designer.DesignerTableProperties
+                removeRowConfirmationMessage:
+                    indexTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation:
+                    indexTableOptions.showRemoveRowConfirmation,
+                labelForAddNewButton:
+                    indexTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("New Index"),
+            } as designer.DesignerTableProperties,
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.Indexes, view.additionalComponents);
-    if(additionalComponents) {
+    const additionalComponents = getAdditionalComponentsForTab(
+        designer.TableProperty.Indexes,
+        view.additionalComponents,
+    );
+    if (additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getForeignKeysTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
+export function getForeignKeysTabComponents(
+    view: designer.TableDesignerView | undefined,
+): designer.DesignerDataPropertyInfo[] {
     if (!view || !view.foreignKeyTableOptions) {
         return [];
     }
     const foreignKeyTableOptions = view.foreignKeyTableOptions;
     const columnMappingTableOptions = view!.foreignKeyColumnMappingTableOptions;
-    const foreignKeyColumnMappingProperties: designer.DesignerDataPropertyInfo[] = [
-        {
-            componentType: 'dropdown',
-            propertyName: designer.ForeignKeyColumnMappingProperty.ForeignColumn,
-            componentProperties: {
-                title: "Foreign Column",
-                width: 150
-            }
-        },
-        {
-            componentType: 'dropdown',
-            propertyName: designer.ForeignKeyColumnMappingProperty.Column,
-            componentProperties: {
-                title: "Column",
-                width: 150
-            }
-        },
-    ];
+    const foreignKeyColumnMappingProperties: designer.DesignerDataPropertyInfo[] =
+        [
+            {
+                componentType: "dropdown",
+                propertyName:
+                    designer.ForeignKeyColumnMappingProperty.ForeignColumn,
+                componentProperties: {
+                    title: vscode.l10n.t("Foreign Column"),
+                    width: 150,
+                },
+            },
+            {
+                componentType: "dropdown",
+                propertyName: designer.ForeignKeyColumnMappingProperty.Column,
+                componentProperties: {
+                    title: vscode.l10n.t("Column"),
+                    width: 150,
+                },
+            },
+        ];
 
     const foreignKeyProperties: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'input',
+            componentType: "input",
             propertyName: designer.TableForeignKeyProperty.Name,
-            description: "The name of the foreign key.",
+            description: vscode.l10n.t("The name of the foreign key."),
             componentProperties: {
-                title: "Name",
-                width: 300
-            }
+                title: vscode.l10n.t("Name"),
+                width: 300,
+            },
         },
         {
-            componentType: 'input',
+            componentType: "input",
             propertyName: designer.TableForeignKeyProperty.Description,
-            description: "The description of the foreign key.",
+            description: vscode.l10n.t("The description of the foreign key."),
             componentProperties: {
-                title: "Description",
-            }
+                title: vscode.l10n.t("Description"),
+            },
         },
         {
-            componentType: 'dropdown',
+            componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.ForeignTable,
-            description: "The table which contains the primary or unique key column.",
+            description: vscode.l10n.t(
+                "The table which contains the primary or unique key column.",
+            ),
             componentProperties: {
-                title: "Foreign Table",
-                width: 200
-            }
+                title: vscode.l10n.t("Foreign Table"),
+                width: 200,
+            },
         },
         {
-            componentType: 'dropdown',
+            componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.OnUpdateAction,
-            description: "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
+            description: vscode.l10n.t(
+                "The behavior when a user tries to update a row with data that is involved in a foreign key relationship.",
+            ),
             componentProperties: {
-                title: "On Update Action",
-                width: 100
-            }
+                title: vscode.l10n.t("On Update Action"),
+                width: 100,
+            },
         },
         {
-            componentType: 'dropdown',
+            componentType: "dropdown",
             propertyName: designer.TableForeignKeyProperty.OnDeleteAction,
-            description: "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
+            description: vscode.l10n.t(
+                "The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.",
+            ),
             componentProperties: {
-                title: "On Delete Action",
-                width: 100
-            }
+                title: vscode.l10n.t("On Delete Action"),
+                width: 100,
+            },
         },
-
     ];
 
     if (columnMappingTableOptions) {
         foreignKeyProperties.push({
-            componentType: 'table',
+            componentType: "table",
             propertyName: designer.TableForeignKeyProperty.Columns,
-            description: "The mapping between foreign key columns and primary key columns.",
-            group: "Columns",
+            description: vscode.l10n.t(
+                "The mapping between foreign key columns and primary key columns.",
+            ),
+            group: vscode.l10n.t("Columns"),
             componentProperties: {
-                ariaLabel: "Columns",
-                columns: getTableDisplayProperties(columnMappingTableOptions, [designer.ForeignKeyColumnMappingProperty.Column, designer.ForeignKeyColumnMappingProperty.ForeignColumn]),
-                itemProperties: addAdditionalTableProperties(columnMappingTableOptions, foreignKeyColumnMappingProperties),
+                ariaLabel: vscode.l10n.t("Columns"),
+                columns: getTableDisplayProperties(columnMappingTableOptions, [
+                    designer.ForeignKeyColumnMappingProperty.Column,
+                    designer.ForeignKeyColumnMappingProperty.ForeignColumn,
+                ]),
+                itemProperties: addAdditionalTableProperties(
+                    columnMappingTableOptions,
+                    foreignKeyColumnMappingProperties,
+                ),
                 canAddRows: columnMappingTableOptions.canAddRows,
                 canRemoveRows: columnMappingTableOptions.canRemoveRows,
-                removeRowConfirmationMessage: columnMappingTableOptions.removeRowConfirmationMessage,
-                labelForAddNewButton: columnMappingTableOptions.labelForAddNewButton ?? "New Column Mapping"
-            } as designer.DesignerTableProperties
+                removeRowConfirmationMessage:
+                    columnMappingTableOptions.removeRowConfirmationMessage,
+                labelForAddNewButton:
+                    columnMappingTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("New Column Mapping"),
+            } as designer.DesignerTableProperties,
         });
     }
 
@@ -434,155 +517,199 @@ export function getForeignKeysTabComponents(view: designer.TableDesignerView | u
 
     if (foreignKeyTableOptions) {
         tabComponents.push({
-            componentType: 'table',
+            componentType: "table",
             propertyName: designer.TableProperty.ForeignKeys,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: "Foreign Keys",
-                columns: getTableDisplayProperties(foreignKeyTableOptions, [designer.TableForeignKeyProperty.Name, designer.TableForeignKeyProperty.ForeignTable]),
-                itemProperties: addAdditionalTableProperties(foreignKeyTableOptions, foreignKeyProperties),
-                objectTypeDisplayName: "Foreign Key",
+                ariaLabel: vscode.l10n.t("Foreign Keys"),
+                columns: getTableDisplayProperties(foreignKeyTableOptions, [
+                    designer.TableForeignKeyProperty.Name,
+                    designer.TableForeignKeyProperty.ForeignTable,
+                ]),
+                itemProperties: addAdditionalTableProperties(
+                    foreignKeyTableOptions,
+                    foreignKeyProperties,
+                ),
+                objectTypeDisplayName: vscode.l10n.t("Foreign Key"),
                 canAddRows: foreignKeyTableOptions.canAddRows,
                 canRemoveRows: foreignKeyTableOptions.canRemoveRows,
-                removeRowConfirmationMessage: foreignKeyTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation: foreignKeyTableOptions.showRemoveRowConfirmation,
-                labelForAddNewButton: foreignKeyTableOptions.labelForAddNewButton ?? "New Foreign Key"
-            } as designer.DesignerTableProperties
+                removeRowConfirmationMessage:
+                    foreignKeyTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation:
+                    foreignKeyTableOptions.showRemoveRowConfirmation,
+                labelForAddNewButton:
+                    foreignKeyTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("New Foreign Key"),
+            } as designer.DesignerTableProperties,
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.ForeignKeys, view.additionalComponents);
-    if(additionalComponents) {
+    const additionalComponents = getAdditionalComponentsForTab(
+        designer.TableProperty.ForeignKeys,
+        view.additionalComponents,
+    );
+    if (additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getCheckConstraintsTabComponents(view: designer.TableDesignerView | undefined): designer.DesignerDataPropertyInfo[] {
-    if(!view || !view.checkConstraintTableOptions) {
+export function getCheckConstraintsTabComponents(
+    view: designer.TableDesignerView | undefined,
+): designer.DesignerDataPropertyInfo[] {
+    if (!view || !view.checkConstraintTableOptions) {
         return [];
     }
     const checkConstraintTableOptions = view.checkConstraintTableOptions;
     const additionalcomponents = view.additionalComponents || [];
     const checkConstraintProperties: designer.DesignerDataPropertyInfo[] = [
         {
-            componentType: 'input',
+            componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Name,
-            description: "The name of the check constraint.",
+            description: vscode.l10n.t("The name of the check constraint."),
             componentProperties: {
-                title: "Name",
-                width: 200
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Name"),
+                width: 200,
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Description,
-            description: "The description of the check constraint.",
+            description: vscode.l10n.t(
+                "The description of the check constraint.",
+            ),
             componentProperties: {
-                title: "Description",
-            }
-        }, {
-            componentType: 'input',
+                title: vscode.l10n.t("Description"),
+            },
+        },
+        {
+            componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Expression,
-            description: "The expression defining the check constraint.",
+            description: vscode.l10n.t(
+                "The expression defining the check constraint.",
+            ),
             componentProperties: {
-                title: "Expression",
-                width: 300
-            }
-        }
+                title: vscode.l10n.t("Expression"),
+                width: 300,
+            },
+        },
     ];
 
     const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
-    if(checkConstraintTableOptions) {
+    if (checkConstraintTableOptions) {
         tabComponents.push({
-            componentType: 'table',
+            componentType: "table",
             propertyName: designer.TableProperty.CheckConstraints,
             showInPropertiesView: false,
             componentProperties: {
-                ariaLabel: "Check Constraints",
-                columns: getTableDisplayProperties(checkConstraintTableOptions, [designer.TableCheckConstraintProperty.Name, designer.TableCheckConstraintProperty.Expression]),
-                itemProperties: addAdditionalTableProperties(checkConstraintTableOptions, checkConstraintProperties),
-                objectTypeDisplayName: "Check Constraint",
+                ariaLabel: vscode.l10n.t("Check Constraints"),
+                columns: getTableDisplayProperties(
+                    checkConstraintTableOptions,
+                    [
+                        designer.TableCheckConstraintProperty.Name,
+                        designer.TableCheckConstraintProperty.Expression,
+                    ],
+                ),
+                itemProperties: addAdditionalTableProperties(
+                    checkConstraintTableOptions,
+                    checkConstraintProperties,
+                ),
+                objectTypeDisplayName: vscode.l10n.t("Check Constraint"),
                 canAddRows: checkConstraintTableOptions.canAddRows,
                 canRemoveRows: checkConstraintTableOptions.canRemoveRows,
-                removeRowConfirmationMessage: checkConstraintTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation: checkConstraintTableOptions.showRemoveRowConfirmation,
-                labelForAddNewButton: checkConstraintTableOptions.labelForAddNewButton ?? "New Check Constraint"
-            } as designer.DesignerTableProperties
+                removeRowConfirmationMessage:
+                    checkConstraintTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation:
+                    checkConstraintTableOptions.showRemoveRowConfirmation,
+                labelForAddNewButton:
+                    checkConstraintTableOptions.labelForAddNewButton ??
+                    vscode.l10n.t("New Check Constraint"),
+            } as designer.DesignerTableProperties,
         });
     }
 
-    const additionalComponents = getAdditionalComponentsForTab(designer.TableProperty.CheckConstraints, additionalcomponents);
-    if(additionalComponents) {
+    const additionalComponents = getAdditionalComponentsForTab(
+        designer.TableProperty.CheckConstraints,
+        additionalcomponents,
+    );
+    if (additionalComponents) {
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
 }
 
-export function getDesignerView(view: designer.TableDesignerView | undefined): designer.DesignerView {
-   return {
-    tabs: [
-        {
-            title: "About table",
-            id: designer.DesignerMainPaneTabs.AboutTable,
-            components: getAboutTableComponents(view)
-        },
-        {
-            title: "Columns",
-            id: designer.DesignerMainPaneTabs.Columns,
-            components: getColumnsTabComponents(view)
-        },
-        {
-            title: "Primary Key",
-            id: designer.DesignerMainPaneTabs.PrimaryKey,
-            components: getPrimaryKeyTabComponents(view)
-        },
-        {
-            title: "Indexes",
-            id: designer.DesignerMainPaneTabs.Indexes,
-            components: getIndexesTabComponents(view)
-        },
-        {
-            title: "Foreign Keys",
-            id: designer.DesignerMainPaneTabs.ForeignKeys,
-            components: getForeignKeysTabComponents(view)
-        },
-        {
-            title: "Check Constraints",
-            id: designer.DesignerMainPaneTabs.CheckConstraints,
-            components: getCheckConstraintsTabComponents(view)
-        }
-    ]
-   };
+export function getDesignerView(
+    view: designer.TableDesignerView | undefined,
+): designer.DesignerView {
+    return {
+        tabs: [
+            {
+                title: vscode.l10n.t("Columns"),
+                id: designer.DesignerMainPaneTabs.Columns,
+                components: getColumnsTabComponents(view),
+            },
+            {
+                title: vscode.l10n.t("Primary Key"),
+                id: designer.DesignerMainPaneTabs.PrimaryKey,
+                components: getPrimaryKeyTabComponents(view),
+            },
+            {
+                title: vscode.l10n.t("Indexes"),
+                id: designer.DesignerMainPaneTabs.Indexes,
+                components: getIndexesTabComponents(view),
+            },
+            {
+                title: vscode.l10n.t("Foreign Keys"),
+                id: designer.DesignerMainPaneTabs.ForeignKeys,
+                components: getForeignKeysTabComponents(view),
+            },
+            {
+                title: vscode.l10n.t("Check Constraints"),
+                id: designer.DesignerMainPaneTabs.CheckConstraints,
+                components: getCheckConstraintsTabComponents(view),
+            },
+            {
+                title: vscode.l10n.t("Advanced Options"),
+                id: designer.DesignerMainPaneTabs.AboutTable,
+                components: getAdvancedOptionsComponents(view),
+            },
+        ],
+    };
 }
 
-
-function getTableDisplayProperties(options: designer.TableDesignerBuiltInTableViewOptions | undefined, defaultProperties: string[]): string[] {
+function getTableDisplayProperties(
+    options: designer.TableDesignerBuiltInTableViewOptions | undefined,
+    defaultProperties: string[],
+): string[] {
     if (!options) {
         return defaultProperties;
     }
-    return (options.propertiesToDisplay!.length > 0 ? options.propertiesToDisplay : defaultProperties) || [];
+    return (
+        (options.propertiesToDisplay!.length > 0
+            ? options.propertiesToDisplay
+            : defaultProperties) || []
+    );
 }
 
-function addAdditionalTableProperties(options: designer.TableDesignerBuiltInTableViewOptions, properties: designer.DesignerDataPropertyInfo[]): designer.DesignerDataPropertyInfo[] {
+function addAdditionalTableProperties(
+    options: designer.TableDesignerBuiltInTableViewOptions,
+    properties: designer.DesignerDataPropertyInfo[],
+): designer.DesignerDataPropertyInfo[] {
     if (options.additionalProperties) {
         properties.push(...options.additionalProperties);
     }
     return properties;
 }
 
-function getAdditionalComponentsForTab(tabId: designer.TableProperty, additionalComponents: designer.DesignerDataPropertyWithTabInfo[] | undefined): designer.DesignerDataPropertyInfo[] {
+function getAdditionalComponentsForTab(
+    tabId: designer.TableProperty,
+    additionalComponents:
+        | designer.DesignerDataPropertyWithTabInfo[]
+        | undefined,
+): designer.DesignerDataPropertyInfo[] {
     if (additionalComponents) {
-        return additionalComponents.filter(c => c.tab === tabId);
+        return additionalComponents.filter((c) => c.tab === tabId);
     }
     return [];
-}
-
-export function getIssuesForComponent(componentPath: designer.DesignerPropertyPath, issues: designer.DesignerIssue[]): string {
-    if (!issues || issues.length === 0) {
-        return "";
-    }
-    return issues.filter(i => i.propertyPath?.toString() === componentPath.toString()).reduce((acc, issue) => {
-        return acc + issue.description + " ";
-    }, "");
 }

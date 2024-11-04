@@ -1,1 +1,1 @@
-yarn lint
+yarn precommit

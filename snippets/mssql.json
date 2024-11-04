@@ -205,22 +205,6 @@
 		"description": "Create a stored procedure"
 	},
 
-	"Drop a stored procedure": {
-		"prefix": "sqlDropStoredProc",
-		"body": [
-			"-- Drop the stored procedure called '${1:StoredProcedureName}' in schema '${2:SchemaName}'",
-			"IF EXISTS (",
-			"SELECT *",
-			"\tFROM INFORMATION_SCHEMA.ROUTINES",
-			"WHERE SPECIFIC_SCHEMA = N'${2:SchemaName}'",
-			"\tAND SPECIFIC_NAME = N'${1:StoredProcedureName}'",
-			")",
-			"DROP PROCEDURE ${2:SchemaName}.${1:StoredProcedureName}",
-			"GO"
-		],
-		"description": "Drop a stored procedure"
-	},
-
 	"Create a view": {
 		"prefix": "sqlCreateView",
 		"body": [

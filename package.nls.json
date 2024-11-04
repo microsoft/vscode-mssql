@@ -2,6 +2,8 @@
 "mssql.runQuery":"Execute Query",
 "mssql.runCurrentStatement":"Execute Current Statement",
 "mssql.cancelQuery":"Cancel Query",
+"mssql.revealQueryResultPanel":"Reveal Query Result Panel",
+"mssql.copyAll":"Copy All",
 "mssql.changeDatabase":"Change Database",
 "mssql.addObjectExplorer":"Add Connection",
 "mssql.scriptSelect":"Select Top 1000",
@@ -21,6 +23,7 @@
 "mssql.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",
 "extension.queryHistory":"Query History",
+"extension.queryResult":"Query Result",
 "mssql.connect":"Connect",
 "mssql.disconnect":"Disconnect",
 "mssql.manageProfiles":"Manage Connection Profiles",
@@ -35,6 +38,7 @@
 "mssql.addAadAccount":"Add Microsoft Entra Account",
 "mssql.removeAadAccount":"Remove Microsoft Entra Account",
 "mssql.clearAzureAccountTokenCache":"Clear Microsoft Entra account token cache",
+"mssql.showExecutionPlanInResults":"Estimated Plan",
 "mssql.rebuildIntelliSenseCache":"Refresh IntelliSense Cache",
 "mssql.logDebugInfo":"[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
 "mssql.maxRecentConnections":"The maximum number of recently used connections to store in the connection list.",
@@ -144,5 +148,12 @@
 "mssql.newTable":"New Table",
 "mssql.editTable":"Edit Table",
 "mssql.editConnection":"Edit Connection",
-"mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting."
+"mssql.filterNode":"Filter",
+"mssql.clearFilters":"Clear Filters",
+"mssql.openExecutionPlanFile":"Open Execution Plan File",
+"mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
+"mssql.enableRichExperiences.description":"Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
+"mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enables UI-based features",
+"mssql.userFeedback":"Give Feedback",
+"mssql.selectedSubscriptions":"Selected Subscriptions"
 }

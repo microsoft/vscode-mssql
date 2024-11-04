@@ -8,7 +8,6 @@ const config = require('./tasks/config');
 const concat = require('gulp-concat');
 const minifier = require('gulp-uglify/minifier');
 const uglifyjs = require('uglify-js');
-const nls = require('vscode-nls-dev');
 const argv = require('yargs').argv;
 const min = (argv.min === undefined) ? false : true;
 const prod = (argv.prod === undefined) ? false : true;
@@ -21,7 +20,6 @@ const path = require('path');
 const esbuild = require('esbuild');
 const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
 const run = require('gulp-run-command').default;
-
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
 
@@ -71,21 +69,6 @@ const cssLoaderPlugin = {
 		});
 	},
 };
-
-gulp.task('ext:lint', () => {
-	return gulp.src([
-		'./src/**/*.ts',
-		'./src/**/*.tsx',
-		'./test/**/*.ts',
-		'!**/*.d.ts',
-		'!./src/views/htmlcontent/**/*'
-	])
-		.pipe(gulpESLintNew({
-			quiet: true
-		}))
-		.pipe(gulpESLintNew.format())           // Output lint results to the console.
-		.pipe(gulpESLintNew.failAfterError());
-});
 
 // Copy icons for OE
 gulp.task('ext:copy-OE-assets', (done) => {
@@ -162,23 +145,7 @@ async function generateExtensionBundle() {
 	await ctx.dispose();
 }
 
-function transformExtensionLocalization(patterns) {
-	return gulp.src(patterns)
-		.pipe(nls.rewriteLocalizeCalls())
-		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
-		.pipe(gulp.dest('out/src/'));
-}
-
-gulp.task('ext:bundle-src', gulp.series(generateExtensionBundle, () => transformExtensionLocalization(
-	[
-		'out/src/extension.js',
-		'out/src/languageService/serviceInstallerUtil.js',
-		'out/src/telemetry/telemetryInterfaces.js',
-		'out/src/protocol.js',
-		'out/src/models/interfaces.js'
-	]
-)));
+gulp.task('ext:bundle-src', gulp.series(generateExtensionBundle));
 
 gulp.task('ext:compile-src', (done) => {
 	return gulp.src([
@@ -194,21 +161,17 @@ gulp.task('ext:compile-src', (done) => {
 				process.exit(1);
 			}
 		})
-		.pipe(nls.rewriteLocalizeCalls())
-		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
 		.pipe(gulp.dest('out/src/'));
 });
 
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
-	return gulp.src([
+return gulp.src([
 		config.paths.project.root + '/src/views/htmlcontent/**/*.ts',
 		config.paths.project.root + '/typings/**/*.d.ts'])
 		.pipe(srcmap.init())
 		.pipe(tsProject())
-		.pipe(nls.rewriteLocalizeCalls())
-		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
 		.pipe(gulp.dest('out/src/views/htmlcontent'));
 });
@@ -220,7 +183,12 @@ async function generateReactWebviewsBundle() {
 		 * for each entry point, to be used by the webview's HTML content.
 		 */
 		entryPoints: {
-			mssqlwebview: 'src/reactviews/index.tsx'
+			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
+			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
+			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
+			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
+			'queryResult': 'src/reactviews/pages/QueryResult/index.tsx',
+			'userSurvey': 'src/reactviews/pages/UserSurvey/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',
@@ -240,35 +208,32 @@ async function generateReactWebviewsBundle() {
 			typecheckPlugin()
 		],
 		sourcemap: prod ? false : 'inline',
-		metafile: !prod,
+		metafile: true,
 		minify: prod,
 		minifyWhitespace: prod,
 		minifyIdentifiers: prod,
+		format: 'esm',
+		splitting: true,
 	});
 
 	const result = await ctx.rebuild();
 
-	if (!prod) {
-		/**
-		 * Generating esbuild metafile for webviews. You can analyze the metafile https://esbuild.github.io/analyze/
-		 * to see the bundle size and other details.
-		 */
-		const fs = require('fs').promises;
-		if (result.metafile) {
-			await fs.writeFile('./webviews-metafile.json', JSON.stringify(result.metafile));
-		}
+	/**
+	 * Generating esbuild metafile for webviews. You can analyze the metafile https://esbuild.github.io/analyze/
+	 * to see the bundle size and other details.
+	 */
+	const fs = require('fs').promises;
+	if (result.metafile) {
+		await fs.writeFile('./webviews-metafile.json', JSON.stringify(result.metafile));
 	}
+
 
 	await ctx.dispose();
 }
 
 // Compile react views
 gulp.task('ext:compile-reactviews',
-	gulp.series(generateReactWebviewsBundle, function transformReactWebviewsLocalization() {
-		return transformExtensionLocalization([
-			'out/react-webviews/assets/*.js',
-		])
-	})
+	gulp.series(generateReactWebviewsBundle)
 );
 
 
@@ -419,9 +384,7 @@ gulp.task('ext:copy-js', () => {
 // Copy the files which aren't used in compilation
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
 
-gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package.nls', 'ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
-
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:generate-runtime-localization-files', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];
@@ -444,8 +407,6 @@ gulp.task('ext:smoke', run('npx playwright test'));
 
 gulp.task('test', gulp.series('ext:test'));
 
-require('./tasks/covertasks');
-
 gulp.task('clean', function (done) {
 	return del('out', done);
 });
@@ -466,7 +427,3 @@ gulp.task('watch-reactviews', function () {
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
 gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-reactviews')));
-
-gulp.task('lint', gulp.series('ext:lint'));
-
-gulp.task('cover', gulp.series('remap-coverage', 'cover:combine-json'));

@@ -3,237 +3,352 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, CounterBadge, Divider, Link, Tab, TabList, Table, TableBody, TableCell, TableColumnDefinition, TableColumnSizingOptions, TableHeader, TableHeaderCell, TableRow, Theme, createTableColumn, makeStyles, shorthands, teamsHighContrastTheme, useTableColumnSizing_unstable, useTableFeatures, webDarkTheme } from "@fluentui/react-components";
-import { useContext, useState } from "react";
-import { OpenFilled, ErrorCircleFilled, WarningFilled, InfoFilled } from "@fluentui/react-icons";
-import Editor from '@monaco-editor/react';
+import {
+    Button,
+    Tab,
+    TabList,
+    makeStyles,
+    shorthands,
+} from "@fluentui/react-components";
+import { useContext } from "react";
+import {
+    OpenFilled,
+    ErrorCircleRegular,
+    WarningRegular,
+    InfoRegular,
+    CopyFilled,
+    ChevronUpFilled,
+    ChevronDownFilled,
+} from "@fluentui/react-icons";
+import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { DesignerIssue, DesignerResultPaneTabs, InputBoxProperties } from "../../../sharedInterfaces/tableDesigner";
+import {
+    DesignerIssue,
+    DesignerResultPaneTabs,
+    InputBoxProperties,
+    TableProperties,
+} from "../../../sharedInterfaces/tableDesigner";
+import { locConstants } from "../../common/locConstants";
+import { List, ListItem } from "@fluentui/react-list-preview";
+import { getVscodeThemeType } from "../../common/utils";
 
 const useStyles = makeStyles({
-	root: {
-		width: '100%',
-		height: '100%',
-		display: 'flex',
-		flexDirection: 'column',
-	},
-	ribbon: {
-		width: '100%',
-		display: 'flex',
-		flexDirection: 'row',
-		'> *': {
-			marginRight: '10px'
-		},
-	},
-	designerResultPaneTabs: {
-		flex: 1,
-	},
-	tabContent: {
-		...shorthands.flex(1),
-		width: '100%',
-		height: '100%',
-		display: 'flex',
-		...shorthands.overflow('auto'),
-	},
-	designerResultPaneScript: {
-		width: '100%',
-		height: '100%',
-		position: 'relative',
-	},
-	designerResultPaneScriptOpenButton: {
-		position: 'absolute',
-		top: '0px',
-		right: '0px',
-	},
-	issuesContainer: {
-		width: '100%',
-		height: '100%',
-		flexDirection: 'column',
-		'> *': {
-			marginBottom: '10px'
-		},
-
-	},
-	issuesRows: {
-		flexDirection: 'row',
-		...shorthands.padding('10px'),
-		'> *': {
-			marginRight: '10px'
-		},
-	}
+    root: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+    },
+    ribbon: {
+        width: "100%",
+        display: "flex",
+        flexDirection: "row",
+        "> *": {
+            marginRight: "10px",
+        },
+        padding: "5px 0px",
+    },
+    designerResultPaneTabs: {
+        flex: 1,
+    },
+    tabContent: {
+        ...shorthands.flex(1),
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        ...shorthands.overflow("auto"),
+    },
+    designerResultPaneScript: {
+        width: "100%",
+        height: "100%",
+        position: "relative",
+    },
+    designerResultPaneScriptOpenButton: {
+        position: "absolute",
+        top: "0px",
+        right: "0px",
+    },
+    issuesContainer: {
+        width: "100%",
+        height: "100%",
+        flexDirection: "column",
+        "> *": {
+            marginBottom: "10px",
+        },
+        backgroundColor: "var(--vscode-editor-background)",
+        padding: "5px",
+        overflow: "hidden auto",
+    },
+    issuesRows: {
+        display: "flex",
+        lineHeight: "20px",
+        padding: "5px",
+        "> *": {
+            marginRight: "10px",
+        },
+        ":hover": {
+            backgroundColor:
+                "var(--vscode-editor-selectionHighlightBackground)",
+        },
+        width: "100%",
+    },
 });
 
 export const DesignerResultPane = () => {
-	const classes = useStyles();
-	const state = useContext(TableDesignerContext);
-	const metadata = state?.state;
+    const classes = useStyles();
+    const state = useContext(TableDesignerContext);
+    const metadata = state?.state;
 
-	const getVscodeTheme = (theme: Theme) => {
+    const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
+        const issuePath = issue.propertyPath ?? [];
+        console.log(`focusing on`, issuePath);
+        if (!metadata?.view?.tabs || !state?.provider) {
+            return;
+        }
+        const containingTab = metadata.view.tabs.find((tab) => {
+            return tab.components.find((c) => {
+                return c.propertyName === issuePath[0];
+            });
+        });
 
-		switch (theme) {
-			case webDarkTheme:
-				return 'vs-dark';
-			case teamsHighContrastTheme:
-				return 'hc-black';
-			default:
-				return 'light';
-		}
-	}
+        if (!containingTab) {
+            return;
+        } else {
+            state.provider.setTab(containingTab.id as any);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        let tableComponent;
+        let tableModel;
+        if (issuePath.length > 1) {
+            // error is found in a table row. Load properties for the row
+            tableComponent = containingTab.components.find(
+                (c) => c.propertyName === issuePath[0],
+            );
+            if (!tableComponent) {
+                return;
+            }
+            tableModel = metadata.model![tableComponent.propertyName];
+            if (!tableModel) {
+                return;
+            }
+            state?.provider.setPropertiesComponents({
+                componentPath: [issuePath[0], issuePath[1]],
+                component: tableComponent,
+                model: tableModel,
+            });
+        }
 
-	const columnsDef: TableColumnDefinition<DesignerIssue>[] = [
-		createTableColumn({
-			columnId: 'severity',
-			renderHeaderCell: () => <>Severity</>
-		}),
-		createTableColumn({
-			columnId: 'description',
-			renderHeaderCell: () => <>Description</>
-		}),
-		createTableColumn({
-			columnId: 'propertyPath',
-			renderHeaderCell: () => <></>
-		}),
-	];
-	const [columns] = useState<TableColumnDefinition<DesignerIssue>[]>(columnsDef);
-	const items = metadata?.issues ?? [];
+        let elementToFocus: HTMLElement | undefined = undefined;
+        switch (issuePath.length) {
+            case 1: // This is a component in the main tab area. Therefore we can directly focus on the component
+            case 3: // This is a component in the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
+            case 5: // This is a component in the table inside the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
+                elementToFocus =
+                    state.elementRefs.current[
+                        state.provider.getComponentId(issuePath as any)
+                    ];
+                break;
+            case 2: // This is table row. Therefore focuing on the first property of the row
+                if (!tableComponent) {
+                    return;
+                }
+                const firstProperty = (
+                    tableComponent.componentProperties as TableProperties
+                ).itemProperties[0].propertyName;
+                elementToFocus =
+                    state.elementRefs.current[
+                        state.provider.getComponentId([
+                            ...issuePath,
+                            firstProperty,
+                        ] as any)
+                    ];
+                break;
+            case 4: // This is table row in properties pane. Therefore focuing on the first property of the row
+                if (!tableComponent) {
+                    return;
+                }
+                const subTableName = issuePath[2];
+                const subTableComponent = (
+                    tableComponent.componentProperties as TableProperties
+                ).itemProperties.find((c) => c.propertyName === subTableName);
+                if (!subTableComponent) {
+                    return;
+                }
+                const firstPropertyInSubTable = (
+                    subTableComponent.componentProperties as TableProperties
+                ).itemProperties[0].propertyName;
+                elementToFocus =
+                    state.elementRefs.current[
+                        state.provider.getComponentId([
+                            ...issuePath,
+                            firstPropertyInSubTable,
+                        ] as any)
+                    ];
+                break;
+            default:
+                break;
+        }
 
-	const sizingOptions: TableColumnSizingOptions = {
-		'severity': {
-			minWidth: 50,
-			idealWidth: 50,
-			defaultWidth: 50
-		},
-		'description': {
-			minWidth: 500,
-			idealWidth: 500,
-			defaultWidth: 500
-		},
-		'propertyPath': {
-			minWidth: 100,
-			idealWidth: 100,
-			defaultWidth: 100
-		}
-	};
+        if (elementToFocus) {
+            elementToFocus.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+                inline: "center",
+            });
+            elementToFocus.focus();
+        }
+    };
 
-	const [columnSizingOption] = useState<TableColumnSizingOptions>(sizingOptions);
-	const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
-		{
-			columns,
-			items: items
-		},
-		[useTableColumnSizing_unstable({ columnSizingOptions: columnSizingOption })]
-	);
-	const rows = getRows();
-
-	if (!metadata) {
-		return null;
-	}
-	return <div className={classes.root}>
-		<div className={classes.ribbon}>
-			<TabList
-				size='medium'
-				selectedValue={metadata.tabStates!.resultPaneTab}
-				onTabSelect={(_event, data) => {
-					state.provider.setResultTab(data.value as DesignerResultPaneTabs);
-				}}
-				className={classes.designerResultPaneTabs}
-			>
-				<Tab value={DesignerResultPaneTabs.Script} key={DesignerResultPaneTabs.Script}>
-					Script
-				</Tab>
-				<Tab value={DesignerResultPaneTabs.Issues} key={DesignerResultPaneTabs.Issues}
-					disabled={!metadata.issues || metadata.issues.length === 0}
-				>
-					Issues {metadata.issues && <CounterBadge style={{
-						marginLeft: '5px',
-						marginTop: '-10px'
-					}} count={metadata.issues?.length} size='small' />}
-				</Tab>
-			</TabList>
-			{
-				metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
-				<Divider vertical style={{
-					flex: '0'
-				}} />
-			}
-
-			{
-				metadata.tabStates!.resultPaneTab == DesignerResultPaneTabs.Script &&
-				<Button appearance="transparent" icon={<OpenFilled />} onClick={() => state.provider.scriptAsCreate()} title='Open in new tab'></Button>
-			}
-		</div>
-		<div className={classes.tabContent}>
-			{metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script &&
-				<div className={classes.designerResultPaneScript}>
-					<Editor
-						height={'100%'}
-						width={'100%'}
-						language="sql"
-						theme={getVscodeTheme(state!.theme!)}
-						value={(metadata?.model!['script'] as InputBoxProperties).value ?? ''}
-					>
-
-					</Editor>
-				</div>
-			}
-			{metadata.tabStates!.resultPaneTab === DesignerResultPaneTabs.Issues && <div className={classes.issuesContainer}>
-				<Table size="small"
-					as = "table"
-					{...columnSizing_unstable.getTableProps()}
-					ref={tableRef}
-				>
-					<TableHeader>
-						<TableRow>
-							{
-								columnsDef.map((column) => {
-									return <TableHeaderCell
-										{...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-										key={column.columnId}>
-										{column.renderHeaderCell()}
-									</TableHeaderCell>
-								})
-							}
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{
-							rows.map((row, index) => {
-								return <TableRow key={index}>
-									<TableCell
-										{...columnSizing_unstable.getTableCellProps('severity')}
-									>
-										{row.item.severity === 'error' && <ErrorCircleFilled style={{ marginTop: '5px' }} fontSize={20} color="red" />}
-										{row.item.severity === 'warning' && <WarningFilled style={{ marginTop: '5px' }} fontSize={20} color="yellow" />}
-										{row.item.severity === 'information' && <InfoFilled style={{ marginTop: '5px' }} fontSize={20} color="blue" />}
-									</TableCell>
-									<TableCell
-										{...columnSizing_unstable.getTableCellProps('description')}
-									>{row.item.description} {row.item.propertyPath}</TableCell>
-									<TableCell
-										{...columnSizing_unstable.getTableCellProps('propertyPath')}
-									><Link>
-											Go there
-										</Link></TableCell>
-								</TableRow>
-							})
-						}
-					</TableBody>
-					{/* {metadata.issues?.map((i, index) => {
-						return <div className={classes.issuesRows}>
-							<Text size={300}>{(index + 1)}.</Text>
-							<Text size={300}>{i.description} : {i.propertyPath?.join('.')}</Text>
-							<Link onClick={() => {
-								console.log('Go there');
-								//designerContext.goToProperty(i.propertyPath!);
-							}}>
-								Go there
-							</Link>
-							{i.moreInfoLink && <Link href={i.moreInfoLink} target="_blank">More info</Link>}
-						</div>
-					})} */}
-				</Table>
-			</div>
-			}
-		</div>
-	</div>
-}
+    if (!metadata) {
+        return undefined;
+    }
+    return (
+        <div className={classes.root}>
+            <div className={classes.ribbon}>
+                <TabList
+                    size="small"
+                    selectedValue={metadata.tabStates!.resultPaneTab}
+                    onTabSelect={(_event, data) => {
+                        state.provider.setResultTab(
+                            data.value as DesignerResultPaneTabs,
+                        );
+                    }}
+                    className={classes.designerResultPaneTabs}
+                >
+                    <Tab
+                        value={DesignerResultPaneTabs.Script}
+                        key={DesignerResultPaneTabs.Script}
+                    >
+                        {locConstants.tableDesigner.scriptAsCreate}
+                    </Tab>
+                    {metadata.issues?.length !== 0 && (
+                        <Tab
+                            value={DesignerResultPaneTabs.Issues}
+                            key={DesignerResultPaneTabs.Issues}
+                        >
+                            {locConstants.tableDesigner.issuesTabHeader(
+                                metadata.issues?.length!,
+                            )}
+                        </Tab>
+                    )}
+                </TabList>
+                {metadata.tabStates!.resultPaneTab ===
+                    DesignerResultPaneTabs.Script && (
+                    <>
+                        <Button
+                            size="small"
+                            appearance="outline"
+                            onClick={() => state.provider.scriptAsCreate()}
+                            title={locConstants.tableDesigner.openInEditor}
+                            icon={<OpenFilled />}
+                        >
+                            {locConstants.tableDesigner.openInEditor}
+                        </Button>
+                        <Button
+                            size="small"
+                            appearance="outline"
+                            onClick={() =>
+                                state.provider.copyScriptAsCreateToClipboard()
+                            }
+                            title={locConstants.tableDesigner.copyScript}
+                            icon={<CopyFilled />}
+                        >
+                            {locConstants.tableDesigner.copyScript}
+                        </Button>
+                    </>
+                )}
+                <Button
+                    size="small"
+                    appearance="transparent"
+                    onClick={() => {
+                        if (state.resultPaneResizeInfo.isMaximized) {
+                            state.resultPaneResizeInfo.setCurrentHeight(
+                                state.resultPaneResizeInfo.originalHeight,
+                            );
+                        }
+                        state.resultPaneResizeInfo.setIsMaximized(
+                            !state.resultPaneResizeInfo.isMaximized,
+                        );
+                    }}
+                    title={
+                        state.resultPaneResizeInfo.isMaximized
+                            ? locConstants.tableDesigner.restorePanelSize
+                            : locConstants.tableDesigner.maximizePanelSize
+                    }
+                    icon={
+                        state.resultPaneResizeInfo.isMaximized ? (
+                            <ChevronDownFilled />
+                        ) : (
+                            <ChevronUpFilled />
+                        )
+                    }
+                />
+            </div>
+            <div className={classes.tabContent}>
+                {metadata.tabStates!.resultPaneTab ===
+                    DesignerResultPaneTabs.Script && (
+                    <div className={classes.designerResultPaneScript}>
+                        <Editor
+                            height={"100%"}
+                            width={"100%"}
+                            language="sql"
+                            theme={getVscodeThemeType(state!.theme!)}
+                            value={
+                                (
+                                    metadata?.model![
+                                        "script"
+                                    ] as InputBoxProperties
+                                ).value ?? ""
+                            }
+                            options={{
+                                readOnly: true,
+                            }}
+                        ></Editor>
+                    </div>
+                )}
+                {metadata.tabStates!.resultPaneTab ===
+                    DesignerResultPaneTabs.Issues &&
+                    metadata.issues?.length !== 0 && (
+                        <div className={classes.issuesContainer}>
+                            <List navigationMode="items">
+                                {metadata.issues!.map((item, index) => {
+                                    return (
+                                        <ListItem
+                                            key={`issue-${index}`}
+                                            onAction={async () =>
+                                                openAndFocusIssueComponet(item)
+                                            }
+                                        >
+                                            <div className={classes.issuesRows}>
+                                                {item.severity === "error" && (
+                                                    <ErrorCircleRegular
+                                                        fontSize={20}
+                                                        color="var(--vscode-errorForeground)"
+                                                    />
+                                                )}
+                                                {item.severity ===
+                                                    "warning" && (
+                                                    <WarningRegular
+                                                        fontSize={20}
+                                                        color="yellow"
+                                                    />
+                                                )}
+                                                {item.severity ===
+                                                    "information" && (
+                                                    <InfoRegular
+                                                        fontSize={20}
+                                                        color="blue"
+                                                    />
+                                                )}
+                                                {item.description}
+                                            </div>
+                                        </ListItem>
+                                    );
+                                })}
+                            </List>
+                        </div>
+                    )}
+            </div>
+        </div>
+    );
+};
