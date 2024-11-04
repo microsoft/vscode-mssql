@@ -82,7 +82,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             }
             setRefreshKey((prev) => prev + 1);
         };
-        // const gridParent = props.gridParentRef?.current;
         const resizeGrid = (width: number, height: number) => {
             let gridParent;
             if (props.resultSetSummary) {
