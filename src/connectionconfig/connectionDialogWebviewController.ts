@@ -6,6 +6,12 @@
 import * as vscode from "vscode";
 
 import {
+    ActivityStatus,
+    ActivityObject,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import {
     AuthenticationType,
     AzureSubscriptionInfo,
     ConnectionDialogFormItemSpec,
@@ -34,7 +40,11 @@ import {
     fetchServersFromAzure,
     promptForAzureSubscriptionFilter,
 } from "./azureHelper";
-import { getErrorMessage } from "../utils/utils";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+} from "../telemetry/telemetry";
 
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
@@ -49,12 +59,8 @@ import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
+import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
@@ -1148,6 +1154,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
+        let endActivity: ActivityObject;
         try {
             const auth = await confirmVscodeAzureSignin();
 
@@ -1168,6 +1175,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         string[] | undefined
                     >(azureSubscriptionFilterConfigKey) !== undefined;
 
+            endActivity = startActivity(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureSubscriptions,
+            );
+
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(shouldUseFilter)).map((s) => [
                     s.subscriptionId,
@@ -1175,7 +1187,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 ]),
             );
             const tenantSubMap = this.groupBy<string, AzureSubscription>(
-                await auth.getSubscriptions(shouldUseFilter),
+                Array.from(this._azureSubscriptions.values()),
                 "tenantId",
             ); // TODO: replace with Object.groupBy once ES2024 is supported
 
@@ -1194,6 +1206,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.azureSubscriptions = subs;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
 
+            endActivity.end(
+                ActivityStatus.Succeeded,
+                undefined, // additionalProperties
+                {
+                    subscriptionCount: subs.length,
+                },
+            );
             this.updateState();
 
             return tenantSubMap;
@@ -1201,6 +1220,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.formError = l10n.t("Error loading Azure subscriptions.");
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
+            endActivity.endFailed(error, false);
             return undefined;
         }
     }
@@ -1208,8 +1228,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadAllAzureServers(
         state: ConnectionDialogWebviewState,
     ): Promise<void> {
+        const endActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadAzureServers,
+        );
         try {
-            const startTime = Date.now();
             const tenantSubMap = await this.loadAzureSubscriptions(state);
 
             if (!tenantSubMap) {
@@ -1222,8 +1245,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 );
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
+                state.azureServers = [];
                 this.updateState();
-
                 const promiseArray: Promise<void>[] = [];
                 for (const t of tenantSubMap.keys()) {
                     for (const s of tenantSubMap.get(t)) {
@@ -1236,14 +1259,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     }
                 }
                 await Promise.all(promiseArray);
-
-                sendActionEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.LoadAzureServers,
+                endActivity.end(
+                    ActivityStatus.Succeeded,
                     undefined, // additionalProperties
                     {
                         subscriptionCount: promiseArray.length,
-                        msToLoadServers: Date.now() - startTime,
                     },
                 );
 
@@ -1255,18 +1275,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             state.loadingAzureServersStatus = ApiStatus.Error;
             console.error(state.formError + "\n" + getErrorMessage(error));
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadAzureServers,
+            endActivity.endFailed(
                 error,
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    connectionInputType: this.state.selectedInputMode,
-                },
+                false, // includeErrorMessage
             );
-
             return;
         }
     }

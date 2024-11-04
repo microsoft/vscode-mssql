@@ -77,6 +77,9 @@ const useStyles = makeStyles({
         cursor: "ew-resize",
         backgroundColor: "transparent",
     },
+    spacer: {
+        padding: "1px",
+    },
 });
 
 interface ExecutionPlanGraphProps {
@@ -227,7 +230,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         <div
             id="panelContainer"
             className={classes.panelContainer}
-            style={{ height: containerHeight }}
+            style={{
+                height: containerHeight,
+                fontFamily: theme.fontFamilyBase,
+            }}
         >
             <div
                 id="planContainer"
@@ -269,8 +275,15 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         <Input
                             id="customZoomInputBox"
                             type="number"
+                            size="small"
                             min={1}
                             defaultValue={Math.floor(zoomNumber).toString()}
+                            input={{
+                                style: {
+                                    width: "85px",
+                                    textOverflow: "ellipsis",
+                                },
+                            }}
                             onChange={(e) =>
                                 setZoomNumber(Number(e.target.value))
                             }
@@ -280,12 +293,17 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                                 fontSize: "12px",
                             }}
                         />
+                        <div className={classes.spacer}></div>
                         <Button
                             onClick={handleCustomZoomInput}
+                            size="small"
+                            appearance="subtle"
                             icon={<Checkmark20Regular />}
                         />
                         <Button
                             icon={<Dismiss20Regular />}
+                            size="small"
+                            appearance="subtle"
                             onClick={() => setCustomZoomClicked(false)}
                         />
                     </div>

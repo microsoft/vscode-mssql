@@ -41,9 +41,9 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             tabId: tabId,
                         });
                     },
-                    getExecutionPlan: function (xmlPlans: string[]): void {
+                    getExecutionPlan: function (uri: string): void {
                         webViewState?.extensionRpc.action("getExecutionPlan", {
-                            xmlPlans: xmlPlans,
+                            uri: uri,
                         });
                     },
                     addXmlPlan: function (plan: string): void {

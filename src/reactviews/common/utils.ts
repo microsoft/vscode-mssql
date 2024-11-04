@@ -49,3 +49,8 @@ export function themeType(theme: Theme): string {
     }
     return themeType;
 }
+
+/** Removes duplicate values from an array */
+export function removeDuplicates<T>(array: T[]): T[] {
+    return Array.from(new Set(array));
+}

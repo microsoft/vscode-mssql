@@ -11,13 +11,15 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import {
+    ActivityStatus,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
+import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -32,6 +34,8 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         private _connectionManager: ConnectionManager,
         private _untitledSqlDocumentService: UntitledSqlDocumentService,
         private _targetNode?: TreeNodeInfo,
+        private _objectExplorerProvider?: ObjectExplorerProvider,
+        private _objectExplorerTree?: vscode.TreeView<TreeNodeInfo>,
     ) {
         super(
             context,
@@ -67,7 +71,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
     }
 
     private async initialize() {
-        const intializeStartTime = Date.now();
         if (!this._targetNode) {
             await vscode.window.showErrorMessage(
                 "Unable to find object explorer node",
@@ -106,6 +109,16 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             return;
         }
 
+        const endActivity = startActivity(
+            TelemetryViews.TableDesigner,
+            TelemetryActions.Initialize,
+            this._correlationId,
+            {
+                correlationId: this._correlationId,
+                isEdit: this._isEdit.toString(),
+            },
+        );
+
         try {
             let tableInfo: designer.TableInfo;
             if (this._isEdit) {
@@ -132,28 +145,17 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 };
             }
             this.panel.title = tableInfo.title;
-            const intializeData =
+            const initializeResult =
                 await this._tableDesignerService.initializeTableDesigner(
                     tableInfo,
                 );
-            const intializeEndTime = Date.now();
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Initialize,
-                {
-                    correlationId: this._correlationId,
-                    isEdit: this._isEdit.toString(),
-                },
-                {
-                    durationMs: intializeEndTime - intializeStartTime,
-                },
-            );
-            intializeData.tableInfo.database = databaseName ?? "master";
+            endActivity.end(ActivityStatus.Succeeded);
+            initializeResult.tableInfo.database = databaseName ?? "master";
             this.state = {
                 tableInfo: tableInfo,
-                view: getDesignerView(intializeData.view),
-                model: intializeData.viewModel,
-                issues: intializeData.issues,
+                view: getDesignerView(initializeResult.view),
+                model: initializeResult.viewModel,
+                issues: initializeResult.issues,
                 isValid: true,
                 tabStates: {
                     mainPaneTab: designer.DesignerMainPaneTabs.Columns,
@@ -165,6 +167,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
         } catch (e) {
+            endActivity.endFailed(e, false);
             this.state.apiState.initializeState = designer.LoadState.Error;
             this.state = this.state;
         }
@@ -232,6 +235,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
+            const endActivity = startActivity(
+                TelemetryViews.TableDesigner,
+                TelemetryActions.Publish,
+                this._correlationId,
+                {
+                    correlationId: this._correlationId,
+                },
+            );
             this.state = {
                 ...this.state,
                 apiState: {
@@ -244,14 +255,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     await this._tableDesignerService.publishChanges(
                         payload.table,
                     );
-
-                sendActionEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Publish,
-                    {
-                        correlationId: this._correlationId,
-                    },
-                );
+                endActivity.end(ActivityStatus.Succeeded);
                 state = {
                     ...state,
                     tableInfo: publishResponse.newTableInfo,
@@ -275,14 +279,21 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     },
                     publishingError: e.toString(),
                 };
-                sendActionEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Publish,
-                    {
-                        correlationId: this._correlationId,
-                        error: "true",
-                    },
-                );
+                endActivity.endFailed(e, false);
+            }
+
+            let targetNode = this._targetNode;
+            // In case of table edit, we need to refresh the tables folder to get the new updated table
+            if (this._targetNode.context.subType !== "Tables") {
+                targetNode = this._targetNode.parentNode; // Setting the target node to the parent node to refresh the tables folder
+            }
+            if (targetNode) {
+                await this._objectExplorerTree.reveal(targetNode, {
+                    expand: true,
+                    select: true,
+                });
+                await this._objectExplorerProvider.refreshNode(targetNode);
+                await this._objectExplorerProvider.refresh(targetNode);
             }
             return state;
         });
