@@ -163,7 +163,6 @@ export const QueryResultPane = () => {
             console.log(`available height: ${availableHeight}`);
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
-                    resultPaneParent,
                     gridCount,
                     availableHeight,
                 );
@@ -191,26 +190,18 @@ export const QueryResultPane = () => {
     }, [metadata?.resultSetSummaries, resultPaneParentRef.current]);
 
     const calculateGridHeight = (
-        resultPaneParent: HTMLDivElement,
         gridCount: number,
         availableHeight: number,
     ) => {
-        let gridHeight: number;
-        if (resultPaneParent.clientWidth && availableHeight) {
-            if (gridCount > 1) {
-                // Calculate the grid height, ensuring it's not smaller than the minimum height
-                gridHeight = Math.max(
-                    (availableHeight - gridCount * TABLE_ALIGN_PX) / gridCount,
-                    MIN_GRID_HEIGHT,
-                );
-            } else if (gridCount === 1) {
-                gridHeight = Math.max(
-                    availableHeight - TABLE_ALIGN_PX,
-                    MIN_GRID_HEIGHT,
-                );
-            }
-            return gridHeight;
+        if (gridCount > 1) {
+            // Calculate the grid height, ensuring it's not smaller than the minimum height
+            return Math.max(
+                (availableHeight - gridCount * TABLE_ALIGN_PX) / gridCount,
+                MIN_GRID_HEIGHT,
+            );
         }
+        // gridCount is 1
+        return Math.max(availableHeight - TABLE_ALIGN_PX, MIN_GRID_HEIGHT);
     };
 
     const calculateGridWidth = (
@@ -229,9 +220,9 @@ export const QueryResultPane = () => {
                 ACTIONBAR_WIDTH_PX -
                 scrollbarAdjustment
             );
-        } else if (gridCount === 1) {
-            return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
         }
+        // gridCount is 1
+        return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
     };
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
@@ -283,7 +274,6 @@ export const QueryResultPane = () => {
                     height:
                         resultPaneParentRef.current && ribbonRef.current
                             ? `${calculateGridHeight(
-                                  resultPaneParentRef.current,
                                   getAvailableHeight(
                                       resultPaneParentRef.current!,
                                       ribbonRef.current!,
