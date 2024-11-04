@@ -161,7 +161,6 @@ export const QueryResultPane = () => {
                 ribbonRef.current,
             );
             console.log(`available height: ${availableHeight}`);
-
             if (resultPaneParent.clientWidth && availableHeight) {
                 if (gridCount > 1) {
                     let scrollbarAdjustment =
@@ -202,6 +201,45 @@ export const QueryResultPane = () => {
             observer.disconnect();
         };
     }, [metadata?.resultSetSummaries, resultPaneParentRef.current]);
+
+    const calculateGridHeight = (
+        resultPaneParent: HTMLDivElement,
+        gridCount: number,
+        availableHeight: number,
+    ) => {
+        let gridHeight: number;
+        if (resultPaneParent.clientWidth && availableHeight) {
+            if (gridCount > 1) {
+                let scrollbarAdjustment =
+                    gridCount * MIN_GRID_HEIGHT >= availableHeight
+                        ? SCROLLBAR_PX
+                        : 0;
+
+                // Calculate the grid height, ensuring it's not smaller than the minimum height
+                gridHeight = Math.max(
+                    (availableHeight - gridCount * TABLE_ALIGN_PX) / gridCount,
+                    MIN_GRID_HEIGHT,
+                );
+
+                gridRefs.current.forEach((gridRef) => {
+                    gridRef?.resizeGrid(
+                        resultPaneParent.clientWidth -
+                            ACTIONBAR_WIDTH_PX -
+                            scrollbarAdjustment,
+                        gridHeight,
+                    );
+                });
+            } else if (gridCount === 1) {
+                gridParentRef.current.style.height = `${availableHeight - TABLE_ALIGN_PX}px`;
+                gridParentRef.current.style.width = `${resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX}px`;
+                gridRefs.current[0]?.resizeGrid(
+                    resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX,
+                    availableHeight - TABLE_ALIGN_PX,
+                );
+            }
+            return gridHeight;
+        }
+    };
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items = metadata?.messages ?? [];
@@ -251,12 +289,14 @@ export const QueryResultPane = () => {
                 style={{
                     height:
                         resultPaneParentRef.current && ribbonRef.current
-                            ? `${
+                            ? `${calculateGridHeight(
+                                  resultPaneParentRef.current,
                                   getAvailableHeight(
                                       resultPaneParentRef.current!,
                                       ribbonRef.current!,
-                                  ) - TABLE_ALIGN_PX
-                              }px`
+                                  ) - TABLE_ALIGN_PX,
+                                  gridCount,
+                              )}px`
                             : "",
                 }}
             >
