@@ -240,7 +240,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
             className={classes.panelContainer}
             style={{
                 height: containerHeight,
-                fontFamily: theme.fontFamilyBase,
+                fontFamily: tokens.fontFamilyBase,
             }}
         >
             <div
