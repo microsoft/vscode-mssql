@@ -29,7 +29,7 @@ import { List, ListItem } from "@fluentui/react-list-preview";
 
 import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { getVscodeThemeType } from "../../common/utils";
+import { resolveVscodeThemeType } from "../../common/utils";
 import { locConstants } from "../../common/locConstants";
 import { useContext } from "react";
 
@@ -293,7 +293,7 @@ export const DesignerResultPane = () => {
                             height={"100%"}
                             width={"100%"}
                             language="sql"
-                            theme={getVscodeThemeType(state?.themeKind)}
+                            theme={resolveVscodeThemeType(state?.themeKind)}
                             value={
                                 (
                                     metadata?.model![

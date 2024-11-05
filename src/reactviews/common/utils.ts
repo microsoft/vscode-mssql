@@ -24,22 +24,22 @@ export function formatString(str: string, ...args: any[]): string {
 }
 
 /**
- * Gets the theme type based on the theme passed in
- * @param themeKind the theme of the react webview
+ * Get the css string representation of a ColorThemeKind
+ * @param themeKind The ColorThemeKind to convert
  */
-export function getVscodeThemeType(themeKind: ColorThemeKind): string {
+export function resolveVscodeThemeType(themeKind: ColorThemeKind): string {
     switch (themeKind) {
         case ColorThemeKind.Dark:
             return "vs-dark";
         case ColorThemeKind.HighContrast:
             return "hc-black";
-        default:
+        default: // Both hc-light and light themes are treated as light.
             return "light";
     }
 }
 
 export function themeType(themeKind: ColorThemeKind): string {
-    const themeType = getVscodeThemeType(themeKind);
+    const themeType = resolveVscodeThemeType(themeKind);
     if (themeType !== "light") {
         return "dark";
     }
