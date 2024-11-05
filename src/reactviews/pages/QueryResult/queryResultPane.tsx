@@ -104,10 +104,10 @@ const useStyles = makeStyles({
 const MIN_GRID_HEIGHT = 273; // Minimum height for a grid
 
 function getAvailableHeight(
-    gridParent: HTMLDivElement,
+    resultPaneParent: HTMLDivElement,
     ribbonRef: HTMLDivElement,
 ) {
-    return gridParent.clientHeight - ribbonRef.clientHeight;
+    return resultPaneParent.clientHeight - ribbonRef.clientHeight;
 }
 
 export const QueryResultPane = () => {
@@ -119,11 +119,10 @@ export const QueryResultPane = () => {
     >();
     webViewState;
     var metadata = state?.state;
-
-    const gridParentRef = useRef<HTMLDivElement>(null);
+    const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
+    const gridParentRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
-
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
@@ -134,8 +133,8 @@ export const QueryResultPane = () => {
             return; // Exit if there are no grids to render
         }
 
-        const gridParent = gridParentRef.current;
-        if (!gridParent) {
+        const resultPaneParent = resultPaneParentRef.current;
+        if (!resultPaneParent) {
             return;
         }
         const observer = new ResizeObserver(() => {
@@ -144,45 +143,71 @@ export const QueryResultPane = () => {
             }
 
             const availableHeight = getAvailableHeight(
-                gridParent,
+                resultPaneParent,
                 ribbonRef.current,
             );
-
-            if (gridParent.clientWidth && availableHeight) {
+            if (resultPaneParent.clientWidth && availableHeight) {
+                const gridHeight = calculateGridHeight(
+                    gridCount,
+                    availableHeight,
+                );
+                const gridWidth = calculateGridWidth(
+                    resultPaneParent,
+                    gridCount,
+                    availableHeight,
+                );
                 if (gridCount > 1) {
-                    let scrollbarAdjustment =
-                        gridCount * MIN_GRID_HEIGHT >= availableHeight
-                            ? SCROLLBAR_PX
-                            : 0;
-
-                    // Calculate the grid height, ensuring it's not smaller than the minimum height
-                    const gridHeight = Math.max(
-                        (availableHeight - gridCount * TABLE_ALIGN_PX) /
-                            gridCount,
-                        MIN_GRID_HEIGHT,
-                    );
-
                     gridRefs.current.forEach((gridRef) => {
-                        gridRef?.resizeGrid(
-                            gridParent.clientWidth -
-                                ACTIONBAR_WIDTH_PX -
-                                scrollbarAdjustment,
-                            gridHeight,
-                        );
+                        gridRef?.resizeGrid(gridWidth, gridHeight);
                     });
                 } else if (gridCount === 1) {
-                    gridRefs.current[0]?.resizeGrid(
-                        gridParent.clientWidth - ACTIONBAR_WIDTH_PX,
-                        availableHeight - TABLE_ALIGN_PX,
-                    );
+                    gridRefs.current[0]?.resizeGrid(gridWidth, gridHeight);
                 }
             }
         });
 
-        observer.observe(gridParent);
+        observer.observe(resultPaneParent);
 
-        return () => observer.disconnect();
-    }, [metadata?.resultSetSummaries]);
+        return () => {
+            observer.disconnect();
+        };
+    }, [metadata?.resultSetSummaries, resultPaneParentRef.current]);
+
+    const calculateGridHeight = (
+        gridCount: number,
+        availableHeight: number,
+    ) => {
+        if (gridCount > 1) {
+            // Calculate the grid height, ensuring it's not smaller than the minimum height
+            return Math.max(
+                (availableHeight - gridCount * TABLE_ALIGN_PX) / gridCount,
+                MIN_GRID_HEIGHT,
+            );
+        }
+        // gridCount is 1
+        return Math.max(availableHeight - TABLE_ALIGN_PX, MIN_GRID_HEIGHT);
+    };
+
+    const calculateGridWidth = (
+        resultPaneParent: HTMLDivElement,
+        gridCount: number,
+        availableHeight: number,
+    ) => {
+        if (gridCount > 1) {
+            let scrollbarAdjustment =
+                gridCount * MIN_GRID_HEIGHT >= availableHeight
+                    ? SCROLLBAR_PX
+                    : 0;
+
+            return (
+                resultPaneParent.clientWidth -
+                ACTIONBAR_WIDTH_PX -
+                scrollbarAdjustment
+            );
+        }
+        // gridCount is 1
+        return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
+    };
 
     //#region Result Grid
     const gridRefs = useRef<ResultGridHandle[]>([]);
@@ -193,7 +218,23 @@ export const QueryResultPane = () => {
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
         return (
-            <div id={divId} className={classes.queryResultContainer}>
+            <div
+                id={divId}
+                className={classes.queryResultContainer}
+                ref={gridParentRef}
+                style={{
+                    height:
+                        resultPaneParentRef.current && ribbonRef.current
+                            ? `${calculateGridHeight(
+                                  getAvailableHeight(
+                                      resultPaneParentRef.current!,
+                                      ribbonRef.current!,
+                                  ) - TABLE_ALIGN_PX,
+                                  gridCount,
+                              )}px`
+                            : "",
+                }}
+            >
                 <ResultGrid
                     loadFunc={(
                         offset: number,
@@ -216,13 +257,6 @@ export const QueryResultPane = () => {
                                     metadata?.resultSetSummaries[batchId][
                                         resultId
                                     ]?.columnInfo?.length;
-                                // if the result is an execution plan xml,
-                                // get the execution plan graph from it
-                                if (metadata?.isExecutionPlan) {
-                                    state?.provider.addXmlPlan(
-                                        r.rows[0][0].displayValue,
-                                    );
-                                }
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
                                         [key: string]: any;
@@ -252,7 +286,7 @@ export const QueryResultPane = () => {
                     resultSetSummary={
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
-                    divId={divId}
+                    gridParentRef={gridParentRef}
                     uri={metadata?.uri}
                     webViewState={webViewState}
                 />
@@ -268,14 +302,6 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
-        // execution plans only load after reading the resulting xml showplan
-        // of the query. therefore, it updates the state once the results
-        // are loaded, which causes a rendering loop if the grid
-        // gets refreshed
-        if (!metadata?.isExecutionPlan) {
-            gridRefs.current.forEach((r) => r?.refreshGrid());
-        }
-
         let count = 0;
         for (
             let i = 0;
@@ -411,26 +437,9 @@ export const QueryResultPane = () => {
 
     //#region Query Plan
     useEffect(() => {
-        if (
-            // makes sure state is defined
-            metadata &&
-            // makes sure result sets are defined
-            metadata.resultSetSummaries &&
-            // makes sure this is an execution plan
-            metadata.isExecutionPlan &&
-            // makes sure the xml plans set by results are defined
-            metadata.executionPlanState.xmlPlans &&
-            // makes sure xml plans have been fully updated- necessary for multiple results sets
-            Object.keys(metadata.resultSetSummaries).length ===
-                metadata.executionPlanState.xmlPlans.length &&
-            // checks that we haven't already gotten the graphs
-            metadata.executionPlanState?.executionPlanGraphs &&
-            !metadata.executionPlanState.executionPlanGraphs.length
-        ) {
-            // get execution plan graphs
-            state!.provider.getExecutionPlan(
-                metadata.executionPlanState.xmlPlans,
-            );
+        // gets execution plans
+        if (metadata && metadata.uri) {
+            state!.provider.getExecutionPlan(metadata!.uri!);
         }
     });
     //#endregion
@@ -454,7 +463,7 @@ export const QueryResultPane = () => {
             </div>
         </div>
     ) : (
-        <div className={classes.root} ref={gridParentRef}>
+        <div className={classes.root} ref={resultPaneParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
                 <TabList
                     size="medium"

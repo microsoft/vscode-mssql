@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 
 import {
+    ActivityStatus,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
@@ -13,7 +14,11 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+} from "../telemetry/telemetry";
 
 import { getNonce } from "../utils/utils";
 
@@ -47,36 +52,68 @@ export abstract class ReactWebviewBaseController<State, Reducers>
     >;
     private _isFirstLoad: boolean = true;
     private _loadStartTime: number = Date.now();
+    private _endLoadActivity = startActivity(
+        TelemetryViews.WebviewController,
+        TelemetryActions.Load,
+    );
     private _onDisposed: vscode.EventEmitter<void> =
         new vscode.EventEmitter<void>();
     public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
     protected _webviewMessageHandler = async (message) => {
         if (message.type === "request") {
+            const endActivity = startActivity(
+                TelemetryViews.WebviewController,
+                TelemetryActions.WebviewRequest,
+            );
             const handler = this._webviewRequestHandlers[message.method];
             if (handler) {
-                const startTime = Date.now();
-                const result = await handler(message.params);
-                this.postMessage({ type: "response", id: message.id, result });
-                const endTime = Date.now();
-                sendActionEvent(
-                    TelemetryViews.WebviewController,
-                    TelemetryActions.WebviewRequest,
-                    {
+                try {
+                    const result = await handler(message.params);
+                    this.postMessage({
+                        type: "response",
+                        id: message.id,
+                        result,
+                    });
+                    endActivity.end(ActivityStatus.Succeeded, {
                         type: this._sourceFile,
                         method: message.method,
                         reducer:
                             message.method === "action"
                                 ? message.params.type
                                 : undefined,
-                    },
-                    {
-                        durationMs: endTime - startTime,
-                    },
-                );
+                    });
+                } catch (error) {
+                    endActivity.endFailed(
+                        error,
+                        false,
+                        "RequestHandlerFailed",
+                        "RequestHandlerFailed",
+                        {
+                            type: this._sourceFile,
+                            method: message.method,
+                            reducer:
+                                message.method === "action"
+                                    ? message.params.type
+                                    : undefined,
+                        },
+                    );
+                    throw error;
+                }
             } else {
-                throw new Error(
+                const error = new Error(
                     `No handler registered for method ${message.method}`,
                 );
+                endActivity.endFailed(
+                    error,
+                    true,
+                    "NoHandlerRegistered",
+                    "NoHandlerRegistered",
+                    {
+                        type: this._sourceFile,
+                        method: message.method,
+                    },
+                );
+                throw error;
             }
         }
     };
@@ -189,16 +226,9 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                         "\n" +
                         `Total time: ${timeToLoad} ms`,
                 );
-                sendActionEvent(
-                    TelemetryViews.WebviewController,
-                    TelemetryActions.Load,
-                    {
-                        type: this._sourceFile,
-                    },
-                    {
-                        durationMs: timeToLoad,
-                    },
-                );
+                this._endLoadActivity.end(ActivityStatus.Succeeded, {
+                    type: this._sourceFile,
+                });
                 this._isFirstLoad = false;
             }
         };
