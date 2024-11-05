@@ -3,23 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme, webLightTheme } from "@fluentui/react-components";
+import { ColorThemeKind } from "../../common/vscodeWebviewProvider";
 import { QueryResultWebviewState } from "../../../sharedInterfaces/queryResult";
 
-export const saveAsCsvIcon = (theme: Theme) => {
-    return theme === webLightTheme
+export const saveAsCsvIcon = (theme: ColorThemeKind) => {
+    return theme === ColorThemeKind.Light
         ? require("../../media/saveCsv.svg")
         : require("../../media/saveCsv_inverse.svg");
 };
 
-export const saveAsJsonIcon = (theme: Theme) => {
-    return theme === webLightTheme
+export const saveAsJsonIcon = (theme: ColorThemeKind) => {
+    return theme === ColorThemeKind.Light
         ? require("../../media/saveJson.svg")
         : require("../../media/saveJson_inverse.svg");
 };
 
-export const saveAsExcelIcon = (theme: Theme) => {
-    return theme === webLightTheme
+export const saveAsExcelIcon = (theme: ColorThemeKind) => {
+    return theme === ColorThemeKind.Light
         ? require("../../media/saveExcel.svg")
         : require("../../media/saveExcel_inverse.svg");
 };

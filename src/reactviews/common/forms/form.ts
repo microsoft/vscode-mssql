@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme } from "@fluentui/react-components";
+import { ColorThemeKind } from "../vscodeWebviewProvider";
 
 export interface FormState<T> {
     formState: T;
@@ -11,7 +11,7 @@ export interface FormState<T> {
 
 export interface FormContextProps<TState extends FormState<TForm>, TForm> {
     state: TState;
-    theme: Theme;
+    themeKind: ColorThemeKind;
     formAction: (event: FormEvent<TForm>) => void;
 }
 
