@@ -614,9 +614,6 @@
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
-    <trans-unit id="++CODE++19cc9d9b6334efbce9bb8b9c1846dd238337a231e1c41b2add965981ff326bc7">
-      <source xml:lang="en">I&apos;m sorry, I can only explain computer science concepts.</source>
-    </trans-unit>
     <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
       <source xml:lang="en">Ignore Tenant</source>
     </trans-unit>

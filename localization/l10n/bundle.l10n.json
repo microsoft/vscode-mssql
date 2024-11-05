@@ -755,6 +755,5 @@
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
   "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-  "Error loading Azure databases.": "Error loading Azure databases.",
-  "I'm sorry, I can only explain computer science concepts.": "I'm sorry, I can only explain computer science concepts."
+  "Error loading Azure databases.": "Error loading Azure databases."
 }

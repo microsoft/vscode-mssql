@@ -59,7 +59,7 @@ import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
-import { CopilotService } from '../services/copilotService';
+import { CopilotService } from "../services/copilotService";
 
 /**
  * The main controller class that initializes the extension
@@ -94,7 +94,7 @@ export default class MainController implements vscode.Disposable {
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
     public tableDesignerService: TableDesignerService;
-	public copilotService: CopilotService;
+    public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
@@ -346,6 +346,10 @@ export default class MainController implements vscode.Disposable {
                 SqlToolsServerClient.instance,
             );
             this.executionPlanService = new ExecutionPlanService(
+                SqlToolsServerClient.instance,
+            );
+            this.copilotService = new CopilotService(
+                SqlToolsServerClient.instance,
             );
 
             this._queryResultWebviewController.setExecutionPlanService(
