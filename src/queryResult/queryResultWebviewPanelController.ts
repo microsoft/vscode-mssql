@@ -26,8 +26,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
 > {
-    private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> =
-        new Map<string, qr.QueryResultWebviewState>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
 
@@ -50,7 +48,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 executionPlanState: {},
             },
             {
-                title: "Query Results",
+                title: "Query Result",
                 viewColumn: viewColumn,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -71,33 +69,11 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
-        // if (this.isRichExperiencesEnabled) {
-        //     vscode.window.onDidChangeActiveTextEditor((editor) => {
-        //         const uri = editor?.document?.uri?.toString(true);
-        //         if (uri && this._queryResultStateMap.has(uri)) {
-        //             this.state = this.getQueryResultState(uri);
-        //         } else {
-        //             this.state = {
-        //                 resultSetSummaries: {},
-        //                 messages: [],
-        //                 tabStates: undefined,
-        //                 isExecutionPlan: false,
-        //                 executionPlanState: {},
-        //             };
-        //         }
-        //     });
-        // }
     }
 
     private async initialize() {
         this.registerRpcHandlers();
     }
-
-    // private get isRichExperiencesEnabled(): boolean {
-    //     return this._vscodeWrapper
-    //         .getConfiguration()
-    //         .get(Constants.configEnableRichExperiences);
-    // }
 
     private registerRpcHandlers() {
         this.registerRequestHandler("getRows", async (message) => {
@@ -263,49 +239,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         });
     }
 
-    public addQueryResultState(uri: string, isExecutionPlan?: boolean): void {
-        let currentState = {
-            resultSetSummaries: {},
-            messages: [],
-            tabStates: {
-                resultPaneTab: qr.QueryResultPaneTabs.Messages,
-            },
-            uri: uri,
-            isExecutionPlan: isExecutionPlan,
-            ...(isExecutionPlan && {
-                executionPlanState: {
-                    loadState: ApiStatus.Loading,
-                    executionPlanGraphs: [],
-                    totalCost: 0,
-                    xmlPlans: [],
-                },
-            }),
-        };
-        this._queryResultStateMap.set(uri, currentState);
-    }
-
-    public getQueryResultState(uri: string): qr.QueryResultWebviewState {
-        var res = this._queryResultStateMap.get(uri);
-        if (!res) {
-            // This should never happen
-            throw new Error(`No query result state found for uri ${uri}`);
-        }
-        return res;
-    }
-
-    public addResultSetSummary(
-        uri: string,
-        resultSetSummary: qr.ResultSetSummary,
-    ) {
-        let state = this.getQueryResultState(uri);
-        const batchId = resultSetSummary.batchId;
-        const resultId = resultSetSummary.id;
-        if (!state.resultSetSummaries[batchId]) {
-            state.resultSetSummaries[batchId] = {};
-        }
-        state.resultSetSummaries[batchId][resultId] = resultSetSummary;
-    }
-
     public setSqlOutputContentProvider(
         provider: SqlOutputContentProvider,
     ): void {
@@ -320,21 +253,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         service: UntitledSqlDocumentService,
     ): void {
         this.untitledSqlDocumentService = service;
-    }
-
-    public async copyAllMessagesToClipboard(uri: string): Promise<void> {
-        const messages = uri
-            ? this.getQueryResultState(uri)?.messages?.map(
-                  (message) => message.message,
-              )
-            : this.state?.messages?.map((message) => message.message);
-
-        if (!messages) {
-            return;
-        }
-
-        const messageText = messages.join("\n");
-        await this._vscodeWrapper.clipboardWriteText(messageText);
     }
 
     private async createExecutionPlanGraphs(
