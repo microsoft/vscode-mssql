@@ -15,6 +15,8 @@ import SqlToolsServerClient from "./languageservice/serviceclient";
 import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
+import { createSqlAgentRequestHandler } from './chat/sqlAgentRequestHandler';
+import { TabCountTool } from './toolCalls/tools';
 
 let controller: MainController = undefined;
 
@@ -38,6 +40,11 @@ export async function activate(
         () => controller,
     );
     await controller.activate();
+    const participant = vscode.chat.createChatParticipant('mssql.agent',
+        createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context));
+    context.subscriptions.push(controller, participant);
+    context.subscriptions.push(vscode.lm.registerTool('chat-sample_tabCount', new TabCountTool()));
+
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
         promptForConnection: (ignoreFocusOut?: boolean) => {
