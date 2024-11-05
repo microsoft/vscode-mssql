@@ -566,7 +566,7 @@
       "webview/context": [
         {
           "command": "mssql.copyAll",
-          "when": "webviewId == 'queryResult' && webviewSection == 'queryResultMessagesPane'"
+          "when": "webviewSection == 'queryResultMessagesPane'"
         }
       ]
     },
