@@ -349,9 +349,7 @@ export const QueryResultPane = () => {
         // of the query. therefore, it updates the state once the results
         // are loaded, which causes a rendering loop if the grid
         // gets refreshed
-        if (!metadata?.isExecutionPlan) {
-            gridRefs.current.forEach((r) => r?.refreshGrid());
-        }
+        gridRefs.current.forEach((r) => r?.refreshGrid());
         let count = 0;
         for (
             let i = 0;
