@@ -21,6 +21,7 @@ import { ExecutionPlanGraphInfo } from "../reactviews/pages/ExecutionPlan/execut
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import { QueryResultWebviewController } from "./queryResultWebViewController";
 
 export class QueryResultWebviewPanelController extends ReactWebviewPanelController<
     qr.QueryResultWebviewState,
@@ -31,10 +32,12 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     constructor(
         context: vscode.ExtensionContext,
-        private executionPlanService: ExecutionPlanService,
-        private untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _executionPlanService: ExecutionPlanService,
+        private _untitledSqlDocumentService: UntitledSqlDocumentService,
         private _vscodeWrapper: VscodeWrapper,
-        viewColumn: vscode.ViewColumn,
+        private _viewColumn: vscode.ViewColumn,
+        private _uri: string,
+        private _queryResultWebviewViewController: QueryResultWebviewController,
     ) {
         super(
             context,
@@ -49,7 +52,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             },
             {
                 title: "Query Result",
-                viewColumn: viewColumn,
+                viewColumn: _viewColumn,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
@@ -66,7 +69,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         );
 
         void this.initialize();
-        if (!_vscodeWrapper) {
+        if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
     }
@@ -76,6 +79,9 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     }
 
     private registerRpcHandlers() {
+        this.registerRequestHandler("getWebviewLocation", async () => {
+            return qr.QueryResultWebviewLocation.Document;
+        });
         this.registerRequestHandler("getRows", async (message) => {
             return await this._sqlOutputContentProvider.rowRequestHandler(
                 message.uri,
@@ -222,7 +228,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             return state;
         });
         this.registerReducer("showQuery", async (state, payload) => {
-            void this.untitledSqlDocumentService.newQuery(payload.query);
+            void this._untitledSqlDocumentService.newQuery(payload.query);
 
             return state;
         });
@@ -239,20 +245,18 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         });
     }
 
+    public override extraDispose(): void {
+        this._queryResultWebviewViewController.removePanel(this._uri);
+    }
+
+    public revealToForeground() {
+        this.panel.reveal(this._viewColumn);
+    }
+
     public setSqlOutputContentProvider(
         provider: SqlOutputContentProvider,
     ): void {
         this._sqlOutputContentProvider = provider;
-    }
-
-    public setExecutionPlanService(service: ExecutionPlanService): void {
-        this.executionPlanService = service;
-    }
-
-    public setUntitledDocumentService(
-        service: UntitledSqlDocumentService,
-    ): void {
-        this.untitledSqlDocumentService = service;
     }
 
     private async createExecutionPlanGraphs(
@@ -271,7 +275,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 newState.executionPlanGraphs =
                     newState.executionPlanGraphs.concat(
                         (
-                            await this.executionPlanService.getExecutionPlan(
+                            await this._executionPlanService.getExecutionPlan(
                                 planFile,
                             )
                         ).graphs,

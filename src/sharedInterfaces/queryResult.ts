@@ -44,6 +44,11 @@ export enum QueryResultPaneTabs {
     ExecutionPlan = "executionPlan",
 }
 
+export enum QueryResultWebviewLocation {
+    Panel = "panel", // VSCode panel area (Terminal, Debug Console, etc.), it's not related to the webview panel.
+    Document = "document", // VSCode document area (editor area)
+}
+
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
 }

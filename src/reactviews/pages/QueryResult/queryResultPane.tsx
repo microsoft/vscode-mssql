@@ -5,7 +5,6 @@
 
 import {
     Button,
-    Divider,
     Link,
     Tab,
     TabList,
@@ -356,6 +355,23 @@ export const QueryResultPane = () => {
         }
     });
 
+    const getWebviewLocation = async () => {
+        const res = (await webViewState.extensionRpc.call(
+            "getWebviewLocation",
+            {
+                uri: metadata?.uri,
+            },
+        )) as string;
+        setWebviewLocation(res);
+    };
+    const [webviewLocation, setWebviewLocation] = useState("");
+    useEffect(() => {
+        getWebviewLocation().catch((e) => {
+            console.error(e);
+            setWebviewLocation("panel");
+        });
+    }, []);
+
     return !metadata || !hasResultsOrMessages(metadata) ? (
         <div>
             <div className={classes.noResultMessage}>
@@ -411,7 +427,7 @@ export const QueryResultPane = () => {
                             </Tab>
                         )}
                 </TabList>
-                {
+                {webviewLocation === "panel" && (
                     <Button
                         appearance="transparent"
                         icon={<OpenFilled />}
@@ -426,7 +442,7 @@ export const QueryResultPane = () => {
                         }}
                         title={locConstants.queryResult.openSnapshot}
                     ></Button>
-                }
+                )}
             </div>
             <div className={classes.tabContent}>
                 {metadata.tabStates!.resultPaneTab ===

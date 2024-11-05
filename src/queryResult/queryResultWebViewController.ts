@@ -22,6 +22,7 @@ import { ExecutionPlanGraphInfo } from "../reactviews/pages/ExecutionPlan/execut
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
+import { getNewResultPaneViewColumn } from "./utils";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -70,6 +71,17 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     };
                 }
             });
+
+            // not the best api but it's the best we can do in VSCode
+            this._vscodeWrapper.onDidCloseTextDocument((document) => {
+                const uri = document.uri.toString(true);
+                if (this._queryResultStateMap.has(uri)) {
+                    this._queryResultStateMap.delete(uri);
+                }
+                if (this._queryResultWebviewPanelControllerMap.has(uri)) {
+                    this._queryResultWebviewPanelControllerMap.delete(uri);
+                }
+            });
         }
     }
 
@@ -83,54 +95,33 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             .get(Constants.configEnableRichExperiences);
     }
 
-    public newResultPaneViewColumn(): vscode.ViewColumn {
-        // // Find configuration options
-        // let config = this._vscodeWrapper.getConfiguration(
-        //     Constants.extensionConfigSectionName,
-        //     queryUri,
-        // );
-        // let splitPaneSelection = config[Constants.configSplitPaneSelection];
-        let viewColumn: vscode.ViewColumn;
-
-        // switch (splitPaneSelection) {
-        //     case "current":
-        //         viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
-        //         break;
-        //     case "end":
-        //         viewColumn = vscode.ViewColumn.Three;
-        //         break;
-        //     // default case where splitPaneSelection is next or anything else
-        //     default:
-        // if there's an active text editor
-        if (this._vscodeWrapper.isEditingSqlFile) {
-            viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
-            if (viewColumn === vscode.ViewColumn.One) {
-                viewColumn = vscode.ViewColumn.Two;
-            } else {
-                viewColumn = vscode.ViewColumn.Three;
-            }
-        } else {
-            // otherwise take default results column
-            viewColumn = vscode.ViewColumn.Two;
-        }
-        // }
-        return viewColumn;
-    }
-
     private registerRpcHandlers() {
         this.registerRequestHandler("openInNewTab", async (message) => {
+            const viewColumn = getNewResultPaneViewColumn(
+                message.uri,
+                this._vscodeWrapper,
+            );
+            if (this._queryResultWebviewPanelControllerMap.has(message.uri)) {
+                this._queryResultWebviewPanelControllerMap
+                    .get(message.uri)
+                    .revealToForeground();
+                return;
+            }
+
             const controller = new QueryResultWebviewPanelController(
                 this._context,
                 this.executionPlanService,
                 this.untitledSqlDocumentService,
                 this._vscodeWrapper,
-                this.newResultPaneViewColumn(),
+                viewColumn,
+                message.uri,
+                this,
             );
             controller.setSqlOutputContentProvider(
                 this._sqlOutputContentProvider,
             );
             controller.state = this.getQueryResultState(message.uri);
-            controller.revealToForeground(2);
+            controller.revealToForeground();
             this._queryResultWebviewPanelControllerMap.set(
                 message.uri,
                 controller,
@@ -138,6 +129,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             await vscode.commands.executeCommand(
                 "workbench.action.togglePanel",
             );
+        });
+        this.registerRequestHandler("getWebviewLocation", async () => {
+            return qr.QueryResultWebviewLocation.Panel;
         });
         this.registerRequestHandler("getRows", async (message) => {
             return await this._sqlOutputContentProvider.rowRequestHandler(
@@ -330,7 +324,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 .updateState(this.getQueryResultState(uri));
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
-                .revealToForeground(2);
+                .revealToForeground();
+        }
+    }
+
+    public removePanel(uri: string): void {
+        if (this._queryResultWebviewPanelControllerMap.has(uri)) {
+            this._queryResultWebviewPanelControllerMap.delete(uri);
         }
     }
 
