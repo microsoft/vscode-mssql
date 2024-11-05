@@ -192,15 +192,19 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 // in the case of a multi-set result set, make sure the
                 // results have fully finished loading by checking that
                 // we have the same amount of xml plans as result sets
+                // we also check whether the current result is an execution plan
+                (currentResultState.actualPlanEnabled ||
+                    currentResultState.isExecutionPlan) &&
                 currentResultState.executionPlanState &&
+                currentResultState.executionPlanState.executionPlanGraphs
+                    .length === 0 &&
                 currentResultState.executionPlanState.xmlPlans.length &&
+                Object.keys(currentResultState.resultSetSummaries).length &&
                 currentResultState.executionPlanState.xmlPlans.length ===
                     this.getNumExecutionPlanResultSets(
                         currentResultState.resultSetSummaries,
                         currentResultState.actualPlanEnabled,
-                    ) &&
-                currentResultState.executionPlanState.executionPlanGraphs
-                    .length === 0
+                    )
             ) {
                 state = (await createExecutionPlanGraphs(
                     state,
@@ -334,13 +338,22 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         if (!actualPlanEnabled) {
             return summariesLength;
         }
-        // if actual plan is enabled, then
-        // every other resultSet is a query plan xml
-        // hence, count up the number of resultSets and divide by 2
+        // count the amount of xml showplans in the result summaries
         let total = 0;
-        for (let i = 0; i < summariesLength; i++) {
-            total += Object.keys(resultSetSummaries[i]).length;
-        }
-        return total / 2;
+        Object.values(resultSetSummaries).forEach((batch) => {
+            Object.values(batch).forEach((result) => {
+                // Check if any column in columnInfo has the specific column name
+                if (
+                    result.columnInfo.some(
+                        (column) =>
+                            column.columnName ===
+                            "Microsoft SQL Server 2005 XML Showplan",
+                    )
+                ) {
+                    total++;
+                }
+            });
+        });
+        return total;
     }
 }

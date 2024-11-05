@@ -1644,14 +1644,11 @@ export default class MainController implements vscode.Disposable {
         });
     }
 
-    public onToggleActualPlan(
-        isEnable: boolean,
-        callbackThis?: MainController,
-    ): void {
-        // the 'this' context is lost in retry callback, so capture it here
-        const self: MainController = callbackThis ? callbackThis : this;
-        const uri = self._vscodeWrapper.activeTextEditorUri;
+    public onToggleActualPlan(isEnable: boolean): void {
+        const uri = this._vscodeWrapper.activeTextEditorUri;
 
+        // adds the current uri to the list of uris with actual plan enabled
+        // or removes the uri if the user is disabling it
         if (isEnable && !this._actualPlanStatuses.includes(uri)) {
             this._actualPlanStatuses.push(uri);
         } else {
@@ -1661,6 +1658,9 @@ export default class MainController implements vscode.Disposable {
             }
         }
 
+        // sets the vscode context variable associated with the
+        // actual plan statuses; this is used in the package.json to
+        // know when to change the enabling/disabling icon
         void vscode.commands.executeCommand(
             "setContext",
             "mssql.executionPlan.urisWithActualPlanEnabled",
@@ -1987,6 +1987,8 @@ export default class MainController implements vscode.Disposable {
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
 
+        // clean up: if a document is closed with actual plan enabled, remove it
+        // from our status list
         if (this._actualPlanStatuses.includes(closedDocumentUri)) {
             const index = this._actualPlanStatuses.indexOf(closedDocumentUri);
             this._actualPlanStatuses.splice(index, 1); // Remove the URI
