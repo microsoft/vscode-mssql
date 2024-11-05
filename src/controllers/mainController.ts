@@ -86,7 +86,6 @@ export default class MainController implements vscode.Disposable {
         includeEstimatedExecutionPlanXml: false,
         includeActualExecutionPlanXml: false,
     };
-    private _actualPlanStatuses: string[] = [];
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -1540,7 +1539,9 @@ export default class MainController implements vscode.Disposable {
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
             self._executionPlanOptions.includeActualExecutionPlanXml =
-                self._actualPlanStatuses.includes(uri);
+                self._queryResultWebviewController.actualPlanStatuses.includes(
+                    uri,
+                );
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
@@ -1646,16 +1647,16 @@ export default class MainController implements vscode.Disposable {
 
     public onToggleActualPlan(isEnable: boolean): void {
         const uri = this._vscodeWrapper.activeTextEditorUri;
+        let actualPlanStatuses =
+            this._queryResultWebviewController.actualPlanStatuses;
 
         // adds the current uri to the list of uris with actual plan enabled
         // or removes the uri if the user is disabling it
-        if (isEnable && !this._actualPlanStatuses.includes(uri)) {
-            this._actualPlanStatuses.push(uri);
+        if (isEnable && !actualPlanStatuses.includes(uri)) {
+            actualPlanStatuses.push(uri);
         } else {
-            const index = this._actualPlanStatuses.indexOf(uri);
-            if (index !== -1) {
-                this._actualPlanStatuses.splice(index, 1); // Remove the URI
-            }
+            this._queryResultWebviewController.actualPlanStatuses =
+                actualPlanStatuses.filter((statusUri) => statusUri != uri);
         }
 
         // sets the vscode context variable associated with the
@@ -1664,7 +1665,7 @@ export default class MainController implements vscode.Disposable {
         void vscode.commands.executeCommand(
             "setContext",
             "mssql.executionPlan.urisWithActualPlanEnabled",
-            this._actualPlanStatuses,
+            this._queryResultWebviewController.actualPlanStatuses,
         );
     }
 
@@ -1989,13 +1990,18 @@ export default class MainController implements vscode.Disposable {
 
         // clean up: if a document is closed with actual plan enabled, remove it
         // from our status list
-        if (this._actualPlanStatuses.includes(closedDocumentUri)) {
-            const index = this._actualPlanStatuses.indexOf(closedDocumentUri);
-            this._actualPlanStatuses.splice(index, 1); // Remove the URI
+        if (
+            this._queryResultWebviewController.actualPlanStatuses.includes(
+                closedDocumentUri,
+            )
+        ) {
+            this._queryResultWebviewController.actualPlanStatuses.filter(
+                (uri) => uri != closedDocumentUri,
+            );
             vscode.commands.executeCommand(
                 "setContext",
                 "mssql.executionPlan.urisWithActualPlanEnabled",
-                this._actualPlanStatuses,
+                this._queryResultWebviewController.actualPlanStatuses,
             );
         }
 

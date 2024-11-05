@@ -34,6 +34,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         new Map<string, qr.QueryResultWebviewState>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
+    public actualPlanStatuses: string[] = [];
 
     constructor(
         context: vscode.ExtensionContext,
