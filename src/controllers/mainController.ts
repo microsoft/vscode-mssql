@@ -2233,7 +2233,11 @@ export default class MainController implements vscode.Disposable {
                 this.executionPlanService,
                 this.untitledSqlService,
                 planContents,
-                docName,
+                vscode.l10n.t({
+                    message: "{0} (Preview)",
+                    args: [docName],
+                    comment: "{0} is the file name",
+                }),
             );
 
             executionPlanController.revealToForeground();

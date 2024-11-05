@@ -229,7 +229,7 @@
       "panel": [
         {
           "id": "queryResult",
-          "title": "Query Result",
+          "title": "Query Results (Preview)",
           "icon": "media/SignIn.svg"
         }
       ]
@@ -684,6 +684,14 @@
       {
         "command": "mssql.addObjectExplorer",
         "title": "%mssql.addObjectExplorer%",
+        "when": "!config.mssql.enableRichExperiences",
+        "category": "MS SQL",
+        "icon": "$(add)"
+      },
+      {
+        "command": "mssql.addObjectExplorer",
+        "title": "%mssql.addObjectExplorerPreview%",
+        "when": "config.mssql.enableRichExperiences",
         "category": "MS SQL",
         "icon": "$(add)"
       },

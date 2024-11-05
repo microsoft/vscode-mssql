@@ -46,7 +46,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
                 nodePath: "",
             },
             {
-                title: vscode.l10n.t("Object Explorer Filter"),
+                title: vscode.l10n.t("Object Explorer Filter (Preview)"),
                 viewColumn: vscode.ViewColumn.Beside,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
