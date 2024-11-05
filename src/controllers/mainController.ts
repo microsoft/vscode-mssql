@@ -1718,11 +1718,24 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.Common.dontShowAgain,
         );
 
-        await sendActionEvent(
+        let telemResponse: string;
+
+        switch (response) {
+            case LocalizedConstants.enableRichExperiences:
+                telemResponse = "enableRichExperiences";
+                break;
+            case LocalizedConstants.Common.dontShowAgain:
+                telemResponse = "dontShowAgain";
+                break;
+            default:
+                telemResponse = "dismissed";
+        }
+
+        sendActionEvent(
             TelemetryViews.General,
             TelemetryActions.EnableRichExperiencesPrompt,
             {
-                response,
+                response: telemResponse,
             },
         );
 

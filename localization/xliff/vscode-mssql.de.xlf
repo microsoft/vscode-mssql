@@ -1321,6 +1321,10 @@
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL-Anmeldung</target>
       </trans-unit>
+      <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
+        <source xml:lang="en">SQL Plan Files</source>
+        <target state="new">SQL Plan Files</target>
+      </trans-unit>
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
         <target state="translated">Zufrieden</target>
@@ -1967,6 +1971,10 @@
       <trans-unit id="extension.connections">
         <source xml:lang="en">Connections</source>
         <target state="translated">Verbindungen</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyAll">
+        <source xml:lang="en">Copy All</source>
+        <target state="new">Copy All</target>
       </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
