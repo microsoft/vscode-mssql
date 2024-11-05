@@ -45,6 +45,7 @@ export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
+export const cmdAddObjectExplorerPreview = "mssql.addObjectExplorerPreview";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdRemoveObjectExplorerNode = "mssql.removeObjectExplorerNode";
 export const cmdRefreshObjectExplorerNode = "mssql.refreshObjectExplorerNode";

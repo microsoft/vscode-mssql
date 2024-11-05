@@ -751,6 +751,15 @@ export default class MainController implements vscode.Disposable {
             }
         });
 
+        // redirect the "(preview)" command to the original command
+        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerPreview);
+        this._event.on(Constants.cmdAddObjectExplorerPreview, (args) => {
+            vscode.commands.executeCommand(
+                Constants.cmdAddObjectExplorer,
+                args,
+            );
+        });
+
         // Object Explorer New Query
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
