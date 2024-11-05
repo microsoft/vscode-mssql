@@ -99,8 +99,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 // check if the current result set is the result set that contains the xml plan
                 currentState.resultSetSummaries[message.batchId][
                     message.resultId
-                ].columnInfo[0].columnName ===
-                    "Microsoft SQL Server 2005 XML Showplan"
+                ].columnInfo[0].columnName === Constants.showPlanXmlColumnName
             ) {
                 currentState.executionPlanState.xmlPlans =
                     // this gets the xml plan returned by the get execution
@@ -188,35 +187,41 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            const currentResultState = this.getQueryResultState(payload.uri);
-            if (
-                // in the case of a multi-set result set, make sure the
-                // results have fully finished loading by checking that
-                // we have the same amount of xml plans as result sets
-                // we also check whether the current result is an execution plan
-                (currentResultState.actualPlanEnabled ||
-                    currentResultState.isExecutionPlan) &&
-                currentResultState.executionPlanState &&
-                currentResultState.executionPlanState.executionPlanGraphs
-                    .length === 0 &&
-                currentResultState.executionPlanState.xmlPlans.length &&
-                Object.keys(currentResultState.resultSetSummaries).length &&
-                currentResultState.executionPlanState.xmlPlans.length ===
-                    this.getNumExecutionPlanResultSets(
-                        currentResultState.resultSetSummaries,
-                        currentResultState.actualPlanEnabled,
-                    )
-            ) {
-                state = (await createExecutionPlanGraphs(
-                    state,
-                    this.executionPlanService,
-                    currentResultState.executionPlanState.xmlPlans,
-                )) as qr.QueryResultWebviewState;
-                state.executionPlanState.loadState = ApiStatus.Loaded;
-                state.tabStates.resultPaneTab =
-                    qr.QueryResultPaneTabs.ExecutionPlan;
+            // because this is an overridden call, this makes sure it is being
+            // called properly
+            if ("uri" in payload) {
+                const currentResultState = this.getQueryResultState(
+                    payload.uri,
+                );
+                if (
+                    // in the case of a multi-set result set, make sure the
+                    // results have fully finished loading by checking that
+                    // we have the same amount of xml plans as result sets
+                    // we also check whether the current result is an execution plan
+                    (currentResultState.actualPlanEnabled ||
+                        currentResultState.isExecutionPlan) &&
+                    currentResultState.executionPlanState &&
+                    currentResultState.executionPlanState.executionPlanGraphs
+                        .length === 0 &&
+                    currentResultState.executionPlanState.xmlPlans.length &&
+                    Object.keys(currentResultState.resultSetSummaries).length &&
+                    currentResultState.executionPlanState.xmlPlans.length ===
+                        this.getNumExecutionPlanResultSets(
+                            currentResultState.resultSetSummaries,
+                            currentResultState.actualPlanEnabled,
+                        )
+                ) {
+                    state = (await createExecutionPlanGraphs(
+                        state,
+                        this.executionPlanService,
+                        currentResultState.executionPlanState.xmlPlans,
+                    )) as qr.QueryResultWebviewState;
+                    state.executionPlanState.loadState = ApiStatus.Loaded;
+                    state.tabStates.resultPaneTab =
+                        qr.QueryResultPaneTabs.ExecutionPlan;
+                }
+                return state;
             }
-            return state;
         });
         this.registerReducer("addXmlPlan", async (state, payload) => {
             state.executionPlanState.xmlPlans = [
@@ -345,11 +350,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             Object.values(batch).forEach((result) => {
                 // Check if any column in columnInfo has the specific column name
                 if (
-                    result.columnInfo.some(
-                        (column) =>
-                            column.columnName ===
-                            "Microsoft SQL Server 2005 XML Showplan",
-                    )
+                    result.columnInfo[0].columnName ===
+                    Constants.showPlanXmlColumnName
                 ) {
                     total++;
                 }

@@ -222,7 +222,7 @@ export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
     "https://www.microsoft.com/en-us/privacy/privacystatement";
 export const sqlPlanLanguageId = "sqlplan";
-
+export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {
     Windows = "win32",
     Mac = "darwin",
