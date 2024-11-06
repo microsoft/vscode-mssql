@@ -344,9 +344,9 @@
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">正在連線到:</target>
       </trans-unit>
-      <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
-        <source xml:lang="en">Connection Dialog</source>
-        <target state="translated">連線對話方塊</target>
+      <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
+        <source xml:lang="en">Connection Dialog (Preview)</source>
+        <target state="new">Connection Dialog (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
@@ -1080,9 +1080,9 @@
         <source xml:lang="en">OK</source>
         <target state="translated">確定</target>
       </trans-unit>
-      <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
-        <source xml:lang="en">Object Explorer Filter</source>
-        <target state="translated">物件總管篩選</target>
+      <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
+        <source xml:lang="en">Object Explorer Filter (Preview)</source>
+        <target state="new">Object Explorer Filter (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1849,6 +1849,11 @@
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
       </trans-unit>
+      <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the file name</note>
+        <target state="new">{0} (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (已篩選)</target>
@@ -1915,6 +1920,10 @@
       <trans-unit id="mssql.addObjectExplorer">
         <source xml:lang="en">Add Connection</source>
         <target state="translated">加入連接</target>
+      </trans-unit>
+      <trans-unit id="mssql.addObjectExplorerPreview">
+        <source xml:lang="en">Add Connection (Preview)</source>
+        <target state="new">Add Connection (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -1988,6 +1997,10 @@
         <source xml:lang="en">Delete</source>
         <target state="translated">刪除</target>
       </trans-unit>
+      <trans-unit id="mssql.disableActualPlan">
+        <source xml:lang="en">Disable Actual Plan</source>
+        <target state="new">Disable Actual Plan</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
         <target state="translated">依架構停用群組</target>
@@ -2001,12 +2014,16 @@
         <target state="translated">不要顯示提示以啟用以 UI 為基礎的功能</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">編輯連線</target>
+        <source xml:lang="en">Edit Connection (Preview)</source>
+        <target state="new">Edit Connection (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">編輯資料表</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableActualPlan">
+        <source xml:lang="en">Enable Actual Plan</source>
+        <target state="new">Enable Actual Plan</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
@@ -2113,8 +2130,8 @@
         <target state="translated">當使用者選取 'AzureMFA' 驗證，則會針對 [Microsoft Entra ID 互動] 驗證模式啟用使用 SQL 驗證提供者。這會在擷取存取權杖時啟用伺服器端資源端點整合。此選項僅支援 'MSAL' 驗證程式庫。請在變更此選項後重新啟動 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">預估計劃</target>
+        <source xml:lang="en">Estimated Plan (Preview)</source>
+        <target state="new">Estimated Plan (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -2125,8 +2142,8 @@
         <target state="translated">執行查詢</target>
       </trans-unit>
       <trans-unit id="mssql.filterNode">
-        <source xml:lang="en">Filter</source>
-        <target state="translated">篩選</target>
+        <source xml:lang="en">Filter (Preview)</source>
+        <target state="new">Filter (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
@@ -2209,8 +2226,8 @@
         <target state="translated">查詢歷史記錄</target>
       </trans-unit>
       <trans-unit id="extension.queryResult">
-        <source xml:lang="en">Query Result</source>
-        <target state="translated">查詢結果</target>
+        <source xml:lang="en">Query Results (Preview)</source>
+        <target state="new">Query Results (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.refreshObjectExplorerNode">
         <source xml:lang="en">Refresh</source>
