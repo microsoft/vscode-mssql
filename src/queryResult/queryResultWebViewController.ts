@@ -98,38 +98,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private registerRpcHandlers() {
         this.registerRequestHandler("openInNewTab", async (message) => {
-            const viewColumn = getNewResultPaneViewColumn(
-                message.uri,
-                this._vscodeWrapper,
-            );
-            if (this._queryResultWebviewPanelControllerMap.has(message.uri)) {
-                this._queryResultWebviewPanelControllerMap
-                    .get(message.uri)
-                    .revealToForeground();
-                return;
-            }
-
-            const controller = new QueryResultWebviewPanelController(
-                this._context,
-                this.executionPlanService,
-                this.untitledSqlDocumentService,
-                this._vscodeWrapper,
-                viewColumn,
-                message.uri,
-                this,
-            );
-            controller.setSqlOutputContentProvider(
-                this._sqlOutputContentProvider,
-            );
-            controller.state = this.getQueryResultState(message.uri);
-            controller.revealToForeground();
-            this._queryResultWebviewPanelControllerMap.set(
-                message.uri,
-                controller,
-            );
-            await vscode.commands.executeCommand(
-                "workbench.action.togglePanel",
-            );
+            await this.createPanelController(message.uri);
         });
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
@@ -285,6 +254,35 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 payload,
             )) as qr.QueryResultWebviewState;
         });
+    }
+
+    public async createPanelController(uri: string) {
+        const viewColumn = getNewResultPaneViewColumn(uri, this._vscodeWrapper);
+        if (this._queryResultWebviewPanelControllerMap.has(uri)) {
+            this._queryResultWebviewPanelControllerMap
+                .get(uri)
+                .revealToForeground();
+            return;
+        }
+
+        const controller = new QueryResultWebviewPanelController(
+            this._context,
+            this.executionPlanService,
+            this.untitledSqlDocumentService,
+            this._vscodeWrapper,
+            viewColumn,
+            uri,
+            this,
+        );
+        controller.setSqlOutputContentProvider(this._sqlOutputContentProvider);
+        controller.state = this.getQueryResultState(uri);
+        controller.revealToForeground();
+        this._queryResultWebviewPanelControllerMap.set(uri, controller);
+        if (this.isVisible()) {
+            await vscode.commands.executeCommand(
+                "workbench.action.togglePanel",
+            );
+        }
     }
 
     public addQueryResultState(uri: string, isExecutionPlan?: boolean): void {

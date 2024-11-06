@@ -390,11 +390,17 @@
     <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
     </trans-unit>
+    <trans-unit id="++CODE++78606c8315af8e0c59af135be0bf2385eacea59608d6e0933b151dc3b6a39f82">
+      <source xml:lang="en">Do you want to default query results to a document?</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
     </trans-unit>
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5342e09f2729fbc6514528e727aeb9857afb31719d43568e6b18661ace7d1014">
+      <source xml:lang="en">Enable</source>
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
@@ -1518,7 +1524,10 @@
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
     <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
-      <source xml:lang="en">Do not show prompts to enables UI-based features</source>
+      <source xml:lang="en">Do not show prompts to enable UI-based features</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt.description">
+      <source xml:lang="en">Do not show prompts to move the default location to the editor</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection</source>
@@ -1720,6 +1729,9 @@
     </trans-unit>
     <trans-unit id="mssql.resultsFontSize">
       <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableDefaultQueryResultToDocument.description">
+      <source xml:lang="en">Sets the default location of the query result to the editor</source>
     </trans-unit>
     <trans-unit id="mssql.shortcuts">
       <source xml:lang="en">Shortcuts related to the results window</source>

@@ -644,6 +644,11 @@ export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 
+export let enableDefaultQueryResultToDocumentPrompt = l10n.t(
+    "Do you want to default query results to a document?",
+);
+export let enableDefaultQueryResultToDocument = l10n.t("Enable");
+
 export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     return l10n.t({
         message:

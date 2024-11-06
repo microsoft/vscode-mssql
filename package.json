@@ -900,6 +900,18 @@
           "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
           "scope": "application"
         },
+        "mssql.enableDefaultQueryResultToDocument": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableDefaultQueryResultToDocument.description%",
+          "scope": "application"
+        },
+        "mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt.description%",
+          "scope": "application"
+        },
         "azureResourceGroups.selectedSubscriptions": {
           "type": "array",
           "description": "%mssql.selectedSubscriptions%",

@@ -228,6 +228,12 @@ export class SqlOutputContentProvider {
         );
     }
 
+    private get isDefaultQueryResultToDocumentEnabled(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration()
+            .get(Constants.enableDefaultQueryResultToDocument);
+    }
+
     private get isRichExperiencesEnabled(): boolean {
         return this._vscodeWrapper
             .getConfiguration()
@@ -406,19 +412,31 @@ export class SqlOutputContentProvider {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                 } else {
-                    this._queryResultWebviewController.addQueryResultState(
-                        uri,
-                        this._executionPlanOptions
-                            ?.includeEstimatedExecutionPlanXml ?? false,
-                    );
-                    this._queryResultWebviewController.getQueryResultState(
-                        uri,
-                    ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                    this._queryResultWebviewController.updatePanelState(uri);
-                    if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        await vscode.commands.executeCommand(
-                            "queryResult.focus",
+                    try {
+                        this._queryResultWebviewController.addQueryResultState(
+                            uri,
+                            this._executionPlanOptions
+                                ?.includeEstimatedExecutionPlanXml ?? false,
                         );
+                        this._queryResultWebviewController.getQueryResultState(
+                            uri,
+                        ).tabStates.resultPaneTab =
+                            QueryResultPaneTabs.Messages;
+                        if (this.isDefaultQueryResultToDocumentEnabled) {
+                            await this._queryResultWebviewController.createPanelController(
+                                uri,
+                            );
+                        }
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
+                        );
+                        if (!this._queryResultWebviewController.hasPanel(uri)) {
+                            await vscode.commands.executeCommand(
+                                "queryResult.focus",
+                            );
+                        }
+                    } catch (e) {
+                        // console.error(e);
                     }
                 }
             });
@@ -430,13 +448,17 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("resultSet", resultSet);
                     } else {
-                        this._queryResultWebviewController.addResultSetSummary(
-                            uri,
-                            resultSet,
-                        );
-                        this._queryResultWebviewController.updatePanelState(
-                            uri,
-                        );
+                        try {
+                            this._queryResultWebviewController.addResultSetSummary(
+                                uri,
+                                resultSet,
+                            );
+                            this._queryResultWebviewController.updatePanelState(
+                                uri,
+                            );
+                        } catch (e) {
+                            // console.error(e);
+                        }
                     }
                 },
             );
@@ -462,20 +484,27 @@ export class SqlOutputContentProvider {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("message", message);
                 } else {
-                    this._queryResultWebviewController
-                        .getQueryResultState(uri)
-                        .messages.push(message);
-                    this._queryResultWebviewController.getQueryResultState(
-                        uri,
-                    ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                    this._queryResultWebviewController.state =
+                    try {
+                        this._queryResultWebviewController
+                            .getQueryResultState(uri)
+                            .messages.push(message);
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
+                        ).tabStates.resultPaneTab =
+                            QueryResultPaneTabs.Messages;
+                        this._queryResultWebviewController.state =
+                            this._queryResultWebviewController.getQueryResultState(
+                                uri,
+                            );
+                        // vscode.commands.executeCommand("queryResult.focus");
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
                         );
-                    // vscode.commands.executeCommand("queryResult.focus");
-                    this._queryResultWebviewController.updatePanelState(uri);
-                    if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        vscode.commands.executeCommand("queryResult.focus");
+                        if (!this._queryResultWebviewController.hasPanel(uri)) {
+                            vscode.commands.executeCommand("queryResult.focus");
+                        }
+                    } catch (e) {
+                        // console.error(e);
                     }
                 }
             });
@@ -483,20 +512,27 @@ export class SqlOutputContentProvider {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("message", message);
                 } else {
-                    this._queryResultWebviewController
-                        .getQueryResultState(uri)
-                        .messages.push(message);
-                    this._queryResultWebviewController.getQueryResultState(
-                        uri,
-                    ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                    this._queryResultWebviewController.state =
+                    try {
+                        this._queryResultWebviewController
+                            .getQueryResultState(uri)
+                            .messages.push(message);
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
+                        ).tabStates.resultPaneTab =
+                            QueryResultPaneTabs.Messages;
+                        this._queryResultWebviewController.state =
+                            this._queryResultWebviewController.getQueryResultState(
+                                uri,
+                            );
+                        // vscode.commands.executeCommand("queryResult.focus");
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
                         );
-                    // vscode.commands.executeCommand("queryResult.focus");
-                    this._queryResultWebviewController.updatePanelState(uri);
-                    if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        vscode.commands.executeCommand("queryResult.focus");
+                        if (!this._queryResultWebviewController.hasPanel(uri)) {
+                            vscode.commands.executeCommand("queryResult.focus");
+                        }
+                    } catch (e) {
+                        // console.error(e);
                     }
                 }
             });
@@ -516,44 +552,54 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("complete", totalMilliseconds);
                     } else {
-                        this._queryResultWebviewController
-                            .getQueryResultState(uri)
-                            .messages.push({
-                                message:
-                                    LocalizedConstants.elapsedTimeLabel(
-                                        totalMilliseconds,
-                                    ),
-                                isError: hasError,
-                            });
-                        this._queryResultWebviewController.getQueryResultState(
-                            uri,
-                        ).tabStates.resultPaneTab =
-                            QueryResultPaneTabs.Messages;
-                        this._queryResultWebviewController.state =
+                        try {
+                            this._queryResultWebviewController
+                                .getQueryResultState(uri)
+                                .messages.push({
+                                    message:
+                                        LocalizedConstants.elapsedTimeLabel(
+                                            totalMilliseconds,
+                                        ),
+                                    isError: hasError,
+                                });
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
-                            );
-                        // vscode.commands.executeCommand("queryResult.focus");
-                        const tabState =
-                            Object.keys(
+                            ).tabStates.resultPaneTab =
+                                QueryResultPaneTabs.Messages;
+                            this._queryResultWebviewController.state =
                                 this._queryResultWebviewController.getQueryResultState(
                                     uri,
-                                ).resultSetSummaries,
-                            ).length > 0
-                                ? QueryResultPaneTabs.Results
-                                : QueryResultPaneTabs.Messages;
-                        this._queryResultWebviewController.getQueryResultState(
-                            uri,
-                        ).tabStates.resultPaneTab = tabState;
-                        this._queryResultWebviewController.state =
+                                );
+                            // vscode.commands.executeCommand("queryResult.focus");
+                            const tabState =
+                                Object.keys(
+                                    this._queryResultWebviewController.getQueryResultState(
+                                        uri,
+                                    ).resultSetSummaries,
+                                ).length > 0
+                                    ? QueryResultPaneTabs.Results
+                                    : QueryResultPaneTabs.Messages;
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
+                            ).tabStates.resultPaneTab = tabState;
+                            this._queryResultWebviewController.state =
+                                this._queryResultWebviewController.getQueryResultState(
+                                    uri,
+                                );
+                            this._queryResultWebviewController.updatePanelState(
+                                uri,
                             );
-                        this._queryResultWebviewController.updatePanelState(
-                            uri,
-                        );
-                        if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            vscode.commands.executeCommand("queryResult.focus");
+                            if (
+                                !this._queryResultWebviewController.hasPanel(
+                                    uri,
+                                )
+                            ) {
+                                vscode.commands.executeCommand(
+                                    "queryResult.focus",
+                                );
+                            }
+                        } catch (e) {
+                            // console.error(e);
                         }
                     }
                 },

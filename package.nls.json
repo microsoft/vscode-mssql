@@ -153,7 +153,9 @@
 "mssql.openExecutionPlanFile":"Open Execution Plan File",
 "mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiences.description":"Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
-"mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enables UI-based features",
+"mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enable UI-based features",
+"mssql.enableDefaultQueryResultToDocument.description":"Sets the default location of the query result to the editor",
+"mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt.description":"Do not show prompts to move the default location to the editor",
 "mssql.userFeedback":"Give Feedback",
 "mssql.selectedSubscriptions":"Selected Subscriptions"
 }
