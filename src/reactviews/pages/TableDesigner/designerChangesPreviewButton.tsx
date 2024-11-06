@@ -256,12 +256,16 @@ export const DesignerChangesPreviewButton = () => {
                             if (event.target.parentElement) {
                                 event.target.parentElement.style.outlineStyle =
                                     "solid";
+                                event.target.parentElement.style.outlineColor =
+                                    "var(--vscode-focusBorder)";
                             }
                         }}
                         onBlur={(event) => {
                             if (event.target.parentElement) {
                                 event.target.parentElement.style.outline =
                                     "none";
+                                event.target.parentElement.style.outlineColor =
+                                    "";
                             }
                         }}
                     />

@@ -12,7 +12,7 @@ import {
     useState,
 } from "react";
 import "../../media/slickgrid.css";
-import { range, Table } from "./table/table";
+import { ACTIONBAR_WIDTH_PX, range, Table } from "./table/table";
 import { defaultTableStyles } from "./table/interfaces";
 import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";
 import { VirtualizedCollection } from "./table/asyncDataView";
@@ -59,6 +59,7 @@ export interface ResultGridProps {
         QueryResultWebviewState,
         QueryResultReducers
     >;
+    gridParentRef?: React.RefObject<HTMLDivElement>;
 }
 
 export interface ResultGridHandle {
@@ -82,6 +83,16 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
+            let gridParent;
+            if (props.resultSetSummary) {
+                gridParent = document.getElementById(
+                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+                );
+            }
+            if (gridParent) {
+                gridParent.setAttribute("style", `width: ${width}px`);
+                gridParent.setAttribute("style", `height: ${height}px`);
+            }
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };
@@ -160,22 +171,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                                           );
                                       }
                                   },
-                        // width: this.state.columnSizes && this.state.columnSizes[i] ? this.state.columnSizes[i] : undefined
                     };
                 });
-            // let options = {
-            //     enableCellNavigation: true,
-            //     enableColumnReorder: false
-            // };
 
             let div = document.createElement("div");
             div.id = "grid";
             div.className = "grid-panel";
             div.style.display = "inline-block";
-
-            //TODO: eventually need to calculate snapshot button width and subtract
-            // let actionBarWidth = this.showActionBar ? ACTIONBAR_WIDTH : 0;
-            // this.tableContainer.style.width = `calc(100% - ${actionBarWidth}px)`;
 
             let tableOptions: Slick.GridOptions<Slick.SlickData> = {
                 rowHeight: ROW_HEIGHT,
@@ -224,7 +226,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.webViewState!,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
-                props.divId,
+                props.gridParentRef,
             );
 
             collection.setCollectionChangedCallback((startIndex, count) => {
@@ -233,6 +235,19 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             });
             table.updateRowCount();
             gridContainerRef.current?.appendChild(div);
+            if (
+                props.gridParentRef &&
+                props.gridParentRef.current &&
+                props.gridParentRef.current.clientWidth
+            ) {
+                table.layout(
+                    new DOM.Dimension(
+                        props.gridParentRef.current.clientWidth -
+                            ACTIONBAR_WIDTH_PX,
+                        props.gridParentRef.current.clientHeight,
+                    ),
+                );
+            }
         }, [refreshkey]);
 
         useImperativeHandle(ref, () => ({

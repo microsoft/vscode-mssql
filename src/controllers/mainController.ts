@@ -759,6 +759,15 @@ export default class MainController implements vscode.Disposable {
             }
         });
 
+        // redirect the "(preview)" command to the original command
+        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerPreview);
+        this._event.on(Constants.cmdAddObjectExplorerPreview, (args) => {
+            vscode.commands.executeCommand(
+                Constants.cmdAddObjectExplorer,
+                args,
+            );
+        });
+
         // Object Explorer New Query
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
@@ -1755,11 +1764,24 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.Common.dontShowAgain,
         );
 
-        await sendActionEvent(
+        let telemResponse: string;
+
+        switch (response) {
+            case LocalizedConstants.enableRichExperiences:
+                telemResponse = "enableRichExperiences";
+                break;
+            case LocalizedConstants.Common.dontShowAgain:
+                telemResponse = "dontShowAgain";
+                break;
+            default:
+                telemResponse = "dismissed";
+        }
+
+        sendActionEvent(
             TelemetryViews.General,
             TelemetryActions.EnableRichExperiencesPrompt,
             {
-                response,
+                response: telemResponse,
             },
         );
 
@@ -2287,7 +2309,11 @@ export default class MainController implements vscode.Disposable {
                 this.executionPlanService,
                 this.untitledSqlService,
                 planContents,
-                docName,
+                vscode.l10n.t({
+                    message: "{0} (Preview)",
+                    args: [docName],
+                    comment: "{0} is the file name",
+                }),
             );
 
             executionPlanController.revealToForeground();

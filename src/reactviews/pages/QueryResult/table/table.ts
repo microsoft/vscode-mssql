@@ -69,7 +69,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         >,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
-        divId?: string,
+        gridParentRef?: React.RefObject<HTMLDivElement>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
@@ -125,10 +125,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.styleElement = DOM.createStyleSheet(this._container);
         this._tableContainer = document.createElement("div");
         // this._tableContainer.className = //TODO: class name for styles
-        let gridParent = document.getElementById(divId!);
+        let gridParent = gridParentRef?.current;
         if (gridParent) {
             this._tableContainer.style.width = `${(gridParent?.clientWidth - ACTIONBAR_WIDTH_PX).toString()}px`;
-            const height = gridParent?.clientHeight - TABLE_ALIGN_PX;
+            const height = gridParent?.clientHeight;
             this._tableContainer.style.height = `${height.toString()}px`;
         }
         this._container.appendChild(this._tableContainer);

@@ -262,8 +262,8 @@
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
     </trans-unit>
-    <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
-      <source xml:lang="en">Connection Dialog</source>
+    <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
+      <source xml:lang="en">Connection Dialog (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
       <source xml:lang="en">Connection Error</source>
@@ -820,8 +820,8 @@
     <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
       <source xml:lang="en">OK</source>
     </trans-unit>
-    <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
-      <source xml:lang="en">Object Explorer Filter</source>
+    <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
+      <source xml:lang="en">Object Explorer Filter (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
@@ -1404,6 +1404,10 @@
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
     </trans-unit>
+    <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
+      <source xml:lang="en">{0} (Preview)</source>
+      <note>{0} is the file name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
     </trans-unit>
@@ -1456,6 +1460,9 @@
   <file original="package" source-language="en" datatype="plaintext"><body>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.addObjectExplorerPreview">
+      <source xml:lang="en">Add Connection (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -1524,7 +1531,7 @@
       <source xml:lang="en">Do not show prompts to enables UI-based features</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
-      <source xml:lang="en">Edit Connection</source>
+      <source xml:lang="en">Edit Connection (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
@@ -1611,7 +1618,7 @@
       <source xml:lang="en">Enables use of the Sql Authentication Provider for &apos;Microsoft Entra Id Interactive&apos; authentication mode when user selects &apos;AzureMFA&apos; authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for &apos;MSAL&apos; Authentication Library. Please restart Visual Studio Code after changing this option.</source>
     </trans-unit>
     <trans-unit id="mssql.showExecutionPlanInResults">
-      <source xml:lang="en">Estimated Plan</source>
+      <source xml:lang="en">Estimated Plan (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
       <source xml:lang="en">Execute Current Statement</source>
@@ -1620,7 +1627,7 @@
       <source xml:lang="en">Execute Query</source>
     </trans-unit>
     <trans-unit id="mssql.filterNode">
-      <source xml:lang="en">Filter</source>
+      <source xml:lang="en">Filter (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
@@ -1683,7 +1690,7 @@
       <source xml:lang="en">Query History</source>
     </trans-unit>
     <trans-unit id="extension.queryResult">
-      <source xml:lang="en">Query Result</source>
+      <source xml:lang="en">Query Results (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>

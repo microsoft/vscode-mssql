@@ -3,21 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, useState } from "react";
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import * as utils from "./queryPlanSetup";
-import * as azdataGraph from "azdataGraph/dist/build";
 import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./executionPlan.css";
-import { Button, Input, makeStyles, Popover } from "@fluentui/react-components";
-import { ExecutionPlanView } from "./executionPlanView";
+
+import * as azdataGraph from "azdataGraph/dist/build";
+import * as utils from "./queryPlanSetup";
+
+import {
+    Button,
+    Input,
+    Popover,
+    makeStyles,
+    tokens,
+} from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { IconStack } from "./iconMenu";
+import { useContext, useEffect, useRef, useState } from "react";
+
+import { ExecutionPlanContext } from "./executionPlanStateProvider";
+import { ExecutionPlanView } from "./executionPlanView";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
-import { locConstants } from "../../common/locConstants";
+import { IconStack } from "./iconMenu";
 import { PropertiesPane } from "./properties";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -107,7 +116,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
-    const theme = state!.theme;
 
     useEffect(() => {
         if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -232,7 +240,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
             className={classes.panelContainer}
             style={{
                 height: containerHeight,
-                fontFamily: theme.fontFamilyBase,
+                fontFamily: tokens.fontFamilyBase,
             }}
         >
             <div
@@ -244,7 +252,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     id="queryCostContainer"
                     className={classes.queryCostContainer}
                     style={{
-                        background: theme.colorNeutralBackground2,
+                        background: tokens.colorNeutralBackground2,
                     }}
                 >
                     {locConstants.executionPlan.queryCostRelativeToScript(
@@ -269,7 +277,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         id="customZoomInputContainer"
                         className={classes.inputContainer}
                         style={{
-                            background: theme.colorNeutralBackground1,
+                            background: tokens.colorNeutralBackground1,
                         }}
                     >
                         <Input

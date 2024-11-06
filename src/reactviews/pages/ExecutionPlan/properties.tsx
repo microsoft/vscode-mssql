@@ -3,34 +3,38 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
+import "./executionPlan.css";
+
+import * as ep from "./executionPlanInterfaces";
 import * as utils from "./queryPlanSetup";
+
 import {
+    Button,
     DataGrid,
+    DataGridBody,
+    DataGridCell,
     DataGridHeader,
     DataGridHeaderCell,
     DataGridRow,
-    DataGridCell,
-    makeStyles,
-    DataGridBody,
-    createTableColumn,
+    Input,
     TableCellLayout,
     TableColumnDefinition,
-    Button,
     Toolbar,
     ToolbarButton,
-    Input,
+    createTableColumn,
+    makeStyles,
+    tokens,
 } from "@fluentui/react-components";
 import {
     ChevronDown20Regular,
     ChevronRight20Regular,
     Dismiss12Regular,
 } from "@fluentui/react-icons";
-import * as ep from "./executionPlanInterfaces";
-import "./executionPlan.css";
-import { locConstants } from "../../common/locConstants";
+import { useContext, useEffect, useState } from "react";
+
+import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -75,7 +79,7 @@ const useStyles = makeStyles({
     tableHeader: {
         fontWeight: "bold",
         fontSize: "12px",
-        border: "1px solid #bbbbbb",
+        border: "1px solid var(--vscode-foreground)",
     },
     tableRow: {
         height: "25px",
@@ -83,7 +87,7 @@ const useStyles = makeStyles({
     },
     tableCell: {
         overflow: "hidden",
-        border: "1px solid #bbbbbb",
+        border: "1px solid var(--vscode-foreground)",
         fontSize: "12px",
     },
     inputbox: {
@@ -118,7 +122,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 }) => {
     const classes = useStyles();
     const state = useContext(ExecutionPlanContext);
-    const theme = state!.theme;
+    const theme = state!.themeKind;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
@@ -332,14 +336,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             id="propertiesPanelContainer"
             className={classes.paneContainer}
             style={{
-                background: theme.colorNeutralBackground2,
-                borderLeft: `2px solid ${theme.colorNeutralBackground6}`,
+                background: tokens.colorNeutralBackground2,
+                borderLeft: `0.5px solid ${tokens.colorNeutralStroke1}`,
             }}
         >
             <div
                 className={classes.propertiesHeader}
                 style={{
-                    background: theme.colorNeutralBackground2,
+                    background: tokens.colorNeutralBackground2,
                 }}
             >
                 <div>{PROPERTIES}</div>
@@ -347,21 +351,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <Button
                         className={classes.dismissButton}
                         style={{
-                            background: theme.colorNeutralBackground2,
+                            background: tokens.colorNeutralBackground2,
                         }}
                         onClick={() => setPropertiesClicked(false)}
                         icon={<Dismiss12Regular />}
                     />
                 </div>
             </div>
-            <div
-                className={classes.nameContainer}
-                style={{
-                    background: theme.colorNeutralBackground6,
-                }}
-            >
-                {name}
-            </div>
+            <div className={classes.nameContainer}>{name}</div>
             <Toolbar className={classes.toolbar} size="small">
                 <ToolbarButton
                     className={classes.button}
@@ -465,7 +462,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <DataGridHeader
                         className={classes.tableHeader}
                         style={{
-                            background: theme.colorNeutralBackground6,
+                            background: tokens.colorNeutralBackground2,
                         }}
                     >
                         <DataGridRow className={classes.tableRow}>
