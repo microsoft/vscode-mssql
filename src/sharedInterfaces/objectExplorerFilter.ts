@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Theme } from "@fluentui/react-components";
 import * as vscodeMssql from "vscode-mssql";
+
+import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
@@ -22,7 +23,7 @@ export interface ObjectExplorerReducers {
 export interface ObjectExplorerFilterContextProps {
     isLocalizationLoaded: boolean;
     state: ObjectExplorerFilterState | undefined;
-    theme: Theme;
+    themeKind: ColorThemeKind;
     submit: (filters: vscodeMssql.NodeFilter[]) => void;
     clearAllFilters: () => void;
     cancel: () => void;

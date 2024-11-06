@@ -3,9 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import "./executionPlan.css";
+
+import * as ep from "./executionPlanInterfaces";
+
+import {
+    ArrowDown20Regular,
+    ArrowUp20Regular,
+    Dismiss20Regular,
+} from "@fluentui/react-icons";
 import {
     Button,
     Combobox,
@@ -13,15 +19,12 @@ import {
     Input,
     Option,
     makeStyles,
+    tokens,
 } from "@fluentui/react-components";
-import {
-    ArrowUp20Regular,
-    ArrowDown20Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
-import * as ep from "./executionPlanInterfaces";
-import { locConstants } from "../../common/locConstants";
+
 import { ExecutionPlanView } from "./executionPlanView";
+import { locConstants } from "../../common/locConstants";
+import { useState } from "react";
 
 const useStyles = makeStyles({
     inputContainer: {
@@ -67,8 +70,6 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setFindNodeClicked,
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
-    const theme = state!.theme;
     const findNodeComparisonOptions: string[] = [
         locConstants.executionPlan.equals,
         locConstants.executionPlan.contains,
@@ -147,7 +148,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             id="findNodeInputContainer"
             className={classes.inputContainer}
             style={{
-                background: theme.colorNeutralBackground1,
+                background: tokens.colorNeutralBackground1,
             }}
         >
             {locConstants.executionPlan.findNodes}

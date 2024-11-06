@@ -267,6 +267,14 @@ export default class MainController implements vscode.Disposable {
                     true;
                 void this.onRunQuery();
             });
+            this.registerCommand(Constants.cmdEnableActualPlan);
+            this._event.on(Constants.cmdEnableActualPlan, () => {
+                this.onToggleActualPlan(true);
+            });
+            this.registerCommand(Constants.cmdDisableActualPlan);
+            this._event.on(Constants.cmdDisableActualPlan, () => {
+                this.onToggleActualPlan(false);
+            });
             this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(
@@ -749,6 +757,15 @@ export default class MainController implements vscode.Disposable {
                 );
                 connDialog.revealToForeground();
             }
+        });
+
+        // redirect the "(preview)" command to the original command
+        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerPreview);
+        this._event.on(Constants.cmdAddObjectExplorerPreview, (args) => {
+            vscode.commands.executeCommand(
+                Constants.cmdAddObjectExplorer,
+                args,
+            );
         });
 
         // Object Explorer New Query
@@ -1530,6 +1547,11 @@ export default class MainController implements vscode.Disposable {
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
+            self._executionPlanOptions.includeActualExecutionPlanXml =
+                self._queryResultWebviewController.actualPlanStatuses.includes(
+                    uri,
+                );
+
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
             if (editor.selections?.length > 1) {
@@ -1632,6 +1654,30 @@ export default class MainController implements vscode.Disposable {
         });
     }
 
+    public onToggleActualPlan(isEnable: boolean): void {
+        const uri = this._vscodeWrapper.activeTextEditorUri;
+        let actualPlanStatuses =
+            this._queryResultWebviewController.actualPlanStatuses;
+
+        // adds the current uri to the list of uris with actual plan enabled
+        // or removes the uri if the user is disabling it
+        if (isEnable && !actualPlanStatuses.includes(uri)) {
+            actualPlanStatuses.push(uri);
+        } else {
+            this._queryResultWebviewController.actualPlanStatuses =
+                actualPlanStatuses.filter((statusUri) => statusUri != uri);
+        }
+
+        // sets the vscode context variable associated with the
+        // actual plan statuses; this is used in the package.json to
+        // know when to change the enabling/disabling icon
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.executionPlan.urisWithActualPlanEnabled",
+            this._queryResultWebviewController.actualPlanStatuses,
+        );
+    }
+
     /**
      * Access the connection manager for testing
      */
@@ -1718,11 +1764,24 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.Common.dontShowAgain,
         );
 
-        await sendActionEvent(
+        let telemResponse: string;
+
+        switch (response) {
+            case LocalizedConstants.enableRichExperiences:
+                telemResponse = "enableRichExperiences";
+                break;
+            case LocalizedConstants.Common.dontShowAgain:
+                telemResponse = "dontShowAgain";
+                break;
+            default:
+                telemResponse = "dismissed";
+        }
+
+        sendActionEvent(
             TelemetryViews.General,
             TelemetryActions.EnableRichExperiencesPrompt,
             {
-                response,
+                response: telemResponse,
             },
         );
 
@@ -1949,6 +2008,23 @@ export default class MainController implements vscode.Disposable {
             // Pass along the close event to the other handlers for a normal closed file
             await this._connectionMgr.onDidCloseTextDocument(doc);
             this._outputContentProvider.onDidCloseTextDocument(doc);
+        }
+
+        // clean up: if a document is closed with actual plan enabled, remove it
+        // from our status list
+        if (
+            this._queryResultWebviewController.actualPlanStatuses.includes(
+                closedDocumentUri,
+            )
+        ) {
+            this._queryResultWebviewController.actualPlanStatuses.filter(
+                (uri) => uri != closedDocumentUri,
+            );
+            vscode.commands.executeCommand(
+                "setContext",
+                "mssql.executionPlan.urisWithActualPlanEnabled",
+                this._queryResultWebviewController.actualPlanStatuses,
+            );
         }
 
         // Reset special case timers and events
@@ -2233,7 +2309,11 @@ export default class MainController implements vscode.Disposable {
                 this.executionPlanService,
                 this.untitledSqlService,
                 planContents,
-                docName,
+                vscode.l10n.t({
+                    message: "{0} (Preview)",
+                    args: [docName],
+                    comment: "{0} is the file name",
+                }),
             );
 
             executionPlanController.revealToForeground();

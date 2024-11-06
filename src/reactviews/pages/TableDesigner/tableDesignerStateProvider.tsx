@@ -5,15 +5,16 @@
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 
+import {
+    ColorThemeKind,
+    useVscodeWebview,
+} from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext, useRef, useState } from "react";
-
-import { Theme } from "@fluentui/react-components";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 export interface TableDesignerState {
     provider: designer.TableDesignerReactProvider;
     state: designer.TableDesignerWebviewState;
-    theme: Theme;
+    themeKind: ColorThemeKind;
     resultPaneResizeInfo: {
         originalHeight: number;
         setOriginalHeight: (height: number) => void;
@@ -182,7 +183,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
                     },
                 },
                 state: webviewState?.state as designer.TableDesignerWebviewState,
-                theme: webviewState?.theme,
+                themeKind: webviewState?.themeKind,
                 resultPaneResizeInfo: {
                     originalHeight: originalHeight,
                     setOriginalHeight: setOriginalHeight,

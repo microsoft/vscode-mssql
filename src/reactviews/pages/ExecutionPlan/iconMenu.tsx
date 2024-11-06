@@ -3,13 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import * as utils from "./queryPlanSetup";
 import "./executionPlan.css";
-import { makeStyles, Toolbar, ToolbarButton } from "@fluentui/react-components";
-import { locConstants } from "../../common/locConstants";
+
+import * as utils from "./queryPlanSetup";
+
+import {
+    Toolbar,
+    ToolbarButton,
+    makeStyles,
+    tokens,
+} from "@fluentui/react-components";
+import { useContext, useState } from "react";
+
+import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     iconStack: {
@@ -63,7 +71,7 @@ export const IconStack: React.FC<IconStackProps> = ({
 }) => {
     const classes = useStyles();
     const state = useContext(ExecutionPlanContext);
-    const theme = state!.theme;
+    const theme = state!.themeKind;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {
         CustomZoom,
@@ -157,7 +165,7 @@ export const IconStack: React.FC<IconStackProps> = ({
         <Toolbar
             className={classes.iconStack}
             style={{
-                background: `${theme.colorNeutralBackground2}`,
+                background: `${tokens.colorNeutralBackground2}`,
                 minHeight: "300px",
             }}
             vertical
@@ -207,7 +215,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             <hr
                 className={classes.seperator}
                 style={{
-                    background: theme.colorNeutralStroke1,
+                    background: tokens.colorNeutralStroke1,
                 }}
             ></hr>
             <ToolbarButton
@@ -269,7 +277,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             <hr
                 className={classes.seperator}
                 style={{
-                    background: theme.colorNeutralStroke1,
+                    background: tokens.colorNeutralStroke1,
                 }}
             ></hr>
             <ToolbarButton

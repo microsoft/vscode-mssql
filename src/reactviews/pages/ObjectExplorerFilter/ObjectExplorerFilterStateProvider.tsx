@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     ObjectExplorerFilterContextProps,
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../../../sharedInterfaces/objectExplorerFilter";
+
+import { createContext } from "react";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const ObjectExplorerFilterContext = createContext<
     ObjectExplorerFilterContextProps | undefined
@@ -33,7 +34,7 @@ const ObjectExplorerFilterStateProvider: React.FC<
             value={{
                 isLocalizationLoaded: webviewState?.localization,
                 state: objectExplorerFilterState,
-                theme: webviewState?.theme,
+                themeKind: webviewState?.themeKind,
                 submit: function (filters): void {
                     webviewState?.extensionRpc.action("submit", {
                         filters: filters,

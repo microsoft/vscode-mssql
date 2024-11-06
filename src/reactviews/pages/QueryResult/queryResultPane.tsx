@@ -302,6 +302,7 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
+        gridRefs.current.forEach((r) => r?.refreshGrid());
         let count = 0;
         for (
             let i = 0;
@@ -438,10 +439,16 @@ export const QueryResultPane = () => {
     //#region Query Plan
     useEffect(() => {
         // gets execution plans
-        if (metadata && metadata.uri) {
-            state!.provider.getExecutionPlan(metadata!.uri!);
+        if (
+            state &&
+            metadata &&
+            metadata.uri &&
+            metadata.executionPlanState &&
+            !metadata.executionPlanState.executionPlanGraphs!.length
+        ) {
+            state.provider.getExecutionPlan(metadata.uri);
         }
-    });
+    }, [metadata?.executionPlanState?.xmlPlans]);
     //#endregion
 
     return !metadata || !hasResultsOrMessages(metadata) ? (
