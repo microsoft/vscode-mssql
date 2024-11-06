@@ -229,7 +229,7 @@
       "panel": [
         {
           "id": "queryResult",
-          "title": "Query Result",
+          "title": "Query Results (Preview)",
           "icon": "media/SignIn.svg"
         }
       ]
@@ -349,8 +349,14 @@
       "view/title": [
         {
           "command": "mssql.addObjectExplorer",
-          "when": "view == objectExplorer",
+          "when": "view == objectExplorer && !config.mssql.enableRichExperiences",
           "title": "%mssql.addObjectExplorer%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.addObjectExplorerPreview",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences",
+          "title": "%mssql.addObjectExplorerPreview%",
           "group": "navigation"
         },
         {
@@ -561,6 +567,18 @@
         {
           "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences"
+        },
+        {
+          "command": "mssql.addObjectExplorer",
+          "when": "!config.mssql.enableRichExperiences"
+        },
+        {
+          "command": "mssql.addObjectExplorerPreview",
+          "when": "config.mssql.enableRichExperiences"
+        },
+        {
+          "command": "mssql.editConnection",
+          "when": "config.mssql.enableRichExperiences"
         }
       ],
       "webview/context": [
@@ -684,6 +702,12 @@
       {
         "command": "mssql.addObjectExplorer",
         "title": "%mssql.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": "$(add)"
+      },
+      {
+        "command": "mssql.addObjectExplorerPreview",
+        "title": "%mssql.addObjectExplorerPreview%",
         "category": "MS SQL",
         "icon": "$(add)"
       },

@@ -280,8 +280,14 @@
   "Select All": "Select All",
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
-  "Object Explorer Filter": "Object Explorer Filter",
+  "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
   "{0} (filtered)": "{0} (filtered)",
+  "{0} (Preview)/{0} is the file name": {
+    "message": "{0} (Preview)",
+    "comment": [
+      "{0} is the file name"
+    ]
+  },
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -704,7 +710,7 @@
     ]
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
-  "Connection Dialog": "Connection Dialog",
+  "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
