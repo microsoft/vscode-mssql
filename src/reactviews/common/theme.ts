@@ -53,11 +53,27 @@ export const webviewTheme: fluentui.Theme = {
     colorNeutralStroke2: "var(--vscode-editorWidget-border)",
     colorNeutralBackground2: "var(--vscode-keybindingTable-headerBackground)",
     colorNeutralStroke1: "var(--vscode-foreground)",
+    /**
+     * This specifies the border color for input elements.
+     */
     colorNeutralStrokeAccessible: "var(--vscode-foreground)",
+    /**
+     * This specifies the color of the text in disabled input elements.
+     */
     colorNeutralForegroundDisabled: "var(--vscode-disabledForeground)",
+    /**
+     * This specifies the border color for the disabled input elements
+     */
     colorNeutralStrokeDisabled: "var(--vscode-disabledForeground)",
+    /**
+     * This specifies the color of the error icon in the message box and other error indicators
+     */
     colorStatusDangerForeground1: "var(--vscode-errorForeground)",
+    /**
+     * The specifies the border color for an error message box
+     */
     colorStatusDangerBorder1: "var(--vscode-errorForeground)",
+    // This specifies the background color for an error message box
     colorStatusDangerBackground1:
         "var(--vscode-diffEditor-removedTextBackground)",
 };
