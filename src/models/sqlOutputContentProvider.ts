@@ -233,7 +233,7 @@ export class SqlOutputContentProvider {
     private get isDefaultQueryResultToDocumentEnabled(): boolean {
         return this._vscodeWrapper
             .getConfiguration()
-            .get(Constants.enableDefaultQueryResultToDocument);
+            .get(Constants.configEnableDefaultQueryResultToDocument);
     }
 
     private get isRichExperiencesEnabled(): boolean {

@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -97,8 +98,76 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             .get(Constants.configEnableRichExperiences);
     }
 
+    private get isDefaultQueryResultToDocumentEnabled(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration()
+            .get(Constants.configEnableDefaultQueryResultToDocument);
+    }
+
+    private get isDefaultQueryResultToDocumentDoNotShowPromptEnabled(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration()
+            .get(
+                Constants.configEnableDefaultQueryResultToDocumentDoNotShowPrompt,
+            );
+    }
+
+    private get shouldShowDefaultQueryResultToDocumentPrompt(): boolean {
+        return (
+            !this.isDefaultQueryResultToDocumentEnabled &&
+            !this.isDefaultQueryResultToDocumentDoNotShowPromptEnabled
+        );
+    }
+
     private registerRpcHandlers() {
         this.registerRequestHandler("openInNewTab", async (message) => {
+            if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
+                const response =
+                    await this._vscodeWrapper.showInformationMessage(
+                        LocalizedConstants.enableDefaultQueryResultToDocumentPrompt,
+                        LocalizedConstants.msgYes,
+                        LocalizedConstants.Common.dontShowAgain,
+                    );
+                let telemResponse: string;
+                switch (response) {
+                    case LocalizedConstants.enableDefaultQueryResultToDocumentPrompt:
+                        telemResponse = "enableDefaultQueryResultToDocument";
+                        break;
+                    case LocalizedConstants.Common.dontShowAgain:
+                        telemResponse = "dontShowAgain";
+                        break;
+                    default:
+                        telemResponse = "dismissed";
+                }
+
+                sendActionEvent(
+                    TelemetryViews.General,
+                    TelemetryActions.EnableDefaultQueryResultToDocumentPrompt,
+                    {
+                        response: telemResponse,
+                    },
+                );
+
+                if (response === LocalizedConstants.msgYes) {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configEnableDefaultQueryResultToDocument,
+                            true,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                } else if (
+                    response === LocalizedConstants.Common.dontShowAgain
+                ) {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configEnableDefaultQueryResultToDocumentDoNotShowPrompt,
+                            true,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                }
+            }
             await this.createPanelController(message.uri);
         });
         this.registerRequestHandler("getWebviewLocation", async () => {

@@ -192,9 +192,9 @@ export const configEnableRichExperiences = "mssql.enableRichExperiences";
 export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
-export const enableDefaultQueryResultToDocument =
+export const configEnableDefaultQueryResultToDocument =
     "mssql.enableDefaultQueryResultToDocument";
-export const enableDefaultQueryResultToDocumentDoNotShowPrompt =
+export const configEnableDefaultQueryResultToDocumentDoNotShowPrompt =
     "mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt";
 
 // ToolsService Constants
