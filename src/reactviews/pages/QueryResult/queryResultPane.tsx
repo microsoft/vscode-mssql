@@ -146,6 +146,7 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
+            setMessageGridHeight(availableHeight);
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,
@@ -411,29 +412,6 @@ export const QueryResultPane = () => {
             </DataGrid>
         );
     };
-
-    useEffect(() => {
-        const gridParent = gridParentRef.current;
-        if (!gridParent) {
-            return;
-        }
-        const observer = new ResizeObserver(() => {
-            if (!gridRefs.current || !ribbonRef.current) {
-                return;
-            }
-
-            const availableHeight = getAvailableHeight(
-                gridParent,
-                ribbonRef.current,
-            );
-
-            setMessageGridHeight(availableHeight);
-        });
-
-        observer.observe(gridParent);
-
-        return () => observer.disconnect();
-    });
     //#endregion
 
     //#region Query Plan
