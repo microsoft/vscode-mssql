@@ -83,6 +83,7 @@
     "@eslint/js": "^9.5.0",
     "@fluentui/react-components": "^9.54.13",
     "@fluentui/react-list-preview": "^0.3.6",
+    "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
     "@monaco-editor/react": "^4.6.0",
