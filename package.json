@@ -83,6 +83,7 @@
     "@eslint/js": "^9.5.0",
     "@fluentui/react-components": "^9.54.13",
     "@fluentui/react-list-preview": "^0.3.6",
+    "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
     "@monaco-editor/react": "^4.6.0",
@@ -229,7 +230,7 @@
       "panel": [
         {
           "id": "queryResult",
-          "title": "Query Result",
+          "title": "Query Results (Preview)",
           "icon": "media/SignIn.svg"
         }
       ]
@@ -338,6 +339,16 @@
           "command": "mssql.showExecutionPlanInResults",
           "when": "editorLangId == sql && config.mssql.enableRichExperiences",
           "group": "navigation@4"
+        },
+        {
+          "command": "mssql.enableActualPlan",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+          "group": "navigation@5"
+        },
+        {
+          "command": "mssql.disableActualPlan",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+          "group": "navigation@5"
         }
       ],
       "editor/context": [
@@ -349,8 +360,14 @@
       "view/title": [
         {
           "command": "mssql.addObjectExplorer",
-          "when": "view == objectExplorer",
+          "when": "view == objectExplorer && !config.mssql.enableRichExperiences",
           "title": "%mssql.addObjectExplorer%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.addObjectExplorerPreview",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences",
+          "title": "%mssql.addObjectExplorerPreview%",
           "group": "navigation"
         },
         {
@@ -561,6 +578,18 @@
         {
           "command": "mssql.editTable",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences"
+        },
+        {
+          "command": "mssql.addObjectExplorer",
+          "when": "!config.mssql.enableRichExperiences"
+        },
+        {
+          "command": "mssql.addObjectExplorerPreview",
+          "when": "config.mssql.enableRichExperiences"
+        },
+        {
+          "command": "mssql.editConnection",
+          "when": "config.mssql.enableRichExperiences"
         }
       ],
       "webview/context": [
@@ -684,6 +713,12 @@
       {
         "command": "mssql.addObjectExplorer",
         "title": "%mssql.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": "$(add)"
+      },
+      {
+        "command": "mssql.addObjectExplorerPreview",
+        "title": "%mssql.addObjectExplorerPreview%",
         "category": "MS SQL",
         "icon": "$(add)"
       },
@@ -844,6 +879,24 @@
         "icon": {
           "dark": "media/executionPlan_dark.svg",
           "light": "media/executionPlan_light.svg"
+        }
+      },
+      {
+        "command": "mssql.enableActualPlan",
+        "title": "%mssql.enableActualPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/enableActualExecutionPlan_dark.svg",
+          "light": "media/enableActualExecutionPlan_light.svg"
+        }
+      },
+      {
+        "command": "mssql.disableActualPlan",
+        "title": "%mssql.disableActualPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/disableActualExecutionPlan_dark.svg",
+          "light": "media/disableActualExecutionPlan_light.svg"
         }
       }
     ],
