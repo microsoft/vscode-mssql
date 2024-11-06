@@ -55,7 +55,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 executionPlanState: {},
             },
             {
-                title: "Query Result",
+                title: _uri,
                 viewColumn: _viewColumn,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
