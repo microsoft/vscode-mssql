@@ -275,6 +275,7 @@ export class SqlOutputContentProvider {
             }
             this._queryResultWebviewController.addQueryResultState(
                 uri,
+                title,
                 this.getIsExecutionPlan(),
                 this._executionPlanOptions?.includeActualExecutionPlanXml ??
                     false,
@@ -419,6 +420,7 @@ export class SqlOutputContentProvider {
                         this._lastSendMessageTime = Date.now();
                         this._queryResultWebviewController.addQueryResultState(
                             uri,
+                            title,
                             this.getIsExecutionPlan(),
                             this._executionPlanOptions
                                 ?.includeActualExecutionPlanXml ?? false,

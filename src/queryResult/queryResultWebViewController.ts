@@ -303,6 +303,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._vscodeWrapper,
             viewColumn,
             uri,
+            this._queryResultStateMap.get(uri).title,
             this,
         );
         controller.setSqlOutputContentProvider(this._sqlOutputContentProvider);
@@ -318,6 +319,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public addQueryResultState(
         uri: string,
+        title: string,
         isExecutionPlan?: boolean,
         actualPlanEnabled?: boolean,
     ): void {
@@ -328,6 +330,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
             uri: uri,
+            title: title,
             isExecutionPlan: isExecutionPlan,
             actualPlanEnabled: actualPlanEnabled,
             ...(isExecutionPlan && {

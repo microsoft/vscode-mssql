@@ -41,6 +41,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         private _vscodeWrapper: VscodeWrapper,
         private _viewColumn: vscode.ViewColumn,
         private _uri: string,
+        title: string,
         private _queryResultWebviewViewController: QueryResultWebviewController,
     ) {
         super(
@@ -55,7 +56,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 executionPlanState: {},
             },
             {
-                title: _uri,
+                title: title,
                 viewColumn: _viewColumn,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
