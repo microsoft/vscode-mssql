@@ -189,20 +189,41 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             return state;
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            const currentResultState =
-                this._queryResultWebviewViewController.getQueryResultState(
-                    payload.uri,
-                );
-            if (
-                // in the case of a multi-set result set, make sure the
-                // results have fully finished loading by checking that
-                // we have the same amount of xml plans as result sets
-                currentResultState.executionPlanState?.xmlPlans.length &&
-                currentResultState.executionPlanState.xmlPlans.length ===
-                    Object.keys(currentResultState.resultSetSummaries).length &&
-                currentResultState.executionPlanState.executionPlanGraphs
-                    .length === 0
-            ) {
+            // because this is an overridden call, this makes sure it is being
+            // called properly
+            if ("uri" in payload) {
+                const currentResultState =
+                    this._queryResultWebviewViewController.getQueryResultState(
+                        payload.uri,
+                    );
+                if (
+                    !(
+                        // Check if actual plan is enabled or current result is an execution plan
+                        (
+                            (currentResultState.actualPlanEnabled ||
+                                currentResultState.isExecutionPlan) &&
+                            // Ensure execution plan state exists and execution plan graphs have not loaded
+                            currentResultState.executionPlanState &&
+                            currentResultState.executionPlanState
+                                .executionPlanGraphs.length === 0 &&
+                            // Check for non-empty XML plans and result summaries
+                            currentResultState.executionPlanState.xmlPlans
+                                .length &&
+                            Object.keys(currentResultState.resultSetSummaries)
+                                .length &&
+                            // Verify XML plans match expected number of result sets
+                            currentResultState.executionPlanState.xmlPlans
+                                .length ===
+                                this._queryResultWebviewViewController.getNumExecutionPlanResultSets(
+                                    currentResultState.resultSetSummaries,
+                                    currentResultState.actualPlanEnabled,
+                                )
+                        )
+                    )
+                ) {
+                    return state;
+                }
+
                 state = (await createExecutionPlanGraphs(
                     state,
                     this._executionPlanService,
@@ -211,8 +232,9 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 state.executionPlanState.loadState = ApiStatus.Loaded;
                 state.tabStates.resultPaneTab =
                     qr.QueryResultPaneTabs.ExecutionPlan;
+
+                return state;
             }
-            return state;
         });
         this.registerReducer("addXmlPlan", async (state, payload) => {
             state.executionPlanState.xmlPlans = [
