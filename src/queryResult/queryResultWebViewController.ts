@@ -20,14 +20,10 @@ import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentServic
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
-import { getNewResultPaneViewColumn } from "./utils";
 import {
-    createExecutionPlanGraphs,
-    saveExecutionPlan,
-    showPlanXml,
-    showQuery,
-    updateTotalCost,
-} from "../controllers/sharedExecutionPlanUtils";
+    getNewResultPaneViewColumn,
+    registerCommonRequestHandlers,
+} from "./utils";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -173,187 +169,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
-        this.registerRequestHandler("getRows", async (message) => {
-            const result =
-                await this._sqlOutputContentProvider.rowRequestHandler(
-                    message.uri,
-                    message.batchId,
-                    message.resultId,
-                    message.rowStart,
-                    message.numberOfRows,
-                );
-            let currentState = this.getQueryResultState(message.uri);
-            if (
-                currentState.isExecutionPlan &&
-                // check if the current result set is the result set that contains the xml plan
-                currentState.resultSetSummaries[message.batchId][
-                    message.resultId
-                ].columnInfo[0].columnName === Constants.showPlanXmlColumnName
-            ) {
-                currentState.executionPlanState.xmlPlans =
-                    // this gets the xml plan returned by the get execution
-                    // plan query
-                    currentState.executionPlanState.xmlPlans.concat(
-                        result.rows[0][0].displayValue,
-                    );
-            }
-            this.setQueryResultState(message.uri, currentState);
-            return result;
-        });
-        this.registerRequestHandler("setEditorSelection", async (message) => {
-            return await this._sqlOutputContentProvider.editorSelectionRequestHandler(
-                message.uri,
-                message.selectionData,
-            );
-        });
-        this.registerRequestHandler("saveResults", async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.SaveResults,
-                {
-                    correlationId: this._correlationId,
-                    format: message.format,
-                    selection: message.selection,
-                    origin: message.origin,
-                },
-            );
-            return await this._sqlOutputContentProvider.saveResultsRequestHandler(
-                message.uri,
-                message.batchId,
-                message.resultId,
-                message.format,
-                message.selection,
-            );
-        });
-        this.registerRequestHandler("copySelection", async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CopyResults,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
-            return await this._sqlOutputContentProvider.copyRequestHandler(
-                message.uri,
-                message.batchId,
-                message.resultId,
-                message.selection,
-            );
-        });
-        this.registerRequestHandler("copyWithHeaders", async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CopyResultsHeaders,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
-            return await this._sqlOutputContentProvider.copyRequestHandler(
-                message.uri,
-                message.batchId,
-                message.resultId,
-                message.selection,
-                true, //copy headers flag
-            );
-        });
-        this.registerRequestHandler("copyHeaders", async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CopyHeaders,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
-            return await this._sqlOutputContentProvider.copyHeadersRequestHandler(
-                message.uri,
-                message.batchId,
-                message.resultId,
-                message.selection,
-            );
-        });
-        this.registerReducer("setResultTab", async (state, payload) => {
-            state.tabStates.resultPaneTab = payload.tabId;
-            return state;
-        });
-        this.registerReducer("getExecutionPlan", async (state, payload) => {
-            // because this is an overridden call, this makes sure it is being
-            // called properly
-            if ("uri" in payload) {
-                const currentResultState = this.getQueryResultState(
-                    payload.uri,
-                );
-                if (
-                    !(
-                        // Check if actual plan is enabled or current result is an execution plan
-                        (
-                            (currentResultState.actualPlanEnabled ||
-                                currentResultState.isExecutionPlan) &&
-                            // Ensure execution plan state exists and execution plan graphs have not loaded
-                            currentResultState.executionPlanState &&
-                            currentResultState.executionPlanState
-                                .executionPlanGraphs.length === 0 &&
-                            // Check for non-empty XML plans and result summaries
-                            currentResultState.executionPlanState.xmlPlans
-                                .length &&
-                            Object.keys(currentResultState.resultSetSummaries)
-                                .length &&
-                            // Verify XML plans match expected number of result sets
-                            currentResultState.executionPlanState.xmlPlans
-                                .length ===
-                                this.getNumExecutionPlanResultSets(
-                                    currentResultState.resultSetSummaries,
-                                    currentResultState.actualPlanEnabled,
-                                )
-                        )
-                    )
-                ) {
-                    return state;
-                }
-
-                state = (await createExecutionPlanGraphs(
-                    state,
-                    this.executionPlanService,
-                    currentResultState.executionPlanState.xmlPlans,
-                )) as qr.QueryResultWebviewState;
-                state.executionPlanState.loadState = ApiStatus.Loaded;
-                state.tabStates.resultPaneTab =
-                    qr.QueryResultPaneTabs.ExecutionPlan;
-
-                return state;
-            }
-        });
-        this.registerReducer("addXmlPlan", async (state, payload) => {
-            state.executionPlanState.xmlPlans = [
-                ...state.executionPlanState.xmlPlans,
-                payload.xmlPlan,
-            ];
-            return state;
-        });
-        this.registerReducer("saveExecutionPlan", async (state, payload) => {
-            return (await saveExecutionPlan(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
-        });
-        this.registerReducer("showPlanXml", async (state, payload) => {
-            return (await showPlanXml(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
-        });
-        this.registerReducer("showQuery", async (state, payload) => {
-            return (await showQuery(
-                state,
-                payload,
-                this.untitledSqlDocumentService,
-            )) as qr.QueryResultWebviewState;
-        });
-        this.registerReducer("updateTotalCost", async (state, payload) => {
-            return (await updateTotalCost(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
-        });
+        registerCommonRequestHandlers(this, this._correlationId);
     }
 
     public async createPanelController(uri: string) {
@@ -367,15 +183,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         const controller = new QueryResultWebviewPanelController(
             this._context,
-            this.executionPlanService,
-            this.untitledSqlDocumentService,
             this._vscodeWrapper,
             viewColumn,
             uri,
             this._queryResultStateMap.get(uri).title,
             this,
         );
-        controller.setSqlOutputContentProvider(this._sqlOutputContentProvider);
         controller.state = this.getQueryResultState(uri);
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
@@ -467,14 +280,26 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this._sqlOutputContentProvider = provider;
     }
 
+    public getSqlOutputContentProvider(): SqlOutputContentProvider {
+        return this._sqlOutputContentProvider;
+    }
+
     public setExecutionPlanService(service: ExecutionPlanService): void {
         this.executionPlanService = service;
+    }
+
+    public getExecutionPlanService(): ExecutionPlanService {
+        return this.executionPlanService;
     }
 
     public setUntitledDocumentService(
         service: UntitledSqlDocumentService,
     ): void {
         this.untitledSqlDocumentService = service;
+    }
+
+    public getUntitledDocumentService(): UntitledSqlDocumentService {
+        return this.untitledSqlDocumentService;
     }
 
     public async copyAllMessagesToClipboard(uri: string): Promise<void> {
