@@ -22,7 +22,7 @@ import {
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import { useContext, useEffect, useRef, useState } from "react";
-import { OpenFilled } from "@fluentui/react-icons";
+import { OpenRegular } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -502,10 +502,9 @@ export const QueryResultPane = () => {
                 </TabList>
                 {webviewLocation === "panel" && (
                     <Button
-                        appearance="transparent"
-                        icon={<OpenFilled />}
+                        icon={<OpenRegular />}
+                        appearance="subtle"
                         onClick={async () => {
-                            console.log("open in new tab");
                             await webViewState.extensionRpc.call(
                                 "openInNewTab",
                                 {
@@ -513,7 +512,7 @@ export const QueryResultPane = () => {
                                 },
                             );
                         }}
-                        title={locConstants.queryResult.openSnapshot}
+                        title={locConstants.queryResult.openResultInNewTab}
                     ></Button>
                 )}
             </div>
