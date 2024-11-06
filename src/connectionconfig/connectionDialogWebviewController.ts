@@ -687,7 +687,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         "profileName",
     ]);
 
-    private async validateFormComponents(
+    private async validateConnectionProfile(
+        connectionProfile: IConnectionDialogProfile,
         propertyName?: keyof IConnectionDialogProfile,
     ): Promise<number> {
         let errorCount = 0;
@@ -695,7 +696,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             const component = this.getFormComponent(propertyName);
             if (component && component.validate) {
                 component.validation = component.validate(
-                    this.state.connectionProfile[propertyName],
+                    connectionProfile[propertyName],
                 );
                 if (!component.validation.isValid) {
                     return 1;
@@ -714,7 +715,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     } else {
                         if (c.validate) {
                             c.validation = c.validate(
-                                this.state.connectionProfile[c.propertyName],
+                                connectionProfile[c.propertyName],
                             );
                             if (!c.validation.isValid) {
                                 errorCount++;
@@ -900,7 +901,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     payload.event.propertyName
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ] as any) = payload.event.value;
-                await this.validateFormComponents(payload.event.propertyName);
+                await this.validateConnectionProfile(
+                    this.state.connectionProfile,
+                    payload.event.propertyName,
+                );
                 await this.handleAzureMFAEdits(payload.event.propertyName);
             }
             await this.updateItemVisibility();
@@ -935,20 +939,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.state.formError = "";
             this.updateState();
 
-            // Clear the options that aren't being used (due to form selections, like authType)
-            for (const option of Object.values(
-                this.state.connectionComponents.components,
-            )) {
-                if (option.hidden) {
-                    (this.state.connectionProfile[
-                        option.propertyName as keyof IConnectionDialogProfile
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    ] as any) = undefined;
-                }
-            }
+            const cleanedConnection: IConnectionDialogProfile = structuredClone(
+                this.state.connectionProfile,
+            );
+            this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
 
             // Perform final validation of all inputs
-            const errorCount = await this.validateFormComponents();
+            const errorCount =
+                await this.validateConnectionProfile(cleanedConnection);
             if (errorCount > 0) {
                 this.state.connectionStatus = ApiStatus.Error;
                 return state;
@@ -959,7 +957,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     const result =
                         await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            this.state.connectionProfile as any,
+                            cleanedConnection as any,
                         );
 
                     if (result.errorMessage) {
@@ -1299,5 +1297,38 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             rv.get(keyValue)!.push(x);
             return rv;
         }, new Map<K, V[]>());
+    }
+
+    /** Cleans up a connection profile by clearing the properties that aren't being used
+     * (e.g. due to form selections, like authType and inputMode) */
+    private cleanConnection(connection: IConnectionDialogProfile) {
+        // Clear values for inputs that are hidden due to form selections
+        for (const option of Object.values(
+            this.state.connectionComponents.components,
+        )) {
+            if (option.hidden) {
+                (connection[
+                    option.propertyName as keyof IConnectionDialogProfile
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = undefined;
+            }
+        }
+
+        // Clear values for inputs that are not applicable due to the selected input mode
+        if (
+            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
+            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
+            connection.connectionString = undefined;
+        } else if (
+            this.state.selectedInputMode ===
+            ConnectionInputMode.ConnectionString
+        ) {
+            Object.keys(connection).forEach((key) => {
+                if (key !== "connectionString" && key !== "profileName") {
+                    connection[key] = undefined;
+                }
+            });
+        }
     }
 }
