@@ -61,6 +61,12 @@ import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
+import {
+    CredentialsQuickPickItemType,
+    IConnectionCredentialsQuickPickItem,
+    IConnectionProfile,
+} from "../models/interfaces";
+import { locConstants } from "../reactviews/common/locConstants";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -82,6 +88,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             "connectionDialog",
             new ConnectionDialogWebviewState({
                 connectionProfile: {} as IConnectionDialogProfile,
+                savedConnections: [],
                 recentConnections: [],
                 selectedInputMode: ConnectionInputMode.Parameters,
                 connectionComponents: {
@@ -142,7 +149,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private async initializeDialog() {
         try {
-            this.state.recentConnections = await this.loadRecentConnections();
+            await this.updateLoadedConnections(this.state);
             this.updateState();
         } catch (err) {
             void vscode.window.showErrorMessage(getErrorMessage(err));
@@ -202,31 +209,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         await this.updateItemVisibility();
         this.updateState();
-    }
-
-    private async loadRecentConnections(): Promise<IConnectionDialogProfile[]> {
-        const recentConnections =
-            this._mainController.connectionManager.connectionStore
-                .loadAllConnections(true)
-                .map((c) => c.connectionCreds);
-
-        sendActionEvent(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadRecentConnections,
-            undefined, // additionalProperties
-            {
-                recentConnectionsCount: recentConnections.length,
-            },
-        );
-
-        const dialogConnections: IConnectionDialogProfile[] = [];
-        for (let i = 0; i < recentConnections.length; i++) {
-            dialogConnections.push(
-                await this.initializeConnectionForDialog(recentConnections[i]),
-            );
-        }
-
-        return dialogConnections;
     }
 
     private async loadConnectionToEdit() {
@@ -1060,8 +1042,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     );
 
                 this._objectExplorerProvider.refresh(undefined);
-                state.recentConnections = await this.loadRecentConnections();
+                await this.updateLoadedConnections(state);
                 this.updateState();
+
                 this.state.connectionStatus = ApiStatus.Loaded;
                 await this._mainController.objectExplorerTree.reveal(node, {
                     focus: true,
@@ -1106,20 +1089,67 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return state;
         });
 
-        this.registerReducer("refreshMruConnections", async (state) => {
-            state.recentConnections = await this.loadRecentConnections();
-            this.updateState();
-
-            return state;
-        });
-
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             await promptForAzureSubscriptionFilter(state);
             await this.loadAllAzureServers(state);
 
             return state;
         });
+
+        this.registerReducer("refreshConnectionsList", async (state) => {
+            await this.updateLoadedConnections(state);
+
+            return state;
+        });
+
+        this.registerReducer(
+            "deleteSavedConnection",
+            async (state, payload) => {
+                const confirm = await vscode.window.showQuickPick(
+                    [locConstants.common.Delete, locConstants.common.Cancel],
+                    {
+                        title: locConstants.common.AreYouSureYouWantTo(
+                            locConstants.connectionDialog.deleteTheSavedConnection(
+                                payload.connection.displayName,
+                            ),
+                        ),
+                    },
+                );
+
+                if (confirm !== locConstants.common.Delete) {
+                    return state;
+                }
+
+                const success =
+                    await this._mainController.connectionManager.connectionStore.removeProfile(
+                        payload.connection as IConnectionProfile,
+                    );
+
+                if (success) {
+                    await this.updateLoadedConnections(state);
+                }
+
+                return state;
+            },
+        );
+
+        this.registerReducer(
+            "removeRecentConnection",
+            async (state, payload) => {
+                await this._mainController.connectionManager.connectionStore.removeRecentlyUsed(
+                    payload.connection as IConnectionProfile,
+                );
+
+                await this.updateLoadedConnections(state);
+
+                return state;
+            },
+        );
     }
+
+    //#region Helpers
+
+    //#region Azure helpers
 
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
@@ -1290,8 +1320,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
     }
 
-    private groupBy<K, V>(xs: V[], key: string): Map<K, V[]> {
-        return xs.reduce((rv, x) => {
+    //#endregion
+
+    private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
+        return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
             if (!rv.has(keyValue)) {
                 rv.set(keyValue, []);
@@ -1300,4 +1332,60 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return rv;
         }, new Map<K, V[]>());
     }
+
+    private async loadConnections(): Promise<{
+        savedConnections: IConnectionDialogProfile[];
+        recentConnections: IConnectionDialogProfile[];
+    }> {
+        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
+            this._mainController.connectionManager.connectionStore.loadAllConnections(
+                true /* addRecentConnections */,
+            );
+
+        const savedConnections = unsortedConnections
+            .filter(
+                (c) =>
+                    c.quickPickItemType ===
+                    CredentialsQuickPickItemType.Profile,
+            )
+            .map((c) => c.connectionCreds);
+
+        const recentConnections = unsortedConnections
+            .filter(
+                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
+            )
+            .map((c) => c.connectionCreds);
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadRecentConnections,
+            undefined, // additionalProperties
+            {
+                savedConnectionsCount: savedConnections.length,
+                recentConnectionsCount: recentConnections.length,
+            },
+        );
+
+        return {
+            recentConnections: await Promise.all(
+                recentConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+            savedConnections: await Promise.all(
+                savedConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+        };
+    }
+
+    private async updateLoadedConnections(state: ConnectionDialogWebviewState) {
+        const loadedConnections = await this.loadConnections();
+
+        state.recentConnections = loadedConnections.recentConnections;
+        state.savedConnections = loadedConnections.savedConnections;
+    }
+
+    //#endregion
 }

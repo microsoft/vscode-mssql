@@ -70,13 +70,27 @@ const ConnectionDialogStateProvider: React.FC<
                         "cancelTrustServerCertDialog",
                     );
                 },
-                refreshMruConnections: function (): void {
-                    webviewState.extensionRpc.action("refreshMruConnections");
-                },
                 filterAzureSubscriptions: function (): void {
                     webviewState.extensionRpc.action(
                         "filterAzureSubscriptions",
                     );
+                },
+                refreshConnectionsList: function (): void {
+                    webviewState.extensionRpc.action("refreshConnectionsList");
+                },
+                deleteSavedConnection: function (
+                    connection: IConnectionDialogProfile,
+                ): void {
+                    webviewState.extensionRpc.action("deleteSavedConnection", {
+                        connection: connection,
+                    });
+                },
+                removeRecentConnection: function (
+                    connection: IConnectionDialogProfile,
+                ): void {
+                    webviewState.extensionRpc.action("removeRecentConnection", {
+                        connection: connection,
+                    });
                 },
             }}
         >
