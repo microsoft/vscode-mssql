@@ -344,9 +344,9 @@
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">Conexión con: </target>
       </trans-unit>
-      <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
-        <source xml:lang="en">Connection Dialog</source>
-        <target state="translated">Cuadro de diálogo de conexión</target>
+      <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
+        <source xml:lang="en">Connection Dialog (Preview)</source>
+        <target state="new">Connection Dialog (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
@@ -1080,9 +1080,9 @@
         <source xml:lang="en">OK</source>
         <target state="translated">Aceptar</target>
       </trans-unit>
-      <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
-        <source xml:lang="en">Object Explorer Filter</source>
-        <target state="translated">Filtro de Explorador de objetos</target>
+      <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
+        <source xml:lang="en">Object Explorer Filter (Preview)</source>
+        <target state="new">Object Explorer Filter (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1849,6 +1849,11 @@
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
       </trans-unit>
+      <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the file name</note>
+        <target state="new">{0} (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (con filtro)</target>
@@ -1915,6 +1920,10 @@
       <trans-unit id="mssql.addObjectExplorer">
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Agregar conexión</target>
+      </trans-unit>
+      <trans-unit id="mssql.addObjectExplorerPreview">
+        <source xml:lang="en">Add Connection (Preview)</source>
+        <target state="new">Add Connection (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -2001,8 +2010,8 @@
         <target state="translated">No mostrar mensajes para habilitar características basadas en la interfaz de usuario</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">Editar conexión</target>
+        <source xml:lang="en">Edit Connection (Preview)</source>
+        <target state="new">Edit Connection (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
@@ -2113,8 +2122,8 @@
         <target state="translated">Habilita el uso del proveedor de autenticación de SQL para el modo de autenticación "Microsoft Entra Id Interactive" cuando el usuario selecciona la autenticación "AzureMFA". Esto habilita la integración del punto de conexión de recursos del lado servidor al capturar tokens de acceso. Esta opción solo se admite para la biblioteca de autenticación "MSAL". Reinicie Visual Studio Code después de cambiar esta opción.</target>
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">Plan estimado</target>
+        <source xml:lang="en">Estimated Plan (Preview)</source>
+        <target state="new">Estimated Plan (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -2125,8 +2134,8 @@
         <target state="translated">Ejecutar la consulta</target>
       </trans-unit>
       <trans-unit id="mssql.filterNode">
-        <source xml:lang="en">Filter</source>
-        <target state="translated">Filtrar</target>
+        <source xml:lang="en">Filter (Preview)</source>
+        <target state="new">Filter (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
@@ -2209,8 +2218,8 @@
         <target state="translated">Historial de consultas</target>
       </trans-unit>
       <trans-unit id="extension.queryResult">
-        <source xml:lang="en">Query Result</source>
-        <target state="translated">Resultado de la consulta</target>
+        <source xml:lang="en">Query Results (Preview)</source>
+        <target state="new">Query Results (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.refreshObjectExplorerNode">
         <source xml:lang="en">Refresh</source>
