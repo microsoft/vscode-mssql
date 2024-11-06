@@ -363,10 +363,16 @@ export const QueryResultPane = () => {
 
     useEffect(() => {
         // gets execution plans
-        if (metadata && metadata.uri) {
-            state!.provider.getExecutionPlan(metadata!.uri!);
+        if (
+            state &&
+            metadata &&
+            metadata.uri &&
+            metadata.executionPlanState &&
+            !metadata.executionPlanState.executionPlanGraphs!.length
+        ) {
+            state.provider.getExecutionPlan(metadata.uri);
         }
-    });
+    }, [metadata?.executionPlanState?.xmlPlans]);
 
     return !metadata || !hasResultsOrMessages(metadata) ? (
         <div>

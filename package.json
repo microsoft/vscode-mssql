@@ -338,6 +338,16 @@
           "command": "mssql.showExecutionPlanInResults",
           "when": "editorLangId == sql && config.mssql.enableRichExperiences",
           "group": "navigation@4"
+        },
+        {
+          "command": "mssql.enableActualPlan",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+          "group": "navigation@5"
+        },
+        {
+          "command": "mssql.disableActualPlan",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+          "group": "navigation@5"
         }
       ],
       "editor/context": [
@@ -868,6 +878,24 @@
         "icon": {
           "dark": "media/executionPlan_dark.svg",
           "light": "media/executionPlan_light.svg"
+        }
+      },
+      {
+        "command": "mssql.enableActualPlan",
+        "title": "%mssql.enableActualPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/enableActualExecutionPlan_dark.svg",
+          "light": "media/enableActualExecutionPlan_light.svg"
+        }
+      },
+      {
+        "command": "mssql.disableActualPlan",
+        "title": "%mssql.disableActualPlan%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/disableActualExecutionPlan_dark.svg",
+          "light": "media/disableActualExecutionPlan_light.svg"
         }
       }
     ],

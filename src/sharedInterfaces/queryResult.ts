@@ -54,6 +54,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
+    actualPlanEnabled?: boolean;
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
 }

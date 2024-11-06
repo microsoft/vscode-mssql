@@ -1518,6 +1518,9 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="mssql.disableActualPlan">
+      <source xml:lang="en">Disable Actual Plan</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
     </trans-unit>
@@ -1532,6 +1535,9 @@
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableActualPlan">
+      <source xml:lang="en">Enable Actual Plan</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>

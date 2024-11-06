@@ -83,6 +83,8 @@ export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
 export const cmdShowExecutionPlanInResults = "mssql.showExecutionPlanInResults";
+export const cmdEnableActualPlan = "mssql.enableActualPlan";
+export const cmdDisableActualPlan = "mssql.disableActualPlan";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
@@ -221,7 +223,7 @@ export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
     "https://www.microsoft.com/en-us/privacy/privacystatement";
 export const sqlPlanLanguageId = "sqlplan";
-
+export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {
     Windows = "win32",
     Mac = "darwin",

@@ -267,7 +267,8 @@ export class SqlOutputContentProvider {
             }
             this._queryResultWebviewController.addQueryResultState(
                 uri,
-                this._executionPlanOptions?.includeEstimatedExecutionPlanXml ??
+                this.getIsExecutionPlan(),
+                this._executionPlanOptions?.includeActualExecutionPlanXml ??
                     false,
             );
         }
@@ -408,8 +409,9 @@ export class SqlOutputContentProvider {
                 } else {
                     this._queryResultWebviewController.addQueryResultState(
                         uri,
+                        this.getIsExecutionPlan(),
                         this._executionPlanOptions
-                            ?.includeEstimatedExecutionPlanXml ?? false,
+                            ?.includeActualExecutionPlanXml ?? false,
                     );
                     await vscode.commands.executeCommand("queryResult.focus");
                     this._queryResultWebviewController.getQueryResultState(
@@ -729,6 +731,14 @@ export class SqlOutputContentProvider {
         } else {
             return undefined;
         }
+    }
+
+    public getIsExecutionPlan(): boolean {
+        return (
+            (this._executionPlanOptions?.includeEstimatedExecutionPlanXml ??
+                false) ||
+            (this._executionPlanOptions?.includeActualExecutionPlanXml ?? false)
+        );
     }
 
     /**
