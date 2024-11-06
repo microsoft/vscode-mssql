@@ -40,6 +40,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     > = new Map<string, QueryResultWebviewPanelController>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
+    public actualPlanStatuses: string[] = [];
 
     constructor(
         context: vscode.ExtensionContext,
@@ -113,7 +114,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     message.numberOfRows,
                 );
             let currentState = this.getQueryResultState(message.uri);
-            if (currentState.isExecutionPlan) {
+            if (
+                currentState.isExecutionPlan &&
+                // check if the current result set is the result set that contains the xml plan
+                currentState.resultSetSummaries[message.batchId][
+                    message.resultId
+                ].columnInfo[0].columnName === Constants.showPlanXmlColumnName
+            ) {
                 currentState.executionPlanState.xmlPlans =
                     // this gets the xml plan returned by the get execution
                     // plan query
@@ -200,17 +207,40 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return state;
         });
         this.registerReducer("getExecutionPlan", async (state, payload) => {
-            const currentResultState = this.getQueryResultState(payload.uri);
-            if (
-                // in the case of a multi-set result set, make sure the
-                // results have fully finished loading by checking that
-                // we have the same amount of xml plans as result sets
-                currentResultState.executionPlanState?.xmlPlans.length &&
-                currentResultState.executionPlanState.xmlPlans.length ===
-                    Object.keys(currentResultState.resultSetSummaries).length &&
-                currentResultState.executionPlanState.executionPlanGraphs
-                    .length === 0
-            ) {
+            // because this is an overridden call, this makes sure it is being
+            // called properly
+            if ("uri" in payload) {
+                const currentResultState = this.getQueryResultState(
+                    payload.uri,
+                );
+                if (
+                    !(
+                        // Check if actual plan is enabled or current result is an execution plan
+                        (
+                            (currentResultState.actualPlanEnabled ||
+                                currentResultState.isExecutionPlan) &&
+                            // Ensure execution plan state exists and execution plan graphs have not loaded
+                            currentResultState.executionPlanState &&
+                            currentResultState.executionPlanState
+                                .executionPlanGraphs.length === 0 &&
+                            // Check for non-empty XML plans and result summaries
+                            currentResultState.executionPlanState.xmlPlans
+                                .length &&
+                            Object.keys(currentResultState.resultSetSummaries)
+                                .length &&
+                            // Verify XML plans match expected number of result sets
+                            currentResultState.executionPlanState.xmlPlans
+                                .length ===
+                                this.getNumExecutionPlanResultSets(
+                                    currentResultState.resultSetSummaries,
+                                    currentResultState.actualPlanEnabled,
+                                )
+                        )
+                    )
+                ) {
+                    return state;
+                }
+
                 state = (await createExecutionPlanGraphs(
                     state,
                     this.executionPlanService,
@@ -219,8 +249,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 state.executionPlanState.loadState = ApiStatus.Loaded;
                 state.tabStates.resultPaneTab =
                     qr.QueryResultPaneTabs.ExecutionPlan;
+
+                return state;
             }
-            return state;
         });
         this.registerReducer("addXmlPlan", async (state, payload) => {
             state.executionPlanState.xmlPlans = [
@@ -285,7 +316,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         }
     }
 
-    public addQueryResultState(uri: string, isExecutionPlan?: boolean): void {
+    public addQueryResultState(
+        uri: string,
+        isExecutionPlan?: boolean,
+        actualPlanEnabled?: boolean,
+    ): void {
         let currentState = {
             resultSetSummaries: {},
             messages: [],
@@ -294,6 +329,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             uri: uri,
             isExecutionPlan: isExecutionPlan,
+            actualPlanEnabled: actualPlanEnabled,
             ...(isExecutionPlan && {
                 executionPlanState: {
                     loadState: ApiStatus.Loading,
@@ -382,5 +418,29 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         const messageText = messages.join("\n");
         await this._vscodeWrapper.clipboardWriteText(messageText);
+    }
+
+    public getNumExecutionPlanResultSets(
+        resultSetSummaries: qr.QueryResultWebviewState["resultSetSummaries"],
+        actualPlanEnabled: boolean,
+    ): number {
+        const summariesLength = Object.keys(resultSetSummaries).length;
+        if (!actualPlanEnabled) {
+            return summariesLength;
+        }
+        // count the amount of xml showplans in the result summaries
+        let total = 0;
+        Object.values(resultSetSummaries).forEach((batch) => {
+            Object.values(batch).forEach((result) => {
+                // Check if any column in columnInfo has the specific column name
+                if (
+                    result.columnInfo[0].columnName ===
+                    Constants.showPlanXmlColumnName
+                ) {
+                    total++;
+                }
+            });
+        });
+        return total;
     }
 }

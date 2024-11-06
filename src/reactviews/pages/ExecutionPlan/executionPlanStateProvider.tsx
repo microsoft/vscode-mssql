@@ -3,15 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext } from "react";
 import * as ep from "./executionPlanInterfaces";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { Theme } from "@fluentui/react-components";
+
+import {
+    ColorThemeKind,
+    useVscodeWebview,
+} from "../../common/vscodeWebviewProvider";
+import { ReactNode, createContext } from "react";
 
 export interface ExecutionPlanState {
     provider: ep.ExecutionPlanProvider;
     state: ep.ExecutionPlanWebviewState;
-    theme: Theme;
+    themeKind: ColorThemeKind;
 }
 
 const ExecutionPlanContext = createContext<ExecutionPlanState | undefined>(
@@ -60,7 +63,7 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
                     },
                 },
                 state: webviewState?.state as ep.ExecutionPlanWebviewState,
-                theme: webviewState?.theme,
+                themeKind: webviewState?.themeKind,
             }}
         >
             {children}

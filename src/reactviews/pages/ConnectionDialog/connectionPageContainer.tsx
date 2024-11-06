@@ -3,32 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, useContext } from "react";
-import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import "./sqlServerRotation.css";
+
+import {
+    ConnectionDialogContextProps,
+    ConnectionInputMode,
+    IConnectionDialogProfile,
+} from "../../../sharedInterfaces/connectionDialog";
 import {
     Field,
+    Image,
     MessageBar,
     Radio,
     RadioGroup,
-    Image,
-    Theme,
 } from "@fluentui/react-components";
-import { SlideText20Regular, Form20Regular } from "@fluentui/react-icons";
-import {
-    ConnectionDialogContextProps,
-    IConnectionDialogProfile,
-    ConnectionInputMode,
-} from "../../../sharedInterfaces/connectionDialog";
-import "./sqlServerRotation.css";
-
-import { ConnectionHeader } from "./components/connectionHeader.component";
-import { ConnectionFormPage } from "./connectionFormPage";
-import { ConnectionStringPage } from "./connectionStringPage";
+import { Form20Regular, SlideText20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { FormItemSpec } from "../../common/forms/form";
-import { locConstants } from "../../common/locConstants";
+import { ReactNode, useContext } from "react";
+
 import { AzureBrowsePage } from "./azureBrowsePage";
+import { ColorThemeKind } from "../../common/vscodeWebviewProvider";
+import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import { ConnectionFormPage } from "./connectionFormPage";
+import { ConnectionHeader } from "./components/connectionHeader.component";
+import { ConnectionStringPage } from "./connectionStringPage";
+import { FormItemSpec } from "../../common/forms/form";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
+import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 
 function renderContent(
@@ -48,7 +49,7 @@ export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
 
-    function azureIcon(colorTheme: Theme) {
+    function azureIcon(colorTheme: ColorThemeKind) {
         const theme = themeType(colorTheme);
         const saveIcon =
             theme === "dark"
@@ -137,7 +138,7 @@ export const ConnectionInfoFormContainer = () => {
                                         }}
                                     >
                                         <Image
-                                            src={azureIcon(context.theme)}
+                                            src={azureIcon(context.themeKind)}
                                             alt="Azure"
                                             height={20}
                                             width={20}

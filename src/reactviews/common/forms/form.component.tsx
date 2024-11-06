@@ -3,27 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useEffect, useState } from "react";
 import {
-    Input,
     Button,
+    Checkbox,
+    Dropdown,
+    Field,
+    FieldProps,
+    InfoLabel,
+    Input,
+    LabelProps,
+    Option,
     Textarea,
     makeStyles,
-    Field,
-    InfoLabel,
-    LabelProps,
-    Dropdown,
-    Checkbox,
-    Option,
-    FieldProps,
+    tokens,
 } from "@fluentui/react-components";
-import { EyeRegular, EyeOffRegular } from "@fluentui/react-icons";
+import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import {
+    FormContextProps,
     FormItemSpec,
     FormItemType,
-    FormContextProps,
     FormState,
 } from "./form";
+import { useEffect, useState } from "react";
 
 export const FormInput = <
     TContext extends FormContextProps<TState, TForm>,
@@ -161,7 +162,7 @@ export const FormField = <
                         : component.label
                 }
                 {...props}
-                style={{ color: context.theme.colorNeutralForeground1 }}
+                style={{ color: tokens.colorNeutralForeground1 }}
             >
                 {generateFormComponent(context, component, idx)}
             </Field>

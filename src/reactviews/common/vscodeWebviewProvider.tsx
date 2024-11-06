@@ -3,18 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    FluentProvider,
-    Theme,
-    teamsHighContrastTheme,
-    webDarkTheme,
-    webLightTheme,
-} from "@fluentui/react-components";
+import * as l10n from "@vscode/l10n";
+
 import { createContext, useContext, useEffect, useState } from "react";
+
+import { FluentProvider } from "@fluentui/react-components";
+import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
-import * as l10n from "@vscode/l10n";
-import { LocConstants } from "./locConstants";
+import { webviewTheme } from "./theme";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -37,7 +34,7 @@ export interface VscodeWebviewContext<State, Reducers> {
     /**
      * Theme of the webview.
      */
-    theme: Theme;
+    themeKind: ColorThemeKind;
     /**
      * Localization status. The value is true when the localization file content is received from the extension.
      * This is used to force a re-render of the component when the localization file content is received.
@@ -65,24 +62,14 @@ export function VscodeWebviewProvider<State, Reducers>({
 }: VscodeWebviewProviderProps) {
     const vscodeApi = vscodeApiInstance;
     const extensionRpc = WebviewRpc.getInstance<Reducers>(vscodeApi);
-    const [theme, setTheme] = useState(webLightTheme);
+    const [theme, setTheme] = useState(ColorThemeKind.Light);
     const [state, setState] = useState<State>();
     const [localization, setLocalization] = useState<boolean>(false);
 
     useEffect(() => {
         async function getTheme() {
             const theme = await extensionRpc.call("getTheme");
-            switch (theme) {
-                case ColorThemeKind.Dark:
-                    setTheme(webDarkTheme);
-                    break;
-                case ColorThemeKind.HighContrast:
-                    setTheme(teamsHighContrastTheme);
-                    break;
-                default:
-                    setTheme(webLightTheme);
-                    break;
-            }
+            setTheme(theme as ColorThemeKind);
         }
 
         async function getState() {
@@ -125,18 +112,7 @@ export function VscodeWebviewProvider<State, Reducers>({
         "vscodeWebviewProvider",
         "onDidChangeTheme",
         (params) => {
-            const kind = params as ColorThemeKind;
-            switch (kind) {
-                case ColorThemeKind.Dark:
-                    setTheme(webDarkTheme);
-                    break;
-                case ColorThemeKind.HighContrast:
-                    setTheme(teamsHighContrastTheme);
-                    break;
-                default:
-                    setTheme(webLightTheme);
-                    break;
-            }
+            setTheme(params as ColorThemeKind);
         },
     );
 
@@ -154,7 +130,7 @@ export function VscodeWebviewProvider<State, Reducers>({
                 vscodeApi: vscodeApi,
                 extensionRpc: extensionRpc,
                 state: state,
-                theme: theme,
+                themeKind: theme,
                 localization: localization,
             }}
         >
@@ -162,9 +138,8 @@ export function VscodeWebviewProvider<State, Reducers>({
                 style={{
                     height: "100%",
                     width: "100%",
-                    color: "var(--vscode-foreground)",
                 }}
-                theme={theme}
+                theme={webviewTheme}
             >
                 {
                     // don't render webview unless necessary dependencies are initialized

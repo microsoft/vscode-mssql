@@ -660,7 +660,7 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ConnectionDialog {
-    public static connectionDialog = l10n.t("Connection Dialog");
+    public static connectionDialog = l10n.t("Connection Dialog (Preview)");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
     public static selectAnAccount = l10n.t("Select an account");

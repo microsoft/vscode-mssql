@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogReducers,
@@ -12,6 +10,9 @@ import {
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
+
+import { createContext } from "react";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const ConnectionDialogContext = createContext<
     ConnectionDialogContextProps | undefined
@@ -33,7 +34,7 @@ const ConnectionDialogStateProvider: React.FC<
         <ConnectionDialogContext.Provider
             value={{
                 state: connectionDialogState,
-                theme: webviewState?.theme,
+                themeKind: webviewState?.themeKind,
                 loadConnection: function (
                     connection: IConnectionDialogProfile,
                 ): void {
