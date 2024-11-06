@@ -30,6 +30,7 @@ import {
 const pd = require("pretty-data").pd;
 
 const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
+const MESSAGE_INTERVAL_IN_MS = 300;
 
 // holds information about the state of a query runner
 export class QueryRunnerState {
@@ -56,6 +57,7 @@ export class SqlOutputContentProvider {
     private _panels = new Map<string, WebviewPanelController>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _executionPlanOptions: ExecutionPlanOptions = {};
+    private _lastSendMessageTime: number;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(
@@ -414,6 +416,7 @@ export class SqlOutputContentProvider {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                 } else {
                     try {
+                        this._lastSendMessageTime = Date.now();
                         this._queryResultWebviewController.addQueryResultState(
                             uri,
                             this.getIsExecutionPlan(),
@@ -518,20 +521,34 @@ export class SqlOutputContentProvider {
                         this._queryResultWebviewController
                             .getQueryResultState(uri)
                             .messages.push(message);
-                        this._queryResultWebviewController.getQueryResultState(
-                            uri,
-                        ).tabStates.resultPaneTab =
-                            QueryResultPaneTabs.Messages;
-                        this._queryResultWebviewController.state =
+
+                        // Set state for messages at fixed intervals to avoid spamming the webview
+                        if (
+                            this._lastSendMessageTime <
+                            Date.now() - MESSAGE_INTERVAL_IN_MS
+                        ) {
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
+                            ).tabStates.resultPaneTab =
+                                QueryResultPaneTabs.Messages;
+                            this._queryResultWebviewController.state =
+                                this._queryResultWebviewController.getQueryResultState(
+                                    uri,
+                                );
+                            // vscode.commands.executeCommand("queryResult.focus");
+                            this._queryResultWebviewController.updatePanelState(
+                                uri,
                             );
-                        // vscode.commands.executeCommand("queryResult.focus");
-                        this._queryResultWebviewController.updatePanelState(
-                            uri,
-                        );
-                        if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            vscode.commands.executeCommand("queryResult.focus");
+                            if (
+                                !this._queryResultWebviewController.hasPanel(
+                                    uri,
+                                )
+                            ) {
+                                vscode.commands.executeCommand(
+                                    "queryResult.focus",
+                                );
+                            }
+                            this._lastSendMessageTime = Date.now();
                         }
                     } catch (e) {
                         // console.error(e);
@@ -564,15 +581,6 @@ export class SqlOutputContentProvider {
                                         ),
                                     isError: hasError,
                                 });
-                            this._queryResultWebviewController.getQueryResultState(
-                                uri,
-                            ).tabStates.resultPaneTab =
-                                QueryResultPaneTabs.Messages;
-                            this._queryResultWebviewController.state =
-                                this._queryResultWebviewController.getQueryResultState(
-                                    uri,
-                                );
-                            // vscode.commands.executeCommand("queryResult.focus");
                             const tabState =
                                 Object.keys(
                                     this._queryResultWebviewController.getQueryResultState(
