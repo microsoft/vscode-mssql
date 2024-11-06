@@ -97,6 +97,15 @@
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">Вы действительно хотите разорвать подключение?</target>
       </trans-unit>
+      <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
+        <source xml:lang="en">Are you sure you want to {0}?</source>
+        <note>{0} is the action being confirmed</note>
+        <target state="new">Are you sure you want to {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
+        <source xml:lang="en">Are you sure?</source>
+        <target state="new">Are you sure?</target>
+      </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">Библиотека проверки подлинности изменена. Перезагрузите Visual Studio Code.</target>
@@ -465,6 +474,10 @@
         <source xml:lang="en">Delete</source>
         <target state="translated">Удалить</target>
       </trans-unit>
+      <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
+        <source xml:lang="en">Delete saved connection</source>
+        <target state="new">Delete saved connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
         <target state="translated">Описание</target>
@@ -778,9 +791,9 @@
         <source xml:lang="en">Greater Than</source>
         <target state="translated">Больше</target>
       </trans-unit>
-      <trans-unit id="++CODE++8885e80bb197b22bc702906ef86b149ad49d258c5cb14b09227c19ee4f01061e">
-        <source xml:lang="en">Greater Than Or Equals</source>
-        <target state="translated">Больше или равно</target>
+      <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
+        <source xml:lang="en">Greater Than or Equals</source>
+        <target state="new">Greater Than or Equals</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -868,9 +881,9 @@
         <source xml:lang="en">Less Than</source>
         <target state="translated">Меньше</target>
       </trans-unit>
-      <trans-unit id="++CODE++a408b91cd1b01aac0b9fa7eec7fafac233eb172b0aafcdf013d88575fac35c1f">
-        <source xml:lang="en">Less Than Or Equals</source>
-        <target state="translated">Меньше или равно</target>
+      <trans-unit id="++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842">
+        <source xml:lang="en">Less Than or Equals</source>
+        <target state="new">Less Than or Equals</target>
       </trans-unit>
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
@@ -1280,6 +1293,10 @@
         <source xml:lang="en">Remove</source>
         <target state="translated">Удалить</target>
       </trans-unit>
+      <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
+        <source xml:lang="en">Remove recent connection</source>
+        <target state="new">Remove recent connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
         <source xml:lang="en">Remove {0}</source>
         <note>{0} is the object type</note>
@@ -1356,6 +1373,10 @@
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         <target state="translated">Команда сохранения результатов не может быть использована при выборе нескольких элементов.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
+        <source xml:lang="en">Saved Connections</source>
+        <target state="new">Saved Connections</target>
       </trans-unit>
       <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
         <source xml:lang="en">Scale</source>
@@ -1804,6 +1825,11 @@
       <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
         <source xml:lang="en">database</source>
         <target state="translated">база данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
+        <source xml:lang="en">delete the saved connection: {0}?</source>
+        <note>{0} is the connection name</note>
+        <target state="new">delete the saved connection: {0}?</target>
       </trans-unit>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
