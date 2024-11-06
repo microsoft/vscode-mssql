@@ -367,7 +367,7 @@ export const QueryResultPane = () => {
             className={classes.messagesRows}
         >
             {({ renderCell }) => (
-                <DataGridCell focusMode="group">
+                <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
                     {renderCell(item)}
                 </DataGridCell>
             )}
