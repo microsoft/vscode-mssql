@@ -8,7 +8,10 @@
 
 import { FilterableColumn } from "../interfaces";
 import { append, $ } from "../dom";
-import { instanceOfIDisposableDataProvider } from "../dataProvider";
+import {
+    IDisposableDataProvider,
+    instanceOfIDisposableDataProvider,
+} from "../dataProvider";
 import "./headerFilter.css";
 import { locConstants } from "../../../../common/locConstants";
 
@@ -41,6 +44,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
         string,
         HTMLElement
     >();
+    private list?: List<TableFilterListElement>;
+    private listData: TableFilterListElement[];
+    private filteredListData: TableFilterListElement[];
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
@@ -100,7 +106,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $el.on("click", async (e: JQuery.ClickEvent) => {
             e.stopPropagation();
             e.preventDefault();
-            this.showFilter($el[0]);
+            await this.showFilter($el[0]);
         });
 
         $el.appendTo(args.node);
@@ -109,7 +115,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.columnButtonMapping[column.id] = $el[0];
     }
 
-    private showFilter(filterButton: HTMLElement) {
+    private async showFilter(filterButton: HTMLElement) {
         let $menuButton;
         const target = withNullAsUndefined(filterButton);
         if (target) {
@@ -135,6 +141,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
             '<div id="popup-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
                 `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
+                `<div id="checkbox-list" class="checkbox-list"></div>` +
+                `<button id="apply" type="button" class="sort-btn">${locConstants.queryResult.apply}</button>` +
+                `<button id="clear" type="button" class="sort-btn">${locConstants.queryResult.clear}</button>` +
                 `<button id="close-popup" type="button" class="sort-btn">${locConstants.queryResult.cancel}</button>` +
                 "</div>",
         );
@@ -146,6 +155,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
             });
         }
 
+        await this.createFilterList();
+
         // Append and show the new popup
         $popup.appendTo(document.body);
         openPopup($popup);
@@ -155,6 +166,15 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         // Set the new popup as the active popup
         this.activePopup = $popup;
+        const checkboxContainer = $popup.find("#checkbox-list");
+        if (this.listData) {
+            this.listData.forEach((option) => {
+                const checkbox = jQuery(
+                    `<label><input type="checkbox" value="${option.value}"> ${option.displayText}</label>`,
+                );
+                checkbox.appendTo(checkboxContainer);
+            });
+        }
 
         // Add event listeners for closing or interacting with the popup
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
@@ -194,6 +214,26 @@ export class HeaderFilter<T extends Slick.SlickData> {
             },
         );
 
+        jQuery(document).on("click", "#apply", async (e: JQuery.ClickEvent) => {
+            this.columnDef.filterValues = this.listData
+                .filter((element) => element.checked)
+                .map((element) => element.value);
+            this.setButtonImage(
+                $menuButton,
+                this.columnDef.filterValues.length > 0,
+            );
+            closePopup($popup);
+            this.applyFilterSelections(checkboxContainer);
+            await this.handleApply(this.columnDef);
+        });
+
+        jQuery(document).on("click", "#clear", async (e: JQuery.ClickEvent) => {
+            this.columnDef.filterValues!.length = 0;
+            this.setButtonImage($menuButton, false);
+            closePopup($popup);
+            await this.handleApply(this.columnDef);
+        });
+
         function closePopup($popup: JQuery<HTMLElement>) {
             $popup.fadeOut();
         }
@@ -203,6 +243,39 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
     }
 
+    private applyFilterSelections(checkboxContainer: JQuery<HTMLElement>) {
+        const selectedValues: string[] = [];
+        checkboxContainer
+            .find("input[type=checkbox]:checked")
+            .each((_idx, checkbox) => {
+                selectedValues.push((<HTMLInputElement>checkbox).value);
+            });
+
+        // Update the column filter values
+        this.columnDef.filterValues = selectedValues;
+        this.onFilterApplied.notify({
+            grid: this.grid,
+            column: this.columnDef,
+        });
+
+        // Refresh the grid or apply filtering logic based on the selected values
+        this.grid.invalidate();
+        this.grid.render();
+    }
+
+    private async handleApply(columnDef: Slick.Column<T>) {
+        const dataView = this.grid.getData();
+        if (instanceOfIDisposableDataProvider(dataView)) {
+            await (dataView as IDisposableDataProvider<T>).filter(
+                this.grid.getColumns(),
+            );
+            this.grid.invalidateAllRows();
+            this.grid.updateRowCount();
+            this.grid.render();
+        }
+        this.onFilterApplied.notify({ grid: this.grid, column: columnDef });
+        this.setFocusToColumn(columnDef);
+    }
     private async handleMenuItemClick(
         command: HeaderFilterCommands,
         columnDef: Slick.Column<T>,
@@ -238,6 +311,88 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.setFocusToColumn(columnDef);
     }
 
+    private async createFilterList(): Promise<void> {
+        this.columnDef.filterValues = this.columnDef.filterValues || [];
+        // WorkingFilters is a copy of the filters to enable apply/cancel behaviour
+        const workingFilters = this.columnDef.filterValues.slice(0);
+        let filterItems: Array<string>;
+        const dataView = this.grid.getData() as Slick.DataProvider<T>;
+        if (instanceOfIDisposableDataProvider(dataView)) {
+            filterItems = await (
+                dataView as IDisposableDataProvider<T>
+            ).getColumnValues(this.columnDef);
+        } else {
+            const filterApplied =
+                this.grid.getColumns().findIndex((col) => {
+                    const filterableColumn = col as FilterableColumn<T>;
+                    return filterableColumn.filterValues?.length > 0;
+                }) !== -1;
+            if (!filterApplied) {
+                // Filter based all available values
+                filterItems = this.getFilterValues(
+                    this.grid.getData() as Slick.DataProvider<T>,
+                    this.columnDef,
+                );
+            } else {
+                // Filter based on current dataView subset
+                filterItems = this.getAllFilterValues(
+                    (
+                        this.grid.getData() as Slick.Data.DataView<T>
+                    ).getFilteredItems(),
+                    this.columnDef,
+                );
+            }
+        }
+        // Sort the list to make it easier to find a string
+        filterItems.sort();
+
+        // Promote undefined (NULL) to be always at the top of the list
+        const nullValueIndex = filterItems.indexOf(undefined);
+        if (nullValueIndex !== -1) {
+            filterItems.splice(nullValueIndex, 1);
+            filterItems.unshift(undefined);
+        }
+
+        this.listData = [];
+        for (let i = 0; i < filterItems.length; i++) {
+            const filtered = workingFilters.some((x) => x === filterItems[i]);
+            // work item to remove the 'Error:' string check: https://github.com/microsoft/azuredatastudio/issues/15206
+            const filterItem = filterItems[i];
+            if (!filterItem || filterItem.indexOf("Error:") < 0) {
+                let element = new TableFilterListElement(filterItem, filtered);
+                this.listData.push(element);
+            }
+        }
+    }
+
+    private getFilterValues(
+        dataView: Slick.DataProvider<T>,
+        column: Slick.Column<T>,
+    ): Array<any> {
+        const seen: Set<string> = new Set();
+        dataView.getItems().forEach((items) => {
+            const value = items[column.field!];
+            const valueArr = value instanceof Array ? value : [value];
+            valueArr.forEach((v) => seen.add(v));
+        });
+
+        return Array.from(seen);
+    }
+
+    private getAllFilterValues(data: Array<T>, column: Slick.Column<T>) {
+        const seen: Set<any> = new Set();
+
+        data.forEach((items) => {
+            const value = items[column.field!];
+            const valueArr = value instanceof Array ? value : [value];
+            valueArr.forEach((v) => seen.add(v));
+        });
+
+        return Array.from(seen).sort((v) => {
+            return v;
+        });
+    }
+
     private handleBeforeHeaderCellDestroy(
         _e: Event,
         args: Slick.OnBeforeHeaderCellDestroyEventArgs<T>,
@@ -267,6 +422,38 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     classList.remove("filtered");
                 }
             }
+        }
+    }
+}
+
+class TableFilterListElement {
+    private _checked: boolean;
+
+    constructor(val: string, checked: boolean) {
+        this.value = val;
+        this._checked = checked;
+
+        // Handle the values that are visually hard to differentiate.
+        if (val === undefined) {
+            this.displayText = locConstants.queryResult.null;
+        } else if (val === "") {
+            this.displayText = locConstants.queryResult.blankString;
+        } else {
+            this.displayText = val;
+        }
+    }
+
+    public displayText: string;
+    public value: string;
+
+    // public onCheckStateChanged = this._onCheckStateChanged.event;
+
+    public get checked(): boolean {
+        return this._checked;
+    }
+    public set checked(val: boolean) {
+        if (this._checked !== val) {
+            this._checked = val;
         }
     }
 }
