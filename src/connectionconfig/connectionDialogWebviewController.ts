@@ -241,6 +241,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async initializeConnectionForDialog(
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
+        console.debug(`Initializing connection: ${connection}`);
+
         // Load the password if it's saved
         const isConnectionStringConnection =
             connection.connectionString !== undefined &&
@@ -1399,14 +1401,28 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         return {
             recentConnections: await Promise.all(
-                recentConnections.map((conn) =>
-                    this.initializeConnectionForDialog(conn),
-                ),
+                recentConnections.map((conn) => {
+                    try {
+                        return this.initializeConnectionForDialog(conn);
+                    } catch (ex) {
+                        console.error(
+                            "Recent connection: " + getErrorMessage(ex),
+                        );
+                        return Promise.resolve(undefined);
+                    }
+                }),
             ),
             savedConnections: await Promise.all(
-                savedConnections.map((conn) =>
-                    this.initializeConnectionForDialog(conn),
-                ),
+                savedConnections.map((conn) => {
+                    try {
+                        return this.initializeConnectionForDialog(conn);
+                    } catch (ex) {
+                        console.error(
+                            "Recent connection: " + getErrorMessage(ex),
+                        );
+                        return Promise.resolve(undefined);
+                    }
+                }),
             ),
         };
     }
