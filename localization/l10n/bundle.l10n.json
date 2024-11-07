@@ -280,6 +280,9 @@
   "Select All": "Select All",
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
+  "NULL": "NULL",
+  "Blanks": "Blanks",
+  "Apply": "Apply",
   "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
   "{0} (filtered)": "{0} (filtered)",
   "{0} (Preview)/{0} is the file name": {
