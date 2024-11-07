@@ -193,6 +193,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         // Close the pop-up when the close-popup button is clicked
         jQuery(document).on("click", "#close-popup", () => {
             closePopup($popup);
+            this.activePopup = null;
         });
 
         // Sorting button click handlers
@@ -202,6 +203,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             (_e: JQuery.ClickEvent) => {
                 void this.handleMenuItemClick("sort-asc", this.columnDef);
                 closePopup($popup);
+                this.activePopup = null;
             },
         );
 
@@ -211,6 +213,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             (_e: JQuery.ClickEvent) => {
                 void this.handleMenuItemClick("sort-desc", this.columnDef);
                 closePopup($popup);
+                this.activePopup = null;
             },
         );
 
@@ -223,6 +226,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 this.columnDef.filterValues.length > 0,
             );
             closePopup($popup);
+            this.activePopup = null;
             this.applyFilterSelections(checkboxContainer);
             await this.handleApply(this.columnDef);
         });
@@ -231,6 +235,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.columnDef.filterValues!.length = 0;
             this.setButtonImage($menuButton, false);
             closePopup($popup);
+            this.activePopup = null;
             await this.handleApply(this.columnDef);
         });
 
