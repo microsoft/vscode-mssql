@@ -71,7 +71,7 @@ const useStyles = makeStyles({
     },
     issuesContainer: {
         width: "100%",
-        height: "100%",
+        height: "calc( 100% - 10px )", // Subtracting 10px to account for padding and hiding double scrollbars
         flexDirection: "column",
         "> *": {
             marginBottom: "10px",

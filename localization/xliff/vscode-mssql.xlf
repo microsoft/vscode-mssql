@@ -593,6 +593,9 @@
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+      <source xml:lang="en">General</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>

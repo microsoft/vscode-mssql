@@ -741,3 +741,9 @@ export class Webview {
         });
     public static Restore = l10n.t("Restore");
 }
+
+export class TableDesigner {
+    public static General = l10n.t("General");
+    public static Columns = l10n.t("Columns");
+    public static AdvancedOptions = l10n.t("Advanced Options");
+}

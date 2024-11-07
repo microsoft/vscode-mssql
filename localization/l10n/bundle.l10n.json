@@ -773,6 +773,7 @@
       "{0} is the webview name"
     ]
   },
+  "General": "General",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
