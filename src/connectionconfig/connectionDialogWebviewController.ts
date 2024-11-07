@@ -361,33 +361,47 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     }
 
     private async getAccounts(): Promise<FormItemOptions[]> {
-        const accounts =
-            await this._mainController.azureAccountService.getAccounts();
-        return accounts.map((account) => {
-            return {
-                displayName: account.displayInfo.displayName,
-                value: account.displayInfo.userId,
-            };
-        });
+        try {
+            const accounts =
+                await this._mainController.azureAccountService.getAccounts();
+            return accounts.map((account) => {
+                return {
+                    displayName: account.displayInfo.displayName,
+                    value: account.displayInfo.userId,
+                };
+            });
+        } catch (error) {
+            console.error(
+                `Error loading Azure accounts: ${getErrorMessage(error)}`,
+            );
+            return [];
+        }
     }
 
     private async getTenants(accountId: string): Promise<FormItemOptions[]> {
-        const account = (
-            await this._mainController.azureAccountService.getAccounts()
-        ).find((account) => account.displayInfo.userId === accountId);
-        if (!account) {
+        try {
+            const account = (
+                await this._mainController.azureAccountService.getAccounts()
+            ).find((account) => account.displayInfo.userId === accountId);
+            if (!account) {
+                return [];
+            }
+            const tenants = account.properties.tenants;
+            if (!tenants) {
+                return [];
+            }
+            return tenants.map((tenant) => {
+                return {
+                    displayName: tenant.displayName,
+                    value: tenant.id,
+                };
+            });
+        } catch (error) {
+            console.error(
+                `Error loading Azure tenants: ${getErrorMessage(error)}`,
+            );
             return [];
         }
-        const tenants = account.properties.tenants;
-        if (!tenants) {
-            return [];
-        }
-        return tenants.map((tenant) => {
-            return {
-                displayName: tenant.displayName,
-                value: tenant.id,
-            };
-        });
     }
 
     private convertToFormComponent(
@@ -613,11 +627,17 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         > = {} as any; // force empty record for intial blank state
 
         for (const option of connectionOptions) {
-            result[option.name as keyof IConnectionDialogProfile] = {
-                ...this.convertToFormComponent(option),
-                isAdvancedOption: !this._mainOptionNames.has(option.name),
-                optionCategory: option.groupName,
-            };
+            try {
+                result[option.name as keyof IConnectionDialogProfile] = {
+                    ...this.convertToFormComponent(option),
+                    isAdvancedOption: !this._mainOptionNames.has(option.name),
+                    optionCategory: option.groupName,
+                };
+            } catch (err) {
+                console.error(
+                    `Error loading connection option '${option.name}': ${getErrorMessage(err)}`,
+                );
+            }
         }
 
         await this.completeFormComponents(result);
