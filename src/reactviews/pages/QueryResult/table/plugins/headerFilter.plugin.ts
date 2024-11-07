@@ -12,7 +12,7 @@ import {
     IDisposableDataProvider,
     instanceOfIDisposableDataProvider,
 } from "../dataProvider";
-import "./headerFilter.css";
+import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
@@ -138,13 +138,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
         // Proceed to open the new popup for the clicked column
         const offset = jQuery(filterButton).offset();
         const $popup = jQuery(
-            '<div id="popup-menu">' +
+            '<div id="popup-menu" class="slick-header-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
                 `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
+                `<input type="text" id="search-input" class="search-input" placeholder="Search..."/>` +
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
-                `<button id="apply" type="button" class="sort-btn">${locConstants.queryResult.apply}</button>` +
-                `<button id="clear" type="button" class="sort-btn">${locConstants.queryResult.clear}</button>` +
-                `<button id="close-popup" type="button" class="sort-btn">${locConstants.queryResult.cancel}</button>` +
+                `<button id="apply" type="button" class="filter-btn">${locConstants.queryResult.apply}</button>` +
+                `<button id="clear" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
+                `<button id="close-popup" type="button" class="filter-btn">${locConstants.queryResult.cancel}</button>` +
                 "</div>",
         );
 
@@ -176,6 +177,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
             });
         }
 
+        $popup.find("#search-input").on("input", (e: Event) => {
+            const searchTerm = (
+                e.target as HTMLInputElement
+            ).value.toLowerCase();
+            this.filterChecklist(searchTerm, checkboxContainer);
+        });
+
         // Add event listeners for closing or interacting with the popup
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
             const $target = jQuery(e.target);
@@ -204,6 +212,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 void this.handleMenuItemClick("sort-asc", this.columnDef);
                 closePopup($popup);
                 this.activePopup = null;
+                this.grid.setSortColumn(this.columnDef.id, true);
             },
         );
 
@@ -214,6 +223,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 void this.handleMenuItemClick("sort-desc", this.columnDef);
                 closePopup($popup);
                 this.activePopup = null;
+                this.grid.setSortColumn(this.columnDef.id, false);
             },
         );
 
@@ -221,21 +231,23 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.columnDef.filterValues = this.listData
                 .filter((element) => element.checked)
                 .map((element) => element.value);
+
+            closePopup($popup);
+            this.activePopup = null;
+            this.applyFilterSelections(checkboxContainer);
             this.setButtonImage(
                 $menuButton,
                 this.columnDef.filterValues.length > 0,
             );
-            closePopup($popup);
-            this.activePopup = null;
-            this.applyFilterSelections(checkboxContainer);
             await this.handleApply(this.columnDef);
         });
 
         jQuery(document).on("click", "#clear", async (e: JQuery.ClickEvent) => {
             this.columnDef.filterValues!.length = 0;
-            this.setButtonImage($menuButton, false);
+
             closePopup($popup);
             this.activePopup = null;
+            this.setButtonImage($menuButton, false);
             await this.handleApply(this.columnDef);
         });
 
@@ -246,6 +258,20 @@ export class HeaderFilter<T extends Slick.SlickData> {
         function openPopup($popup: JQuery<HTMLElement>) {
             $popup.fadeIn();
         }
+    }
+
+    private filterChecklist(
+        searchTerm: string,
+        checkboxContainer: JQuery<HTMLElement>,
+    ) {
+        checkboxContainer.children("label").each((_, label) => {
+            const text = jQuery(label).text().toLowerCase();
+            if (text.includes(searchTerm)) {
+                jQuery(label).show();
+            } else {
+                jQuery(label).hide();
+            }
+        });
     }
 
     private applyFilterSelections(checkboxContainer: JQuery<HTMLElement>) {
