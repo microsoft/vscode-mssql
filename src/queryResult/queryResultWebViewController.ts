@@ -150,16 +150,15 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                             true,
                             vscode.ConfigurationTarget.Global,
                         );
-                } else {
-                    // show the prompt only once
-                    await this._vscodeWrapper
-                        .getConfiguration()
-                        .update(
-                            Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
-                            true,
-                            vscode.ConfigurationTarget.Global,
-                        );
                 }
+                // show the prompt only once
+                await this._vscodeWrapper
+                    .getConfiguration()
+                    .update(
+                        Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
+                        true,
+                        vscode.ConfigurationTarget.Global,
+                    );
             }
             await this.createPanelController(message.uri);
         });
