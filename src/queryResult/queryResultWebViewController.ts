@@ -149,6 +149,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 message.batchId,
                 message.resultId,
                 message.selection,
+                false,
             );
         });
         this.registerRequestHandler("copyWithHeaders", async (message) => {
