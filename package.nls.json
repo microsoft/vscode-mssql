@@ -157,8 +157,8 @@
 "mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiences.description":"Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enable UI-based features",
-"mssql.enableDefaultQueryResultToDocument.description":"Sets the default location of the query result to the editor",
-"mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt.description":"Do not show prompts to move the default location to the editor",
+"mssql.openQueryResultsInTabByDefault.description":"Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
+"mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description":"Do not show prompts to display query results in a new tab.",
 "mssql.userFeedback":"Give Feedback",
 "mssql.selectedSubscriptions":"Selected Subscriptions"
 }

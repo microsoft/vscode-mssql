@@ -94,23 +94,21 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             .get(Constants.configEnableRichExperiences);
     }
 
-    private get isDefaultQueryResultToDocumentEnabled(): boolean {
+    private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
         return this._vscodeWrapper
             .getConfiguration()
-            .get(Constants.configEnableDefaultQueryResultToDocument);
+            .get(Constants.configOpenQueryResultsInTabByDefault);
     }
 
     private get isDefaultQueryResultToDocumentDoNotShowPromptEnabled(): boolean {
         return this._vscodeWrapper
             .getConfiguration()
-            .get(
-                Constants.configEnableDefaultQueryResultToDocumentDoNotShowPrompt,
-            );
+            .get(Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt);
     }
 
     private get shouldShowDefaultQueryResultToDocumentPrompt(): boolean {
         return (
-            !this.isDefaultQueryResultToDocumentEnabled &&
+            !this.isOpenQueryResultsInTabByDefaultEnabled &&
             !this.isDefaultQueryResultToDocumentDoNotShowPromptEnabled
         );
     }
@@ -120,17 +118,17 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
                 const response =
                     await this._vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.enableDefaultQueryResultToDocumentPrompt,
-                        LocalizedConstants.msgYes,
-                        LocalizedConstants.Common.dontShowAgain,
+                        LocalizedConstants.openQueryResultsInTabByDefaultPrompt,
+                        LocalizedConstants.alwaysShowInNewTab,
+                        LocalizedConstants.keepInQueryPane,
                     );
                 let telemResponse: string;
                 switch (response) {
-                    case LocalizedConstants.enableDefaultQueryResultToDocumentPrompt:
-                        telemResponse = "enableDefaultQueryResultToDocument";
+                    case LocalizedConstants.alwaysShowInNewTab:
+                        telemResponse = "alwaysShowInNewTab";
                         break;
-                    case LocalizedConstants.Common.dontShowAgain:
-                        telemResponse = "dontShowAgain";
+                    case LocalizedConstants.keepInQueryPane:
+                        telemResponse = "keepInQueryPane";
                         break;
                     default:
                         telemResponse = "dismissed";
@@ -138,27 +136,26 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
                 sendActionEvent(
                     TelemetryViews.General,
-                    TelemetryActions.EnableDefaultQueryResultToDocumentPrompt,
+                    TelemetryActions.OpenQueryResultsInTabByDefaultPrompt,
                     {
                         response: telemResponse,
                     },
                 );
 
-                if (response === LocalizedConstants.msgYes) {
+                if (response === LocalizedConstants.alwaysShowInNewTab) {
                     await this._vscodeWrapper
                         .getConfiguration()
                         .update(
-                            Constants.configEnableDefaultQueryResultToDocument,
+                            Constants.configOpenQueryResultsInTabByDefault,
                             true,
                             vscode.ConfigurationTarget.Global,
                         );
-                } else if (
-                    response === LocalizedConstants.Common.dontShowAgain
-                ) {
+                } else {
+                    // show the prompt only once
                     await this._vscodeWrapper
                         .getConfiguration()
                         .update(
-                            Constants.configEnableDefaultQueryResultToDocumentDoNotShowPrompt,
+                            Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
                             true,
                             vscode.ConfigurationTarget.Global,
                         );

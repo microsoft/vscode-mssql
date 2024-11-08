@@ -953,16 +953,16 @@
           "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
           "scope": "application"
         },
-        "mssql.enableDefaultQueryResultToDocument": {
+        "mssql.openQueryResultsInTabByDefault": {
           "type": "boolean",
           "default": false,
-          "description": "%mssql.enableDefaultQueryResultToDocument.description%",
+          "description": "%mssql.openQueryResultsInTabByDefault.description%",
           "scope": "application"
         },
-        "mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt": {
+        "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
           "type": "boolean",
           "default": false,
-          "description": "%mssql.enableDefaultQueryResultToDocumentDoNotShowPrompt.description%",
+          "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
           "scope": "application"
         },
         "azureResourceGroups.selectedSubscriptions": {

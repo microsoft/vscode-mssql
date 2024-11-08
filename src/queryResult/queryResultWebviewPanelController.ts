@@ -38,7 +38,11 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 executionPlanState: {},
             },
             {
-                title: title,
+                title: vscode.l10n.t({
+                    message: "{0} (Preview)",
+                    args: [title],
+                    comment: "{0} is the editor title",
+                }),
                 viewColumn: _viewColumn,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -72,7 +76,8 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         registerCommonRequestHandlers(this, this._correlationId);
     }
 
-    public override extraDispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this._queryResultWebviewViewController.removePanel(this._uri);
     }
 

@@ -230,10 +230,10 @@ export class SqlOutputContentProvider {
         );
     }
 
-    private get isDefaultQueryResultToDocumentEnabled(): boolean {
+    private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
         return this._vscodeWrapper
             .getConfiguration()
-            .get(Constants.configEnableDefaultQueryResultToDocument);
+            .get(Constants.configOpenQueryResultsInTabByDefault);
     }
 
     private get isRichExperiencesEnabled(): boolean {
@@ -415,6 +415,10 @@ export class SqlOutputContentProvider {
             queryRunner.eventEmitter.on("start", async (panelUri) => {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
+                    sendActionEvent(
+                        TelemetryViews.ResultsGrid,
+                        TelemetryActions.OpenQueryResult,
+                    );
                 } else {
                     try {
                         this._lastSendMessageTime = Date.now();
@@ -429,7 +433,7 @@ export class SqlOutputContentProvider {
                             uri,
                         ).tabStates.resultPaneTab =
                             QueryResultPaneTabs.Messages;
-                        if (this.isDefaultQueryResultToDocumentEnabled) {
+                        if (this.isOpenQueryResultsInTabByDefaultEnabled) {
                             await this._queryResultWebviewController.createPanelController(
                                 uri,
                             );
@@ -442,6 +446,16 @@ export class SqlOutputContentProvider {
                                 "queryResult.focus",
                             );
                         }
+                        sendActionEvent(
+                            TelemetryViews.QueryResult,
+                            TelemetryActions.OpenQueryResult,
+                            {
+                                defaultLocation: this
+                                    .isOpenQueryResultsInTabByDefaultEnabled
+                                    ? "tab"
+                                    : "pane", // wording??
+                            },
+                        );
                     } catch (e) {
                         // console.error(e);
                     }

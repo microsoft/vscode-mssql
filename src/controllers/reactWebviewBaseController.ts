@@ -371,11 +371,6 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
-        this.extraDispose();
-    }
-
-    protected extraDispose() {
-        // override in subclass
     }
 }
 
