@@ -73,6 +73,13 @@
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
+    <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
+      <source xml:lang="en">Are you sure you want to {0}?</source>
+      <note>{0} is the action being confirmed</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
+      <source xml:lang="en">Are you sure?</source>
+    </trans-unit>
     <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
       <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
     </trans-unit>
@@ -262,8 +269,8 @@
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
     </trans-unit>
-    <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
-      <source xml:lang="en">Connection Dialog</source>
+    <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
+      <source xml:lang="en">Connection Dialog (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
       <source xml:lang="en">Connection Error</source>
@@ -352,6 +359,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
       <source xml:lang="en">Delete</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
+      <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -583,6 +593,9 @@
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+      <source xml:lang="en">General</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
@@ -592,8 +605,8 @@
     <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
       <source xml:lang="en">Greater Than</source>
     </trans-unit>
-    <trans-unit id="++CODE++8885e80bb197b22bc702906ef86b149ad49d258c5cb14b09227c19ee4f01061e">
-      <source xml:lang="en">Greater Than Or Equals</source>
+    <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
+      <source xml:lang="en">Greater Than or Equals</source>
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
@@ -660,8 +673,8 @@
     <trans-unit id="++CODE++ab7e3aa3d0d8c78763c986b6a831726ff623b195a38a8d4b1191976c0becf72e">
       <source xml:lang="en">Less Than</source>
     </trans-unit>
-    <trans-unit id="++CODE++a408b91cd1b01aac0b9fa7eec7fafac233eb172b0aafcdf013d88575fac35c1f">
-      <source xml:lang="en">Less Than Or Equals</source>
+    <trans-unit id="++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842">
+      <source xml:lang="en">Less Than or Equals</source>
     </trans-unit>
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
@@ -820,8 +833,8 @@
     <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
       <source xml:lang="en">OK</source>
     </trans-unit>
-    <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
-      <source xml:lang="en">Object Explorer Filter</source>
+    <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
+      <source xml:lang="en">Object Explorer Filter (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
@@ -972,6 +985,9 @@
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
     </trans-unit>
+    <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
+      <source xml:lang="en">Remove recent connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
@@ -1029,6 +1045,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
+      <source xml:lang="en">Saved Connections</source>
     </trans-unit>
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
@@ -1371,6 +1390,10 @@
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>
     </trans-unit>
+    <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
+      <source xml:lang="en">delete the saved connection: {0}?</source>
+      <note>{0} is the connection name</note>
+    </trans-unit>
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>
     </trans-unit>
@@ -1403,6 +1426,10 @@
     </trans-unit>
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
+      <source xml:lang="en">{0} (Preview)</source>
+      <note>{0} is the file name</note>
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
@@ -1456,6 +1483,9 @@
   <file original="package" source-language="en" datatype="plaintext"><body>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.addObjectExplorerPreview">
+      <source xml:lang="en">Add Connection (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -1511,6 +1541,9 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="mssql.disableActualPlan">
+      <source xml:lang="en">Disable Actual Plan</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
     </trans-unit>
@@ -1521,10 +1554,13 @@
       <source xml:lang="en">Do not show prompts to enables UI-based features</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
-      <source xml:lang="en">Edit Connection</source>
+      <source xml:lang="en">Edit Connection (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableActualPlan">
+      <source xml:lang="en">Enable Actual Plan</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
       <source xml:lang="en">Enable Group By Schema</source>
@@ -1605,7 +1641,7 @@
       <source xml:lang="en">Enables use of the Sql Authentication Provider for &apos;Microsoft Entra Id Interactive&apos; authentication mode when user selects &apos;AzureMFA&apos; authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for &apos;MSAL&apos; Authentication Library. Please restart Visual Studio Code after changing this option.</source>
     </trans-unit>
     <trans-unit id="mssql.showExecutionPlanInResults">
-      <source xml:lang="en">Estimated Plan</source>
+      <source xml:lang="en">Estimated Plan (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
       <source xml:lang="en">Execute Current Statement</source>
@@ -1614,7 +1650,7 @@
       <source xml:lang="en">Execute Query</source>
     </trans-unit>
     <trans-unit id="mssql.filterNode">
-      <source xml:lang="en">Filter</source>
+      <source xml:lang="en">Filter (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
@@ -1677,7 +1713,7 @@
       <source xml:lang="en">Query History</source>
     </trans-unit>
     <trans-unit id="extension.queryResult">
-      <source xml:lang="en">Query Result</source>
+      <source xml:lang="en">Query Results (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>

@@ -6,11 +6,11 @@
 import * as fluentui from "@fluentui/react-components";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import {
-    AddRegular,
     DeleteRegular,
-    ArrowCircleUpFilled,
-    ArrowCircleDownFilled,
     ReorderRegular,
+    AddFilled,
+    ArrowSortUpFilled,
+    ArrowSortDownFilled,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -36,6 +36,10 @@ const useStyles = fluentui.makeStyles({
     tableCell: {
         display: "flex",
         flexDirection: "row",
+    },
+    tableActionIcon: {
+        height: "14px",
+        width: "14px",
     },
 });
 
@@ -302,7 +306,7 @@ export const DesignerTable = ({
                 {tableProps.canAddRows && (
                     <fluentui.Button
                         appearance="transparent"
-                        icon={<AddRegular />}
+                        icon={<AddFilled className={classes.tableActionIcon} />}
                         onClick={() => {
                             state?.provider.processTableEdit({
                                 path: [...componentPath, rows.length],
@@ -318,7 +322,11 @@ export const DesignerTable = ({
                 )}
                 {tableProps.canMoveRows && (
                     <fluentui.Button
-                        icon={<ArrowCircleUpFilled />}
+                        icon={
+                            <ArrowSortUpFilled
+                                className={classes.tableActionIcon}
+                            />
+                        }
                         onClick={(event) => {
                             (event.target as HTMLElement).focus();
                             moveRows(focusedRowId!, focusedRowId! - 1);
@@ -334,7 +342,11 @@ export const DesignerTable = ({
                 )}
                 {tableProps.canMoveRows && (
                     <fluentui.Button
-                        icon={<ArrowCircleDownFilled />}
+                        icon={
+                            <ArrowSortDownFilled
+                                className={classes.tableActionIcon}
+                            />
+                        }
                         onClick={(event) => {
                             (event.target as HTMLElement).focus();
                             moveRows(focusedRowId!, focusedRowId! + 1);
@@ -354,7 +366,6 @@ export const DesignerTable = ({
                 style={{
                     maxWidth: "calc(100% - 20px)",
                     width: "fit-content",
-                    border: "1px solid var(--vscode-editorWidget-border)",
                     overflowX: "auto",
                     paddingBottom: "5px",
                     paddingRight: "5px",
@@ -429,7 +440,11 @@ export const DesignerTable = ({
                                     }}
                                     draggable={tableProps.canMoveRows}
                                     onFocus={(event) => {
-                                        if (!loadPropertiesTabData) {
+                                        if (
+                                            !loadPropertiesTabData ||
+                                            tableProps.showItemDetailInPropertiesView ===
+                                                false
+                                        ) {
                                             return;
                                         }
                                         state?.provider.setPropertiesComponents(

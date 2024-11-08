@@ -87,6 +87,14 @@
   "Move Down": "Move Down",
   "Delete": "Delete",
   "Filter Settings": "Filter Settings",
+  "Cancel": "Cancel",
+  "Are you sure?": "Are you sure?",
+  "Are you sure you want to {0}?/{0} is the action being confirmed": {
+    "message": "Are you sure you want to {0}?",
+    "comment": [
+      "{0} is the action being confirmed"
+    ]
+  },
   "Error": "Error",
   "Clear All": "Clear All",
   "Close": "Close",
@@ -101,9 +109,9 @@
   "Equals": "Equals",
   "Not Equals": "Not Equals",
   "Less Than": "Less Than",
-  "Less Than Or Equals": "Less Than Or Equals",
+  "Less Than or Equals": "Less Than or Equals",
   "Greater Than": "Greater Than",
-  "Greater Than Or Equals": "Greater Than Or Equals",
+  "Greater Than or Equals": "Greater Than or Equals",
   "Between": "Between",
   "Not Between": "Not Between",
   "Path: {0}/{0} is the path of the node in the object explorer": {
@@ -188,6 +196,7 @@
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
+  "Saved Connections": "Saved Connections",
   "Recent Connections": "Recent Connections",
   "Subscription": "Subscription",
   "subscription": "subscription",
@@ -218,6 +227,14 @@
     ]
   },
   "Default": "Default",
+  "Delete saved connection": "Delete saved connection",
+  "Remove recent connection": "Remove recent connection",
+  "delete the saved connection: {0}?/{0} is the connection name": {
+    "message": "delete the saved connection: {0}?",
+    "comment": [
+      "{0} is the connection name"
+    ]
+  },
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -258,7 +275,6 @@
   "Dissatisfied": "Dissatisfied",
   "Very Dissatisfied": "Very Dissatisfied",
   "Submit": "Submit",
-  "Cancel": "Cancel",
   "Not likely at all": "Not likely at all",
   "Extremely likely": "Extremely likely",
   "Privacy Statement": "Privacy Statement",
@@ -280,8 +296,14 @@
   "Select All": "Select All",
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
-  "Object Explorer Filter": "Object Explorer Filter",
+  "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
   "{0} (filtered)": "{0} (filtered)",
+  "{0} (Preview)/{0} is the file name": {
+    "message": "{0} (Preview)",
+    "comment": [
+      "{0} is the file name"
+    ]
+  },
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -704,7 +726,7 @@
     ]
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
-  "Connection Dialog": "Connection Dialog",
+  "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
@@ -751,6 +773,7 @@
       "{0} is the webview name"
     ]
   },
+  "General": "General",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

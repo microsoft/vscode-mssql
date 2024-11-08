@@ -655,7 +655,7 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ConnectionDialog {
-    public static connectionDialog = l10n.t("Connection Dialog");
+    public static connectionDialog = l10n.t("Connection Dialog (Preview)");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
     public static selectAnAccount = l10n.t("Select an account");
@@ -740,4 +740,10 @@ export class Webview {
             comment: ["{0} is the webview name"],
         });
     public static Restore = l10n.t("Restore");
+}
+
+export class TableDesigner {
+    public static General = l10n.t("General");
+    public static Columns = l10n.t("Columns");
+    public static AdvancedOptions = l10n.t("Advanced Options");
 }

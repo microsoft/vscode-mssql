@@ -39,6 +39,7 @@ export class ConnectionDialogWebviewState
     };
     public azureSubscriptions: AzureSubscriptionInfo[];
     public azureServers: AzureSqlServerInfo[];
+    public savedConnections: IConnectionDialogProfile[];
     public recentConnections: IConnectionDialogProfile[];
     public connectionStatus: ApiStatus;
     public formError: string;
@@ -52,6 +53,7 @@ export class ConnectionDialogWebviewState
         connectionComponents,
         azureSubscriptions,
         azureServers,
+        savedConnections,
         recentConnections,
         connectionStatus,
         formError,
@@ -75,6 +77,7 @@ export class ConnectionDialogWebviewState
         };
         azureServers: AzureSqlServerInfo[];
         azureSubscriptions: AzureSubscriptionInfo[];
+        savedConnections: IConnectionDialogProfile[];
         recentConnections: IConnectionDialogProfile[];
         connectionStatus: ApiStatus;
         formError: string;
@@ -87,6 +90,7 @@ export class ConnectionDialogWebviewState
         this.connectionComponents = connectionComponents;
         this.azureSubscriptions = azureSubscriptions;
         this.azureServers = azureServers;
+        this.savedConnections = savedConnections;
         this.recentConnections = recentConnections;
         this.connectionStatus = connectionStatus;
         this.formError = formError;
@@ -143,8 +147,10 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     cancelTrustServerCertDialog: () => void;
-    refreshMruConnections: () => void;
     filterAzureSubscriptions: () => void;
+    refreshConnectionsList: () => void;
+    deleteSavedConnection(connection: IConnectionDialogProfile): void;
+    removeRecentConnection(connection: IConnectionDialogProfile): void;
 }
 
 export enum AuthenticationType {
@@ -168,6 +174,12 @@ export interface ConnectionDialogReducers {
         subscriptionId: string;
     };
     cancelTrustServerCertDialog: {};
-    refreshMruConnections: {};
     filterAzureSubscriptions: {};
+    refreshConnectionsList: {};
+    deleteSavedConnection: {
+        connection: IConnectionDialogProfile;
+    };
+    removeRecentConnection: {
+        connection: IConnectionDialogProfile;
+    };
 }

@@ -62,10 +62,10 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
     const [originalHeight, setOriginalHeight] = useState<number>(300);
 
     // Properties pane width state
-    const [propertiesPaneWidth, setPropertiesPaneWidth] = useState<number>(500);
+    const [propertiesPaneWidth, setPropertiesPaneWidth] = useState<number>(450);
     const [isPropertiesPaneFullScreen, setIsPropertiesPaneFullScreen] =
         useState<boolean>(false);
-    const [originalWidth, setOriginalWidth] = useState<number>(500);
+    const [originalWidth, setOriginalWidth] = useState<number>(450);
 
     const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const tableState = webviewState?.state;
