@@ -283,6 +283,8 @@
   "NULL": "NULL",
   "Blanks": "Blanks",
   "Apply": "Apply",
+  "Search...": "Search...",
+  "0 Selected": "0 Selected",
   "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
   "{0} (filtered)": "{0} (filtered)",
   "{0} (Preview)/{0} is the file name": {
