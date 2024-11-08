@@ -44,9 +44,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         string,
         HTMLElement
     >();
-    private list?: List<TableFilterListElement>;
     private listData: TableFilterListElement[];
-    private filteredListData: TableFilterListElement[];
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
@@ -116,7 +114,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async showFilter(filterButton: HTMLElement) {
-        let $menuButton;
+        let $menuButton: JQuery<HTMLElement> | undefined;
         const target = withNullAsUndefined(filterButton);
         if (target) {
             $menuButton = jQuery(target);
@@ -141,7 +139,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
             '<div id="popup-menu" class="slick-header-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
                 `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
-                `<input type="text" id="search-input" class="search-input" placeholder="Search..."/>` +
+                `<div style="display: flex; align-items: center; margin-bottom: 8px;">` +
+                `<input type="checkbox" id="select-all-checkbox" style="margin-right: 8px;" />` +
+                `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
+                `<span id="selection-counter" class="selection-counter">${locConstants.queryResult.selected}</span>` +
+                `</div>` +
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
                 `<button id="apply" type="button" class="filter-btn">${locConstants.queryResult.apply}</button>` +
                 `<button id="clear" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
@@ -183,6 +185,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
             ).value.toLowerCase();
             this.filterChecklist(searchTerm, checkboxContainer);
         });
+
+        $popup.find("#select-all-checkbox").on("change", (e: Event) => {
+            const isChecked = (e.target as HTMLInputElement).checked;
+            this.selectAllFiltered(isChecked, checkboxContainer);
+            this.updateSelectionCounter(); // Update counter on select all
+        });
+
+        $popup
+            .find("#checkbox-list input[type='checkbox']")
+            .on("change", () => {
+                this.updateSelectionCounter(); // Update counter on checkbox change
+            });
 
         // Add event listeners for closing or interacting with the popup
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
@@ -271,6 +285,23 @@ export class HeaderFilter<T extends Slick.SlickData> {
             } else {
                 jQuery(label).hide();
             }
+        });
+    }
+
+    private updateSelectionCounter() {
+        const selectedCount = jQuery(
+            "#checkbox-list input[type='checkbox']:checked",
+        ).length;
+        jQuery("#selection-counter").text(`${selectedCount} Selected`);
+    }
+
+    private selectAllFiltered(
+        select: boolean,
+        checkboxContainer: JQuery<HTMLElement>,
+    ) {
+        checkboxContainer.children("label:visible").each((_, label) => {
+            const checkbox = jQuery(label).find("input[type='checkbox']");
+            checkbox.prop("checked", select);
         });
     }
 

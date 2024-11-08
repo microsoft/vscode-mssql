@@ -322,6 +322,28 @@
     font-family: var(--vscode-font-family);
 }
 
+.searchbox {
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+    background: none;
+    border: 1px solid;
+    font-size: 13px;
+    color: var(--vscode-dropdown-foreground);
+    background-color: var(--vscode-dropdown-background);
+    border-color: var(--vscode-dropdown-border);
+    font-family: var(--vscode-font-family);
+}
+
+.selection-counter {
+    margin-left: 8px;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--vscode-dropdown-foreground);
+    background-color: var(--vscode-descriptionForeground);
+    border-color: var(--vscode-dropdown-border);
+}
+
 .filter-btn:hover {
     color: var(--vscode-list-hoverForeground);
     background-color: var(--vscode-list-hoverBackground);
