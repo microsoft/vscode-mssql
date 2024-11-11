@@ -44,7 +44,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         string,
         HTMLElement
     >();
-    private listData: TableFilterListElement[];
+    private listData: TableFilterListElement[] = [];
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
@@ -226,7 +226,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 void this.handleMenuItemClick("sort-asc", this.columnDef);
                 closePopup($popup);
                 this.activePopup = null;
-                this.grid.setSortColumn(this.columnDef.id, true);
+                this.grid.setSortColumn(this.columnDef.id!, true);
             },
         );
 
@@ -237,11 +237,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 void this.handleMenuItemClick("sort-desc", this.columnDef);
                 closePopup($popup);
                 this.activePopup = null;
-                this.grid.setSortColumn(this.columnDef.id, false);
+                this.grid.setSortColumn(this.columnDef.id!, false);
             },
         );
 
-        jQuery(document).on("click", "#apply", async (e: JQuery.ClickEvent) => {
+        jQuery(document).on("click", "#apply", async () => {
             this.columnDef.filterValues = this.listData
                 .filter((element) => element.checked)
                 .map((element) => element.value);
@@ -249,6 +249,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
             closePopup($popup);
             this.activePopup = null;
             this.applyFilterSelections(checkboxContainer);
+            if (!$menuButton) {
+                return;
+            }
             this.setButtonImage(
                 $menuButton,
                 this.columnDef.filterValues.length > 0,
@@ -256,11 +259,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
             await this.handleApply(this.columnDef);
         });
 
-        jQuery(document).on("click", "#clear", async (e: JQuery.ClickEvent) => {
+        jQuery(document).on("click", "#clear", async () => {
             this.columnDef.filterValues!.length = 0;
 
             closePopup($popup);
             this.activePopup = null;
+            if (!$menuButton) {
+                return;
+            }
             this.setButtonImage($menuButton, false);
             await this.handleApply(this.columnDef);
         });
@@ -326,11 +332,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async handleApply(columnDef: Slick.Column<T>) {
-        const dataView = this.grid.getData();
+        const dataView = this.grid.getData() as IDisposableDataProvider<T>;
         if (instanceOfIDisposableDataProvider(dataView)) {
-            await (dataView as IDisposableDataProvider<T>).filter(
-                this.grid.getColumns(),
-            );
+            await dataView.filter(this.grid.getColumns());
             this.grid.invalidateAllRows();
             this.grid.updateRowCount();
             this.grid.render();
@@ -378,16 +382,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
         // WorkingFilters is a copy of the filters to enable apply/cancel behaviour
         const workingFilters = this.columnDef.filterValues.slice(0);
         let filterItems: Array<string>;
-        const dataView = this.grid.getData() as Slick.DataProvider<T>;
+        const dataView = this.grid.getData() as IDisposableDataProvider<T>;
         if (instanceOfIDisposableDataProvider(dataView)) {
-            filterItems = await (
-                dataView as IDisposableDataProvider<T>
-            ).getColumnValues(this.columnDef);
+            filterItems = await dataView.getColumnValues(this.columnDef);
         } else {
             const filterApplied =
                 this.grid.getColumns().findIndex((col) => {
                     const filterableColumn = col as FilterableColumn<T>;
-                    return filterableColumn.filterValues?.length > 0;
+                    return filterableColumn.filterValues?.length! > 0;
                 }) !== -1;
             if (!filterApplied) {
                 // Filter based all available values
@@ -409,10 +411,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
         filterItems.sort();
 
         // Promote undefined (NULL) to be always at the top of the list
-        const nullValueIndex = filterItems.indexOf(undefined);
+        const nullValueIndex = filterItems.indexOf("");
         if (nullValueIndex !== -1) {
             filterItems.splice(nullValueIndex, 1);
-            filterItems.unshift(undefined);
+            filterItems.unshift("");
         }
 
         this.listData = [];
