@@ -61,6 +61,12 @@ import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
+import {
+    CredentialsQuickPickItemType,
+    IConnectionCredentialsQuickPickItem,
+    IConnectionProfile,
+} from "../models/interfaces";
+import { locConstants } from "../reactviews/common/locConstants";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -82,6 +88,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             "connectionDialog",
             new ConnectionDialogWebviewState({
                 connectionProfile: {} as IConnectionDialogProfile,
+                savedConnections: [],
                 recentConnections: [],
                 selectedInputMode: ConnectionInputMode.Parameters,
                 connectionComponents: {
@@ -142,7 +149,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private async initializeDialog() {
         try {
-            this.state.recentConnections = await this.loadRecentConnections();
+            await this.updateLoadedConnections(this.state);
             this.updateState();
         } catch (err) {
             void vscode.window.showErrorMessage(getErrorMessage(err));
@@ -202,31 +209,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         await this.updateItemVisibility();
         this.updateState();
-    }
-
-    private async loadRecentConnections(): Promise<IConnectionDialogProfile[]> {
-        const recentConnections =
-            this._mainController.connectionManager.connectionStore
-                .loadAllConnections(true)
-                .map((c) => c.connectionCreds);
-
-        sendActionEvent(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadRecentConnections,
-            undefined, // additionalProperties
-            {
-                recentConnectionsCount: recentConnections.length,
-            },
-        );
-
-        const dialogConnections: IConnectionDialogProfile[] = [];
-        for (let i = 0; i < recentConnections.length; i++) {
-            dialogConnections.push(
-                await this.initializeConnectionForDialog(recentConnections[i]),
-            );
-        }
-
-        return dialogConnections;
     }
 
     private async loadConnectionToEdit() {
@@ -687,7 +669,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         "profileName",
     ]);
 
-    private async validateFormComponents(
+    private async validateConnectionProfile(
+        connectionProfile: IConnectionDialogProfile,
         propertyName?: keyof IConnectionDialogProfile,
     ): Promise<number> {
         let errorCount = 0;
@@ -695,7 +678,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             const component = this.getFormComponent(propertyName);
             if (component && component.validate) {
                 component.validation = component.validate(
-                    this.state.connectionProfile[propertyName],
+                    connectionProfile[propertyName],
                 );
                 if (!component.validation.isValid) {
                     return 1;
@@ -714,7 +697,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     } else {
                         if (c.validate) {
                             c.validation = c.validate(
-                                this.state.connectionProfile[c.propertyName],
+                                connectionProfile[c.propertyName],
                             );
                             if (!c.validation.isValid) {
                                 errorCount++;
@@ -900,7 +883,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     payload.event.propertyName
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ] as any) = payload.event.value;
-                await this.validateFormComponents(payload.event.propertyName);
+                await this.validateConnectionProfile(
+                    this.state.connectionProfile,
+                    payload.event.propertyName,
+                );
                 await this.handleAzureMFAEdits(payload.event.propertyName);
             }
             await this.updateItemVisibility();
@@ -935,20 +921,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.state.formError = "";
             this.updateState();
 
-            // Clear the options that aren't being used (due to form selections, like authType)
-            for (const option of Object.values(
-                this.state.connectionComponents.components,
-            )) {
-                if (option.hidden) {
-                    (this.state.connectionProfile[
-                        option.propertyName as keyof IConnectionDialogProfile
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    ] as any) = undefined;
-                }
-            }
+            const cleanedConnection: IConnectionDialogProfile = structuredClone(
+                this.state.connectionProfile,
+            );
+            this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
 
             // Perform final validation of all inputs
-            const errorCount = await this.validateFormComponents();
+            const errorCount =
+                await this.validateConnectionProfile(cleanedConnection);
             if (errorCount > 0) {
                 this.state.connectionStatus = ApiStatus.Error;
                 return state;
@@ -959,7 +939,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     const result =
                         await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            this.state.connectionProfile as any,
+                            cleanedConnection as any,
                         );
 
                     if (result.errorMessage) {
@@ -1060,8 +1040,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     );
 
                 this._objectExplorerProvider.refresh(undefined);
-                state.recentConnections = await this.loadRecentConnections();
+                await this.updateLoadedConnections(state);
                 this.updateState();
+
                 this.state.connectionStatus = ApiStatus.Loaded;
                 await this._mainController.objectExplorerTree.reveal(node, {
                     focus: true,
@@ -1106,20 +1087,67 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return state;
         });
 
-        this.registerReducer("refreshMruConnections", async (state) => {
-            state.recentConnections = await this.loadRecentConnections();
-            this.updateState();
-
-            return state;
-        });
-
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             await promptForAzureSubscriptionFilter(state);
             await this.loadAllAzureServers(state);
 
             return state;
         });
+
+        this.registerReducer("refreshConnectionsList", async (state) => {
+            await this.updateLoadedConnections(state);
+
+            return state;
+        });
+
+        this.registerReducer(
+            "deleteSavedConnection",
+            async (state, payload) => {
+                const confirm = await vscode.window.showQuickPick(
+                    [locConstants.common.Delete, locConstants.common.Cancel],
+                    {
+                        title: locConstants.common.AreYouSureYouWantTo(
+                            locConstants.connectionDialog.deleteTheSavedConnection(
+                                payload.connection.displayName,
+                            ),
+                        ),
+                    },
+                );
+
+                if (confirm !== locConstants.common.Delete) {
+                    return state;
+                }
+
+                const success =
+                    await this._mainController.connectionManager.connectionStore.removeProfile(
+                        payload.connection as IConnectionProfile,
+                    );
+
+                if (success) {
+                    await this.updateLoadedConnections(state);
+                }
+
+                return state;
+            },
+        );
+
+        this.registerReducer(
+            "removeRecentConnection",
+            async (state, payload) => {
+                await this._mainController.connectionManager.connectionStore.removeRecentlyUsed(
+                    payload.connection as IConnectionProfile,
+                );
+
+                await this.updateLoadedConnections(state);
+
+                return state;
+            },
+        );
     }
+
+    //#region Helpers
+
+    //#region Azure helpers
 
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
@@ -1290,8 +1318,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }
     }
 
-    private groupBy<K, V>(xs: V[], key: string): Map<K, V[]> {
-        return xs.reduce((rv, x) => {
+    //#endregion
+
+    private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
+        return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
             if (!rv.has(keyValue)) {
                 rv.set(keyValue, []);
@@ -1300,4 +1330,93 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return rv;
         }, new Map<K, V[]>());
     }
+
+    /** Cleans up a connection profile by clearing the properties that aren't being used
+     * (e.g. due to form selections, like authType and inputMode) */
+    private cleanConnection(connection: IConnectionDialogProfile) {
+        // Clear values for inputs that are hidden due to form selections
+        for (const option of Object.values(
+            this.state.connectionComponents.components,
+        )) {
+            if (option.hidden) {
+                (connection[
+                    option.propertyName as keyof IConnectionDialogProfile
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = undefined;
+            }
+        }
+
+        // Clear values for inputs that are not applicable due to the selected input mode
+        if (
+            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
+            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
+            connection.connectionString = undefined;
+        } else if (
+            this.state.selectedInputMode ===
+            ConnectionInputMode.ConnectionString
+        ) {
+            Object.keys(connection).forEach((key) => {
+                if (key !== "connectionString" && key !== "profileName") {
+                    connection[key] = undefined;
+                }
+            });
+        }
+    }
+
+    private async loadConnections(): Promise<{
+        savedConnections: IConnectionDialogProfile[];
+        recentConnections: IConnectionDialogProfile[];
+    }> {
+        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
+            this._mainController.connectionManager.connectionStore.loadAllConnections(
+                true /* addRecentConnections */,
+            );
+
+        const savedConnections = unsortedConnections
+            .filter(
+                (c) =>
+                    c.quickPickItemType ===
+                    CredentialsQuickPickItemType.Profile,
+            )
+            .map((c) => c.connectionCreds);
+
+        const recentConnections = unsortedConnections
+            .filter(
+                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
+            )
+            .map((c) => c.connectionCreds);
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadRecentConnections,
+            undefined, // additionalProperties
+            {
+                savedConnectionsCount: savedConnections.length,
+                recentConnectionsCount: recentConnections.length,
+            },
+        );
+
+        return {
+            recentConnections: await Promise.all(
+                recentConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+            savedConnections: await Promise.all(
+                savedConnections.map((conn) =>
+                    this.initializeConnectionForDialog(conn),
+                ),
+            ),
+        };
+    }
+
+    private async updateLoadedConnections(state: ConnectionDialogWebviewState) {
+        const loadedConnections = await this.loadConnections();
+
+        state.recentConnections = loadedConnections.recentConnections;
+        state.savedConnections = loadedConnections.savedConnections;
+    }
+
+    //#endregion
 }

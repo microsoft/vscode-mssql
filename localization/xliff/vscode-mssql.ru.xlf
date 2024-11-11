@@ -97,6 +97,15 @@
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">Вы действительно хотите разорвать подключение?</target>
       </trans-unit>
+      <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
+        <source xml:lang="en">Are you sure you want to {0}?</source>
+        <note>{0} is the action being confirmed</note>
+        <target state="new">Are you sure you want to {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
+        <source xml:lang="en">Are you sure?</source>
+        <target state="new">Are you sure?</target>
+      </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">Библиотека проверки подлинности изменена. Перезагрузите Visual Studio Code.</target>
@@ -344,9 +353,9 @@
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">Производится подключение к: </target>
       </trans-unit>
-      <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
-        <source xml:lang="en">Connection Dialog</source>
-        <target state="translated">Диалоговое окно соединения</target>
+      <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
+        <source xml:lang="en">Connection Dialog (Preview)</source>
+        <target state="new">Connection Dialog (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
@@ -464,6 +473,10 @@
       <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
         <source xml:lang="en">Delete</source>
         <target state="translated">Удалить</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
+        <source xml:lang="en">Delete saved connection</source>
+        <target state="new">Delete saved connection</target>
       </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
@@ -766,6 +779,10 @@
         <note>{0} is the uri</note>
         <target state="translated">Найдено ожидающее обещание повторного подключения для URI {0}, ждем.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
+        <source xml:lang="en">General</source>
+        <target state="new">General</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">Сгенерировать скрипт</target>
@@ -778,9 +795,9 @@
         <source xml:lang="en">Greater Than</source>
         <target state="translated">Больше</target>
       </trans-unit>
-      <trans-unit id="++CODE++8885e80bb197b22bc702906ef86b149ad49d258c5cb14b09227c19ee4f01061e">
-        <source xml:lang="en">Greater Than Or Equals</source>
-        <target state="translated">Больше или равно</target>
+      <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
+        <source xml:lang="en">Greater Than or Equals</source>
+        <target state="new">Greater Than or Equals</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -868,9 +885,9 @@
         <source xml:lang="en">Less Than</source>
         <target state="translated">Меньше</target>
       </trans-unit>
-      <trans-unit id="++CODE++a408b91cd1b01aac0b9fa7eec7fafac233eb172b0aafcdf013d88575fac35c1f">
-        <source xml:lang="en">Less Than Or Equals</source>
-        <target state="translated">Меньше или равно</target>
+      <trans-unit id="++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842">
+        <source xml:lang="en">Less Than or Equals</source>
+        <target state="new">Less Than or Equals</target>
       </trans-unit>
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
@@ -1080,9 +1097,9 @@
         <source xml:lang="en">OK</source>
         <target state="translated">ОК</target>
       </trans-unit>
-      <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
-        <source xml:lang="en">Object Explorer Filter</source>
-        <target state="translated">Фильтр обозревателя объектов</target>
+      <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
+        <source xml:lang="en">Object Explorer Filter (Preview)</source>
+        <target state="new">Object Explorer Filter (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1280,6 +1297,10 @@
         <source xml:lang="en">Remove</source>
         <target state="translated">Удалить</target>
       </trans-unit>
+      <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
+        <source xml:lang="en">Remove recent connection</source>
+        <target state="new">Remove recent connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
         <source xml:lang="en">Remove {0}</source>
         <note>{0} is the object type</note>
@@ -1323,7 +1344,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
-        <target state="new">SQL Plan Files</target>
+        <target state="translated">Файлы плана SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
@@ -1356,6 +1377,10 @@
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         <target state="translated">Команда сохранения результатов не может быть использована при выборе нескольких элементов.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
+        <source xml:lang="en">Saved Connections</source>
+        <target state="new">Saved Connections</target>
       </trans-unit>
       <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
         <source xml:lang="en">Scale</source>
@@ -1805,6 +1830,11 @@
         <source xml:lang="en">database</source>
         <target state="translated">база данных</target>
       </trans-unit>
+      <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
+        <source xml:lang="en">delete the saved connection: {0}?</source>
+        <note>{0} is the connection name</note>
+        <target state="new">delete the saved connection: {0}?</target>
+      </trans-unit>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
         <target state="translated">шифровать</target>
@@ -1848,6 +1878,11 @@
       <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the file name</note>
+        <target state="new">{0} (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
@@ -1916,6 +1951,10 @@
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Добавить подключение</target>
       </trans-unit>
+      <trans-unit id="mssql.addObjectExplorerPreview">
+        <source xml:lang="en">Add Connection (Preview)</source>
+        <target state="new">Add Connection (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
         <target state="translated">Добавить учетную запись Microsoft Entra</target>
@@ -1974,7 +2013,7 @@
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
-        <target state="new">Copy All</target>
+        <target state="translated">Копировать все</target>
       </trans-unit>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
@@ -1987,6 +2026,10 @@
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">Удалить</target>
+      </trans-unit>
+      <trans-unit id="mssql.disableActualPlan">
+        <source xml:lang="en">Disable Actual Plan</source>
+        <target state="new">Disable Actual Plan</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
@@ -2001,12 +2044,16 @@
         <target state="translated">Не показывать запросы на включение функций на основе пользовательского интерфейса</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection</source>
-        <target state="translated">Изменить подключение</target>
+        <source xml:lang="en">Edit Connection (Preview)</source>
+        <target state="new">Edit Connection (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">Изменить таблицу</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableActualPlan">
+        <source xml:lang="en">Enable Actual Plan</source>
+        <target state="new">Enable Actual Plan</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
@@ -2113,8 +2160,8 @@
         <target state="translated">Разрешает использование поставщика проверки подлинности SQL для режима проверки подлинности "Microsoft Entra Id Interactive", когда пользователь выбирает проверку подлинности "AzureMFA". Это разрешает интеграцию конечной точки ресурсов на стороне сервера при получении маркеров доступа. Этот параметр поддерживается только для библиотеки проверки подлинности "MSAL". Перезапустите Visual Studio Code после изменения этого параметра.</target>
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
-        <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">Предполагаемый план</target>
+        <source xml:lang="en">Estimated Plan (Preview)</source>
+        <target state="new">Estimated Plan (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -2125,8 +2172,8 @@
         <target state="translated">Выполнить запрос</target>
       </trans-unit>
       <trans-unit id="mssql.filterNode">
-        <source xml:lang="en">Filter</source>
-        <target state="translated">Фильтр</target>
+        <source xml:lang="en">Filter (Preview)</source>
+        <target state="new">Filter (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
@@ -2209,8 +2256,8 @@
         <target state="translated">Журнал запросов</target>
       </trans-unit>
       <trans-unit id="extension.queryResult">
-        <source xml:lang="en">Query Result</source>
-        <target state="translated">Результат запроса</target>
+        <source xml:lang="en">Query Results (Preview)</source>
+        <target state="new">Query Results (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.refreshObjectExplorerNode">
         <source xml:lang="en">Refresh</source>

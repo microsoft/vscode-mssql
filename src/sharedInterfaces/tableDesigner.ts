@@ -192,6 +192,8 @@ export enum TableIndexProperty {
     Name = "name",
     Description = "description",
     Columns = "columns",
+    IncludedColumns = "includedColumns",
+    ColumnStoreIndex = "columnStoreIndexes",
 }
 
 /**
@@ -404,6 +406,10 @@ export interface DesignerTablePropertiesBase {
      * The label of the add new button. The default value is 'Add New'.
      */
     labelForAddNewButton?: string;
+    /**
+     * Groups that are expanded in properties view. The default value is empty.
+     */
+    expandedGroups?: string[];
 }
 
 /**

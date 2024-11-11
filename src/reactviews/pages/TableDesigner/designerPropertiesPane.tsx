@@ -46,7 +46,6 @@ const useStyles = makeStyles({
         height: "30px",
         paddingTop: "10px",
         paddingBottom: "10px",
-        borderBottom: "1px solid var(--vscode-editorWidget-border)",
         "> *": {
             marginRight: "10px",
         },
@@ -109,7 +108,15 @@ export const DesignerPropertiesPane = () => {
             return undefined;
         }
         return (
-            <AccordionItem value={group} key={group}>
+            <AccordionItem
+                value={group}
+                key={group}
+                style={{
+                    border: "0.5px solid var(--vscode-editorWidget-border)",
+                    borderRadius: "2px",
+                    margin: "10px",
+                }}
+            >
                 <AccordionHeader>{group}</AccordionHeader>
                 <AccordionPanel>
                     <div className={classes.group}>
@@ -194,6 +201,61 @@ export const DesignerPropertiesPane = () => {
         );
     };
 
+    const getAccordionGroups = () => {
+        return groups
+            ?.sort((a, b) => {
+                if (!a || !b) {
+                    return 0;
+                }
+                // Move all expanded groups to the top
+                if (
+                    parentTableProperties.expandedGroups?.includes(a) &&
+                    !parentTableProperties.expandedGroups?.includes(b)
+                ) {
+                    return -1;
+                }
+                if (
+                    parentTableProperties.expandedGroups?.includes(b) &&
+                    !parentTableProperties.expandedGroups?.includes(a)
+                ) {
+                    return 1;
+                }
+                return 0;
+            })
+            .map((group) => {
+                const groupItems = parentTableProperties
+                    .itemProperties!.filter(
+                        (i) =>
+                            (group === "General" && !i.group) ||
+                            group === i.group,
+                    )
+                    .filter((item) => {
+                        if (item.showInPropertiesView === false) {
+                            return false;
+                        }
+                        const modelValue = data![item.propertyName];
+                        if (!modelValue) {
+                            return false;
+                        }
+                        if (
+                            (
+                                modelValue as
+                                    | InputBoxProperties
+                                    | CheckBoxProperties
+                                    | DropDownProperties
+                            )?.enabled === false
+                        ) {
+                            return false;
+                        }
+                        return true;
+                    });
+                if (groupItems.length === 0) {
+                    return undefined;
+                }
+                return renderAccordionItem(group, groupItems);
+            });
+    };
+
     return (
         <div className={classes.root}>
             <div className={classes.title}>
@@ -221,12 +283,16 @@ export const DesignerPropertiesPane = () => {
                             <ChevronLeftFilled />
                         )
                     }
+                    style={{
+                        marginRight: "0px",
+                    }}
                 />
                 <Text
                     size={500}
+                    weight="semibold"
                     style={{
-                        fontWeight: "bold",
                         flex: 1,
+                        lineHeight: "28px",
                     }}
                 >
                     {locConstants.tableDesigner.propertiesPaneTitle(
@@ -234,7 +300,7 @@ export const DesignerPropertiesPane = () => {
                     )}
                 </Text>
                 <Button
-                    appearance="outline"
+                    appearance="transparent"
                     onClick={() => {
                         state.provider.setPropertiesComponents(undefined);
                     }}
@@ -247,40 +313,14 @@ export const DesignerPropertiesPane = () => {
                 />
             </div>
             <div className={classes.stack}>
-                <Accordion multiple collapsible defaultOpenItems={groups}>
-                    {data &&
-                        groups?.map((group) => {
-                            const groupItems = parentTableProperties
-                                .itemProperties!.filter(
-                                    (i) =>
-                                        (group === "General" && !i.group) ||
-                                        group === i.group,
-                                )
-                                .filter((item) => {
-                                    if (item.showInPropertiesView === false) {
-                                        return false;
-                                    }
-                                    const modelValue = data![item.propertyName];
-                                    if (!modelValue) {
-                                        return false;
-                                    }
-                                    if (
-                                        (
-                                            modelValue as
-                                                | InputBoxProperties
-                                                | CheckBoxProperties
-                                                | DropDownProperties
-                                        )?.enabled === false
-                                    ) {
-                                        return false;
-                                    }
-                                    return true;
-                                });
-                            if (groupItems.length === 0) {
-                                return undefined;
-                            }
-                            return renderAccordionItem(group, groupItems);
-                        })}
+                <Accordion
+                    multiple
+                    collapsible
+                    defaultOpenItems={
+                        parentTableProperties.expandedGroups ?? []
+                    }
+                >
+                    {data && getAccordionGroups()}
                 </Accordion>
             </div>
         </div>

@@ -644,6 +644,12 @@ export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 
+export let openQueryResultsInTabByDefaultPrompt = l10n.t(
+    "Do you want to always display query results in a new tab instead of the query pane?",
+);
+export let alwaysShowInNewTab = l10n.t("Always show in new tab");
+export let keepInQueryPane = l10n.t("Keep in query pane");
+
 export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     return l10n.t({
         message:
@@ -740,4 +746,10 @@ export class Webview {
             comment: ["{0} is the webview name"],
         });
     public static Restore = l10n.t("Restore");
+}
+
+export class TableDesigner {
+    public static General = l10n.t("General");
+    public static Columns = l10n.t("Columns");
+    public static AdvancedOptions = l10n.t("Advanced Options");
 }
