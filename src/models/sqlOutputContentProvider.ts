@@ -420,45 +420,38 @@ export class SqlOutputContentProvider {
                         TelemetryActions.OpenQueryResult,
                     );
                 } else {
-                    try {
-                        this._lastSendMessageTime = Date.now();
-                        this._queryResultWebviewController.addQueryResultState(
-                            uri,
-                            title,
-                            this.getIsExecutionPlan(),
-                            this._executionPlanOptions
-                                ?.includeActualExecutionPlanXml ?? false,
-                        );
-                        this._queryResultWebviewController.getQueryResultState(
-                            uri,
-                        ).tabStates.resultPaneTab =
-                            QueryResultPaneTabs.Messages;
-                        if (this.isOpenQueryResultsInTabByDefaultEnabled) {
-                            await this._queryResultWebviewController.createPanelController(
-                                uri,
-                            );
-                        }
-                        this._queryResultWebviewController.updatePanelState(
+                    this._lastSendMessageTime = Date.now();
+                    this._queryResultWebviewController.addQueryResultState(
+                        uri,
+                        title,
+                        this.getIsExecutionPlan(),
+                        this._executionPlanOptions
+                            ?.includeActualExecutionPlanXml ?? false,
+                    );
+                    this._queryResultWebviewController.getQueryResultState(
+                        uri,
+                    ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                    if (this.isOpenQueryResultsInTabByDefaultEnabled) {
+                        await this._queryResultWebviewController.createPanelController(
                             uri,
                         );
-                        if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            await vscode.commands.executeCommand(
-                                "queryResult.focus",
-                            );
-                        }
-                        sendActionEvent(
-                            TelemetryViews.QueryResult,
-                            TelemetryActions.OpenQueryResult,
-                            {
-                                defaultLocation: this
-                                    .isOpenQueryResultsInTabByDefaultEnabled
-                                    ? "tab"
-                                    : "pane", // wording??
-                            },
-                        );
-                    } catch (e) {
-                        // console.error(e);
                     }
+                    this._queryResultWebviewController.updatePanelState(uri);
+                    if (!this._queryResultWebviewController.hasPanel(uri)) {
+                        await vscode.commands.executeCommand(
+                            "queryResult.focus",
+                        );
+                    }
+                    sendActionEvent(
+                        TelemetryViews.QueryResult,
+                        TelemetryActions.OpenQueryResult,
+                        {
+                            defaultLocation: this
+                                .isOpenQueryResultsInTabByDefaultEnabled
+                                ? "tab"
+                                : "pane",
+                        },
+                    );
                 }
             });
             queryRunner.eventEmitter.on(
@@ -469,17 +462,13 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("resultSet", resultSet);
                     } else {
-                        try {
-                            this._queryResultWebviewController.addResultSetSummary(
-                                uri,
-                                resultSet,
-                            );
-                            this._queryResultWebviewController.updatePanelState(
-                                uri,
-                            );
-                        } catch (e) {
-                            // console.error(e);
-                        }
+                        this._queryResultWebviewController.addResultSetSummary(
+                            uri,
+                            resultSet,
+                        );
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
+                        );
                     }
                 },
             );
@@ -505,10 +494,35 @@ export class SqlOutputContentProvider {
                 if (!this.isRichExperiencesEnabled) {
                     this._panels.get(uri).proxy.sendEvent("message", message);
                 } else {
-                    try {
-                        this._queryResultWebviewController
-                            .getQueryResultState(uri)
-                            .messages.push(message);
+                    this._queryResultWebviewController
+                        .getQueryResultState(uri)
+                        .messages.push(message);
+                    this._queryResultWebviewController.getQueryResultState(
+                        uri,
+                    ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                    this._queryResultWebviewController.state =
+                        this._queryResultWebviewController.getQueryResultState(
+                            uri,
+                        );
+                    this._queryResultWebviewController.updatePanelState(uri);
+                    if (!this._queryResultWebviewController.hasPanel(uri)) {
+                        vscode.commands.executeCommand("queryResult.focus");
+                    }
+                }
+            });
+            queryRunner.eventEmitter.on("message", (message) => {
+                if (!this.isRichExperiencesEnabled) {
+                    this._panels.get(uri).proxy.sendEvent("message", message);
+                } else {
+                    this._queryResultWebviewController
+                        .getQueryResultState(uri)
+                        .messages.push(message);
+
+                    // Set state for messages at fixed intervals to avoid spamming the webview
+                    if (
+                        this._lastSendMessageTime <
+                        Date.now() - MESSAGE_INTERVAL_IN_MS
+                    ) {
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
                         ).tabStates.resultPaneTab =
@@ -517,57 +531,13 @@ export class SqlOutputContentProvider {
                             this._queryResultWebviewController.getQueryResultState(
                                 uri,
                             );
-                        // vscode.commands.executeCommand("queryResult.focus");
                         this._queryResultWebviewController.updatePanelState(
                             uri,
                         );
                         if (!this._queryResultWebviewController.hasPanel(uri)) {
                             vscode.commands.executeCommand("queryResult.focus");
                         }
-                    } catch (e) {
-                        // console.error(e);
-                    }
-                }
-            });
-            queryRunner.eventEmitter.on("message", (message) => {
-                if (!this.isRichExperiencesEnabled) {
-                    this._panels.get(uri).proxy.sendEvent("message", message);
-                } else {
-                    try {
-                        this._queryResultWebviewController
-                            .getQueryResultState(uri)
-                            .messages.push(message);
-
-                        // Set state for messages at fixed intervals to avoid spamming the webview
-                        if (
-                            this._lastSendMessageTime <
-                            Date.now() - MESSAGE_INTERVAL_IN_MS
-                        ) {
-                            this._queryResultWebviewController.getQueryResultState(
-                                uri,
-                            ).tabStates.resultPaneTab =
-                                QueryResultPaneTabs.Messages;
-                            this._queryResultWebviewController.state =
-                                this._queryResultWebviewController.getQueryResultState(
-                                    uri,
-                                );
-                            // vscode.commands.executeCommand("queryResult.focus");
-                            this._queryResultWebviewController.updatePanelState(
-                                uri,
-                            );
-                            if (
-                                !this._queryResultWebviewController.hasPanel(
-                                    uri,
-                                )
-                            ) {
-                                vscode.commands.executeCommand(
-                                    "queryResult.focus",
-                                );
-                            }
-                            this._lastSendMessageTime = Date.now();
-                        }
-                    } catch (e) {
-                        // console.error(e);
+                        this._lastSendMessageTime = Date.now();
                     }
                 }
             });
@@ -587,45 +557,35 @@ export class SqlOutputContentProvider {
                             .get(uri)
                             .proxy.sendEvent("complete", totalMilliseconds);
                     } else {
-                        try {
-                            this._queryResultWebviewController
-                                .getQueryResultState(uri)
-                                .messages.push({
-                                    message:
-                                        LocalizedConstants.elapsedTimeLabel(
-                                            totalMilliseconds,
-                                        ),
-                                    isError: hasError,
-                                });
-                            const tabState =
-                                Object.keys(
-                                    this._queryResultWebviewController.getQueryResultState(
-                                        uri,
-                                    ).resultSetSummaries,
-                                ).length > 0
-                                    ? QueryResultPaneTabs.Results
-                                    : QueryResultPaneTabs.Messages;
-                            this._queryResultWebviewController.getQueryResultState(
-                                uri,
-                            ).tabStates.resultPaneTab = tabState;
-                            this._queryResultWebviewController.state =
+                        this._queryResultWebviewController
+                            .getQueryResultState(uri)
+                            .messages.push({
+                                message:
+                                    LocalizedConstants.elapsedTimeLabel(
+                                        totalMilliseconds,
+                                    ),
+                                isError: hasError,
+                            });
+                        const tabState =
+                            Object.keys(
                                 this._queryResultWebviewController.getQueryResultState(
                                     uri,
-                                );
-                            this._queryResultWebviewController.updatePanelState(
+                                ).resultSetSummaries,
+                            ).length > 0
+                                ? QueryResultPaneTabs.Results
+                                : QueryResultPaneTabs.Messages;
+                        this._queryResultWebviewController.getQueryResultState(
+                            uri,
+                        ).tabStates.resultPaneTab = tabState;
+                        this._queryResultWebviewController.state =
+                            this._queryResultWebviewController.getQueryResultState(
                                 uri,
                             );
-                            if (
-                                !this._queryResultWebviewController.hasPanel(
-                                    uri,
-                                )
-                            ) {
-                                vscode.commands.executeCommand(
-                                    "queryResult.focus",
-                                );
-                            }
-                        } catch (e) {
-                            // console.error(e);
+                        this._queryResultWebviewController.updatePanelState(
+                            uri,
+                        );
+                        if (!this._queryResultWebviewController.hasPanel(uri)) {
+                            vscode.commands.executeCommand("queryResult.focus");
                         }
                     }
                 },
