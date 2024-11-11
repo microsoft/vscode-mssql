@@ -20,7 +20,6 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     createExecutionPlanGraphs,
-    formatXml,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
