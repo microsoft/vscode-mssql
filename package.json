@@ -595,7 +595,7 @@
       "webview/context": [
         {
           "command": "mssql.copyAll",
-          "when": "webviewId == 'queryResult' && webviewSection == 'queryResultMessagesPane'"
+          "when": "webviewSection == 'queryResultMessagesPane'"
         }
       ]
     },
@@ -951,6 +951,18 @@
           "type": "boolean",
           "default": false,
           "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
+          "scope": "application"
+        },
+        "mssql.openQueryResultsInTabByDefault": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.openQueryResultsInTabByDefault.description%",
+          "scope": "application"
+        },
+        "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
           "scope": "application"
         },
         "azureResourceGroups.selectedSubscriptions": {
