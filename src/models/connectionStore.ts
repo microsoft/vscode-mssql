@@ -429,6 +429,8 @@ export class ConnectionStore {
 
     /**
      * Remove a connection profile from the recently used list.
+     * @param conn connection profile to remove
+     * @param keepCredentialStore Whether keep the credential store after a profile removal.  Defaults to false.
      */
     public removeRecentlyUsed(
         conn: IConnectionProfile,
@@ -538,7 +540,7 @@ export class ConnectionStore {
      * from the credential store
      *
      * @param profile the profile to be removed
-     * @param keepCredentialStore optional value to keep the credential store after a profile removal
+     * @param keepCredentialStore Whether to keep the credential store after a profile removal. Defaults to false.
      * @returns true if successful
      */
     public async removeProfile(

@@ -64,7 +64,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                         "tableDesignerEditor_light.svg",
                     ),
                 },
-                showRestorePromptAfterClose: true,
+                showRestorePromptAfterClose: false,
             },
         );
         void this.initialize();
@@ -83,6 +83,8 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             this._targetNode.nodeType === "View"
                 ? true
                 : false;
+
+        this.showRestorePromptAfterClose = !this._isEdit; // Show restore prompt only for new table creation.
 
         const targetDatabase = this.getDatabaseNameForNode(this._targetNode);
         // get database name from connection string
@@ -217,6 +219,8 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 state.tabStates.resultPaneTab =
                     designer.DesignerResultPaneTabs.Issues;
             }
+
+            this.showRestorePromptAfterClose = true;
 
             const afterEditState = {
                 ...state,
@@ -418,7 +422,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
         this.registerReducer("continueEditing", async (state) => {
             this.state.apiState.publishState = designer.LoadState.NotStarted;
-            this.showRestorePromptAfterClose = true;
             sendActionEvent(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.ContinueEditing,

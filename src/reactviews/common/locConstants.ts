@@ -17,6 +17,20 @@ export class LocConstants {
         LocConstants._instance = new LocConstants();
     }
 
+    public get common() {
+        return {
+            Delete: l10n.t("Delete"),
+            Cancel: l10n.t("Cancel"),
+            AreYouSure: l10n.t("Are you sure?"),
+            AreYouSureYouWantTo: (action: string) =>
+                l10n.t({
+                    message: "Are you sure you want to {0}?",
+                    args: [action],
+                    comment: ["{0} is the action being confirmed"],
+                }),
+        };
+    }
+
     public get objectExplorerFiltering() {
         return {
             error: l10n.t("Error"),
@@ -33,9 +47,9 @@ export class LocConstants {
             equals: l10n.t("Equals"),
             notEquals: l10n.t("Not Equals"),
             lessThan: l10n.t("Less Than"),
-            lessThanOrEquals: l10n.t("Less Than Or Equals"),
+            lessThanOrEquals: l10n.t("Less Than or Equals"),
             greaterThan: l10n.t("Greater Than"),
-            greaterThanOrEquals: l10n.t("Greater Than Or Equals"),
+            greaterThanOrEquals: l10n.t("Greater Than or Equals"),
             between: l10n.t("Between"),
             notBetween: l10n.t("Not Between"),
             path: (path: string) =>
@@ -152,6 +166,7 @@ export class LocConstants {
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
+            savedConnections: l10n.t("Saved Connections"),
             recentConnections: l10n.t("Recent Connections"),
             subscriptionLabel: l10n.t("Subscription"),
             subscription: l10n.t("subscription"),
@@ -193,6 +208,15 @@ export class LocConstants {
                     ],
                 }),
             default: l10n.t("Default"),
+            deleteSavedConnection: l10n.t("Delete saved connection"),
+            removeRecentConnection: l10n.t("Remove recent connection"),
+            deleteTheSavedConnection: (connectionName: string) => {
+                return l10n.t({
+                    message: "delete the saved connection: {0}?",
+                    args: [connectionName],
+                    comment: ["{0} is the connection name"],
+                });
+            },
         };
     }
 

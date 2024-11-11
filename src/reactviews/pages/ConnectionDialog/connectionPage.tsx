@@ -5,7 +5,7 @@
 
 import { Divider, makeStyles, shorthands } from "@fluentui/react-components";
 import { ResizableBox } from "react-resizable";
-import { MruConnectionsContainer } from "./mruConnectionsContainer";
+import { ConnectionsListContainer } from "./connectionsListContainer";
 import { ConnectionInfoFormContainer } from "./connectionPageContainer";
 
 export const useStyles = makeStyles({
@@ -62,7 +62,7 @@ export const ConnectionPage = () => {
                 resizeHandles={["w"]}
                 handle={<div className={classes.mruPaneHandle} />}
             >
-                <MruConnectionsContainer />
+                <ConnectionsListContainer />
             </ResizableBox>
         </div>
     );

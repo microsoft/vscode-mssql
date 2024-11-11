@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { TableDesigner } from "../constants/locConstants";
 import * as designer from "../sharedInterfaces/tableDesigner";
 import * as vscode from "vscode";
 
@@ -186,6 +187,7 @@ export function getColumnsTabComponents(
                 labelForAddNewButton:
                     columnTableOptions.labelForAddNewButton ??
                     vscode.l10n.t("New Column"),
+                expandedGroups: [TableDesigner.General],
             } as designer.DesignerTableProperties,
         },
     ];
@@ -317,6 +319,7 @@ export function getIndexesTabComponents(
             componentType: "input",
             propertyName: designer.TableIndexProperty.Name,
             description: vscode.l10n.t("The name of the index."),
+            group: TableDesigner.AdvancedOptions,
             componentProperties: {
                 title: vscode.l10n.t("Name"),
                 width: 200,
@@ -326,6 +329,7 @@ export function getIndexesTabComponents(
             componentType: "input",
             propertyName: designer.TableIndexProperty.Description,
             description: vscode.l10n.t("The description of the index."),
+            group: TableDesigner.AdvancedOptions,
             componentProperties: {
                 title: vscode.l10n.t("Description"),
                 width: 200,
@@ -338,7 +342,7 @@ export function getIndexesTabComponents(
             componentType: "table",
             propertyName: designer.TableIndexProperty.Columns,
             description: vscode.l10n.t("The columns of the index."),
-            group: vscode.l10n.t("Columns"),
+            group: TableDesigner.Columns,
             componentProperties: {
                 ariaLabel: vscode.l10n.t("Columns"),
                 columns: getTableDisplayProperties(columnSpecTableOptions, [
@@ -365,6 +369,19 @@ export function getIndexesTabComponents(
     const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
     if (indexTableOptions) {
+        const includedColumnsGroupName =
+            indexTableOptions.additionalProperties.find(
+                (c) =>
+                    c.propertyName ===
+                    designer.TableIndexProperty.IncludedColumns,
+            )?.group;
+
+        // Making all other properties as advanced options
+        indexTableOptions.additionalProperties.forEach((property) => {
+            if (!property.group) {
+                property.group = TableDesigner.AdvancedOptions;
+            }
+        });
         tabComponents.push({
             componentType: "table",
             propertyName: designer.TableProperty.Indexes,
@@ -388,6 +405,10 @@ export function getIndexesTabComponents(
                 labelForAddNewButton:
                     indexTableOptions.labelForAddNewButton ??
                     vscode.l10n.t("New Index"),
+                expandedGroups: [
+                    TableDesigner.Columns,
+                    includedColumnsGroupName,
+                ],
             } as designer.DesignerTableProperties,
         });
     }
@@ -396,7 +417,24 @@ export function getIndexesTabComponents(
         designer.TableProperty.Indexes,
         view.additionalComponents,
     );
+
     if (additionalComponents) {
+        additionalComponents.forEach((component) => {
+            if (
+                component.propertyName ===
+                designer.TableIndexProperty.ColumnStoreIndex
+            ) {
+                // Making all ungrouped properties of column store index as advanced options
+                const properties =
+                    component.componentProperties as designer.DesignerTableProperties;
+                properties.expandedGroups = [TableDesigner.Columns];
+                properties.itemProperties.forEach((property) => {
+                    if (!property.group) {
+                        property.group = TableDesigner.AdvancedOptions;
+                    }
+                });
+            }
+        });
         tabComponents.push(...additionalComponents);
     }
     return tabComponents;
@@ -455,6 +493,7 @@ export function getForeignKeysTabComponents(
             description: vscode.l10n.t(
                 "The table which contains the primary or unique key column.",
             ),
+            showInPropertiesView: false,
             componentProperties: {
                 title: vscode.l10n.t("Foreign Table"),
                 width: 200,
@@ -516,6 +555,17 @@ export function getForeignKeysTabComponents(
     const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
     if (foreignKeyTableOptions) {
+        // Making all ungrouped properties of foreign key as advanced options
+        foreignKeyProperties.forEach((property) => {
+            if (!property.group) {
+                property.group = TableDesigner.AdvancedOptions;
+            }
+        });
+        foreignKeyTableOptions.additionalProperties.forEach((property) => {
+            if (!property.group) {
+                property.group = TableDesigner.AdvancedOptions;
+            }
+        });
         tabComponents.push({
             componentType: "table",
             propertyName: designer.TableProperty.ForeignKeys,
@@ -540,6 +590,7 @@ export function getForeignKeysTabComponents(
                 labelForAddNewButton:
                     foreignKeyTableOptions.labelForAddNewButton ??
                     vscode.l10n.t("New Foreign Key"),
+                expandedGroups: [TableDesigner.Columns],
             } as designer.DesignerTableProperties,
         });
     }
@@ -625,6 +676,7 @@ export function getCheckConstraintsTabComponents(
                 labelForAddNewButton:
                     checkConstraintTableOptions.labelForAddNewButton ??
                     vscode.l10n.t("New Check Constraint"),
+                expandedGroups: [TableDesigner.General],
             } as designer.DesignerTableProperties,
         });
     }

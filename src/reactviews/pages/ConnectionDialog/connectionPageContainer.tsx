@@ -64,7 +64,10 @@ export const ConnectionInfoFormContainer = () => {
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {context.state.formError && (
-                    <MessageBar intent="error">
+                    <MessageBar
+                        intent="error"
+                        style={{ minHeight: "min-content" }}
+                    >
                         {context.state.formError}
                     </MessageBar>
                 )}
