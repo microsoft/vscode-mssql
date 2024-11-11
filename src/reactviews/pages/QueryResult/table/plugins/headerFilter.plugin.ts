@@ -142,7 +142,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 `<div style="display: flex; align-items: center; margin-bottom: 8px;">` +
                 `<input type="checkbox" id="select-all-checkbox" style="margin-right: 8px;" />` +
                 `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
-                `<span id="selection-counter" class="selection-counter">${locConstants.queryResult.selected}</span>` +
                 `</div>` +
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
                 `<button id="apply" type="button" class="filter-btn">${locConstants.queryResult.apply}</button>` +
@@ -189,14 +188,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $popup.find("#select-all-checkbox").on("change", (e: Event) => {
             const isChecked = (e.target as HTMLInputElement).checked;
             this.selectAllFiltered(isChecked, checkboxContainer);
-            this.updateSelectionCounter(); // Update counter on select all
         });
-
-        $popup
-            .find("#checkbox-list input[type='checkbox']")
-            .on("change", () => {
-                this.updateSelectionCounter(); // Update counter on checkbox change
-            });
 
         // Add event listeners for closing or interacting with the popup
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
@@ -292,13 +284,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 jQuery(label).hide();
             }
         });
-    }
-
-    private updateSelectionCounter() {
-        const selectedCount = jQuery(
-            "#checkbox-list input[type='checkbox']:checked",
-        ).length;
-        jQuery("#selection-counter").text(`${selectedCount} Selected`);
     }
 
     private selectAllFiltered(
