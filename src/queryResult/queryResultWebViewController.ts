@@ -20,6 +20,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     createExecutionPlanGraphs,
+    formatXml,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -233,11 +234,15 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 return state;
             }
         });
-        this.registerReducer("addXmlPlan", async (state, payload) => {
-            state.executionPlanState.xmlPlans = [
-                ...state.executionPlanState.xmlPlans,
-                payload.xmlPlan,
-            ];
+        this.registerReducer("openFileThroughLink", async (state, payload) => {
+            // TO DO: add formatting? ADS doesn't do this, but it may be nice...
+            const newDoc = await vscode.workspace.openTextDocument({
+                content: payload.content,
+                language: payload.type,
+            });
+
+            void vscode.window.showTextDocument(newDoc);
+
             return state;
         });
         this.registerReducer("saveExecutionPlan", async (state, payload) => {

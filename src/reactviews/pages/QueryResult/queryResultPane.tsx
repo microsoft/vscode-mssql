@@ -210,6 +210,12 @@ export const QueryResultPane = () => {
         return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
     };
 
+    const linkHandler = (fileContent: string, fileType: string) => {
+        if (state) {
+            state.provider.openFileThroughLink(fileContent, fileType);
+        }
+    };
+
     //#region Result Grid
     const gridRefs = useRef<ResultGridHandle[]>([]);
     const renderGrid = (
@@ -290,6 +296,7 @@ export const QueryResultPane = () => {
                     gridParentRef={gridParentRef}
                     uri={metadata?.uri}
                     webViewState={webViewState}
+                    linkHandler={linkHandler}
                 />
                 <CommandBar
                     uri={metadata?.uri}

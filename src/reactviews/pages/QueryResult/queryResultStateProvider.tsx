@@ -49,10 +49,17 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                             uri: uri,
                         });
                     },
-                    addXmlPlan: function (plan: string): void {
-                        webViewState?.extensionRpc.action("addXmlPlan", {
-                            xmlPlan: plan,
-                        });
+                    openFileThroughLink: function (
+                        content: string,
+                        type: string,
+                    ): void {
+                        webViewState?.extensionRpc.action(
+                            "openFileThroughLink",
+                            {
+                                content: content,
+                                type: type,
+                            },
+                        );
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {
                         webViewState?.extensionRpc.action("saveExecutionPlan", {
