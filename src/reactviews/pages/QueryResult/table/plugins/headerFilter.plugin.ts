@@ -14,6 +14,7 @@ import {
 } from "../dataProvider";
 import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
+import { ColorThemeKind } from "../../../../common/vscodeWebviewProvider";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -28,6 +29,7 @@ const ShowFilterText = locConstants.queryResult.showFilter;
 export const FilterButtonWidth: number = 34;
 
 export class HeaderFilter<T extends Slick.SlickData> {
+    public theme: ColorThemeKind;
     public onFilterApplied = new Slick.Event<{
         grid: Slick.Grid<T>;
         column: FilterableColumn<T>;
@@ -45,6 +47,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
         HTMLElement
     >();
     private listData: TableFilterListElement[] = [];
+
+    constructor(theme: ColorThemeKind) {
+        this.theme = theme;
+    }
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
@@ -97,6 +103,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
+        if (
+            this.theme === ColorThemeKind.Dark ||
+            this.theme === ColorThemeKind.HighContrast
+        ) {
+            $el.addClass("vs-dark");
+        } else {
+            $el.addClass("vs-light");
+        }
         if (column.filterValues?.length) {
             this.setButtonImage($el, column.filterValues?.length > 0);
         }

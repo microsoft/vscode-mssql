@@ -139,7 +139,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             [],
             newOptions,
         );
-        this.registerPlugin(new HeaderFilter());
+        this.registerPlugin(new HeaderFilter(webViewState.themeKind));
         this.registerPlugin(
             new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
         );
