@@ -308,6 +308,20 @@
     cursor: pointer;
 }
 
+.filter-btn-primary {
+    width: 33%;
+    padding: 8px 10px;
+    text-align: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-background);
+    border-color: var(--vscode-button-border);
+    font-family: var(--vscode-font-family);
+}
+
 .filter-btn {
     width: 33%;
     padding: 8px 10px;
@@ -316,9 +330,9 @@
     border: none;
     cursor: pointer;
     font-size: 13px;
-    color: var(--vscode-dropdown-foreground);
-    background-color: var(--vscode-dropdown-background);
-    border-color: var(--vscode-dropdown-border);
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryBackground);
+    border-color: var(--vscode-button-secondaryBorder);
     font-family: var(--vscode-font-family);
 }
 
@@ -344,13 +358,24 @@
     border-color: var(--vscode-dropdown-border);
 }
 
+.filter-btn-primary:hover {
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+/* Additional styling for active/focused states */
+.filter-btn-primary:focus {
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-hoverBackground);
+}
+
 .filter-btn:hover {
-    color: var(--vscode-list-hoverForeground);
-    background-color: var(--vscode-list-hoverBackground);
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryHoverBackground);
 }
 
 /* Additional styling for active/focused states */
 .filter-btn:focus {
-    color: var(--vscode-list-hoverForeground);
-    background-color: var(--vscode-list-hoverBackground);
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryHoverBackground);
 }

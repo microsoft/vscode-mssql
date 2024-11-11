@@ -158,7 +158,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
                 `</div>` +
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
-                `<button id="apply" type="button" class="filter-btn">${locConstants.queryResult.apply}</button>` +
+                `<button id="apply" type="button" class="filter-btn-primary">${locConstants.queryResult.apply}</button>` +
                 `<button id="clear" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
                 `<button id="close-popup" type="button" class="filter-btn">${locConstants.queryResult.cancel}</button>` +
                 "</div>",
