@@ -149,6 +149,7 @@ export function registerCommonRequestHandlers(
                     message.batchId,
                     message.resultId,
                     message.selection,
+                    false,
                 );
         },
     );
