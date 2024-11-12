@@ -298,7 +298,7 @@ export class LocConstants {
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
-            openSnapshot: l10n.t("Open snapshot in a new tab"),
+            openResultInNewTab: l10n.t("Open in New Tab"),
             showplanXML: l10n.t("Showplan XML"),
             showFilter: l10n.t("Show Filter"),
             sortAscending: l10n.t("Sort Ascending"),
