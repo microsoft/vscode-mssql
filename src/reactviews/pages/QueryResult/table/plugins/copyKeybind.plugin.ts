@@ -40,7 +40,6 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
-        // this.grid.onKeyDown.subscribe(this.handleKeyDown.bind(this));
         this.handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
             this.handleKeyDown(e as unknown as KeyboardEvent),
         );
