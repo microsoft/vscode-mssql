@@ -52,7 +52,6 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        console.log(e.getModifierState);
         let platform = await this.webViewState.extensionRpc.call("getPlatform");
         if (platform === "darwin") {
             // Cmd + C
