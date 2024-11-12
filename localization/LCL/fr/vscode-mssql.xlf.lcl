@@ -193,6 +193,9 @@
       <Item ItemId=";bundle.++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Greater Than or Equals]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Supérieur ou égal à]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1213,6 +1216,9 @@
       <Item ItemId=";bundle.++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} (préversion)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1480,6 +1486,9 @@
       <Item ItemId=";bundle.++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Saved Connections]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connexions enregistrées]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1996,6 +2005,9 @@
       <Item ItemId=";bundle.++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to {0}?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vraiment {0} ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3868,6 +3880,9 @@
       <Item ItemId=";bundle.++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Êtes-vous sûr(e) ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3946,6 +3961,9 @@
       <Item ItemId=";bundle.++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Less Than or Equals]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inférieur ou égal à]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4696,6 +4714,9 @@
       <Item ItemId=";package.mssql.disableActualPlan" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disable Actual Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Désactiver le plan réel]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4732,6 +4753,9 @@
       <Item ItemId=";package.mssql.enableActualPlan" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable Actual Plan]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activer le plan réel]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
