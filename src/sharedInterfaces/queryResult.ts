@@ -45,12 +45,18 @@ export enum QueryResultPaneTabs {
     ExecutionPlan = "executionPlan",
 }
 
+export enum QueryResultWebviewLocation {
+    Panel = "panel", // VSCode panel area (Terminal, Debug Console, etc.), it's not related to the webview panel.
+    Document = "document", // VSCode document area (editor area)
+}
+
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
 }
 
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     uri?: string;
+    title?: string;
     resultSetSummaries: Record<number, Record<number, ResultSetSummary>>;
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
