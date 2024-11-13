@@ -131,9 +131,6 @@ const warning = require("./icons/overlay-warning.svg");
 const criticalWarning = require("./icons/badge_critical_warning.svg");
 const parallelismBadge = require("./icons/overlay-parallelism.svg");
 
-const expandButton = require("./icons/expand.svg");
-const collapseButton = require("./icons/collapse.svg");
-
 export function getIconPaths() {
     return {
         // generic icons
@@ -390,11 +387,18 @@ export function getBadgePaths() {
     };
 }
 
-export function getCollapseExpandPaths() {
+export function getCollapseExpandPaths(colorTheme: ColorThemeKind) {
+    const theme = themeType(colorTheme);
     return {
-        expand: expandButton,
+        expand:
+            theme === "light"
+                ? require("./icons/expand_light.svg")
+                : require("./icons/expand_dark.svg"),
 
-        collapse: collapseButton,
+        collapse:
+            theme === "light"
+                ? require("./icons/collapse_light.svg")
+                : require("./icons/collapse_dark.svg"),
     };
 }
 
