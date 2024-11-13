@@ -34,14 +34,14 @@ export class ReactWebviewViewController<State, Reducers>
     }
 
     protected _getWebview(): vscode.Webview {
-        return this._webviewView.webview;
+        return this._webviewView?.webview;
     }
 
     /**
      * returns if the webview is visible
      */
     public isVisible(): boolean {
-        return this._webviewView.visible;
+        return this._webviewView?.visible;
     }
     /**
      * Displays the webview in the foreground

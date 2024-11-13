@@ -282,6 +282,9 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                 ...args,
             );
         };
+        this._webviewRequestHandlers["getPlatform"] = async () => {
+            return process.platform;
+        };
     }
 
     /**
@@ -360,7 +363,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
      */
     public postMessage(message: any) {
         if (!this._isDisposed) {
-            this._getWebview().postMessage(message);
+            this._getWebview()?.postMessage(message);
         }
     }
 

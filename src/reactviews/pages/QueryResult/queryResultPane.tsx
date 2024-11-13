@@ -5,7 +5,6 @@
 
 import {
     Button,
-    Divider,
     Link,
     Tab,
     TabList,
@@ -23,7 +22,7 @@ import {
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import { useContext, useEffect, useRef, useState } from "react";
-import { OpenFilled } from "@fluentui/react-icons";
+import { OpenRegular } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -186,7 +185,7 @@ export const QueryResultPane = () => {
             );
         }
         // gridCount is 1
-        return Math.max(availableHeight - TABLE_ALIGN_PX, MIN_GRID_HEIGHT);
+        return availableHeight - TABLE_ALIGN_PX;
     };
 
     const calculateGridWidth = (
@@ -429,6 +428,23 @@ export const QueryResultPane = () => {
     }, [metadata?.executionPlanState?.xmlPlans]);
     //#endregion
 
+    const getWebviewLocation = async () => {
+        const res = (await webViewState.extensionRpc.call(
+            "getWebviewLocation",
+            {
+                uri: metadata?.uri,
+            },
+        )) as string;
+        setWebviewLocation(res);
+    };
+    const [webviewLocation, setWebviewLocation] = useState("");
+    useEffect(() => {
+        getWebviewLocation().catch((e) => {
+            console.error(e);
+            setWebviewLocation("panel");
+        });
+    }, []);
+
     return !metadata || !hasResultsOrMessages(metadata) ? (
         <div>
             <div className={classes.noResultMessage}>
@@ -484,23 +500,19 @@ export const QueryResultPane = () => {
                             </Tab>
                         )}
                 </TabList>
-                {false && ( // hide divider until we implement snapshot
-                    <Divider
-                        vertical
-                        style={{
-                            flex: "0",
-                        }}
-                    />
-                )}
-                {false && ( // hide button until we implement snapshot
+                {webviewLocation === "panel" && (
                     <Button
-                        appearance="transparent"
-                        icon={<OpenFilled />}
+                        icon={<OpenRegular />}
+                        appearance="subtle"
                         onClick={async () => {
-                            console.log("todo: open in new tab");
-                            // gridRef.current.refreshGrid();
+                            await webViewState.extensionRpc.call(
+                                "openInNewTab",
+                                {
+                                    uri: metadata?.uri,
+                                },
+                            );
                         }}
-                        title={locConstants.queryResult.openSnapshot}
+                        title={locConstants.queryResult.openResultInNewTab}
                     ></Button>
                 )}
             </div>

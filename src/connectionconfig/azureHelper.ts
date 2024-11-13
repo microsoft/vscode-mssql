@@ -110,7 +110,6 @@ export async function getQuickPickItems(
 
 const serverResourceType = "Microsoft.Sql/servers";
 const databaseResourceType = "Microsoft.Sql/servers/databases";
-const elasticPoolsResourceType = "Microsoft.Sql/servers/elasticpools";
 
 export async function fetchServersFromAzure(
     sub: AzureSubscription,
@@ -130,11 +129,7 @@ export async function fetchServersFromAzure(
     );
 
     const servers = resources.filter((r) => r.type === serverResourceType);
-    const databases = resources.filter(
-        (r) =>
-            r.type === databaseResourceType ||
-            r.type === elasticPoolsResourceType,
-    );
+    const databases = resources.filter((r) => r.type === databaseResourceType);
 
     for (const server of servers) {
         result.push({
