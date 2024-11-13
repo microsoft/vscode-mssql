@@ -23,6 +23,7 @@ import {
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
+import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { jsonLanguageId, xmlLanguageId } from "../../../../constants/constants";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
@@ -146,6 +147,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.registerPlugin(new HeaderFilter());
         this.registerPlugin(
             new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
+        );
+        this.registerPlugin(
+            new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
         );
 
         if (configuration && configuration.columns) {

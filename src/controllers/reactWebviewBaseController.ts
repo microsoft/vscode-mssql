@@ -282,6 +282,9 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                 ...args,
             );
         };
+        this._webviewRequestHandlers["getPlatform"] = async () => {
+            return process.platform;
+        };
     }
 
     /**

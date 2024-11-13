@@ -185,7 +185,7 @@ export const QueryResultPane = () => {
             );
         }
         // gridCount is 1
-        return Math.max(availableHeight - TABLE_ALIGN_PX, MIN_GRID_HEIGHT);
+        return availableHeight - TABLE_ALIGN_PX;
     };
 
     const calculateGridWidth = (
