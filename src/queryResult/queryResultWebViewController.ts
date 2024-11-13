@@ -218,6 +218,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
         this.registerReducer("openFileThroughLink", async (state, payload) => {
             // TO DO: add formatting? ADS doesn't do this, but it may be nice...
+            // git issue #18396
             const newDoc = await vscode.workspace.openTextDocument({
                 content: payload.content,
                 language: payload.type,

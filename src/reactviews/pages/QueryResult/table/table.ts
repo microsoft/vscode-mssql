@@ -23,6 +23,7 @@ import {
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
+import { jsonLanguageId, xmlLanguageId } from "../../../../constants/constants";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -203,7 +204,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         if (columnInfo.isXml || columnInfo.isJson) {
             this.linkHandler(
                 this.getCellValue(cell.row, cell.cell),
-                columnInfo.isXml ? "xml" : "json",
+                columnInfo.isXml ? xmlLanguageId : jsonLanguageId,
             );
         }
     }
