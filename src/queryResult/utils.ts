@@ -250,13 +250,20 @@ export function registerCommonRequestHandlers(
             }
         },
     );
-    webviewController.registerReducer("addXmlPlan", async (state, payload) => {
-        state.executionPlanState.xmlPlans = [
-            ...state.executionPlanState.xmlPlans,
-            payload.xmlPlan,
-        ];
-        return state;
-    });
+    webviewController.registerReducer(
+        "openFileThroughLink",
+        async (state, payload) => {
+            // TO DO: add formatting? ADS doesn't do this, but it may be nice...
+            const newDoc = await vscode.workspace.openTextDocument({
+                content: payload.content,
+                language: payload.type,
+            });
+
+            void vscode.window.showTextDocument(newDoc);
+
+            return state;
+        },
+    );
     webviewController.registerReducer(
         "saveExecutionPlan",
         async (state, payload) => {
