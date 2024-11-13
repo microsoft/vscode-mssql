@@ -24,13 +24,6 @@ import {
     getNewResultPaneViewColumn,
     registerCommonRequestHandlers,
 } from "./utils";
-import {
-    createExecutionPlanGraphs,
-    saveExecutionPlan,
-    showPlanXml,
-    showQuery,
-    updateTotalCost,
-} from "../controllers/sharedExecutionPlanUtils";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -168,90 +161,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     );
             }
             await this.createPanelController(message.uri);
-        });
-        this.registerReducer("getExecutionPlan", async (state, payload) => {
-            // because this is an overridden call, this makes sure it is being
-            // called properly
-            if ("uri" in payload) {
-                const currentResultState = this.getQueryResultState(
-                    payload.uri,
-                );
-                if (
-                    !(
-                        // Check if actual plan is enabled or current result is an execution plan
-                        (
-                            (currentResultState.actualPlanEnabled ||
-                                currentResultState.isExecutionPlan) &&
-                            // Ensure execution plan state exists and execution plan graphs have not loaded
-                            currentResultState.executionPlanState &&
-                            currentResultState.executionPlanState
-                                .executionPlanGraphs.length === 0 &&
-                            // Check for non-empty XML plans and result summaries
-                            currentResultState.executionPlanState.xmlPlans
-                                .length &&
-                            Object.keys(currentResultState.resultSetSummaries)
-                                .length &&
-                            // Verify XML plans match expected number of result sets
-                            currentResultState.executionPlanState.xmlPlans
-                                .length ===
-                                this.getNumExecutionPlanResultSets(
-                                    currentResultState.resultSetSummaries,
-                                    currentResultState.actualPlanEnabled,
-                                )
-                        )
-                    )
-                ) {
-                    return state;
-                }
-
-                state = (await createExecutionPlanGraphs(
-                    state,
-                    this.executionPlanService,
-                    currentResultState.executionPlanState.xmlPlans,
-                )) as qr.QueryResultWebviewState;
-                state.executionPlanState.loadState = ApiStatus.Loaded;
-                state.tabStates.resultPaneTab =
-                    qr.QueryResultPaneTabs.ExecutionPlan;
-
-                return state;
-            }
-        });
-        this.registerReducer("openFileThroughLink", async (state, payload) => {
-            // TO DO: add formatting? ADS doesn't do this, but it may be nice...
-            // git issue #18396
-            const newDoc = await vscode.workspace.openTextDocument({
-                content: payload.content,
-                language: payload.type,
-            });
-
-            void vscode.window.showTextDocument(newDoc);
-
-            return state;
-        });
-        this.registerReducer("saveExecutionPlan", async (state, payload) => {
-            return (await saveExecutionPlan(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
-        });
-        this.registerReducer("showPlanXml", async (state, payload) => {
-            return (await showPlanXml(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
-        });
-        this.registerReducer("showQuery", async (state, payload) => {
-            return (await showQuery(
-                state,
-                payload,
-                this.untitledSqlDocumentService,
-            )) as qr.QueryResultWebviewState;
-        });
-        this.registerReducer("updateTotalCost", async (state, payload) => {
-            return (await updateTotalCost(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
         });
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
