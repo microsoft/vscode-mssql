@@ -161,7 +161,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     queryPlanGraph: executionPlanGraph,
                     iconPaths: utils.getIconPaths(),
                     badgeIconPaths: utils.getBadgePaths(),
-                    expandCollapsePaths: utils.getCollapseExpandPaths(),
+                    expandCollapsePaths: utils.getCollapseExpandPaths(
+                        state.themeKind,
+                    ),
                     showTooltipOnClick: true,
                 };
                 const pen = new mxClient.azdataQueryPlan(
