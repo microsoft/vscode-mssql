@@ -210,13 +210,6 @@ export class LocConstants {
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
             removeRecentConnection: l10n.t("Remove recent connection"),
-            deleteTheSavedConnection: (connectionName: string) => {
-                return l10n.t({
-                    message: "delete the saved connection: {0}?",
-                    args: [connectionName],
-                    comment: ["{0} is the connection name"],
-                });
-            },
         };
     }
 
