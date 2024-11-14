@@ -694,6 +694,13 @@ export class ConnectionDialog {
             ],
         });
     }
+    public static deleteTheSavedConnection = (connectionName: string) => {
+        return l10n.t({
+            message: "delete the saved connection: {0}?",
+            args: [connectionName],
+            comment: ["{0} is the connection name"],
+        });
+    };
 }
 
 export class UserSurvey {
@@ -736,6 +743,15 @@ export class Common {
     public static remindMeLater = l10n.t("Remind Me Later");
     public static dontShowAgain = l10n.t("Don't Show Again");
     public static learnMore = l10n.t("Learn More");
+    public static delete = l10n.t("Delete");
+    public static cancel = l10n.t("Cancel");
+    public static areYouSure = l10n.t("Are you sure?");
+    public static areYouSureYouWantTo = (action: string) =>
+        l10n.t({
+            message: "Are you sure you want to {0}?",
+            args: [action],
+            comment: ["{0} is the action being confirmed"],
+        });
 }
 
 export class Webview {
