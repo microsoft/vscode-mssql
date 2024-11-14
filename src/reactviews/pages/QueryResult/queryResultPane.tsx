@@ -426,6 +426,7 @@ export const QueryResultPane = () => {
         if (
             state &&
             metadata &&
+            metadata.isExecutionPlan &&
             metadata.uri &&
             metadata.executionPlanState &&
             !metadata.executionPlanState.executionPlanGraphs!.length
@@ -542,7 +543,7 @@ export const QueryResultPane = () => {
                 )}
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.ExecutionPlan &&
-                    Object.keys(metadata.resultSetSummaries).length > 0 && (
+                    metadata.isExecutionPlan && (
                         <div
                             id={"executionPlanResultsTab"}
                             className={classes.queryResultContainer}

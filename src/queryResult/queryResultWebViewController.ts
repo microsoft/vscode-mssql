@@ -216,7 +216,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    xmlPlans: [],
+                    xmlPlans: {},
                 },
             }),
         };
@@ -317,7 +317,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         resultSetSummaries: qr.QueryResultWebviewState["resultSetSummaries"],
         actualPlanEnabled: boolean,
     ): number {
-        const summariesLength = Object.keys(resultSetSummaries).length;
+        const summariesLength = this.recordLength(resultSetSummaries);
         if (!actualPlanEnabled) {
             return summariesLength;
         }
@@ -335,5 +335,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
+    }
+
+    public recordLength(record: any): number {
+        return Object.keys(record).length;
     }
 }
