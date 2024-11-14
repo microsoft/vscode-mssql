@@ -99,11 +99,14 @@ export function registerCommonRequestHandlers(
         // then we should not show the query plan. for example, this happens
         // if user runs actual plan with all print statements
         else if (
+            // check that we're on the last batch
             message.batchId ===
                 recordLength(currentState.resultSetSummaries) - 1 &&
+            // check that we're on the last result within the batch
             message.resultId ===
                 recordLength(currentState.resultSetSummaries[message.batchId]) -
                     1 &&
+            // check that there's we have no xml plans
             (!currentState.executionPlanState?.xmlPlans ||
                 !recordLength(currentState.executionPlanState.xmlPlans))
         ) {
