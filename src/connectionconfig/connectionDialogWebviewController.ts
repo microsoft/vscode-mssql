@@ -67,6 +67,7 @@ import {
     IConnectionProfile,
 } from "../models/interfaces";
 import { locConstants } from "../reactviews/common/locConstants";
+import { IAccount, ITenant } from "../models/contracts/azure";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -359,8 +360,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     }
 
     private async getAccounts(): Promise<FormItemOptions[]> {
+        let accounts: IAccount[] = [];
         try {
-            const accounts =
+            accounts =
                 await this._mainController.azureAccountService.getAccounts();
             return accounts.map((account) => {
                 return {
@@ -372,19 +374,40 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             console.error(
                 `Error loading Azure accounts: ${getErrorMessage(error)}`,
             );
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureAccountsForEntraAuth,
+                error,
+                false, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                undefined, // additionalProperties
+                {
+                    accountCount: accounts.length,
+                    undefinedAccountCount: accounts.filter(
+                        (x) => x === undefined,
+                    ).length,
+                    undefinedDisplayInfoCount: accounts.filter(
+                        (x) => x !== undefined && x.displayInfo === undefined,
+                    ).length,
+                }, // additionalMeasurements
+            );
+
             return [];
         }
     }
 
     private async getTenants(accountId: string): Promise<FormItemOptions[]> {
+        let tenants: ITenant[] = [];
         try {
             const account = (
                 await this._mainController.azureAccountService.getAccounts()
-            ).find((account) => account.displayInfo.userId === accountId);
+            ).find((account) => account.displayInfo?.userId === accountId);
             if (!account) {
                 return [];
             }
-            const tenants = account.properties.tenants;
+            tenants = account.properties.tenants;
             if (!tenants) {
                 return [];
             }
@@ -398,6 +421,22 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             console.error(
                 `Error loading Azure tenants: ${getErrorMessage(error)}`,
             );
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureTenantsForEntraAuth,
+                error,
+                false, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                undefined, // additionalProperties
+                {
+                    tenant: tenants.length,
+                    undefinedTenantCount: tenants.filter((x) => x === undefined)
+                        .length,
+                }, // additionalMeasurements
+            );
+
             return [];
         }
     }
@@ -634,6 +673,17 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             } catch (err) {
                 console.error(
                     `Error loading connection option '${option.name}': ${getErrorMessage(err)}`,
+                );
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadConnectionProperties,
+                    err,
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        connectionOptionName: option.name,
+                    }, // additionalProperties
                 );
             }
         }
@@ -1425,8 +1475,23 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             return this.initializeConnectionForDialog(conn);
                         } catch (ex) {
                             console.error(
-                                "Recent connection: " + getErrorMessage(ex),
+                                "Error initializing recent connection: " +
+                                    getErrorMessage(ex),
                             );
+
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionDialog,
+                                TelemetryActions.LoadConnections,
+                                ex,
+                                false, // includeErrorMessage
+                                undefined, // errorCode
+                                undefined, // errorType
+                                {
+                                    connectionType: "recent",
+                                    authType: conn.authenticationType,
+                                },
+                            );
+
                             return Promise.resolve(undefined);
                         }
                     })
@@ -1439,8 +1504,23 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             return this.initializeConnectionForDialog(conn);
                         } catch (ex) {
                             console.error(
-                                "Recent connection: " + getErrorMessage(ex),
+                                "Error initializing saved connection: " +
+                                    getErrorMessage(ex),
                             );
+
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionDialog,
+                                TelemetryActions.LoadConnections,
+                                ex,
+                                false, // includeErrorMessage
+                                undefined, // errorCode
+                                undefined, // errorType
+                                {
+                                    connectionType: "saved",
+                                    authType: conn.authenticationType,
+                                },
+                            );
+
                             return Promise.resolve(undefined);
                         }
                     })
