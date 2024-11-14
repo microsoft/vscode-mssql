@@ -32,6 +32,7 @@ import {
 } from "../reactviews/common/forms/form";
 import {
     ConnectionDialog as Loc,
+    Common as LocCommon,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -66,7 +67,6 @@ import {
     IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
 } from "../models/interfaces";
-import { locConstants } from "../reactviews/common/locConstants";
 import { IAccount, ITenant } from "../models/contracts/azure";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
@@ -1174,17 +1174,17 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             "deleteSavedConnection",
             async (state, payload) => {
                 const confirm = await vscode.window.showQuickPick(
-                    [locConstants.common.Delete, locConstants.common.Cancel],
+                    [LocCommon.delete, LocCommon.cancel],
                     {
-                        title: locConstants.common.AreYouSureYouWantTo(
-                            locConstants.connectionDialog.deleteTheSavedConnection(
+                        title: LocCommon.areYouSureYouWantTo(
+                            Loc.deleteTheSavedConnection(
                                 payload.connection.displayName,
                             ),
                         ),
                     },
                 );
 
-                if (confirm !== locConstants.common.Delete) {
+                if (confirm !== LocCommon.delete) {
                     return state;
                 }
 
