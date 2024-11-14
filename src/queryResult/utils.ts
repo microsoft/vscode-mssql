@@ -100,19 +100,12 @@ export function registerCommonRequestHandlers(
         // if user runs actual plan with all print statements
         else if (
             message.batchId ===
-                webviewViewController.recordLength(
-                    currentState.resultSetSummaries,
-                ) -
-                    1 &&
+                recordLength(currentState.resultSetSummaries) - 1 &&
             message.resultId ===
-                webviewViewController.recordLength(
-                    currentState.resultSetSummaries[message.batchId],
-                ) -
+                recordLength(currentState.resultSetSummaries[message.batchId]) -
                     1 &&
             (!currentState.executionPlanState?.xmlPlans ||
-                !webviewViewController.recordLength(
-                    currentState.executionPlanState.xmlPlans,
-                ))
+                !recordLength(currentState.executionPlanState.xmlPlans))
         ) {
             currentState.isExecutionPlan = false;
             currentState.actualPlanEnabled = false;
@@ -236,16 +229,10 @@ export function registerCommonRequestHandlers(
                 currentResultState.executionPlanState.executionPlanGraphs
                     .length === 0 &&
                 // Check for non-empty XML plans and result summaries
-                webviewViewController.recordLength(
-                    currentResultState.executionPlanState.xmlPlans,
-                ) &&
-                webviewViewController.recordLength(
-                    currentResultState.resultSetSummaries,
-                ) &&
+                recordLength(currentResultState.executionPlanState.xmlPlans) &&
+                recordLength(currentResultState.resultSetSummaries) &&
                 // Verify XML plans match expected number of result sets
-                webviewViewController.recordLength(
-                    currentResultState.executionPlanState.xmlPlans,
-                ) ===
+                recordLength(currentResultState.executionPlanState.xmlPlans) ===
                     webviewViewController.getNumExecutionPlanResultSets(
                         currentResultState.resultSetSummaries,
                         currentResultState.actualPlanEnabled,
@@ -311,4 +298,8 @@ export function registerCommonRequestHandlers(
             )) as qr.QueryResultWebviewState;
         },
     );
+}
+
+export function recordLength(record: any): number {
+    return Object.keys(record).length;
 }
