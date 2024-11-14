@@ -3,21 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fluentui from "@fluentui/react-components";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
+import * as fluentui from "@fluentui/react-components";
+import * as l10n from "@vscode/l10n";
+
 import {
+    AddFilled,
+    ArrowSortDownFilled,
+    ArrowSortUpFilled,
     DeleteRegular,
     ReorderRegular,
-    AddFilled,
-    ArrowSortUpFilled,
-    ArrowSortDownFilled,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
-import { TableDesignerContext } from "./tableDesignerStateProvider";
+
 import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
-import * as l10n from "@vscode/l10n";
+import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
 
 export type DesignerTableProps = {
@@ -395,6 +397,8 @@ export const DesignerTable = ({
                     <fluentui.TableHeader
                         style={{
                             marginBottom: "5px",
+                            backgroundColor:
+                                "var(--vscode-keybindingTable-headerBackground)",
                         }}
                     >
                         <fluentui.TableRow>
