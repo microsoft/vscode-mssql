@@ -241,7 +241,7 @@
           "type": "webview",
           "id": "queryResult",
           "name": "%extension.queryResult%",
-          "when": "config.mssql.enableRichExperiences"
+          "when": "config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature"
         }
       ],
       "objectExplorer": [
@@ -317,7 +317,7 @@
         },
         {
           "command": "mssql.revealQueryResultPanel",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && view.queryResult.visible == false",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && view.queryResult.visible == false",
           "group": "navigation@2"
         },
         {
@@ -337,17 +337,17 @@
         },
         {
           "command": "mssql.showExecutionPlanInResults",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature",
           "group": "navigation@4"
         },
         {
           "command": "mssql.enableActualPlan",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
           "group": "navigation@5"
         },
         {
           "command": "mssql.disableActualPlan",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && resource in mssql.executionPlan.urisWithActualPlanEnabled",
           "group": "navigation@5"
         }
       ],
@@ -963,6 +963,12 @@
           "type": "boolean",
           "default": false,
           "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
+          "scope": "application"
+        },
+        "mssql.enableNewQueryResultFeature": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.enableNewQueryResultFeature.description%",
           "scope": "application"
         },
         "azureResourceGroups.selectedSubscriptions": {

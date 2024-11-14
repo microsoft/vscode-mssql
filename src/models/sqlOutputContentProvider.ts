@@ -191,7 +191,7 @@ export class SqlOutputContentProvider {
             title,
             async (queryRunner: QueryRunner) => {
                 if (queryRunner) {
-                    if (!this.isRichExperiencesEnabled) {
+                    if (this.shouldUseOldResultPane) {
                         // if the panel isn't active and exists
                         if (this._panels.get(uri).isActive === false) {
                             this._panels.get(uri).revealToForeground(uri);
@@ -242,6 +242,19 @@ export class SqlOutputContentProvider {
             .get(Constants.configEnableRichExperiences);
     }
 
+    private get isNewQueryResultFeatureEnabled(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration()
+            .get(Constants.configEnableNewQueryResultFeature);
+    }
+
+    private get shouldUseOldResultPane(): boolean {
+        return (
+            !this.isRichExperiencesEnabled ||
+            !this.isNewQueryResultFeatureEnabled
+        );
+    }
+
     private async runQueryCallback(
         statusView: StatusView,
         uri: string,
@@ -254,7 +267,7 @@ export class SqlOutputContentProvider {
             uri,
             title,
         );
-        if (!this.isRichExperiencesEnabled) {
+        if (this.shouldUseOldResultPane) {
             if (this._panels.has(uri)) {
                 let panelController = this._panels.get(uri);
                 if (panelController.isDisposed) {
@@ -413,7 +426,7 @@ export class SqlOutputContentProvider {
                 statusView ? statusView : this._statusView,
             );
             queryRunner.eventEmitter.on("start", async (panelUri) => {
-                if (!this.isRichExperiencesEnabled) {
+                if (this.shouldUseOldResultPane) {
                     this._panels.get(uri).proxy.sendEvent("start", panelUri);
                     sendActionEvent(
                         TelemetryViews.ResultsGrid,
@@ -457,7 +470,7 @@ export class SqlOutputContentProvider {
             queryRunner.eventEmitter.on(
                 "resultSet",
                 async (resultSet: ResultSetSummary) => {
-                    if (!this.isRichExperiencesEnabled) {
+                    if (this.shouldUseOldResultPane) {
                         this._panels
                             .get(uri)
                             .proxy.sendEvent("resultSet", resultSet);
@@ -491,7 +504,7 @@ export class SqlOutputContentProvider {
                         ),
                     },
                 };
-                if (!this.isRichExperiencesEnabled) {
+                if (this.shouldUseOldResultPane) {
                     this._panels.get(uri).proxy.sendEvent("message", message);
                 } else {
                     this._queryResultWebviewController
@@ -511,7 +524,7 @@ export class SqlOutputContentProvider {
                 }
             });
             queryRunner.eventEmitter.on("message", (message) => {
-                if (!this.isRichExperiencesEnabled) {
+                if (this.shouldUseOldResultPane) {
                     this._panels.get(uri).proxy.sendEvent("message", message);
                 } else {
                     this._queryResultWebviewController
@@ -552,7 +565,7 @@ export class SqlOutputContentProvider {
                             hasError,
                         );
                     }
-                    if (!this.isRichExperiencesEnabled) {
+                    if (this.shouldUseOldResultPane) {
                         this._panels
                             .get(uri)
                             .proxy.sendEvent("complete", totalMilliseconds);
