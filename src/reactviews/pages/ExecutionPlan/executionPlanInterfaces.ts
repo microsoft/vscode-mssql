@@ -23,17 +23,14 @@ export interface ExecutionPlanState {
     /**
      * The xml plans associated with the execution plan
      */
-    xmlPlans?: string[];
+    xmlPlans?: Record<string, string>;
 }
 
 export interface ExecutionPlanReducers {
     /**
-     * Gets the execution plan graph from the provider for given xmls
-     * @param xmlPlans  the xmls to get the graphs for
+     * Gets the execution plan graph from the provider
      */
-    getExecutionPlan: {
-        xmlPlans: string[];
-    };
+    getExecutionPlan: {};
     /**
      * Saves the given execution plan
      * @param sqlPlanContent the xml content to save
@@ -66,10 +63,9 @@ export interface ExecutionPlanReducers {
 
 export interface ExecutionPlanProvider {
     /**
-     * Gets the execution plan graph from the provider for given xmls
-     * @param xmlPlans  the xmls to get the graphs for
+     * Gets the execution plan graph from the provider
      */
-    getExecutionPlan(xmlPlans: string[]): void;
+    getExecutionPlan(): void;
 
     /**
      * Handles saving the execution plan file through the vscode extension api
