@@ -2180,6 +2180,10 @@
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">Habilita características experimentales en la extensión MSSQL. Las características no están listas para producción y pueden tener errores o problemas. Reinicie Visual Studio Code después de cambiar esta configuración.</target>
       </trans-unit>
+      <trans-unit id="mssql.enableNewQueryResultFeature.description">
+        <source xml:lang="en">Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
+        <target state="new">Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.</target>
+      </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">Habilita el uso del proveedor de autenticación de SQL para el modo de autenticación "Microsoft Entra Id Interactive" cuando el usuario selecciona la autenticación "AzureMFA". Esto habilita la integración del punto de conexión de recursos del lado servidor al capturar tokens de acceso. Esta opción solo se admite para la biblioteca de autenticación "MSAL". Reinicie Visual Studio Code después de cambiar esta opción.</target>
