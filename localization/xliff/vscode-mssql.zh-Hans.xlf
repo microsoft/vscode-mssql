@@ -1143,7 +1143,7 @@
       </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
-        <target state="new">Open in New Tab</target>
+        <target state="translated">在新选项卡中打开</target>
       </trans-unit>
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
@@ -1899,7 +1899,7 @@
       <trans-unit id="++CODE++1ab2969df504b0957aad86e66ea727c14d87ed01cc5039a8941d050884da2b78">
         <source xml:lang="en">{0} (Preview)</source>
         <note>{0} is the editor title</note>
-        <target state="new">{0} (Preview)</target>
+        <target state="translated">{0} (预览)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
