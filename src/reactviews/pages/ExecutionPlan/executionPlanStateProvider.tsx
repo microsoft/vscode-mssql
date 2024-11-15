@@ -36,10 +36,11 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
         <ExecutionPlanContext.Provider
             value={{
                 provider: {
-                    getExecutionPlan: function (xmlPlans: string[]): void {
-                        webviewState?.extensionRpc.action("getExecutionPlan", {
-                            xmlPlans: xmlPlans,
-                        });
+                    getExecutionPlan: function (): void {
+                        webviewState?.extensionRpc.action(
+                            "getExecutionPlan",
+                            {},
+                        );
                     },
                     saveExecutionPlan: function (sqlPlanContent: string): void {
                         webviewState?.extensionRpc.action("saveExecutionPlan", {

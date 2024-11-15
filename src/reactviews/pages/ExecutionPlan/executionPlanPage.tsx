@@ -47,7 +47,7 @@ export const ExecutionPlanPage = () => {
             executionPlanState.executionPlanGraphs &&
             !executionPlanState.executionPlanGraphs.length
         ) {
-            state.provider.getExecutionPlan(executionPlanState.xmlPlans!);
+            state.provider.getExecutionPlan();
         }
     }, [executionPlanState]);
 
