@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    ArrowClockwise16Filled,
+    Delete16Regular,
+    ServerRegular,
+} from "@fluentui/react-icons";
+import {
     Button,
     Card,
     CardHeader,
@@ -13,15 +18,11 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import {
-    ServerRegular,
-    ArrowClockwise16Filled,
-    Delete16Regular,
-} from "@fluentui/react-icons";
 import { MouseEventHandler, useContext } from "react";
+
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { locConstants } from "../../common/locConstants";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { locConstants } from "../../common/locConstants";
 
 const buttonContainer = "buttonContainer";
 
@@ -170,7 +171,7 @@ export const ConnectionCard = ({
             }}
         >
             <CardHeader
-                image={<ServerRegular />}
+                image={<ServerRegular fontSize={20} />}
                 header={connection.displayName}
                 action={
                     actionButton && (
