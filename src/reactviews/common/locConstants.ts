@@ -309,6 +309,7 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
             copyHeaders: l10n.t("Copy Headers"),
+            close: l10n.t("Close"),
         };
     }
 }
