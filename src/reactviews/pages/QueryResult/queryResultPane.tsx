@@ -311,14 +311,12 @@ export const QueryResultPane = () => {
         const grids = [];
         gridRefs.current.forEach((r) => r?.refreshGrid());
         let count = 0;
-        for (
-            let i = 0;
-            i < Object.keys(metadata?.resultSetSummaries ?? []).length;
-            i++
-        ) {
-            var batch = metadata?.resultSetSummaries[i];
-            for (let j = 0; j < Object.keys(batch ?? []).length; j++) {
-                grids.push(renderGrid(i, j, count));
+        for (const batchIdStr in metadata?.resultSetSummaries ?? {}) {
+            const batchId = parseInt(batchIdStr);
+            for (const resultIdStr in metadata?.resultSetSummaries[batchId] ??
+                {}) {
+                const resultId = parseInt(resultIdStr);
+                grids.push(renderGrid(batchId, resultId, count));
                 count++;
             }
         }
