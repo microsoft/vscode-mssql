@@ -86,16 +86,32 @@ export function registerCommonRequestHandlers(
         );
         if (
             currentState.isExecutionPlan &&
+            currentState.resultSetSummaries[message.batchId] &&
             // check if the current result set is the result set that contains the xml plan
             currentState.resultSetSummaries[message.batchId][message.resultId]
                 .columnInfo[0].columnName === Constants.showPlanXmlColumnName
         ) {
-            currentState.executionPlanState.xmlPlans =
-                // this gets the xml plan returned by the get execution
-                // plan query
-                currentState.executionPlanState.xmlPlans.concat(
-                    result.rows[0][0].displayValue,
-                );
+            currentState.executionPlanState.xmlPlans[
+                `${message.batchId},${message.resultId}`
+            ] = result.rows[0][0].displayValue;
+        }
+        // if we are on the last result set and still don't have any xml plans
+        // then we should not show the query plan. for example, this happens
+        // if user runs actual plan with all print statements
+        else if (
+            // check that we're on the last batch
+            message.batchId ===
+                recordLength(currentState.resultSetSummaries) - 1 &&
+            // check that we're on the last result within the batch
+            message.resultId ===
+                recordLength(currentState.resultSetSummaries[message.batchId]) -
+                    1 &&
+            // check that there's we have no xml plans
+            (!currentState.executionPlanState?.xmlPlans ||
+                !recordLength(currentState.executionPlanState.xmlPlans))
+        ) {
+            currentState.isExecutionPlan = false;
+            currentState.actualPlanEnabled = false;
         }
         webviewViewController.setQueryResultState(message.uri, currentState);
         return result;
@@ -206,48 +222,38 @@ export function registerCommonRequestHandlers(
         async (state, payload) => {
             // because this is an overridden call, this makes sure it is being
             // called properly
-            if ("uri" in payload) {
-                const currentResultState =
-                    webviewViewController.getQueryResultState(payload.uri);
-                if (
-                    !(
-                        // Check if actual plan is enabled or current result is an execution plan
-                        (
-                            (currentResultState.actualPlanEnabled ||
-                                currentResultState.isExecutionPlan) &&
-                            // Ensure execution plan state exists and execution plan graphs have not loaded
-                            currentResultState.executionPlanState &&
-                            currentResultState.executionPlanState
-                                .executionPlanGraphs.length === 0 &&
-                            // Check for non-empty XML plans and result summaries
-                            currentResultState.executionPlanState.xmlPlans
-                                .length &&
-                            Object.keys(currentResultState.resultSetSummaries)
-                                .length &&
-                            // Verify XML plans match expected number of result sets
-                            currentResultState.executionPlanState.xmlPlans
-                                .length ===
-                                webviewViewController.getNumExecutionPlanResultSets(
-                                    currentResultState.resultSetSummaries,
-                                    currentResultState.actualPlanEnabled,
-                                )
-                        )
-                    )
-                ) {
-                    return state;
-                }
+            if (!("uri" in payload)) return state;
 
+            const currentResultState =
+                webviewViewController.getQueryResultState(payload.uri);
+            // Ensure execution plan state exists and execution plan graphs have not loaded
+            if (
+                currentResultState.executionPlanState &&
+                currentResultState.executionPlanState.executionPlanGraphs
+                    .length === 0 &&
+                // Check for non-empty XML plans and result summaries
+                recordLength(currentResultState.executionPlanState.xmlPlans) &&
+                recordLength(currentResultState.resultSetSummaries) &&
+                // Verify XML plans match expected number of result sets
+                recordLength(currentResultState.executionPlanState.xmlPlans) ===
+                    webviewViewController.getNumExecutionPlanResultSets(
+                        currentResultState.resultSetSummaries,
+                        currentResultState.actualPlanEnabled,
+                    )
+            ) {
                 state = (await createExecutionPlanGraphs(
                     state,
                     webviewViewController.getExecutionPlanService(),
-                    currentResultState.executionPlanState.xmlPlans,
+                    Object.values(
+                        currentResultState.executionPlanState.xmlPlans,
+                    ),
                 )) as qr.QueryResultWebviewState;
                 state.executionPlanState.loadState = ApiStatus.Loaded;
                 state.tabStates.resultPaneTab =
                     qr.QueryResultPaneTabs.ExecutionPlan;
-
-                return state;
             }
+
+            return state;
         },
     );
     webviewController.registerReducer(
@@ -295,4 +301,8 @@ export function registerCommonRequestHandlers(
             )) as qr.QueryResultWebviewState;
         },
     );
+}
+
+export function recordLength(record: any): number {
+    return Object.keys(record).length;
 }

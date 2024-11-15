@@ -22,6 +22,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
+    recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
 
@@ -216,7 +217,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    xmlPlans: [],
+                    xmlPlans: {},
                 },
             }),
         };
@@ -317,7 +318,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         resultSetSummaries: qr.QueryResultWebviewState["resultSetSummaries"],
         actualPlanEnabled: boolean,
     ): number {
-        const summariesLength = Object.keys(resultSetSummaries).length;
+        const summariesLength = recordLength(resultSetSummaries);
         if (!actualPlanEnabled) {
             return summariesLength;
         }
