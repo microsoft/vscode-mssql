@@ -116,6 +116,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private registerRpcHandlers() {
         this.registerRequestHandler("openInNewTab", async (message) => {
+            void this.createPanelController(message.uri);
+
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
                 const response =
                     await this._vscodeWrapper.showInformationMessage(
@@ -161,7 +163,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         vscode.ConfigurationTarget.Global,
                     );
             }
-            await this.createPanelController(message.uri);
         });
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
