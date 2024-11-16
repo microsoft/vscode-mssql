@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.26.0
+* Release date: November 20, 2024
+* Release status: GA
+### What's new in 1.26.0
+* Added the ability to open query results in a tab for the new UI, replicating the functionality of the previous query results experience.
+* Added the `mssql.openQueryResultsInTabByDefault` setting, allowing users to set this behavior as the default (applicable only when `mssql.enableRichExperiences` is enabled).
+* Added ability to view the actual query plan for executed queries in the new UI.
+* Added support for Visual Studio Code theming in the new UI.
+
 ## Version 1.25.0
 * Release date: October 23, 2024
 * Release status: GA
