@@ -4831,6 +4831,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.enableNewQueryResultFeature.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[새 쿼리 결과 기능을 사용하도록 설정합니다. 기본값은 true입니다. 이 옵션은 'mssql.enableRichExperiences'가 사용하도록 설정된 경우에만 적용됩니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.enableQueryHistoryCapture" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable Query History Capture]]></Val>
