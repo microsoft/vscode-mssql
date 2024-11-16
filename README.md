@@ -14,10 +14,11 @@ This extension is designed to help developers seamlessly work with their databas
   - Syntax colorizations and T-SQL error validations.
   - Support for the `GO` batch separator.
 - **Execute queries and View Results (`Preview`)**: Run your scripts and view results in a simple, yet powerful, grid with improved data visualization features:
-  - View results in a unified interface alongside the integrated terminal and output panels.
+  - View results in a unified interface alongside the integrated terminal and output panels or in their own tab.
   - Sort results by clicking on column headers.
   - Easily copy results with or without headers for use in other applications.
   - Export results to multiple formats, including JSON, Excel, and CSV.
+  - View estimated plan and actual plan for T-SQL queries.
 - **Object Explorer (`Preview`)**: Navigate through your database objects, such as databases, tables, views, and programmability items. Enhanced filtering allows you to filter database objects by properties like name, owner, or creation date, making it easier to locate specific objects within large database hierarchies.
 - **Table Designer (`Preview`)**: A visual tool for creating and managing tables in your databases. Design every aspect of the table's structure, including:
   - Adding columns, setting data types, and specifying default values.
@@ -110,7 +111,9 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.applyLocalization": false,
     "mssql.query.displayBitAsNumber": true,
     "mssql.persistQueryResultTabs": false,
-    "mssql.enableRichExperiences": true
+    "mssql.enableRichExperiences": true,
+    "mssql.openQueryResultsInTabByDefault": false
+    "mssql.enableNewQueryResultsFeature": false
 }
 ```
 
