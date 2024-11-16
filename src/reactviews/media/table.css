@@ -67,7 +67,7 @@
     cursor: pointer;
     display: inline-block;
     width: 16px;
-    background-image: url("down.svg");
+    background-image: url("filter.svg");
     flex: 0 0 auto;
     margin-right: 2px;
     background-color: transparent;
@@ -76,22 +76,22 @@
 }
 
 .hc-light .slick-header-menubutton {
-    background-image: url("down.svg");
+    background-image: url("filter.svg");
 }
 
 .vs-dark .slick-header-menubutton,
 .hc-black .slick-header-menubutton {
-    background-image: url("down-inverse.svg");
+    background-image: url("filter_inverse.svg");
 }
 
 .slick-header-menubutton.filtered,
 .hc-light .slick-header-menubutton.filtered {
-    background-image: url("filter.svg");
+    background-image: url("filterFilled.svg");
 }
 
 .vs-dark .slick-header-menubutton.filtered,
 .hc-black .slick-header-menubutton.filtered {
-    background-image: url("filter_inverse.svg");
+    background-image: url("filterFilled_inverse.svg");
 }
 
 .slick-header-menu {

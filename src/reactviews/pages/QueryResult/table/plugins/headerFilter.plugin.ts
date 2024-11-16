@@ -15,6 +15,7 @@ import {
 import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
 import { ColorThemeKind } from "../../../../common/vscodeWebviewProvider";
+import { resolveVscodeThemeType } from "../../../../common/utils";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -96,21 +97,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
             args.node.classList.add("slick-header-sortable");
             append(args.node, $("span.slick-sort-indicator"));
         }
-
+        let theme: string = resolveVscodeThemeType(this.theme);
         args.node.classList.add("slick-header-with-filter");
+        args.node.classList.add(theme);
         const $el = jQuery(
             `<button tabindex="-1" id="anchor-btn" aria-label="${ShowFilterText}" title="${ShowFilterText}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
-        if (
-            this.theme === ColorThemeKind.Dark ||
-            this.theme === ColorThemeKind.HighContrast
-        ) {
-            $el.addClass("vs-dark");
-        } else {
-            $el.addClass("vs-light");
-        }
         if (column.filterValues?.length) {
             this.setButtonImage($el, column.filterValues?.length > 0);
         }
