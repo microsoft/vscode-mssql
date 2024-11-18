@@ -4831,6 +4831,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.enableNewQueryResultFeature.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Habilita o novo recurso Resultados da Consulta. O valor padrão é verdadeiro. Esta opção só tem efeito se `mssql.enableRichExperiences` estiver habilitado.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.enableQueryHistoryCapture" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable Query History Capture]]></Val>
