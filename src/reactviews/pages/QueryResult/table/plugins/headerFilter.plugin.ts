@@ -377,14 +377,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private selectAllFiltered(select: boolean) {
-        this._listData.forEach((element) => {
-            if (!element.isVisible) {
-                return;
+        for (let i = 0; i < this._listData.length; i++) {
+            if (!this._listData[i].isVisible) {
+                continue;
             }
-            element.checked = select;
-        });
-
-        this._list.updateItems(this._listData);
+            this._listData[i].checked = select;
+        }
+        this._list.updateItems(this._listData.filter((i) => i.isVisible));
     }
 
     private applyFilterSelections() {
