@@ -275,16 +275,20 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 e.target as HTMLInputElement
             ).value.toLowerCase();
 
-            const visibleItems = this._listData.filter((i) =>
-                i.displayText.toLowerCase().includes(searchTerm),
-            );
+            const visibleItems = [];
 
+            this._listData.forEach((i) => {
+                i.isVisible = i.displayText.toLowerCase().includes(searchTerm);
+                if (i.isVisible) {
+                    visibleItems.push(i);
+                }
+            });
             this._list.updateItems(visibleItems);
         });
 
         $popup.find("#select-all-checkbox").on("change", (e: Event) => {
             const isChecked = (e.target as HTMLInputElement).checked;
-            this.selectAllFiltered(isChecked, checkboxContainer);
+            this.selectAllFiltered(isChecked);
         });
 
         // Add event listeners for closing or interacting with the popup
@@ -372,11 +376,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
     }
 
-    private selectAllFiltered(
-        select: boolean,
-        checkboxContainer: JQuery<HTMLElement>,
-    ) {
+    private selectAllFiltered(select: boolean) {
         this._listData.forEach((element) => {
+            if (!element.isVisible) {
+                return;
+            }
             element.checked = select;
         });
 
@@ -447,7 +451,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async createFilterList(): Promise<void> {
-        const startTime = performance.now();
         this.columnDef.filterValues = this.columnDef.filterValues || [];
         // WorkingFilters is a copy of the filters to enable apply/cancel behaviour
         const workingFilters = this.columnDef.filterValues.slice(0);
