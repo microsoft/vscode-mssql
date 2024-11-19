@@ -260,7 +260,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 const checkboxElement = itemDiv.querySelector(
                     "input[type='checkbox']",
                 ) as HTMLInputElement;
+                console.log(checkboxElement);
                 checkboxElement.checked = !checkboxElement.checked;
+                console.log(checkboxElement.checked);
                 this._listData[item.index].checked = checkboxElement.checked;
                 item.checked = checkboxElement.checked;
             },

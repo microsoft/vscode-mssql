@@ -94,7 +94,7 @@ export class VirtualizedList<T> {
 
         this._focusedItemIndex = newIndex;
         this.scrollToIndex(newIndex);
-        this.renderList();
+        newItem.focus();
     }
 
     private onScroll() {
@@ -141,9 +141,11 @@ export class VirtualizedList<T> {
             );
 
             // Set up click listener
-            this._eventManager.addEventListener(itemDiv, "click", () => {
+            this._eventManager.addEventListener(itemDiv, "click", (e) => {
                 this.updateFocusedItemIndex(i);
                 this._itemSelected(itemDiv, item);
+                e.preventDefault();
+                e.stopPropagation();
             });
 
             this._eventManager.addEventListener(itemDiv, "keydown", (e) => {
@@ -164,10 +166,6 @@ export class VirtualizedList<T> {
                     event.stopPropagation();
                 }
             });
-
-            if (i === this._focusedItemIndex && this._isListFocused) {
-                itemDiv.focus();
-            }
         }
     }
 
