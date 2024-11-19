@@ -294,6 +294,7 @@
 
 .checkbox-list {
     min-height: 200px;
+    max-height: 250px;
 }
 
 #popup-menu .checkbox-list label {

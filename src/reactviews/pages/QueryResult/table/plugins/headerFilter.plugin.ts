@@ -266,7 +266,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             },
             {
                 itemHeight: 30,
-                buffer: 2,
+                buffer: 5,
             },
         );
 
@@ -275,7 +275,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 e.target as HTMLInputElement
             ).value.toLowerCase();
 
-            const visibleItems = [];
+            const visibleItems: TableFilterListElement[] = [];
 
             this._listData.forEach((i) => {
                 i.isVisible = i.displayText.toLowerCase().includes(searchTerm);
