@@ -11,14 +11,17 @@ const defaultConfig = {
 };
 
 export class VirtualizedList<T> {
+    private _listId: string = window.crypto.randomUUID();
     private _visibleCount: number;
     private _scrollOffset: number;
     private _eventManager: EventManager = new EventManager();
+    private _focusedItemIndex: number = 0;
 
     constructor(
         private _container: HTMLElement,
         private _items: T[],
         private _renderItem: (itemContainer: HTMLElement, item: T) => void,
+        private _itemSelected: (itemContainer: HTMLElement, item: T) => void,
         private _config: VirtualizedListConfig,
     ) {
         this._config = { ...defaultConfig, ..._config };
@@ -47,8 +50,47 @@ export class VirtualizedList<T> {
             this.onScroll(),
         );
 
+        // Reset focused item index
+        this._focusedItemIndex = 0;
+
         // Render initial items
         this.renderList();
+    }
+
+    private scrollToIndex(index: number) {
+        const itemTop = index * this._config.itemHeight;
+        const itemBottom = itemTop + this._config.itemHeight;
+
+        if (itemTop < this._container.scrollTop) {
+            this._container.scrollTop = itemTop;
+        } else if (
+            itemBottom >
+            this._container.scrollTop + this._container.clientHeight
+        ) {
+            this._container.scrollTop =
+                itemBottom - this._container.clientHeight;
+        }
+    }
+
+    private updateFocusedItemIndex(newIndex: number) {
+        if (newIndex < 0 || newIndex >= this._items.length) {
+            return;
+        }
+        const oldItem = document.getElementById(
+            `${this._listId}-${this._focusedItemIndex}`,
+        );
+        if (oldItem) {
+            oldItem.setAttribute("tabindex", "-1");
+        }
+        const newItem = document.getElementById(`${this._listId}-${newIndex}`);
+        if (newItem) {
+            newItem.setAttribute("tabindex", "0");
+        }
+
+        this._focusedItemIndex = newIndex;
+        this.scrollToIndex(newIndex);
+        this.renderList();
+        document.getElementById(`${this._listId}-${newIndex}`).focus();
     }
 
     private onScroll() {
@@ -82,12 +124,42 @@ export class VirtualizedList<T> {
         for (let i = startIndex; i < endIndex; i++) {
             const item = this._items[i];
             const itemDiv = document.createElement("div");
+            itemDiv.id = `${this._listId}-${i}`;
             this._renderItem(itemDiv, item);
             itemDiv.style.position = "absolute";
             itemDiv.style.height = `${this._config.itemHeight}px`;
             itemDiv.style.width = "100%";
             itemDiv.style.top = `${i * this._config.itemHeight}px`;
             this._container.appendChild(itemDiv);
+            itemDiv.setAttribute(
+                "tabindex",
+                i === this._focusedItemIndex ? "0" : "-1",
+            );
+
+            // Set up click listener
+            this._eventManager.addEventListener(itemDiv, "click", () => {
+                this.updateFocusedItemIndex(i);
+                this._itemSelected(itemDiv, item);
+            });
+
+            this._eventManager.addEventListener(itemDiv, "keydown", (e) => {
+                const event = e as KeyboardEvent;
+                let handled = false;
+                if (event.key === "ArrowDown") {
+                    this.updateFocusedItemIndex(i + 1);
+                    handled = true;
+                } else if (event.key === "ArrowUp") {
+                    this.updateFocusedItemIndex(i - 1);
+                    handled = true;
+                } else if (event.key === "Enter" || event.key === " ") {
+                    this._itemSelected(itemDiv, item);
+                    handled = true;
+                }
+                if (handled) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            });
         }
     }
 

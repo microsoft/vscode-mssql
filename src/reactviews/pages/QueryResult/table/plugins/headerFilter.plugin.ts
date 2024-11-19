@@ -82,6 +82,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
     public destroy() {
         this.handler.unsubscribeAll();
         this._eventManager.clearEventListeners();
+        this._list.dispose();
     }
 
     private handleHeaderCellRendered(
@@ -230,6 +231,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 checkboxElement.checked = item.checked;
                 checkboxElement.name = item.value;
                 checkboxElement.id = id;
+                checkboxElement.tabIndex = -1;
 
                 // Attach change listener
                 this._eventManager.addEventListener(
@@ -253,6 +255,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
                 itemContainer.appendChild(checkboxElement);
                 itemContainer.appendChild(label);
+            },
+            (itemDiv, item) => {
+                const checkboxElement = itemDiv.querySelector(
+                    "input[type='checkbox']",
+                ) as HTMLInputElement;
+                checkboxElement.checked = !checkboxElement.checked;
+                this._listData[item.index].checked = checkboxElement.checked;
+                item.checked = checkboxElement.checked;
             },
             {
                 itemHeight: 30,
@@ -366,10 +376,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
         select: boolean,
         checkboxContainer: JQuery<HTMLElement>,
     ) {
-        checkboxContainer.children("label:visible").each((_, label) => {
-            const checkbox = jQuery(label).find("input[type='checkbox']");
-            checkbox.prop("checked", select);
+        this._listData.forEach((element) => {
+            element.checked = select;
         });
+
+        this._list.updateItems(this._listData);
     }
 
     private applyFilterSelections() {
@@ -437,24 +448,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     private async createFilterList(): Promise<void> {
         const startTime = performance.now();
-        console.log("Creating filter list");
         this.columnDef.filterValues = this.columnDef.filterValues || [];
-        console.log("Filter values", performance.now() - startTime);
         // WorkingFilters is a copy of the filters to enable apply/cancel behaviour
         const workingFilters = this.columnDef.filterValues.slice(0);
         let filterItems: Array<string>;
         const dataView = this.grid.getData() as IDisposableDataProvider<T>;
-        console.log("Data view", performance.now() - startTime);
         if (instanceOfIDisposableDataProvider(dataView)) {
-            console.log(
-                "Data view is disposable",
-                performance.now() - startTime,
-            );
             filterItems = await dataView.getColumnValues(this.columnDef);
-            console.log(
-                "Filter items from data view",
-                performance.now() - startTime,
-            );
         } else {
             const filterApplied =
                 this.grid.getColumns().findIndex((col) => {
@@ -477,17 +477,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 );
             }
         }
-        console.log("Filter items", performance.now() - startTime);
         // Sort the list to make it easier to find a string
         filterItems.sort();
-        console.log("Filter items sorted", performance.now() - startTime);
         // Promote undefined (NULL) to be always at the top of the list
         const nullValueIndex = filterItems.indexOf("");
         if (nullValueIndex !== -1) {
             filterItems.splice(nullValueIndex, 1);
             filterItems.unshift("");
         }
-        console.log("Filter items promoted", performance.now() - startTime);
         this._listData = [];
         for (let i = 0; i < filterItems.length; i++) {
             const filtered = workingFilters.some((x) => x === filterItems[i]);
