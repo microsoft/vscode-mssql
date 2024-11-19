@@ -16,6 +16,8 @@ import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
 import { ColorThemeKind } from "../../../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../../../common/utils";
+import { VirtualizedList } from "../../../../common/virtualizedList";
+import { EventManager } from "../../../../common/eventManager";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -47,7 +49,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
         string,
         HTMLElement
     >();
-    private listData: TableFilterListElement[] = [];
+    private _listData: TableFilterListElement[] = [];
+    private _list!: VirtualizedList<TableFilterListElement>;
+
+    private _eventManager = new EventManager();
 
     constructor(theme: ColorThemeKind) {
         this.theme = theme;
@@ -65,7 +70,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 this.grid.onBeforeHeaderCellDestroy,
                 (e: Event, args: Slick.OnBeforeHeaderCellDestroyEventArgs<T>) =>
                     this.handleBeforeHeaderCellDestroy(e, args),
-            );
+            )
+            .subscribe(this.grid.onBeforeDestroy, () => this.destroy());
         // .subscribe(this.grid.onClick, (e: DOMEvent) => this.handleBodyMouseDown(e as MouseEvent))
         // .subscribe(this.grid.onColumnsResized, () => this.columnsResized());
 
@@ -75,6 +81,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     public destroy() {
         this.handler.unsubscribeAll();
+        this._eventManager.clearEventListeners();
+        this._list.dispose();
     }
 
     private handleHeaderCellRendered(
@@ -109,11 +117,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.setButtonImage($el, column.filterValues?.length > 0);
         }
 
-        $el.on("click", async (e: JQuery.ClickEvent) => {
-            e.stopPropagation();
-            e.preventDefault();
-            await this.showFilter($el[0]);
-        });
+        const elDivElement = $el.get(0);
+        if (elDivElement) {
+            this._eventManager.addEventListener(
+                elDivElement,
+                "click",
+                async (e: Event) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    await this.showFilter(elDivElement);
+                },
+            );
+        }
 
         $el.appendTo(args.node);
 
@@ -158,10 +173,34 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 "</div>",
         );
 
+        const popupElement = $popup.get(0);
+        if (popupElement) {
+            this._eventManager.addEventListener(
+                document,
+                "click",
+                (_e: Event) => {
+                    if ($popup) {
+                        const popupElement = $popup.get(0);
+                        if (!popupElement.contains(_e.target as Node)) {
+                            closePopup($popup);
+                            this.activePopup = null;
+                        }
+                    }
+                },
+            );
+
+            this._eventManager.addEventListener(window, "blur", (_e: Event) => {
+                if ($popup) {
+                    closePopup($popup);
+                    this.activePopup = null;
+                }
+            });
+        }
+
         if (offset) {
             $popup.css({
                 top: offset.top + $menuButton?.outerHeight()!, // Position below the button
-                left: offset.left, // Align left edges
+                left: Math.min(offset.left, document.body.clientWidth - 250), // Position to the left of the button
             });
         }
 
@@ -177,25 +216,81 @@ export class HeaderFilter<T extends Slick.SlickData> {
         // Set the new popup as the active popup
         this.activePopup = $popup;
         const checkboxContainer = $popup.find("#checkbox-list");
-        if (this.listData) {
-            this.listData.forEach((option) => {
-                const checkbox = jQuery(
-                    `<label><input type="checkbox" value="${option.value}"> ${option.displayText}</label>`,
+        this._list = new VirtualizedList(
+            checkboxContainer.get(0),
+            this._listData,
+            (itemContainer, item) => {
+                itemContainer.style.boxSizing = "border-box";
+                itemContainer.style.display = "flex";
+                itemContainer.style.alignItems = "center";
+                itemContainer.style.padding = "0 5px";
+
+                const id = `checkbox-${item.index}`;
+                const checkboxElement = document.createElement("input");
+                checkboxElement.type = "checkbox";
+                checkboxElement.checked = item.checked;
+                checkboxElement.name = item.value;
+                checkboxElement.id = id;
+                checkboxElement.tabIndex = -1;
+
+                // Attach change listener
+                this._eventManager.addEventListener(
+                    checkboxElement,
+                    "change",
+                    () => {
+                        this._listData[item.index].checked =
+                            checkboxElement.checked;
+                        item.checked = checkboxElement.checked;
+                    },
                 );
-                checkbox.appendTo(checkboxContainer);
-            });
-        }
+
+                const label = document.createElement("label");
+                label.style.flex = "1";
+                label.style.overflow = "hidden";
+                label.style.textOverflow = "ellipsis";
+                label.style.whiteSpace = "nowrap";
+                label.innerText = item.displayText;
+                label.title = item.displayText;
+                label.setAttribute("for", id);
+
+                itemContainer.appendChild(checkboxElement);
+                itemContainer.appendChild(label);
+            },
+            (itemDiv, item) => {
+                const checkboxElement = itemDiv.querySelector(
+                    "input[type='checkbox']",
+                ) as HTMLInputElement;
+                console.log(checkboxElement);
+                checkboxElement.checked = !checkboxElement.checked;
+                console.log(checkboxElement.checked);
+                this._listData[item.index].checked = checkboxElement.checked;
+                item.checked = checkboxElement.checked;
+            },
+            {
+                itemHeight: 30,
+                buffer: 5,
+            },
+        );
 
         $popup.find("#search-input").on("input", (e: Event) => {
             const searchTerm = (
                 e.target as HTMLInputElement
             ).value.toLowerCase();
-            this.filterChecklist(searchTerm, checkboxContainer);
+
+            const visibleItems: TableFilterListElement[] = [];
+
+            this._listData.forEach((i) => {
+                i.isVisible = i.displayText.toLowerCase().includes(searchTerm);
+                if (i.isVisible) {
+                    visibleItems.push(i);
+                }
+            });
+            this._list.updateItems(visibleItems);
         });
 
         $popup.find("#select-all-checkbox").on("change", (e: Event) => {
             const isChecked = (e.target as HTMLInputElement).checked;
-            this.selectAllFiltered(isChecked, checkboxContainer);
+            this.selectAllFiltered(isChecked);
         });
 
         // Add event listeners for closing or interacting with the popup
@@ -242,13 +337,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
         );
 
         jQuery(document).on("click", "#apply", async () => {
-            this.columnDef.filterValues = this.listData
+            this.columnDef.filterValues = this._listData
                 .filter((element) => element.checked)
                 .map((element) => element.value);
 
             closePopup($popup);
             this.activePopup = null;
-            this.applyFilterSelections(checkboxContainer);
+            this.applyFilterSelections();
             if (!$menuButton) {
                 return;
             }
@@ -272,45 +367,31 @@ export class HeaderFilter<T extends Slick.SlickData> {
         });
 
         function closePopup($popup: JQuery<HTMLElement>) {
-            $popup.fadeOut();
+            $popup.hide({
+                duration: 0,
+            });
         }
 
         function openPopup($popup: JQuery<HTMLElement>) {
-            $popup.fadeIn();
+            $popup.show();
+            $popup.find("#sort-ascending").focus();
         }
     }
 
-    private filterChecklist(
-        searchTerm: string,
-        checkboxContainer: JQuery<HTMLElement>,
-    ) {
-        checkboxContainer.children("label").each((_, label) => {
-            const text = jQuery(label).text().toLowerCase();
-            if (text.includes(searchTerm)) {
-                jQuery(label).show();
-            } else {
-                jQuery(label).hide();
+    private selectAllFiltered(select: boolean) {
+        for (let i = 0; i < this._listData.length; i++) {
+            if (!this._listData[i].isVisible) {
+                continue;
             }
-        });
+            this._listData[i].checked = select;
+        }
+        this._list.updateItems(this._listData.filter((i) => i.isVisible));
     }
 
-    private selectAllFiltered(
-        select: boolean,
-        checkboxContainer: JQuery<HTMLElement>,
-    ) {
-        checkboxContainer.children("label:visible").each((_, label) => {
-            const checkbox = jQuery(label).find("input[type='checkbox']");
-            checkbox.prop("checked", select);
-        });
-    }
-
-    private applyFilterSelections(checkboxContainer: JQuery<HTMLElement>) {
-        const selectedValues: string[] = [];
-        checkboxContainer
-            .find("input[type=checkbox]:checked")
-            .each((_idx, checkbox) => {
-                selectedValues.push((<HTMLInputElement>checkbox).value);
-            });
+    private applyFilterSelections() {
+        const selectedValues: string[] = this._listData
+            .filter((i) => i.checked)
+            .map((i) => i.value);
 
         // Update the column filter values
         this.columnDef.filterValues = selectedValues;
@@ -402,22 +483,21 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
         // Sort the list to make it easier to find a string
         filterItems.sort();
-
         // Promote undefined (NULL) to be always at the top of the list
         const nullValueIndex = filterItems.indexOf("");
         if (nullValueIndex !== -1) {
             filterItems.splice(nullValueIndex, 1);
             filterItems.unshift("");
         }
-
-        this.listData = [];
+        this._listData = [];
         for (let i = 0; i < filterItems.length; i++) {
             const filtered = workingFilters.some((x) => x === filterItems[i]);
             // work item to remove the 'Error:' string check: https://github.com/microsoft/azuredatastudio/issues/15206
             const filterItem = filterItems[i];
             if (!filterItem || filterItem.indexOf("Error:") < 0) {
                 let element = new TableFilterListElement(filterItem, filtered);
-                this.listData.push(element);
+                element.index = i;
+                this._listData.push(element);
             }
         }
     }
@@ -485,11 +565,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
 class TableFilterListElement {
     private _checked: boolean;
+    private _isVisible: boolean;
+    private _index: number = 0;
 
     constructor(val: string, checked: boolean) {
         this.value = val;
         this._checked = checked;
-
+        this._isVisible = true;
         // Handle the values that are visually hard to differentiate.
         if (val === undefined) {
             this.displayText = locConstants.queryResult.null;
@@ -511,6 +593,26 @@ class TableFilterListElement {
     public set checked(val: boolean) {
         if (this._checked !== val) {
             this._checked = val;
+        }
+    }
+
+    public get isVisible(): boolean {
+        return this._isVisible;
+    }
+
+    public set isVisible(val: boolean) {
+        if (this._isVisible !== val) {
+            this._isVisible = val;
+        }
+    }
+
+    public get index(): number {
+        return this._index;
+    }
+
+    public set index(val: number) {
+        if (this._index !== val) {
+            this._index = val;
         }
     }
 }

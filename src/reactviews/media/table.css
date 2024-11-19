@@ -293,18 +293,15 @@
 }
 
 .checkbox-list {
-    max-height: 200px; /* Set max height for scrolling */
-    overflow-y: auto; /* Enable vertical scroll if content exceeds height */
-    border: 1px solid #555; /* Border around the list */
-    padding: 8px; /* Padding inside the container */
-    box-sizing: border-box;
+    min-height: 200px;
+    max-height: 250px;
 }
 
 #popup-menu .checkbox-list label {
     display: flex;
     align-items: center;
     padding: 4px;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
 }
 
