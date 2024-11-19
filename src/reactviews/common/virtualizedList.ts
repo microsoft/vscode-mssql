@@ -19,7 +19,6 @@ export class VirtualizedList<T> {
         private _container: HTMLElement,
         private _items: T[],
         private _renderItem: (itemContainer: HTMLElement, item: T) => void,
-        private _onItemSelect: (item: T) => void,
         private _config: VirtualizedListConfig,
     ) {
         this._config = { ...defaultConfig, ..._config };
