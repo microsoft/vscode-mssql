@@ -224,61 +224,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         // Set the new popup as the active popup
         this.activePopup = $popup;
         const checkboxContainer = $popup.find("#checkbox-list");
-        this._list = new VirtualizedList(
-            checkboxContainer.get(0),
-            this._listData,
-            (itemContainer, item) => {
-                itemContainer.style.boxSizing = "border-box";
-                itemContainer.style.display = "flex";
-                itemContainer.style.alignItems = "center";
-                itemContainer.style.padding = "0 5px";
-
-                const id = `checkbox-${item.index}`;
-                const checkboxElement = document.createElement("input");
-                checkboxElement.type = "checkbox";
-                checkboxElement.checked = item.checked;
-                checkboxElement.name = item.value;
-                checkboxElement.id = id;
-                checkboxElement.tabIndex = -1;
-
-                // Attach change listener
-                this._eventManager.addEventListener(
-                    checkboxElement,
-                    "change",
-                    () => {
-                        this._listData[item.index].checked =
-                            checkboxElement.checked;
-                        item.checked = checkboxElement.checked;
-                    },
-                );
-
-                const label = document.createElement("label");
-                label.style.flex = "1";
-                label.style.overflow = "hidden";
-                label.style.textOverflow = "ellipsis";
-                label.style.whiteSpace = "nowrap";
-                label.innerText = item.displayText;
-                label.title = item.displayText;
-                label.setAttribute("for", id);
-
-                itemContainer.appendChild(checkboxElement);
-                itemContainer.appendChild(label);
-            },
-            (itemDiv, item) => {
-                const checkboxElement = itemDiv.querySelector(
-                    "input[type='checkbox']",
-                ) as HTMLInputElement;
-                console.log(checkboxElement);
-                checkboxElement.checked = !checkboxElement.checked;
-                console.log(checkboxElement.checked);
-                this._listData[item.index].checked = checkboxElement.checked;
-                item.checked = checkboxElement.checked;
-            },
-            {
-                itemHeight: 30,
-                buffer: 5,
-            },
-        );
+        this._list = this.createList(checkboxContainer);
 
         $popup.find("#search-input").on("input", (e: Event) => {
             const searchTerm = (
@@ -387,6 +333,64 @@ export class HeaderFilter<T extends Slick.SlickData> {
             $popup.show();
             $popup.find("#sort-ascending").focus();
         }
+    }
+
+    public createList(checkboxContainer: JQuery<HTMLElement>) {
+        return new VirtualizedList(
+            checkboxContainer.get(0),
+            this._listData,
+            (itemContainer, item) => {
+                itemContainer.style.boxSizing = "border-box";
+                itemContainer.style.display = "flex";
+                itemContainer.style.alignItems = "center";
+                itemContainer.style.padding = "0 5px";
+
+                const id = `checkbox-${item.index}`;
+                const checkboxElement = document.createElement("input");
+                checkboxElement.type = "checkbox";
+                checkboxElement.checked = item.checked;
+                checkboxElement.name = item.value;
+                checkboxElement.id = id;
+                checkboxElement.tabIndex = -1;
+
+                // Attach change listener
+                this._eventManager.addEventListener(
+                    checkboxElement,
+                    "change",
+                    () => {
+                        this._listData[item.index].checked =
+                            checkboxElement.checked;
+                        item.checked = checkboxElement.checked;
+                    },
+                );
+
+                const label = document.createElement("label");
+                label.style.flex = "1";
+                label.style.overflow = "hidden";
+                label.style.textOverflow = "ellipsis";
+                label.style.whiteSpace = "nowrap";
+                label.innerText = item.displayText;
+                label.title = item.displayText;
+                label.setAttribute("for", id);
+
+                itemContainer.appendChild(checkboxElement);
+                itemContainer.appendChild(label);
+            },
+            (itemDiv, item) => {
+                const checkboxElement = itemDiv.querySelector(
+                    "input[type='checkbox']",
+                ) as HTMLInputElement;
+                console.log(checkboxElement);
+                checkboxElement.checked = !checkboxElement.checked;
+                console.log(checkboxElement.checked);
+                this._listData[item.index].checked = checkboxElement.checked;
+                item.checked = checkboxElement.checked;
+            },
+            {
+                itemHeight: 30,
+                buffer: 5,
+            },
+        );
     }
 
     private selectAllFiltered(select: boolean) {
