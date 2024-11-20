@@ -7,9 +7,6 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
-    <trans-unit id="++CODE++77a16e7273815789a7843cb03066b381056176686bb37bc1505adddb490904bf">
-      <source xml:lang="en">0 Selected</source>
-    </trans-unit>
     <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
       <source xml:lang="en">A SQL editor must have focus before executing this command</source>
     </trans-unit>
