@@ -39,10 +39,11 @@ export interface QueryResultReactProvider
     getExecutionPlan(uri: string): void;
 
     /**
-     * Gets the execution plan graph from the provider for a given plan file
-     * @param plan the xml plan contents to be added
+     * Opens a file of type with with specified content
+     * @param content the content of the file
+     * @param type the type of file to open
      */
-    addXmlPlan(plan: string): void;
+    openFileThroughLink(content: string, type: string): void;
 }
 
 export enum QueryResultPaneTabs {
@@ -89,12 +90,13 @@ export interface QueryResultReducers
         uri: string;
     };
     /**
-     * Adds an xml plan to the current execution plan state.
-     * This is useful for multi-result sets
-     * @param xmlPlans  the xml plan to add
+     * Opens a file of type with with specified content
+     * @param content the content of the file
+     * @param type the type of file to open
      */
-    addXmlPlan: {
-        xmlPlan: string;
+    openFileThroughLink: {
+        content: string;
+        type: string;
     };
 }
 

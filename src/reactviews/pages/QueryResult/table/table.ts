@@ -29,6 +29,7 @@ import {
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultState } from "../queryResultStateProvider";
+import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -42,6 +43,8 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 export const ACTIONBAR_WIDTH_PX = 36;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
+export const xmlLanguageId = "xml";
+export const jsonLanguageId = "json";
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     public queryResultState: QueryResultState;
@@ -64,6 +67,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         QueryResultWebviewState,
         QueryResultReducers
     >;
+    private linkHandler: (fileContent: string, fileType: string) => void;
 
     constructor(
         parent: HTMLElement,
@@ -75,6 +79,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             QueryResultReducers
         >,
         state: QueryResultState,
+        linkHandler: (value: string, type: string) => void,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
@@ -83,6 +88,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.resultSetSummary = resultSetSummary;
         this.webViewState = webViewState;
         this.queryResultState = state!;
+        this.linkHandler = linkHandler;
         this.selectionModel = new CellSelectionModel<T>(
             {
                 hasRowSelector: true,
@@ -154,6 +160,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.registerPlugin(
             new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
         );
+        this.registerPlugin(
+            new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
+        );
 
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;
@@ -217,8 +226,25 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                     : (originalEvent!.srcElement as HTMLElement);
             console.log("anchor: ", anchor);
             console.log("cell: ", cell);
+            this.handleLinkClick(cell);
             // emitter.fire({ anchor, cell });
         });
+    }
+
+    private handleLinkClick(cell: Slick.Cell): void {
+        const columnInfo = this.resultSetSummary.columnInfo[cell.cell - 1];
+        if (columnInfo.isXml || columnInfo.isJson) {
+            this.linkHandler(
+                this.getCellValue(cell.row, cell.cell),
+                columnInfo.isXml ? xmlLanguageId : jsonLanguageId,
+            );
+        }
+    }
+
+    public getCellValue(row: number, column: number): string {
+        const rowRef = this._grid.getDataItem(row);
+        const col = this._grid.getColumns()[column].field!;
+        return rowRef[col].displayValue;
     }
 
     public dispose() {

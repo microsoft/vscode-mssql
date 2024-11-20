@@ -177,7 +177,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
                 `<button id="apply" type="button" class="filter-btn-primary">${locConstants.queryResult.apply}</button>` +
                 `<button id="clear" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
-                `<button id="close-popup" type="button" class="filter-btn">${locConstants.queryResult.cancel}</button>` +
+                `<button id="close-popup" type="button" class="sort-btn">${locConstants.queryResult.close}</button>` +
                 "</div>",
         );
 

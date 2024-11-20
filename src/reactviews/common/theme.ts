@@ -76,4 +76,9 @@ export const webviewTheme: fluentui.Theme = {
     // This specifies the background color for an error message box
     colorStatusDangerBackground1:
         "var(--vscode-diffEditor-removedTextBackground)",
+    fontSizeBase300: "13px",
+    fontFamilyBase: "var(--vscode-font-family)",
+    fontFamilyNumeric: "var(--vscode-font-family)",
+    fontFamilyMonospace: "var(--vscode-editor-font-family)",
+    lineHeightBase300: "1.4em",
 };

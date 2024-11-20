@@ -62,6 +62,7 @@ export interface ResultGridProps {
     >;
     gridParentRef?: React.RefObject<HTMLDivElement>;
     state: QueryResultState;
+    linkHandler: (fileContent: string, fileType: string) => void;
 }
 
 export interface ResultGridHandle {
@@ -105,7 +106,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             };
 
             const ROW_HEIGHT = 25;
-            if (!props.resultSetSummary) {
+            if (!props.resultSetSummary || !props.linkHandler) {
                 return;
             }
 
@@ -232,6 +233,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.resultSetSummary!,
                 props.webViewState!,
                 props.state,
+                props.linkHandler!,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.gridParentRef,

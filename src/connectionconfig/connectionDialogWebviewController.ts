@@ -32,6 +32,7 @@ import {
 } from "../reactviews/common/forms/form";
 import {
     ConnectionDialog as Loc,
+    Common as LocCommon,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -66,7 +67,7 @@ import {
     IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
 } from "../models/interfaces";
-import { locConstants } from "../reactviews/common/locConstants";
+import { IAccount, ITenant } from "../models/contracts/azure";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
@@ -359,33 +360,85 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     }
 
     private async getAccounts(): Promise<FormItemOptions[]> {
-        const accounts =
-            await this._mainController.azureAccountService.getAccounts();
-        return accounts.map((account) => {
-            return {
-                displayName: account.displayInfo.displayName,
-                value: account.displayInfo.userId,
-            };
-        });
+        let accounts: IAccount[] = [];
+        try {
+            accounts =
+                await this._mainController.azureAccountService.getAccounts();
+            return accounts.map((account) => {
+                return {
+                    displayName: account.displayInfo.displayName,
+                    value: account.displayInfo.userId,
+                };
+            });
+        } catch (error) {
+            console.error(
+                `Error loading Azure accounts: ${getErrorMessage(error)}`,
+            );
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureAccountsForEntraAuth,
+                error,
+                false, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                undefined, // additionalProperties
+                {
+                    accountCount: accounts.length,
+                    undefinedAccountCount: accounts.filter(
+                        (x) => x === undefined,
+                    ).length,
+                    undefinedDisplayInfoCount: accounts.filter(
+                        (x) => x !== undefined && x.displayInfo === undefined,
+                    ).length,
+                }, // additionalMeasurements
+            );
+
+            return [];
+        }
     }
 
     private async getTenants(accountId: string): Promise<FormItemOptions[]> {
-        const account = (
-            await this._mainController.azureAccountService.getAccounts()
-        ).find((account) => account.displayInfo.userId === accountId);
-        if (!account) {
+        let tenants: ITenant[] = [];
+        try {
+            const account = (
+                await this._mainController.azureAccountService.getAccounts()
+            ).find((account) => account.displayInfo?.userId === accountId);
+            if (!account) {
+                return [];
+            }
+            tenants = account.properties.tenants;
+            if (!tenants) {
+                return [];
+            }
+            return tenants.map((tenant) => {
+                return {
+                    displayName: tenant.displayName,
+                    value: tenant.id,
+                };
+            });
+        } catch (error) {
+            console.error(
+                `Error loading Azure tenants: ${getErrorMessage(error)}`,
+            );
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureTenantsForEntraAuth,
+                error,
+                false, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                undefined, // additionalProperties
+                {
+                    tenant: tenants.length,
+                    undefinedTenantCount: tenants.filter((x) => x === undefined)
+                        .length,
+                }, // additionalMeasurements
+            );
+
             return [];
         }
-        const tenants = account.properties.tenants;
-        if (!tenants) {
-            return [];
-        }
-        return tenants.map((tenant) => {
-            return {
-                displayName: tenant.displayName,
-                value: tenant.id,
-            };
-        });
     }
 
     private convertToFormComponent(
@@ -611,11 +664,28 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         > = {} as any; // force empty record for intial blank state
 
         for (const option of connectionOptions) {
-            result[option.name as keyof IConnectionDialogProfile] = {
-                ...this.convertToFormComponent(option),
-                isAdvancedOption: !this._mainOptionNames.has(option.name),
-                optionCategory: option.groupName,
-            };
+            try {
+                result[option.name as keyof IConnectionDialogProfile] = {
+                    ...this.convertToFormComponent(option),
+                    isAdvancedOption: !this._mainOptionNames.has(option.name),
+                    optionCategory: option.groupName,
+                };
+            } catch (err) {
+                console.error(
+                    `Error loading connection option '${option.name}': ${getErrorMessage(err)}`,
+                );
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadConnectionProperties,
+                    err,
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        connectionOptionName: option.name,
+                    }, // additionalProperties
+                );
+            }
         }
 
         await this.completeFormComponents(result);
@@ -1104,17 +1174,17 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             "deleteSavedConnection",
             async (state, payload) => {
                 const confirm = await vscode.window.showQuickPick(
-                    [locConstants.common.Delete, locConstants.common.Cancel],
+                    [LocCommon.delete, LocCommon.cancel],
                     {
-                        title: locConstants.common.AreYouSureYouWantTo(
-                            locConstants.connectionDialog.deleteTheSavedConnection(
+                        title: LocCommon.areYouSureYouWantTo(
+                            Loc.deleteTheSavedConnection(
                                 payload.connection.displayName,
                             ),
                         ),
                     },
                 );
 
-                if (confirm !== locConstants.common.Delete) {
+                if (confirm !== LocCommon.delete) {
                     return state;
                 }
 
@@ -1399,14 +1469,62 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
         return {
             recentConnections: await Promise.all(
-                recentConnections.map((conn) =>
-                    this.initializeConnectionForDialog(conn),
-                ),
+                recentConnections
+                    .map((conn) => {
+                        try {
+                            return this.initializeConnectionForDialog(conn);
+                        } catch (ex) {
+                            console.error(
+                                "Error initializing recent connection: " +
+                                    getErrorMessage(ex),
+                            );
+
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionDialog,
+                                TelemetryActions.LoadConnections,
+                                ex,
+                                false, // includeErrorMessage
+                                undefined, // errorCode
+                                undefined, // errorType
+                                {
+                                    connectionType: "recent",
+                                    authType: conn.authenticationType,
+                                },
+                            );
+
+                            return Promise.resolve(undefined);
+                        }
+                    })
+                    .filter((c) => c !== undefined),
             ),
             savedConnections: await Promise.all(
-                savedConnections.map((conn) =>
-                    this.initializeConnectionForDialog(conn),
-                ),
+                savedConnections
+                    .map((conn) => {
+                        try {
+                            return this.initializeConnectionForDialog(conn);
+                        } catch (ex) {
+                            console.error(
+                                "Error initializing saved connection: " +
+                                    getErrorMessage(ex),
+                            );
+
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionDialog,
+                                TelemetryActions.LoadConnections,
+                                ex,
+                                false, // includeErrorMessage
+                                undefined, // errorCode
+                                undefined, // errorType
+                                {
+                                    connectionType: "saved",
+                                    authType: conn.authenticationType,
+                                },
+                            );
+
+                            return Promise.resolve(undefined);
+                        }
+                    })
+                    .filter((c) => c !== undefined),
             ),
         };
     }

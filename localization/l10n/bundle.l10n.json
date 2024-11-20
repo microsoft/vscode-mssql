@@ -229,12 +229,6 @@
   "Default": "Default",
   "Delete saved connection": "Delete saved connection",
   "Remove recent connection": "Remove recent connection",
-  "delete the saved connection: {0}?/{0} is the connection name": {
-    "message": "delete the saved connection: {0}?",
-    "comment": [
-      "{0} is the connection name"
-    ]
-  },
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -757,6 +751,12 @@
     "comment": [
       "{0} is the subscription name",
       "{1} is the subscription id"
+    ]
+  },
+  "delete the saved connection: {0}?/{0} is the connection name": {
+    "message": "delete the saved connection: {0}?",
+    "comment": [
+      "{0} is the connection name"
     ]
   },
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
