@@ -10,6 +10,7 @@ import {
     useVscodeWebview,
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
+import { ColumnFilterState } from "./table/interfaces";
 
 export interface QueryResultState {
     provider: qr.QueryResultReactProvider;
@@ -42,6 +43,13 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                     ): void {
                         webViewState?.extensionRpc.action("setResultTab", {
                             tabId: tabId,
+                        });
+                    },
+                    setFilterState: function (
+                        filterState: ColumnFilterState,
+                    ): void {
+                        webViewState?.extensionRpc.action("setFilterState", {
+                            filterState: filterState,
                         });
                     },
                     getExecutionPlan: function (uri: string): void {

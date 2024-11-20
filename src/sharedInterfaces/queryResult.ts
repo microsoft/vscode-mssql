@@ -9,6 +9,7 @@ import {
     ExecutionPlanState,
     ExecutionPlanWebviewState,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import { ColumnFilterState } from "../reactviews/pages/QueryResult/table/interfaces";
 import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
 
 export enum QueryResultLoadState {
@@ -25,6 +26,12 @@ export enum QueryResultSaveAsTrigger {
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
+    /**
+     * Sets the filter state for the current result set
+     * @param filterState
+     * @returns
+     */
+    setFilterState: (filterState: ColumnFilterState) => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -63,12 +70,16 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     actualPlanEnabled?: boolean;
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
+    filterState: Record<string, ColumnFilterState>;
 }
 
 export interface QueryResultReducers
     extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
+    };
+    setFilterState: {
+        filterState: ColumnFilterState;
     };
     /**
      * Gets the execution plan graph from the provider for given uri

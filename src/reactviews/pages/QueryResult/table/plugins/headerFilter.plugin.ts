@@ -6,7 +6,11 @@
 // Adopted and converted to typescript from https://github.com/danny-sg/slickgrid-spreadsheet-plugins/blob/master/ext.headerfilter.js
 // heavily modified
 
-import { FilterableColumn } from "../interfaces";
+import {
+    ColumnFilterState,
+    FilterableColumn,
+    SortProperties,
+} from "../interfaces";
 import { append, $ } from "../dom";
 import {
     IDisposableDataProvider,
@@ -18,6 +22,8 @@ import { ColorThemeKind } from "../../../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
+
+import { QueryResultState } from "../../queryResultStateProvider";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -53,8 +59,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private _list!: VirtualizedList<TableFilterListElement>;
 
     private _eventManager = new EventManager();
+    private queryResultState: QueryResultState;
 
-    constructor(theme: ColorThemeKind) {
+    constructor(theme: ColorThemeKind, queryResultState: QueryResultState) {
+        this.queryResultState = queryResultState;
         this.theme = theme;
     }
 
@@ -322,6 +330,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 closePopup($popup);
                 this.activePopup = null;
                 this.grid.setSortColumn(this.columnDef.id!, true);
+                this.columnDef.sorted = SortProperties.ASC;
             },
         );
 
@@ -333,14 +342,16 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 closePopup($popup);
                 this.activePopup = null;
                 this.grid.setSortColumn(this.columnDef.id!, false);
+                this.columnDef.sorted = SortProperties.DESC;
             },
         );
 
         jQuery(document).on("click", "#apply", async () => {
+            // try to append columnDef.id to apply button ID to differentiate buttons
+            //TODO: only apply click to correct header filter
             this.columnDef.filterValues = this._listData
                 .filter((element) => element.checked)
                 .map((element) => element.value);
-
             closePopup($popup);
             this.activePopup = null;
             this.applyFilterSelections();
@@ -363,7 +374,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 return;
             }
             this.setButtonImage($menuButton, false);
-            await this.handleApply(this.columnDef);
+            await this.handleApply(this.columnDef, true);
         });
 
         function closePopup($popup: JQuery<HTMLElement>) {
@@ -405,7 +416,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.grid.render();
     }
 
-    private async handleApply(columnDef: Slick.Column<T>) {
+    private async handleApply(columnDef: Slick.Column<T>, clear?: boolean) {
+        let columnFilterState: ColumnFilterState;
         const dataView = this.grid.getData() as IDisposableDataProvider<T>;
         if (instanceOfIDisposableDataProvider(dataView)) {
             await dataView.filter(this.grid.getColumns());
@@ -415,7 +427,28 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
         this.onFilterApplied.notify({ grid: this.grid, column: columnDef });
         this.setFocusToColumn(columnDef);
+        //TODO: add search term
+        // clear filterValues if clear is true
+        if (clear) {
+            columnFilterState = {
+                columnDef: this.columnDef.id!,
+                filterValues: [],
+                sorted: SortProperties.NONE,
+            };
+        } else {
+            columnFilterState = {
+                columnDef: this.columnDef.id!,
+                filterValues: this.columnDef.filterValues!,
+                sorted: this.columnDef.sorted,
+            };
+        }
+        this.updateState(columnFilterState);
     }
+
+    private updateState(newState: ColumnFilterState) {
+        this.queryResultState.provider.setFilterState(newState);
+    }
+
     private async handleMenuItemClick(
         command: HeaderFilterCommands,
         columnDef: Slick.Column<T>,
@@ -563,10 +596,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 }
 
-class TableFilterListElement {
+export class TableFilterListElement {
     private _checked: boolean;
     private _isVisible: boolean;
     private _index: number = 0;
+    public displayText: string;
+    public value: string;
 
     constructor(val: string, checked: boolean) {
         this.value = val;
@@ -581,9 +616,6 @@ class TableFilterListElement {
             this.displayText = val;
         }
     }
-
-    public displayText: string;
-    public value: string;
 
     // public onCheckStateChanged = this._onCheckStateChanged.event;
 

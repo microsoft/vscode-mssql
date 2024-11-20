@@ -52,6 +52,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
             executionPlanState: {},
+            filterState: {},
         });
 
         void this.initialize();
@@ -70,6 +71,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         tabStates: undefined,
                         isExecutionPlan: false,
                         executionPlanState: {},
+                        filterState: {},
                     };
                 }
             });
@@ -219,6 +221,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     xmlPlans: [],
                 },
             }),
+            filterState: {},
         };
         this._queryResultStateMap.set(uri, currentState);
     }

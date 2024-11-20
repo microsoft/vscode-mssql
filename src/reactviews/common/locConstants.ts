@@ -321,7 +321,6 @@ export class LocConstants {
             apply: l10n.t("Apply"),
             clear: l10n.t("Clear"),
             search: l10n.t("Search..."),
-            selected: l10n.t("0 Selected"),
         };
     }
 }
