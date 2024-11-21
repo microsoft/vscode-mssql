@@ -18,7 +18,9 @@ import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    AddFirewallRuleDialogProps,
     IConnectionDialogProfile,
+    TrustServerCertDialogProps,
 } from "../sharedInterfaces/connectionDialog";
 import {
     CapabilitiesResult,
@@ -58,7 +60,10 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
+import {
+    connectionCertValidationFailedErrorCode,
+    connectionFirewallErrorCode,
+} from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
@@ -105,7 +110,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 formError: "",
                 loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
                 loadingAzureServersStatus: ApiStatus.NotStarted,
-                trustServerCertError: undefined,
+                dialog: undefined,
             }),
             {
                 title: Loc.connectionDialog,
@@ -1018,11 +1023,23 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             connectionCertValidationFailedErrorCode
                         ) {
                             this.state.connectionStatus = ApiStatus.Error;
-                            this.state.trustServerCertError =
-                                result.errorMessage;
+                            this.state.dialog = {
+                                type: "trustServerCert",
+                                message: result.errorMessage,
+                            } as TrustServerCertDialogProps;
 
                             // connection failing because the user didn't trust the server cert is not an error worth logging;
                             // just prompt the user to trust the cert
+
+                            return state;
+                        } else if (
+                            result.errorNumber === connectionFirewallErrorCode
+                        ) {
+                            this.state.connectionStatus = ApiStatus.Error;
+                            this.state.dialog = {
+                                type: "addFirewallRule",
+                                message: result.errorMessage,
+                            } as AddFirewallRuleDialogProps;
 
                             return state;
                         }
@@ -1152,8 +1169,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return state;
         });
 
-        this.registerReducer("cancelTrustServerCertDialog", async (state) => {
-            state.trustServerCertError = undefined;
+        this.registerReducer("closeDialog", async (state) => {
+            state.dialog = undefined;
             return state;
         });
 

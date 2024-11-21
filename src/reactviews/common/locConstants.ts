@@ -19,15 +19,16 @@ export class LocConstants {
 
     public get common() {
         return {
-            Delete: l10n.t("Delete"),
-            Cancel: l10n.t("Cancel"),
-            AreYouSure: l10n.t("Are you sure?"),
-            AreYouSureYouWantTo: (action: string) =>
+            delete: l10n.t("Delete"),
+            cancel: l10n.t("Cancel"),
+            areYouSure: l10n.t("Are you sure?"),
+            areYouSureYouWantTo: (action: string) =>
                 l10n.t({
                     message: "Are you sure you want to {0}?",
                     args: [action],
                     comment: ["{0} is the action being confirmed"],
                 }),
+            close: l10n.t("Close"),
         };
     }
 
@@ -190,7 +191,11 @@ export class LocConstants {
             enableTrustServerCertificateButton: l10n.t(
                 "Enable 'Trust Server Certificate'",
             ),
-            close: l10n.t("Close"),
+            createNewFirewallRule: l10n.t("Create a new firewall rule"),
+            firewallRuleNeededMessage: l10n.t(
+                "A firewall rule is required to access this server.",
+            ),
+            addFirewallRule: l10n.t("Add Firewall Rule"),
             azureFilterPlaceholder: (dropdownContentType: string) =>
                 l10n.t({
                     message: "Select a {0} for filtering",

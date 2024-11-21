@@ -19,13 +19,24 @@ import {
 
 import { locConstants } from "../../../common/locConstants";
 import { connectionCertValidationReadMoreUrl } from "../connectionConstants";
-import { ConnectionInputMode } from "../../../../sharedInterfaces/connectionDialog";
+import {
+    ConnectionInputMode,
+    TrustServerCertDialogProps,
+} from "../../../../sharedInterfaces/connectionDialog";
 
-export const TrustServerCertificateDialog = ({}) => {
+export const TrustServerCertificateDialog = ({
+    dialogProps,
+}: {
+    dialogProps: TrustServerCertDialogProps;
+}) => {
     const context = useContext(ConnectionDialogContext)!;
 
+    if (context.state.dialog?.type !== "trustServerCert") {
+        return undefined;
+    }
+
     return (
-        <Dialog open={context.state.trustServerCertError !== undefined}>
+        <Dialog open={dialogProps.type === "trustServerCert"}>
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle>
@@ -36,7 +47,7 @@ export const TrustServerCertificateDialog = ({}) => {
                             intent="error"
                             style={{ paddingRight: "12px" }}
                         >
-                            {context.state.trustServerCertError}
+                            {dialogProps.message}
                         </MessageBar>
                         <br />
                         {locConstants.connectionDialog.trustServerCertMessage}
@@ -52,7 +63,7 @@ export const TrustServerCertificateDialog = ({}) => {
                         <Button
                             appearance="primary"
                             onClick={() => {
-                                context.cancelTrustServerCertDialog();
+                                context.closeDialog();
                                 if (
                                     context.state.selectedInputMode ===
                                     ConnectionInputMode.ConnectionString
@@ -85,10 +96,10 @@ export const TrustServerCertificateDialog = ({}) => {
                         <Button
                             appearance="secondary"
                             onClick={() => {
-                                context.cancelTrustServerCertDialog();
+                                context.closeDialog();
                             }}
                         >
-                            {locConstants.connectionDialog.close}
+                            {locConstants.common.cancel}
                         </Button>
                     </DialogActions>
                 </DialogBody>

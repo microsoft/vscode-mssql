@@ -45,7 +45,7 @@ export class ConnectionDialogWebviewState
     public formError: string;
     public loadingAzureSubscriptionsStatus: ApiStatus;
     public loadingAzureServersStatus: ApiStatus;
-    public trustServerCertError: string | undefined;
+    public dialog: IDialogProps | undefined;
 
     constructor({
         connectionProfile,
@@ -59,7 +59,7 @@ export class ConnectionDialogWebviewState
         formError,
         loadingAzureSubscriptionsStatus,
         loadingAzureServersStatus,
-        trustServerCertError,
+        dialog,
     }: {
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
@@ -83,7 +83,7 @@ export class ConnectionDialogWebviewState
         formError: string;
         loadingAzureSubscriptionsStatus: ApiStatus;
         loadingAzureServersStatus: ApiStatus;
-        trustServerCertError: string | undefined;
+        dialog: IDialogProps | undefined;
     }) {
         this.formState = connectionProfile;
         this.selectedInputMode = selectedInputMode;
@@ -96,8 +96,22 @@ export class ConnectionDialogWebviewState
         this.formError = formError;
         this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
         this.loadingAzureServersStatus = loadingAzureServersStatus;
-        this.trustServerCertError = trustServerCertError;
+        this.dialog = dialog;
     }
+}
+
+export interface IDialogProps {
+    type: "trustServerCert" | "addFirewallRule";
+}
+
+export interface TrustServerCertDialogProps extends IDialogProps {
+    type: "trustServerCert";
+    message: string;
+}
+
+export interface AddFirewallRuleDialogProps extends IDialogProps {
+    type: "addFirewallRule";
+    message: string;
 }
 
 export interface AzureSubscriptionInfo {
@@ -146,7 +160,7 @@ export interface ConnectionDialogContextProps
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
-    cancelTrustServerCertDialog: () => void;
+    closeDialog: () => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -173,7 +187,7 @@ export interface ConnectionDialogReducers {
     loadAzureServers: {
         subscriptionId: string;
     };
-    cancelTrustServerCertDialog: {};
+    closeDialog: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {

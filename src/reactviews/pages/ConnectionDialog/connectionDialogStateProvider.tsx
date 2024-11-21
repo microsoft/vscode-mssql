@@ -65,10 +65,8 @@ const ConnectionDialogStateProvider: React.FC<
                         subscriptionId: subscriptionId,
                     });
                 },
-                cancelTrustServerCertDialog: function (): void {
-                    webviewState?.extensionRpc.action(
-                        "cancelTrustServerCertDialog",
-                    );
+                closeDialog: function (): void {
+                    webviewState?.extensionRpc.action("closeDialog");
                 },
                 filterAzureSubscriptions: function (): void {
                     webviewState.extensionRpc.action(
