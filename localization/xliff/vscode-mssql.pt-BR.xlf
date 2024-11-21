@@ -2182,7 +2182,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableNewQueryResultFeature.description">
         <source xml:lang="en">Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="new">Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.</target>
+        <target state="translated">Habilita o novo recurso Resultados da Consulta. O valor padrão é verdadeiro. Esta opção só tem efeito se `mssql.enableRichExperiences` estiver habilitado.</target>
       </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
