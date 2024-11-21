@@ -95,9 +95,9 @@
       "{0} is the action being confirmed"
     ]
   },
+  "Close": "Close",
   "Error": "Error",
   "Clear All": "Clear All",
-  "Close": "Close",
   "OK": "OK",
   "And": "And",
   "Contains": "Contains",
@@ -214,6 +214,9 @@
   "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
   "Read more": "Read more",
   "Enable 'Trust Server Certificate'": "Enable 'Trust Server Certificate'",
+  "Create a new firewall rule": "Create a new firewall rule",
+  "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
+  "Add Firewall Rule": "Add Firewall Rule",
   "Select a {0} for filtering/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
     "message": "Select a {0} for filtering",
     "comment": [
