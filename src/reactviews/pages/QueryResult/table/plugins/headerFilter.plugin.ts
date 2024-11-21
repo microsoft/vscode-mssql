@@ -135,7 +135,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             '<div id="popup-menu">' +
                 `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
                 `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
-                `<button id="close-popup" type="button" class="sort-btn">${locConstants.queryResult.close}</button>` +
+                `<button id="close-popup" type="button" class="sort-btn">${locConstants.common.close}</button>` +
                 "</div>",
         );
 

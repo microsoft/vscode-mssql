@@ -147,7 +147,7 @@ export const UserSurveyPage = () => {
                     </Button>
                     <Button onClick={() => userSurveryProvider.cancel()}>
                         {userSurveryProvider.state.cancelButtonText ??
-                            locConstants.userFeedback.cancel}
+                            locConstants.common.cancel}
                     </Button>
                 </div>
                 <Link
