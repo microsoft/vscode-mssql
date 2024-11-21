@@ -59,6 +59,7 @@ import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
+import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 
 /**
  * The main controller class that initializes the extension
@@ -713,6 +714,8 @@ export default class MainController implements vscode.Disposable {
             {
                 treeDataProvider: this._objectExplorerProvider,
                 canSelectMany: false,
+                dragAndDropController:
+                    new ObjectExplorerDragAndDropController(),
             },
         );
         this._context.subscriptions.push(this.objectExplorerTree);
