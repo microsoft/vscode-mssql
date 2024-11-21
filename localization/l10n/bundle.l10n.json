@@ -88,6 +88,7 @@
   "Delete": "Delete",
   "Filter Settings": "Filter Settings",
   "Cancel": "Cancel",
+  "Close": "Close",
   "Are you sure?": "Are you sure?",
   "Are you sure you want to {0}?/{0} is the action being confirmed": {
     "message": "Are you sure you want to {0}?",
@@ -97,7 +98,6 @@
   },
   "Error": "Error",
   "Clear All": "Clear All",
-  "Close": "Close",
   "OK": "OK",
   "And": "And",
   "Contains": "Contains",

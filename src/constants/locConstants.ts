@@ -120,7 +120,6 @@ export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("Azure Logs");
 export let azureConsentDialogOpen = l10n.t("Open");
-export let azureConsentDialogCancel = l10n.t("Cancel");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
 export function azureConsentDialogBody(
     tenantName: string,
@@ -174,7 +173,6 @@ export let enableTrustServerCertificate = l10n.t(
     "Enable Trust Server Certificate",
 );
 export let readMore = l10n.t("Read more");
-export let cancel = l10n.t("Cancel");
 export let msgCopyAndOpenWebpage = l10n.t("Copy code and open webpage");
 export let azureChooseAccount = l10n.t("Choose a Microsoft Entra account");
 export let azureAddAccount = l10n.t("Add a Microsoft Entra account...");
@@ -372,7 +370,7 @@ export function msgFoundPendingReconnectError(uri: string, error: string) {
 export function msgAcessTokenExpired(connectionId: string, uri: string) {
     return l10n.t({
         message: "Access token expired for connection {0} with uri {1}",
-        args: [connectionId],
+        args: [connectionId, uri],
         comment: ["{0} is the connection id", "{1} is the uri"],
     });
 }
