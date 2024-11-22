@@ -112,6 +112,7 @@ export interface TrustServerCertDialogProps extends IDialogProps {
 export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
     message: string;
+    clientIp: string;
 }
 
 export interface AzureSubscriptionInfo {
@@ -161,6 +162,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
+    addFirewallRule: (name: string, startIp: string, endIp?: string) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -186,6 +188,11 @@ export interface ConnectionDialogReducers {
     connect: {};
     loadAzureServers: {
         subscriptionId: string;
+    };
+    addFirewallRule: {
+        name: string;
+        startIp: string;
+        endIp?: string;
     };
     closeDialog: {};
     filterAzureSubscriptions: {};

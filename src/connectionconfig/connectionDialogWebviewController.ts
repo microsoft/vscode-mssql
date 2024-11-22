@@ -1039,6 +1039,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             this.state.dialog = {
                                 type: "addFirewallRule",
                                 message: result.errorMessage,
+                                clientIp: "192.168.1.1",
                             } as AddFirewallRuleDialogProps;
 
                             return state;
@@ -1166,6 +1167,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 payload.subscriptionId,
             );
 
+            return state;
+        });
+
+        this.registerReducer("addFirewallRule", async (state, payload) => {
+            console.log(
+                `Setting firewall rule: ${payload.name} (${payload.startIp} - ${payload.endIp})`,
+            );
             return state;
         });
 

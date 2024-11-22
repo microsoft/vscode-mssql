@@ -65,6 +65,17 @@ const ConnectionDialogStateProvider: React.FC<
                         subscriptionId: subscriptionId,
                     });
                 },
+                addFirewallRule: function (
+                    name: string,
+                    startIp: string,
+                    endIp?: string,
+                ): void {
+                    webviewState?.extensionRpc.action("addFirewallRule", {
+                        name: name,
+                        startIp: startIp,
+                        endIp: endIp,
+                    });
+                },
                 closeDialog: function (): void {
                     webviewState?.extensionRpc.action("closeDialog");
                 },
