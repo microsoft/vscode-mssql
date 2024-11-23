@@ -17,6 +17,7 @@ export class LocConstants {
         LocConstants._instance = new LocConstants();
     }
 
+    // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
     public get common() {
         return {
             delete: l10n.t("Delete"),

@@ -5,6 +5,22 @@
 
 import { l10n } from "vscode";
 
+// Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
+export class Common {
+    public static remindMeLater = l10n.t("Remind Me Later");
+    public static dontShowAgain = l10n.t("Don't Show Again");
+    public static learnMore = l10n.t("Learn More");
+    public static delete = l10n.t("Delete");
+    public static cancel = l10n.t("Cancel");
+    public static areYouSure = l10n.t("Are you sure?");
+    public static areYouSureYouWantTo = (action: string) =>
+        l10n.t({
+            message: "Are you sure you want to {0}?",
+            args: [action],
+            comment: ["{0} is the action being confirmed"],
+        });
+}
+
 export let viewMore = l10n.t("View More");
 export let releaseNotesPromptDescription = l10n.t(
     "View mssql for Visual Studio Code release notes?",
@@ -734,21 +750,6 @@ export class UserSurvey {
                 "How likely it is that you would recommend {0} to a friend or colleague?",
             args: [featureName],
             comment: ["{0} is the feature name"],
-        });
-}
-
-export class Common {
-    public static remindMeLater = l10n.t("Remind Me Later");
-    public static dontShowAgain = l10n.t("Don't Show Again");
-    public static learnMore = l10n.t("Learn More");
-    public static delete = l10n.t("Delete");
-    public static cancel = l10n.t("Cancel");
-    public static areYouSure = l10n.t("Are you sure?");
-    public static areYouSureYouWantTo = (action: string) =>
-        l10n.t({
-            message: "Are you sure you want to {0}?",
-            args: [action],
-            comment: ["{0} is the action being confirmed"],
         });
 }
 
