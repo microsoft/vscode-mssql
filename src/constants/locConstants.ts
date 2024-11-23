@@ -726,8 +726,6 @@ export class UserSurvey {
     );
     public static whatCanWeDoToImprove = l10n.t("What can we do to improve?");
     public static takeSurvey = l10n.t("Take Survey");
-    public static remindMeLater = l10n.t("Remind Me Later");
-    public static dontShowAgain = l10n.t("Don't Show Again");
     public static doYouMindTakingAQuickFeedbackSurvey = l10n.t(
         "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
     );
