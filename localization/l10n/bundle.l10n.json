@@ -88,6 +88,7 @@
   "Delete": "Delete",
   "Filter Settings": "Filter Settings",
   "Cancel": "Cancel",
+  "Close": "Close",
   "Are you sure?": "Are you sure?",
   "Are you sure you want to {0}?/{0} is the action being confirmed": {
     "message": "Are you sure you want to {0}?",
@@ -97,7 +98,6 @@
   },
   "Error": "Error",
   "Clear All": "Clear All",
-  "Close": "Close",
   "OK": "OK",
   "And": "And",
   "Contains": "Contains",
@@ -304,6 +304,9 @@
       "{0} is the file name"
     ]
   },
+  "Remind Me Later": "Remind Me Later",
+  "Don't Show Again": "Don't Show Again",
+  "Learn More": "Learn More",
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -758,8 +761,6 @@
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",
-  "Remind Me Later": "Remind Me Later",
-  "Don't Show Again": "Don't Show Again",
   "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?": "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
   "MSSQL Feedback": "MSSQL Feedback",
   "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.": "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
@@ -775,7 +776,6 @@
       "{0} is the feature name"
     ]
   },
-  "Learn More": "Learn More",
   "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
     "message": "{0} has been closed. Would you like to restore it?",
     "comment": [
