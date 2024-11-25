@@ -22,7 +22,6 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
-import { SortProperties } from "../reactviews/pages/QueryResult/table/interfaces";
 
 export function getNewResultPaneViewColumn(
     uri: string,
