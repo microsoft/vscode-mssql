@@ -300,8 +300,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             `#apply-${this.columnDef.id}`,
             async () => {
-                // try to append columnDef.id to apply button ID to differentiate buttons
-                // TODO: only apply click to correct header filter
                 this.columnDef.filterValues = this._listData
                     .filter((element) => element.checked)
                     .map((element) => element.value);
