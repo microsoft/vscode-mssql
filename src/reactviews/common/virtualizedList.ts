@@ -3,19 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Keys } from "../pages/QueryResult/keys";
 import { EventManager } from "./eventManager";
 
 const defaultConfig = {
     itemHeight: 20,
     buffer: 5,
 };
-
-enum Keys {
-    ArrowDown = "ArrowDown",
-    ArrowUp = "ArrowUp",
-    Enter = "Enter",
-    Space = " ",
-}
 
 export class VirtualizedList<T> {
     private _listId: string = window.crypto.randomUUID();

@@ -175,9 +175,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
                 `</div>` +
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
-                `<button id="apply" type="button" class="filter-btn-primary">${locConstants.queryResult.apply}</button>` +
-                `<button id="clear" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
-                `<button id="close-popup" type="button" class="filter-btn">${locConstants.queryResult.close}</button>` +
+                `<button id="apply-${this.columnDef.id}" type="button" class="filter-btn-primary">${locConstants.queryResult.apply}</button>` +
+                `<button id="clear-${this.columnDef.id}" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
+                `<button id="close-popup-${this.columnDef.id}" type="button" class="filter-btn">${locConstants.queryResult.close}</button>` +
                 "</div>",
         );
 
@@ -262,10 +262,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
         });
 
         // Close the pop-up when the close-popup button is clicked
-        jQuery(document).on("click", "#close-popup", () => {
-            closePopup($popup);
-            this.activePopup = null;
-        });
+        jQuery(document).on(
+            "click",
+            `#close-popup-${this.columnDef.id}`,
+            () => {
+                closePopup($popup);
+                this.activePopup = null;
+            },
+        );
 
         // Sorting button click handlers
         jQuery(document).on(
@@ -292,36 +296,44 @@ export class HeaderFilter<T extends Slick.SlickData> {
             },
         );
 
-        jQuery(document).on("click", "#apply", async () => {
-            // try to append columnDef.id to apply button ID to differentiate buttons
-            //TODO: only apply click to correct header filter
-            this.columnDef.filterValues = this._listData
-                .filter((element) => element.checked)
-                .map((element) => element.value);
-            closePopup($popup);
-            this.activePopup = null;
-            this.applyFilterSelections();
-            if (!$menuButton) {
-                return;
-            }
-            this.setButtonImage(
-                $menuButton,
-                this.columnDef.filterValues.length > 0,
-            );
-            await this.handleApply(this.columnDef);
-        });
+        jQuery(document).on(
+            "click",
+            `#apply-${this.columnDef.id}`,
+            async () => {
+                // try to append columnDef.id to apply button ID to differentiate buttons
+                // TODO: only apply click to correct header filter
+                this.columnDef.filterValues = this._listData
+                    .filter((element) => element.checked)
+                    .map((element) => element.value);
+                closePopup($popup);
+                this.activePopup = null;
+                this.applyFilterSelections();
+                if (!$menuButton) {
+                    return;
+                }
+                this.setButtonImage(
+                    $menuButton,
+                    this.columnDef.filterValues.length > 0,
+                );
+                await this.handleApply(this.columnDef);
+            },
+        );
 
-        jQuery(document).on("click", "#clear", async () => {
-            this.columnDef.filterValues!.length = 0;
+        jQuery(document).on(
+            "click",
+            `#clear-${this.columnDef.id}`,
+            async () => {
+                this.columnDef.filterValues!.length = 0;
 
-            closePopup($popup);
-            this.activePopup = null;
-            if (!$menuButton) {
-                return;
-            }
-            this.setButtonImage($menuButton, false);
-            await this.handleApply(this.columnDef, true);
-        });
+                closePopup($popup);
+                this.activePopup = null;
+                if (!$menuButton) {
+                    return;
+                }
+                this.setButtonImage($menuButton, false);
+                await this.handleApply(this.columnDef, true);
+            },
+        );
 
         function closePopup($popup: JQuery<HTMLElement>) {
             $popup.hide({
