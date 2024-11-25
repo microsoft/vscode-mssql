@@ -11,6 +11,7 @@ import {
 } from "../../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { tryCombineSelectionsForResults } from "../utils";
+import { Keys } from "../../keys";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -54,7 +55,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         let platform = await this.webViewState.extensionRpc.call("getPlatform");
         if (platform === "darwin") {
             // Cmd + C
-            if (e.metaKey && e.keyCode === 67) {
+            if (e.metaKey && e.key === Keys.c) {
                 handled = true;
                 await this.handleCopySelection(
                     this.grid,
@@ -64,7 +65,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
                 );
             }
         } else {
-            if (e.ctrlKey && e.keyCode === 67) {
+            if (e.ctrlKey && e.key === Keys.c) {
                 handled = true;
                 await this.handleCopySelection(
                     this.grid,
