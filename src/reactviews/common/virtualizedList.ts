@@ -142,9 +142,11 @@ export class VirtualizedList<T> {
 
             // Set up click listener
             this._eventManager.addEventListener(itemDiv, "click", (e) => {
-                this.updateFocusedItemIndex(i);
-                this._itemSelected(itemDiv, item);
-                e.preventDefault();
+                if (!(e.target instanceof HTMLInputElement)) {
+                    this.updateFocusedItemIndex(i);
+                    this._itemSelected(itemDiv, item);
+                    e.preventDefault();
+                }
                 e.stopPropagation();
             });
 
