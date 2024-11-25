@@ -100,8 +100,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $el.on("click", async (e: JQuery.ClickEvent) => {
             e.stopPropagation();
             e.preventDefault();
-            this.grid.onHeaderClick.notify();
             this.showFilter($el[0]);
+            this.grid.onHeaderClick.notify();
         });
 
         $el.appendTo(args.node);
@@ -171,7 +171,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             }
         });
 
-        jQuery(document).on("contextmenu", (e: JQuery.Event) => {
+        jQuery(document).on("contextmenu", () => {
             this.activePopup!.fadeOut();
             this.activePopup = null;
         });
