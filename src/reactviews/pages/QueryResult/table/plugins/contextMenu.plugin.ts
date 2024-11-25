@@ -53,13 +53,11 @@ export class ContextMenu<T extends Slick.SlickData> {
     }
 
     private headerClickHandler(e: Event): void {
-        jQuery(document).on("click", (e: JQuery.ClickEvent) => {
-            if (!jQuery(e.target).closest("#contextMenu").length) {
-                if (this.activeContextMenu) {
-                    this.activeContextMenu.hide();
-                }
+        if (!jQuery(e.target).closest("#contextMenu").length) {
+            if (this.activeContextMenu) {
+                this.activeContextMenu.hide();
             }
-        });
+        }
     }
 
     private handleContextMenu(e: Event): void {
