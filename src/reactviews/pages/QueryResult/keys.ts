@@ -4,5 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 export enum Keys {
+    ArrowDown = "ArrowDown",
+    ArrowUp = "ArrowUp",
+    Enter = "Enter",
+    Space = " ",
     c = "c",
 }

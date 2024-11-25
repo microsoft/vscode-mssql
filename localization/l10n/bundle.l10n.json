@@ -290,6 +290,10 @@
   "Select All": "Select All",
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
+  "NULL": "NULL",
+  "Blanks": "Blanks",
+  "Apply": "Apply",
+  "Search...": "Search...",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [

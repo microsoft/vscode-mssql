@@ -32,6 +32,7 @@ import {
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
+import { QueryResultState } from "./queryResultStateProvider";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -60,6 +61,7 @@ export interface ResultGridProps {
         QueryResultReducers
     >;
     gridParentRef?: React.RefObject<HTMLDivElement>;
+    state: QueryResultState;
     linkHandler: (fileContent: string, fileType: string) => void;
 }
 
@@ -98,6 +100,11 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             table?.layout(dimension);
         };
         useEffect(() => {
+            const filter = async () => {
+                await table.setupState();
+                table.rerenderGrid();
+            };
+
             const ROW_HEIGHT = 25;
             if (!props.resultSetSummary || !props.linkHandler) {
                 return;
@@ -225,12 +232,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.uri!,
                 props.resultSetSummary!,
                 props.webViewState!,
+                props.state,
                 props.linkHandler!,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.gridParentRef,
             );
-
+            void filter();
             collection.setCollectionChangedCallback((startIndex, count) => {
                 let refreshedRows = range(startIndex, startIndex + count);
                 table.invalidateRows(refreshedRows, true);
