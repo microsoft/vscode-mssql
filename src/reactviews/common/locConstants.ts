@@ -17,6 +17,7 @@ export class LocConstants {
         LocConstants._instance = new LocConstants();
     }
 
+    // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
     public get common() {
         return {
             delete: l10n.t("Delete"),
@@ -36,7 +37,6 @@ export class LocConstants {
         return {
             error: l10n.t("Error"),
             clearAll: l10n.t("Clear All"),
-            close: l10n.t("Close"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),
             contains: l10n.t("Contains"),
@@ -117,7 +117,6 @@ export class LocConstants {
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
-            close: l10n.t("Close"),
             errorLoadingDesigner: l10n.t("Error loading designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
@@ -283,7 +282,6 @@ export class LocConstants {
             dissatisfied: l10n.t("Dissatisfied"),
             veryDissatisfied: l10n.t("Very Dissatisfied"),
             submit: l10n.t("Submit"),
-            cancel: l10n.t("Cancel"),
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),
             privacyStatement: l10n.t("Privacy Statement"),
@@ -301,7 +299,6 @@ export class LocConstants {
             showFilter: l10n.t("Show Filter"),
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
-            cancel: l10n.t("Cancel"),
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
@@ -314,6 +311,11 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
             copyHeaders: l10n.t("Copy Headers"),
+            null: l10n.t("NULL"),
+            blankString: l10n.t("Blanks"),
+            apply: l10n.t("Apply"),
+            clear: l10n.t("Clear"),
+            search: l10n.t("Search..."),
             close: l10n.t("Close"),
         };
     }

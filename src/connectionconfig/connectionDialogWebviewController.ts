@@ -747,8 +747,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async validateConnectionProfile(
         connectionProfile: IConnectionDialogProfile,
         propertyName?: keyof IConnectionDialogProfile,
-    ): Promise<number> {
-        let errorCount = 0;
+    ): Promise<string[]> {
+        const erroredInputs = [];
         if (propertyName) {
             const component = this.getFormComponent(propertyName);
             if (component && component.validate) {
@@ -756,7 +756,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     connectionProfile[propertyName],
                 );
                 if (!component.validation.isValid) {
-                    return 1;
+                    erroredInputs.push(component.propertyName);
                 }
             }
         } else {
@@ -775,13 +775,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                                 connectionProfile[c.propertyName],
                             );
                             if (!c.validation.isValid) {
-                                errorCount++;
+                                erroredInputs.push(c.propertyName);
                             }
                         }
                     }
                 });
         }
-        return errorCount;
+
+        return erroredInputs;
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
@@ -1002,10 +1003,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
 
             // Perform final validation of all inputs
-            const errorCount =
+            const erroredInputs =
                 await this.validateConnectionProfile(cleanedConnection);
-            if (errorCount > 0) {
+            if (erroredInputs.length > 0) {
                 this.state.connectionStatus = ApiStatus.Error;
+                console.warn(
+                    "One more more inputs have errors: " +
+                        erroredInputs.join(", "),
+                );
                 return state;
             }
 

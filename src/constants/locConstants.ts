@@ -5,6 +5,22 @@
 
 import { l10n } from "vscode";
 
+// Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
+export class Common {
+    public static remindMeLater = l10n.t("Remind Me Later");
+    public static dontShowAgain = l10n.t("Don't Show Again");
+    public static learnMore = l10n.t("Learn More");
+    public static delete = l10n.t("Delete");
+    public static cancel = l10n.t("Cancel");
+    public static areYouSure = l10n.t("Are you sure?");
+    public static areYouSureYouWantTo = (action: string) =>
+        l10n.t({
+            message: "Are you sure you want to {0}?",
+            args: [action],
+            comment: ["{0} is the action being confirmed"],
+        });
+}
+
 export let viewMore = l10n.t("View More");
 export let releaseNotesPromptDescription = l10n.t(
     "View mssql for Visual Studio Code release notes?",
@@ -120,7 +136,6 @@ export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("Azure Logs");
 export let azureConsentDialogOpen = l10n.t("Open");
-export let azureConsentDialogCancel = l10n.t("Cancel");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
 export function azureConsentDialogBody(
     tenantName: string,
@@ -174,7 +189,6 @@ export let enableTrustServerCertificate = l10n.t(
     "Enable Trust Server Certificate",
 );
 export let readMore = l10n.t("Read more");
-export let cancel = l10n.t("Cancel");
 export let msgCopyAndOpenWebpage = l10n.t("Copy code and open webpage");
 export let azureChooseAccount = l10n.t("Choose a Microsoft Entra account");
 export let azureAddAccount = l10n.t("Add a Microsoft Entra account...");
@@ -372,7 +386,7 @@ export function msgFoundPendingReconnectError(uri: string, error: string) {
 export function msgAcessTokenExpired(connectionId: string, uri: string) {
     return l10n.t({
         message: "Access token expired for connection {0} with uri {1}",
-        args: [connectionId],
+        args: [connectionId, uri],
         comment: ["{0} is the connection id", "{1} is the uri"],
     });
 }
@@ -712,8 +726,6 @@ export class UserSurvey {
     );
     public static whatCanWeDoToImprove = l10n.t("What can we do to improve?");
     public static takeSurvey = l10n.t("Take Survey");
-    public static remindMeLater = l10n.t("Remind Me Later");
-    public static dontShowAgain = l10n.t("Don't Show Again");
     public static doYouMindTakingAQuickFeedbackSurvey = l10n.t(
         "Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?",
     );
@@ -736,21 +748,6 @@ export class UserSurvey {
                 "How likely it is that you would recommend {0} to a friend or colleague?",
             args: [featureName],
             comment: ["{0} is the feature name"],
-        });
-}
-
-export class Common {
-    public static remindMeLater = l10n.t("Remind Me Later");
-    public static dontShowAgain = l10n.t("Don't Show Again");
-    public static learnMore = l10n.t("Learn More");
-    public static delete = l10n.t("Delete");
-    public static cancel = l10n.t("Cancel");
-    public static areYouSure = l10n.t("Are you sure?");
-    public static areYouSureYouWantTo = (action: string) =>
-        l10n.t({
-            message: "Are you sure you want to {0}?",
-            args: [action],
-            comment: ["{0} is the action being confirmed"],
         });
 }
 
