@@ -71,7 +71,7 @@ export const UserSurveyPage = () => {
             if (!(question as BaseQuestion)?.required) {
                 continue;
             }
-            if (!userAnswers[question.id]) {
+            if (userAnswers[question.id] === undefined) {
                 setIsSubmitDisabled(true);
                 return;
             }
@@ -147,7 +147,7 @@ export const UserSurveyPage = () => {
                     </Button>
                     <Button onClick={() => userSurveryProvider.cancel()}>
                         {userSurveryProvider.state.cancelButtonText ??
-                            locConstants.userFeedback.cancel}
+                            locConstants.common.cancel}
                     </Button>
                 </div>
                 <Link

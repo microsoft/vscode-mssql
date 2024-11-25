@@ -17,12 +17,14 @@ export class LocConstants {
         LocConstants._instance = new LocConstants();
     }
 
+    // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
     public get common() {
         return {
-            Delete: l10n.t("Delete"),
-            Cancel: l10n.t("Cancel"),
-            AreYouSure: l10n.t("Are you sure?"),
-            AreYouSureYouWantTo: (action: string) =>
+            delete: l10n.t("Delete"),
+            cancel: l10n.t("Cancel"),
+            close: l10n.t("Close"),
+            areYouSure: l10n.t("Are you sure?"),
+            areYouSureYouWantTo: (action: string) =>
                 l10n.t({
                     message: "Are you sure you want to {0}?",
                     args: [action],
@@ -35,7 +37,6 @@ export class LocConstants {
         return {
             error: l10n.t("Error"),
             clearAll: l10n.t("Clear All"),
-            close: l10n.t("Close"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),
             contains: l10n.t("Contains"),
@@ -116,7 +117,6 @@ export class LocConstants {
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
-            close: l10n.t("Close"),
             errorLoadingDesigner: l10n.t("Error loading designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
@@ -278,7 +278,6 @@ export class LocConstants {
             dissatisfied: l10n.t("Dissatisfied"),
             veryDissatisfied: l10n.t("Very Dissatisfied"),
             submit: l10n.t("Submit"),
-            cancel: l10n.t("Cancel"),
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),
             privacyStatement: l10n.t("Privacy Statement"),
@@ -296,7 +295,6 @@ export class LocConstants {
             showFilter: l10n.t("Show Filter"),
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
-            cancel: l10n.t("Cancel"),
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),

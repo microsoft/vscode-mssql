@@ -118,13 +118,13 @@ export class UserSurvey {
             },
         };
         const remind = {
-            title: locConstants.UserSurvey.remindMeLater,
+            title: locConstants.Common.remindMeLater,
             run: async () => {
                 await globalState.update(SESSION_COUNT_KEY, sessionCount - 3);
             },
         };
         const never = {
-            title: locConstants.UserSurvey.dontShowAgain,
+            title: locConstants.Common.dontShowAgain,
             isSecondary: true,
             run: async () => {
                 await globalState.update(NEVER_KEY, true);

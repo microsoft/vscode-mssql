@@ -60,6 +60,14 @@ export const AzureBrowsePage = () => {
     >(undefined);
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
+    function setSelectedServerWithFormState(server: string | undefined) {
+        setSelectedServer(server);
+        setConnectionProperty(
+            "server",
+            server ? server + ".database.windows.net" : "",
+        );
+    }
+
     // #region Effects
 
     // subscriptions
@@ -168,7 +176,7 @@ export const AzureBrowsePage = () => {
         } else {
             updateComboboxSelection(
                 selectedServer,
-                setSelectedServer,
+                setSelectedServerWithFormState,
                 setServerValue,
                 srvs,
                 DefaultSelectionMode.SelectFirstIfAny,
@@ -176,6 +184,7 @@ export const AzureBrowsePage = () => {
         }
     }, [locations, selectedLocation, context.state.azureServers]);
 
+    // databases
     useEffect(() => {
         if (!selectedServer) {
             return; // should not be visible if no server is selected
@@ -317,13 +326,7 @@ export const AzureBrowsePage = () => {
                     value: serverValue,
                     setValue: setServerValue,
                     selection: selectedServer,
-                    setSelection: (srv) => {
-                        setSelectedServer(srv);
-                        setConnectionProperty(
-                            "server",
-                            srv ? srv + ".database.windows.net" : "",
-                        );
-                    },
+                    setSelection: setSelectedServerWithFormState,
                     invalidOptionErrorMessage:
                         Loc.connectionDialog.invalidAzureBrowse(
                             Loc.connectionDialog.server,

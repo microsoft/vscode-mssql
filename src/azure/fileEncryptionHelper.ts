@@ -198,7 +198,7 @@ export class FileEncryptionHelper {
                     undefined,
                     [
                         LocalizedConstants.reloadChoice,
-                        LocalizedConstants.cancel,
+                        LocalizedConstants.Common.cancel,
                     ],
                 )
                 .then(
