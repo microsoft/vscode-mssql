@@ -10,6 +10,13 @@ const defaultConfig = {
     buffer: 5,
 };
 
+enum Keys {
+    ArrowDown = "ArrowDown",
+    ArrowUp = "ArrowUp",
+    Enter = "Enter",
+    Space = " ",
+}
+
 export class VirtualizedList<T> {
     private _listId: string = window.crypto.randomUUID();
     private _visibleCount: number;
@@ -147,13 +154,16 @@ export class VirtualizedList<T> {
             this._eventManager.addEventListener(itemDiv, "keydown", (e) => {
                 const event = e as KeyboardEvent;
                 let handled = false;
-                if (event.key === "ArrowDown") {
+                if (event.key === Keys.ArrowDown) {
                     this.updateFocusedItemIndex(i + 1);
                     handled = true;
-                } else if (event.key === "ArrowUp") {
+                } else if (event.key === Keys.ArrowUp) {
                     this.updateFocusedItemIndex(i - 1);
                     handled = true;
-                } else if (event.key === "Enter" || event.key === " ") {
+                } else if (
+                    event.key === Keys.Enter ||
+                    event.key === Keys.Space
+                ) {
                     this._itemSelected(itemDiv, item);
                     handled = true;
                 }
