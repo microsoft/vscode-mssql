@@ -3,259 +3,376 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
- .monaco-table * {
-	box-sizing: border-box;
-	white-space: pre;
+.monaco-table * {
+    box-sizing: border-box;
+    white-space: pre;
 }
 
 .monaco-table {
-	width: 100%;
-	height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .monaco-table > div {
-	width: 100%;
-	height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .monaco-table .slick-sort-indicator {
-	background-size: 8px;
-	background-repeat: no-repeat;
+    background-size: 8px;
+    background-repeat: no-repeat;
 }
 
 .vs .slick-header-menuicon.ascending,
 .hc-light .slick-header-menuicon.ascending,
 .vs .monaco-table .slick-sort-indicator-asc,
 .hc-light .monaco-table .slick-sort-indicator-asc {
-	background-image: url('sort_asc.svg');
+    background-image: url("sort_asc.svg");
 }
 
 .vs-dark .slick-header-menuicon.ascending,
 .hc-black .slick-header-menuicon.ascending,
 .vs-dark .monaco-table .slick-sort-indicator-asc,
 .hc-black .monaco-table .slick-sort-indicator-asc {
-	background-image: url('sort_asc_inverse.svg');
+    background-image: url("sort_asc_inverse.svg");
 }
 
 .vs .slick-header-menuicon.descending,
 .hc-light .slick-header-menuicon.descending,
 .vs .monaco-table .slick-sort-indicator-desc,
 .hc-light .monaco-table .slick-sort-indicator-desc {
-	background-image: url('sort_desc.svg');
+    background-image: url("sort_desc.svg");
 }
 
 .vs-dark .slick-header-menuicon.descending,
 .hc-black .slick-header-menuicon.descending,
 .vs-dark .monaco-table .slick-sort-indicator-desc,
 .hc-black .monaco-table .slick-sort-indicator-desc {
-	background-image: url('sort_desc_inverse.svg');
+    background-image: url("sort_desc_inverse.svg");
 }
 
 .monaco-table .slick-sort-indicator {
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	margin-left: 4px;
-	margin-right: 4px;
-	margin-top: 6px;
-	flex: 0 0 auto;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-top: 6px;
+    flex: 0 0 auto;
 }
 
 .slick-header-menubutton {
-	background-position: center center;
-	background-repeat: no-repeat;
-	cursor: pointer;
-	display: inline-block;
-	width: 16px;
-	background-image: url('down.svg');
-	flex: 0 0 auto;
-	margin-right: 2px;
-	background-color: transparent;
-	border: 0px;
-	padding: 0px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    background-image: url("filter.svg");
+    flex: 0 0 auto;
+    margin-right: 2px;
+    background-color: transparent;
+    border: 0px;
+    padding: 0px;
 }
 
 .hc-light .slick-header-menubutton {
-	background-image: url('down.svg');
+    background-image: url("filter.svg");
 }
 
 .vs-dark .slick-header-menubutton,
 .hc-black .slick-header-menubutton {
-	background-image: url('down-inverse.svg');
+    background-image: url("filter_inverse.svg");
 }
 
 .slick-header-menubutton.filtered,
 .hc-light .slick-header-menubutton.filtered {
-	background-image: url('filter.svg');
+    background-image: url("filterFilled.svg");
 }
 
 .vs-dark .slick-header-menubutton.filtered,
 .hc-black .slick-header-menubutton.filtered {
-	background-image: url('filter_inverse.svg');
+    background-image: url("filterFilled_inverse.svg");
 }
 
 .slick-header-menu {
-	background: none repeat scroll 0 0 white;
-	border: 1px solid #BFBDBD;
-	min-width: 175px;
-	padding: 4px;
-	z-index: 100000;
-	cursor: default;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	position: absolute;
+    background: none repeat scroll 0 0 white;
+    border: 1px solid #bfbdbd;
+    min-width: 175px;
+    padding: 4px;
+    z-index: 100000;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    position: absolute;
 }
 
 .hc-light .slick-header-menu {
-	background: none repeat scroll 0 0 #F3F2F1;
+    background: none repeat scroll 0 0 #f3f2f1;
 }
 
 .vs-dark .slick-header-menu {
-	background: none repeat scroll 0 0 #333333;
+    background: none repeat scroll 0 0 #333333;
 }
 
 .hc-black .slick-header-menu {
-	background: none repeat scroll 0 0 #000000;
+    background: none repeat scroll 0 0 #000000;
 }
 
 .slick-header-menu-image-button-container {
-	flex: 0 0 auto;
+    flex: 0 0 auto;
 }
 
 .slick-header-menu a.monaco-button.monaco-text-button {
-	width: 60px;
-	margin: 5px;
-	padding: 2px;
+    width: 60px;
+    margin: 5px;
+    padding: 2px;
 }
 
-.slick-header-menu .searchbox-row
-{
-	display: flex;
-	align-items: center;
-	padding-left: 5px;
-	margin-top: 5px;
-	flex: 0 0 auto;
+.slick-header-menu .searchbox-row {
+    display: flex;
+    align-items: center;
+    padding-left: 5px;
+    margin-top: 5px;
+    flex: 0 0 auto;
 }
 
-.slick-header-menu .searchbox-row .select-all-checkbox
-{
-	flex: 0;
+.slick-header-menu .searchbox-row .select-all-checkbox {
+    flex: 0;
 }
 
-.slick-header-menu .searchbox-row .search-input
-{
-	flex: 1 1 auto;
+.slick-header-menu .searchbox-row .search-input {
+    flex: 1 1 auto;
 }
 
-.slick-header-menu .searchbox-row .search-input input
-{
-	padding-right: 70px;
+.slick-header-menu .searchbox-row .search-input input {
+    padding-right: 70px;
 }
 
-.slick-header-menu .searchbox-row .selected-count
-{
-	position: absolute;
-	right: 8px;
-	align-self: center;
-	align-items: center;
-	display: flex;
+.slick-header-menu .searchbox-row .selected-count {
+    position: absolute;
+    right: 8px;
+    align-self: center;
+    align-items: center;
+    display: flex;
 }
 
-.slick-header-menu .searchbox-row .visible-count
-{
-	position: absolute;
-	/* visible count badge is not visible but will be read by the screen reader */
-	left: -10000px;
+.slick-header-menu .searchbox-row .visible-count {
+    position: absolute;
+    /* visible count badge is not visible but will be read by the screen reader */
+    left: -10000px;
 }
 
-
-.slick-header-menu .filter
-{
-	border: 1px solid #BFBDBD;
-	font-size: 8pt;
-	margin-top: 6px;
-	overflow: hidden;
-	padding: 1px;
-	white-space: nowrap;
-	align-content: flex-start;
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
+.slick-header-menu .filter {
+    border: 1px solid #bfbdbd;
+    font-size: 8pt;
+    margin-top: 6px;
+    overflow: hidden;
+    padding: 1px;
+    white-space: nowrap;
+    align-content: flex-start;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 }
 
 .slick-header-menu .filter .filter-option {
-	display: flex;
-	align-items: center;
-	padding-left: 3px;
+    display: flex;
+    align-items: center;
+    padding-left: 3px;
 }
 
 .slick-header-menu .filter-menu-button-container {
-	display: flex;
-	flex-direction: row;
-	width: 100%;
-	flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    flex: 0 0 auto;
 }
 
 .slick-header-menu .filter-menu-button {
-	flex: 0 0 auto;
+    flex: 0 0 auto;
 }
 
 .monaco-table label {
-	display: block;
-	margin-bottom: 5px;
+    display: block;
+    margin-bottom: 5px;
 }
 
-.slick-header-menuitem
-{
-	border: 1px solid transparent;
-	padding: 2px 4px;
-	cursor: pointer;
-	list-style: none outside none;
-	margin: 0;
+.slick-header-menuitem {
+    border: 1px solid transparent;
+    padding: 2px 4px;
+    cursor: pointer;
+    list-style: none outside none;
+    margin: 0;
 }
 
-.slick-header-menu a.monaco-button.monaco-text-button.slick-header-menuicon
-{
-	display: inline-block;
-	background-position: 2px center;
-	background-repeat: no-repeat;
-	padding-left: 18px;
-	text-align: left;
-	width: 100%;
-	padding: 0 0 0 18px;
-	margin: 0px;
-	background-size: 10px;
+.slick-header-menu a.monaco-button.monaco-text-button.slick-header-menuicon {
+    display: inline-block;
+    background-position: 2px center;
+    background-repeat: no-repeat;
+    padding-left: 18px;
+    text-align: left;
+    width: 100%;
+    padding: 0 0 0 18px;
+    margin: 0px;
+    background-size: 10px;
 }
 
 .slick-header-menucontent {
-	display: inline-block;
-	vertical-align: middle;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .slick-header-menuitem:hover {
-	border-color: #BFBDBD;
+    border-color: #bfbdbd;
 }
 
-.header-overlay, .cell-overlay, .selection-cell-overlay {
-	display: block;
-	position: absolute;
-	z-index: 999;
+.header-overlay,
+.cell-overlay,
+.selection-cell-overlay {
+    display: block;
+    position: absolute;
+    z-index: 999;
 }
 
 .slick-icon-cell-content {
-	background-position: 5px center !important;
-	background-repeat: no-repeat;
-	background-size: 16px !important;
-	width: 100%;
-	height: 100%;
-	padding-left: 30px;
-	color: inherit !important;
-	display: flex;
-	align-items: center;
+    background-position: 5px center !important;
+    background-repeat: no-repeat;
+    background-size: 16px !important;
+    width: 100%;
+    height: 100%;
+    padding-left: 30px;
+    color: inherit !important;
+    display: flex;
+    align-items: center;
 }
 
 .slick-cell .toggle {
-	font-size: 12px !important;
-	margin-right: -5px;
+    font-size: 12px !important;
+    margin-right: -5px;
+}
+
+#popup-menu {
+    position: absolute;
+    padding: 0px;
+    display: inline-block;
+    min-width: 100px;
+    z-index: 99999;
+    border: 1px solid;
+    outline: 0;
+    color: var(--vscode-dropdown-foreground);
+    background-color: var(--vscode-dropdown-background);
+    border-color: var(--vscode-menu-border);
+    font-family: var(--vscode-font-family);
+}
+
+/* Button styling to match the design */
+.sort-btn {
+    width: 100%;
+    padding: 8px 10px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--vscode-dropdown-foreground);
+    background-color: var(--vscode-dropdown-background);
+    border-color: var(--vscode-dropdown-border);
+    font-family: var(--vscode-font-family);
+}
+
+.sort-btn:hover {
+    color: var(--vscode-list-hoverForeground);
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+/* Additional styling for active/focused states */
+.sort-btn:focus {
+    color: var(--vscode-list-hoverForeground);
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.checkbox-list {
+    min-height: 200px;
+    max-height: 250px;
+}
+
+#popup-menu .checkbox-list label {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.filter-btn-primary {
+    width: 33%;
+    padding: 8px 10px;
+    text-align: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-background);
+    border-color: var(--vscode-button-border);
+    font-family: var(--vscode-font-family);
+}
+
+.filter-btn {
+    width: 33%;
+    padding: 8px 10px;
+    text-align: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryBackground);
+    border-color: var(--vscode-button-secondaryBorder);
+    font-family: var(--vscode-font-family);
+}
+
+.searchbox {
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+    background: none;
+    border: 1px solid;
+    font-size: 13px;
+    color: var(--vscode-dropdown-foreground);
+    background-color: var(--vscode-dropdown-background);
+    border-color: var(--vscode-dropdown-border);
+    font-family: var(--vscode-font-family);
+}
+
+.selection-counter {
+    margin-left: 8px;
+    padding: 4px;
+    border-radius: 4px;
+    color: var(--vscode-dropdown-foreground);
+    background-color: var(--vscode-descriptionForeground);
+    border-color: var(--vscode-dropdown-border);
+}
+
+.filter-btn-primary:hover {
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+/* Additional styling for active/focused states */
+.filter-btn-primary:focus {
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.filter-btn:hover {
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+/* Additional styling for active/focused states */
+.filter-btn:focus {
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryHoverBackground);
 }
