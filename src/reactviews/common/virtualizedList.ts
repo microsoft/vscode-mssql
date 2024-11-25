@@ -16,7 +16,6 @@ export class VirtualizedList<T> {
     private _scrollOffset: number;
     private _eventManager: EventManager = new EventManager();
     private _focusedItemIndex: number = 0;
-    // private _isListFocused = false;
     constructor(
         private _container: HTMLElement,
         private _items: T[],
@@ -49,11 +48,6 @@ export class VirtualizedList<T> {
         this._eventManager.addEventListener(this._container, "scroll", () =>
             this.onScroll(),
         );
-
-        // Set up focus listener
-        this._eventManager.addEventListener(this._container, "focusin", () => {
-            // this._isListFocused = true;
-        });
 
         // Reset focused item index
         this._focusedItemIndex = 0;

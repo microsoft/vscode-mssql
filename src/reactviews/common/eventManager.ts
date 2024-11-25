@@ -10,7 +10,7 @@ export class EventManager {
         handler: EventListenerOrEventListenerObject;
     }[] = [];
 
-    // Method to add an event listener and track it
+    /** Method to add an event listener and track it */
     addEventListener(
         target: EventTarget,
         type: string,
@@ -20,7 +20,7 @@ export class EventManager {
         this.eventListeners.push({ target, type, handler });
     }
 
-    // Method to remove all tracked event listeners
+    /** Method to remove all tracked event listeners */
     clearEventListeners(): void {
         for (const { target, type, handler } of this.eventListeners) {
             target.removeEventListener(type, handler);

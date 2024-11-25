@@ -190,7 +190,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             console.log("oncolumnresize"),
         );
         this.style(styles);
-        console.log(`table.ts: ${this.queryResultState.state.filterState}`);
         // this.registerPlugin(new MouseWheelSupport());
     }
 

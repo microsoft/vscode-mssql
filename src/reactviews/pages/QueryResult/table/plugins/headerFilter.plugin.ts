@@ -113,7 +113,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             args.node.classList.add("slick-header-sortable");
             append(args.node, $("span.slick-sort-indicator"));
         }
-        let theme: string = resolveVscodeThemeType(this.theme);
+        const theme: string = resolveVscodeThemeType(this.theme);
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
         const $el = jQuery(
@@ -431,7 +431,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
         this.onFilterApplied.notify({ grid: this.grid, column: columnDef });
         this.setFocusToColumn(columnDef);
-        //TODO: add search term
         // clear filterValues if clear is true
         if (clear) {
             columnFilterState = {
