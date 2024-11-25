@@ -23,6 +23,7 @@ export class ContextMenu<T extends Slick.SlickData> {
         QueryResultWebviewState,
         QueryResultReducers
     >;
+    private activeContextMenu: JQuery<HTMLElement> | null = null;
 
     constructor(
         uri: string,
@@ -42,10 +43,23 @@ export class ContextMenu<T extends Slick.SlickData> {
         this.handler.subscribe(this.grid.onContextMenu, (e: Event) =>
             this.handleContextMenu(e),
         );
+        this.handler.subscribe(this.grid.onHeaderClick, (e: Event) =>
+            this.headerClickHandler(e),
+        );
     }
 
     public destroy() {
         this.handler.unsubscribeAll();
+    }
+
+    private headerClickHandler(e: Event): void {
+        jQuery(document).on("click", (e: JQuery.ClickEvent) => {
+            if (!jQuery(e.target).closest("#contextMenu").length) {
+                if (this.activeContextMenu) {
+                    this.activeContextMenu.hide();
+                }
+            }
+        });
     }
 
     private handleContextMenu(e: Event): void {
@@ -72,14 +86,17 @@ export class ContextMenu<T extends Slick.SlickData> {
             .css("left", mouseEvent.pageX)
             .show();
 
-        jQuery("body").one("click", function () {
+        this.activeContextMenu = $contextMenu;
+        jQuery("body").one("click", () => {
             $contextMenu.hide();
+            this.activeContextMenu = null;
         });
 
         $contextMenu.on("click", "li", async (event) => {
             const action = jQuery(event.target).data("action");
             await this.handleMenuAction(action);
             $contextMenu.hide(); // Hide the menu after an action is clicked
+            this.activeContextMenu = null;
         });
     }
 
