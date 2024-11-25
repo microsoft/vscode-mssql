@@ -8,4 +8,5 @@ export enum Keys {
     ArrowUp = "ArrowUp",
     Enter = "Enter",
     Space = " ",
+    c = "c",
 }
