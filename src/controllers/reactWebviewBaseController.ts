@@ -51,7 +51,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         ) => ReducerResponse<State>
     >;
     private _isFirstLoad: boolean = true;
-    private _loadStartTime: number = Date.now();
+    protected _loadStartTime: number = Date.now();
     private _endLoadActivity = startActivity(
         TelemetryViews.WebviewController,
         TelemetryActions.Load,
