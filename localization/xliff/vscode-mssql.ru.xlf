@@ -97,6 +97,10 @@
         <source xml:lang="en">And</source>
         <target state="translated">И</target>
       </trans-unit>
+      <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
+        <source xml:lang="en">Apply</source>
+        <target state="new">Apply</target>
+      </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">Вы действительно хотите разорвать подключение?</target>
@@ -178,6 +182,10 @@
       <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
         <source xml:lang="en">Between</source>
         <target state="translated">Между</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
+        <source xml:lang="en">Blanks</source>
+        <target state="new">Blanks</target>
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
@@ -999,6 +1007,10 @@
         <source xml:lang="en">Move Up</source>
         <target state="translated">Переместить вверх</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
+        <source xml:lang="en">NULL</source>
+        <target state="new">NULL</target>
+      </trans-unit>
       <trans-unit id="++CODE++dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50">
         <source xml:lang="en">Name</source>
         <target state="translated">Имя</target>
@@ -1409,6 +1421,10 @@
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">Сценарий скопирован в буфер обмена.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
+        <source xml:lang="en">Search...</source>
+        <target state="new">Search...</target>
       </trans-unit>
       <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
         <source xml:lang="en">Select All</source>
