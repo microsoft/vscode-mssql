@@ -134,6 +134,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     e.stopPropagation();
                     e.preventDefault();
                     await this.showFilter(elDivElement);
+                    this.grid.onHeaderClick.notify();
                 },
             );
         }
@@ -259,6 +260,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 this.activePopup!.fadeOut();
                 this.activePopup = null;
             }
+        });
+
+        jQuery(document).on("contextmenu", () => {
+            this.activePopup!.fadeOut();
+            this.activePopup = null;
         });
 
         // Close the pop-up when the close-popup button is clicked
