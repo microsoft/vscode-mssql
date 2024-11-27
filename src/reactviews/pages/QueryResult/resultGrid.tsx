@@ -68,6 +68,8 @@ export interface ResultGridProps {
 export interface ResultGridHandle {
     refreshGrid: () => void;
     resizeGrid: (width: number, height: number) => void;
+    hideGrid: () => void;
+    showGrid: () => void;
 }
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
@@ -99,6 +101,31 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };
+
+        const hideGrid = () => {
+            let gridParent;
+            if (props.resultSetSummary) {
+                gridParent = document.getElementById(
+                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+                );
+            }
+            if (gridParent) {
+                gridParent.setAttribute("style", `display: none`);
+            }
+        };
+
+        const showGrid = () => {
+            let gridParent;
+            if (props.resultSetSummary) {
+                gridParent = document.getElementById(
+                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+                );
+            }
+            if (gridParent) {
+                gridParent.removeAttribute("style");
+            }
+        };
+
         useEffect(() => {
             const filter = async () => {
                 await table.setupState();
@@ -263,6 +290,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         useImperativeHandle(ref, () => ({
             refreshGrid,
             resizeGrid,
+            hideGrid,
+            showGrid,
         }));
 
         return <div id="gridContainter" ref={gridContainerRef}></div>;

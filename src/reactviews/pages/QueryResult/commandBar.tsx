@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles } from "@fluentui/react-components";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import {
+    exitFullScreenIcon,
+    extendFullScreenIcon,
     saveAsCsvIcon,
     saveAsExcelIcon,
     saveAsJsonIcon,
@@ -31,9 +33,13 @@ const useStyles = makeStyles({
 export interface CommandBarProps {
     uri?: string;
     resultSetSummary?: qr.ResultSetSummary;
+    maximizeResults?: () => void;
+    restoreResults?: () => void;
 }
 
 const CommandBar = (props: CommandBarProps) => {
+    const [maxView, setMaxView] = useState(false);
+
     const context = useContext(QueryResultContext);
     if (context === undefined) {
         return undefined;
@@ -56,8 +62,39 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
+    const hasMultipleResults =
+        context.state.resultSetSummaries &&
+        Object.keys(context.state.resultSetSummaries).length > 1;
+
     return (
         <div className={classes.commandBar}>
+            {hasMultipleResults && (
+                <Button
+                    appearance="subtle"
+                    onClick={() => {
+                        maxView
+                            ? props.restoreResults?.()
+                            : props.maximizeResults?.();
+                        setMaxView((prev) => !prev); // Toggle maxView state
+                    }}
+                    icon={
+                        <img
+                            className={classes.buttonImg}
+                            src={
+                                maxView
+                                    ? exitFullScreenIcon(context.theme)
+                                    : extendFullScreenIcon(context.theme)
+                            }
+                        />
+                    }
+                    title={
+                        maxView
+                            ? locConstants.queryResult.restore
+                            : locConstants.queryResult.maximize
+                    }
+                ></Button>
+            )}
+
             <Button
                 appearance="subtle"
                 onClick={(_event) => {

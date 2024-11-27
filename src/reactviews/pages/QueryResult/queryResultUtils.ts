@@ -24,6 +24,18 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
         : require("../../media/saveExcel_inverse.svg");
 };
 
+export const extendFullScreenIcon = (theme: ColorThemeKind) => {
+    return theme === ColorThemeKind.Light
+        ? require("../../media/extendFullScreen.svg")
+        : require("../../media/extendFullScreen_inverse.svg");
+};
+
+export const exitFullScreenIcon = (theme: ColorThemeKind) => {
+    return theme === ColorThemeKind.Light
+        ? require("../../media/exitFullScreen.svg")
+        : require("../../media/exitFullScreen_inverse.svg");
+};
+
 export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
     return (
         Object.keys(state.resultSetSummaries).length > 0 ||
