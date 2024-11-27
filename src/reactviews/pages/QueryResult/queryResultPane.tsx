@@ -348,7 +348,7 @@ export const QueryResultPane = () => {
                 ribbonRef.current!,
             ) - TABLE_ALIGN_PX;
         const width =
-            resultPaneParentRef.current.clientWidth - ACTIONBAR_WIDTH_PX;
+            resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
         gridRef.resizeGrid(width, height);
     };
 
@@ -364,7 +364,7 @@ export const QueryResultPane = () => {
             );
             // - TABLE_ALIGN_PX;
             const width =
-                resultPaneParentRef.current.clientWidth - ACTIONBAR_WIDTH_PX;
+                resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
             gridRef.resizeGrid(width, height);
         });
     };
