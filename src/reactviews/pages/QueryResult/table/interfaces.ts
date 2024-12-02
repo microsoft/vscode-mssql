@@ -41,10 +41,28 @@ export interface ITableConfiguration<T extends Slick.SlickData> {
     sorter?: ITableSorter<T>;
 }
 
+export enum SortProperties {
+    ASC = "ASC",
+    DESC = "DESC",
+    NONE = "NONE", // no sort
+}
+
+export interface ColumnFilterState {
+    filterValues: string[];
+    sorted?: SortProperties;
+    seachText?: string;
+    columnDef: string;
+}
+
+export interface GridSortState {
+    field: string;
+    sortAsc: boolean;
+}
 export interface FilterableColumn<T extends Slick.SlickData>
     extends Slick.Column<T> {
     filterable?: boolean;
     filterValues?: Array<string>;
+    sorted?: SortProperties;
 }
 
 export interface ITableKeyboardEvent {

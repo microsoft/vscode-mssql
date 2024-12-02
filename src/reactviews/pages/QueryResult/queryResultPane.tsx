@@ -112,6 +112,9 @@ function getAvailableHeight(
 export const QueryResultPane = () => {
     const classes = useStyles();
     const state = useContext(QueryResultContext);
+    if (!state) {
+        return;
+    }
     const webViewState = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
@@ -295,6 +298,7 @@ export const QueryResultPane = () => {
                     gridParentRef={gridParentRef}
                     uri={metadata?.uri}
                     webViewState={webViewState}
+                    state={state}
                     linkHandler={linkHandler}
                 />
                 <CommandBar

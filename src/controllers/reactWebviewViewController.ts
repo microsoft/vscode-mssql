@@ -55,6 +55,7 @@ export class ReactWebviewViewController<State, Reducers>
         context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken,
     ) {
+        this._loadStartTime = Date.now();
         this._webviewView = webviewView;
 
         webviewView.webview.options = {
