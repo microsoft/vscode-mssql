@@ -25,7 +25,10 @@ export const webviewTheme: fluentui.Theme = {
         "var(--vscode-list-activeSelectionBackground)",
     colorBrandStroke1: "var(--vscode-button-foreground)",
     colorBrandStroke2Contrast: "var(--vscode-button-background)",
-    colorCompoundBrandStroke: "var(--vscode-button-background)",
+    /**
+     * Specifies the focus border color for components that are in focus.
+     */
+    colorCompoundBrandStroke: "var(--vscode-focusBorder)",
     colorCompoundBrandStrokeHover: "var(--vscode-button-hoverBackground)",
     colorCompoundBrandBackground: "var(--vscode-button-background)",
     colorNeutralForegroundInverted: "var(--vscode-button-foreground)",
@@ -81,4 +84,8 @@ export const webviewTheme: fluentui.Theme = {
     fontFamilyNumeric: "var(--vscode-font-family)",
     fontFamilyMonospace: "var(--vscode-editor-font-family)",
     lineHeightBase300: "1.4em",
+    /**
+     * Specifies the background color for a selected div.
+     */
+    colorNeutralForeground2BrandSelected: "var(--vscode-button-background)",
 };
