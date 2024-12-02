@@ -7,7 +7,7 @@ import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./executionPlan.css";
 
-import * as azdataGraph from "azdataGraph/dist/build";
+import * as azdataGraph from "azdataGraph";
 import * as utils from "./queryPlanSetup";
 
 import {
