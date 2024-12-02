@@ -59,6 +59,9 @@ export enum TelemetryActions {
     LoadRecentConnections = "LoadRecentConnections",
     LoadAzureSubscriptions = "LoadAzureSubscriptions",
     OpenExecutionPlan = "OpenExecutionPlan",
+    LoadAzureAccountsForEntraAuth = "LoadAzureAccountsForEntraAuth",
+    LoadAzureTenantsForEntraAuth = "LoadAzureTenantsForEntraAuth",
+    LoadConnections = "LoadConnections",
 }
 
 /**

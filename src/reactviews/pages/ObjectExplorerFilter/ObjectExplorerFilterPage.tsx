@@ -651,7 +651,7 @@ export const ObjectExplorerFilterPage = () => {
                         provider.cancel();
                     }}
                 >
-                    {locConstants.objectExplorerFiltering.close}
+                    {locConstants.common.close}
                 </Button>
                 <Button
                     appearance="primary"

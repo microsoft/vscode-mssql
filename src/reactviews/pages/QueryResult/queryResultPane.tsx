@@ -112,6 +112,9 @@ function getAvailableHeight(
 export const QueryResultPane = () => {
     const classes = useStyles();
     const state = useContext(QueryResultContext);
+    if (!state) {
+        return;
+    }
     const webViewState = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
@@ -209,6 +212,12 @@ export const QueryResultPane = () => {
         return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
     };
 
+    const linkHandler = (fileContent: string, fileType: string) => {
+        if (state) {
+            state.provider.openFileThroughLink(fileContent, fileType);
+        }
+    };
+
     //#region Result Grid
     const gridRefs = useRef<ResultGridHandle[]>([]);
     const renderGrid = (
@@ -289,6 +298,8 @@ export const QueryResultPane = () => {
                     gridParentRef={gridParentRef}
                     uri={metadata?.uri}
                     webViewState={webViewState}
+                    state={state}
+                    linkHandler={linkHandler}
                 />
                 <CommandBar
                     uri={metadata?.uri}
@@ -304,14 +315,12 @@ export const QueryResultPane = () => {
         const grids = [];
         gridRefs.current.forEach((r) => r?.refreshGrid());
         let count = 0;
-        for (
-            let i = 0;
-            i < Object.keys(metadata?.resultSetSummaries ?? []).length;
-            i++
-        ) {
-            var batch = metadata?.resultSetSummaries[i];
-            for (let j = 0; j < Object.keys(batch ?? []).length; j++) {
-                grids.push(renderGrid(i, j, count));
+        for (const batchIdStr in metadata?.resultSetSummaries ?? {}) {
+            const batchId = parseInt(batchIdStr);
+            for (const resultIdStr in metadata?.resultSetSummaries[batchId] ??
+                {}) {
+                const resultId = parseInt(resultIdStr);
+                grids.push(renderGrid(batchId, resultId, count));
                 count++;
             }
         }
@@ -419,6 +428,7 @@ export const QueryResultPane = () => {
         if (
             state &&
             metadata &&
+            metadata.isExecutionPlan &&
             metadata.uri &&
             metadata.executionPlanState &&
             !metadata.executionPlanState.executionPlanGraphs!.length
@@ -535,7 +545,7 @@ export const QueryResultPane = () => {
                 )}
                 {metadata.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.ExecutionPlan &&
-                    Object.keys(metadata.resultSetSummaries).length > 0 && (
+                    metadata.isExecutionPlan && (
                         <div
                             id={"executionPlanResultsTab"}
                             className={classes.queryResultContainer}

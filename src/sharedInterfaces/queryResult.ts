@@ -9,6 +9,7 @@ import {
     ExecutionPlanState,
     ExecutionPlanWebviewState,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import { ColumnFilterState } from "../reactviews/pages/QueryResult/table/interfaces";
 import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
 
 export enum QueryResultLoadState {
@@ -26,16 +27,23 @@ export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     /**
+     * Sets the filter state for the current result set
+     * @param filterState
+     * @returns
+     */
+    setFilterState: (filterState: ColumnFilterState) => void;
+    /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
      */
     getExecutionPlan(uri: string): void;
 
     /**
-     * Gets the execution plan graph from the provider for a given plan file
-     * @param plan the xml plan contents to be added
+     * Opens a file of type with with specified content
+     * @param content the content of the file
+     * @param type the type of file to open
      */
-    addXmlPlan(plan: string): void;
+    openFileThroughLink(content: string, type: string): void;
 }
 
 export enum QueryResultPaneTabs {
@@ -63,12 +71,16 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     actualPlanEnabled?: boolean;
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
+    filterState: Record<string, ColumnFilterState>;
 }
 
 export interface QueryResultReducers
     extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
+    };
+    setFilterState: {
+        filterState: ColumnFilterState;
     };
     /**
      * Gets the execution plan graph from the provider for given uri
@@ -78,12 +90,13 @@ export interface QueryResultReducers
         uri: string;
     };
     /**
-     * Adds an xml plan to the current execution plan state.
-     * This is useful for multi-result sets
-     * @param xmlPlans  the xml plan to add
+     * Opens a file of type with with specified content
+     * @param content the content of the file
+     * @param type the type of file to open
      */
-    addXmlPlan: {
-        xmlPlan: string;
+    openFileThroughLink: {
+        content: string;
+        type: string;
     };
 }
 

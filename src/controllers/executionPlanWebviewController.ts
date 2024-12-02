@@ -71,7 +71,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             state = await createExecutionPlanGraphs(
                 state,
                 this.executionPlanService,
-                payload.xmlPlans ?? [this.executionPlanContents],
+                [this.executionPlanContents],
             );
             return {
                 ...state,

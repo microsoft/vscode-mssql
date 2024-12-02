@@ -100,7 +100,7 @@ export const DesignerChangesPreviewButton = () => {
                     appearance="secondary"
                     onClick={() => setIsConfirmationChecked(false)}
                 >
-                    {locConstants.tableDesigner.close}
+                    {locConstants.common.close}
                 </Button>
             </DialogTrigger>
         );

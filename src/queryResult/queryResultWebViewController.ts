@@ -22,6 +22,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
+    recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
 
@@ -52,6 +53,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
             executionPlanState: {},
+            filterState: {},
         });
 
         void this.initialize();
@@ -70,6 +72,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         tabStates: undefined,
                         isExecutionPlan: false,
                         executionPlanState: {},
+                        filterState: {},
                     };
                 }
             });
@@ -115,6 +118,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private registerRpcHandlers() {
         this.registerRequestHandler("openInNewTab", async (message) => {
+            void this.createPanelController(message.uri);
+
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
                 const response =
                     await this._vscodeWrapper.showInformationMessage(
@@ -160,7 +165,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         vscode.ConfigurationTarget.Global,
                     );
             }
-            await this.createPanelController(message.uri);
         });
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
@@ -216,9 +220,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    xmlPlans: [],
+                    xmlPlans: {},
                 },
             }),
+            filterState: {},
         };
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -317,7 +322,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         resultSetSummaries: qr.QueryResultWebviewState["resultSetSummaries"],
         actualPlanEnabled: boolean,
     ): number {
-        const summariesLength = Object.keys(resultSetSummaries).length;
+        const summariesLength = recordLength(resultSetSummaries);
         if (!actualPlanEnabled) {
             return summariesLength;
         }

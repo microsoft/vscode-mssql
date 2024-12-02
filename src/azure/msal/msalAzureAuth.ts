@@ -437,7 +437,7 @@ export abstract class MsalAzureAuth {
         };
 
         const closeItem: IConsentMessageItem = {
-            title: LocalizedConstants.azureConsentDialogCancel,
+            title: LocalizedConstants.Common.cancel,
             isCloseAffordance: true,
             booleanResult: false,
         };

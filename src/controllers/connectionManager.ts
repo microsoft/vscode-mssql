@@ -734,7 +734,7 @@ export default class ConnectionManager {
             [
                 LocalizedConstants.enableTrustServerCertificate,
                 LocalizedConstants.readMore,
-                LocalizedConstants.cancel,
+                LocalizedConstants.Common.cancel,
             ],
         );
         if (selection === LocalizedConstants.enableTrustServerCertificate) {

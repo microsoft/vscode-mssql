@@ -9,7 +9,12 @@
 
 import "../../../media/table.css";
 import { TableDataView } from "./tableDataView";
-import { ITableSorter, ITableConfiguration, ITableStyles } from "./interfaces";
+import {
+    ITableSorter,
+    ITableConfiguration,
+    ITableStyles,
+    FilterableColumn,
+} from "./interfaces";
 import * as DOM from "./dom";
 
 import { IDisposableDataProvider } from "./dataProvider";
@@ -23,6 +28,7 @@ import {
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
+import { QueryResultState } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
@@ -37,8 +43,11 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 export const ACTIONBAR_WIDTH_PX = 36;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
+export const xmlLanguageId = "xml";
+export const jsonLanguageId = "json";
 
 export class Table<T extends Slick.SlickData> implements IThemable {
+    public queryResultState: QueryResultState;
     protected styleElement: HTMLStyleElement;
     protected idPrefix: string;
 
@@ -58,6 +67,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         QueryResultWebviewState,
         QueryResultReducers
     >;
+    private linkHandler: (fileContent: string, fileType: string) => void;
 
     constructor(
         parent: HTMLElement,
@@ -68,6 +78,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             QueryResultWebviewState,
             QueryResultReducers
         >,
+        state: QueryResultState,
+        linkHandler: (value: string, type: string) => void,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
@@ -75,6 +87,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
         this.webViewState = webViewState;
+        this.queryResultState = state!;
+        this.linkHandler = linkHandler;
         this.selectionModel = new CellSelectionModel<T>(
             {
                 hasRowSelector: true,
@@ -140,7 +154,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             [],
             newOptions,
         );
-        this.registerPlugin(new HeaderFilter());
+        this.registerPlugin(
+            new HeaderFilter(webViewState.themeKind, this.queryResultState),
+        );
         this.registerPlugin(
             new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
         );
@@ -177,6 +193,21 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         // this.registerPlugin(new MouseWheelSupport());
     }
 
+    public async setupState(): Promise<boolean> {
+        this.columns.forEach((column) => {
+            if (column.field) {
+                const filters =
+                    this.queryResultState.state.filterState[column.field];
+                if (filters) {
+                    (<FilterableColumn<T>>column).filterValues =
+                        filters.filterValues;
+                }
+            }
+        });
+        await this._data.filter(this.columns);
+        return true;
+    }
+
     public rerenderGrid() {
         this._grid.updateRowCount();
         this._grid.setColumns(this._grid.getColumns());
@@ -194,8 +225,25 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                     : (originalEvent!.srcElement as HTMLElement);
             console.log("anchor: ", anchor);
             console.log("cell: ", cell);
+            this.handleLinkClick(cell);
             // emitter.fire({ anchor, cell });
         });
+    }
+
+    private handleLinkClick(cell: Slick.Cell): void {
+        const columnInfo = this.resultSetSummary.columnInfo[cell.cell - 1];
+        if (columnInfo.isXml || columnInfo.isJson) {
+            this.linkHandler(
+                this.getCellValue(cell.row, cell.cell),
+                columnInfo.isXml ? xmlLanguageId : jsonLanguageId,
+            );
+        }
+    }
+
+    public getCellValue(row: number, column: number): string {
+        const rowRef = this._grid.getDataItem(row);
+        const col = this._grid.getColumns()[column].field!;
+        return rowRef[col].displayValue;
     }
 
     public dispose() {
