@@ -119,12 +119,12 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    webViewState;
     var metadata = state?.state;
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
+
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
@@ -148,7 +148,12 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
-            setMessageGridHeight(availableHeight);
+            if (
+                metadata.tabStates?.resultPaneTab ===
+                qr.QueryResultPaneTabs.Messages
+            ) {
+                setMessageGridHeight(availableHeight);
+            }
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,

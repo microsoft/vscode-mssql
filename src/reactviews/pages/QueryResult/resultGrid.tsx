@@ -130,8 +130,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
 
         useEffect(() => {
             const filter = async () => {
-                await table.setupState();
-                table.rerenderGrid();
+                let hasNewFilters = await table.setupFilterState();
+                if (hasNewFilters) {
+                    table.rerenderGrid();
+                }
             };
 
             const ROW_HEIGHT = 25;
