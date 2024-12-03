@@ -148,8 +148,12 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
-            messageGridHeight = availableHeight; // Update the global variable
-
+            if (
+                metadata.tabStates?.resultPaneTab ===
+                qr.QueryResultPaneTabs.Messages
+            ) {
+                messageGridHeight = availableHeight;
+            }
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,
