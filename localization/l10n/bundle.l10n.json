@@ -765,6 +765,19 @@
       "{0} is the connection name"
     ]
   },
+  "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
+    "message": "Error loading Azure account information for tenant ID '{0}'",
+    "comment": [
+      "{0} is the tenant ID"
+    ]
+  },
+  "Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}/{0} is the rule info in format 'name (startIp - endIp)'{1} is the error message": {
+    "message": "Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}",
+    "comment": [
+      "{0} is the rule info in format 'name (startIp - endIp)'",
+      "{1} is the error message"
+    ]
+  },
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",

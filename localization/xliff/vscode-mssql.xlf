@@ -474,6 +474,15 @@
     <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
       <source xml:lang="en">Error connecting to: </source>
     </trans-unit>
+    <trans-unit id="++CODE++268604d30ba8caf436360709d0933805fb33fe3c3bb87a0782ce8c393ecf7da4">
+      <source xml:lang="en">Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}</source>
+      <note>{0} is the rule info in format &apos;name (startIp - endIp)&apos;
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
+      <source xml:lang="en">Error loading Azure account information for tenant ID &apos;{0}&apos;</source>
+      <note>{0} is the tenant ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
       <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
       <note>{0} is the subscription name
