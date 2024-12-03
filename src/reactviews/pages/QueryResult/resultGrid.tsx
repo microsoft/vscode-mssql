@@ -33,6 +33,7 @@ import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import { QueryResultState } from "./queryResultStateProvider";
+import _ from "underscore";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -88,40 +89,43 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
-            let gridParent;
-            if (props.resultSetSummary) {
-                gridParent = document.getElementById(
-                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
-                );
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
             }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
             if (gridParent) {
-                gridParent.setAttribute("style", `height: ${height}px`);
+                gridParent.style.height = `${height}px`;
             }
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };
 
         const hideGrid = () => {
-            let gridParent;
-            if (props.resultSetSummary) {
-                gridParent = document.getElementById(
-                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
-                );
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
             }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
             if (gridParent) {
-                gridParent.setAttribute("style", `display: none`);
+                gridParent.style.display = "none";
             }
         };
 
         const showGrid = () => {
-            let gridParent;
-            if (props.resultSetSummary) {
-                gridParent = document.getElementById(
-                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
-                );
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
             }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
             if (gridParent) {
-                gridParent.removeAttribute("style");
+                gridParent.style.display = "";
             }
         };
 
