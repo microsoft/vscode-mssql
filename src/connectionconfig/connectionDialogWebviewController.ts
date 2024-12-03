@@ -24,6 +24,7 @@ import {
 } from "../sharedInterfaces/connectionDialog";
 import {
     CapabilitiesResult,
+    ConnectionCompleteParams,
     GetCapabilitiesRequest,
 } from "../models/contracts/connection";
 import {
@@ -994,7 +995,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         this.registerReducer("connect", async (state) => {
             this.clearFormError();
             this.state.connectionStatus = ApiStatus.Loading;
-            this.state.formError = "";
             this.updateState();
 
             const cleanedConnection: IConnectionDialogProfile = structuredClone(
@@ -1023,78 +1023,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         );
 
                     if (result.errorMessage) {
-                        if (
-                            result.errorNumber ===
-                            connectionCertValidationFailedErrorCode
-                        ) {
-                            this.state.connectionStatus = ApiStatus.Error;
-                            this.state.dialog = {
-                                type: "trustServerCert",
-                                message: result.errorMessage,
-                            } as TrustServerCertDialogProps;
-
-                            // connection failing because the user didn't trust the server cert is not an error worth logging;
-                            // just prompt the user to trust the cert
-
-                            return state;
-                        } else if (
-                            result.errorNumber === connectionFirewallErrorCode
-                        ) {
-                            this.state.connectionStatus = ApiStatus.Error;
-
-                            const handleFirewallErrorResult =
-                                await this._mainController.connectionManager.firewallService.handleFirewallRule(
-                                    result.errorNumber,
-                                    result.errorMessage,
-                                );
-
-                            if (!handleFirewallErrorResult.result) {
-                                // TODO: send telemetry about parsing failure
-                                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
-                            }
-
-                            const auth = await confirmVscodeAzureSignin();
-                            const tenants = await auth.getTenants();
-
-                            this.state.dialog = {
-                                type: "addFirewallRule",
-                                message: result.errorMessage,
-                                clientIp: handleFirewallErrorResult.result
-                                    ? handleFirewallErrorResult.ipAddress
-                                    : "0.0.0.0",
-                                tenants: tenants.map((t) => {
-                                    return {
-                                        name: t.displayName,
-                                        id: t.tenantId,
-                                    };
-                                }),
-                            } as AddFirewallRuleDialogProps;
-
-                            return state;
-                        }
-
-                        this.state.formError = result.errorMessage;
-                        this.state.connectionStatus = ApiStatus.Error;
-
-                        sendActionEvent(
-                            TelemetryViews.ConnectionDialog,
-                            TelemetryActions.CreateConnection,
-                            {
-                                result: "connectionError",
-                                errorNumber: String(result.errorNumber),
-                                newOrEditedConnection: this
-                                    ._connectionToEditCopy
-                                    ? "edited"
-                                    : "new",
-                                connectionInputType:
-                                    this.state.selectedInputMode,
-                                authMode:
-                                    this.state.connectionProfile
-                                        .authenticationType,
-                            },
+                        return await this.handleConnectionErrorCodes(
+                            result,
+                            state,
                         );
-
-                        return state;
                     }
                 } catch (error) {
                     this.state.formError = getErrorMessage(error);
@@ -1207,45 +1139,25 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             console.debug(
                 `Setting firewall rule: ${payload.name} (${startIp} - ${endIp})`,
             );
+            let account, tokenMappings;
 
-            const auth = await confirmVscodeAzureSignin();
-            const subs = await auth.getSubscriptions();
-            const sub = subs.filter((s) => s.tenantId === payload.tenantId)[0];
-            const token = await sub.credential.getToken(".default");
+            try {
+                ({ account, tokenMappings } =
+                    await this.constructAzureAccountForTenant(
+                        payload.tenantId,
+                    ));
+            } catch (err) {
+                vscode.window.showErrorMessage(
+                    Loc.errorCreatingFirewallRule(
+                        `${payload.name} (${startIp} - ${endIp})`,
+                        getErrorMessage(err),
+                    ),
+                );
 
-            const session = await sub.authentication.getSession();
+                state.dialog = undefined;
 
-            const account: IAccount = {
-                displayInfo: {
-                    displayName: session.account.label,
-                    userId: session.account.label,
-                    name: session.account.label,
-                    accountType: (session.account as any).type as any,
-                },
-                key: {
-                    providerId: "microsoft",
-                    id: session.account.label,
-                },
-                isStale: false,
-                properties: {
-                    azureAuthType: 0 as any,
-                    providerSettings: undefined,
-                    isMsAccount: false,
-                    owningTenant: undefined,
-                    tenants: [
-                        {
-                            displayName: sub.tenantId,
-                            id: sub.tenantId,
-                            userId: token.token,
-                        },
-                    ],
-                },
-            };
-
-            const tokenMappings = {};
-            tokenMappings[sub.tenantId] = {
-                Token: token.token,
-            };
+                return state;
+            }
 
             const result =
                 await this._mainController.connectionManager.firewallService.createFirewallRule(
@@ -1259,7 +1171,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     },
                 );
 
-            console.log("Firewall rule result: " + result);
+            if (!result.result) {
+                vscode.window.showErrorMessage(
+                    Loc.errorCreatingFirewallRule(
+                        `${payload.name} (${startIp} - ${endIp})`,
+                        result.errorMessage,
+                    ),
+                );
+            }
+
+            state.dialog = undefined;
 
             return state;
         });
@@ -1329,7 +1250,145 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Helpers
 
+    //#region Connection helpers
+
+    private async handleConnectionErrorCodes(
+        result: ConnectionCompleteParams,
+        state: ConnectionDialogWebviewState,
+    ): Promise<ConnectionDialogWebviewState> {
+        if (result.errorNumber === connectionCertValidationFailedErrorCode) {
+            this.state.connectionStatus = ApiStatus.Error;
+            this.state.dialog = {
+                type: "trustServerCert",
+                message: result.errorMessage,
+            } as TrustServerCertDialogProps;
+
+            // connection failing because the user didn't trust the server cert is not an error worth logging;
+            // just prompt the user to trust the cert
+
+            return state;
+        } else if (result.errorNumber === connectionFirewallErrorCode) {
+            this.state.connectionStatus = ApiStatus.Error;
+
+            const handleFirewallErrorResult =
+                await this._mainController.connectionManager.firewallService.handleFirewallRule(
+                    result.errorNumber,
+                    result.errorMessage,
+                );
+
+            if (!handleFirewallErrorResult.result) {
+                // TODO: send telemetry about parsing failure
+                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+            }
+
+            const auth = await confirmVscodeAzureSignin();
+            const tenants = await auth.getTenants();
+
+            this.state.dialog = {
+                type: "addFirewallRule",
+                message: result.errorMessage,
+                clientIp: handleFirewallErrorResult.result
+                    ? handleFirewallErrorResult.ipAddress
+                    : "0.0.0.0",
+                tenants: tenants
+                    .map((t) => {
+                        return {
+                            name: t.displayName,
+                            id: t.tenantId,
+                        };
+                    })
+                    .concat([
+                        {
+                            name: "Fake Tenant",
+                            id: "00000000-0000-0000-0000-000000000000",
+                        },
+                        {
+                            name: "Other Fake Tenant",
+                            id: "11111111-1111-1111-1111-111111111111",
+                        },
+                    ]),
+            } as AddFirewallRuleDialogProps;
+
+            return state;
+        }
+
+        this.state.formError = result.errorMessage;
+        this.state.connectionStatus = ApiStatus.Error;
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.CreateConnection,
+            {
+                result: "connectionError",
+                errorNumber: String(result.errorNumber),
+                newOrEditedConnection: this._connectionToEditCopy
+                    ? "edited"
+                    : "new",
+                connectionInputType: this.state.selectedInputMode,
+                authMode: this.state.connectionProfile.authenticationType,
+            },
+        );
+
+        return state;
+    }
+
+    //#endregion
+
     //#region Azure helpers
+
+    private async constructAzureAccountForTenant(
+        tenantId: string,
+    ): Promise<{ account: IAccount; tokenMappings: {} }> {
+        const auth = await confirmVscodeAzureSignin();
+        const subs = await auth.getSubscriptions(false /* filter */);
+        const sub = subs.filter((s) => s.tenantId === tenantId)[0];
+
+        if (!sub) {
+            throw new Error(
+                Loc.errorLoadingAzureAccountInfoForTenantId(tenantId),
+            );
+        }
+
+        const token = await sub.credential.getToken(".default");
+
+        const session = await sub.authentication.getSession();
+
+        const account: IAccount = {
+            displayInfo: {
+                displayName: session.account.label,
+                userId: session.account.label,
+                name: session.account.label,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                accountType: (session.account as any).type as any,
+            },
+            key: {
+                providerId: "microsoft",
+                id: session.account.label,
+            },
+            isStale: false,
+            properties: {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                azureAuthType: 0 as any,
+                providerSettings: undefined,
+                isMsAccount: false,
+                owningTenant: undefined,
+                tenants: [
+                    {
+                        displayName: sub.tenantId,
+                        id: sub.tenantId,
+                        userId: token.token,
+                    },
+                ],
+            },
+        };
+
+        const tokenMappings = {};
+        tokenMappings[sub.tenantId] = {
+            Token: token.token,
+        };
+
+        return { account, tokenMappings };
+    }
 
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
@@ -1502,6 +1561,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#endregion
 
+    //#region Miscellanous helpers
+
     private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
         return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
@@ -1647,6 +1708,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         state.recentConnections = loadedConnections.recentConnections;
         state.savedConnections = loadedConnections.savedConnections;
     }
+
+    //#endregion
 
     //#endregion
 }
