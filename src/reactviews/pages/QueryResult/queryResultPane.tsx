@@ -306,9 +306,65 @@ export const QueryResultPane = () => {
                     resultSetSummary={
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
+                    maximizeResults={() => {
+                        maximizeResults(gridRefs.current[gridCount]);
+                        hideOtherGrids(gridRefs, gridCount);
+                    }}
+                    restoreResults={() => {
+                        showOtherGrids(gridRefs, gridCount);
+                        restoreResults(gridRefs.current);
+                    }}
                 />
             </div>
         );
+    };
+
+    const hideOtherGrids = (
+        gridRefs: React.MutableRefObject<ResultGridHandle[]>,
+        gridCount: number,
+    ) => {
+        gridRefs.current.forEach((grid) => {
+            if (grid !== gridRefs.current[gridCount]) {
+                grid.hideGrid();
+            }
+        });
+    };
+
+    const showOtherGrids = (
+        gridRefs: React.MutableRefObject<ResultGridHandle[]>,
+        gridCount: number,
+    ) => {
+        gridRefs.current.forEach((grid) => {
+            if (grid !== gridRefs.current[gridCount]) {
+                grid.showGrid();
+            }
+        });
+    };
+
+    const maximizeResults = (gridRef: ResultGridHandle) => {
+        const height =
+            getAvailableHeight(
+                resultPaneParentRef.current!,
+                ribbonRef.current!,
+            ) - TABLE_ALIGN_PX;
+        const width =
+            resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+        gridRef.resizeGrid(width, height);
+    };
+
+    const restoreResults = (gridRefs: ResultGridHandle[]) => {
+        gridRefs.forEach((gridRef) => {
+            const height = calculateGridHeight(
+                gridRefs.length,
+                getAvailableHeight(
+                    resultPaneParentRef.current!,
+                    ribbonRef.current!,
+                ),
+            );
+            const width =
+                resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+            gridRef.resizeGrid(width, height);
+        });
     };
 
     const renderGridPanel = () => {

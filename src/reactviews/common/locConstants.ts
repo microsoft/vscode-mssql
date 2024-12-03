@@ -313,6 +313,8 @@ export class LocConstants {
             clear: l10n.t("Clear"),
             search: l10n.t("Search..."),
             close: l10n.t("Close"),
+            maximize: l10n.t("Maximize"),
+            restore: l10n.t("Restore"),
         };
     }
 }

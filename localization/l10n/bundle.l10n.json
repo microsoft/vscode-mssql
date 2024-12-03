@@ -294,6 +294,8 @@
   "Blanks": "Blanks",
   "Apply": "Apply",
   "Search...": "Search...",
+  "Maximize": "Maximize",
+  "Restore": "Restore",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -642,8 +644,6 @@
     ]
   },
   "A SQL editor must have focus before executing this command": "A SQL editor must have focus before executing this command",
-  "Maximize": "Maximize",
-  "Restore": "Restore",
   "CSV": "CSV",
   "JSON": "JSON",
   "Excel": "Excel",
