@@ -624,7 +624,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ) {
                 return {
                     isValid: false,
-                    validationMessage: Loc.usernameIsRequired,
+                    validationMessage: Loc.serverIsRequired,
                 };
             }
             return {
@@ -993,132 +993,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("connect", async (state) => {
-            this.clearFormError();
-            this.state.connectionStatus = ApiStatus.Loading;
-            this.updateState();
-
-            const cleanedConnection: IConnectionDialogProfile = structuredClone(
-                this.state.connectionProfile,
-            );
-            this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
-
-            // Perform final validation of all inputs
-            const erroredInputs =
-                await this.validateConnectionProfile(cleanedConnection);
-            if (erroredInputs.length > 0) {
-                this.state.connectionStatus = ApiStatus.Error;
-                console.warn(
-                    "One more more inputs have errors: " +
-                        erroredInputs.join(", "),
-                );
-                return state;
-            }
-
-            try {
-                try {
-                    const result =
-                        await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            cleanedConnection as any,
-                        );
-
-                    if (result.errorMessage) {
-                        return await this.handleConnectionErrorCodes(
-                            result,
-                            state,
-                        );
-                    }
-                } catch (error) {
-                    this.state.formError = getErrorMessage(error);
-                    this.state.connectionStatus = ApiStatus.Error;
-
-                    sendErrorEvent(
-                        TelemetryViews.ConnectionDialog,
-                        TelemetryActions.CreateConnection,
-                        error,
-                        false, // includeErrorMessage
-                        undefined, // errorCode
-                        undefined, // errorType
-                        {
-                            connectionInputType: this.state.selectedInputMode,
-                            authMode:
-                                this.state.connectionProfile.authenticationType,
-                        },
-                    );
-
-                    return state;
-                }
-
-                sendActionEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.CreateConnection,
-                    {
-                        result: "success",
-                        newOrEditedConnection: this._connectionToEditCopy
-                            ? "edited"
-                            : "new",
-                        connectionInputType: this.state.selectedInputMode,
-                        authMode:
-                            this.state.connectionProfile.authenticationType,
-                    },
-                );
-
-                if (this._connectionToEditCopy) {
-                    await this._mainController.connectionManager.getUriForConnection(
-                        this._connectionToEditCopy,
-                    );
-                    await this._objectExplorerProvider.removeConnectionNodes([
-                        this._connectionToEditCopy,
-                    ]);
-
-                    await this._mainController.connectionManager.connectionStore.removeProfile(
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        this._connectionToEditCopy as any,
-                    );
-                    this._objectExplorerProvider.refresh(undefined);
-                }
-
-                await this._mainController.connectionManager.connectionUI.saveProfile(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    this.state.connectionProfile as any,
-                );
-                const node =
-                    await this._mainController.createObjectExplorerSessionFromDialog(
-                        this.state.connectionProfile,
-                    );
-
-                this._objectExplorerProvider.refresh(undefined);
-                await this.updateLoadedConnections(state);
-                this.updateState();
-
-                this.state.connectionStatus = ApiStatus.Loaded;
-                await this._mainController.objectExplorerTree.reveal(node, {
-                    focus: true,
-                    select: true,
-                    expand: true,
-                });
-                await this.panel.dispose();
-                await UserSurvey.getInstance().promptUserForNPSFeedback();
-            } catch (error) {
-                this.state.connectionStatus = ApiStatus.Error;
-
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.CreateConnection,
-                    error,
-                    undefined, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
-                        connectionInputType: this.state.selectedInputMode,
-                        authMode:
-                            this.state.connectionProfile.authenticationType,
-                    },
-                );
-
-                return state;
-            }
-            return state;
+            return this.connectHelper(state);
         });
 
         this.registerReducer("loadAzureServers", async (state, payload) => {
@@ -1137,7 +1012,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     : [payload.ip.startIp, payload.ip.endIp];
 
             console.debug(
-                `Setting firewall rule: ${payload.name} (${startIp} - ${endIp})`,
+                `Setting firewall rule: "${payload.name}" (${startIp} - ${endIp})`,
             );
             let account, tokenMappings;
 
@@ -1147,11 +1022,9 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         payload.tenantId,
                     ));
             } catch (err) {
-                vscode.window.showErrorMessage(
-                    Loc.errorCreatingFirewallRule(
-                        `${payload.name} (${startIp} - ${endIp})`,
-                        getErrorMessage(err),
-                    ),
+                state.formError = Loc.errorCreatingFirewallRule(
+                    `"${payload.name}" (${startIp} - ${endIp})`,
+                    getErrorMessage(err),
                 );
 
                 state.dialog = undefined;
@@ -1172,17 +1045,16 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 );
 
             if (!result.result) {
-                vscode.window.showErrorMessage(
-                    Loc.errorCreatingFirewallRule(
-                        `${payload.name} (${startIp} - ${endIp})`,
-                        result.errorMessage,
-                    ),
+                state.formError = Loc.errorCreatingFirewallRule(
+                    `"${payload.name}" (${startIp} - ${endIp})`,
+                    result.errorMessage,
                 );
             }
 
             state.dialog = undefined;
+            this.updateState(state);
 
-            return state;
+            return await this.connectHelper(state);
         });
 
         this.registerReducer("closeDialog", async (state) => {
@@ -1252,6 +1124,131 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Connection helpers
 
+    private async connectHelper(
+        state: ConnectionDialogWebviewState,
+    ): Promise<ConnectionDialogWebviewState> {
+        this.clearFormError();
+        this.state.connectionStatus = ApiStatus.Loading;
+        this.updateState();
+
+        const cleanedConnection: IConnectionDialogProfile = structuredClone(
+            this.state.connectionProfile,
+        );
+        this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
+
+        // Perform final validation of all inputs
+        const erroredInputs =
+            await this.validateConnectionProfile(cleanedConnection);
+        if (erroredInputs.length > 0) {
+            this.state.connectionStatus = ApiStatus.Error;
+            console.warn(
+                "One more more inputs have errors: " + erroredInputs.join(", "),
+            );
+            return state;
+        }
+
+        try {
+            try {
+                const result =
+                    await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        cleanedConnection as any,
+                    );
+
+                if (result.errorMessage) {
+                    return await this.handleConnectionErrorCodes(result, state);
+                }
+            } catch (error) {
+                this.state.formError = getErrorMessage(error);
+                this.state.connectionStatus = ApiStatus.Error;
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.CreateConnection,
+                    error,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode:
+                            this.state.connectionProfile.authenticationType,
+                    },
+                );
+
+                return state;
+            }
+
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.CreateConnection,
+                {
+                    result: "success",
+                    newOrEditedConnection: this._connectionToEditCopy
+                        ? "edited"
+                        : "new",
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                },
+            );
+
+            if (this._connectionToEditCopy) {
+                await this._mainController.connectionManager.getUriForConnection(
+                    this._connectionToEditCopy,
+                );
+                await this._objectExplorerProvider.removeConnectionNodes([
+                    this._connectionToEditCopy,
+                ]);
+
+                await this._mainController.connectionManager.connectionStore.removeProfile(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    this._connectionToEditCopy as any,
+                );
+                this._objectExplorerProvider.refresh(undefined);
+            }
+
+            await this._mainController.connectionManager.connectionUI.saveProfile(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                this.state.connectionProfile as any,
+            );
+            const node =
+                await this._mainController.createObjectExplorerSessionFromDialog(
+                    this.state.connectionProfile,
+                );
+
+            this._objectExplorerProvider.refresh(undefined);
+            await this.updateLoadedConnections(state);
+            this.updateState();
+
+            this.state.connectionStatus = ApiStatus.Loaded;
+            await this._mainController.objectExplorerTree.reveal(node, {
+                focus: true,
+                select: true,
+                expand: true,
+            });
+            await this.panel.dispose();
+            await UserSurvey.getInstance().promptUserForNPSFeedback();
+        } catch (error) {
+            this.state.connectionStatus = ApiStatus.Error;
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.CreateConnection,
+                error,
+                undefined, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                {
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                },
+            );
+
+            return state;
+        }
+        return state;
+    }
+
     private async handleConnectionErrorCodes(
         result: ConnectionCompleteParams,
         state: ConnectionDialogWebviewState,
@@ -1290,23 +1287,12 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 clientIp: handleFirewallErrorResult.result
                     ? handleFirewallErrorResult.ipAddress
                     : "0.0.0.0",
-                tenants: tenants
-                    .map((t) => {
-                        return {
-                            name: t.displayName,
-                            id: t.tenantId,
-                        };
-                    })
-                    .concat([
-                        {
-                            name: "Fake Tenant",
-                            id: "00000000-0000-0000-0000-000000000000",
-                        },
-                        {
-                            name: "Other Fake Tenant",
-                            id: "11111111-1111-1111-1111-111111111111",
-                        },
-                    ]),
+                tenants: tenants.map((t) => {
+                    return {
+                        name: t.displayName,
+                        id: t.tenantId,
+                    };
+                }),
             } as AddFirewallRuleDialogProps;
 
             return state;

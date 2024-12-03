@@ -25,6 +25,7 @@ import {
     Radio,
     RadioGroup,
     SelectionEvents,
+    Spinner,
 } from "@fluentui/react-components";
 
 import { locConstants as Loc } from "../../../common/locConstants";
@@ -53,6 +54,8 @@ export const AddFirewallRuleDialog = ({
     const context = useContext(ConnectionDialogContext)!;
     const styles = useStyles();
     const formStyles = useFormStyles();
+
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const [selectedTenantId, setSelectedTenantId] = useState<string>(
         dialogProps.tenants[0].id,
@@ -201,6 +204,7 @@ export const AddFirewallRuleDialog = ({
                         <Button
                             appearance="primary"
                             onClick={() => {
+                                setIsProcessing(true);
                                 context.addFirewallRule(
                                     ruleName,
                                     selectedTenantId,
@@ -209,8 +213,14 @@ export const AddFirewallRuleDialog = ({
                                         ? dialogProps.clientIp
                                         : { startIp, endIp },
                                 );
-                                context.connect();
+                                // if adding the firewall rule is successful, it will attempt to reconnect
+                                // otherwise, it will display an error at the top of the connection dialog
                             }}
+                            icon={
+                                isProcessing ? (
+                                    <Spinner size="tiny" />
+                                ) : undefined
+                            }
                         >
                             {Loc.connectionDialog.addFirewallRule}
                         </Button>
