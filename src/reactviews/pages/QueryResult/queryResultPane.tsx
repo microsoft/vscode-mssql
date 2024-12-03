@@ -352,7 +352,6 @@ export const QueryResultPane = () => {
         gridRef.resizeGrid(width, height);
     };
 
-    //TODO: do for all results
     const restoreResults = (gridRefs: ResultGridHandle[]) => {
         gridRefs.forEach((gridRef) => {
             const height = calculateGridHeight(
@@ -362,7 +361,6 @@ export const QueryResultPane = () => {
                     ribbonRef.current!,
                 ),
             );
-            // - TABLE_ALIGN_PX;
             const width =
                 resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
             gridRef.resizeGrid(width, height);

@@ -95,7 +95,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 );
             }
             if (gridParent) {
-                gridParent.setAttribute("style", `width: ${width}px`);
                 gridParent.setAttribute("style", `height: ${height}px`);
             }
             const dimension = new DOM.Dimension(width, height);

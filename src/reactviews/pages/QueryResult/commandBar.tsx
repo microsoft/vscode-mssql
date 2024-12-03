@@ -10,8 +10,8 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import {
-    exitFullScreenIcon,
-    extendFullScreenIcon,
+    arrowMinimizeIcon,
+    arrowMaximizeIcon,
     saveAsCsvIcon,
     saveAsExcelIcon,
     saveAsJsonIcon,
@@ -82,8 +82,8 @@ const CommandBar = (props: CommandBarProps) => {
                             className={classes.buttonImg}
                             src={
                                 maxView
-                                    ? exitFullScreenIcon(context.theme)
-                                    : extendFullScreenIcon(context.theme)
+                                    ? arrowMinimizeIcon(context.theme)
+                                    : arrowMaximizeIcon(context.theme)
                             }
                         />
                     }

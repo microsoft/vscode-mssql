@@ -24,16 +24,16 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
         : require("../../media/saveExcel_inverse.svg");
 };
 
-export const extendFullScreenIcon = (theme: ColorThemeKind) => {
+export const arrowMaximizeIcon = (theme: ColorThemeKind) => {
     return theme === ColorThemeKind.Light
-        ? require("../../media/extendFullScreen.svg")
-        : require("../../media/extendFullScreen_inverse.svg");
+        ? require("../../media/arrowMaximize.svg")
+        : require("../../media/arrowMaximize_inverse.svg");
 };
 
-export const exitFullScreenIcon = (theme: ColorThemeKind) => {
+export const arrowMinimizeIcon = (theme: ColorThemeKind) => {
     return theme === ColorThemeKind.Light
-        ? require("../../media/exitFullScreen.svg")
-        : require("../../media/exitFullScreen_inverse.svg");
+        ? require("../../media/arrowMinimize.svg")
+        : require("../../media/arrowMinimize_inverse.svg");
 };
 
 export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
