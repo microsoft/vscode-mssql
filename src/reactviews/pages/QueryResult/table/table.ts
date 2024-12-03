@@ -201,6 +201,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 if (filters) {
                     (<FilterableColumn<T>>column).filterValues =
                         filters.filterValues;
+                } else {
+                    return false;
                 }
             }
         });

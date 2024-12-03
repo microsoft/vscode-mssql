@@ -101,6 +101,7 @@ const useStyles = makeStyles({
 });
 
 const MIN_GRID_HEIGHT = 273; // Minimum height for a grid
+let messageGridHeight = 0; // Global variable to track message grid height
 
 function getAvailableHeight(
     resultPaneParent: HTMLDivElement,
@@ -119,12 +120,11 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    webViewState;
     var metadata = state?.state;
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
-    const [messageGridHeight, setMessageGridHeight] = useState(0);
+
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
@@ -148,7 +148,8 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
-            setMessageGridHeight(availableHeight);
+            messageGridHeight = availableHeight; // Update the global variable
+
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,

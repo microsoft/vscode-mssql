@@ -86,23 +86,25 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
-            let gridParent;
-            if (props.resultSetSummary) {
-                gridParent = document.getElementById(
-                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
-                );
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
             }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
             if (gridParent) {
-                gridParent.setAttribute("style", `width: ${width}px`);
-                gridParent.setAttribute("style", `height: ${height}px`);
+                gridParent.style.height = `${height}px`;
             }
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };
         useEffect(() => {
             const filter = async () => {
-                await table.setupState();
-                table.rerenderGrid();
+                let newFilters = await table.setupState();
+                if (newFilters) {
+                    table.rerenderGrid();
+                }
             };
 
             const ROW_HEIGHT = 25;
