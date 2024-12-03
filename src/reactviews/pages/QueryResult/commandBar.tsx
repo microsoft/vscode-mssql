@@ -10,13 +10,15 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import {
-    arrowMinimizeIcon,
-    arrowMaximizeIcon,
     saveAsCsvIcon,
     saveAsExcelIcon,
     saveAsJsonIcon,
 } from "./queryResultUtils";
 import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
+import {
+    ArrowMaximize16Filled,
+    ArrowMinimize16Filled,
+} from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -78,14 +80,15 @@ const CommandBar = (props: CommandBarProps) => {
                         setMaxView((prev) => !prev); // Toggle maxView state
                     }}
                     icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={
-                                maxView
-                                    ? arrowMinimizeIcon(context.theme)
-                                    : arrowMaximizeIcon(context.theme)
-                            }
-                        />
+                        maxView ? (
+                            <ArrowMinimize16Filled
+                                className={classes.buttonImg}
+                            />
+                        ) : (
+                            <ArrowMaximize16Filled
+                                className={classes.buttonImg}
+                            />
+                        )
                     }
                     title={
                         maxView

@@ -24,18 +24,6 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
         : require("../../media/saveExcel_inverse.svg");
 };
 
-export const arrowMaximizeIcon = (theme: ColorThemeKind) => {
-    return theme === ColorThemeKind.Light
-        ? require("../../media/arrowMaximize.svg")
-        : require("../../media/arrowMaximize_inverse.svg");
-};
-
-export const arrowMinimizeIcon = (theme: ColorThemeKind) => {
-    return theme === ColorThemeKind.Light
-        ? require("../../media/arrowMinimize.svg")
-        : require("../../media/arrowMinimize_inverse.svg");
-};
-
 export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
     return (
         Object.keys(state.resultSetSummaries).length > 0 ||

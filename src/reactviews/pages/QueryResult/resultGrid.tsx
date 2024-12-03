@@ -33,7 +33,6 @@ import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import { QueryResultState } from "./queryResultStateProvider";
-import _ from "underscore";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
