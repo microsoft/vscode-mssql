@@ -67,13 +67,13 @@ const ConnectionDialogStateProvider: React.FC<
                 },
                 addFirewallRule: function (
                     name: string,
-                    startIp: string,
-                    endIp?: string,
+                    tenantId: string,
+                    ip: string | { startIp: string; endIp: string },
                 ): void {
                     webviewState?.extensionRpc.action("addFirewallRule", {
                         name: name,
-                        startIp: startIp,
-                        endIp: endIp,
+                        tenantId: tenantId,
+                        ip: ip,
                     });
                 },
                 closeDialog: function (): void {

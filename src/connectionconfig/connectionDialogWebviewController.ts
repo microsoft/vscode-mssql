@@ -1041,10 +1041,33 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                             result.errorNumber === connectionFirewallErrorCode
                         ) {
                             this.state.connectionStatus = ApiStatus.Error;
+
+                            const handleFirewallErrorResult =
+                                await this._mainController.connectionManager.firewallService.handleFirewallRule(
+                                    result.errorNumber,
+                                    result.errorMessage,
+                                );
+
+                            if (!handleFirewallErrorResult.result) {
+                                // TODO: send telemetry about parsing failure
+                                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+                            }
+
+                            const auth = await confirmVscodeAzureSignin();
+                            const tenants = await auth.getTenants();
+
                             this.state.dialog = {
                                 type: "addFirewallRule",
                                 message: result.errorMessage,
-                                clientIp: "192.168.1.1",
+                                clientIp: handleFirewallErrorResult.result
+                                    ? handleFirewallErrorResult.ipAddress
+                                    : "0.0.0.0",
+                                tenants: tenants.map((t) => {
+                                    return {
+                                        name: t.displayName,
+                                        id: t.tenantId,
+                                    };
+                                }),
                             } as AddFirewallRuleDialogProps;
 
                             return state;
@@ -1176,9 +1199,68 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
-            console.log(
-                `Setting firewall rule: ${payload.name} (${payload.startIp} - ${payload.endIp})`,
+            const [startIp, endIp] =
+                typeof payload.ip === "string"
+                    ? [payload.ip, payload.ip]
+                    : [payload.ip.startIp, payload.ip.endIp];
+
+            console.debug(
+                `Setting firewall rule: ${payload.name} (${startIp} - ${endIp})`,
             );
+
+            const auth = await confirmVscodeAzureSignin();
+            const subs = await auth.getSubscriptions();
+            const sub = subs.filter((s) => s.tenantId === payload.tenantId)[0];
+            const token = await sub.credential.getToken(".default");
+
+            const session = await sub.authentication.getSession();
+
+            const account: IAccount = {
+                displayInfo: {
+                    displayName: session.account.label,
+                    userId: session.account.label,
+                    name: session.account.label,
+                    accountType: (session.account as any).type as any,
+                },
+                key: {
+                    providerId: "microsoft",
+                    id: session.account.label,
+                },
+                isStale: false,
+                properties: {
+                    azureAuthType: 0 as any,
+                    providerSettings: undefined,
+                    isMsAccount: false,
+                    owningTenant: undefined,
+                    tenants: [
+                        {
+                            displayName: sub.tenantId,
+                            id: sub.tenantId,
+                            userId: token.token,
+                        },
+                    ],
+                },
+            };
+
+            const tokenMappings = {};
+            tokenMappings[sub.tenantId] = {
+                Token: token.token,
+            };
+
+            const result =
+                await this._mainController.connectionManager.firewallService.createFirewallRule(
+                    {
+                        account: account,
+                        firewallRuleName: payload.name,
+                        startIpAddress: startIp,
+                        endIpAddress: endIp,
+                        serverName: this.state.connectionProfile.server,
+                        securityTokenMappings: tokenMappings,
+                    },
+                );
+
+            console.log("Firewall rule result: " + result);
+
             return state;
         });
 

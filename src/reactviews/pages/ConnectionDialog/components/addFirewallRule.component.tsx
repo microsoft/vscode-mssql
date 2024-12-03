@@ -13,14 +13,18 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
+    Dropdown,
     Field,
     Input,
     Label,
     Link,
     makeStyles,
     MessageBar,
+    Option,
+    OptionOnSelectData,
     Radio,
     RadioGroup,
+    SelectionEvents,
 } from "@fluentui/react-components";
 
 import { locConstants as Loc } from "../../../common/locConstants";
@@ -50,6 +54,12 @@ export const AddFirewallRuleDialog = ({
     const styles = useStyles();
     const formStyles = useFormStyles();
 
+    const [selectedTenantOption, setSelectedTenantOption] = useState<string[]>([
+        dialogProps.tenants[0].id,
+    ]);
+
+    const [tenantValue, setTenantValue] = useState(dialogProps.tenants[0].id);
+
     const [ruleName, setRuleName] = useState(
         "ClientIPAddress_" + formatDate(new Date()),
     );
@@ -64,6 +74,14 @@ export const AddFirewallRuleDialog = ({
     const [endIp, setEndIp] = useState(
         dialogProps.clientIp.replace(/\.[0-9]+$/g, ".255"), // replace last octet with 255
     );
+
+    const onTenantOptionSelect = (
+        _: SelectionEvents,
+        data: OptionOnSelectData,
+    ) => {
+        setSelectedTenantOption(data.selectedOptions);
+        setTenantValue(data.optionText ?? "");
+    };
 
     return (
         <Dialog open={dialogProps.type === "addFirewallRule"}>
@@ -86,6 +104,27 @@ export const AddFirewallRuleDialog = ({
                             {Loc.connectionDialog.readMore}
                         </Link>
                         <div style={{ marginTop: "12px" }}>
+                            {dialogProps.tenants.length > 1 && (
+                                <Field
+                                    label="Tenant"
+                                    className={formStyles.formComponentDiv}
+                                >
+                                    <Dropdown
+                                        value={tenantValue}
+                                        selectedOptions={selectedTenantOption}
+                                        onOptionSelect={onTenantOptionSelect}
+                                    >
+                                        {dialogProps.tenants.map((tenant) => {
+                                            return (
+                                                <Option
+                                                    text={`tenant.name (${tenant.id})`}
+                                                    value={tenant.id}
+                                                />
+                                            );
+                                        })}
+                                    </Dropdown>
+                                </Field>
+                            )}
                             <Field
                                 label="Rule name"
                                 className={formStyles.formComponentDiv}
@@ -157,10 +196,11 @@ export const AddFirewallRuleDialog = ({
                                 context.closeDialog();
                                 context.addFirewallRule(
                                     ruleName,
-                                    startIp,
-                                    ipSelectionMode === IpSelectionMode.IpRange
-                                        ? endIp
-                                        : undefined,
+                                    tenantValue,
+                                    ipSelectionMode ===
+                                        IpSelectionMode.SpecificIp
+                                        ? dialogProps.clientIp
+                                        : { startIp, endIp },
                                 );
                                 context.connect();
                             }}

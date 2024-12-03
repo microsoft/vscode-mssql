@@ -113,6 +113,7 @@ export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
     message: string;
     clientIp: string;
+    tenants: { name: string; id: string }[];
 }
 
 export interface AzureSubscriptionInfo {
@@ -162,7 +163,11 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
-    addFirewallRule: (name: string, startIp: string, endIp?: string) => void;
+    addFirewallRule: (
+        name: string,
+        tenantId: string,
+        ip: string | { startIp: string; endIp: string },
+    ) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -191,8 +196,8 @@ export interface ConnectionDialogReducers {
     };
     addFirewallRule: {
         name: string;
-        startIp: string;
-        endIp?: string;
+        tenantId: string;
+        ip: string | { startIp: string; endIp: string };
     };
     closeDialog: {};
     filterAzureSubscriptions: {};
