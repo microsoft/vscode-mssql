@@ -193,7 +193,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         // this.registerPlugin(new MouseWheelSupport());
     }
 
-    public async setupState(): Promise<boolean> {
+    /**
+     * Load filters from the query result state and apply them to the table
+     * @returns true if filters were successfully loaded and applied, false if no filters were found
+     */
+    public async setupFilterState(): Promise<boolean> {
         this.columns.forEach((column) => {
             if (column.field) {
                 const filters =

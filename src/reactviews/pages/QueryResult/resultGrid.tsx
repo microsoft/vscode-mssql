@@ -101,8 +101,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         };
         useEffect(() => {
             const filter = async () => {
-                let newFilters = await table.setupState();
-                if (newFilters) {
+                let hasNewFilters = await table.setupFilterState();
+                if (hasNewFilters) {
                     table.rerenderGrid();
                 }
             };
