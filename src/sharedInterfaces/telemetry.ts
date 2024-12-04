@@ -62,6 +62,7 @@ export enum TelemetryActions {
     LoadAzureAccountsForEntraAuth = "LoadAzureAccountsForEntraAuth",
     LoadAzureTenantsForEntraAuth = "LoadAzureTenantsForEntraAuth",
     LoadConnections = "LoadConnections",
+    AddFirewallRule = "AddFirewallRule",
 }
 
 /**

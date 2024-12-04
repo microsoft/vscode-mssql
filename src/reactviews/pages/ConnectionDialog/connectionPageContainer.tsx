@@ -6,9 +6,11 @@
 import "./sqlServerRotation.css";
 
 import {
+    AddFirewallRuleDialogProps,
     ConnectionDialogContextProps,
     ConnectionInputMode,
     IConnectionDialogProfile,
+    TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
 import {
     Field,
@@ -31,6 +33,7 @@ import { FormItemSpec } from "../../common/forms/form";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
+import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -71,7 +74,22 @@ export const ConnectionInfoFormContainer = () => {
                         {context.state.formError}
                     </MessageBar>
                 )}
-                <TrustServerCertificateDialog />
+
+                {context.state.dialog?.type === "trustServerCert" && (
+                    <TrustServerCertificateDialog
+                        dialogProps={
+                            context.state.dialog as TrustServerCertDialogProps
+                        }
+                    />
+                )}
+                {context.state.dialog?.type === "addFirewallRule" && (
+                    <AddFirewallRuleDialog
+                        dialogProps={
+                            context.state.dialog as AddFirewallRuleDialogProps
+                        }
+                    />
+                )}
+
                 <FormField
                     context={context}
                     component={

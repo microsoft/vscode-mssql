@@ -20,6 +20,7 @@ import {
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { getErrorMessage } from "../utils/utils";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -93,20 +94,29 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const connectionInfo = this._targetNode.connectionInfo;
         connectionInfo.database = databaseName;
 
-        const connectionDetails =
-            await this._connectionManager.createConnectionDetails(
-                connectionInfo,
-            );
-        const connectionString =
-            await this._connectionManager.getConnectionString(
-                connectionDetails,
-                true,
-                true,
-            );
+        let connectionString;
+        try {
+            const connectionDetails =
+                await this._connectionManager.createConnectionDetails(
+                    connectionInfo,
+                );
+            connectionString =
+                await this._connectionManager.getConnectionString(
+                    connectionDetails,
+                    true,
+                    true,
+                );
 
-        if (!connectionString || connectionString === "") {
+            if (!connectionString || connectionString === "") {
+                await vscode.window.showErrorMessage(
+                    "Unable to find connection string for the connection",
+                );
+                return;
+            }
+        } catch (e) {
             await vscode.window.showErrorMessage(
-                "Unable to find connection string for the connection",
+                "Unable to find connection string for the connection: " +
+                    getErrorMessage(e),
             );
             return;
         }

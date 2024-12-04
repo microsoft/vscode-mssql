@@ -715,6 +715,32 @@ export class ConnectionDialog {
             comment: ["{0} is the connection name"],
         });
     };
+
+    public static errorLoadingAzureAccountInfoForTenantId = (
+        tenantId: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Error loading Azure account information for tenant ID '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static errorCreatingFirewallRule = (
+        ruleInfo: string,
+        error: string,
+    ) => {
+        return l10n.t({
+            message:
+                "Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}",
+            args: [ruleInfo, error],
+            comment: [
+                "{0} is the rule info in format 'name (startIp - endIp)'",
+                "{1} is the error message",
+            ],
+        });
+    };
 }
 
 export class UserSurvey {
