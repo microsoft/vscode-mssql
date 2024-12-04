@@ -35,11 +35,13 @@ export const FormInput = <
     value,
     target,
     type,
+    props,
 }: {
     context: TContext;
     value: string;
     target: keyof TForm;
     type: "input" | "password" | "textarea";
+    props?: any;
 }) => {
     const [formInputValue, setFormInputValue] = useState(value);
     const [showPassword, setShowPassword] = useState(false);
@@ -68,6 +70,7 @@ export const FormInput = <
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
                     size="small"
+                    {...props}
                 />
             )}
             {type === "password" && (
@@ -91,6 +94,7 @@ export const FormInput = <
                             size="small"
                         ></Button>
                     }
+                    {...props}
                 />
             )}
             {type === "textarea" && (
@@ -99,6 +103,7 @@ export const FormInput = <
                     size="small"
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
+                    {...props}
                 />
             )}
         </>
@@ -114,11 +119,14 @@ export const FormField = <
     component,
     idx,
     props,
+    componentProps,
 }: {
     context: TContext;
     component: FormItemSpec<TForm>;
     idx: number;
     props?: FieldProps;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    componentProps?: any; // any because we don't know what the component will be
 }) => {
     if (!component) {
         console.error("Form component is undefined");
@@ -164,7 +172,7 @@ export const FormField = <
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}
             >
-                {generateFormComponent(context, component, idx)}
+                {generateFormComponent(context, component, componentProps)}
             </Field>
             {component?.actionButtons?.length! > 0 && (
                 <div className={formStyles.formComponentActionDiv}>
@@ -198,7 +206,7 @@ export function generateFormComponent<
     TContext extends FormContextProps<TState, TForm>,
     TState extends FormState<TForm>,
     TForm,
->(context: TContext, component: FormItemSpec<TForm>, _idx: number) {
+>(context: TContext, component: FormItemSpec<TForm>, props?: any) {
     const formState = context.state.formState;
 
     switch (component.type) {
@@ -209,6 +217,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="input"
+                    props={props}
                 />
             );
         case FormItemType.TextArea:
@@ -218,6 +227,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="textarea"
+                    props={props}
                 />
             );
         case FormItemType.Password:
@@ -227,6 +237,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="password"
+                    props={props}
                 />
             );
         case FormItemType.Dropdown:
@@ -254,6 +265,7 @@ export function generateFormComponent<
                             value: data.optionValue as string,
                         });
                     }}
+                    {...props}
                 >
                     {component.options?.map((option, idx) => {
                         return (
@@ -281,6 +293,7 @@ export function generateFormComponent<
                             value: data.checked,
                         })
                     }
+                    {...props}
                 />
             );
     }
