@@ -2062,12 +2062,6 @@ export default class MainController implements vscode.Disposable {
             );
         }
 
-        if (doc && doc.languageId === Constants.sqlPlanLanguageId) {
-            vscode.commands.executeCommand(
-                "workbench.action.closeActiveEditor",
-            );
-        }
-
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
@@ -2306,6 +2300,10 @@ export default class MainController implements vscode.Disposable {
             const planContents = document.getText();
             let docName = document.fileName;
             docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
+
+            vscode.commands.executeCommand(
+                "workbench.action.closeActiveEditor",
+            );
 
             const executionPlanController = new ExecutionPlanWebviewController(
                 this.context,
