@@ -1029,6 +1029,18 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
                 state.dialog = undefined;
 
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    err,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        failure: "constructAzureAccountForTenant",
+                    },
+                );
+
                 return state;
             }
 
@@ -1049,7 +1061,24 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     `"${payload.name}" (${startIp} - ${endIp})`,
                     result.errorMessage,
                 );
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    new Error(result.errorMessage),
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        failure: "firewallService.createFirewallRule",
+                    },
+                );
             }
+
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.AddFirewallRule,
+            );
 
             state.dialog = undefined;
             this.updateState(state);
@@ -1274,8 +1303,17 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 );
 
             if (!handleFirewallErrorResult.result) {
-                // TODO: send telemetry about parsing failure
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    new Error(result.errorMessage),
+                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
+
                 // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+                handleFirewallErrorResult.ipAddress = "0.0.0.0";
             }
 
             const auth = await confirmVscodeAzureSignin();
@@ -1284,9 +1322,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.state.dialog = {
                 type: "addFirewallRule",
                 message: result.errorMessage,
-                clientIp: handleFirewallErrorResult.result
-                    ? handleFirewallErrorResult.ipAddress
-                    : "0.0.0.0",
+                clientIp: handleFirewallErrorResult.ipAddress,
                 tenants: tenants.map((t) => {
                     return {
                         name: t.displayName,
