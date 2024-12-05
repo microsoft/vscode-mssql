@@ -119,12 +119,12 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    webViewState;
     var metadata = state?.state;
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
+
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
@@ -148,7 +148,12 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
-            setMessageGridHeight(availableHeight);
+            if (
+                metadata.tabStates?.resultPaneTab ===
+                qr.QueryResultPaneTabs.Messages
+            ) {
+                setMessageGridHeight(availableHeight);
+            }
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,
@@ -306,9 +311,65 @@ export const QueryResultPane = () => {
                     resultSetSummary={
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
+                    maximizeResults={() => {
+                        maximizeResults(gridRefs.current[gridCount]);
+                        hideOtherGrids(gridRefs, gridCount);
+                    }}
+                    restoreResults={() => {
+                        showOtherGrids(gridRefs, gridCount);
+                        restoreResults(gridRefs.current);
+                    }}
                 />
             </div>
         );
+    };
+
+    const hideOtherGrids = (
+        gridRefs: React.MutableRefObject<ResultGridHandle[]>,
+        gridCount: number,
+    ) => {
+        gridRefs.current.forEach((grid) => {
+            if (grid !== gridRefs.current[gridCount]) {
+                grid.hideGrid();
+            }
+        });
+    };
+
+    const showOtherGrids = (
+        gridRefs: React.MutableRefObject<ResultGridHandle[]>,
+        gridCount: number,
+    ) => {
+        gridRefs.current.forEach((grid) => {
+            if (grid !== gridRefs.current[gridCount]) {
+                grid.showGrid();
+            }
+        });
+    };
+
+    const maximizeResults = (gridRef: ResultGridHandle) => {
+        const height =
+            getAvailableHeight(
+                resultPaneParentRef.current!,
+                ribbonRef.current!,
+            ) - TABLE_ALIGN_PX;
+        const width =
+            resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+        gridRef.resizeGrid(width, height);
+    };
+
+    const restoreResults = (gridRefs: ResultGridHandle[]) => {
+        gridRefs.forEach((gridRef) => {
+            const height = calculateGridHeight(
+                gridRefs.length,
+                getAvailableHeight(
+                    resultPaneParentRef.current!,
+                    ribbonRef.current!,
+                ),
+            );
+            const width =
+                resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+            gridRef.resizeGrid(width, height);
+        });
     };
 
     const renderGridPanel = () => {
@@ -513,6 +574,7 @@ export const QueryResultPane = () => {
                 {webviewLocation === "panel" && (
                     <Button
                         icon={<OpenRegular />}
+                        iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
                             await webViewState.extensionRpc.call(
@@ -523,7 +585,10 @@ export const QueryResultPane = () => {
                             );
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
-                    ></Button>
+                        style={{ marginTop: "4px", marginBottom: "4px" }}
+                    >
+                        {locConstants.queryResult.openResultInNewTab}
+                    </Button>
                 )}
             </div>
             <div className={classes.tabContent}>

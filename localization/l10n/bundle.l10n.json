@@ -88,7 +88,6 @@
   "Delete": "Delete",
   "Filter Settings": "Filter Settings",
   "Cancel": "Cancel",
-  "Close": "Close",
   "Are you sure?": "Are you sure?",
   "Are you sure you want to {0}?/{0} is the action being confirmed": {
     "message": "Are you sure you want to {0}?",
@@ -96,6 +95,7 @@
       "{0} is the action being confirmed"
     ]
   },
+  "Close": "Close",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -214,6 +214,9 @@
   "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
   "Read more": "Read more",
   "Enable 'Trust Server Certificate'": "Enable 'Trust Server Certificate'",
+  "Create a new firewall rule": "Create a new firewall rule",
+  "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
+  "Add Firewall Rule": "Add Firewall Rule",
   "Select a {0} for filtering/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
     "message": "Select a {0} for filtering",
     "comment": [
@@ -294,6 +297,8 @@
   "Blanks": "Blanks",
   "Apply": "Apply",
   "Search...": "Search...",
+  "Maximize": "Maximize",
+  "Restore": "Restore",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -642,8 +647,6 @@
     ]
   },
   "A SQL editor must have focus before executing this command": "A SQL editor must have focus before executing this command",
-  "Maximize": "Maximize",
-  "Restore": "Restore",
   "CSV": "CSV",
   "JSON": "JSON",
   "Excel": "Excel",
@@ -760,6 +763,19 @@
     "message": "delete the saved connection: {0}?",
     "comment": [
       "{0} is the connection name"
+    ]
+  },
+  "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
+    "message": "Error loading Azure account information for tenant ID '{0}'",
+    "comment": [
+      "{0} is the tenant ID"
+    ]
+  },
+  "Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}/{0} is the rule info in format 'name (startIp - endIp)'{1} is the error message": {
+    "message": "Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}",
+    "comment": [
+      "{0} is the rule info in format 'name (startIp - endIp)'",
+      "{1} is the error message"
     ]
   },
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",

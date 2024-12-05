@@ -65,10 +65,19 @@ const ConnectionDialogStateProvider: React.FC<
                         subscriptionId: subscriptionId,
                     });
                 },
-                cancelTrustServerCertDialog: function (): void {
-                    webviewState?.extensionRpc.action(
-                        "cancelTrustServerCertDialog",
-                    );
+                addFirewallRule: function (
+                    name: string,
+                    tenantId: string,
+                    ip: string | { startIp: string; endIp: string },
+                ): void {
+                    webviewState?.extensionRpc.action("addFirewallRule", {
+                        name: name,
+                        tenantId: tenantId,
+                        ip: ip,
+                    });
+                },
+                closeDialog: function (): void {
+                    webviewState?.extensionRpc.action("closeDialog");
                 },
                 filterAzureSubscriptions: function (): void {
                     webviewState.extensionRpc.action(

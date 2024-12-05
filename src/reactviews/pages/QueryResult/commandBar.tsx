@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles } from "@fluentui/react-components";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
@@ -15,6 +15,10 @@ import {
     saveAsJsonIcon,
 } from "./queryResultUtils";
 import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
+import {
+    ArrowMaximize16Filled,
+    ArrowMinimize16Filled,
+} from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -31,9 +35,13 @@ const useStyles = makeStyles({
 export interface CommandBarProps {
     uri?: string;
     resultSetSummary?: qr.ResultSetSummary;
+    maximizeResults?: () => void;
+    restoreResults?: () => void;
 }
 
 const CommandBar = (props: CommandBarProps) => {
+    const [maxView, setMaxView] = useState(false);
+
     const context = useContext(QueryResultContext);
     if (context === undefined) {
         return undefined;
@@ -56,8 +64,40 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
+    const hasMultipleResults =
+        context.state.resultSetSummaries &&
+        Object.keys(context.state.resultSetSummaries).length > 1;
+
     return (
         <div className={classes.commandBar}>
+            {hasMultipleResults && (
+                <Button
+                    appearance="subtle"
+                    onClick={() => {
+                        maxView
+                            ? props.restoreResults?.()
+                            : props.maximizeResults?.();
+                        setMaxView((prev) => !prev); // Toggle maxView state
+                    }}
+                    icon={
+                        maxView ? (
+                            <ArrowMinimize16Filled
+                                className={classes.buttonImg}
+                            />
+                        ) : (
+                            <ArrowMaximize16Filled
+                                className={classes.buttonImg}
+                            />
+                        )
+                    }
+                    title={
+                        maxView
+                            ? locConstants.queryResult.restore
+                            : locConstants.queryResult.maximize
+                    }
+                ></Button>
+            )}
+
             <Button
                 appearance="subtle"
                 onClick={(_event) => {

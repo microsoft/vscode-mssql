@@ -174,7 +174,6 @@ export class TableDataView<T extends Slick.SlickData>
             this._data = this._allData;
             this._allData = [];
             this._filterEnabled = false;
-            console.log("filterstatechange");
             // this._onFilterStateChange.fire();
         }
     }

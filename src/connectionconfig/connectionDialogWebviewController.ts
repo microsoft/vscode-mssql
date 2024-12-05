@@ -18,10 +18,13 @@ import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    AddFirewallRuleDialogProps,
     IConnectionDialogProfile,
+    TrustServerCertDialogProps,
 } from "../sharedInterfaces/connectionDialog";
 import {
     CapabilitiesResult,
+    ConnectionCompleteParams,
     GetCapabilitiesRequest,
 } from "../models/contracts/connection";
 import {
@@ -58,7 +61,10 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { connectionCertValidationFailedErrorCode } from "./connectionConstants";
+import {
+    connectionCertValidationFailedErrorCode,
+    connectionFirewallErrorCode,
+} from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
@@ -105,7 +111,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 formError: "",
                 loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
                 loadingAzureServersStatus: ApiStatus.NotStarted,
-                trustServerCertError: undefined,
+                dialog: undefined,
             }),
             {
                 title: Loc.connectionDialog,
@@ -618,7 +624,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ) {
                 return {
                     isValid: false,
-                    validationMessage: Loc.usernameIsRequired,
+                    validationMessage: Loc.serverIsRequired,
                 };
             }
             return {
@@ -987,165 +993,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         });
 
         this.registerReducer("connect", async (state) => {
-            this.clearFormError();
-            this.state.connectionStatus = ApiStatus.Loading;
-            this.state.formError = "";
-            this.updateState();
-
-            const cleanedConnection: IConnectionDialogProfile = structuredClone(
-                this.state.connectionProfile,
-            );
-            this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
-
-            // Perform final validation of all inputs
-            const erroredInputs =
-                await this.validateConnectionProfile(cleanedConnection);
-            if (erroredInputs.length > 0) {
-                this.state.connectionStatus = ApiStatus.Error;
-                console.warn(
-                    "One more more inputs have errors: " +
-                        erroredInputs.join(", "),
-                );
-                return state;
-            }
-
-            try {
-                try {
-                    const result =
-                        await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            cleanedConnection as any,
-                        );
-
-                    if (result.errorMessage) {
-                        if (
-                            result.errorNumber ===
-                            connectionCertValidationFailedErrorCode
-                        ) {
-                            this.state.connectionStatus = ApiStatus.Error;
-                            this.state.trustServerCertError =
-                                result.errorMessage;
-
-                            // connection failing because the user didn't trust the server cert is not an error worth logging;
-                            // just prompt the user to trust the cert
-
-                            return state;
-                        }
-
-                        this.state.formError = result.errorMessage;
-                        this.state.connectionStatus = ApiStatus.Error;
-
-                        sendActionEvent(
-                            TelemetryViews.ConnectionDialog,
-                            TelemetryActions.CreateConnection,
-                            {
-                                result: "connectionError",
-                                errorNumber: String(result.errorNumber),
-                                newOrEditedConnection: this
-                                    ._connectionToEditCopy
-                                    ? "edited"
-                                    : "new",
-                                connectionInputType:
-                                    this.state.selectedInputMode,
-                                authMode:
-                                    this.state.connectionProfile
-                                        .authenticationType,
-                            },
-                        );
-
-                        return state;
-                    }
-                } catch (error) {
-                    this.state.formError = getErrorMessage(error);
-                    this.state.connectionStatus = ApiStatus.Error;
-
-                    sendErrorEvent(
-                        TelemetryViews.ConnectionDialog,
-                        TelemetryActions.CreateConnection,
-                        error,
-                        false, // includeErrorMessage
-                        undefined, // errorCode
-                        undefined, // errorType
-                        {
-                            connectionInputType: this.state.selectedInputMode,
-                            authMode:
-                                this.state.connectionProfile.authenticationType,
-                        },
-                    );
-
-                    return state;
-                }
-
-                sendActionEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.CreateConnection,
-                    {
-                        result: "success",
-                        newOrEditedConnection: this._connectionToEditCopy
-                            ? "edited"
-                            : "new",
-                        connectionInputType: this.state.selectedInputMode,
-                        authMode:
-                            this.state.connectionProfile.authenticationType,
-                    },
-                );
-
-                if (this._connectionToEditCopy) {
-                    await this._mainController.connectionManager.getUriForConnection(
-                        this._connectionToEditCopy,
-                    );
-                    await this._objectExplorerProvider.removeConnectionNodes([
-                        this._connectionToEditCopy,
-                    ]);
-
-                    await this._mainController.connectionManager.connectionStore.removeProfile(
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        this._connectionToEditCopy as any,
-                    );
-                    this._objectExplorerProvider.refresh(undefined);
-                }
-
-                await this._mainController.connectionManager.connectionUI.saveProfile(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    this.state.connectionProfile as any,
-                );
-                const node =
-                    await this._mainController.createObjectExplorerSessionFromDialog(
-                        this.state.connectionProfile,
-                    );
-
-                this._objectExplorerProvider.refresh(undefined);
-                await this.updateLoadedConnections(state);
-                this.updateState();
-
-                this.state.connectionStatus = ApiStatus.Loaded;
-                await this._mainController.objectExplorerTree.reveal(node, {
-                    focus: true,
-                    select: true,
-                    expand: true,
-                });
-                await this.panel.dispose();
-                await UserSurvey.getInstance().promptUserForNPSFeedback();
-            } catch (error) {
-                this.state.connectionStatus = ApiStatus.Error;
-
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.CreateConnection,
-                    error,
-                    undefined, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
-                        connectionInputType: this.state.selectedInputMode,
-                        authMode:
-                            this.state.connectionProfile.authenticationType,
-                    },
-                );
-
-                return state;
-            }
-            return state;
+            return this.connectHelper(state);
         });
 
         this.registerReducer("loadAzureServers", async (state, payload) => {
@@ -1157,8 +1005,89 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             return state;
         });
 
-        this.registerReducer("cancelTrustServerCertDialog", async (state) => {
-            state.trustServerCertError = undefined;
+        this.registerReducer("addFirewallRule", async (state, payload) => {
+            const [startIp, endIp] =
+                typeof payload.ip === "string"
+                    ? [payload.ip, payload.ip]
+                    : [payload.ip.startIp, payload.ip.endIp];
+
+            console.debug(
+                `Setting firewall rule: "${payload.name}" (${startIp} - ${endIp})`,
+            );
+            let account, tokenMappings;
+
+            try {
+                ({ account, tokenMappings } =
+                    await this.constructAzureAccountForTenant(
+                        payload.tenantId,
+                    ));
+            } catch (err) {
+                state.formError = Loc.errorCreatingFirewallRule(
+                    `"${payload.name}" (${startIp} - ${endIp})`,
+                    getErrorMessage(err),
+                );
+
+                state.dialog = undefined;
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    err,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        failure: "constructAzureAccountForTenant",
+                    },
+                );
+
+                return state;
+            }
+
+            const result =
+                await this._mainController.connectionManager.firewallService.createFirewallRule(
+                    {
+                        account: account,
+                        firewallRuleName: payload.name,
+                        startIpAddress: startIp,
+                        endIpAddress: endIp,
+                        serverName: this.state.connectionProfile.server,
+                        securityTokenMappings: tokenMappings,
+                    },
+                );
+
+            if (!result.result) {
+                state.formError = Loc.errorCreatingFirewallRule(
+                    `"${payload.name}" (${startIp} - ${endIp})`,
+                    result.errorMessage,
+                );
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    new Error(result.errorMessage),
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        failure: "firewallService.createFirewallRule",
+                    },
+                );
+            }
+
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.AddFirewallRule,
+            );
+
+            state.dialog = undefined;
+            this.updateState(state);
+
+            return await this.connectHelper(state);
+        });
+
+        this.registerReducer("closeDialog", async (state) => {
+            state.dialog = undefined;
             return state;
         });
 
@@ -1222,7 +1151,266 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Helpers
 
+    //#region Connection helpers
+
+    private async connectHelper(
+        state: ConnectionDialogWebviewState,
+    ): Promise<ConnectionDialogWebviewState> {
+        this.clearFormError();
+        this.state.connectionStatus = ApiStatus.Loading;
+        this.updateState();
+
+        const cleanedConnection: IConnectionDialogProfile = structuredClone(
+            this.state.connectionProfile,
+        );
+        this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
+
+        // Perform final validation of all inputs
+        const erroredInputs =
+            await this.validateConnectionProfile(cleanedConnection);
+        if (erroredInputs.length > 0) {
+            this.state.connectionStatus = ApiStatus.Error;
+            console.warn(
+                "One more more inputs have errors: " + erroredInputs.join(", "),
+            );
+            return state;
+        }
+
+        try {
+            try {
+                const result =
+                    await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        cleanedConnection as any,
+                    );
+
+                if (result.errorMessage) {
+                    return await this.handleConnectionErrorCodes(result, state);
+                }
+            } catch (error) {
+                this.state.formError = getErrorMessage(error);
+                this.state.connectionStatus = ApiStatus.Error;
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.CreateConnection,
+                    error,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode:
+                            this.state.connectionProfile.authenticationType,
+                    },
+                );
+
+                return state;
+            }
+
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.CreateConnection,
+                {
+                    result: "success",
+                    newOrEditedConnection: this._connectionToEditCopy
+                        ? "edited"
+                        : "new",
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                },
+            );
+
+            if (this._connectionToEditCopy) {
+                await this._mainController.connectionManager.getUriForConnection(
+                    this._connectionToEditCopy,
+                );
+                await this._objectExplorerProvider.removeConnectionNodes([
+                    this._connectionToEditCopy,
+                ]);
+
+                await this._mainController.connectionManager.connectionStore.removeProfile(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    this._connectionToEditCopy as any,
+                );
+                this._objectExplorerProvider.refresh(undefined);
+            }
+
+            await this._mainController.connectionManager.connectionUI.saveProfile(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                this.state.connectionProfile as any,
+            );
+            const node =
+                await this._mainController.createObjectExplorerSessionFromDialog(
+                    this.state.connectionProfile,
+                );
+
+            this._objectExplorerProvider.refresh(undefined);
+            await this.updateLoadedConnections(state);
+            this.updateState();
+
+            this.state.connectionStatus = ApiStatus.Loaded;
+            await this._mainController.objectExplorerTree.reveal(node, {
+                focus: true,
+                select: true,
+                expand: true,
+            });
+            await this.panel.dispose();
+            await UserSurvey.getInstance().promptUserForNPSFeedback();
+        } catch (error) {
+            this.state.connectionStatus = ApiStatus.Error;
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.CreateConnection,
+                error,
+                undefined, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                {
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                },
+            );
+
+            return state;
+        }
+        return state;
+    }
+
+    private async handleConnectionErrorCodes(
+        result: ConnectionCompleteParams,
+        state: ConnectionDialogWebviewState,
+    ): Promise<ConnectionDialogWebviewState> {
+        if (result.errorNumber === connectionCertValidationFailedErrorCode) {
+            this.state.connectionStatus = ApiStatus.Error;
+            this.state.dialog = {
+                type: "trustServerCert",
+                message: result.errorMessage,
+            } as TrustServerCertDialogProps;
+
+            // connection failing because the user didn't trust the server cert is not an error worth logging;
+            // just prompt the user to trust the cert
+
+            return state;
+        } else if (result.errorNumber === connectionFirewallErrorCode) {
+            this.state.connectionStatus = ApiStatus.Error;
+
+            const handleFirewallErrorResult =
+                await this._mainController.connectionManager.firewallService.handleFirewallRule(
+                    result.errorNumber,
+                    result.errorMessage,
+                );
+
+            if (!handleFirewallErrorResult.result) {
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    new Error(result.errorMessage),
+                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
+
+                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+                handleFirewallErrorResult.ipAddress = "0.0.0.0";
+            }
+
+            const auth = await confirmVscodeAzureSignin();
+            const tenants = await auth.getTenants();
+
+            this.state.dialog = {
+                type: "addFirewallRule",
+                message: result.errorMessage,
+                clientIp: handleFirewallErrorResult.ipAddress,
+                tenants: tenants.map((t) => {
+                    return {
+                        name: t.displayName,
+                        id: t.tenantId,
+                    };
+                }),
+            } as AddFirewallRuleDialogProps;
+
+            return state;
+        }
+
+        this.state.formError = result.errorMessage;
+        this.state.connectionStatus = ApiStatus.Error;
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.CreateConnection,
+            {
+                result: "connectionError",
+                errorNumber: String(result.errorNumber),
+                newOrEditedConnection: this._connectionToEditCopy
+                    ? "edited"
+                    : "new",
+                connectionInputType: this.state.selectedInputMode,
+                authMode: this.state.connectionProfile.authenticationType,
+            },
+        );
+
+        return state;
+    }
+
+    //#endregion
+
     //#region Azure helpers
+
+    private async constructAzureAccountForTenant(
+        tenantId: string,
+    ): Promise<{ account: IAccount; tokenMappings: {} }> {
+        const auth = await confirmVscodeAzureSignin();
+        const subs = await auth.getSubscriptions(false /* filter */);
+        const sub = subs.filter((s) => s.tenantId === tenantId)[0];
+
+        if (!sub) {
+            throw new Error(
+                Loc.errorLoadingAzureAccountInfoForTenantId(tenantId),
+            );
+        }
+
+        const token = await sub.credential.getToken(".default");
+
+        const session = await sub.authentication.getSession();
+
+        const account: IAccount = {
+            displayInfo: {
+                displayName: session.account.label,
+                userId: session.account.label,
+                name: session.account.label,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                accountType: (session.account as any).type as any,
+            },
+            key: {
+                providerId: "microsoft",
+                id: session.account.label,
+            },
+            isStale: false,
+            properties: {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                azureAuthType: 0 as any,
+                providerSettings: undefined,
+                isMsAccount: false,
+                owningTenant: undefined,
+                tenants: [
+                    {
+                        displayName: sub.tenantId,
+                        id: sub.tenantId,
+                        userId: token.token,
+                    },
+                ],
+            },
+        };
+
+        const tokenMappings = {};
+        tokenMappings[sub.tenantId] = {
+            Token: token.token,
+        };
+
+        return { account, tokenMappings };
+    }
 
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
@@ -1395,6 +1583,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#endregion
 
+    //#region Miscellanous helpers
+
     private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
         return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
@@ -1540,6 +1730,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         state.recentConnections = loadedConnections.recentConnections;
         state.savedConnections = loadedConnections.savedConnections;
     }
+
+    //#endregion
 
     //#endregion
 }
