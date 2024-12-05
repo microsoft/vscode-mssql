@@ -574,6 +574,7 @@ export const QueryResultPane = () => {
                 {webviewLocation === "panel" && (
                     <Button
                         icon={<OpenRegular />}
+                        iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
                             await webViewState.extensionRpc.call(
@@ -584,7 +585,10 @@ export const QueryResultPane = () => {
                             );
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
-                    ></Button>
+                        style={{ marginTop: "4px", marginBottom: "4px" }}
+                    >
+                        {locConstants.queryResult.openResultInNewTab}
+                    </Button>
                 )}
             </div>
             <div className={classes.tabContent}>
