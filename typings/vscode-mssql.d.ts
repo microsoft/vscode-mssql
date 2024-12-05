@@ -1620,6 +1620,8 @@ declare module 'vscode-mssql' {
 
 	export interface ConnectionProviderOptions {
 		options: ConnectionOption[];
+
+		groupDisplayNames: { [id: string]: string };
 	}
 
 	export interface ServiceOption {
@@ -1630,8 +1632,6 @@ declare module 'vscode-mssql' {
 		description: string;
 
 		groupName: string;
-
-		groupDisplayName: string;
 
 		valueType: ServiceOptionType;
 

@@ -664,6 +664,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         const connectionOptions: ConnectionOption[] =
             capabilitiesResult.capabilities.connectionProvider.options;
 
+        const groupNames =
+            capabilitiesResult.capabilities.connectionProvider
+                .groupDisplayNames;
+
         const result: Record<
             keyof IConnectionDialogProfile,
             ConnectionDialogFormItemSpec
@@ -676,7 +680,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     ...this.convertToFormComponent(option),
                     isAdvancedOption: !this._mainOptionNames.has(option.name),
                     optionCategory: option.groupName,
-                    optionCategoryLabel: option.groupDisplayName,
+                    optionCategoryLabel:
+                        groupNames[option.groupName] ?? option.groupName,
                 };
             } catch (err) {
                 console.error(
