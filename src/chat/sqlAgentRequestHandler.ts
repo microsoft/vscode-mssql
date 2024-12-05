@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
+    GetNextMessageResponse,
     LanguageModelChatTool,
     MessageRole,
     MessageType,
@@ -65,21 +66,25 @@ export const createSqlAgentRequestHandler = (
             );
             console.log(success ? "Success" : "Failure");
 
-            let sqlTool: LanguageModelChatTool;
-            let sqlToolParameters: string;
+            let sqlTools: { tool: LanguageModelChatTool; parameters: string }[];
             let replyText = "";
             let continuePollingMessages = true;
             let printTextout = false;
+
             while (continuePollingMessages) {
-                const result = await copilotService.getNextMessage(
+                if (!sqlTools || sqlTools.length === 0) {
+                    sqlTools = [{ tool: undefined, parameters: undefined }];
+                }
+
+                const result = await processToolCalls(
+                    sqlTools,
                     conversationUri,
                     replyText,
-                    sqlTool,
-                    sqlToolParameters,
+                    copilotService,
                 );
+
                 replyText = "";
-                sqlTool = undefined;
-                sqlToolParameters = undefined;
+                sqlTools = undefined;
 
                 continuePollingMessages =
                     result.messageType !== MessageType.Complete;
@@ -89,7 +94,7 @@ export const createSqlAgentRequestHandler = (
                 ) {
                     replyText = "";
                 } else if (result.messageType === MessageType.RequestLLM) {
-                    const { text, tool, parameters, print } =
+                    const { text, tools, print } =
                         await handleRequestLLMMessage(
                             result,
                             model,
@@ -98,8 +103,7 @@ export const createSqlAgentRequestHandler = (
                         );
 
                     replyText = text;
-                    sqlTool = tool;
-                    sqlToolParameters = parameters;
+                    sqlTools = tools;
                     printTextout = print;
                 }
 
@@ -115,6 +119,30 @@ export const createSqlAgentRequestHandler = (
         return { metadata: { command: "" } };
     };
 
+    async function processToolCalls(
+        sqlTools: { tool: LanguageModelChatTool; parameters: string }[],
+        conversationUri: string,
+        replyText: string,
+        copilotService: CopilotService,
+    ): Promise<GetNextMessageResponse> {
+        let result: GetNextMessageResponse;
+
+        for (const toolCall of sqlTools) {
+            result = await copilotService.getNextMessage(
+                conversationUri,
+                replyText,
+                toolCall.tool,
+                toolCall.parameters,
+            );
+
+            if (result.messageType === MessageType.Complete) {
+                break;
+            }
+        }
+
+        return result!;
+    }
+
     async function handleRequestLLMMessage(
         result: any,
         model: vscode.LanguageModelChat,
@@ -122,8 +150,7 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
     ): Promise<{
         text: string;
-        tool: LanguageModelChatTool;
-        parameters: string;
+        tools: { tool: LanguageModelChatTool; parameters: string }[];
         print: boolean;
     }> {
         const requestTools = result.tools.map(
@@ -143,7 +170,7 @@ export const createSqlAgentRequestHandler = (
         const messages = [];
 
         for (const message of result.requestMessages) {
-            if (message.role == MessageRole.System) {
+            if (message.role === MessageRole.System) {
                 messages.push(
                     vscode.LanguageModelChatMessage.Assistant(message.text),
                 );
@@ -154,39 +181,28 @@ export const createSqlAgentRequestHandler = (
             }
         }
 
-        let sqlTool: LanguageModelChatTool;
-        let sqlToolParameters: string;
-        let printTextout = false;
-        let functionCalledPreviously = true;
+        const toolsCalled: {
+            tool: LanguageModelChatTool;
+            parameters: string;
+        }[] = [];
         let replyText = "";
+        let printTextout = false;
         const chatResponse = await model.sendRequest(messages, options, token);
-        let partIdx = 0;
         for await (const part of chatResponse.stream) {
             if (part instanceof vscode.LanguageModelTextPart) {
-                if (partIdx === 0 && !functionCalledPreviously) {
-                    break;
-                }
-
-                functionCalledPreviously = false;
                 replyText += part.value;
                 printTextout = true;
             } else if (part instanceof vscode.LanguageModelToolCallPart) {
-                functionCalledPreviously = true;
                 const { sqlTool: tool, sqlToolParameters: parameters } =
                     await processToolCall(result.tools, part, stream);
-                if (!tool) {
-                    continue;
+                if (tool) {
+                    toolsCalled.push({ tool, parameters });
                 }
-
-                sqlTool = tool;
-                sqlToolParameters = parameters;
             }
-            ++partIdx;
         }
         return {
             text: replyText,
-            tool: sqlTool,
-            parameters: sqlToolParameters,
+            tools: toolsCalled,
             print: printTextout,
         };
     }
@@ -266,7 +282,7 @@ export const createSqlAgentRequestHandler = (
 
                 case "off_topic":
                     stream.markdown(
-                        "I'm sorry, I can only assist with computer science and SQL-related questions.",
+                        "I'm sorry, I can only assist with SQL-related questions.",
                     );
                     break;
 
