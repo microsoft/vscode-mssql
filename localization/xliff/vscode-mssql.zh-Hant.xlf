@@ -14,6 +14,10 @@
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         <target state="translated">在執行此命令之前，SQL 編輯器必須聚焦</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
+        <source xml:lang="en">A firewall rule is required to access this server.</source>
+        <target state="new">A firewall rule is required to access this server.</target>
+      </trans-unit>
       <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
         <source xml:lang="en">A predefined global default value for the column or binding.</source>
         <target state="translated">資料行或繫結的預先定義全域預設值。</target>
@@ -51,6 +55,10 @@
       <trans-unit id="++CODE++d72d67f0f765e5584e6db8bd1e591a84914d23ff29e9f5b20d8b39125091fca0">
         <source xml:lang="en">Add Connection</source>
         <target state="translated">加入連接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++079cd7244ce7f3c0fe474c025b5ff8e58c3678fba1ed67f0120416ac0071df85">
+        <source xml:lang="en">Add Firewall Rule</source>
+        <target state="new">Add Firewall Rule</target>
       </trans-unit>
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
@@ -99,7 +107,7 @@
       </trans-unit>
       <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
         <source xml:lang="en">Apply</source>
-        <target state="new">Apply</target>
+        <target state="translated">套用</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
@@ -185,7 +193,7 @@
       </trans-unit>
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
-        <target state="new">Blanks</target>
+        <target state="translated">空白</target>
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
@@ -446,6 +454,10 @@
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">建立防火牆規則</target>
       </trans-unit>
+      <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
+        <source xml:lang="en">Create a new firewall rule</source>
+        <target state="new">Create a new firewall rule</target>
+      </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">認證錯誤: 嘗試重新整理帳戶憑證時發生錯誤。請重新驗證。</target>
@@ -612,6 +624,17 @@
       <trans-unit id="++CODE++480311d3f925f85184b69381dc5f05bb2607e6beb8d354ffe58276a0cd1dd5d9">
         <source xml:lang="en">Error connecting to: </source>
         <target state="translated">連線到此處時發生錯誤:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++268604d30ba8caf436360709d0933805fb33fe3c3bb87a0782ce8c393ecf7da4">
+        <source xml:lang="en">Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}</source>
+        <note>{0} is the rule info in format 'name (startIp - endIp)'
+{1} is the error message</note>
+        <target state="new">Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
+        <source xml:lang="en">Error loading Azure account information for tenant ID '{0}'</source>
+        <note>{0} is the tenant ID</note>
+        <target state="new">Error loading Azure account information for tenant ID '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
         <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
@@ -1009,7 +1032,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
-        <target state="new">NULL</target>
+        <target state="translated">NULL</target>
       </trans-unit>
       <trans-unit id="++CODE++dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50">
         <source xml:lang="en">Name</source>
@@ -1424,7 +1447,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
-        <target state="new">Search...</target>
+        <target state="translated">搜尋...</target>
       </trans-unit>
       <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
         <source xml:lang="en">Select All</source>
