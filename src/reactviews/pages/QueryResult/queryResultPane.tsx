@@ -131,8 +131,8 @@ export const QueryResultPane = () => {
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
         });
-        if (gridCount === 0) {
-            return; // Exit if there are no grids to render
+        if (gridCount === 0 && metadata?.messages?.length === 0) {
+            return; // Exit if there are no results/messages grids to render
         }
 
         const resultPaneParent = resultPaneParentRef.current;
@@ -429,10 +429,10 @@ export const QueryResultPane = () => {
             },
         }),
     ];
-    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => (
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }) => (
         <DataGridRow<qr.IMessage>
             key={rowId}
-            style={style}
+            // style={style}
             className={classes.messagesRows}
         >
             {({ renderCell }) => (
@@ -469,7 +469,8 @@ export const QueryResultPane = () => {
                 items={items}
                 columns={columns}
                 focusMode="cell"
-                resizableColumns
+                // noNativeElements={false}
+                resizableColumns={true}
                 columnSizingOptions={columnSizingOption}
             >
                 <DataGridBody<qr.IMessage>
