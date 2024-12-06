@@ -74,7 +74,7 @@ suite("ExecutionPlanWebviewController", () => {
     test("should call createExecutionPlanGraphs in getExecutionPlan reducer", async () => {
         // Stub createExecutionPlanGraphs to mock its behavior
         const createExecutionPlanGraphsStub = sandbox
-            .stub(sharedExecutionPlanUtils, "createExecutionPlanGraphs")
+            .stub(epUtils, "createExecutionPlanGraphs")
             .resolves({
                 executionPlanState: {
                     executionPlanGraphs: [],
@@ -114,7 +114,7 @@ suite("ExecutionPlanWebviewController", () => {
 
     test("should call saveExecutionPlan in saveExecutionPlan reducer", async () => {
         const saveExecutionPlanStub = sandbox
-            .stub(sharedExecutionPlanUtils, "saveExecutionPlan")
+            .stub(epUtils, "saveExecutionPlan")
             .resolves({
                 executionPlanState: {
                     executionPlanGraphs: [],
@@ -156,15 +156,13 @@ suite("ExecutionPlanWebviewController", () => {
     });
 
     test("should call showPlanXml in showPlanXml reducer", async () => {
-        const showPlanXmlStub = sandbox
-            .stub(sharedExecutionPlanUtils, "showPlanXml")
-            .resolves({
-                executionPlanState: {
-                    executionPlanGraphs: [],
-                    loadState: ApiStatus.Loaded,
-                    totalCost: 100,
-                },
-            });
+        const showPlanXmlStub = sandbox.stub(epUtils, "showPlanXml").resolves({
+            executionPlanState: {
+                executionPlanGraphs: [],
+                loadState: ApiStatus.Loaded,
+                totalCost: 100,
+            },
+        });
 
         const mockPayload = {
             sqlPlanContent: executionPlanContents,
@@ -196,15 +194,13 @@ suite("ExecutionPlanWebviewController", () => {
     });
 
     test("should call showQuery in showQuery reducer", async () => {
-        const showQueryStub = sandbox
-            .stub(sharedExecutionPlanUtils, "showQuery")
-            .resolves({
-                executionPlanState: {
-                    executionPlanGraphs: [],
-                    loadState: ApiStatus.Loaded,
-                    totalCost: 100,
-                },
-            });
+        const showQueryStub = sandbox.stub(epUtils, "showQuery").resolves({
+            executionPlanState: {
+                executionPlanGraphs: [],
+                loadState: ApiStatus.Loaded,
+                totalCost: 100,
+            },
+        });
 
         const mockPayload = {
             query: "select * from sys.objects;",
@@ -234,7 +230,7 @@ suite("ExecutionPlanWebviewController", () => {
 
     test("should call updateTotalCost in updateTotalCost reducer", async () => {
         const updateTotalCostStub = sandbox
-            .stub(sharedExecutionPlanUtils, "updateTotalCost")
+            .stub(epUtils, "updateTotalCost")
             .resolves({
                 executionPlanState: {
                     executionPlanGraphs: [],
@@ -391,6 +387,8 @@ suite("Execution Plan Utilities", () => {
             mockExecutionPlanService,
             [executionPlanContents],
         );
+
+        console.log(result);
 
         const planFile: ep.ExecutionPlanGraphInfo = {
             graphFileContent: executionPlanContents,
