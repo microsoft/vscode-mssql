@@ -79,43 +79,48 @@ export const AdvancedOptionsDrawer = ({
                     )}
                 </div>
                 <Accordion multiple collapsible>
-                    {Object.keys(
-                        context.state.connectionComponents
-                            .groupedAdvancedOptions,
-                    ).map((group, groupIndex) => {
-                        return (
-                            <AccordionItem value={group} key={groupIndex}>
-                                <AccordionHeader>{group}</AccordionHeader>
-                                <AccordionPanel>
-                                    {context.state.connectionComponents.groupedAdvancedOptions[
-                                        group
-                                    ].map((optionName, idx) => {
-                                        if (
-                                            context.state.connectionComponents
-                                                .components[optionName]
-                                                .hidden === true
-                                        ) {
-                                            return undefined;
-                                        }
-                                        return (
-                                            <FormField
-                                                key={idx}
-                                                context={context}
-                                                component={
+                    {context.state.connectionComponents.groupedAdvancedOptions.map(
+                        (group, groupIndex) => {
+                            return (
+                                <AccordionItem
+                                    value={group.groupName}
+                                    key={groupIndex}
+                                >
+                                    <AccordionHeader>
+                                        {group.groupName}
+                                    </AccordionHeader>
+                                    <AccordionPanel>
+                                        {group.options.map(
+                                            (optionName, idx) => {
+                                                if (
                                                     context.state
                                                         .connectionComponents
-                                                        .components[
-                                                        optionName
-                                                    ] as FormItemSpec<IConnectionDialogProfile>
+                                                        .components[optionName]
+                                                        ?.hidden === true
+                                                ) {
+                                                    return undefined;
                                                 }
-                                                idx={idx}
-                                            />
-                                        );
-                                    })}
-                                </AccordionPanel>
-                            </AccordionItem>
-                        );
-                    })}
+                                                return (
+                                                    <FormField
+                                                        key={idx}
+                                                        context={context}
+                                                        component={
+                                                            context.state
+                                                                .connectionComponents
+                                                                .components[
+                                                                optionName
+                                                            ] as FormItemSpec<IConnectionDialogProfile>
+                                                        }
+                                                        idx={idx}
+                                                    />
+                                                );
+                                            },
+                                        )}
+                                    </AccordionPanel>
+                                </AccordionItem>
+                            );
+                        },
+                    )}
                 </Accordion>
             </DrawerBody>
         </OverlayDrawer>

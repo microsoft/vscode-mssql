@@ -380,7 +380,7 @@ export const AzureBrowsePage = () => {
                                 context.state.connectionComponents.components[
                                     inputName as keyof IConnectionDialogProfile
                                 ];
-                            if (component.hidden === true) {
+                            if (component?.hidden !== false) {
                                 return undefined;
                             }
 
