@@ -13,6 +13,9 @@ import * as ep from "../../src/reactviews/pages/ExecutionPlan/executionPlanInter
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
+import * as TypeMoq from "typemoq";
+import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
 
 suite("ExecutionPlanWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -277,13 +280,31 @@ suite("Execution Plan Utilities", () => {
     let mockExecutionPlanService: ExecutionPlanService;
     let mockUntitledSqlDocumentService: UntitledSqlDocumentService;
     let executionPlanContents: string;
+    let client: TypeMoq.IMock<SqlToolsServiceClient>;
+    let mockResult: ep.GetExecutionPlanResult;
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
         executionPlanContents = contents;
-        mockExecutionPlanService =
-            sandbox.createStubInstance(ExecutionPlanService);
+
+        mockResult = {
+            graphs: TypeMoq.It.isAny(),
+            success: TypeMoq.It.isAny(),
+            errorMessage: TypeMoq.It.isAny(),
+        };
+
+        client = TypeMoq.Mock.ofType(
+            SqlToolsServiceClient,
+            TypeMoq.MockBehavior.Loose,
+        );
+        client
+            .setup((c) =>
+                c.sendRequest(GetExecutionPlanRequest.type, TypeMoq.It.isAny()),
+            )
+            .returns(() => Promise.resolve(mockResult));
+
+        mockExecutionPlanService = new ExecutionPlanService(client.object);
         mockUntitledSqlDocumentService = sandbox.createStubInstance(
             UntitledSqlDocumentService,
         );
@@ -293,9 +314,9 @@ suite("Execution Plan Utilities", () => {
         sandbox.restore();
     });
 
-    /*
-    this needs cleaning up; i still need to implement mocking user input
     test("saveExecutionPlan: should call saveExecutionPlan and return the state", async () => {
+        const showSaveDialogStub = sinon.stub(vscode.window, "showSaveDialog");
+
         const mockState = {
             executionPlanState: {
                 loadState: ApiStatus.Loading,
@@ -306,13 +327,16 @@ suite("Execution Plan Utilities", () => {
 
         const mockPayload = { sqlPlanContent: executionPlanContents };
 
-        const result = await epUtils.saveExecutionPlan(
-            mockState,
-            mockPayload,
-        );
+        const mockUri = vscode.Uri.file("/mock/path/to/plan.sqlplan");
 
+        showSaveDialogStub.resolves(mockUri);
+
+        const result = await epUtils.saveExecutionPlan(mockState, mockPayload);
+
+        sinon.assert.calledOnce(showSaveDialogStub);
+
+        assert.deepEqual(result, mockState);
     });
-    */
 
     test("showXml: should call showXml and return the state", async () => {
         const openDocumentStub = sinon.stub(
@@ -370,10 +394,6 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("createExecutionPlanGraphs: should create executionPlanGraphs correctly and return the state", async () => {
-        (
-            mockExecutionPlanService.getExecutionPlan as sinon.SinonStub
-        ).resolves();
-
         const mockState = {
             executionPlanState: {
                 loadState: ApiStatus.Loading,
@@ -382,22 +402,68 @@ suite("Execution Plan Utilities", () => {
             },
         };
 
+        const getExecutionPlanStub = sandbox
+            .stub(mockExecutionPlanService, "getExecutionPlan")
+            .resolves({
+                graphs: [],
+                success: true,
+                errorMessage: "",
+            });
+
         const result = await epUtils.createExecutionPlanGraphs(
             mockState,
             mockExecutionPlanService,
             [executionPlanContents],
         );
 
-        console.log(result);
+        const planFile: ep.ExecutionPlanGraphInfo = {
+            graphFileContent: executionPlanContents,
+            graphFileType: `.sqlplan`,
+        };
+
+        sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
+
+        assert.notEqual(result, undefined);
+        assert.deepStrictEqual(
+            result.executionPlanState.loadState,
+            ApiStatus.Loaded,
+        );
+    });
+
+    test("createExecutionPlanGraphs: should register error and update the state", async () => {
+        const mockState = {
+            executionPlanState: {
+                loadState: ApiStatus.Loading,
+                executionPlanGraphs: [],
+                totalCost: 0,
+            },
+        };
+
+        const getExecutionPlanStub = sandbox
+            .stub(mockExecutionPlanService, "getExecutionPlan")
+            .rejects(new Error("Mock Error"));
+
+        const result = await epUtils.createExecutionPlanGraphs(
+            mockState,
+            mockExecutionPlanService,
+            [executionPlanContents],
+        );
 
         const planFile: ep.ExecutionPlanGraphInfo = {
             graphFileContent: executionPlanContents,
             graphFileType: `.sqlplan`,
         };
 
-        sinon.assert.calledOnceWithExactly(
-            mockExecutionPlanService.getExecutionPlan as sinon.SinonStub,
-            planFile,
+        sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
+
+        assert.notEqual(result, undefined);
+        assert.deepStrictEqual(
+            result.executionPlanState.loadState,
+            ApiStatus.Error,
+        );
+        assert.deepStrictEqual(
+            result.executionPlanState.errorMessage,
+            "Mock Error",
         );
     });
 
