@@ -32,13 +32,17 @@ export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
     );
 }
 
+/**
+ * Splits messages containing newline characters into separate messages while preserving original properties.
+ * @param messages - Array messages to process
+ * @returns Array of messages with newline characters split into separate messages
+ */
 export const splitMessages = (messages: qr.IMessage[]): qr.IMessage[] => {
     return messages.flatMap((message) => {
         const lines = message.message.split(/\r?\n/);
-        return lines.map((line, index) => {
+        return lines.map((line) => {
             let newMessage = { ...message };
             newMessage.message = line;
-            newMessage.time = index === 0 ? message.time : undefined;
             return newMessage;
         });
     });
