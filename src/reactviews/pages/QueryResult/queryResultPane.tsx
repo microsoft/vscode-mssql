@@ -395,7 +395,15 @@ export const QueryResultPane = () => {
             columnId: "time",
             renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
             renderCell: (item) => (
-                <>{item.batchId === undefined ? item.time : null}</>
+                <div>
+                    <DataGridCell
+                        focusMode="group"
+                        style={{ minHeight: "18px", width: "100px" }}
+                    >
+                        {item.batchId === undefined ? item.time : null}
+                    </DataGridCell>
+                </div>
+                // <div>{item.batchId === undefined ? item.time : null}</div>
             ),
         }),
         createTableColumn({
@@ -405,41 +413,50 @@ export const QueryResultPane = () => {
                 if (item.link?.text && item.selection) {
                     return (
                         <div>
-                            {item.message}{" "}
-                            <Link
-                                onClick={async () => {
-                                    await webViewState.extensionRpc.call(
-                                        "setEditorSelection",
-                                        {
-                                            uri: metadata?.uri,
-                                            selectionData: item.selection,
-                                        },
-                                    );
-                                }}
-                                inline
-                                style={{ fontSize: "12px" }}
+                            <DataGridCell
+                                focusMode="group"
+                                style={{ minHeight: "18px" }}
                             >
-                                {item?.link?.text}
-                            </Link>
+                                <div>
+                                    {item.message}{" "}
+                                    <Link
+                                        onClick={async () => {
+                                            await webViewState.extensionRpc.call(
+                                                "setEditorSelection",
+                                                {
+                                                    uri: metadata?.uri,
+                                                    selectionData:
+                                                        item.selection,
+                                                },
+                                            );
+                                        }}
+                                        inline
+                                        style={{ fontSize: "12px" }}
+                                    >
+                                        {item?.link?.text}
+                                    </Link>
+                                </div>
+                            </DataGridCell>
                         </div>
                     );
                 } else {
-                    return <>{item.message}</>;
+                    return (
+                        <div>
+                            <DataGridCell
+                                focusMode="group"
+                                style={{ minHeight: "18px" }}
+                            >
+                                {item.message}
+                            </DataGridCell>
+                        </div>
+                    );
                 }
             },
         }),
     ];
-    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => (
-        <DataGridRow<qr.IMessage>
-            key={rowId}
-            style={style}
-            className={classes.messagesRows}
-        >
-            {({ renderCell }) => (
-                <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
-                    {renderCell(item)}
-                </DataGridCell>
-            )}
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }) => (
+        <DataGridRow<qr.IMessage> key={rowId} className={classes.messagesRows}>
+            {({ renderCell }) => <>{renderCell(item)}</>}
         </DataGridRow>
     );
 
