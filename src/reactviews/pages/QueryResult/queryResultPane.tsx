@@ -429,10 +429,10 @@ export const QueryResultPane = () => {
             },
         }),
     ];
-    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }) => (
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => (
         <DataGridRow<qr.IMessage>
             key={rowId}
-            // style={style}
+            style={style}
             className={classes.messagesRows}
         >
             {({ renderCell }) => (
@@ -469,7 +469,6 @@ export const QueryResultPane = () => {
                 items={items}
                 columns={columns}
                 focusMode="cell"
-                // noNativeElements={false}
                 resizableColumns={true}
                 columnSizingOptions={columnSizingOption}
             >
