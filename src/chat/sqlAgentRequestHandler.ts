@@ -54,9 +54,7 @@ export const createSqlAgentRequestHandler = (
             let conversationUri = `conversationUri${nextConversationUriId++}`;
             let connectionUri = vscodeWrapper.activeTextEditorUri;
             if (!connectionUri) {
-                stream.markdown(
-                    "Please open a SQL file before asking for help.",
-                );
+                await sendToDefaultLanguageModel(prompt, model, stream, token);
                 return { metadata: { command: "" } };
             }
 
@@ -65,7 +63,10 @@ export const createSqlAgentRequestHandler = (
                 connectionUri,
                 prompt,
             );
-            console.log(success ? "Success" : "Failure");
+            if (!success) {
+                await sendToDefaultLanguageModel(prompt, model, stream, token);
+                return { metadata: { command: "" } };
+            }
 
             let sqlTools: { tool: LanguageModelChatTool; parameters: string }[];
             let replyText = "";
@@ -121,6 +122,7 @@ export const createSqlAgentRequestHandler = (
                         console.warn(
                             `Unhandled message type: ${result.messageType}`,
                         );
+                        continuePollingMessages = false;
                         break;
                 }
 
@@ -143,8 +145,11 @@ export const createSqlAgentRequestHandler = (
         replyText: string,
         copilotService: CopilotService,
     ): Promise<GetNextMessageResponse> {
-        let result: GetNextMessageResponse;
+        if (sqlTools.length === 0) {
+            throw new Error("No tools to process.");
+        }
 
+        let result: GetNextMessageResponse;
         for (const toolCall of sqlTools) {
             result = await copilotService.getNextMessage(
                 conversationUri,
@@ -311,6 +316,50 @@ export const createSqlAgentRequestHandler = (
         stream.markdown(errorMessage);
     }
 
+    async function sendToDefaultLanguageModel(
+        prompt: string,
+        model: vscode.LanguageModelChat,
+        stream: vscode.ChatResponseStream,
+        token: vscode.CancellationToken,
+    ): Promise<void> {
+        try {
+            stream.progress(`Using ${model.name} to process your request...`);
+
+            const messages = [
+                vscode.LanguageModelChatMessage.User(prompt.trim()),
+            ];
+            const options: vscode.LanguageModelChatRequestOptions = {
+                justification:
+                    "Fallback to default language model from MSSQL agent.",
+                tools: [], // No tools involved for this fallback
+            };
+
+            const chatResponse = await model.sendRequest(
+                messages,
+                options,
+                token,
+            );
+
+            let replyText = "";
+            for await (const part of chatResponse.stream) {
+                if (part instanceof vscode.LanguageModelTextPart) {
+                    replyText += part.value;
+                }
+            }
+
+            if (replyText) {
+                stream.markdown(replyText);
+            } else {
+                stream.markdown(
+                    "The language model did not return any output.",
+                );
+            }
+        } catch (err) {
+            console.error("Error in fallback language model call:", err);
+            stream.markdown("An error occurred while processing your request.");
+        }
+    }
+
     function handleError(
         err: unknown,
         stream: vscode.ChatResponseStream,
@@ -318,7 +367,10 @@ export const createSqlAgentRequestHandler = (
         if (err instanceof vscode.LanguageModelError) {
             handleLanguageModelError(err, stream);
         } else if (err instanceof Error) {
-            console.error("Unhandled Error:", err.message);
+            console.error("Unhandled Error:", {
+                message: err.message,
+                stack: err.stack,
+            });
             stream.markdown("An error occurred: " + err.message);
         } else {
             console.error("Unknown Error Type:", err);
