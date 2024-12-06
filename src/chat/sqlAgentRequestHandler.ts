@@ -72,10 +72,15 @@ export const createSqlAgentRequestHandler = (
             let printTextout = false;
 
             while (continuePollingMessages) {
+                // Default continuePollingMessages to true at the start of each loop
+                continuePollingMessages = true;
+
+                // Ensure tools array is initialized
                 if (!sqlTools || sqlTools.length === 0) {
                     sqlTools = [{ tool: undefined, parameters: undefined }];
                 }
 
+                // Process tool calls and get the result
                 const result = await processToolCalls(
                     sqlTools,
                     conversationUri,
@@ -83,30 +88,42 @@ export const createSqlAgentRequestHandler = (
                     copilotService,
                 );
 
+                // Reset for the next iteration
                 replyText = "";
                 sqlTools = undefined;
 
-                continuePollingMessages =
-                    result.messageType !== MessageType.Complete;
-                if (
-                    result.messageType === MessageType.Complete ||
-                    result.messageType === MessageType.Fragment
-                ) {
-                    replyText = "";
-                } else if (result.messageType === MessageType.RequestLLM) {
-                    const { text, tools, print } =
-                        await handleRequestLLMMessage(
-                            result,
-                            model,
-                            stream,
-                            token,
-                        );
+                // Handle different message types
+                switch (result.messageType) {
+                    case MessageType.Complete:
+                        continuePollingMessages = false; // Stop polling
+                        break;
 
-                    replyText = text;
-                    sqlTools = tools;
-                    printTextout = print;
+                    case MessageType.Fragment:
+                        // Fragments are intermediate; polling continues
+                        break;
+
+                    case MessageType.RequestLLM:
+                        const { text, tools, print } =
+                            await handleRequestLLMMessage(
+                                result,
+                                model,
+                                stream,
+                                token,
+                            );
+
+                        replyText = text;
+                        sqlTools = tools;
+                        printTextout = print;
+                        break;
+
+                    default:
+                        console.warn(
+                            `Unhandled message type: ${result.messageType}`,
+                        );
+                        break;
                 }
 
+                // Output reply text if needed
                 if (printTextout) {
                     stream.markdown(replyText);
                     printTextout = false;
