@@ -5,6 +5,7 @@
 
 import { ColorThemeKind } from "../../common/vscodeWebviewProvider";
 import { QueryResultWebviewState } from "../../../sharedInterfaces/queryResult";
+import * as qr from "../../../sharedInterfaces/queryResult";
 
 export const saveAsCsvIcon = (theme: ColorThemeKind) => {
     return theme === ColorThemeKind.Light
@@ -30,3 +31,15 @@ export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
         state.messages.length > 0
     );
 }
+
+export const splitMessages = (messages: qr.IMessage[]): qr.IMessage[] => {
+    return messages.flatMap((message) => {
+        const lines = message.message.split(/\r?\n/);
+        return lines.map((line, index) => {
+            let newMessage = { ...message };
+            newMessage.message = line;
+            newMessage.time = index === 0 ? message.time : undefined;
+            return newMessage;
+        });
+    });
+};

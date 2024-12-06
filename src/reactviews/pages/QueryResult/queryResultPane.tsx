@@ -36,7 +36,7 @@ import {
 } from "./table/table";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
-import { hasResultsOrMessages } from "./queryResultUtils";
+import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -412,57 +412,60 @@ export const QueryResultPane = () => {
             renderCell: (item) => {
                 if (item.link?.text && item.selection) {
                     return (
-                        <div>
-                            <DataGridCell
-                                focusMode="group"
-                                style={{ minHeight: "18px" }}
-                            >
-                                <div>
-                                    {item.message}{" "}
-                                    <Link
-                                        onClick={async () => {
-                                            await webViewState.extensionRpc.call(
-                                                "setEditorSelection",
-                                                {
-                                                    uri: metadata?.uri,
-                                                    selectionData:
-                                                        item.selection,
-                                                },
-                                            );
-                                        }}
-                                        inline
-                                        style={{ fontSize: "12px" }}
-                                    >
-                                        {item?.link?.text}
-                                    </Link>
-                                </div>
-                            </DataGridCell>
-                        </div>
+                        <DataGridCell
+                            focusMode="group"
+                            style={{ minHeight: "18px" }}
+                        >
+                            <div>
+                                {item.message}{" "}
+                                <Link
+                                    onClick={async () => {
+                                        await webViewState.extensionRpc.call(
+                                            "setEditorSelection",
+                                            {
+                                                uri: metadata?.uri,
+                                                selectionData: item.selection,
+                                            },
+                                        );
+                                    }}
+                                    inline
+                                    style={{ fontSize: "12px" }}
+                                >
+                                    {item?.link?.text}
+                                </Link>
+                            </div>
+                        </DataGridCell>
                     );
                 } else {
                     return (
-                        <div>
-                            <DataGridCell
-                                focusMode="group"
-                                style={{ minHeight: "18px" }}
-                            >
+                        <DataGridCell
+                            focusMode="group"
+                            style={{ minHeight: "18px" }}
+                        >
+                            <div style={{ whiteSpace: "nowrap" }}>
                                 {item.message}
-                            </DataGridCell>
-                        </div>
+                            </div>
+                        </DataGridCell>
                     );
                 }
             },
         }),
     ];
-    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }) => (
-        <DataGridRow<qr.IMessage> key={rowId} className={classes.messagesRows}>
-            {({ renderCell }) => <>{renderCell(item)}</>}
-        </DataGridRow>
-    );
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => {
+        return (
+            <DataGridRow<qr.IMessage>
+                key={rowId}
+                className={classes.messagesRows}
+                style={style}
+            >
+                {({ renderCell }) => <>{renderCell(item)}</>}
+            </DataGridRow>
+        );
+    };
 
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items = metadata?.messages ?? [];
+    const items = splitMessages(metadata?.messages) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
