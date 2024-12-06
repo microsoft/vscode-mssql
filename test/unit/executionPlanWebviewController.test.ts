@@ -23,6 +23,8 @@ suite("ExecutionPlanWebviewController", () => {
     let mockExecutionPlanService: ExecutionPlanService;
     let mockUntitledSqlDocumentService: UntitledSqlDocumentService;
     let controller: ExecutionPlanWebviewController;
+    let mockState: ep.ExecutionPlanWebviewState;
+    let mockResultState: ep.ExecutionPlanWebviewState;
 
     const executionPlanContents = contents;
     const xmlPlanFileName = "testPlan.sqlplan";
@@ -40,6 +42,22 @@ suite("ExecutionPlanWebviewController", () => {
             UntitledSqlDocumentService,
         );
 
+        mockState = {
+            executionPlanState: {
+                loadState: ApiStatus.Loading,
+                executionPlanGraphs: [],
+                totalCost: 0,
+            },
+        };
+
+        mockResultState = {
+            executionPlanState: {
+                executionPlanGraphs: [],
+                loadState: ApiStatus.Loaded,
+                totalCost: 100,
+            },
+        };
+
         controller = new ExecutionPlanWebviewController(
             mockContext,
             mockExecutionPlanService,
@@ -54,17 +72,9 @@ suite("ExecutionPlanWebviewController", () => {
     });
 
     test("should initialize with correct state and webview title", () => {
-        const initialState: ep.ExecutionPlanWebviewState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
         assert.deepStrictEqual(
             controller.state,
-            initialState,
+            mockState,
             "Initial state should match",
         );
         assert.deepStrictEqual(
@@ -78,24 +88,12 @@ suite("ExecutionPlanWebviewController", () => {
         // Stub createExecutionPlanGraphs to mock its behavior
         const createExecutionPlanGraphsStub = sandbox
             .stub(epUtils, "createExecutionPlanGraphs")
-            .resolves({
-                executionPlanState: {
-                    executionPlanGraphs: [],
-                    loadState: ApiStatus.Loaded,
-                    totalCost: 100,
-                },
-            });
+            .resolves(mockResultState);
 
-        // Mock state and payload for the reducer
-        const mockState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
-        await controller["_reducers"]["getExecutionPlan"](mockState, {});
+        const result = await controller["_reducers"]["getExecutionPlan"](
+            mockState,
+            {},
+        );
 
         assert.ok(
             createExecutionPlanGraphsStub.calledOnce,
@@ -112,34 +110,21 @@ suite("ExecutionPlanWebviewController", () => {
             "createExecutionPlanGraphs should be called with correct arguments",
         );
 
+        assert.deepStrictEqual(result, mockResultState);
+
         createExecutionPlanGraphsStub.restore();
     });
 
     test("should call saveExecutionPlan in saveExecutionPlan reducer", async () => {
         const saveExecutionPlanStub = sandbox
             .stub(epUtils, "saveExecutionPlan")
-            .resolves({
-                executionPlanState: {
-                    executionPlanGraphs: [],
-                    loadState: ApiStatus.Loaded,
-                    totalCost: 100,
-                },
-            });
+            .resolves(mockState);
 
         const mockPayload = {
             sqlPlanContent: executionPlanContents,
         };
 
-        // Mock state and payload for the reducer
-        const mockState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
-        await controller["_reducers"]["saveExecutionPlan"](
+        const result = await controller["_reducers"]["saveExecutionPlan"](
             mockState,
             mockPayload,
         );
@@ -155,32 +140,24 @@ suite("ExecutionPlanWebviewController", () => {
             "saveExecutionPlan should be called with correct arguments",
         );
 
+        assert.deepStrictEqual(mockState, result);
+
         saveExecutionPlanStub.restore();
     });
 
     test("should call showPlanXml in showPlanXml reducer", async () => {
-        const showPlanXmlStub = sandbox.stub(epUtils, "showPlanXml").resolves({
-            executionPlanState: {
-                executionPlanGraphs: [],
-                loadState: ApiStatus.Loaded,
-                totalCost: 100,
-            },
-        });
+        const showPlanXmlStub = sandbox
+            .stub(epUtils, "showPlanXml")
+            .resolves(mockState);
 
         const mockPayload = {
             sqlPlanContent: executionPlanContents,
         };
 
-        // Mock state and payload for the reducer
-        const mockState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
-        await controller["_reducers"]["showPlanXml"](mockState, mockPayload);
+        const result = await controller["_reducers"]["showPlanXml"](
+            mockState,
+            mockPayload,
+        );
 
         assert.ok(
             showPlanXmlStub.calledOnce,
@@ -193,32 +170,24 @@ suite("ExecutionPlanWebviewController", () => {
             "showPlanXml should be called with correct arguments",
         );
 
+        assert.deepStrictEqual(mockState, result);
+
         showPlanXmlStub.restore();
     });
 
     test("should call showQuery in showQuery reducer", async () => {
-        const showQueryStub = sandbox.stub(epUtils, "showQuery").resolves({
-            executionPlanState: {
-                executionPlanGraphs: [],
-                loadState: ApiStatus.Loaded,
-                totalCost: 100,
-            },
-        });
+        const showQueryStub = sandbox
+            .stub(epUtils, "showQuery")
+            .resolves(mockState);
 
         const mockPayload = {
             query: "select * from sys.objects;",
         };
 
-        // Mock state and payload for the reducer
-        const mockState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
-        await controller["_reducers"]["showQuery"](mockState, mockPayload);
+        const result = await controller["_reducers"]["showQuery"](
+            mockState,
+            mockPayload,
+        );
 
         assert.ok(showQueryStub.calledOnce, "showQuery should be called once");
 
@@ -227,6 +196,8 @@ suite("ExecutionPlanWebviewController", () => {
             [mockState, mockPayload, controller.untitledSqlDocumentService],
             "showQuery should be called with correct arguments",
         );
+
+        assert.deepStrictEqual(mockState, result);
 
         showQueryStub.restore();
     });
@@ -243,19 +214,10 @@ suite("ExecutionPlanWebviewController", () => {
             });
 
         const mockPayload = {
-            addedCost: 1,
+            addedCost: 100,
         };
 
-        // Mock state and payload for the reducer
-        const mockState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
-        await controller["_reducers"]["updateTotalCost"](
+        const result = await controller["_reducers"]["updateTotalCost"](
             mockState,
             mockPayload,
         );
@@ -271,6 +233,8 @@ suite("ExecutionPlanWebviewController", () => {
             "showQuery should be called with correct arguments",
         );
 
+        assert.deepStrictEqual(result, mockResultState);
+
         updateTotalCostStub.restore();
     });
 });
@@ -282,6 +246,7 @@ suite("Execution Plan Utilities", () => {
     let executionPlanContents: string;
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let mockResult: ep.GetExecutionPlanResult;
+    let mockState: ep.ExecutionPlanWebviewState;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -292,6 +257,14 @@ suite("Execution Plan Utilities", () => {
             graphs: TypeMoq.It.isAny(),
             success: TypeMoq.It.isAny(),
             errorMessage: TypeMoq.It.isAny(),
+        };
+
+        mockState = {
+            executionPlanState: {
+                loadState: ApiStatus.Loading,
+                executionPlanGraphs: [],
+                totalCost: 0,
+            },
         };
 
         client = TypeMoq.Mock.ofType(
@@ -316,15 +289,6 @@ suite("Execution Plan Utilities", () => {
 
     test("saveExecutionPlan: should call saveExecutionPlan and return the state", async () => {
         const showSaveDialogStub = sinon.stub(vscode.window, "showSaveDialog");
-
-        const mockState = {
-            executionPlanState: {
-                loadState: ApiStatus.Loading,
-                executionPlanGraphs: [],
-                totalCost: 0,
-            },
-        };
-
         const mockPayload = { sqlPlanContent: executionPlanContents };
 
         const mockUri = vscode.Uri.file("/mock/path/to/plan.sqlplan");
