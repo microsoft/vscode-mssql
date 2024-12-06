@@ -1621,7 +1621,7 @@ declare module 'vscode-mssql' {
 	export interface ConnectionProviderOptions {
 		options: ConnectionOption[];
 
-		groupDisplayNames: { [id: string]: string };
+		groupDisplayNames: { [groupId: string]: string };
 	}
 
 	export interface ServiceOption {
