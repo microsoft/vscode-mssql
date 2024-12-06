@@ -403,7 +403,6 @@ export const QueryResultPane = () => {
                         {item.batchId === undefined ? item.time : null}
                     </DataGridCell>
                 </div>
-                // <div>{item.batchId === undefined ? item.time : null}</div>
             ),
         }),
         createTableColumn({
@@ -416,7 +415,7 @@ export const QueryResultPane = () => {
                             focusMode="group"
                             style={{ minHeight: "18px" }}
                         >
-                            <div>
+                            <div style={{ whiteSpace: "nowrap" }}>
                                 {item.message}{" "}
                                 <Link
                                     onClick={async () => {
