@@ -9,6 +9,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     GetNextMessageResponse,
     LanguageModelChatTool,
+    LanguageModelRequestMessage,
     MessageRole,
     MessageType,
 } from "../models/contracts/copilot";
@@ -160,8 +161,63 @@ export const createSqlAgentRequestHandler = (
         return result!;
     }
 
+    function prepareRequestMessages(
+        result: GetNextMessageResponse,
+    ): vscode.LanguageModelChatMessage[] {
+        return result.requestMessages.map(
+            (message: LanguageModelRequestMessage) =>
+                message.role === MessageRole.System
+                    ? vscode.LanguageModelChatMessage.Assistant(message.text)
+                    : vscode.LanguageModelChatMessage.User(message.text),
+        );
+    }
+
+    function mapRequestTools(
+        tools: LanguageModelChatTool[],
+    ): vscode.LanguageModelChatTool[] {
+        return tools.map(
+            (tool): vscode.LanguageModelChatTool => ({
+                name: tool.functionName,
+                description: tool.functionDescription,
+                inputSchema: JSON.parse(tool.functionParameters),
+            }),
+        );
+    }
+
+    async function processResponseParts(
+        stream: vscode.ChatResponseStream,
+        chatResponse: vscode.LanguageModelChatResponse,
+        tools: LanguageModelChatTool[],
+    ): Promise<{
+        replyText: string;
+        toolsCalled: { tool: LanguageModelChatTool; parameters: string }[];
+        printTextout: boolean;
+    }> {
+        const toolsCalled: {
+            tool: LanguageModelChatTool;
+            parameters: string;
+        }[] = [];
+        let replyText = "";
+        let printTextout = false;
+
+        for await (const part of chatResponse.stream) {
+            if (part instanceof vscode.LanguageModelTextPart) {
+                replyText += part.value;
+                printTextout = true;
+            } else if (part instanceof vscode.LanguageModelToolCallPart) {
+                const { sqlTool: tool, sqlToolParameters: parameters } =
+                    await processToolCall(tools, part, stream);
+                if (tool) {
+                    toolsCalled.push({ tool, parameters });
+                }
+            }
+        }
+
+        return { replyText, toolsCalled, printTextout };
+    }
+
     async function handleRequestLLMMessage(
-        result: any,
+        result: GetNextMessageResponse,
         model: vscode.LanguageModelChat,
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
@@ -170,53 +226,17 @@ export const createSqlAgentRequestHandler = (
         tools: { tool: LanguageModelChatTool; parameters: string }[];
         print: boolean;
     }> {
-        const requestTools = result.tools.map(
-            (tool): vscode.LanguageModelChatTool => {
-                return {
-                    name: tool.functionName,
-                    description: tool.functionDescription,
-                    inputSchema: JSON.parse(tool.functionParameters),
-                };
-            },
-        );
-
+        const requestTools = mapRequestTools(result.tools);
         const options: vscode.LanguageModelChatRequestOptions = {
             justification: "SQL Server Copilot requested this information.",
             tools: requestTools,
         };
-        const messages = [];
+        const messages = prepareRequestMessages(result);
 
-        for (const message of result.requestMessages) {
-            if (message.role === MessageRole.System) {
-                messages.push(
-                    vscode.LanguageModelChatMessage.Assistant(message.text),
-                );
-            } else {
-                messages.push(
-                    vscode.LanguageModelChatMessage.User(message.text),
-                );
-            }
-        }
-
-        const toolsCalled: {
-            tool: LanguageModelChatTool;
-            parameters: string;
-        }[] = [];
-        let replyText = "";
-        let printTextout = false;
         const chatResponse = await model.sendRequest(messages, options, token);
-        for await (const part of chatResponse.stream) {
-            if (part instanceof vscode.LanguageModelTextPart) {
-                replyText += part.value;
-                printTextout = true;
-            } else if (part instanceof vscode.LanguageModelToolCallPart) {
-                const { sqlTool: tool, sqlToolParameters: parameters } =
-                    await processToolCall(result.tools, part, stream);
-                if (tool) {
-                    toolsCalled.push({ tool, parameters });
-                }
-            }
-        }
+        const { replyText, toolsCalled, printTextout } =
+            await processResponseParts(stream, chatResponse, result.tools);
+
         return {
             text: replyText,
             tools: toolsCalled,
@@ -226,7 +246,7 @@ export const createSqlAgentRequestHandler = (
 
     // Helper function for tool handling
     async function processToolCall(
-        resultTools: Array<any>, // Replace `any` with the actual tool type if available
+        resultTools: Array<LanguageModelChatTool>, // Replace `any` with the actual tool type if available
         part: vscode.LanguageModelToolCallPart,
         stream: vscode.ChatResponseStream,
     ): Promise<{
@@ -267,54 +287,42 @@ export const createSqlAgentRequestHandler = (
         return { sqlTool, sqlToolParameters };
     }
 
-    function handleError(err: any, stream: vscode.ChatResponseStream): void {
-        console.error("Error Details:", err);
+    function handleLanguageModelError(
+        err: vscode.LanguageModelError,
+        stream: vscode.ChatResponseStream,
+    ): void {
+        console.error("Language Model Error:", err.message, "Code:", err.code);
 
+        const errorMessages: Record<string, string> = {
+            model_not_found:
+                "The requested model could not be found. Please check model availability or try a different model.",
+            no_permission:
+                "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
+            quote_limit_exceeded:
+                "Usage limits exceeded. Try again later, or consider optimizing your requests.",
+            off_topic:
+                "I'm sorry, I can only assist with SQL-related questions.",
+        };
+
+        const errorMessage =
+            errorMessages[err.code] ||
+            "An unexpected error occurred with the language model. Please try again.";
+
+        stream.markdown(errorMessage);
+    }
+
+    function handleError(
+        err: unknown,
+        stream: vscode.ChatResponseStream,
+    ): void {
         if (err instanceof vscode.LanguageModelError) {
-            console.error(
-                "Language Model Error:",
-                err.message,
-                "Code:",
-                err.code,
-            );
-
-            switch (err.code) {
-                case "model_not_found":
-                    stream.markdown(
-                        "The requested model could not be found. Please check model availability or try a different model.",
-                    );
-                    break;
-
-                case "no_permission":
-                    stream.markdown(
-                        "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
-                    );
-                    break;
-
-                case "quote_limit_exceeded":
-                    stream.markdown(
-                        "Usage limits exceeded. Try again later, or consider optimizing your requests.",
-                    );
-                    break;
-
-                case "off_topic":
-                    stream.markdown(
-                        "I'm sorry, I can only assist with SQL-related questions.",
-                    );
-                    break;
-
-                default:
-                    stream.markdown(
-                        "An unexpected error occurred with the language model. Please try again.",
-                    );
-                    break;
-            }
+            handleLanguageModelError(err, stream);
+        } else if (err instanceof Error) {
+            console.error("Unhandled Error:", err.message);
+            stream.markdown("An error occurred: " + err.message);
         } else {
-            // Log non-LanguageModelError details to track down the error
-            console.error("Unhandled Error Type:", err);
-            stream.markdown(
-                "An error occurred while processing your request. Please check your input and try again.",
-            );
+            console.error("Unknown Error Type:", err);
+            stream.markdown("An unknown error occurred. Please try again.");
         }
     }
 
