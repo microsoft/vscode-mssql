@@ -1550,10 +1550,15 @@ export default class MainController implements vscode.Disposable {
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
-            self._executionPlanOptions.includeActualExecutionPlanXml =
-                self._queryResultWebviewController.actualPlanStatuses.includes(
-                    uri,
-                );
+            if (self._queryResultWebviewController) {
+                self._executionPlanOptions.includeActualExecutionPlanXml =
+                    self._queryResultWebviewController.actualPlanStatuses.includes(
+                        uri,
+                    );
+            } else {
+                self._executionPlanOptions.includeActualExecutionPlanXml =
+                    false;
+            }
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
@@ -1964,7 +1969,11 @@ export default class MainController implements vscode.Disposable {
     public async onDidCloseTextDocument(
         doc: vscode.TextDocument,
     ): Promise<void> {
-        if (this._connectionMgr === undefined) {
+        if (
+            this._connectionMgr === undefined ||
+            doc === undefined ||
+            doc.uri === undefined
+        ) {
             // Avoid processing events before initialization is complete
             return;
         }

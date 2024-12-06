@@ -96,13 +96,27 @@ export async function run(): Promise<void> {
     const files = glob.sync("**/*.test.js", { cwd: testsRoot });
     files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
-    const failures: number = await new Promise((resolve) => mocha.run(resolve));
+    // Array to store failed tests
+    const failedTests: string[] = [];
+
+    const failures: number = await new Promise((resolve) => {
+        const runner = mocha.run(resolve);
+
+        // Capture failed test titles
+        runner.on("fail", (test, err) => {
+            failedTests.push(`${test.fullTitle()}: ${err.message}`);
+        });
+    });
     await nyc.writeCoverageFile();
 
     // Capture text-summary reporter's output and log it in console
     console.log(await captureStdout(nyc.report.bind(nyc)));
 
     if (failures > 0) {
+        console.log("\nFailed Tests:");
+        failedTests.forEach((test, index) =>
+            console.log(`${index + 1}) ${test}`),
+        );
         throw new Error(`${failures} tests failed.`);
     }
 }
