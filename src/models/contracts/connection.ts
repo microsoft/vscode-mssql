@@ -3,9 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DataProtocolServerCapabilities } from "azdata";
 import { NotificationType, RequestType } from "vscode-languageclient";
-import { ConnectionDetails, IServerInfo } from "vscode-mssql";
+import {
+    ConnectionDetails,
+    IServerInfo,
+    DataProtocolServerCapabilities,
+} from "vscode-mssql";
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 

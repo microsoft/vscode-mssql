@@ -25,18 +25,7 @@ export class ConnectionDialogWebviewState
         this.formState = value;
     }
     public selectedInputMode: ConnectionInputMode;
-    public connectionComponents: {
-        components: Record<
-            keyof IConnectionDialogProfile,
-            ConnectionDialogFormItemSpec
-        >;
-        mainOptions: (keyof IConnectionDialogProfile)[];
-        topAdvancedOptions: (keyof IConnectionDialogProfile)[];
-        groupedAdvancedOptions: Record<
-            string,
-            (keyof IConnectionDialogProfile)[]
-        >;
-    };
+    public connectionComponents: ConnectionComponentsInfo;
     public azureSubscriptions: AzureSubscriptionInfo[];
     public azureServers: AzureSqlServerInfo[];
     public savedConnections: IConnectionDialogProfile[];
@@ -63,18 +52,7 @@ export class ConnectionDialogWebviewState
     }: {
         connectionProfile: IConnectionDialogProfile;
         selectedInputMode: ConnectionInputMode;
-        connectionComponents: {
-            components: Record<
-                keyof IConnectionDialogProfile,
-                ConnectionDialogFormItemSpec
-            >;
-            mainOptions: (keyof IConnectionDialogProfile)[];
-            topAdvancedOptions: (keyof IConnectionDialogProfile)[];
-            groupedAdvancedOptions: Record<
-                string,
-                (keyof IConnectionDialogProfile)[]
-            >;
-        };
+        connectionComponents: ConnectionComponentsInfo;
         azureServers: AzureSqlServerInfo[];
         azureSubscriptions: AzureSubscriptionInfo[];
         savedConnections: IConnectionDialogProfile[];
@@ -130,10 +108,25 @@ export interface AzureSqlServerInfo {
     subscription: string;
 }
 
+export interface ConnectionComponentsInfo {
+    components: Partial<
+        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
+    >;
+    mainOptions: (keyof IConnectionDialogProfile)[];
+    topAdvancedOptions: (keyof IConnectionDialogProfile)[];
+    groupedAdvancedOptions: ConnectionComponentGroup[];
+}
+
+export interface ConnectionComponentGroup {
+    groupName: string;
+    options: (keyof IConnectionDialogProfile)[];
+}
+
 export interface ConnectionDialogFormItemSpec
     extends FormItemSpec<IConnectionDialogProfile> {
     isAdvancedOption: boolean;
     optionCategory?: string;
+    optionCategoryLabel?: string;
 }
 
 export enum ConnectionInputMode {

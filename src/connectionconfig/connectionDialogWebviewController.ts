@@ -21,6 +21,8 @@ import {
     AddFirewallRuleDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
+    ConnectionComponentsInfo,
+    ConnectionComponentGroup,
 } from "../sharedInterfaces/connectionDialog";
 import {
     CapabilitiesResult,
@@ -53,8 +55,7 @@ import {
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
-import { ConnectionOption } from "azdata";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, ConnectionOption } from "vscode-mssql";
 import { Logger } from "../models/logger";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -103,7 +104,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     components: {} as any, // force empty record for intial blank state
                     mainOptions: [],
                     topAdvancedOptions: [],
-                    groupedAdvancedOptions: {},
+                    groupedAdvancedOptions: [],
                 },
                 azureSubscriptions: [],
                 azureServers: [],
@@ -208,7 +209,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 "connectTimeout",
                 "multiSubnetFailover",
             ],
-            groupedAdvancedOptions: {}, // computed below
+            groupedAdvancedOptions: [], // computed below
         };
 
         this.state.connectionComponents.groupedAdvancedOptions =
@@ -663,6 +664,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         const connectionOptions: ConnectionOption[] =
             capabilitiesResult.capabilities.connectionProvider.options;
 
+        const groupNames =
+            capabilitiesResult.capabilities.connectionProvider
+                .groupDisplayNames;
+
         const result: Record<
             keyof IConnectionDialogProfile,
             ConnectionDialogFormItemSpec
@@ -675,6 +680,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                     ...this.convertToFormComponent(option),
                     isAdvancedOption: !this._mainOptionNames.has(option.name),
                     optionCategory: option.groupName,
+                    optionCategoryLabel:
+                        groupNames[option.groupName] ?? option.groupName,
                 };
             } catch (err) {
                 console.error(
@@ -699,36 +706,44 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         return result;
     }
 
-    private groupAdvancedOptions({
-        components,
-        mainOptions,
-        topAdvancedOptions,
-    }: {
-        components: Partial<
-            Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-        >;
-        mainOptions: (keyof IConnectionDialogProfile)[];
-        topAdvancedOptions: (keyof IConnectionDialogProfile)[];
-    }): Record<string, (keyof IConnectionDialogProfile)[]> {
-        const result = {};
+    private groupAdvancedOptions(
+        componentsInfo: ConnectionComponentsInfo,
+    ): ConnectionComponentGroup[] {
+        const groupMap: Map<string, ConnectionComponentGroup> = new Map([
+            // intialize with display order; any that aren't pre-defined will be appended
+            // these values must match the GroupName defined in SQL Tools Service.
+            ["security", undefined],
+            ["initialization", undefined],
+            ["resiliency", undefined],
+            ["pooling", undefined],
+            ["context", undefined],
+        ]);
 
-        for (const component of Object.values(components)) {
+        const optionsToGroup = Object.values(componentsInfo.components).filter(
+            (c) =>
+                c.isAdvancedOption &&
+                !componentsInfo.mainOptions.includes(c.propertyName) &&
+                !componentsInfo.topAdvancedOptions.includes(c.propertyName),
+        );
+
+        for (const option of optionsToGroup) {
             if (
-                component.isAdvancedOption &&
-                !mainOptions.includes(component.propertyName) &&
-                !topAdvancedOptions.includes(component.propertyName)
+                // new group ID or group ID hasn't been initialized yet
+                !groupMap.has(option.optionCategory) ||
+                groupMap.get(option.optionCategory) === undefined
             ) {
-                if (!result[component.optionCategory]) {
-                    result[component.optionCategory] = [component.propertyName];
-                } else {
-                    result[component.optionCategory].push(
-                        component.propertyName,
-                    );
-                }
+                groupMap.set(option.optionCategory, {
+                    groupName: option.optionCategoryLabel,
+                    options: [option.propertyName],
+                });
+            } else {
+                groupMap
+                    .get(option.optionCategory)
+                    .options.push(option.propertyName);
             }
         }
 
-        return result;
+        return Array.from(groupMap.values());
     }
 
     private _mainOptionNames = new Set<string>([
