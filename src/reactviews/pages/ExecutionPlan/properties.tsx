@@ -341,116 +341,125 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             }}
         >
             <div
-                className={classes.propertiesHeader}
                 style={{
-                    background: tokens.colorNeutralBackground2,
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 1,
+                    background: tokens.colorNeutralBackground1,
                 }}
             >
-                <div>{PROPERTIES}</div>
-                <div>
-                    <Button
-                        className={classes.dismissButton}
-                        style={{
-                            background: tokens.colorNeutralBackground2,
-                        }}
-                        onClick={() => setPropertiesClicked(false)}
-                        icon={<Dismiss12Regular />}
-                    />
-                </div>
-            </div>
-            <div className={classes.nameContainer}>{name}</div>
-            <Toolbar className={classes.toolbar} size="small">
-                <ToolbarButton
-                    className={classes.button}
-                    tabIndex={0}
-                    icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={utils.sortByImportance(theme)}
-                            alt={IMPORTANCE}
-                        />
-                    }
-                    onClick={() => handleSort(ep.SortOption.Importance)}
-                    title={IMPORTANCE}
-                    aria-label={IMPORTANCE}
-                />
-                <ToolbarButton
-                    className={classes.button}
-                    tabIndex={0}
-                    icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={utils.sortAlphabetically(theme)}
-                            alt={ALPHABETICAL}
-                        />
-                    }
-                    onClick={() => handleSort(ep.SortOption.Alphabetical)}
-                    title={ALPHABETICAL}
-                    aria-label={ALPHABETICAL}
-                />
-                <ToolbarButton
-                    className={classes.button}
-                    tabIndex={0}
-                    icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={utils.sortReverseAlphabetically(theme)}
-                            alt={REVERSE_ALPHABETICAL}
-                        />
-                    }
-                    onClick={() =>
-                        handleSort(ep.SortOption.ReverseAlphabetical)
-                    }
-                    title={REVERSE_ALPHABETICAL}
-                    aria-label={REVERSE_ALPHABETICAL}
-                />
-                <ToolbarButton
-                    className={classes.button}
-                    tabIndex={0}
-                    icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={utils.expandAll(theme)}
-                            alt={EXPAND_ALL}
-                        />
-                    }
-                    onClick={handleExpandAll}
-                    title={EXPAND_ALL}
-                    aria-label={EXPAND_ALL}
-                />
-                <ToolbarButton
-                    className={classes.button}
-                    tabIndex={0}
-                    icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={utils.collapseAll(theme)}
-                            alt={COLLAPSE_ALL}
-                        />
-                    }
-                    onClick={handleCollapseAll}
-                    title={COLLAPSE_ALL}
-                    aria-label={COLLAPSE_ALL}
-                />
-                <Input
-                    type="text"
-                    size="small"
-                    className={classes.inputbox}
-                    value={inputValue}
-                    placeholder={FILTER_ANY_FIELD}
-                    contentBefore={
-                        <img
-                            src={utils.filterIcon(theme)}
-                            alt={FILTER_ANY_FIELD}
-                            style={{ width: "20px", height: "20px" }}
-                        />
-                    }
-                    onChange={(e) => {
-                        setInputValue(e.target.value);
-                        void handleFilter(e.target.value);
+                <div
+                    className={classes.propertiesHeader}
+                    style={{
+                        background: tokens.colorNeutralBackground2,
                     }}
-                />
-            </Toolbar>
+                >
+                    <div>{PROPERTIES}</div>
+                    <div>
+                        <Button
+                            className={classes.dismissButton}
+                            style={{
+                                background: tokens.colorNeutralBackground2,
+                            }}
+                            onClick={() => setPropertiesClicked(false)}
+                            icon={<Dismiss12Regular />}
+                        />
+                    </div>
+                </div>
+                <div className={classes.nameContainer}>{name}</div>
+                <Toolbar className={classes.toolbar} size="small">
+                    <ToolbarButton
+                        className={classes.button}
+                        tabIndex={0}
+                        icon={
+                            <img
+                                className={classes.buttonImg}
+                                src={utils.sortByImportance(theme)}
+                                alt={IMPORTANCE}
+                            />
+                        }
+                        onClick={() => handleSort(ep.SortOption.Importance)}
+                        title={IMPORTANCE}
+                        aria-label={IMPORTANCE}
+                    />
+                    <ToolbarButton
+                        className={classes.button}
+                        tabIndex={0}
+                        icon={
+                            <img
+                                className={classes.buttonImg}
+                                src={utils.sortAlphabetically(theme)}
+                                alt={ALPHABETICAL}
+                            />
+                        }
+                        onClick={() => handleSort(ep.SortOption.Alphabetical)}
+                        title={ALPHABETICAL}
+                        aria-label={ALPHABETICAL}
+                    />
+                    <ToolbarButton
+                        className={classes.button}
+                        tabIndex={0}
+                        icon={
+                            <img
+                                className={classes.buttonImg}
+                                src={utils.sortReverseAlphabetically(theme)}
+                                alt={REVERSE_ALPHABETICAL}
+                            />
+                        }
+                        onClick={() =>
+                            handleSort(ep.SortOption.ReverseAlphabetical)
+                        }
+                        title={REVERSE_ALPHABETICAL}
+                        aria-label={REVERSE_ALPHABETICAL}
+                    />
+                    <ToolbarButton
+                        className={classes.button}
+                        tabIndex={0}
+                        icon={
+                            <img
+                                className={classes.buttonImg}
+                                src={utils.expandAll(theme)}
+                                alt={EXPAND_ALL}
+                            />
+                        }
+                        onClick={handleExpandAll}
+                        title={EXPAND_ALL}
+                        aria-label={EXPAND_ALL}
+                    />
+                    <ToolbarButton
+                        className={classes.button}
+                        tabIndex={0}
+                        icon={
+                            <img
+                                className={classes.buttonImg}
+                                src={utils.collapseAll(theme)}
+                                alt={COLLAPSE_ALL}
+                            />
+                        }
+                        onClick={handleCollapseAll}
+                        title={COLLAPSE_ALL}
+                        aria-label={COLLAPSE_ALL}
+                    />
+                    <Input
+                        type="text"
+                        size="small"
+                        className={classes.inputbox}
+                        value={inputValue}
+                        placeholder={FILTER_ANY_FIELD}
+                        contentBefore={
+                            <img
+                                src={utils.filterIcon(theme)}
+                                alt={FILTER_ANY_FIELD}
+                                style={{ width: "20px", height: "20px" }}
+                            />
+                        }
+                        onChange={(e) => {
+                            setInputValue(e.target.value);
+                            void handleFilter(e.target.value);
+                        }}
+                    />
+                </Toolbar>
+            </div>
             <div style={{ width: "100%" }}>
                 <DataGrid
                     items={items}
