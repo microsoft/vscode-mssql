@@ -25,13 +25,16 @@ const MODEL_SELECTOR: vscode.LanguageModelChatSelector = {
     family: "gpt-4o",
 };
 
-let nextConversationUriId = 1;
-
 export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
     vscodeWrapper: VscodeWrapper,
     context: vscode.ExtensionContext,
 ): vscode.ChatRequestHandler => {
+    const getNextConversationUri = (() => {
+        let idCounter = 1;
+        return () => `conversationUri${idCounter++}`;
+    })();
+
     const handler: vscode.ChatRequestHandler = async (
         request: vscode.ChatRequest,
         _context: vscode.ChatContext,
@@ -51,7 +54,7 @@ export const createSqlAgentRequestHandler = (
                 `Using ${model.name} (${context.languageModelAccessInformation.canSendRequest(model)})...`,
             );
 
-            let conversationUri = `conversationUri${nextConversationUriId++}`;
+            let conversationUri = getNextConversationUri();
             let connectionUri = vscodeWrapper.activeTextEditorUri;
             if (!connectionUri) {
                 await sendToDefaultLanguageModel(prompt, model, stream, token);

@@ -265,34 +265,10 @@
       {
         "id": "mssql.agent",
         "name": "mssql",
-        "description": "SQL Server Copilot agent",
-        "commands": [
-          {
-            "name": "show",
-            "description": "Shows all tables."
-          }
-        ]
+        "description": "Azure SQL Copilot agent",
+        "commands": []
       }
     ],
-    "languageModelTools": [
-      {
-          "id": "chat-sample_tabCount",
-          "name": "tabCount",
-          "displayName": "Tab Count",
-          "modelDescription": "The number of active tabs in a tab group",
-          "icon": "$(files)",
-          "canBeInvokedManually": true,
-          "parametersSchema": {
-              "type": "object",
-              "properties": {
-                  "tabGroup": {
-                      "type": "number",
-                      "description": "The index of the tab group to check. This is optional- if not specified, the active tab group will be checked.",
-                      "default": 0
-                  }
-              }
-          }
-      }],
     "customEditors": [
       {
         "viewType": "mssql.executionPlanView",
