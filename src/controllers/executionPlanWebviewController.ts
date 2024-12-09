@@ -23,12 +23,12 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        private executionPlanService: ExecutionPlanService,
-        private untitledSqlDocumentService: UntitledSqlDocumentService,
-        private executionPlanContents: string,
+        public executionPlanService: ExecutionPlanService, // public for testing purposes
+        public untitledSqlDocumentService: UntitledSqlDocumentService,
+        public executionPlanContents: string,
         // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
         // @ts-ignore
-        private xmlPlanFileName: string,
+        xmlPlanFileName: string,
     ) {
         super(
             context,
