@@ -113,7 +113,7 @@ suite("ExecutionPlanWebviewController", () => {
         assert.deepStrictEqual(
             result,
             mockResultState,
-            "State should be updated by function",
+            "State should have an updated total cost, api status, and graphs",
         );
 
         createExecutionPlanGraphsStub.restore();
@@ -256,7 +256,7 @@ suite("ExecutionPlanWebviewController", () => {
         assert.deepStrictEqual(
             result,
             mockResultState,
-            "State should be updated by reducer call",
+            "State should have an updated total cost",
         );
 
         updateTotalCostStub.restore();
@@ -407,7 +407,7 @@ suite("Execution Plan Utilities", () => {
         assert.deepStrictEqual(
             result.executionPlanState.loadState,
             ApiStatus.Loaded,
-            "The resulting state should be updated",
+            "The api status of the state should be properly updated",
         );
     });
 
