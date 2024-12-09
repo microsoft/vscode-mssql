@@ -36,7 +36,7 @@ import {
 } from "./table/table";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
-import { hasResultsOrMessages } from "./queryResultUtils";
+import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -131,8 +131,8 @@ export const QueryResultPane = () => {
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
         });
-        if (gridCount === 0) {
-            return; // Exit if there are no grids to render
+        if (gridCount === 0 && metadata?.messages?.length === 0) {
+            return; // Exit if there are no results/messages grids to render
         }
 
         const resultPaneParent = resultPaneParentRef.current;
@@ -395,7 +395,14 @@ export const QueryResultPane = () => {
             columnId: "time",
             renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
             renderCell: (item) => (
-                <>{item.batchId === undefined ? item.time : null}</>
+                <div>
+                    <DataGridCell
+                        focusMode="group"
+                        style={{ minHeight: "18px", width: "100px" }}
+                    >
+                        {item.batchId === undefined ? item.time : null}
+                    </DataGridCell>
+                </div>
             ),
         }),
         createTableColumn({
@@ -404,48 +411,60 @@ export const QueryResultPane = () => {
             renderCell: (item) => {
                 if (item.link?.text && item.selection) {
                     return (
-                        <div>
-                            {item.message}{" "}
-                            <Link
-                                onClick={async () => {
-                                    await webViewState.extensionRpc.call(
-                                        "setEditorSelection",
-                                        {
-                                            uri: metadata?.uri,
-                                            selectionData: item.selection,
-                                        },
-                                    );
-                                }}
-                                inline
-                                style={{ fontSize: "12px" }}
-                            >
-                                {item?.link?.text}
-                            </Link>
-                        </div>
+                        <DataGridCell
+                            focusMode="group"
+                            style={{ minHeight: "18px" }}
+                        >
+                            <div style={{ whiteSpace: "nowrap" }}>
+                                {item.message}{" "}
+                                <Link
+                                    onClick={async () => {
+                                        await webViewState.extensionRpc.call(
+                                            "setEditorSelection",
+                                            {
+                                                uri: metadata?.uri,
+                                                selectionData: item.selection,
+                                            },
+                                        );
+                                    }}
+                                    inline
+                                    style={{ fontSize: "12px" }}
+                                >
+                                    {item?.link?.text}
+                                </Link>
+                            </div>
+                        </DataGridCell>
                     );
                 } else {
-                    return <>{item.message}</>;
+                    return (
+                        <DataGridCell
+                            focusMode="group"
+                            style={{ minHeight: "18px" }}
+                        >
+                            <div style={{ whiteSpace: "nowrap" }}>
+                                {item.message}
+                            </div>
+                        </DataGridCell>
+                    );
                 }
             },
         }),
     ];
-    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => (
-        <DataGridRow<qr.IMessage>
-            key={rowId}
-            style={style}
-            className={classes.messagesRows}
-        >
-            {({ renderCell }) => (
-                <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
-                    {renderCell(item)}
-                </DataGridCell>
-            )}
-        </DataGridRow>
-    );
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => {
+        return (
+            <DataGridRow<qr.IMessage>
+                key={rowId}
+                className={classes.messagesRows}
+                style={style}
+            >
+                {({ renderCell }) => <>{renderCell(item)}</>}
+            </DataGridRow>
+        );
+    };
 
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items = metadata?.messages ?? [];
+    const items = splitMessages(metadata?.messages) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -469,7 +488,7 @@ export const QueryResultPane = () => {
                 items={items}
                 columns={columns}
                 focusMode="cell"
-                resizableColumns
+                resizableColumns={true}
                 columnSizingOptions={columnSizingOption}
             >
                 <DataGridBody<qr.IMessage>
@@ -574,6 +593,7 @@ export const QueryResultPane = () => {
                 {webviewLocation === "panel" && (
                     <Button
                         icon={<OpenRegular />}
+                        iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
                             await webViewState.extensionRpc.call(
@@ -584,7 +604,10 @@ export const QueryResultPane = () => {
                             );
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
-                    ></Button>
+                        style={{ marginTop: "4px", marginBottom: "4px" }}
+                    >
+                        {locConstants.queryResult.openResultInNewTab}
+                    </Button>
                 )}
             </div>
             <div className={classes.tabContent}>

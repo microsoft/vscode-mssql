@@ -318,3 +318,10 @@ export function registerCommonRequestHandlers(
 export function recordLength(record: any): number {
     return Object.keys(record).length;
 }
+
+export function messageToString(message: qr.IMessage): string {
+    if (message.link?.text) {
+        return `${message.message}${message.link.text}`;
+    }
+    return message.message;
+}

@@ -22,6 +22,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
+    messageToString,
     recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
@@ -305,10 +306,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public async copyAllMessagesToClipboard(uri: string): Promise<void> {
         const messages = uri
-            ? this.getQueryResultState(uri)?.messages?.map(
-                  (message) => message.message,
+            ? this.getQueryResultState(uri)?.messages?.map((message) =>
+                  messageToString(message),
               )
-            : this.state?.messages?.map((message) => message.message);
+            : this.state?.messages?.map((message) => messageToString(message));
 
         if (!messages) {
             return;
