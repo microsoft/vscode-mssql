@@ -76,14 +76,19 @@ const useStyles = makeStyles({
     messagesContainer: {
         width: "100%",
         height: "100%",
+        fontFamily: "var(--vscode-editor-font-family)",
         flexDirection: "column",
         "> *": {
             marginBottom: "10px",
         },
     },
+    messagesLink: {
+        fontSize: "var(--vscode-editor-font-size)",
+        fontFamily: "var(--vscode-editor-font-family)",
+    },
     messagesRows: {
         lineHeight: "18px",
-        fontSize: "12px",
+        fontSize: "var(--vscode-editor-font-size)",
         flexDirection: "row",
         borderBottom: "none",
     },
@@ -442,17 +447,17 @@ export const QueryResultPane = () => {
                             <div style={{ whiteSpace: "nowrap" }}>
                                 {item.message}{" "}
                                 <Link
+                                    className={classes.messagesLink}
                                     onClick={async () => {
                                         await webViewState.extensionRpc.call(
                                             "setEditorSelection",
                                             {
-                                                uri: metadata?.uri,
+                                                uri: item.link?.uri,
                                                 selectionData: item.selection,
                                             },
                                         );
                                     }}
                                     inline
-                                    style={{ fontSize: "12px" }}
                                 >
                                     {item?.link?.text}
                                 </Link>
@@ -465,7 +470,14 @@ export const QueryResultPane = () => {
                             focusMode="group"
                             style={{ minHeight: "18px" }}
                         >
-                            <div style={{ whiteSpace: "nowrap" }}>
+                            <div
+                                style={{
+                                    whiteSpace: "nowrap",
+                                    color: item.isError
+                                        ? "var(--vscode-errorForeground)"
+                                        : undefined,
+                                }}
+                            >
                                 {item.message}
                             </div>
                         </DataGridCell>
@@ -488,7 +500,7 @@ export const QueryResultPane = () => {
 
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items = splitMessages(metadata?.messages) ?? [];
+    const items: qr.IMessage[] = splitMessages(metadata?.messages) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
