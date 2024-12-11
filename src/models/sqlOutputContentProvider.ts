@@ -21,7 +21,7 @@ import {
 } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
-import { QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
+import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import {
     TelemetryActions,
     TelemetryViews,
@@ -493,7 +493,7 @@ export class SqlOutputContentProvider {
 
                 // Build a message for the selection and send the message
                 // from the webview
-                let message = {
+                let message: IMessage = {
                     message: LocalizedConstants.runQueryBatchStartMessage,
                     selection: batch.selection,
                     isError: false,
@@ -502,6 +502,7 @@ export class SqlOutputContentProvider {
                         text: LocalizedConstants.runQueryBatchStartLine(
                             batch.selection.startLine + 1,
                         ),
+                        uri: uri,
                     },
                 };
                 if (this.shouldUseOldResultPane) {
