@@ -395,7 +395,7 @@ export const QueryResultPane = () => {
     //#endregion
 
     //#region Message Grid
-    const columnsDef: TableColumnDefinition<qr.IMessage>[] = [
+    const columnsDef: TableColumnDefinition<MessageWithUri>[] = [
         createTableColumn({
             columnId: "time",
             renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
@@ -428,7 +428,7 @@ export const QueryResultPane = () => {
                                         await webViewState.extensionRpc.call(
                                             "setEditorSelection",
                                             {
-                                                uri: metadata?.uri,
+                                                uri: item.uri,
                                                 selectionData: item.selection,
                                             },
                                         );
@@ -474,9 +474,19 @@ export const QueryResultPane = () => {
         );
     };
 
+    interface MessageWithUri extends qr.IMessage {
+        uri?: string;
+    }
+
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items = splitMessages(metadata?.messages) ?? [];
+    const items: MessageWithUri[] =
+        splitMessages(metadata?.messages).map((m) => {
+            return {
+                ...m,
+                uri: metadata?.uri,
+            };
+        }) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
