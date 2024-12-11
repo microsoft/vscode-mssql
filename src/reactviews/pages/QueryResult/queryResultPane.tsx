@@ -66,9 +66,9 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+        fontFamily: "var(--vscode-editor-font-family)",
         fontWeight: "normal",
-        fontSize: "12px",
+        fontSize: "var(--vscode-editor-font-size)",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -78,15 +78,15 @@ const useStyles = makeStyles({
     messagesContainer: {
         width: "100%",
         height: "100%",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+        fontFamily: "var(--vscode-editor-font-family)",
         flexDirection: "column",
         "> *": {
             marginBottom: "10px",
         },
     },
     messagesLink: {
-        fontSize: "12px",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+        fontSize: "var(--vscode-editor-font-size)",
+        fontFamily: "var(--vscode-editor-font-family)",
     },
     messagesRows: {
         lineHeight: "18px",
