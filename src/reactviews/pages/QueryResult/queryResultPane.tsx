@@ -90,7 +90,7 @@ const useStyles = makeStyles({
     },
     messagesRows: {
         lineHeight: "18px",
-        fontSize: "12px",
+        fontSize: "var(--vscode-editor-font-size)",
         flexDirection: "row",
         borderBottom: "none",
     },
