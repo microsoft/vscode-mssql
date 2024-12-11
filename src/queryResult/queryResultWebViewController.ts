@@ -170,6 +170,18 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
+        this.registerRequestHandler("getFontFamily", async () => {
+            console.log("getFontFamily");
+            return this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(Constants.extConfigResultKeys[3]);
+        });
+        this.registerRequestHandler("getFontSize", async () => {
+            console.log("getFontSize");
+            return this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(Constants.extConfigResultKeys[2]);
+        });
         registerCommonRequestHandlers(this, this._correlationId);
     }
 

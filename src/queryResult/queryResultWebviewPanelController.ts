@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
-// import * as Constants from "../constants/constants";
+import * as Constants from "../constants/constants";
 import { randomUUID } from "crypto";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
@@ -73,6 +73,18 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     private registerRpcHandlers() {
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Document;
+        });
+        this.registerRequestHandler("getFontFamily", async () => {
+            console.log("getFontFamily");
+            return this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(Constants.extConfigResultKeys[3]);
+        });
+        this.registerRequestHandler("getFontSize", async () => {
+            console.log("getFontFamily");
+            return this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(Constants.extConfigResultKeys[2]);
         });
         registerCommonRequestHandlers(this, this._correlationId);
     }

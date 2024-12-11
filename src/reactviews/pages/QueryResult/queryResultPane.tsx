@@ -66,9 +66,7 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
         fontWeight: "normal",
-        fontSize: "12px",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -110,8 +108,31 @@ function getAvailableHeight(
 }
 
 export const QueryResultPane = () => {
-    const classes = useStyles();
     const state = useContext(QueryResultContext);
+    const [fontFamily, setFontFamily] = useState("");
+    const [fontSize, setFontSize] = useState("");
+
+    useEffect(() => {
+        const getFontFamily = async () => {
+            let fontFamily = (await webViewState.extensionRpc.call(
+                "getFontFamily",
+            )) as string;
+            setFontFamily(fontFamily);
+        };
+
+        const getFontSize = async () => {
+            let fontSize = (await webViewState.extensionRpc.call(
+                "getFontSize",
+            )) as string;
+            setFontSize(fontSize);
+        };
+        if (!fontFamily) {
+            void getFontFamily();
+        }
+        if (!fontSize) {
+            void getFontSize();
+        }
+    });
     if (!state) {
         return;
     }
@@ -119,6 +140,7 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
+    const classes = useStyles();
     var metadata = state?.state;
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
@@ -247,6 +269,8 @@ export const QueryResultPane = () => {
                                   gridCount,
                               )}px`
                             : "",
+                    fontFamily: fontFamily,
+                    fontSize: fontSize,
                 }}
             >
                 <ResultGrid
