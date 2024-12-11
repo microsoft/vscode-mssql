@@ -577,7 +577,7 @@ export class SqlOutputContentProvider {
                                     LocalizedConstants.elapsedTimeLabel(
                                         totalMilliseconds,
                                     ),
-                                isError: hasError,
+                                isError: false, // Elapsed time messages are never displayed as errors
                             });
                         const tabState =
                             Object.keys(

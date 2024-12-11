@@ -78,10 +78,15 @@ const useStyles = makeStyles({
     messagesContainer: {
         width: "100%",
         height: "100%",
+        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
         flexDirection: "column",
         "> *": {
             marginBottom: "10px",
         },
+    },
+    messagesLink: {
+        fontSize: "12px",
+        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
     },
     messagesRows: {
         lineHeight: "18px",
@@ -418,6 +423,7 @@ export const QueryResultPane = () => {
                             <div style={{ whiteSpace: "nowrap" }}>
                                 {item.message}{" "}
                                 <Link
+                                    className={classes.messagesLink}
                                     onClick={async () => {
                                         await webViewState.extensionRpc.call(
                                             "setEditorSelection",
@@ -428,7 +434,6 @@ export const QueryResultPane = () => {
                                         );
                                     }}
                                     inline
-                                    style={{ fontSize: "12px" }}
                                 >
                                     {item?.link?.text}
                                 </Link>
@@ -441,7 +446,14 @@ export const QueryResultPane = () => {
                             focusMode="group"
                             style={{ minHeight: "18px" }}
                         >
-                            <div style={{ whiteSpace: "nowrap" }}>
+                            <div
+                                style={{
+                                    whiteSpace: "nowrap",
+                                    color: item.isError
+                                        ? "var(--vscode-errorForeground)"
+                                        : undefined,
+                                }}
+                            >
                                 {item.message}
                             </div>
                         </DataGridCell>
