@@ -45,6 +45,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                     comment: "{0} is the editor title",
                 }),
                 viewColumn: _viewColumn,
+                preserveFocus: true,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
@@ -83,7 +84,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     }
 
     public revealToForeground() {
-        this.panel.reveal(this._viewColumn);
+        this.panel.reveal(this._viewColumn, true);
     }
 
     public getQueryResultWebviewViewController(): QueryResultWebviewController {

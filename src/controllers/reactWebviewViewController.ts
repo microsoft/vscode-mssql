@@ -28,6 +28,7 @@ export class ReactWebviewViewController<State, Reducers>
     constructor(
         _context: vscode.ExtensionContext,
         _sourceFile: string,
+        private _viewId: string,
         initialData: State,
     ) {
         super(_context, _sourceFile, initialData);
@@ -47,6 +48,13 @@ export class ReactWebviewViewController<State, Reducers>
      * Displays the webview in the foreground
      */
     public revealToForeground(): void {
+        if (!this._webviewView?.visible) {
+            // the preserveFocus arg is not documented
+            // https://github.com/microsoft/vscode/issues/205766#issuecomment-1994961088
+            void vscode.commands.executeCommand(`${this._viewId}.focus`, {
+                preserveFocus: true,
+            });
+        }
         this._webviewView.show(true);
     }
 
