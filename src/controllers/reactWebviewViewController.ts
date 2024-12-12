@@ -48,8 +48,9 @@ export class ReactWebviewViewController<State, Reducers>
      * Displays the webview in the foreground
      */
     public revealToForeground(): void {
-        if (!this._webviewView?.visible) {
-            // the preserveFocus arg is not documented
+        if (!this._webviewView?.webview) {
+            // If the webview is not yet created, focus will force it to be created and shown.
+            // The preserveFocus arg is not documented
             // https://github.com/microsoft/vscode/issues/205766#issuecomment-1994961088
             void vscode.commands.executeCommand(`${this._viewId}.focus`, {
                 preserveFocus: true,

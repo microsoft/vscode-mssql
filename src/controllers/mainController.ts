@@ -1111,7 +1111,9 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdrevealQueryResultPanel,
                 () => {
-                    vscode.commands.executeCommand("queryResult.focus");
+                    vscode.commands.executeCommand("queryResult.focus", {
+                        preserveFocus: true,
+                    });
                 },
             ),
         );
