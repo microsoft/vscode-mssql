@@ -557,7 +557,7 @@ export const QueryResultPane = () => {
                     className={classes.hidePanelLink}
                     onClick={async () => {
                         await webViewState.extensionRpc.call("executeCommand", {
-                            command: "workbench.action.togglePanel",
+                            command: "workbench.action.closePanel",
                         });
                     }}
                 >
