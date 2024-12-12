@@ -7,6 +7,8 @@
 		"GitHub.vscode-pull-request-github",
 		"ms-playwright.playwright",
 		"esbenp.prettier-vscode",
-		"ms-vscode.extension-test-runner"
+		"ms-vscode.extension-test-runner",
+		"tenninebt.vscode-koverage",
+		"ryanluker.vscode-coverage-gutters"
 	]
 }
