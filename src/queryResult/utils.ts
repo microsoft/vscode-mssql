@@ -119,6 +119,13 @@ export function registerCommonRequestHandlers(
     webviewController.registerRequestHandler(
         "setEditorSelection",
         async (message) => {
+            if (!message.uri || !message.selectionData) {
+                console.warn(
+                    `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
+                );
+                return;
+            }
+
             return await webviewViewController
                 .getSqlOutputContentProvider()
                 .editorSelectionRequestHandler(
