@@ -113,6 +113,7 @@ function getAvailableHeight(
 }
 
 export const QueryResultPane = () => {
+    const classes = useStyles();
     const state = useContext(QueryResultContext);
     if (!state) {
         return;
@@ -121,7 +122,6 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    const classes = useStyles();
     var metadata = state?.state;
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);

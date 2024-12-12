@@ -75,7 +75,20 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         isExecutionPlan: false,
                         executionPlanState: {},
                         filterState: {},
-                        fontSettings: {},
+                        fontSettings: {
+                            fontSize: this._vscodeWrapper
+                                .getConfiguration(Constants.extensionName)
+                                .get(
+                                    Constants.extConfigResultKeys
+                                        .ResultsFontSize,
+                                ),
+                            fontFamily: this._vscodeWrapper
+                                .getConfiguration(Constants.extensionName)
+                                .get(
+                                    Constants.extConfigResultKeys
+                                        .ResultsFontFamily,
+                                ),
+                        },
                     };
                 }
             });
@@ -87,27 +100,24 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     this._queryResultStateMap.delete(uri);
                 }
             });
-
             this._vscodeWrapper.onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration("mssql.resultsFontFamily")) {
-                    this.state.fontSettings.fontFamily = this._vscodeWrapper
-                        .getConfiguration(Constants.extensionName)
-                        .get(Constants.extConfigResultKeys.ResultsFontFamily);
-                    this.updateState();
-                    console.log("fontFamily changed");
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.fontSettings.fontFamily = this._vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(
+                                Constants.extConfigResultKeys.ResultsFontFamily,
+                            );
+                        this._queryResultStateMap.set(uri, state);
+                    }
                 }
                 if (e.affectsConfiguration("mssql.resultsFontSize")) {
-                    console.log(
-                        "new fontSize ",
-                        this._vscodeWrapper
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.fontSettings.fontSize = this._vscodeWrapper
                             .getConfiguration(Constants.extensionName)
-                            .get(Constants.extConfigResultKeys.ResultsFontSize),
-                    );
-                    this.state.fontSettings.fontSize = this._vscodeWrapper
-                        .getConfiguration(Constants.extensionName)
-                        .get(Constants.extConfigResultKeys.ResultsFontSize);
-                    this.updateState();
-                    console.log("fontSize changed");
+                            .get(Constants.extConfigResultKeys.ResultsFontSize);
+                        this._queryResultStateMap.set(uri, state);
+                    }
                 }
             });
         }
@@ -250,7 +260,18 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 },
             }),
             filterState: {},
-            fontSettings: {},
+            fontSettings: {
+                fontSize: this._vscodeWrapper
+                    .getConfiguration(Constants.extensionName)
+                    .get(
+                        Constants.extConfigResultKeys.ResultsFontSize,
+                    ) as number,
+                fontFamily: this._vscodeWrapper
+                    .getConfiguration(Constants.extensionName)
+                    .get(
+                        Constants.extConfigResultKeys.ResultsFontFamily,
+                    ) as string,
+            },
         };
         this._queryResultStateMap.set(uri, currentState);
     }
