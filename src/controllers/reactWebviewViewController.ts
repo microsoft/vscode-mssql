@@ -23,6 +23,7 @@ export class ReactWebviewViewController<State, Reducers>
      * Creates a new ReactWebviewViewController
      * @param _context Extension context
      * @param _sourceFile Source file that the webview will use
+     * @param _viewId The id of the view, this should be the same id defined in the package.json
      * @param initialData Initial state object that the webview will use
      */
     constructor(
