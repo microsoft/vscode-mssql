@@ -114,30 +114,6 @@ function getAvailableHeight(
 
 export const QueryResultPane = () => {
     const state = useContext(QueryResultContext);
-    const [fontFamily, setFontFamily] = useState("");
-    const [fontSize, setFontSize] = useState("");
-
-    useEffect(() => {
-        const getFontFamily = async () => {
-            let fontFamily = (await webViewState.extensionRpc.call(
-                "getFontFamily",
-            )) as string;
-            setFontFamily(fontFamily);
-        };
-
-        const getFontSize = async () => {
-            let fontSize = (await webViewState.extensionRpc.call(
-                "getFontSize",
-            )) as string;
-            setFontSize(fontSize);
-        };
-        if (!fontFamily) {
-            void getFontFamily();
-        }
-        if (!fontSize) {
-            void getFontSize();
-        }
-    });
     if (!state) {
         return;
     }
@@ -258,6 +234,8 @@ export const QueryResultPane = () => {
         gridCount: number,
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
+        console.log("fontSize: ", metadata.fontSettings.fontSize);
+        console.log("fontFamily: ", metadata.fontSettings.fontFamily);
         return (
             <div
                 id={divId}
@@ -274,8 +252,12 @@ export const QueryResultPane = () => {
                                   gridCount,
                               )}px`
                             : "",
-                    fontFamily: fontFamily,
-                    fontSize: fontSize,
+                    fontFamily: metadata.fontSettings.fontFamily
+                        ? metadata.fontSettings.fontFamily
+                        : "var(--vscode-editor-font-family)",
+                    fontSize: metadata.fontSettings.fontSize
+                        ? `${metadata.fontSettings.fontSize}px`
+                        : "var(--vscode-editor-font-size)",
                 }}
             >
                 <ResultGrid

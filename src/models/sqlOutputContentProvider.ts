@@ -98,7 +98,7 @@ export class SqlOutputContentProvider {
             queryUri,
         );
         let config = new ResultsConfig();
-        for (let key of Constants.extConfigResultKeys) {
+        for (let key in Constants.extConfigResultKeys) {
             config[key] = extConfig[key];
         }
         return Promise.resolve(config);

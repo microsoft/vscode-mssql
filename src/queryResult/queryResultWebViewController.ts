@@ -55,6 +55,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             executionPlanState: {},
             filterState: {},
+            fontSettings: {},
         });
 
         void this.initialize();
@@ -74,6 +75,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         isExecutionPlan: false,
                         executionPlanState: {},
                         filterState: {},
+                        fontSettings: {},
                     };
                 }
             });
@@ -83,6 +85,29 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 const uri = document.uri.toString(true);
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
+                }
+            });
+
+            this._vscodeWrapper.onDidChangeConfiguration((e) => {
+                if (e.affectsConfiguration("mssql.resultsFontFamily")) {
+                    this.state.fontSettings.fontFamily = this._vscodeWrapper
+                        .getConfiguration(Constants.extensionName)
+                        .get(Constants.extConfigResultKeys.ResultsFontFamily);
+                    this.updateState();
+                    console.log("fontFamily changed");
+                }
+                if (e.affectsConfiguration("mssql.resultsFontSize")) {
+                    console.log(
+                        "new fontSize ",
+                        this._vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.extConfigResultKeys.ResultsFontSize),
+                    );
+                    this.state.fontSettings.fontSize = this._vscodeWrapper
+                        .getConfiguration(Constants.extensionName)
+                        .get(Constants.extConfigResultKeys.ResultsFontSize);
+                    this.updateState();
+                    console.log("fontSize changed");
                 }
             });
         }
@@ -170,18 +195,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
-        this.registerRequestHandler("getFontFamily", async () => {
-            console.log("getFontFamily");
-            return this._vscodeWrapper
-                .getConfiguration(Constants.extensionName)
-                .get(Constants.extConfigResultKeys[3]);
-        });
-        this.registerRequestHandler("getFontSize", async () => {
-            console.log("getFontSize");
-            return this._vscodeWrapper
-                .getConfiguration(Constants.extensionName)
-                .get(Constants.extConfigResultKeys[2]);
-        });
         registerCommonRequestHandlers(this, this._correlationId);
     }
 
@@ -237,6 +250,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 },
             }),
             filterState: {},
+            fontSettings: {},
         };
         this._queryResultStateMap.set(uri, currentState);
     }
