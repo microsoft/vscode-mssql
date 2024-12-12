@@ -53,7 +53,10 @@ export class ReactWebviewPanelController<
         this._panel = vscode.window.createWebviewPanel(
             "mssql-react-webview",
             this._options.title,
-            this._options.viewColumn,
+            {
+                viewColumn: this._options.viewColumn,
+                preserveFocus: this._options.preserveFocus,
+            },
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,

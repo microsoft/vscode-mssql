@@ -23,11 +23,13 @@ export class ReactWebviewViewController<State, Reducers>
      * Creates a new ReactWebviewViewController
      * @param _context Extension context
      * @param _sourceFile Source file that the webview will use
+     * @param _viewId The id of the view, this should be the same id defined in the package.json
      * @param initialData Initial state object that the webview will use
      */
     constructor(
         _context: vscode.ExtensionContext,
         _sourceFile: string,
+        private _viewId: string,
         initialData: State,
     ) {
         super(_context, _sourceFile, initialData);
@@ -47,6 +49,14 @@ export class ReactWebviewViewController<State, Reducers>
      * Displays the webview in the foreground
      */
     public revealToForeground(): void {
+        if (!this._webviewView?.webview) {
+            // If the webview is not yet created, focus will force it to be created and shown.
+            // The preserveFocus arg is not documented
+            // https://github.com/microsoft/vscode/issues/205766#issuecomment-1994961088
+            void vscode.commands.executeCommand(`${this._viewId}.focus`, {
+                preserveFocus: true,
+            });
+        }
         this._webviewView.show(true);
     }
 

@@ -47,7 +47,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         private untitledSqlDocumentService: UntitledSqlDocumentService,
         private _vscodeWrapper: VscodeWrapper,
     ) {
-        super(context, "queryResult", {
+        super(context, "queryResult", "queryResult", {
             resultSetSummaries: {},
             messages: [],
             tabStates: {

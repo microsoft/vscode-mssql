@@ -80,6 +80,7 @@ suite("ReactWebviewPanelController", () => {
         const defaultOptions: MssqlWebviewPanelOptions = {
             title: "Test Panel",
             viewColumn: vscode.ViewColumn.One,
+            preserveFocus: true,
             iconPath: vscode.Uri.file("path"),
             showRestorePromptAfterClose: true,
         };
@@ -95,6 +96,7 @@ suite("ReactWebviewPanelController", () => {
         const options = {
             title: "My Test Panel",
             viewColumn: vscode.ViewColumn.Two,
+            preserveFocus: true,
             iconPath: vscode.Uri.file("/path/to/test-icon.png"),
             showRestorePromptAfterClose: true,
         };
@@ -104,7 +106,10 @@ suite("ReactWebviewPanelController", () => {
             createWebviewPanelStub.calledWith(
                 "mssql-react-webview",
                 options.title,
-                options.viewColumn,
+                {
+                    viewColumn: options.viewColumn,
+                    preserveFocus: options.preserveFocus,
+                },
                 {
                     enableScripts: true,
                     retainContextWhenHidden: true,
