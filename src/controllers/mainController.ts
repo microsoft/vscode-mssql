@@ -60,6 +60,8 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { ConnectionProfile } from "../models/connectionProfile";
+import { EditDataWebViewController } from "../editData/editDataWebViewController";
 
 /**
  * The main controller class that initializes the extension
@@ -1025,6 +1027,13 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdEditData,
+                async (node: TreeNodeInfo) => await this.onEditData(node),
+            ),
+        );
+
         // Script as Create
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
@@ -1933,6 +1942,19 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onEditData(node?: TreeNodeInfo): Promise<void> {
+        if (this.canRunCommand()) {
+            if (node) {
+                const editDataWebView = new EditDataWebViewController(
+                    this._context,
+                    new ConnectionProfile(node.connectionInfo),
+                );
+
+                editDataWebView.revealToForeground();
+            }
+        }
     }
 
     /**

@@ -189,6 +189,7 @@ async function generateReactWebviewsBundle() {
 			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
 			'queryResult': 'src/reactviews/pages/QueryResult/index.tsx',
 			'userSurvey': 'src/reactviews/pages/UserSurvey/index.tsx',
+			"editData": "src/reactviews/pages/EditData/index.tsx",
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',

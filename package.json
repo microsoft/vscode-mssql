@@ -485,6 +485,11 @@
           "group": "MS_SQL@4"
         },
         {
+          "command": "mssql.editData",
+          "when": "view == objectExplorer && viewItem =~  /\\btype=(Table)\\b/",
+          "group": "MS_SQL@6"
+        },
+        {
           "command": "mssql.newTable",
           "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableRichExperiences",
           "group": "inline"
@@ -530,6 +535,10 @@
         {
           "command": "mssql.scriptSelect",
           "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/"
+        },
+        {
+          "command": "mssql.editData",
+          "when": "view == objectExplorer && viewItem =~  /\\btype=(Table)\\b/"
         },
         {
           "command": "mssql.scriptCreate",
@@ -770,6 +779,11 @@
       {
         "command": "mssql.scriptSelect",
         "title": "%mssql.scriptSelect%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.editData",
+        "title": "%mssql.editData%",
         "category": "MS SQL"
       },
       {
