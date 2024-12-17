@@ -9,6 +9,8 @@ import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 
+export const ConnectButtonId = "connectButton";
+
 export const ConnectButton = ({
     style,
     className,
@@ -24,6 +26,8 @@ export const ConnectButton = ({
 
     return (
         <Button
+            id={ConnectButtonId}
+            type="submit"
             appearance="primary"
             disabled={
                 connectionDialogContext.state.connectionStatus ===
