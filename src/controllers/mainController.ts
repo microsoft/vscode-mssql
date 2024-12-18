@@ -921,6 +921,8 @@ export default class MainController implements vscode.Disposable {
                                 databaseName: node.metadata.name,
                             });
 
+                        console.log(schema);
+
                         const schemaDesignerWebvie =
                             new SchemaDesignerWebviewController(
                                 this._context,
