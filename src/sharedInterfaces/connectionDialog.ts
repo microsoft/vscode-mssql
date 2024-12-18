@@ -38,7 +38,6 @@ export class ConnectionDialogWebviewState
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
-    public connectButtonReady: boolean = false;
     public formError: string = "";
     public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
@@ -100,7 +99,10 @@ export interface ConnectionComponentGroup {
 }
 
 export interface ConnectionDialogFormItemSpec
-    extends FormItemSpec<IConnectionDialogProfile> {
+    extends FormItemSpec<
+        ConnectionDialogWebviewState,
+        IConnectionDialogProfile
+    > {
     isAdvancedOption: boolean;
     optionCategory?: string;
     optionCategoryLabel?: string;

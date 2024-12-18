@@ -25,10 +25,7 @@ export const ConnectButton = ({
     return (
         <Button
             appearance="primary"
-            disabled={
-                context.state.connectionStatus === ApiStatus.Loading ||
-                context.state.connectButtonReady === false
-            }
+            disabled={context.state.connectionStatus === ApiStatus.Loading}
             onClick={(_event) => {
                 context.connect();
             }}
