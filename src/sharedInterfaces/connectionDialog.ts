@@ -16,7 +16,7 @@ export class ConnectionDialogWebviewState
     implements FormState<IConnectionDialogProfile>
 {
     /** the underlying connection profile for the form target; same as `connectionProfile` */
-    formState: IConnectionDialogProfile;
+    formState: IConnectionDialogProfile = {} as IConnectionDialogProfile;
     /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
     get connectionProfile(): IConnectionDialogProfile {
         return this.formState;
@@ -24,57 +24,34 @@ export class ConnectionDialogWebviewState
     set connectionProfile(value: IConnectionDialogProfile) {
         this.formState = value;
     }
-    public selectedInputMode: ConnectionInputMode;
-    public connectionComponents: ConnectionComponentsInfo;
-    public azureSubscriptions: AzureSubscriptionInfo[];
-    public azureServers: AzureSqlServerInfo[];
-    public savedConnections: IConnectionDialogProfile[];
-    public recentConnections: IConnectionDialogProfile[];
-    public connectionStatus: ApiStatus;
-    public formError: string;
-    public loadingAzureSubscriptionsStatus: ApiStatus;
-    public loadingAzureServersStatus: ApiStatus;
+    public selectedInputMode: ConnectionInputMode =
+        ConnectionInputMode.Parameters;
+    public connectionComponents: ConnectionComponentsInfo = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        components: {} as any, // force empty record for intial blank state
+        mainOptions: [],
+        topAdvancedOptions: [],
+        groupedAdvancedOptions: [],
+    };
+    public azureSubscriptions: AzureSubscriptionInfo[] = [];
+    public azureServers: AzureSqlServerInfo[] = [];
+    public savedConnections: IConnectionDialogProfile[] = [];
+    public recentConnections: IConnectionDialogProfile[] = [];
+    public connectionStatus: ApiStatus = ApiStatus.NotStarted;
+    public connectButtonReady: boolean = false;
+    public formError: string = "";
+    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
+    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public dialog: IDialogProps | undefined;
 
-    constructor({
-        connectionProfile,
-        selectedInputMode,
-        connectionComponents,
-        azureSubscriptions,
-        azureServers,
-        savedConnections,
-        recentConnections,
-        connectionStatus,
-        formError,
-        loadingAzureSubscriptionsStatus,
-        loadingAzureServersStatus,
-        dialog,
-    }: {
-        connectionProfile: IConnectionDialogProfile;
-        selectedInputMode: ConnectionInputMode;
-        connectionComponents: ConnectionComponentsInfo;
-        azureServers: AzureSqlServerInfo[];
-        azureSubscriptions: AzureSubscriptionInfo[];
-        savedConnections: IConnectionDialogProfile[];
-        recentConnections: IConnectionDialogProfile[];
-        connectionStatus: ApiStatus;
-        formError: string;
-        loadingAzureSubscriptionsStatus: ApiStatus;
-        loadingAzureServersStatus: ApiStatus;
-        dialog: IDialogProps | undefined;
-    }) {
-        this.formState = connectionProfile;
-        this.selectedInputMode = selectedInputMode;
-        this.connectionComponents = connectionComponents;
-        this.azureSubscriptions = azureSubscriptions;
-        this.azureServers = azureServers;
-        this.savedConnections = savedConnections;
-        this.recentConnections = recentConnections;
-        this.connectionStatus = connectionStatus;
-        this.formError = formError;
-        this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
-        this.loadingAzureServersStatus = loadingAzureServersStatus;
-        this.dialog = dialog;
+    constructor(params?: Partial<ConnectionDialogWebviewState>) {
+        for (const key in params) {
+            if (key in this) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
+                (this as any)[key as keyof ConnectionDialogWebviewState] =
+                    params[key as keyof ConnectionDialogWebviewState]!;
+            }
+        }
     }
 }
 
