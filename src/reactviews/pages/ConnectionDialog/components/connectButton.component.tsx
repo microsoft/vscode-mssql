@@ -16,9 +16,9 @@ export const ConnectButton = ({
     style?: CSSProperties;
     className?: string;
 }) => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+    const context = useContext(ConnectionDialogContext);
 
-    if (!connectionDialogContext) {
+    if (!context) {
         return undefined;
     }
 
@@ -26,18 +26,17 @@ export const ConnectButton = ({
         <Button
             appearance="primary"
             disabled={
-                connectionDialogContext.state.connectionStatus ===
-                ApiStatus.Loading
+                context.state.connectionStatus === ApiStatus.Loading ||
+                context.state.connectButtonReady === false
             }
             onClick={(_event) => {
-                connectionDialogContext.connect();
+                context.connect();
             }}
             className={className}
             style={style}
             iconPosition="after"
             icon={
-                connectionDialogContext.state.connectionStatus ===
-                ApiStatus.Loading ? (
+                context.state.connectionStatus === ApiStatus.Loading ? (
                     <Spinner size="tiny" />
                 ) : undefined
             }
