@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    GetSchemaModelRequestParams,
     ISchema,
     ISchemaDesignerService,
 } from "../sharedInterfaces/schemaDesigner";
@@ -12,11 +13,13 @@ import { GetSchemaModelRequest } from "../models/contracts/schemaDesigner";
 
 export class SchemaDesignerService implements ISchemaDesignerService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
-    async getSchemaModel(connectionUri: string): Promise<ISchema> {
+    async getSchemaModel(
+        request: GetSchemaModelRequestParams,
+    ): Promise<ISchema> {
         try {
             return await this._sqlToolsClient.sendRequest(
                 GetSchemaModelRequest.type,
-                connectionUri,
+                request,
             );
         } catch (e) {
             this._sqlToolsClient.logger.error(e);

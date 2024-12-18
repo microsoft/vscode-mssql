@@ -915,9 +915,10 @@ export default class MainController implements vscode.Disposable {
                             node.connectionInfo,
                         );
                         const schema =
-                            await this.schemaDesignerService.getSchemaModel(
-                                uri,
-                            );
+                            await this.schemaDesignerService.getSchemaModel({
+                                ownerUri: uri,
+                                databaseName: node.metadata.name,
+                            });
                         console.log(schema);
                     },
                 ),

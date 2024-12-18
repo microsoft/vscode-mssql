@@ -80,6 +80,11 @@ export enum OnAction {
     SET_DEFAULT = "3",
 }
 
+export interface GetSchemaModelRequestParams {
+    ownerUri: string;
+    databaseName: string;
+}
+
 export interface ISchemaDesignerService {
-    getSchemaModel(connectionUri: string): Thenable<ISchema>;
+    getSchemaModel(request: GetSchemaModelRequestParams): Thenable<ISchema>;
 }
