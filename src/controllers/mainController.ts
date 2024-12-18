@@ -61,6 +61,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
+import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -919,7 +920,15 @@ export default class MainController implements vscode.Disposable {
                                 ownerUri: uri,
                                 databaseName: node.metadata.name,
                             });
-                        console.log(schema);
+
+                        const schemaDesignerWebvie =
+                            new SchemaDesignerWebviewController(
+                                this._context,
+                                this.schemaDesignerService,
+                                schema,
+                            );
+
+                        schemaDesignerWebvie.revealToForeground();
                     },
                 ),
             );

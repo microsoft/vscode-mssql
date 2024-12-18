@@ -88,3 +88,7 @@ export interface GetSchemaModelRequestParams {
 export interface ISchemaDesignerService {
     getSchemaModel(request: GetSchemaModelRequestParams): Thenable<ISchema>;
 }
+
+export interface SchemaDesignerWebviewState {
+    schema: ISchema;
+}
