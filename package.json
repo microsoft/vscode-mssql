@@ -499,6 +499,11 @@
           "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
         },
         {
+          "command": "mssql.visualizeSchema",
+          "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+          "group": "MS_SQL@6"
+        },
+        {
           "command": "mssql.openQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@1"
@@ -794,6 +799,15 @@
         "icon": {
           "dark": "media/newTable_dark.svg",
           "light": "media/newTable_light.svg"
+        }
+      },
+      {
+        "command": "mssql.visualizeSchema",
+        "title": "%mssql.visualizeSchema%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/visualizeSchema_dark.svg",
+          "light": "media/visualizeSchema_light.svg"
         }
       },
       {
