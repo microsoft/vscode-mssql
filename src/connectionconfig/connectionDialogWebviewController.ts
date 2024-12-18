@@ -91,22 +91,46 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         private _objectExplorerProvider: ObjectExplorerProvider,
         private _connectionToEdit?: IConnectionInfo,
     ) {
-        super(context, "connectionDialog", new ConnectionDialogWebviewState(), {
-            title: Loc.connectionDialog,
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_light.svg",
-                ),
+        super(
+            context,
+            "connectionDialog",
+            new ConnectionDialogWebviewState({
+                connectionProfile: {} as IConnectionDialogProfile,
+                savedConnections: [],
+                recentConnections: [],
+                selectedInputMode: ConnectionInputMode.Parameters,
+                connectionComponents: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    components: {} as any, // force empty record for intial blank state
+                    mainOptions: [],
+                    topAdvancedOptions: [],
+                    groupedAdvancedOptions: [],
+                },
+                azureSubscriptions: [],
+                azureServers: [],
+                connectionStatus: ApiStatus.NotStarted,
+                formError: "",
+                loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
+                loadingAzureServersStatus: ApiStatus.NotStarted,
+                dialog: undefined,
+            }),
+            {
+                title: Loc.connectionDialog,
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_light.svg",
+                    ),
+                },
             },
-        });
+        );
 
         if (!ConnectionDialogWebviewController._logger) {
             const vscodeWrapper = new VscodeWrapper();
@@ -1144,19 +1168,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Connection helpers
 
-    private async validateProfile(
-        connectionProfile?: IConnectionDialogProfile,
-    ): Promise<string[]> {
-        if (!connectionProfile) {
-            connectionProfile = this.state.connectionProfile;
-        }
-
-        // clean the connection by clearing the options that aren't being used
-        const cleanedConnection = this.cleanConnection(connectionProfile);
-
-        return await this.validateConnectionProfile(cleanedConnection);
-    }
-
     private async connectHelper(
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
@@ -1164,11 +1175,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         this.state.connectionStatus = ApiStatus.Loading;
         this.updateState();
 
-        const cleanedConnection: IConnectionDialogProfile =
-            this.cleanConnection(this.state.connectionProfile);
+        const cleanedConnection: IConnectionDialogProfile = structuredClone(
+            this.state.connectionProfile,
+        );
+        this.cleanConnection(cleanedConnection); // clean the connection by clearing the options that aren't being used
 
-        const erroredInputs = await this.validateProfile(cleanedConnection);
-
+        // Perform final validation of all inputs
+        const erroredInputs =
+            await this.validateConnectionProfile(cleanedConnection);
         if (erroredInputs.length > 0) {
             this.state.connectionStatus = ApiStatus.Error;
             console.warn(
@@ -1597,19 +1611,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         }, new Map<K, V[]>());
     }
 
-    /** Returns a copy of `connection` that's been cleaned up by clearing the properties that aren't being used
+    /** Cleans up a connection profile by clearing the properties that aren't being used
      * (e.g. due to form selections, like authType and inputMode) */
-    private cleanConnection(
-        connection: IConnectionDialogProfile,
-    ): IConnectionDialogProfile {
-        const cleanedConnection = structuredClone(connection);
-
+    private cleanConnection(connection: IConnectionDialogProfile) {
         // Clear values for inputs that are hidden due to form selections
         for (const option of Object.values(
             this.state.connectionComponents.components,
         )) {
             if (option.hidden) {
-                (cleanedConnection[
+                (connection[
                     option.propertyName as keyof IConnectionDialogProfile
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ] as any) = undefined;
@@ -1621,19 +1631,17 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             this.state.selectedInputMode === ConnectionInputMode.Parameters ||
             this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
         ) {
-            cleanedConnection.connectionString = undefined;
+            connection.connectionString = undefined;
         } else if (
             this.state.selectedInputMode ===
             ConnectionInputMode.ConnectionString
         ) {
-            Object.keys(cleanedConnection).forEach((key) => {
+            Object.keys(connection).forEach((key) => {
                 if (key !== "connectionString" && key !== "profileName") {
-                    cleanedConnection[key] = undefined;
+                    connection[key] = undefined;
                 }
             });
         }
-
-        return cleanedConnection;
     }
 
     private async loadConnections(): Promise<{
