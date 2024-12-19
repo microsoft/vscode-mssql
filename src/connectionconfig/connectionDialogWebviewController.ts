@@ -20,8 +20,6 @@ import {
     AddFirewallRuleDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
-    ConnectionComponentsInfo,
-    ConnectionComponentGroup,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import {
@@ -74,12 +72,15 @@ import {
     generateConnectionComponents,
     getActiveFormComponents,
     getFormComponent,
+    groupAdvancedOptions,
 } from "./formComponentHelpers";
 
 export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
     ConnectionDialogWebviewState,
     ConnectionDialogReducers
 > {
+    //#region Properties
+
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
         "trustServerCertificate",
@@ -97,6 +98,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private _connectionToEditCopy: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
+
+    //#endregion
 
     constructor(
         context: vscode.ExtensionContext,
@@ -195,368 +198,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         };
 
         this.state.connectionComponents.groupedAdvancedOptions =
-            this.groupAdvancedOptions(this.state.connectionComponents);
+            groupAdvancedOptions(this.state.connectionComponents);
 
         await this.updateItemVisibility();
         this.updateState();
-    }
-
-    private async loadConnectionToEdit() {
-        if (this._connectionToEdit) {
-            this._connectionToEditCopy = structuredClone(
-                this._connectionToEdit,
-            );
-            const connection = await this.initializeConnectionForDialog(
-                this._connectionToEdit,
-            );
-            this.state.connectionProfile = connection;
-
-            this.state.selectedInputMode =
-                connection.connectionString && connection.server === undefined
-                    ? ConnectionInputMode.ConnectionString
-                    : ConnectionInputMode.Parameters;
-            this.updateState();
-        }
-    }
-
-    private async loadEmptyConnection() {
-        const emptyConnection = {
-            authenticationType: AuthenticationType.SqlLogin,
-            connectTimeout: 15, // seconds
-            applicationName: "vscode-mssql",
-        } as IConnectionDialogProfile;
-        this.state.connectionProfile = emptyConnection;
-    }
-
-    private async initializeConnectionForDialog(
-        connection: IConnectionInfo,
-    ): Promise<IConnectionDialogProfile> {
-        // Load the password if it's saved
-        const isConnectionStringConnection =
-            connection.connectionString !== undefined &&
-            connection.connectionString !== "";
-        if (!isConnectionStringConnection) {
-            const password =
-                await this._mainController.connectionManager.connectionStore.lookupPassword(
-                    connection,
-                    isConnectionStringConnection,
-                );
-            connection.password = password;
-        } else {
-            // If the connection is a connection string connection with SQL Auth:
-            //   * the full connection string is stored as the "password" in the credential store
-            //   * we need to extract the password from the connection string
-            // If the connection is a connection string connection with a different auth type, then there's nothing in the credential store.
-
-            const connectionString =
-                await this._mainController.connectionManager.connectionStore.lookupPassword(
-                    connection,
-                    isConnectionStringConnection,
-                );
-
-            if (connectionString) {
-                const passwordIndex = connectionString
-                    .toLowerCase()
-                    .indexOf("password=");
-
-                if (passwordIndex !== -1) {
-                    // extract password from connection string; found between 'Password=' and the next ';'
-                    const passwordStart = passwordIndex + "password=".length;
-                    const passwordEnd = connectionString.indexOf(
-                        ";",
-                        passwordStart,
-                    );
-                    if (passwordEnd !== -1) {
-                        connection.password = connectionString.substring(
-                            passwordStart,
-                            passwordEnd,
-                        );
-                    }
-
-                    // clear the connection string from the IConnectionDialogProfile so that the ugly connection string key
-                    // that's used to look up the actual connection string (with password) isn't displayed
-                    connection.connectionString = "";
-                }
-            }
-        }
-
-        const dialogConnection = connection as IConnectionDialogProfile;
-        // Set the display name
-        dialogConnection.displayName = dialogConnection.profileName
-            ? dialogConnection.profileName
-            : getConnectionDisplayName(connection);
-        return dialogConnection;
-    }
-
-    private async updateItemVisibility() {
-        let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
-
-        if (
-            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
-            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
-        ) {
-            if (
-                this.state.connectionProfile.authenticationType !==
-                AuthenticationType.SqlLogin
-            ) {
-                hiddenProperties.push("user", "password", "savePassword");
-            }
-            if (
-                this.state.connectionProfile.authenticationType !==
-                AuthenticationType.AzureMFA
-            ) {
-                hiddenProperties.push("accountId", "tenantId");
-            }
-            if (
-                this.state.connectionProfile.authenticationType ===
-                AuthenticationType.AzureMFA
-            ) {
-                // Hide tenantId if accountId has only one tenant
-                const tenants = await getTenants(
-                    this._mainController.azureAccountService,
-                    this.state.connectionProfile.accountId,
-                );
-                if (tenants.length === 1) {
-                    hiddenProperties.push("tenantId");
-                }
-            }
-        }
-
-        for (const component of Object.values(
-            this.state.connectionComponents.components,
-        )) {
-            component.hidden = hiddenProperties.includes(
-                component.propertyName,
-            );
-        }
-    }
-
-    private groupAdvancedOptions(
-        componentsInfo: ConnectionComponentsInfo,
-    ): ConnectionComponentGroup[] {
-        const groupMap: Map<string, ConnectionComponentGroup> = new Map([
-            // intialize with display order; any that aren't pre-defined will be appended
-            // these values must match the GroupName defined in SQL Tools Service.
-            ["security", undefined],
-            ["initialization", undefined],
-            ["resiliency", undefined],
-            ["pooling", undefined],
-            ["context", undefined],
-        ]);
-
-        const optionsToGroup = Object.values(componentsInfo.components).filter(
-            (c) =>
-                c.isAdvancedOption &&
-                !componentsInfo.mainOptions.includes(c.propertyName) &&
-                !componentsInfo.topAdvancedOptions.includes(c.propertyName),
-        );
-
-        for (const option of optionsToGroup) {
-            if (
-                // new group ID or group ID hasn't been initialized yet
-                !groupMap.has(option.optionCategory) ||
-                groupMap.get(option.optionCategory) === undefined
-            ) {
-                groupMap.set(option.optionCategory, {
-                    groupName: option.optionCategoryLabel,
-                    options: [option.propertyName],
-                });
-            } else {
-                groupMap
-                    .get(option.optionCategory)
-                    .options.push(option.propertyName);
-            }
-        }
-
-        return Array.from(groupMap.values());
-    }
-
-    private async validateConnectionProfile(
-        connectionProfile: IConnectionDialogProfile,
-        propertyName?: keyof IConnectionDialogProfile,
-    ): Promise<string[]> {
-        const erroredInputs = [];
-        if (propertyName) {
-            const component = getFormComponent(this.state, propertyName);
-            if (component && component.validate) {
-                component.validation = component.validate(
-                    this.state,
-                    connectionProfile[propertyName],
-                );
-                if (!component.validation.isValid) {
-                    erroredInputs.push(component.propertyName);
-                }
-            }
-        } else {
-            getActiveFormComponents(this.state)
-                .map((x) => this.state.connectionComponents.components[x])
-                .forEach((c) => {
-                    if (c.hidden) {
-                        c.validation = {
-                            isValid: true,
-                            validationMessage: "",
-                        };
-                        return;
-                    } else {
-                        if (c.validate) {
-                            c.validation = c.validate(
-                                this.state,
-                                connectionProfile[c.propertyName],
-                            );
-                            if (!c.validation.isValid) {
-                                erroredInputs.push(c.propertyName);
-                            }
-                        }
-                    }
-                });
-        }
-
-        return erroredInputs;
-    }
-
-    private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
-        const actionButtons: FormItemActionButton[] = [];
-        actionButtons.push({
-            label: Loc.signIn,
-            id: "azureSignIn",
-            callback: async () => {
-                const account =
-                    await this._mainController.azureAccountService.addAccount();
-                const accountsComponent = getFormComponent(
-                    this.state,
-                    "accountId",
-                );
-                if (accountsComponent) {
-                    accountsComponent.options = await getAccounts(
-                        this._mainController.azureAccountService,
-                    );
-                    this.state.connectionProfile.accountId = account.key.id;
-                    this.updateState();
-                    await this.handleAzureMFAEdits("accountId");
-                }
-            },
-        });
-
-        if (
-            this.state.connectionProfile.authenticationType ===
-                AuthenticationType.AzureMFA &&
-            this.state.connectionProfile.accountId
-        ) {
-            const account = (
-                await this._mainController.azureAccountService.getAccounts()
-            ).find(
-                (account) =>
-                    account.displayInfo.userId ===
-                    this.state.connectionProfile.accountId,
-            );
-            if (account) {
-                const session =
-                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                        account,
-                        undefined,
-                    );
-                const isTokenExpired = AzureController.isTokenInValid(
-                    session.token,
-                    session.expiresOn,
-                );
-                if (isTokenExpired) {
-                    actionButtons.push({
-                        label: refreshTokenLabel,
-                        id: "refreshToken",
-                        callback: async () => {
-                            const account = (
-                                await this._mainController.azureAccountService.getAccounts()
-                            ).find(
-                                (account) =>
-                                    account.displayInfo.userId ===
-                                    this.state.connectionProfile.accountId,
-                            );
-                            if (account) {
-                                const session =
-                                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                                        account,
-                                        undefined,
-                                    );
-                                ConnectionDialogWebviewController._logger.log(
-                                    "Token refreshed",
-                                    session.expiresOn,
-                                );
-                            }
-                        },
-                    });
-                }
-            }
-        }
-        return actionButtons;
-    }
-
-    private async handleAzureMFAEdits(
-        propertyName: keyof IConnectionDialogProfile,
-    ) {
-        const mfaComponents: (keyof IConnectionDialogProfile)[] = [
-            "accountId",
-            "tenantId",
-            "authenticationType",
-        ];
-        if (mfaComponents.includes(propertyName)) {
-            if (
-                this.state.connectionProfile.authenticationType !==
-                AuthenticationType.AzureMFA
-            ) {
-                return;
-            }
-            const accountComponent = getFormComponent(this.state, "accountId");
-            const tenantComponent = getFormComponent(this.state, "tenantId");
-            let tenants: FormItemOptions[] = [];
-            switch (propertyName) {
-                case "accountId":
-                    tenants = await getTenants(
-                        this._mainController.azureAccountService,
-                        this.state.connectionProfile.accountId,
-                    );
-                    if (tenantComponent) {
-                        tenantComponent.options = tenants;
-                        if (tenants && tenants.length > 0) {
-                            this.state.connectionProfile.tenantId =
-                                tenants[0].value;
-                        }
-                    }
-                    accountComponent.actionButtons =
-                        await this.getAzureActionButtons();
-                    break;
-                case "tenantId":
-                    break;
-                case "authenticationType":
-                    const firstOption = accountComponent.options[0];
-                    if (firstOption) {
-                        this.state.connectionProfile.accountId =
-                            firstOption.value;
-                    }
-                    tenants = await getTenants(
-                        this._mainController.azureAccountService,
-                        this.state.connectionProfile.accountId,
-                    );
-                    if (tenantComponent) {
-                        tenantComponent.options = tenants;
-                        if (tenants && tenants.length > 0) {
-                            this.state.connectionProfile.tenantId =
-                                tenants[0].value;
-                        }
-                    }
-                    accountComponent.actionButtons =
-                        await this.getAzureActionButtons();
-                    break;
-            }
-        }
-    }
-
-    private clearFormError() {
-        this.state.formError = "";
-        for (const component of getActiveFormComponents(this.state).map(
-            (x) => this.state.connectionComponents.components[x],
-        )) {
-            component.validation = undefined;
-        }
     }
 
     private registerRpcHandlers() {
@@ -790,6 +435,233 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Connection helpers
 
+    private async updateItemVisibility() {
+        let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
+
+        if (
+            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
+            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
+            if (
+                this.state.connectionProfile.authenticationType !==
+                AuthenticationType.SqlLogin
+            ) {
+                hiddenProperties.push("user", "password", "savePassword");
+            }
+            if (
+                this.state.connectionProfile.authenticationType !==
+                AuthenticationType.AzureMFA
+            ) {
+                hiddenProperties.push("accountId", "tenantId");
+            }
+            if (
+                this.state.connectionProfile.authenticationType ===
+                AuthenticationType.AzureMFA
+            ) {
+                // Hide tenantId if accountId has only one tenant
+                const tenants = await getTenants(
+                    this._mainController.azureAccountService,
+                    this.state.connectionProfile.accountId,
+                );
+                if (tenants.length === 1) {
+                    hiddenProperties.push("tenantId");
+                }
+            }
+        }
+
+        for (const component of Object.values(
+            this.state.connectionComponents.components,
+        )) {
+            component.hidden = hiddenProperties.includes(
+                component.propertyName,
+            );
+        }
+    }
+
+    private async validateConnectionProfile(
+        connectionProfile: IConnectionDialogProfile,
+        propertyName?: keyof IConnectionDialogProfile,
+    ): Promise<string[]> {
+        const erroredInputs = [];
+        if (propertyName) {
+            const component = getFormComponent(this.state, propertyName);
+            if (component && component.validate) {
+                component.validation = component.validate(
+                    this.state,
+                    connectionProfile[propertyName],
+                );
+                if (!component.validation.isValid) {
+                    erroredInputs.push(component.propertyName);
+                }
+            }
+        } else {
+            getActiveFormComponents(this.state)
+                .map((x) => this.state.connectionComponents.components[x])
+                .forEach((c) => {
+                    if (c.hidden) {
+                        c.validation = {
+                            isValid: true,
+                            validationMessage: "",
+                        };
+                        return;
+                    } else {
+                        if (c.validate) {
+                            c.validation = c.validate(
+                                this.state,
+                                connectionProfile[c.propertyName],
+                            );
+                            if (!c.validation.isValid) {
+                                erroredInputs.push(c.propertyName);
+                            }
+                        }
+                    }
+                });
+        }
+
+        return erroredInputs;
+    }
+
+    /** Returns a copy of `connection` that's been cleaned up by clearing the properties that aren't being used
+     * (e.g. due to form selections, like authType and inputMode) */
+    private cleanConnection(
+        connection: IConnectionDialogProfile,
+    ): IConnectionDialogProfile {
+        const cleanedConnection = structuredClone(connection);
+
+        // Clear values for inputs that are hidden due to form selections
+        for (const option of Object.values(
+            this.state.connectionComponents.components,
+        )) {
+            if (option.hidden) {
+                (cleanedConnection[
+                    option.propertyName as keyof IConnectionDialogProfile
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = undefined;
+            }
+        }
+
+        // Clear values for inputs that are not applicable due to the selected input mode
+        if (
+            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
+            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
+            cleanedConnection.connectionString = undefined;
+        } else if (
+            this.state.selectedInputMode ===
+            ConnectionInputMode.ConnectionString
+        ) {
+            Object.keys(cleanedConnection).forEach((key) => {
+                if (key !== "connectionString" && key !== "profileName") {
+                    cleanedConnection[key] = undefined;
+                }
+            });
+        }
+
+        return cleanedConnection;
+    }
+
+    private async loadConnections(): Promise<{
+        savedConnections: IConnectionDialogProfile[];
+        recentConnections: IConnectionDialogProfile[];
+    }> {
+        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
+            this._mainController.connectionManager.connectionStore.loadAllConnections(
+                true /* addRecentConnections */,
+            );
+
+        const savedConnections = unsortedConnections
+            .filter(
+                (c) =>
+                    c.quickPickItemType ===
+                    CredentialsQuickPickItemType.Profile,
+            )
+            .map((c) => c.connectionCreds);
+
+        const recentConnections = unsortedConnections
+            .filter(
+                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
+            )
+            .map((c) => c.connectionCreds);
+
+        sendActionEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadRecentConnections,
+            undefined, // additionalProperties
+            {
+                savedConnectionsCount: savedConnections.length,
+                recentConnectionsCount: recentConnections.length,
+            },
+        );
+
+        return {
+            recentConnections: await Promise.all(
+                recentConnections
+                    .map((conn) => {
+                        try {
+                            return this.initializeConnectionForDialog(conn);
+                        } catch (ex) {
+                            console.error(
+                                "Error initializing recent connection: " +
+                                    getErrorMessage(ex),
+                            );
+
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionDialog,
+                                TelemetryActions.LoadConnections,
+                                ex,
+                                false, // includeErrorMessage
+                                undefined, // errorCode
+                                undefined, // errorType
+                                {
+                                    connectionType: "recent",
+                                    authType: conn.authenticationType,
+                                },
+                            );
+
+                            return Promise.resolve(undefined);
+                        }
+                    })
+                    .filter((c) => c !== undefined),
+            ),
+            savedConnections: await Promise.all(
+                savedConnections
+                    .map((conn) => {
+                        try {
+                            return this.initializeConnectionForDialog(conn);
+                        } catch (ex) {
+                            console.error(
+                                "Error initializing saved connection: " +
+                                    getErrorMessage(ex),
+                            );
+
+                            sendErrorEvent(
+                                TelemetryViews.ConnectionDialog,
+                                TelemetryActions.LoadConnections,
+                                ex,
+                                false, // includeErrorMessage
+                                undefined, // errorCode
+                                undefined, // errorType
+                                {
+                                    connectionType: "saved",
+                                    authType: conn.authenticationType,
+                                },
+                            );
+
+                            return Promise.resolve(undefined);
+                        }
+                    })
+                    .filter((c) => c !== undefined),
+            ),
+        };
+    }
+
+    private async updateLoadedConnections(state: ConnectionDialogWebviewState) {
+        const loadedConnections = await this.loadConnections();
+
+        state.recentConnections = loadedConnections.recentConnections;
+        state.savedConnections = loadedConnections.savedConnections;
+    }
+
     private async validateProfile(
         connectionProfile?: IConnectionDialogProfile,
     ): Promise<string[]> {
@@ -1001,9 +873,232 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         return state;
     }
 
+    private async loadConnectionToEdit() {
+        if (this._connectionToEdit) {
+            this._connectionToEditCopy = structuredClone(
+                this._connectionToEdit,
+            );
+            const connection = await this.initializeConnectionForDialog(
+                this._connectionToEdit,
+            );
+            this.state.connectionProfile = connection;
+
+            this.state.selectedInputMode =
+                connection.connectionString && connection.server === undefined
+                    ? ConnectionInputMode.ConnectionString
+                    : ConnectionInputMode.Parameters;
+            this.updateState();
+        }
+    }
+
+    private async loadEmptyConnection() {
+        const emptyConnection = {
+            authenticationType: AuthenticationType.SqlLogin,
+            connectTimeout: 15, // seconds
+            applicationName: "vscode-mssql",
+        } as IConnectionDialogProfile;
+        this.state.connectionProfile = emptyConnection;
+    }
+
+    private async initializeConnectionForDialog(
+        connection: IConnectionInfo,
+    ): Promise<IConnectionDialogProfile> {
+        // Load the password if it's saved
+        const isConnectionStringConnection =
+            connection.connectionString !== undefined &&
+            connection.connectionString !== "";
+        if (!isConnectionStringConnection) {
+            const password =
+                await this._mainController.connectionManager.connectionStore.lookupPassword(
+                    connection,
+                    isConnectionStringConnection,
+                );
+            connection.password = password;
+        } else {
+            // If the connection is a connection string connection with SQL Auth:
+            //   * the full connection string is stored as the "password" in the credential store
+            //   * we need to extract the password from the connection string
+            // If the connection is a connection string connection with a different auth type, then there's nothing in the credential store.
+
+            const connectionString =
+                await this._mainController.connectionManager.connectionStore.lookupPassword(
+                    connection,
+                    isConnectionStringConnection,
+                );
+
+            if (connectionString) {
+                const passwordIndex = connectionString
+                    .toLowerCase()
+                    .indexOf("password=");
+
+                if (passwordIndex !== -1) {
+                    // extract password from connection string; found between 'Password=' and the next ';'
+                    const passwordStart = passwordIndex + "password=".length;
+                    const passwordEnd = connectionString.indexOf(
+                        ";",
+                        passwordStart,
+                    );
+                    if (passwordEnd !== -1) {
+                        connection.password = connectionString.substring(
+                            passwordStart,
+                            passwordEnd,
+                        );
+                    }
+
+                    // clear the connection string from the IConnectionDialogProfile so that the ugly connection string key
+                    // that's used to look up the actual connection string (with password) isn't displayed
+                    connection.connectionString = "";
+                }
+            }
+        }
+
+        const dialogConnection = connection as IConnectionDialogProfile;
+        // Set the display name
+        dialogConnection.displayName = dialogConnection.profileName
+            ? dialogConnection.profileName
+            : getConnectionDisplayName(connection);
+        return dialogConnection;
+    }
+
     //#endregion
 
     //#region Azure helpers
+
+    private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
+        const actionButtons: FormItemActionButton[] = [];
+        actionButtons.push({
+            label: Loc.signIn,
+            id: "azureSignIn",
+            callback: async () => {
+                const account =
+                    await this._mainController.azureAccountService.addAccount();
+                const accountsComponent = getFormComponent(
+                    this.state,
+                    "accountId",
+                );
+                if (accountsComponent) {
+                    accountsComponent.options = await getAccounts(
+                        this._mainController.azureAccountService,
+                    );
+                    this.state.connectionProfile.accountId = account.key.id;
+                    this.updateState();
+                    await this.handleAzureMFAEdits("accountId");
+                }
+            },
+        });
+
+        if (
+            this.state.connectionProfile.authenticationType ===
+                AuthenticationType.AzureMFA &&
+            this.state.connectionProfile.accountId
+        ) {
+            const account = (
+                await this._mainController.azureAccountService.getAccounts()
+            ).find(
+                (account) =>
+                    account.displayInfo.userId ===
+                    this.state.connectionProfile.accountId,
+            );
+            if (account) {
+                const session =
+                    await this._mainController.azureAccountService.getAccountSecurityToken(
+                        account,
+                        undefined,
+                    );
+                const isTokenExpired = AzureController.isTokenInValid(
+                    session.token,
+                    session.expiresOn,
+                );
+                if (isTokenExpired) {
+                    actionButtons.push({
+                        label: refreshTokenLabel,
+                        id: "refreshToken",
+                        callback: async () => {
+                            const account = (
+                                await this._mainController.azureAccountService.getAccounts()
+                            ).find(
+                                (account) =>
+                                    account.displayInfo.userId ===
+                                    this.state.connectionProfile.accountId,
+                            );
+                            if (account) {
+                                const session =
+                                    await this._mainController.azureAccountService.getAccountSecurityToken(
+                                        account,
+                                        undefined,
+                                    );
+                                ConnectionDialogWebviewController._logger.log(
+                                    "Token refreshed",
+                                    session.expiresOn,
+                                );
+                            }
+                        },
+                    });
+                }
+            }
+        }
+        return actionButtons;
+    }
+
+    private async handleAzureMFAEdits(
+        propertyName: keyof IConnectionDialogProfile,
+    ) {
+        const mfaComponents: (keyof IConnectionDialogProfile)[] = [
+            "accountId",
+            "tenantId",
+            "authenticationType",
+        ];
+        if (mfaComponents.includes(propertyName)) {
+            if (
+                this.state.connectionProfile.authenticationType !==
+                AuthenticationType.AzureMFA
+            ) {
+                return;
+            }
+            const accountComponent = getFormComponent(this.state, "accountId");
+            const tenantComponent = getFormComponent(this.state, "tenantId");
+            let tenants: FormItemOptions[] = [];
+            switch (propertyName) {
+                case "accountId":
+                    tenants = await getTenants(
+                        this._mainController.azureAccountService,
+                        this.state.connectionProfile.accountId,
+                    );
+                    if (tenantComponent) {
+                        tenantComponent.options = tenants;
+                        if (tenants && tenants.length > 0) {
+                            this.state.connectionProfile.tenantId =
+                                tenants[0].value;
+                        }
+                    }
+                    accountComponent.actionButtons =
+                        await this.getAzureActionButtons();
+                    break;
+                case "tenantId":
+                    break;
+                case "authenticationType":
+                    const firstOption = accountComponent.options[0];
+                    if (firstOption) {
+                        this.state.connectionProfile.accountId =
+                            firstOption.value;
+                    }
+                    tenants = await getTenants(
+                        this._mainController.azureAccountService,
+                        this.state.connectionProfile.accountId,
+                    );
+                    if (tenantComponent) {
+                        tenantComponent.options = tenants;
+                        if (tenants && tenants.length > 0) {
+                            this.state.connectionProfile.tenantId =
+                                tenants[0].value;
+                        }
+                    }
+                    accountComponent.actionButtons =
+                        await this.getAzureActionButtons();
+                    break;
+            }
+        }
+    }
 
     private async constructAzureAccountForTenant(
         tenantId: string,
@@ -1232,6 +1327,15 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Miscellanous helpers
 
+    private clearFormError() {
+        this.state.formError = "";
+        for (const component of getActiveFormComponents(this.state).map(
+            (x) => this.state.connectionComponents.components[x],
+        )) {
+            component.validation = undefined;
+        }
+    }
+
     private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
         return values.reduce((rv, x) => {
             const keyValue = x[key] as K;
@@ -1241,147 +1345,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             rv.get(keyValue)!.push(x);
             return rv;
         }, new Map<K, V[]>());
-    }
-
-    /** Returns a copy of `connection` that's been cleaned up by clearing the properties that aren't being used
-     * (e.g. due to form selections, like authType and inputMode) */
-    private cleanConnection(
-        connection: IConnectionDialogProfile,
-    ): IConnectionDialogProfile {
-        const cleanedConnection = structuredClone(connection);
-
-        // Clear values for inputs that are hidden due to form selections
-        for (const option of Object.values(
-            this.state.connectionComponents.components,
-        )) {
-            if (option.hidden) {
-                (cleanedConnection[
-                    option.propertyName as keyof IConnectionDialogProfile
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ] as any) = undefined;
-            }
-        }
-
-        // Clear values for inputs that are not applicable due to the selected input mode
-        if (
-            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
-            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
-        ) {
-            cleanedConnection.connectionString = undefined;
-        } else if (
-            this.state.selectedInputMode ===
-            ConnectionInputMode.ConnectionString
-        ) {
-            Object.keys(cleanedConnection).forEach((key) => {
-                if (key !== "connectionString" && key !== "profileName") {
-                    cleanedConnection[key] = undefined;
-                }
-            });
-        }
-
-        return cleanedConnection;
-    }
-
-    private async loadConnections(): Promise<{
-        savedConnections: IConnectionDialogProfile[];
-        recentConnections: IConnectionDialogProfile[];
-    }> {
-        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
-            this._mainController.connectionManager.connectionStore.loadAllConnections(
-                true /* addRecentConnections */,
-            );
-
-        const savedConnections = unsortedConnections
-            .filter(
-                (c) =>
-                    c.quickPickItemType ===
-                    CredentialsQuickPickItemType.Profile,
-            )
-            .map((c) => c.connectionCreds);
-
-        const recentConnections = unsortedConnections
-            .filter(
-                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
-            )
-            .map((c) => c.connectionCreds);
-
-        sendActionEvent(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadRecentConnections,
-            undefined, // additionalProperties
-            {
-                savedConnectionsCount: savedConnections.length,
-                recentConnectionsCount: recentConnections.length,
-            },
-        );
-
-        return {
-            recentConnections: await Promise.all(
-                recentConnections
-                    .map((conn) => {
-                        try {
-                            return this.initializeConnectionForDialog(conn);
-                        } catch (ex) {
-                            console.error(
-                                "Error initializing recent connection: " +
-                                    getErrorMessage(ex),
-                            );
-
-                            sendErrorEvent(
-                                TelemetryViews.ConnectionDialog,
-                                TelemetryActions.LoadConnections,
-                                ex,
-                                false, // includeErrorMessage
-                                undefined, // errorCode
-                                undefined, // errorType
-                                {
-                                    connectionType: "recent",
-                                    authType: conn.authenticationType,
-                                },
-                            );
-
-                            return Promise.resolve(undefined);
-                        }
-                    })
-                    .filter((c) => c !== undefined),
-            ),
-            savedConnections: await Promise.all(
-                savedConnections
-                    .map((conn) => {
-                        try {
-                            return this.initializeConnectionForDialog(conn);
-                        } catch (ex) {
-                            console.error(
-                                "Error initializing saved connection: " +
-                                    getErrorMessage(ex),
-                            );
-
-                            sendErrorEvent(
-                                TelemetryViews.ConnectionDialog,
-                                TelemetryActions.LoadConnections,
-                                ex,
-                                false, // includeErrorMessage
-                                undefined, // errorCode
-                                undefined, // errorType
-                                {
-                                    connectionType: "saved",
-                                    authType: conn.authenticationType,
-                                },
-                            );
-
-                            return Promise.resolve(undefined);
-                        }
-                    })
-                    .filter((c) => c !== undefined),
-            ),
-        };
-    }
-
-    private async updateLoadedConnections(state: ConnectionDialogWebviewState) {
-        const loadedConnections = await this.loadConnections();
-
-        state.recentConnections = loadedConnections.recentConnections;
-        state.savedConnections = loadedConnections.savedConnections;
     }
 
     //#endregion

@@ -6,6 +6,8 @@
 import { ConnectionOption } from "vscode-mssql";
 import {
     AuthenticationType,
+    ConnectionComponentGroup,
+    ConnectionComponentsInfo,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
@@ -95,6 +97,46 @@ export async function generateConnectionComponents(
     );
 
     return result;
+}
+
+export function groupAdvancedOptions(
+    componentsInfo: ConnectionComponentsInfo,
+): ConnectionComponentGroup[] {
+    const groupMap: Map<string, ConnectionComponentGroup> = new Map([
+        // intialize with display order; any that aren't pre-defined will be appended
+        // these values must match the GroupName defined in SQL Tools Service.
+        ["security", undefined],
+        ["initialization", undefined],
+        ["resiliency", undefined],
+        ["pooling", undefined],
+        ["context", undefined],
+    ]);
+
+    const optionsToGroup = Object.values(componentsInfo.components).filter(
+        (c) =>
+            c.isAdvancedOption &&
+            !componentsInfo.mainOptions.includes(c.propertyName) &&
+            !componentsInfo.topAdvancedOptions.includes(c.propertyName),
+    );
+
+    for (const option of optionsToGroup) {
+        if (
+            // new group ID or group ID hasn't been initialized yet
+            !groupMap.has(option.optionCategory) ||
+            groupMap.get(option.optionCategory) === undefined
+        ) {
+            groupMap.set(option.optionCategory, {
+                groupName: option.optionCategoryLabel,
+                options: [option.propertyName],
+            });
+        } else {
+            groupMap
+                .get(option.optionCategory)
+                .options.push(option.propertyName);
+        }
+    }
+
+    return Array.from(groupMap.values());
 }
 
 export function convertToFormComponent(
