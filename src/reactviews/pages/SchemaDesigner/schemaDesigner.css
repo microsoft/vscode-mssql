@@ -1,0 +1,42 @@
+:root {
+    --graph-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    --color-toolbar-bg: #2c2c2c;
+    --color-toolbar-text: #fff;
+    --color-toolbar-button-hover: #383838;
+    --color-toolbar-divider: #444444;
+    --color-border: #c3c3c3;
+    --color-outline-color: #0c8ce9;
+    --color-graph-gridLines: #c3c3c3;
+    --color-graph-outline-background: #fff;
+    --color-graph-cell-highlight: #0c8ce9;
+    --color-graph-outline-tableCell: #1e272e;
+    --color-graph-outline-columnCell: #bdc3c7;
+    --color-graph-background: #ffffff;
+    --color-graph-table-indicator: #00a2ad;
+    --color-graph-column-indicator: #f0f0f0;
+    --color-graph-node-hover: #f0f0f0;
+}
+.body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+}
+#graphContainer {
+    position: relative;
+    overflow: scroll;
+    width: 100%;
+    height: calc(100vh - 20px);
+    user-select: none;
+}
+
+.sd-outline {
+    width: 300px;
+    height: 200px;
+    overflow: auto;
+}
+
+.sd-toolbar {
+    display: none;
+}

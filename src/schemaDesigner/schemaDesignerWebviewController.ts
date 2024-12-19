@@ -18,6 +18,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     constructor(
         context: vscode.ExtensionContext,
         public _schemaDesignerService: ISchemaDesignerService,
+        _database: string,
         intialSchema: ISchema,
     ) {
         super(
@@ -27,7 +28,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 schema: intialSchema,
             },
             {
-                title: "Schema Designer",
+                title: _database,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(

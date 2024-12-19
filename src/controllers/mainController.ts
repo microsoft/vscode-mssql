@@ -927,6 +927,7 @@ export default class MainController implements vscode.Disposable {
                             new SchemaDesignerWebviewController(
                                 this._context,
                                 this.schemaDesignerService,
+                                node.metadata.name,
                                 schema,
                             );
 

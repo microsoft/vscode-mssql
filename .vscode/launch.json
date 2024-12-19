@@ -42,7 +42,7 @@
 			"sourceMapRenames": true,
 			"pauseForSourceMap": true,
 			"env": {
-				"MSSQL_SQLTOOLSSERVICE": "C:\\Repos\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net8.0\\win-x64\\publish"
+				"MSSQL_SQLTOOLSSERVICE": "/Users/aasimkhan/src/sqltoolsservice/src/Microsoft.SqlTools.ServiceLayer/bin/Debug/net8.0/osx-arm64/publish/"
 			}
 		},
 		{
