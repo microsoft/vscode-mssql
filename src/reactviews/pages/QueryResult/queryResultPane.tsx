@@ -234,6 +234,7 @@ export const QueryResultPane = () => {
         gridCount: number,
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
+        console.log(metadata.fontSettings.fontSize ?? 12);
         return (
             <div
                 id={divId}
@@ -253,9 +254,7 @@ export const QueryResultPane = () => {
                     fontFamily: metadata.fontSettings.fontFamily
                         ? metadata.fontSettings.fontFamily
                         : "var(--vscode-editor-font-family)",
-                    fontSize: metadata.fontSettings.fontSize
-                        ? `${metadata.fontSettings.fontSize}px`
-                        : "var(--vscode-editor-font-size)",
+                    fontSize: `${metadata.fontSettings.fontSize ?? 12}px`,
                 }}
             >
                 <ResultGrid

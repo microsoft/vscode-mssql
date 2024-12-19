@@ -76,12 +76,17 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         executionPlanState: {},
                         filterState: {},
                         fontSettings: {
-                            fontSize: this._vscodeWrapper
-                                .getConfiguration(Constants.extensionName)
-                                .get(
-                                    Constants.extConfigResultKeys
-                                        .ResultsFontSize,
-                                ),
+                            fontSize:
+                                (this._vscodeWrapper
+                                    .getConfiguration(Constants.extensionName)
+                                    .get(
+                                        Constants.extConfigResultKeys
+                                            .ResultsFontSize,
+                                    ) as number) ??
+                                (this._vscodeWrapper
+                                    .getConfiguration("editor")
+                                    .get("fontSize") as number),
+
                             fontFamily: this._vscodeWrapper
                                 .getConfiguration(Constants.extensionName)
                                 .get(
@@ -113,9 +118,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 }
                 if (e.affectsConfiguration("mssql.resultsFontSize")) {
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.fontSettings.fontSize = this._vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.extConfigResultKeys.ResultsFontSize);
+                        state.fontSettings.fontSize =
+                            (this._vscodeWrapper
+                                .getConfiguration(Constants.extensionName)
+                                .get(
+                                    Constants.extConfigResultKeys
+                                        .ResultsFontSize,
+                                ) as number) ??
+                            (this._vscodeWrapper
+                                .getConfiguration("editor")
+                                .get("fontSize") as number);
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
@@ -261,11 +273,15 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             }),
             filterState: {},
             fontSettings: {
-                fontSize: this._vscodeWrapper
-                    .getConfiguration(Constants.extensionName)
-                    .get(
-                        Constants.extConfigResultKeys.ResultsFontSize,
-                    ) as number,
+                fontSize:
+                    (this._vscodeWrapper
+                        .getConfiguration(Constants.extensionName)
+                        .get(
+                            Constants.extConfigResultKeys.ResultsFontSize,
+                        ) as number) ??
+                    (this._vscodeWrapper
+                        .getConfiguration("editor")
+                        .get("fontSize") as number),
                 fontFamily: this._vscodeWrapper
                     .getConfiguration(Constants.extensionName)
                     .get(
