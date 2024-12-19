@@ -10,7 +10,10 @@ import { Button, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
-import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import {
+    ConnectionDialogWebviewState,
+    IConnectionDialogProfile,
+} from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
@@ -341,7 +344,10 @@ export const AzureBrowsePage = () => {
                         component={
                             context.state.connectionComponents.components[
                                 "trustServerCertificate"
-                            ] as FormItemSpec<IConnectionDialogProfile>
+                            ] as FormItemSpec<
+                                ConnectionDialogWebviewState,
+                                IConnectionDialogProfile
+                            >
                         }
                         idx={0}
                         props={{ orientation: "horizontal" }}
@@ -389,7 +395,10 @@ export const AzureBrowsePage = () => {
                                     key={idx}
                                     context={context}
                                     component={
-                                        component as FormItemSpec<IConnectionDialogProfile>
+                                        component as FormItemSpec<
+                                            ConnectionDialogWebviewState,
+                                            IConnectionDialogProfile
+                                        >
                                     }
                                     idx={idx}
                                     props={{ orientation: "horizontal" }}

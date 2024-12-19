@@ -8,7 +8,10 @@ import { Button } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { FormItemSpec } from "../../common/forms/form";
-import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import {
+    ConnectionDialogWebviewState,
+    IConnectionDialogProfile,
+} from "../../../sharedInterfaces/connectionDialog";
 import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
@@ -39,7 +42,10 @@ export const ConnectionFormPage = () => {
                             key={idx}
                             context={context}
                             component={
-                                component as FormItemSpec<IConnectionDialogProfile>
+                                component as FormItemSpec<
+                                    ConnectionDialogWebviewState,
+                                    IConnectionDialogProfile
+                                >
                             }
                             idx={idx}
                             props={{ orientation: "horizontal" }}

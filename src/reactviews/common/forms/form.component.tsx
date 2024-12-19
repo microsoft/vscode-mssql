@@ -122,7 +122,7 @@ export const FormField = <
     componentProps,
 }: {
     context: TContext;
-    component: FormItemSpec<TForm>;
+    component: FormItemSpec<TState, TForm>;
     idx: number;
     props?: FieldProps;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -206,7 +206,7 @@ export function generateFormComponent<
     TContext extends FormContextProps<TState, TForm>,
     TState extends FormState<TForm>,
     TForm,
->(context: TContext, component: FormItemSpec<TForm>, props?: any) {
+>(context: TContext, component: FormItemSpec<TState, TForm>, props?: any) {
     const formState = context.state.formState;
 
     switch (component.type) {
