@@ -1949,7 +1949,10 @@ export default class MainController implements vscode.Disposable {
             if (node) {
                 const editDataWebView = new EditDataWebViewController(
                     this._context,
-                    new ConnectionProfile(node.connectionInfo),
+                    node,
+                    this._connectionMgr,
+                    this._scriptingService,
+                    this._untitledSqlDocumentService,
                 );
 
                 editDataWebView.revealToForeground();
