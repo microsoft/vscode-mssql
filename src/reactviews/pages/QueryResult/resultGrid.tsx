@@ -239,7 +239,14 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             let dataProvider = new HybridDataProvider(
                 collection,
                 (_startIndex, _count) => {
-                    return props.loadFunc(_startIndex, _count);
+                    if (
+                        props.resultSetSummary?.rowCount &&
+                        props.resultSetSummary?.rowCount > 0
+                    ) {
+                        return props.loadFunc(_startIndex, _count);
+                    } else {
+                        return Promise.resolve([]);
+                    }
                 },
                 (data: DbCellValue) => {
                     if (!data || data.isNull) {
