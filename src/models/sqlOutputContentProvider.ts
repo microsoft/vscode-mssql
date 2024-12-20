@@ -451,9 +451,7 @@ export class SqlOutputContentProvider {
                     }
                     this._queryResultWebviewController.updatePanelState(uri);
                     if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        await vscode.commands.executeCommand(
-                            "queryResult.focus",
-                        );
+                        this._queryResultWebviewController.revealToForeground();
                     }
                     sendActionEvent(
                         TelemetryViews.QueryResult,
@@ -520,7 +518,7 @@ export class SqlOutputContentProvider {
                         );
                     this._queryResultWebviewController.updatePanelState(uri);
                     if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        vscode.commands.executeCommand("queryResult.focus");
+                        this._queryResultWebviewController.revealToForeground();
                     }
                 }
             });
@@ -549,7 +547,7 @@ export class SqlOutputContentProvider {
                             uri,
                         );
                         if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            vscode.commands.executeCommand("queryResult.focus");
+                            this._queryResultWebviewController.revealToForeground();
                         }
                         this._lastSendMessageTime = Date.now();
                     }
@@ -599,7 +597,7 @@ export class SqlOutputContentProvider {
                             uri,
                         );
                         if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            vscode.commands.executeCommand("queryResult.focus");
+                            this._queryResultWebviewController.revealToForeground();
                         }
                     }
                 },

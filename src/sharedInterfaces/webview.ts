@@ -82,6 +82,10 @@ export interface MssqlWebviewPanelOptions {
      */
     viewColumn: vscode.ViewColumn;
     /**
+     * Whether the focus should be preserved when the webview is revealed.
+     */
+    preserveFocus?: boolean;
+    /**
      * The icon path for the webview panel tab icon.
      */
     iconPath?:
