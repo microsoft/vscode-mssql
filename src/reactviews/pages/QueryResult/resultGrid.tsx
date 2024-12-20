@@ -41,9 +41,6 @@ require("slickgrid/slick.core.js");
 require("slickgrid/slick.grid.js");
 require("slickgrid/plugins/slick.cellrangedecorator.js");
 
-//TODO: get hardcoded data & get gridpanel to render the hardcoded data
-// add console.log in the event handlers for example to onTableClick function
-
 declare global {
     interface Window {
         $: any;
@@ -245,6 +242,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     ) {
                         return props.loadFunc(_startIndex, _count);
                     } else {
+                        console.info(
+                            `No rows to load: start index: ${_startIndex}, count: ${_count}`,
+                        );
                         return Promise.resolve([]);
                     }
                 },
