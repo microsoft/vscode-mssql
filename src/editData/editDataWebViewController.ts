@@ -17,6 +17,7 @@ import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { Deferred } from "../protocol";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { EditDataService } from "../services/editDataService";
 
 export class EditDataWebViewController extends ReactWebviewPanelController<
     EditDataWebViewState,
@@ -28,6 +29,7 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
         private readonly connectionManager: ConnectionManager,
         private readonly scriptingService: ScriptingService,
         private readonly untitledSqlDocumentService: UntitledSqlDocumentService,
+        private readonly editDataService: EditDataService,
         data?: EditDataWebViewState,
     ) {
         super(context, "editData", data ?? {}, {
@@ -77,8 +79,24 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
             nodeUri,
             ScriptOperation.Select,
         );
-        const editor =
-            await this.untitledSqlDocumentService.newQuery(selectStatement);
+
+        const schemaName = this.node.metadata.schema;
+        const objectName = this.node.metadata.name;
+        const uri = schemaName
+            ? `untitled:${schemaName}.${objectName}`
+            : `untitled:${objectName}`;
+
+        const objectType = this.node.metadata.metadataTypeName.toUpperCase();
+        const limitResults = 200;
+
+        await this.editDataService.Initialize(
+            uri,
+            objectName,
+            schemaName,
+            objectType,
+            "",
+            limitResults,
+        );
 
         this.registerRpcHandlers();
     }

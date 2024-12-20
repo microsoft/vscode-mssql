@@ -13,7 +13,7 @@ import {
     EditInitializeRequest,
     EditRevertCellRequest,
     EditRevertRowRequest,
-    EditSessionReadyNotification,
+    // EditSessionReadyNotification,
     EditSubsetRequest,
     EditUpdateCellRequest,
 } from "../models/contracts/editData";
@@ -21,10 +21,10 @@ import * as ed from "../sharedInterfaces/editData";
 
 export class EditDataService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {
-        this._sqlToolsClient.onNotification(
-            EditSessionReadyNotification.type,
-            this.handleEditSessionReadyNotification(),
-        );
+        // this._sqlToolsClient.onNotification(
+        //     EditSessionReadyNotification.type,
+        //     this.handleEditSessionReadyNotification(),
+        // );
     }
 
     public handleEditSessionReadyNotification(): NotificationHandler<ed.EditSessionReadyParams> {
