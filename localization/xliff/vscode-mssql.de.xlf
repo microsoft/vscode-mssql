@@ -16,7 +16,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
         <source xml:lang="en">A firewall rule is required to access this server.</source>
-        <target state="new">A firewall rule is required to access this server.</target>
+        <target state="translated">Für den Zugriff auf diesen Server ist eine Firewallregel erforderlich.</target>
       </trans-unit>
       <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
         <source xml:lang="en">A predefined global default value for the column or binding.</source>
@@ -58,7 +58,7 @@
       </trans-unit>
       <trans-unit id="++CODE++079cd7244ce7f3c0fe474c025b5ff8e58c3678fba1ed67f0120416ac0071df85">
         <source xml:lang="en">Add Firewall Rule</source>
-        <target state="new">Add Firewall Rule</target>
+        <target state="translated">Firewallregel hinzufügen</target>
       </trans-unit>
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
@@ -456,7 +456,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
-        <target state="new">Create a new firewall rule</target>
+        <target state="translated">Neue Firewallregel erstellen</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -629,12 +629,12 @@
         <source xml:lang="en">Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}</source>
         <note>{0} is the rule info in format 'name (startIp - endIp)'
 {1} is the error message</note>
-        <target state="new">Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}</target>
+        <target state="translated">Fehler beim Erstellen der Firewallregel {0}.  Überprüfen Sie Ihre Azure-Kontoeinstellungen, und versuchen Sie es noch mal.  Fehler: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
         <source xml:lang="en">Error loading Azure account information for tenant ID '{0}'</source>
         <note>{0} is the tenant ID</note>
-        <target state="new">Error loading Azure account information for tenant ID '{0}'</target>
+        <target state="translated">Fehler beim Laden der Azure-Kontoinformationen für die Mandanten-ID '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++5a50d3034b36e62aa3eaca3fc11e55b184039c652bfdfe1ffb032321677bd530">
         <source xml:lang="en">Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.</source>
