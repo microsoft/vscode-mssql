@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationHandler } from "vscode-languageclient";
+// import { NotificationHandler } from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     EditCommitRequest,
@@ -20,15 +20,10 @@ import {
 import * as ed from "../sharedInterfaces/editData";
 
 export class EditDataService {
-    constructor(private _sqlToolsClient: SqlToolsServiceClient) {
-        // this._sqlToolsClient.onNotification(
-        //     EditSessionReadyNotification.type,
-        //     this.handleEditSessionReadyNotification(),
-        // );
-    }
+    constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
 
-    public handleEditSessionReadyNotification(): NotificationHandler<ed.EditSessionReadyParams> {
-        throw new Error("Method not implemented.");
+    get sqlToolsClient(): SqlToolsServiceClient {
+        return this._sqlToolsClient;
     }
 
     async createRow(ownerUri: string): Promise<ed.EditCreateRowResult> {
@@ -91,7 +86,7 @@ export class EditDataService {
         objectName: string,
         schemaName: string,
         objectType: string,
-        queryString: string,
+        queryString: string | undefined,
         limitResults?: number | undefined,
     ): Promise<ed.EditInitializeResult> {
         try {

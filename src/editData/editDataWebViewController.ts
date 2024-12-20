@@ -18,6 +18,9 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { Deferred } from "../protocol";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { EditDataService } from "../services/editDataService";
+import { EditSessionReadyNotification } from "../models/contracts/editData";
+import { NotificationHandler } from "vscode-languageclient";
+import * as ed from "../sharedInterfaces/editData";
 
 export class EditDataWebViewController extends ReactWebviewPanelController<
     EditDataWebViewState,
@@ -32,28 +35,52 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
         private readonly editDataService: EditDataService,
         data?: EditDataWebViewState,
     ) {
-        super(context, "editData", data ?? {}, {
-            title: vscode.l10n.t("Edit Data (Preview)"),
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "tableDesignerEditor_dark.svg", // lewissanchez TODO - update icon for edit data
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "tableDesignerEditor_light.svg", // lewissanchez TODO - update icon for edit data
-                ),
+        super(
+            context,
+            "editData",
+            data ?? {
+                ownerUri: "",
+                objectName: "",
+                objectType: "",
+                queryString: "",
+                schemaName: "",
             },
-        });
+            {
+                title: vscode.l10n.t("Edit Data (Preview)"),
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "tableDesignerEditor_dark.svg", // lewissanchez TODO - update icon for edit data
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "tableDesignerEditor_light.svg", // lewissanchez TODO - update icon for edit data
+                    ),
+                },
+            },
+        );
 
         void this.initialize();
     }
 
     private async initialize() {
-        const nodeUri = ObjectExplorerUtils.getNodeUri(this.node);
+        this.editDataService.sqlToolsClient.onNotification(
+            EditSessionReadyNotification.type,
+            this.handleEditSessionReadyNotification(),
+        );
+
+        const schemaName = this.node.metadata.schema;
+        const objectName = this.node.metadata.name;
+        const nodeUri = schemaName
+            ? `untitled:${schemaName}.${objectName}`
+            : `untitled:${objectName}`;
+        const objectType = this.node.metadata.metadataTypeName.toUpperCase();
+        const limitResults = 200;
+
+        // const nodeUri = ObjectExplorerUtils.getNodeUri(this.node);
         let connectionCreds = Object.assign({}, this.node.connectionInfo);
         const databaseName = ObjectExplorerUtils.getDatabaseName(this.node);
 
@@ -80,25 +107,28 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
             ScriptOperation.Select,
         );
 
-        const schemaName = this.node.metadata.schema;
-        const objectName = this.node.metadata.name;
-        const uri = schemaName
-            ? `untitled:${schemaName}.${objectName}`
-            : `untitled:${objectName}`;
-
-        const objectType = this.node.metadata.metadataTypeName.toUpperCase();
-        const limitResults = 200;
-
         await this.editDataService.Initialize(
-            uri,
+            nodeUri,
             objectName,
             schemaName,
             objectType,
-            "",
+            undefined,
             limitResults,
         );
 
         this.registerRpcHandlers();
+    }
+
+    private handleEditSessionReadyNotification(): NotificationHandler<ed.EditSessionReadyParams> {
+        const self = this;
+        return (result: ed.EditSessionReadyParams): void => {
+            if (result.success) {
+                self.updateState({
+                    ...self.state,
+                    ownerUri: result.ownerUri,
+                });
+            }
+        };
     }
 
     private registerRpcHandlers() {}

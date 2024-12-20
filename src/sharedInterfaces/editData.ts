@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export interface EditDataWebViewState {}
+export interface EditDataWebViewState {
+    ownerUri: string;
+    schemaName: string;
+    objectName: string;
+    objectType: string;
+    queryString: string;
+}
 
 export interface EditDataReducers {}
 
