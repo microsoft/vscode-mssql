@@ -239,7 +239,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             let dataProvider = new HybridDataProvider(
                 collection,
                 (_startIndex, _count) => {
-                    return props.loadFunc(_startIndex, _count);
+                    //TODO: check if this is needed, load function shouldn't be called if we have an empty result set summary
+                    if (
+                        props.resultSetSummary?.rowCount &&
+                        props.resultSetSummary?.rowCount > 0
+                    ) {
+                        return props.loadFunc(_startIndex, _count);
+                    } else {
+                        return Promise.resolve([]);
+                    }
                 },
                 (data: DbCellValue) => {
                     if (!data || data.isNull) {
