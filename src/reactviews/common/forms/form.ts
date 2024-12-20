@@ -18,7 +18,7 @@ export interface FormContextProps<TState extends FormState<TForm>, TForm> {
 /**
  * Describes a field in a connection dialog form.
  */
-export interface FormItemSpec<TForm> {
+export interface FormItemSpec<TState extends FormState<TForm>, TForm> {
     /**
      * The type of the form item
      */
@@ -58,7 +58,10 @@ export interface FormItemSpec<TForm> {
     /**
      * Validation callback for the form item
      */
-    validate?: (value: string | boolean | number) => FormItemValidationState;
+    validate?: (
+        state: TState,
+        value: string | boolean | number,
+    ) => FormItemValidationState;
     /**
      * Validation state and message for the form item
      */

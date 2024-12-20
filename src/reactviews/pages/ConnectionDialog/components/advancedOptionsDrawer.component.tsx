@@ -21,7 +21,10 @@ import { useContext } from "react";
 import { FormField } from "../../../common/forms/form.component";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { FormItemSpec } from "../../../common/forms/form";
-import { IConnectionDialogProfile } from "../../../../sharedInterfaces/connectionDialog";
+import {
+    ConnectionDialogWebviewState,
+    IConnectionDialogProfile,
+} from "../../../../sharedInterfaces/connectionDialog";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,
@@ -70,7 +73,10 @@ export const AdvancedOptionsDrawer = ({
                                         context.state.connectionComponents
                                             .components[
                                             optionName
-                                        ] as FormItemSpec<IConnectionDialogProfile>
+                                        ] as FormItemSpec<
+                                            ConnectionDialogWebviewState,
+                                            IConnectionDialogProfile
+                                        >
                                     }
                                     idx={idx}
                                 />
@@ -109,7 +115,10 @@ export const AdvancedOptionsDrawer = ({
                                                                 .connectionComponents
                                                                 .components[
                                                                 optionName
-                                                            ] as FormItemSpec<IConnectionDialogProfile>
+                                                            ] as FormItemSpec<
+                                                                ConnectionDialogWebviewState,
+                                                                IConnectionDialogProfile
+                                                            >
                                                         }
                                                         idx={idx}
                                                     />

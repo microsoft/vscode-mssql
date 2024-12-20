@@ -6,11 +6,6 @@
 import * as vscode from "vscode";
 import { l10n } from "vscode";
 import {
-    AzureSqlServerInfo,
-    ConnectionDialogWebviewState,
-} from "../sharedInterfaces/connectionDialog";
-import { getErrorMessage, listAllIterator } from "../utils/utils";
-import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
@@ -19,8 +14,24 @@ import {
     ResourceManagementClient,
 } from "@azure/arm-resources";
 
+import { IAccount, ITenant } from "../models/contracts/azure";
+import { FormItemOptions } from "../reactviews/common/forms/form";
+import { AzureAccountService } from "../services/azureAccountService";
+import {
+    AzureSqlServerInfo,
+    ConnectionDialogWebviewState,
+} from "../sharedInterfaces/connectionDialog";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { sendErrorEvent } from "../telemetry/telemetry";
+import { getErrorMessage, listAllIterator } from "../utils/utils";
+
 export const azureSubscriptionFilterConfigKey =
     "azureResourceGroups.selectedSubscriptions";
+
+//#region VS Code integration
 
 export async function confirmVscodeAzureSignin(): Promise<
     VSCodeAzureSubscriptionProvider | undefined
@@ -154,6 +165,97 @@ export async function fetchServersFromAzure(
     return result;
 }
 
+//#endregion
+
+//#region Azure Entra auth helpers
+
+export async function getAccounts(
+    azureAccountService: AzureAccountService,
+): Promise<FormItemOptions[]> {
+    let accounts: IAccount[] = [];
+    try {
+        accounts = await azureAccountService.getAccounts();
+        return accounts.map((account) => {
+            return {
+                displayName: account.displayInfo.displayName,
+                value: account.displayInfo.userId,
+            };
+        });
+    } catch (error) {
+        console.error(
+            `Error loading Azure accounts: ${getErrorMessage(error)}`,
+        );
+
+        sendErrorEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadAzureAccountsForEntraAuth,
+            error,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+            undefined, // additionalProperties
+            {
+                accountCount: accounts.length,
+                undefinedAccountCount: accounts.filter((x) => x === undefined)
+                    .length,
+                undefinedDisplayInfoCount: accounts.filter(
+                    (x) => x !== undefined && x.displayInfo === undefined,
+                ).length,
+            }, // additionalMeasurements
+        );
+
+        return [];
+    }
+}
+
+export async function getTenants(
+    azureAccountService: AzureAccountService,
+    accountId: string,
+): Promise<FormItemOptions[]> {
+    let tenants: ITenant[] = [];
+    try {
+        const account = (await azureAccountService.getAccounts()).find(
+            (account) => account.displayInfo?.userId === accountId,
+        );
+        if (!account) {
+            return [];
+        }
+        tenants = account.properties.tenants;
+        if (!tenants) {
+            return [];
+        }
+        return tenants.map((tenant) => {
+            return {
+                displayName: tenant.displayName,
+                value: tenant.id,
+            };
+        });
+    } catch (error) {
+        console.error(`Error loading Azure tenants: ${getErrorMessage(error)}`);
+
+        sendErrorEvent(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadAzureTenantsForEntraAuth,
+            error,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+            undefined, // additionalProperties
+            {
+                tenant: tenants.length,
+                undefinedTenantCount: tenants.filter((x) => x === undefined)
+                    .length,
+            }, // additionalMeasurements
+        );
+
+        return [];
+    }
+}
+
+//#endregion
+
+//#region Miscellaneous Auzre helpers
+
 function extractFromResourceId(
     resourceId: string,
     property: string,
@@ -175,3 +277,5 @@ function extractFromResourceId(
         resourceId.indexOf("/", startIndex),
     );
 }
+
+//#endregion
