@@ -124,7 +124,48 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    var metadata = state?.state;
+    const metadata = state?.state;
+
+    // lifecycle logging right after context consumption
+    useEffect(() => {
+        console.debug("QueryResultPane mounted", {
+            hasMetadata: !!metadata,
+            metadata: metadata,
+            hasState: !!state,
+            state: state,
+            uri: metadata?.uri,
+            resultSetCount: Object.keys(metadata?.resultSetSummaries ?? {})
+                .length,
+            messageCount: metadata?.messages?.length,
+            isExecutionPlan: metadata?.isExecutionPlan,
+            hasExecutionPlanState: !!metadata?.executionPlanState,
+        });
+
+        return () => {
+            console.debug("QueryResultPane unmounted", {
+                hasMetadata: !!metadata,
+                metadata: metadata,
+                hasState: !!state,
+                state: state,
+                uri: metadata?.uri,
+            });
+        };
+    }, []);
+
+    // context change logging
+    useEffect(() => {
+        console.debug("QueryResultPane context updated", {
+            uri: metadata?.uri,
+            hasMetadata: !!metadata,
+            metadata: metadata,
+            hasState: !!state,
+            state: state,
+            resultSetCount: Object.keys(metadata?.resultSetSummaries ?? {})
+                .length,
+            messageCount: metadata?.messages?.length,
+        });
+    }, [metadata, state]);
+
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
@@ -259,6 +300,13 @@ export const QueryResultPane = () => {
                         offset: number,
                         count: number,
                     ): Thenable<any[]> => {
+                        console.debug("getRows rpc call", {
+                            uri: metadata?.uri,
+                            batchId: batchId,
+                            resultId: resultId,
+                            rowStart: offset,
+                            numberOfRows: count,
+                        });
                         return webViewState.extensionRpc
                             .call("getRows", {
                                 uri: metadata?.uri,
