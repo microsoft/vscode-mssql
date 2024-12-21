@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as ed from "../sharedInterfaces/editData";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
@@ -11,16 +12,12 @@ import {
     EditDataWebViewState,
 } from "../sharedInterfaces/editData";
 import ConnectionManager from "../controllers/connectionManager";
-// import { ScriptingService } from "../scripting/scriptingService";
-// import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { Deferred } from "../protocol";
-// import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { EditDataService } from "../services/editDataService";
 import { EditSessionReadyNotification } from "../models/contracts/editData";
 import { NotificationHandler } from "vscode-languageclient";
-import * as ed from "../sharedInterfaces/editData";
 
 export class EditDataWebViewController extends ReactWebviewPanelController<
     EditDataWebViewState,
@@ -30,8 +27,6 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
         context: vscode.ExtensionContext,
         private node: TreeNodeInfo,
         private readonly connectionManager: ConnectionManager,
-        // private readonly scriptingService: ScriptingService,
-        // private readonly untitledSqlDocumentService: UntitledSqlDocumentService,
         private readonly editDataService: EditDataService,
         data?: EditDataWebViewState,
     ) {
@@ -79,9 +74,8 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
             ? `untitled:${schemaName}.${objectName}`
             : `untitled:${objectName}`;
         const objectType = this.node.metadata.metadataTypeName.toUpperCase();
-        const limitResults = 200;
+        const limitResults = 200; // lewissanchez TODO: Make this configurable
 
-        // const nodeUri = ObjectExplorerUtils.getNodeUri(this.node);
         let connectionCreds = Object.assign({}, this.node.connectionInfo);
         const databaseName = ObjectExplorerUtils.getDatabaseName(this.node);
 
@@ -101,12 +95,6 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
                 await promise;
             }
         }
-
-        // const selectStatement = await this.scriptingService.script(
-        //     this.node,
-        //     nodeUri,
-        //     ScriptOperation.Select,
-        // );
 
         await this.editDataService.Initialize(
             nodeUri,

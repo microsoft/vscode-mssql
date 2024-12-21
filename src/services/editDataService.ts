@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// import { NotificationHandler } from "vscode-languageclient";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     EditCommitRequest,
@@ -13,7 +12,6 @@ import {
     EditInitializeRequest,
     EditRevertCellRequest,
     EditRevertRowRequest,
-    // EditSessionReadyNotification,
     EditSubsetRequest,
     EditUpdateCellRequest,
 } from "../models/contracts/editData";
