@@ -427,6 +427,9 @@
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
+      <source xml:lang="en">Edit Data (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
@@ -1604,6 +1607,9 @@
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.editData">
+      <source xml:lang="en">Edit Data</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>

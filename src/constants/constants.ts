@@ -68,6 +68,7 @@ export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
 export const cmdScriptExecute = "mssql.scriptExecute";
 export const cmdScriptAlter = "mssql.scriptAlter";
+export const cmdEditData = "mssql.editData";
 export const cmdToggleSqlCmd = "mssql.toggleSqlCmd";
 export const cmdCopyObjectName = "mssql.copyObjectName";
 export const cmdFilterNode = "mssql.filterNode";

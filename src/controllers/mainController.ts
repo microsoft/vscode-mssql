@@ -60,6 +60,8 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { EditDataWebViewController } from "../editData/editDataWebViewController";
+import { EditDataService } from "../services/editDataService";
 
 /**
  * The main controller class that initializes the extension
@@ -97,6 +99,7 @@ export default class MainController implements vscode.Disposable {
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
+    public editDataService: EditDataService;
 
     /**
      * The main controller constructor
@@ -353,6 +356,9 @@ export default class MainController implements vscode.Disposable {
                 SqlToolsServerClient.instance,
             );
             this.executionPlanService = new ExecutionPlanService(
+                SqlToolsServerClient.instance,
+            );
+            this.editDataService = new EditDataService(
                 SqlToolsServerClient.instance,
             );
 
@@ -1022,6 +1028,13 @@ export default class MainController implements vscode.Disposable {
                     await this.scriptNode(node, ScriptOperation.Select, true);
                     await UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdEditData,
+                async (node: TreeNodeInfo) => await this.onEditData(node),
             ),
         );
 
@@ -1935,6 +1948,21 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onEditData(node?: TreeNodeInfo): Promise<void> {
+        if (this.canRunCommand()) {
+            if (node) {
+                const editDataWebView = new EditDataWebViewController(
+                    this._context,
+                    node,
+                    this._connectionMgr,
+                    this.editDataService,
+                );
+
+                editDataWebView.revealToForeground();
+            }
+        }
     }
 
     /**
