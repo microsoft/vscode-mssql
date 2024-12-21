@@ -1955,8 +1955,8 @@ export default class MainController implements vscode.Disposable {
                     this._context,
                     node,
                     this._connectionMgr,
-                    this._scriptingService,
-                    this._untitledSqlDocumentService,
+                    // this._scriptingService,
+                    // this._untitledSqlDocumentService,
                     this.editDataService,
                 );
 

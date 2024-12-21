@@ -9,6 +9,7 @@ export interface EditDataWebViewState {
     objectName: string;
     objectType: string;
     queryString: string;
+    subsetResult: EditSubsetResult;
 }
 
 export interface EditDataReducers {}

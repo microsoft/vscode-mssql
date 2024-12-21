@@ -11,12 +11,12 @@ import {
     EditDataWebViewState,
 } from "../sharedInterfaces/editData";
 import ConnectionManager from "../controllers/connectionManager";
-import { ScriptingService } from "../scripting/scriptingService";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+// import { ScriptingService } from "../scripting/scriptingService";
+// import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { Deferred } from "../protocol";
-import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+// import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { EditDataService } from "../services/editDataService";
 import { EditSessionReadyNotification } from "../models/contracts/editData";
 import { NotificationHandler } from "vscode-languageclient";
@@ -30,8 +30,8 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
         context: vscode.ExtensionContext,
         private node: TreeNodeInfo,
         private readonly connectionManager: ConnectionManager,
-        private readonly scriptingService: ScriptingService,
-        private readonly untitledSqlDocumentService: UntitledSqlDocumentService,
+        // private readonly scriptingService: ScriptingService,
+        // private readonly untitledSqlDocumentService: UntitledSqlDocumentService,
         private readonly editDataService: EditDataService,
         data?: EditDataWebViewState,
     ) {
@@ -44,6 +44,7 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
                 objectType: "",
                 queryString: "",
                 schemaName: "",
+                subsetResult: { rowCount: 0, subset: [] },
             },
             {
                 title: vscode.l10n.t("Edit Data (Preview)"),
@@ -101,11 +102,11 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
             }
         }
 
-        const selectStatement = await this.scriptingService.script(
-            this.node,
-            nodeUri,
-            ScriptOperation.Select,
-        );
+        // const selectStatement = await this.scriptingService.script(
+        //     this.node,
+        //     nodeUri,
+        //     ScriptOperation.Select,
+        // );
 
         await this.editDataService.Initialize(
             nodeUri,
@@ -127,8 +128,28 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
                     ...self.state,
                     ownerUri: result.ownerUri,
                 });
+
+                void self.loadResultSet();
             }
         };
+    }
+
+    private async loadResultSet() {
+        const subsetResult = await this.editDataService.subset(
+            this.state.ownerUri,
+            0,
+            200,
+        );
+
+        const result: ed.EditSubsetResult = {
+            rowCount: subsetResult.rowCount,
+            subset: [...subsetResult.subset],
+        };
+
+        this.updateState({
+            ...this.state,
+            subsetResult: result,
+        });
     }
 
     private registerRpcHandlers() {}
