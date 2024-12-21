@@ -170,12 +170,12 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
-export const extConfigResultKeys = [
-    "shortcuts",
-    "messagesDefaultOpen",
-    "resultsFontSize",
-    "resultsFontFamily",
-];
+export enum extConfigResultKeys {
+    ShortCuts = "shortcuts",
+    MessagesDefaultOpen = "messagesDefaultOpen",
+    ResultsFontSize = "resultsFontSize",
+    ResultsFontFamily = "resultsFontFamily",
+}
 export const sqlToolsServiceInstallDirConfigKey = "installDir";
 export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
 export const sqlToolsServiceVersionConfigKey = "version";
