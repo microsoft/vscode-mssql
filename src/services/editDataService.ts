@@ -34,6 +34,7 @@ export class EditDataService {
                 EditCreateRowRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -55,6 +56,7 @@ export class EditDataService {
                 EditDeleteRowRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -72,6 +74,7 @@ export class EditDataService {
                 EditDisposeRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -105,6 +108,7 @@ export class EditDataService {
                 EditInitializeRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -128,6 +132,7 @@ export class EditDataService {
                 EditRevertCellRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -138,7 +143,6 @@ export class EditDataService {
     async revertRow(
         ownerUri: string,
         rowId: number,
-        columnId: number,
     ): Promise<ed.EditRevertRowResult> {
         try {
             const params: ed.EditRevertRowParams = {
@@ -150,6 +154,7 @@ export class EditDataService {
                 EditRevertRowRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -173,6 +178,7 @@ export class EditDataService {
                 EditSubsetRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -198,6 +204,7 @@ export class EditDataService {
                 EditUpdateCellRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -215,6 +222,7 @@ export class EditDataService {
                 EditCommitRequest.type,
                 params,
             );
+
             return result;
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
