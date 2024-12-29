@@ -39,7 +39,36 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
                 objectType: "",
                 queryString: "",
                 schemaName: "",
-                subsetResult: { rowCount: 0, subset: [] },
+                subsetResult: {
+                    rowCount: 0,
+                    subset: [],
+                },
+                createRowResult: {
+                    defaultValues: [],
+                    newRowId: -1,
+                },
+                revertCellResult: {
+                    cell: {
+                        displayValue: "",
+                        isNull: false,
+                        invariantCultureDisplayValue: "",
+                        isDirty: false,
+                    },
+                    isRowDirty: false,
+                },
+                revertRowResult: {
+                    row: [],
+                    isRowDirty: false,
+                },
+                updateCellResult: {
+                    cell: {
+                        displayValue: "",
+                        isNull: false,
+                        invariantCultureDisplayValue: "",
+                        isDirty: false,
+                    },
+                    isRowDirty: false,
+                },
             },
             {
                 title: vscode.l10n.t("Edit Data (Preview)"),
@@ -140,5 +169,91 @@ export class EditDataWebViewController extends ReactWebviewPanelController<
         });
     }
 
-    private registerRpcHandlers() {}
+    private registerRpcHandlers() {
+        this.registerReducer("createRow", async (state, payload) => {
+            const result = await this.editDataService.createRow(
+                payload.ownerUri,
+            );
+
+            return {
+                ...state,
+                editRowResult: { ...result },
+            };
+        });
+
+        this.registerReducer("deleteRow", async (state, payload) => {
+            await this.editDataService.deleteRow(
+                payload.ownerUri,
+                payload.rowId,
+            );
+
+            return { ...state };
+        });
+
+        this.registerReducer("dispose", async (state, payload) => {
+            await this.editDataService.dispose(payload.ownerUri);
+
+            return { ...state };
+        });
+
+        this.registerReducer("revertCell", async (state, payload) => {
+            const result = await this.editDataService.revertCell(
+                payload.ownerUri,
+                payload.rowId,
+                payload.columnId,
+            );
+
+            return {
+                ...state,
+                revertCellResult: { ...result },
+            };
+        });
+
+        this.registerReducer("revertRow", async (state, payload) => {
+            const result = await this.editDataService.revertRow(
+                payload.ownerUri,
+                payload.rowId,
+            );
+
+            return {
+                ...state,
+                revertRowResult: { ...result },
+            };
+        });
+
+        this.registerReducer("subset", async (state, payload) => {
+            const result = await this.editDataService.subset(
+                payload.ownerUri,
+                payload.rowStartIndex,
+                payload.rowCount,
+            );
+
+            return {
+                ...state,
+                subsetResult: { ...result },
+            };
+        });
+
+        this.registerReducer("updateCell", async (state, payload) => {
+            const result = await this.editDataService.updateCell(
+                payload.ownerUri,
+                payload.rowId,
+                payload.columnId,
+                payload.newValue,
+            );
+
+            return {
+                ...state,
+                updateCellResult: { ...result },
+            };
+        });
+
+        this.registerReducer("commit", async (state, payload) => {
+            await this.editDataService.commit(payload.ownerUri);
+
+            return {
+                ...state,
+            };
+        });
+    }
 }

@@ -10,9 +10,71 @@ export interface EditDataWebViewState {
     objectType: string;
     queryString: string;
     subsetResult: EditSubsetResult;
+    createRowResult: EditCreateRowResult;
+    revertCellResult: EditRevertCellResult;
+    revertRowResult: EditRevertRowResult;
+    updateCellResult: EditUpdateCellResult;
 }
 
-export interface EditDataReducers {}
+export interface EditDataReducers {
+    /**
+     * Creates a new table row in the database table being edited.
+     */
+    createRow: {
+        ownerUri: string;
+    };
+    /**
+     * Deletes a table row from the database table being edited.
+     */
+    deleteRow: {
+        ownerUri: string;
+        rowId: number;
+    };
+    /**
+     * Disposes of the edit session.
+     */
+    dispose: {
+        ownerUri: string;
+    };
+    /**
+     * Reverts a table cell in the database table being edited to its original value.
+     */
+    revertCell: {
+        ownerUri: string;
+        rowId: number;
+        columnId: number;
+    };
+    /**
+     * Reverts a table row in the database table being edited to its original values.
+     */
+    revertRow: {
+        ownerUri: string;
+        rowId: number;
+    };
+    /**
+     * Gets a subset of the table rows from the database table being edited.
+     */
+    subset: {
+        ownerUri: string;
+        rowStartIndex: number;
+        rowCount: number;
+    };
+    /**
+     * Updates a table cell in the database table being edited.
+     */
+    updateCell: {
+        ownerUri: string;
+        rowId: number;
+        columnId: number;
+        newValue: string;
+    };
+    /**
+     * Commits the changes made to the database table being edited.
+     */
+    commit: {
+        ownerUri: string;
+    };
+}
 
 // Edit Data Shared Interfaces --------------------------------------------------------------------------
 export interface DbCellValue {
