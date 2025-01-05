@@ -7,9 +7,12 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { EditDataPage } from "./editDataPage";
+import { EditDataStateProvider } from "./editDataStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
-        <EditDataPage />
+        <EditDataStateProvider>
+            <EditDataPage />
+        </EditDataStateProvider>
     </VscodeWebviewProvider>,
 );

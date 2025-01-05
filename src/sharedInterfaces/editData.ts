@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
+
 export interface EditDataWebViewState {
     ownerUri: string;
     schemaName: string;
@@ -74,6 +76,24 @@ export interface EditDataReducers {
     commit: {
         ownerUri: string;
     };
+}
+
+export interface EditDataContextProps {
+    state: EditDataWebViewState;
+    themeKind: ColorThemeKind;
+    createRow: (ownerUri: string) => void;
+    deleteRow: (ownerUri: string, rowId: number) => void;
+    dispose: (ownerUri: string) => void;
+    revertCell: (ownerUri: string, rowId: number, columnId: number) => void;
+    revertRow: (ownerUri: string, rowId: number) => void;
+    subset: (ownerUri: string, rowStartIndex: number, rowCount: number) => void;
+    updateCell: (
+        ownerUri: string,
+        rowId: number,
+        columnId: number,
+        newValue: string,
+    ) => void;
+    commit: (ownerUri: string) => void;
 }
 
 // Edit Data Shared Interfaces --------------------------------------------------------------------------
