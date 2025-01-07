@@ -234,7 +234,6 @@ export const QueryResultPane = () => {
         gridCount: number,
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
-        console.log(metadata.fontSettings.fontSize ?? 12);
         return (
             <div
                 id={divId}

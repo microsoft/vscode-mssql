@@ -171,7 +171,7 @@ export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
 export enum extConfigResultKeys {
-    ShortCuts = "shortcuts",
+    Shortcuts = "shortcuts",
     MessagesDefaultOpen = "messagesDefaultOpen",
     ResultsFontSize = "resultsFontSize",
     ResultsFontFamily = "resultsFontFamily",

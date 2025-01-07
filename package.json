@@ -1232,6 +1232,7 @@
                 "number",
                 "null"
             ],
+            "maximum": 24,
             "description": "%mssql.resultsFontSize%",
             "default": null,
             "scope": "resource"
