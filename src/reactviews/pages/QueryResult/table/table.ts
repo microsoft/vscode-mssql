@@ -20,7 +20,7 @@ import * as DOM from "./dom";
 import { IDisposableDataProvider } from "./dataProvider";
 import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
-import { HeaderFilter } from "./plugins/headerFilter.plugin";
+import { FilterButtonWidth, HeaderFilter } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
 import {
     QueryResultReducers,
@@ -30,6 +30,7 @@ import {
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultState } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
+import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -162,6 +163,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
         this.registerPlugin(
             new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
+        );
+
+        this.registerPlugin(
+            new AutoColumnSize({
+                autoSizeOnRender: true,
+                extraColumnHeaderWidth: FilterButtonWidth,
+            }),
         );
 
         if (configuration && configuration.columns) {
