@@ -1569,6 +1569,9 @@
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups">
+      <source xml:lang="en">Connection groups</source>
+    </trans-unit>
     <trans-unit id="mssql.connections">
       <source xml:lang="en">Connection profiles defined in &apos;User Settings&apos; are shown under &apos;MS SQL: Connect&apos; command in the command palette.</source>
     </trans-unit>
