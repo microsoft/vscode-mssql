@@ -36,6 +36,8 @@ export class ConnectionProfile
     implements IConnectionProfile
 {
     public profileName: string;
+    public id: string;
+    public groupId: string;
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;

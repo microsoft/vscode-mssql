@@ -17,6 +17,7 @@ export const connectionApplicationName = "vscode-mssql";
 export const outputChannelName = "MSSQL";
 export const connectionConfigFilename = "settings.json";
 export const connectionsArrayName = "connections";
+export const connectionGroupsArrayName = "connectionGroups";
 export const disconnectedServerLabel = "disconnectedServer";
 export const serverLabel = "Server";
 export const folderLabel = "Folder";

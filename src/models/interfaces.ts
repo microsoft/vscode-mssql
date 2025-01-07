@@ -58,12 +58,22 @@ export const contentTypes = [
 // optional name and details on whether password should be saved
 export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     profileName: string;
+    id: string;
+    groupId: string;
     savePassword: boolean;
     emptyPasswordInput: boolean;
     azureAuthType: AzureAuthType;
     accountStore: AccountStore;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
+}
+
+export interface IConnectionGroup {
+    id: string;
+    name: string;
+    parentId?: string;
+    color?: string;
+    description?: string;
 }
 
 export enum CredentialsQuickPickItemType {
