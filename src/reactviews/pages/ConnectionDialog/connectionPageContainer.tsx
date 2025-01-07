@@ -8,6 +8,7 @@ import "./sqlServerRotation.css";
 import {
     AddFirewallRuleDialogProps,
     ConnectionDialogContextProps,
+    ConnectionDialogWebviewState,
     ConnectionInputMode,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
@@ -101,7 +102,10 @@ export const ConnectionInfoFormContainer = () => {
                     component={
                         context.state.connectionComponents.components[
                             "profileName"
-                        ] as FormItemSpec<IConnectionDialogProfile>
+                        ] as FormItemSpec<
+                            ConnectionDialogWebviewState,
+                            IConnectionDialogProfile
+                        >
                     }
                     idx={0}
                     props={{ orientation: "horizontal" }}
