@@ -47,7 +47,7 @@ import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IAccount } from "../models/contracts/azure";
 import * as AzureConstants from "../azure/constants";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import * as ConnInfo from "../models/connectionInfo";
 import {
     TelemetryActions,
     TelemetryViews,
@@ -129,24 +129,25 @@ export class ObjectExplorerService {
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
                 let savedConnections =
-                    this._connectionManager.connectionStore.loadAllConnections();
+                    this._connectionManager.connectionStore.readAllConnections();
                 let nodeConnection =
                     this._sessionIdToConnectionCredentialsMap.get(
                         result.sessionId,
                     );
                 for (let connection of savedConnections) {
                     if (
-                        Utils.isSameConnection(
-                            connection.connectionCreds,
-                            nodeConnection,
-                        )
+                        Utils.isSameConnectionInfo(connection, nodeConnection)
                     ) {
-                        // if it's not the defaul label
+                        // if it's not the default label
                         if (
-                            connection.label !==
-                            connection.connectionCreds.server
+                            ConnInfo.getSimpleConnectionDisplayName(
+                                connection,
+                            ) !== connection.server
                         ) {
-                            nodeLabel = connection.label;
+                            nodeLabel =
+                                ConnInfo.getSimpleConnectionDisplayName(
+                                    connection,
+                                );
                         }
                         break;
                     }
@@ -159,7 +160,7 @@ export class ObjectExplorerService {
                     self._currentNode.sessionId === result.sessionId
                 ) {
                     nodeLabel = !nodeLabel
-                        ? getConnectionDisplayName(
+                        ? ConnInfo.getConnectionDisplayName(
                               self._currentNode.connectionInfo,
                           )
                         : nodeLabel;
@@ -173,7 +174,7 @@ export class ObjectExplorerService {
                     );
                 } else {
                     nodeLabel = !nodeLabel
-                        ? getConnectionDisplayName(nodeConnection)
+                        ? ConnInfo.getConnectionDisplayName(nodeConnection)
                         : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(
                         result.rootNode,
@@ -443,7 +444,7 @@ export class ObjectExplorerService {
         }
         for (let rootTreeNode of this._rootTreeNodeArray) {
             if (
-                Utils.isSameConnection(
+                Utils.isSameConnectionInfo(
                     node.connectionInfo,
                     rootTreeNode.connectionInfo,
                 ) &&
@@ -497,16 +498,13 @@ export class ObjectExplorerService {
      */
     private getSavedConnections(): void {
         let savedConnections =
-            this._connectionManager.connectionStore.loadAllConnections();
+            this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
             let nodeLabel =
-                conn.label === conn.connectionCreds.server
-                    ? getConnectionDisplayName(conn.connectionCreds)
-                    : conn.label;
-            this._nodePathToNodeLabelMap.set(
-                conn.connectionCreds.server,
-                nodeLabel,
-            );
+                ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
+                    ? ConnInfo.getConnectionDisplayName(conn)
+                    : ConnInfo.getSimpleConnectionDisplayName(conn);
+            this._nodePathToNodeLabelMap.set(conn.server, nodeLabel);
             let node = new TreeNodeInfo(
                 nodeLabel,
                 {
@@ -520,7 +518,7 @@ export class ObjectExplorerService {
                 undefined,
                 Constants.disconnectedServerLabel,
                 undefined,
-                conn.connectionCreds,
+                conn,
                 undefined,
                 undefined,
             );
@@ -635,7 +633,7 @@ export class ObjectExplorerService {
             // retrieve saved connections first when opening object explorer
             // for the first time
             let savedConnections =
-                this._connectionManager.connectionStore.loadAllConnections();
+                this._connectionManager.connectionStore.readAllConnections();
             // if there are no saved connections
             // show the add connection node
             if (savedConnections.length === 0) {
@@ -660,7 +658,7 @@ export class ObjectExplorerService {
      * Create an OE session for the given connection credentials
      * otherwise prompt the user to select a connection to make an
      * OE out of
-     * @param connectionCredentials Connection Credentials for a node
+     * @param connectionProfile Connection Credentials for a node
      */
     public async createSession(
         promise: Deferred<vscode.TreeItem | undefined>,
@@ -679,32 +677,38 @@ export class ObjectExplorerService {
                 this._connectionManager.getServerInfo(connectionCredentials),
             );
         }
+
         if (connectionCredentials) {
+            const connectionProfile =
+                connectionCredentials as IConnectionProfile;
+
+            if (!connectionProfile.id) {
+                connectionProfile.id = Utils.generateGuid();
+            }
+
             // connection string based credential
-            if (connectionCredentials.connectionString) {
-                if (
-                    (connectionCredentials as IConnectionProfile).savePassword
-                ) {
+            if (connectionProfile.connectionString) {
+                if ((connectionProfile as IConnectionProfile).savePassword) {
                     // look up connection string
                     let connectionString =
                         await this._connectionManager.connectionStore.lookupPassword(
-                            connectionCredentials,
+                            connectionProfile,
                             true,
                         );
-                    connectionCredentials.connectionString = connectionString;
+                    connectionProfile.connectionString = connectionString;
                 }
             } else {
                 if (
                     ConnectionCredentials.isPasswordBasedCredential(
-                        connectionCredentials,
+                        connectionProfile,
                     )
                 ) {
                     // show password prompt if SQL Login and password isn't saved
-                    let password = connectionCredentials.password;
+                    let password = connectionProfile.password;
                     if (Utils.isEmpty(password)) {
                         // if password isn't saved
                         if (
-                            !(<IConnectionProfile>connectionCredentials)
+                            !(<IConnectionProfile>connectionProfile)
                                 .savePassword
                         ) {
                             // prompt for password
@@ -718,72 +722,67 @@ export class ObjectExplorerService {
                             // look up saved password
                             password =
                                 await this._connectionManager.connectionStore.lookupPassword(
-                                    connectionCredentials,
+                                    connectionProfile,
                                 );
                             if (
-                                connectionCredentials.authenticationType !==
+                                connectionProfile.authenticationType !==
                                 Constants.azureMfa
                             ) {
-                                connectionCredentials.azureAccountToken =
-                                    undefined;
+                                connectionProfile.azureAccountToken = undefined;
                             }
                         }
-                        connectionCredentials.password = password;
+                        connectionProfile.password = password;
                     }
                 } else if (
-                    connectionCredentials.authenticationType ===
+                    connectionProfile.authenticationType ===
                     Utils.authTypeToString(AuthenticationTypes.Integrated)
                 ) {
-                    connectionCredentials.azureAccountToken = undefined;
+                    connectionProfile.azureAccountToken = undefined;
                 } else if (
-                    connectionCredentials.authenticationType ===
-                    Constants.azureMfa
+                    connectionProfile.authenticationType === Constants.azureMfa
                 ) {
                     let azureController =
                         this._connectionManager.azureController;
                     let account =
                         this._connectionManager.accountStore.getAccount(
-                            connectionCredentials.accountId,
+                            connectionProfile.accountId,
                         );
                     let needsRefresh = false;
                     if (!account) {
                         needsRefresh = true;
                     } else if (azureController.isSqlAuthProviderEnabled()) {
-                        connectionCredentials.user =
+                        connectionProfile.user =
                             account.displayInfo.displayName;
-                        connectionCredentials.email = account.displayInfo.email;
+                        connectionProfile.email = account.displayInfo.email;
                         // Update profile after updating user/email
                         await this._connectionManager.connectionUI.saveProfile(
-                            connectionCredentials as IConnectionProfile,
+                            connectionProfile as IConnectionProfile,
                         );
                         if (!azureController.isAccountInCache(account)) {
                             needsRefresh = true;
                         }
                     }
                     if (
-                        !connectionCredentials.azureAccountToken &&
+                        !connectionProfile.azureAccountToken &&
                         (!azureController.isSqlAuthProviderEnabled() ||
                             needsRefresh)
                     ) {
-                        void this.refreshAccount(
-                            account,
-                            connectionCredentials,
-                        );
+                        void this.refreshAccount(account, connectionProfile);
                     }
                 }
             }
             const connectionDetails =
                 ConnectionCredentials.createConnectionDetails(
-                    connectionCredentials,
+                    connectionProfile,
                 );
 
-            if ((connectionCredentials as IConnectionProfile).profileName) {
+            if ((connectionProfile as IConnectionProfile).profileName) {
                 this._nodePathToNodeLabelMap.set(
                     // using the server name as the key because that's what the rest of the OE service expects.
                     // TODO: this service should be refactored to use something guaranteed to be unique across all connections,
                     // but that likely involves a larger refactor of connection management.
-                    connectionCredentials.server,
-                    (connectionCredentials as IConnectionProfile).profileName,
+                    connectionProfile.server,
+                    (connectionProfile as IConnectionProfile).profileName,
                 );
             }
 
@@ -795,7 +794,7 @@ export class ObjectExplorerService {
             if (response) {
                 this._sessionIdToConnectionCredentialsMap.set(
                     response.sessionId,
-                    connectionCredentials,
+                    connectionProfile,
                 );
                 this._sessionIdToPromiseMap.set(response.sessionId, promise);
                 return response.sessionId;
@@ -939,7 +938,7 @@ export class ObjectExplorerService {
     ): Promise<void> {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
-                if (Utils.isSameConnection(node.connectionInfo, conn)) {
+                if (Utils.isSameConnectionInfo(node.connectionInfo, conn)) {
                     await this.removeObjectExplorerNode(node);
                 }
             }
@@ -980,9 +979,9 @@ export class ObjectExplorerService {
     }
 
     public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
-        const label = (<IConnectionProfile>connectionCredentials).profileName
-            ? (<IConnectionProfile>connectionCredentials).profileName
-            : getConnectionDisplayName(connectionCredentials);
+        const label = (connectionCredentials as IConnectionProfile).profileName
+            ? (connectionCredentials as IConnectionProfile).profileName
+            : ConnInfo.getConnectionDisplayName(connectionCredentials);
         const node = new TreeNodeInfo(
             label,
             {

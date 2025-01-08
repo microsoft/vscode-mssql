@@ -2136,7 +2136,7 @@ export default class MainController implements vscode.Disposable {
             let staleConnections = objectExplorerConnections.filter(
                 (oeConn) => {
                     return !userConnections.some((userConn) =>
-                        Utils.isSameConnection(oeConn, userConn),
+                        Utils.isSameConnectionInfo(oeConn, userConn),
                     );
                 },
             );
@@ -2170,7 +2170,7 @@ export default class MainController implements vscode.Disposable {
             // if a connection(s) was/were manually added
             let newConnections = userConnections.filter((userConn) => {
                 return !objectExplorerConnections.some((oeConn) =>
-                    Utils.isSameConnection(userConn, oeConn),
+                    Utils.isSameConnectionInfo(userConn, oeConn),
                 );
             });
             for (let conn of newConnections) {

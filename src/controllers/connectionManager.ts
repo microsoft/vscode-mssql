@@ -312,7 +312,7 @@ export default class ConnectionManager {
             (uri) => this._connections[uri].credentials,
         );
         for (let connectedCredential of connectedCredentials) {
-            if (Utils.isSameConnection(credential, connectedCredential)) {
+            if (Utils.isSameConnectionInfo(credential, connectedCredential)) {
                 return true;
             }
         }
@@ -322,7 +322,7 @@ export default class ConnectionManager {
     public getUriForConnection(connection: IConnectionInfo): string {
         for (let uri of Object.keys(this._connections)) {
             if (
-                Utils.isSameConnection(
+                Utils.isSameConnectionInfo(
                     this._connections[uri].credentials,
                     connection,
                 )

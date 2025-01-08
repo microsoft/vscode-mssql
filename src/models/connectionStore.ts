@@ -15,6 +15,7 @@ import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
     AuthenticationTypes,
+    IConnectionProfileWithSource,
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
@@ -184,7 +185,7 @@ export class ConnectionStore {
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] =
-            this.loadAllConnections(false);
+            this.getConnectionQuickpickItems(false);
         pickListItems.push(<IConnectionCredentialsQuickPickItem>{
             label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
             connectionCreds: undefined,
@@ -577,7 +578,7 @@ export class ConnectionStore {
         itemType: CredentialsQuickPickItemType,
     ): IConnectionCredentialsQuickPickItem {
         return <IConnectionCredentialsQuickPickItem>{
-            label: ConnInfo.getPicklistLabel(item, itemType),
+            label: ConnInfo.getSimpleConnectionDisplayName(item),
             description: ConnInfo.getPicklistDescription(item),
             detail: ConnInfo.getPicklistDetails(item),
             connectionCreds: item,
@@ -613,91 +614,133 @@ export class ConnectionStore {
         await this.saveProfile(profile);
     }
 
+    public readAllConnections(
+        includeRecentConnections: boolean = false,
+    ): IConnectionProfileWithSource[] {
+        let connResults: IConnectionProfileWithSource[] = [];
+
+        const configConnections = this._connectionConfig
+            .getConnections(true)
+            .map((c) => {
+                const conn = c as IConnectionProfileWithSource;
+                conn.profileSource = CredentialsQuickPickItemType.Profile;
+                return conn;
+            });
+
+        connResults = connResults.concat(configConnections);
+
+        if (includeRecentConnections) {
+            const recentConnections = this.getRecentlyUsedConnections().map(
+                (c) => {
+                    const conn = c as IConnectionProfileWithSource;
+                    conn.profileSource = CredentialsQuickPickItemType.Mru;
+                    return conn;
+                },
+            );
+
+            connResults = connResults.concat(recentConnections);
+        }
+
+        // TODO re-add deduplication logic from old method
+
+        return connResults;
+    }
+
+    public getConnectionQuickpickItems(
+        includeRecentConnections: boolean = false,
+    ): IConnectionCredentialsQuickPickItem[] {
+        let output: IConnectionCredentialsQuickPickItem[] = [];
+        const connections = this.readAllConnections(includeRecentConnections);
+
+        output = connections.map((c) => {
+            return this.createQuickPickItem(c, c.profileSource);
+        });
+
+        return output;
+    }
+
     // Load connections from user preferences
     public loadAllConnections(
         addRecentConnections: boolean = false,
     ): IConnectionCredentialsQuickPickItem[] {
-        let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
+        throw new Error("Method not implemented.");
+        // let connResults: IConnectionCredentialsQuickPickItem[] = [];
 
-        // Read recently used items from a memento
-        let recentConnections = [];
-        if (addRecentConnections) {
-            recentConnections = this.getConnectionsFromGlobalState(
-                Constants.configRecentConnections,
-            );
-        }
+        // // Read recently used items from a memento
+        // let recentConnections: IConnectionProfile[] = [];
+        // if (addRecentConnections) {
+        //     recentConnections =
+        //         this.getConnectionsFromGlobalState<IConnectionProfile>(
+        //             Constants.configRecentConnections,
+        //         );
+        // }
 
-        // Load connections from user preferences
-        // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
-        // Connections defined in workspace scope are unioned with the Connections defined in user scope
-        let profilesInConfiguration =
-            this._connectionConfig.getConnections(true);
+        // // Load connections from user preferences
+        // // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
+        // // Connections defined in workspace scope are unioned with the Connections defined in user scope
+        // let profilesInConfiguration =
+        //     this._connectionConfig.getConnections(true);
 
-        // Remove any duplicates that are in both recent connections and the user settings
-        let profilesInRecentConnectionsList: number[] = [];
-        profilesInConfiguration = profilesInConfiguration.filter((profile) => {
-            for (let index = 0; index < recentConnections.length; index++) {
-                if (
-                    Utils.isSameProfile(
-                        profile,
-                        <IConnectionProfile>recentConnections[index],
-                    )
-                ) {
-                    if (
-                        Utils.isSameConnection(
-                            profile,
-                            recentConnections[index],
-                        )
-                    ) {
-                        // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
-                        ConnInfo.fixupConnectionCredentials(profile);
-                        recentConnections[index] = Object.assign({}, profile);
-                        profilesInRecentConnectionsList.push(index);
-                    }
-                    return false;
-                }
-            }
-            return true;
-        });
+        // // Remove any duplicates that are in both recent connections and the user settings
+        // let profilesInRecentConnectionsList: number[] = [];
+        // profilesInConfiguration = profilesInConfiguration.filter((profile) => {
+        //     for (let index = 0; index < recentConnections.length; index++) {
+        //         if (Utils.isSameProfile(profile, recentConnections[index])) {
+        //             if (
+        //                 Utils.isSameConnection(
+        //                     profile,
+        //                     recentConnections[index],
+        //                 )
+        //             ) {
+        //                 // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
+        //                 ConnInfo.fixupConnectionCredentials(profile);
+        //                 recentConnections[index] = Object.assign({}, profile);
+        //                 profilesInRecentConnectionsList.push(index);
+        //             }
+        //             return false; // config profile is also in recent connections
+        //         }
+        //     }
+        //     return true; // config profile is not in recent connections
+        // });
 
-        // Ensure that MRU items which are actually profiles are labeled as such
-        let recentConnectionsItems = this.mapToQuickPickItems(
-            recentConnections,
-            CredentialsQuickPickItemType.Mru,
-        );
-        for (let index of profilesInRecentConnectionsList) {
-            recentConnectionsItems[index].quickPickItemType =
-                CredentialsQuickPickItemType.Profile;
-        }
+        // // Ensure that MRU items which are actually profiles are labeled as such
+        // let recentConnectionsItems = this.mapToQuickPickItems(
+        //     recentConnections,
+        //     CredentialsQuickPickItemType.Mru,
+        // );
+        // for (let index of profilesInRecentConnectionsList) {
+        //     recentConnectionsItems[index].quickPickItemType =
+        //         CredentialsQuickPickItemType.Profile;
+        // }
 
-        quickPickItems = quickPickItems.concat(recentConnectionsItems);
-        quickPickItems = quickPickItems.concat(
-            this.mapToQuickPickItems(
-                profilesInConfiguration,
-                CredentialsQuickPickItemType.Profile,
-            ),
-        );
+        // connResults = connResults.concat(recentConnectionsItems);
+        // connResults = connResults.concat(
+        //     this.mapToQuickPickItems(
+        //         profilesInConfiguration,
+        //         CredentialsQuickPickItemType.Profile,
+        //     ),
+        // );
 
-        // Return all connections
-        return quickPickItems;
+        // // Return all connections
+        // return connResults;
     }
 
-    private getConnectionsFromGlobalState<T extends IConnectionInfo>(
-        configName: string,
-    ): T[] {
-        let connections: T[] = [];
-        // read from the global state
-        let configValues = this._context.globalState.get<T[]>(configName);
-        this.addConnections(connections, configValues);
-        return connections;
-    }
+    // private getConnectionsFromGlobalState<T extends IConnectionInfo>(
+    //     configName: string,
+    // ): T[] {
+    //     let connections: T[] = [];
+    //     // read from the global state
+    //     let configValues = this._context.globalState.get<T[]>(configName);
+    //     this.addConnections(connections, configValues);
+    //     return connections;
+    // }
 
-    private mapToQuickPickItems(
-        connections: IConnectionInfo[],
-        itemType: CredentialsQuickPickItemType,
-    ): IConnectionCredentialsQuickPickItem[] {
-        return connections.map((c) => this.createQuickPickItem(c, itemType));
-    }
+    // private mapToQuickPickItems(
+    //     connections: IConnectionInfo[],
+    //     itemType: CredentialsQuickPickItemType,
+    // ): IConnectionCredentialsQuickPickItem[] {
+    //     return connections.map((c) => this.createQuickPickItem(c, itemType));
+    // }
 
     private loadProfiles(
         loadWorkspaceProfiles: boolean,
@@ -710,29 +753,29 @@ export class ConnectionStore {
         return quickPickItems;
     }
 
-    private addConnections(
-        connections: IConnectionInfo[],
-        configValues: IConnectionInfo[],
-    ): void {
-        if (configValues) {
-            for (let index = 0; index < configValues.length; index++) {
-                let element = configValues[index];
-                if (
-                    element.server &&
-                    element.server.trim() &&
-                    !element.server.trim().startsWith("{{")
-                ) {
-                    let connection =
-                        ConnInfo.fixupConnectionCredentials(element);
-                    connections.push(connection);
-                } else {
-                    Utils.logDebug(
-                        `Missing server name in user preferences connection: index ( ${index} ): ${element.toString()}`,
-                    );
-                }
-            }
-        }
-    }
+    // private addConnections(
+    //     connections: IConnectionInfo[],
+    //     configValues: IConnectionInfo[],
+    // ): void {
+    //     if (configValues) {
+    //         for (let index = 0; index < configValues.length; index++) {
+    //             let element = configValues[index];
+    //             if (
+    //                 element.server &&
+    //                 element.server.trim() &&
+    //                 !element.server.trim().startsWith("{{")
+    //             ) {
+    //                 let connection =
+    //                     ConnInfo.fixupConnectionCredentials(element);
+    //                 connections.push(connection);
+    //             } else {
+    //                 Utils.logDebug(
+    //                     `Missing server name in user preferences connection: index ( ${index} ): ${element.toString()}`,
+    //                 );
+    //             }
+    //         }
+    //     }
+    // }
 
     private getMaxRecentConnectionsCount(): number {
         let config = this._vscodeWrapper.getConfiguration(

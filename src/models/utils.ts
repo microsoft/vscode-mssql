@@ -324,7 +324,7 @@ export function isSameProfile(
  * @param expectedConn the connection to try to match
  * @returns boolean that is true if the connections match
  */
-export function isSameConnection(
+export function isSameConnectionInfo(
     conn: IConnectionInfo,
     expectedConn: IConnectionInfo,
 ): boolean {

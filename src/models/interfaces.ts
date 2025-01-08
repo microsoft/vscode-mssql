@@ -54,8 +54,10 @@ export const contentTypes = [
     Constants.localizedTexts,
 ];
 
-// A Connection Profile contains all the properties of connection credentials, with additional
-// optional name and details on whether password should be saved
+/**
+ * Extension of IConnectionInfo that adds metadata relevant to the MSSQL extension's handling of connection profiles,
+ * such as the profile name, connection ID, connection group ID, and whether the password should be saved.
+ */
 export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     profileName: string;
     id: string;
@@ -81,6 +83,11 @@ export enum CredentialsQuickPickItemType {
     Mru,
     NewConnection,
 }
+
+export interface IConnectionProfileWithSource extends IConnectionProfile {
+    profileSource: CredentialsQuickPickItemType;
+}
+
 export interface IConnectionCredentialsQuickPickItem
     extends vscode.QuickPickItem {
     connectionCreds: vscodeMssql.IConnectionInfo;
