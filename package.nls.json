@@ -109,6 +109,7 @@
 "mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
 "mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
 "mssql.queryHistoryLimit":"Number of query history entries to show in the Query History view",
+"mssql.autoDisableNonTSqlLanguageService":"Should language service be auto-disabled when extension detects Non-MSSQL files",
 "mssql.createAzureFunction":"Create Azure Function with SQL binding",
 "mssql.query.maxXmlCharsToStore":"Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.",
 "mssql.query.maxCharsToStore":"Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.",

@@ -60,6 +60,12 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import {
+    changeLanguageServiceForFile,
+    getNonTSqlKeywords,
+    hasNonTSqlKeywords,
+    LanguageServiceOptions,
+} from "../languageservice/utils";
 
 /**
  * The main controller class that initializes the extension
@@ -87,6 +93,7 @@ export default class MainController implements vscode.Disposable {
         includeEstimatedExecutionPlanXml: false,
         includeActualExecutionPlanXml: false,
     };
+    private _nonTSqlKeywords: Set<string> = new Set();
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -391,6 +398,8 @@ export default class MainController implements vscode.Disposable {
             };
             vscode.window.registerUriHandler(uriHandler);
 
+            this._nonTSqlKeywords = getNonTSqlKeywords();
+
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(
                 async (params) => await this.onDidCloseTextDocument(params),
@@ -403,6 +412,9 @@ export default class MainController implements vscode.Disposable {
             );
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
+            );
+            this._vscodeWrapper.onDidChangeTextDocument((params) =>
+                this.onDidChangeTextDocument(params),
             );
             return true;
         }
@@ -2099,6 +2111,85 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedTimer = new Utils.Timer();
         this._lastSavedTimer.start();
         this._lastSavedUri = savedDocumentUri;
+    }
+
+    /**
+     * Called by VS Code when a text document is changed.
+     * @param change The change event that was detected
+     */
+    public async onDidChangeTextDocument(
+        change: vscode.TextDocumentChangeEvent,
+    ): Promise<void> {
+        if (this._connectionMgr === undefined) {
+            // Avoid processing events before initialization is complete
+            return;
+        }
+
+        const doc = change.document;
+        if (doc && doc.languageId === Constants.languageId) {
+            await this.checkForNonTSqlDoc(doc);
+        }
+    }
+
+    private async checkForNonTSqlDoc(doc: vscode.TextDocument): Promise<void> {
+        const docErrors: vscode.Diagnostic[] = vscode.languages.getDiagnostics(
+            doc.uri,
+        );
+
+        const sources: vscode.Diagnostic[] = docErrors.filter(
+            (error) => error.source !== undefined,
+        );
+
+        if (
+            // This condition is true if there are any errors in the document
+            // from another sql language service
+            sources.length ||
+            docErrors.length >= 50 ||
+            hasNonTSqlKeywords(doc.getText(), this._nonTSqlKeywords)
+        ) {
+            const isEnabled: number = await this._vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configAutoDisableNonTSqlLanguageService);
+
+            if (isEnabled === LanguageServiceOptions.SwitchEnabled) {
+                changeLanguageServiceForFile(
+                    SqlToolsServerClient.instance,
+                    doc.uri.toString(),
+                    Constants.noneProviderName,
+                );
+            } else if (isEnabled === LanguageServiceOptions.SwitchUnset) {
+                const selectedOption =
+                    await vscode.window.showInformationMessage(
+                        LocalizedConstants.autoDisableNonTSqlLanguageServicePrompt,
+                        LocalizedConstants.msgYes,
+                        LocalizedConstants.msgNo,
+                    );
+
+                if (selectedOption === LocalizedConstants.msgYes) {
+                    changeLanguageServiceForFile(
+                        SqlToolsServerClient.instance,
+                        doc.uri.toString(),
+                        Constants.noneProviderName,
+                    );
+
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configAutoDisableNonTSqlLanguageService,
+                            LanguageServiceOptions.SwitchEnabled,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                } else {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configAutoDisableNonTSqlLanguageService,
+                            LanguageServiceOptions.SwitchDisabled,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                }
+            }
+        }
     }
 
     private onChangeQueryHistoryConfig(): void {

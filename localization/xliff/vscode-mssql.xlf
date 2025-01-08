@@ -931,6 +931,9 @@
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
     </trans-unit>
+    <trans-unit id="++CODE++32c36ee014ccb0fbc4f33e492ba79843c3d42ba2e5f1fcc86944bd6e9e81d815">
+      <source xml:lang="en">Possible Non-MSSQL SQL file detected. Automatically disable Intellisense for all Non-MSSQL SQL files?</source>
+    </trans-unit>
     <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
       <source xml:lang="en">Precision</source>
     </trans-unit>
@@ -1844,6 +1847,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.keywordCasing">
       <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+    </trans-unit>
+    <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
+      <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
     </trans-unit>
     <trans-unit id="mssql.persistQueryResultTabs">
       <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
