@@ -9,6 +9,8 @@ import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 
+export const ConnectButtonId = "connectButton";
+
 export const ConnectButton = ({
     style,
     className,
@@ -16,28 +18,26 @@ export const ConnectButton = ({
     style?: CSSProperties;
     className?: string;
 }) => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+    const context = useContext(ConnectionDialogContext);
 
-    if (!connectionDialogContext) {
+    if (!context) {
         return undefined;
     }
 
     return (
         <Button
+            id={ConnectButtonId}
+            type="submit"
             appearance="primary"
-            disabled={
-                connectionDialogContext.state.connectionStatus ===
-                ApiStatus.Loading
-            }
+            disabled={context.state.connectionStatus === ApiStatus.Loading}
             onClick={(_event) => {
-                connectionDialogContext.connect();
+                context.connect();
             }}
             className={className}
             style={style}
             iconPosition="after"
             icon={
-                connectionDialogContext.state.connectionStatus ===
-                ApiStatus.Loading ? (
+                context.state.connectionStatus === ApiStatus.Loading ? (
                     <Spinner size="tiny" />
                 ) : undefined
             }
