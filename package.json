@@ -1222,16 +1222,20 @@
           "scope": "resource"
         },
         "mssql.resultsFontFamily": {
-          "type": "string",
-          "description": "%mssql.resultsFontFamily%",
-          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif",
-          "scope": "resource"
+            "type": "string",
+            "description": "%mssql.resultsFontFamily%",
+            "default": null,
+            "scope": "resource"
         },
         "mssql.resultsFontSize": {
-          "type": "number",
-          "description": "%mssql.resultsFontSize%",
-          "default": 13,
-          "scope": "resource"
+            "type": [
+                "number",
+                "null"
+            ],
+            "maximum": 24,
+            "description": "%mssql.resultsFontSize%",
+            "default": null,
+            "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",

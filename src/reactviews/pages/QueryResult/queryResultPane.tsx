@@ -66,9 +66,7 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
-        fontFamily: "var(--vscode-editor-font-family)",
         fontWeight: "normal",
-        fontSize: "var(--vscode-editor-font-size)",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -293,6 +291,10 @@ export const QueryResultPane = () => {
                                   gridCount,
                               )}px`
                             : "",
+                    fontFamily: metadata.fontSettings.fontFamily
+                        ? metadata.fontSettings.fontFamily
+                        : "var(--vscode-editor-font-family)",
+                    fontSize: `${metadata.fontSettings.fontSize ?? 12}px`,
                 }}
             >
                 <ResultGrid

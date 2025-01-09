@@ -132,8 +132,17 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     table.rerenderGrid();
                 }
             };
-
-            const ROW_HEIGHT = 25;
+            const DEFAULT_FONT_SIZE = 12;
+            console.log(
+                "resultGrid: ",
+                props.state.state.fontSettings.fontSize,
+            );
+            const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            const COLUMN_WIDTH = Math.max(
+                (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
+                    120,
+                120,
+            ); // Scale width with font size, but keep a minimum of 120px
             if (!props.resultSetSummary || !props.linkHandler) {
                 return;
             }
@@ -219,7 +228,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 rowHeight: ROW_HEIGHT,
                 showRowNumber: true,
                 forceFitColumns: false,
-                defaultColumnWidth: 120,
+                defaultColumnWidth: COLUMN_WIDTH,
             };
             let rowNumberColumn = new RowNumberColumn<Slick.SlickData>({
                 autoCellSelection: false,
