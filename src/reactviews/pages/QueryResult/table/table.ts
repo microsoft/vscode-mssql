@@ -20,7 +20,7 @@ import * as DOM from "./dom";
 import { IDisposableDataProvider } from "./dataProvider";
 import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
-import { FilterButtonWidth, HeaderFilter } from "./plugins/headerFilter.plugin";
+import { HeaderFilter } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
 import {
     QueryResultReducers,
@@ -41,6 +41,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     } as Slick.GridOptions<T>;
 }
 
+export const MAX_COLUMN_WIDTH_PX = 400;
 export const ACTIONBAR_WIDTH_PX = 36;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
@@ -167,8 +168,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
         this.registerPlugin(
             new AutoColumnSize({
-                autoSizeOnRender: true,
-                extraColumnHeaderWidth: FilterButtonWidth,
+                maxWidth: MAX_COLUMN_WIDTH_PX,
+                autoSizeOnRender: this.webViewState.state.autoSizeColumns,
             }),
         );
 

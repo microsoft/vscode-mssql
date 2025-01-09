@@ -94,6 +94,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                                         .ResultsFontFamily,
                                 ),
                         },
+                        autoSizeColumns: this._vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.configAutoColumnSizing),
                     };
                 }
             });
@@ -128,6 +131,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                             (this._vscodeWrapper
                                 .getConfiguration("editor")
                                 .get("fontSize") as number);
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
+                if (
+                    e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")
+                ) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.autoSizeColumns = this._vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.configAutoColumnSizing);
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
@@ -288,6 +301,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         Constants.extConfigResultKeys.ResultsFontFamily,
                     ) as string,
             },
+            autoSizeColumns: this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(Constants.configAutoColumnSizing) as boolean,
         };
         this._queryResultStateMap.set(uri, currentState);
     }
