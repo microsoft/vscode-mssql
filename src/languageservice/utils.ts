@@ -24,12 +24,26 @@ export function hasNonTSqlKeywords(
     text: string,
     nonTSqlKeywords: Set<string>,
 ): boolean {
+    /// Remove single-line comments
+    text = text.replace(/--.*$/gm, "");
+
+    // Remove multi-line comments
+    text = text.replace(/\/\*[\s\S]*?\*\//g, "");
+
+    // Remove content within string literals
+    text = text.replace(/'.*?'/g, "");
+
+    // Remove square-bracketed identifiers (e.g., [...])
+    text = text.replace(/\[.*?\]/g, "");
+
+    let words = [];
     for (const word of text.toUpperCase().split(" ")) {
         if (nonTSqlKeywords.has(word.trim())) {
-            return true;
+            words.push(word);
         }
     }
-    return false;
+    const con = words.length > 0;
+    return con;
 }
 
 export function changeLanguageServiceForFile(

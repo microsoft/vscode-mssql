@@ -2140,6 +2140,12 @@ export default class MainController implements vscode.Disposable {
             (error) => error.source !== undefined,
         );
 
+        const con1 = sources.length;
+        const con2 = docErrors.length >= 50;
+        const con3 = hasNonTSqlKeywords(doc.getText(), this._nonTSqlKeywords);
+
+        console.log(con1, con2, con3);
+
         if (
             // This condition is true if there are any errors in the document
             // from another sql language service
