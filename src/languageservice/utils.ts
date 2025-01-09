@@ -7,6 +7,7 @@ import {
     DidChangeLanguageFlavorParams,
     LanguageFlavorChangedNotification,
 } from "../models/contracts/languageService";
+import StatusView from "../views/statusView";
 import { keywords } from "./nonTSqlKeywords";
 import SqlToolsServiceClient from "./serviceclient";
 
@@ -36,24 +37,24 @@ export function hasNonTSqlKeywords(
     // Remove square-bracketed identifiers (e.g., [...])
     text = text.replace(/\[.*?\]/g, "");
 
-    let words = [];
     for (const word of text.toUpperCase().split(" ")) {
         if (nonTSqlKeywords.has(word.trim())) {
-            words.push(word);
+            return true;
         }
     }
-    const con = words.length > 0;
-    return con;
+    return false;
 }
 
 export function changeLanguageServiceForFile(
     client: SqlToolsServiceClient,
     uri: string,
     flavor: string,
+    statusView: StatusView,
 ): void {
     client.sendNotification(LanguageFlavorChangedNotification.type, {
         uri: uri,
         language: "sql",
         flavor: flavor,
     } as DidChangeLanguageFlavorParams);
+    statusView.languageFlavorChanged(uri, flavor);
 }
