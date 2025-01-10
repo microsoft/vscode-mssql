@@ -1539,6 +1539,9 @@
     <trans-unit id="mssql.query.executionTimeout">
       <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.autoSizeColumns">
+      <source xml:lang="en">Auto size the columns width on initial results. Could have performance problems with a large number of columns or large cells</source>
+    </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
       <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
     </trans-unit>
@@ -1811,9 +1814,6 @@
     </trans-unit>
     <trans-unit id="mssql.shortcuts">
       <source xml:lang="en">Shortcuts related to the results window</source>
-    </trans-unit>
-    <trans-unit id="mssql.resultsGrid.autoSizeColumns">
-      <source xml:lang="en">Auto size the columns width on initial results. Could have performance problems with a large number of columns or large cells</source>
     </trans-unit>
     <trans-unit id="mssql.query.displayBitAsNumber">
       <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as &apos;true&apos; or &apos;false&apos;</source>
