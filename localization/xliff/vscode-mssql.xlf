@@ -931,8 +931,8 @@
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
     </trans-unit>
-    <trans-unit id="++CODE++32c36ee014ccb0fbc4f33e492ba79843c3d42ba2e5f1fcc86944bd6e9e81d815">
-      <source xml:lang="en">Possible Non-MSSQL SQL file detected. Automatically disable Intellisense for all Non-MSSQL SQL files?</source>
+    <trans-unit id="++CODE++b61b267adf730aabcbf4d29ce59e4cd98992da06b4191c639b818e2f77d50fb1">
+      <source xml:lang="en">Possible non-SQL Server SQL file detected. Automatically disable Intellisense for all non-SQL Server SQL files?</source>
     </trans-unit>
     <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
       <source xml:lang="en">Precision</source>

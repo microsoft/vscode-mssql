@@ -562,7 +562,7 @@ export let flavorDescriptionNone = l10n.t(
     "Disable intellisense and syntax error checking on current document",
 );
 export let autoDisableNonTSqlLanguageServicePrompt = l10n.t(
-    "Possible Non-MSSQL SQL file detected. Automatically disable Intellisense for all Non-MSSQL SQL files?",
+    "Possible non-SQL Server SQL file detected. Automatically disable Intellisense for all non-SQL Server SQL files?",
 );
 export let msgAddConnection = l10n.t("Add Connection");
 export let msgConnect = l10n.t("Connect");

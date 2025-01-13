@@ -7,6 +7,9 @@
  * This list was built by finding keywords in the MySql documentation,
  * and  PostGreSql documentation that are not present in the TSQL documentation
  * of keywords.
+ * Mysql docs: https://dev.mysql.com/doc/refman/8.4/en/keywords.html
+ * PostGres docs: https://www.postgresql.org/docs/current/sql-keywords-appendix.html
+ * TSql docs: https://learn.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql?view=sql-server-ver16
  */
 export const keywords: Set<string> = new Set([
     "COPARTITION",
