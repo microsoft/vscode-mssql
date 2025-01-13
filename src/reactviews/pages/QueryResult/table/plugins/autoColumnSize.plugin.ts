@@ -5,9 +5,8 @@
 
 // Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
 
+import { deepClone } from "../../../../common/utils";
 import { mixin } from "../objects";
-import { isInDOM } from "../dom";
-import { deepClone } from "../utils";
 
 export interface IAutoColumnSizeOptions extends Slick.PluginOptions {
     maxWidth?: number;
@@ -58,7 +57,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
 
     private onPostRender() {
         // this doesn't do anything if the grid isn't on the dom
-        if (!isInDOM(this._grid.getContainerNode())) {
+        if (!this._grid.getContainerNode().isConnected) {
             return;
         }
 

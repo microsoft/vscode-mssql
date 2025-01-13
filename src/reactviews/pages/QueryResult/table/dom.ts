@@ -17,13 +17,6 @@ export function addDisposableListener(
     return new DomListener(node, type, handler, useCaptureOrOptions);
 }
 
-/**
- * @deprecated Use node.isConnected directly
- */
-export function isInDOM(node: Node | null): boolean {
-    return node?.isConnected ?? false;
-}
-
 class DomListener {
     private _handler: (e: any) => void;
     private _node: EventTarget;
