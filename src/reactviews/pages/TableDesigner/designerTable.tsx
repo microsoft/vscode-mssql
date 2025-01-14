@@ -192,6 +192,7 @@ export const DesignerTable = ({
     const getTableCell = (
         row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
         columnId: fluentui.TableColumnId,
+        rowIndex: number,
     ) => {
         const colProps = tableProps.itemProperties?.find(
             (item) => item.propertyName === columnId,
@@ -206,6 +207,28 @@ export const DesignerTable = ({
                                 appearance="subtle"
                                 size="small"
                                 icon={<ReorderRegular />}
+                                draggable={true}
+                                onDragEnter={() => {
+                                    setDraggedOverRowId(rowIndex);
+                                }}
+                                onDragEnd={() => {
+                                    if (
+                                        draggedRowId === undefined ||
+                                        draggedOverRowId === undefined
+                                    ) {
+                                        return;
+                                    }
+                                    moveRows(draggedRowId, draggedOverRowId);
+                                    setDraggedRowId(undefined);
+                                    setDraggedOverRowId(undefined);
+                                }}
+                                onDrag={() => {
+                                    setDraggedRowId(rowIndex);
+                                }}
+                                onDragStart={() => {
+                                    setDraggedOverRowId(undefined);
+                                    setDraggedRowId(rowIndex);
+                                }}
                             />
                         )}
                     </div>
@@ -442,7 +465,6 @@ export const DesignerTable = ({
                                         borderRight: border,
                                         marginTop: rowError ? "5px" : "",
                                     }}
-                                    draggable={tableProps.canMoveRows}
                                     onFocus={(event) => {
                                         if (
                                             !loadPropertiesTabData ||
@@ -465,30 +487,6 @@ export const DesignerTable = ({
                                         event.preventDefault();
                                     }}
                                     key={componentPath.join(".") + index}
-                                    onDragEnter={() => {
-                                        setDraggedOverRowId(index);
-                                    }}
-                                    onDragEnd={() => {
-                                        if (
-                                            draggedRowId === undefined ||
-                                            draggedOverRowId === undefined
-                                        ) {
-                                            return;
-                                        }
-                                        moveRows(
-                                            draggedRowId,
-                                            draggedOverRowId,
-                                        );
-                                        setDraggedRowId(undefined);
-                                        setDraggedOverRowId(undefined);
-                                    }}
-                                    onDrag={() => {
-                                        setDraggedRowId(index);
-                                    }}
-                                    onDragStart={() => {
-                                        setDraggedOverRowId(undefined);
-                                        setDraggedRowId(index);
-                                    }}
                                 >
                                     {columnsDef.map((column, columnIndex) => {
                                         return (
@@ -510,6 +508,7 @@ export const DesignerTable = ({
                                                 {getTableCell(
                                                     row,
                                                     column.columnId,
+                                                    index,
                                                 )}
                                             </fluentui.TableCell>
                                         );
