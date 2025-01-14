@@ -11,6 +11,27 @@ import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
 
+const addTableIcon = require("./icons/addTable.svg");
+const undoIcon = require("./icons/undo.svg");
+const redoIcon = require("./icons/redo.svg");
+const zoomInIcon = require("./icons/zoomIn.svg");
+const zoomOutIcon = require("./icons/zoomOut.svg");
+const deleteIcon = require("./icons/delete.svg");
+const entityIcon = require("./icons/table.svg");
+const connectorIcon = require("./icons/connector.svg");
+const exportIcon = require("./icons/export.svg");
+const autoarrangeIcon = require("./icons/arrange.svg");
+const customDataTypeIcon = require("./icons/datatype_custom.svg");
+const intDataTypeIcon = require("./icons/datatype_int.svg");
+const bitDataTypeIcon = require("./icons/datatype_bit.svg");
+const datetimeDataTypeIcon = require("./icons/datatype_datetime.svg");
+const decimalDataTypeIcon = require("./icons/datatype_decimal.svg");
+const geographyDataTypeIcon = require("./icons/datatype_geography.svg");
+const moneyDataTypeIcon = require("./icons/datatype_money.svg");
+const textDataTypeIcon = require("./icons/datatype_text.svg");
+const varbinaryDataTypeIcon = require("./icons/datatype_varbinary.svg");
+const zoomToFitIcon = require("./icons/zoomFit.svg");
+
 export const SchemaDesigner = () => {
     const context = useContext(SchemaDesignerContext);
     window["mxLoadResources"] = false;
@@ -26,31 +47,53 @@ export const SchemaDesigner = () => {
             }
             div.innerHTML = "";
             const graph = new azdataGraph.SchemaDesigner(div, {
-                graphFontFamily: "var(--vscode-font-family)",
-                cellFillColor: "var(--vscode-editor-background)",
-                cellHighlightColor: "var(--vscode-editor-background)",
-                edgeStrokeColor: "var(--vscode-editor-foreground)",
-                outlineColor: "var(--vscode-editor-foreground)",
-                toolbarBackgroundColor: "var(--vscode-editor-background)",
-                addTableIcon: "../resources/light/addTable.svg",
-                undoIcon: "../resources/light/undo.svg",
-                redoIcon: "../resources/light/redo.svg",
-                zoomInIcon: "../resources/light/zoomIn.svg",
-                zoomOutIcon: "../resources/light/zoomOut.svg",
-                deleteIcon: "../resources/light/delete.svg",
-                entityIcon: "../resources/light/entity.svg",
-                dataTypeIcons: {
-                    int: "../resources/light/int.svg",
-                    nvarchar: "../resources/light/nvarchar.svg",
-                    datetime: "../resources/light/datetime.svg",
-                    bit: "../resources/light/bit.svg",
-                    decimal: "../resources/light/decimal.svg",
+                colors: {
+                    cellHighlight: "",
+                    cellForeground: "var(--vscode-editor-foreground)",
+                    cellBackground: "",
+                    cellBorder: "var(--vscode-badge-background)",
+                    toolbarBackground: "var(--vscode-breadcrumb-background)",
+                    toolbarForeground: "",
+                    toolbarHoverBackground: "",
+                    toolbarDividerBackground: "",
+                    graphBackground: "var(--vscode-editor-background)",
+                    graphGrid: "var(--vscode-badge-background)",
+                    edge: "var(--vscode-editor-foreground)",
+                    outlineCellBackground: "",
+                    outlineBorder: "",
+                    outlineSize: "",
+                    outlineSizerRectangle: "",
+                    cellColumnHover: "var(--vscode-toolbar-hoverBackground)",
                 },
-                connectorIcon: "../resources/light/connector.svg",
-                validColor: "var(--vscode-inputValidation-infoBorder)",
-                invalidColor: "var(--vscode-inputValidation-errorBorder)",
-                exportIcon: "../resources/light/export.svg",
-                autoarrangeIcon: "../resources/light/autoarrange.svg",
+                icons: {
+                    addTableIcon: addTableIcon,
+                    undoIcon: undoIcon,
+                    redoIcon: redoIcon,
+                    zoomInIcon: zoomInIcon,
+                    zoomOutIcon: zoomOutIcon,
+                    deleteIcon: deleteIcon,
+                    entityIcon: entityIcon,
+                    zoomFitIcon: zoomToFitIcon,
+                    dataTypeIcons: {
+                        int: intDataTypeIcon,
+                        nvarchar: textDataTypeIcon,
+                        datetime: datetimeDataTypeIcon,
+                        datetime2: datetimeDataTypeIcon,
+                        bit: bitDataTypeIcon,
+                        geography: geographyDataTypeIcon,
+                        bigint: intDataTypeIcon,
+                        varbinary: varbinaryDataTypeIcon,
+                        decimal: decimalDataTypeIcon,
+                        date: datetimeDataTypeIcon,
+                        money: moneyDataTypeIcon,
+                    },
+                    connectorIcon: connectorIcon,
+                    exportIcon: exportIcon,
+                    autoarrangeIcon: autoarrangeIcon,
+                    customDataTypeIcon: customDataTypeIcon,
+                },
+                graphFontFamily: "var(--vscode-font-family)",
+                isEditable: false,
             });
             graph.renderModel(context!.schema, true);
         }

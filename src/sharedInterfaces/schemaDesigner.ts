@@ -31,7 +31,7 @@ export interface IColumn {
     /**
      * Data type of the column
      */
-    type: string;
+    dataType: string;
     /**
      * Is the column primary key
      */
