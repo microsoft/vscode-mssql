@@ -76,27 +76,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         executionPlanState: {},
                         filterState: {},
                         fontSettings: {
-                            fontSize:
-                                (this._vscodeWrapper
-                                    .getConfiguration(Constants.extensionName)
-                                    .get(
-                                        Constants.extConfigResultKeys
-                                            .ResultsFontSize,
-                                    ) as number) ??
-                                (this._vscodeWrapper
-                                    .getConfiguration("editor")
-                                    .get("fontSize") as number),
+                            fontSize: this.getFontSizeConfig(),
 
-                            fontFamily: this._vscodeWrapper
-                                .getConfiguration(Constants.extensionName)
-                                .get(
-                                    Constants.extConfigResultKeys
-                                        .ResultsFontFamily,
-                                ),
+                            fontFamily: this.getFontFamilyConfig(),
                         },
-                        autoSizeColumns: this._vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.configAutoColumnSizing),
+                        autoSizeColumns: this.getAutoSizeColumnsConfig(),
                     };
                 }
             });
@@ -286,26 +270,37 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             }),
             filterState: {},
             fontSettings: {
-                fontSize:
-                    (this._vscodeWrapper
-                        .getConfiguration(Constants.extensionName)
-                        .get(
-                            Constants.extConfigResultKeys.ResultsFontSize,
-                        ) as number) ??
-                    (this._vscodeWrapper
-                        .getConfiguration("editor")
-                        .get("fontSize") as number),
-                fontFamily: this._vscodeWrapper
-                    .getConfiguration(Constants.extensionName)
-                    .get(
-                        Constants.extConfigResultKeys.ResultsFontFamily,
-                    ) as string,
+                fontSize: this.getFontSizeConfig(),
+                fontFamily: this.getFontFamilyConfig(),
             },
-            autoSizeColumns: this._vscodeWrapper
-                .getConfiguration(Constants.extensionName)
-                .get(Constants.configAutoColumnSizing) as boolean,
+            autoSizeColumns: this.getAutoSizeColumnsConfig(),
         };
         this._queryResultStateMap.set(uri, currentState);
+    }
+
+    public getAutoSizeColumnsConfig(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.configAutoColumnSizing);
+    }
+
+    public getFontSizeConfig(): number {
+        return (
+            (this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(
+                    Constants.extConfigResultKeys.ResultsFontSize,
+                ) as number) ??
+            (this._vscodeWrapper
+                .getConfiguration("editor")
+                .get("fontSize") as number)
+        );
+    }
+
+    public getFontFamilyConfig(): string {
+        return this._vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
     }
 
     public setQueryResultState(uri: string, state: qr.QueryResultWebviewState) {
