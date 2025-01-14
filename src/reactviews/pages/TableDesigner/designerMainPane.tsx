@@ -146,7 +146,7 @@ export const DesignerMainPane = () => {
     }
 
     function getSortedSchemaValues() {
-        const schemas = (metadata.model?.["schema"] as DropDownProperties)
+        const schemas = (metadata?.model?.["schema"] as DropDownProperties)
             .values;
         const systemSchemas = new Set([
             "db_accessadmin",
