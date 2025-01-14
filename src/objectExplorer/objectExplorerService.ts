@@ -52,6 +52,10 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import {
+    GetSessionIdRequest,
+    GetSessionIdResponse,
+} from "../models/contracts/objectExplorer/getSessionIdRequest";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -66,7 +70,7 @@ export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _currentNode: TreeNodeInfo;
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
-    private _connectionProfileIdToNodeLabelMap: Map<string, string>;
+    private _sessionIdToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
     private _expandParamsToTreeNodeInfoMap: Map<ExpandParams, TreeNodeInfo>;
@@ -92,7 +96,7 @@ export class ObjectExplorerService {
             string,
             IConnectionProfile
         >();
-        this._connectionProfileIdToNodeLabelMap = new Map<string, string>();
+        this._sessionIdToNodeLabelMap = new Map<string, string>();
         this._sessionIdToPromiseMap = new Map<
             string,
             Deferred<vscode.TreeItem>
@@ -123,37 +127,19 @@ export class ObjectExplorerService {
                 self.currentNode = getParentNode(self.currentNode);
             }
             if (result.success) {
-                const connectionId = this._sessionIdToConnectionProfileMap.get(
-                    result.sessionId,
-                ).id;
-
                 let nodeLabel =
-                    this._connectionProfileIdToNodeLabelMap.get(connectionId);
+                    this._sessionIdToNodeLabelMap.get(result.sessionId) ??
+                    ConnInfo.getConnectionDisplayName(
+                        self._currentNode.connectionInfo,
+                    );
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
-                let savedConnections =
-                    this._connectionManager.connectionStore.readAllConnections();
+                // let savedConnections =
+                // this._connectionManager.connectionStore.readAllConnections();
                 let nodeConnection = this._sessionIdToConnectionProfileMap.get(
                     result.sessionId,
                 );
-                for (let connection of savedConnections) {
-                    if (
-                        Utils.isSameConnectionInfo(connection, nodeConnection)
-                    ) {
-                        // if it's not the default label
-                        if (
-                            ConnInfo.getSimpleConnectionDisplayName(
-                                connection,
-                            ) !== connection.server
-                        ) {
-                            nodeLabel =
-                                ConnInfo.getSimpleConnectionDisplayName(
-                                    connection,
-                                );
-                        }
-                        break;
-                    }
-                }
+
                 // set connection and other things
                 let node: TreeNodeInfo;
 
@@ -161,11 +147,6 @@ export class ObjectExplorerService {
                     self._currentNode &&
                     self._currentNode.sessionId === result.sessionId
                 ) {
-                    nodeLabel = !nodeLabel
-                        ? ConnInfo.getConnectionDisplayName(
-                              self._currentNode.connectionInfo,
-                          )
-                        : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(
                         result.rootNode,
                         result.sessionId,
@@ -175,9 +156,6 @@ export class ObjectExplorerService {
                         Constants.serverLabel,
                     );
                 } else {
-                    nodeLabel = !nodeLabel
-                        ? ConnInfo.getConnectionDisplayName(nodeConnection)
-                        : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(
                         result.rootNode,
                         result.sessionId,
@@ -188,7 +166,7 @@ export class ObjectExplorerService {
                     );
                 }
                 // make a connection if not connected already
-                const nodeUri = ObjectExplorerUtils.getNodeUri(node);
+                const nodeUri = this.getNodeIdentifier(node);
                 if (
                     !this._connectionManager.isConnected(nodeUri) &&
                     !this._connectionManager.isConnecting(nodeUri)
@@ -247,8 +225,8 @@ export class ObjectExplorerService {
                         handleFirewallResult.result &&
                         handleFirewallResult.ipAddress
                     ) {
-                        const nodeUri = ObjectExplorerUtils.getNodeUri(
-                            self._currentNode,
+                        const nodeUri = this.getNodeIdentifier(
+                            self.currentNode,
                         );
                         const profile = <IConnectionProfile>(
                             self._currentNode.connectionInfo
@@ -300,7 +278,7 @@ export class ObjectExplorerService {
     ): Promise<void> {
         node.connectionInfo = profile;
         this.updateNode(node);
-        let fileUri = ObjectExplorerUtils.getNodeUri(node);
+        let fileUri = this.getNodeIdentifier(node);
         if (
             await this._connectionManager.connectionStore.saveProfile(
                 profile as IConnectionProfile,
@@ -359,6 +337,8 @@ export class ObjectExplorerService {
         }
         return undefined;
     }
+
+    // TODO: call/handle refactor?
 
     private handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
         const self = this;
@@ -497,7 +477,7 @@ export class ObjectExplorerService {
     /**
      * Get nodes from saved connections
      */
-    private getSavedConnections(): void {
+    private async getSavedConnections(): Promise<void> {
         let savedConnections =
             this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
@@ -505,7 +485,17 @@ export class ObjectExplorerService {
                 ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
                     ? ConnInfo.getConnectionDisplayName(conn)
                     : ConnInfo.getSimpleConnectionDisplayName(conn);
-            this._connectionProfileIdToNodeLabelMap.set(conn.id, nodeLabel);
+
+            const connectionDetails =
+                ConnectionCredentials.createConnectionDetails(conn);
+
+            const response: CreateSessionResponse =
+                await this._connectionManager.client.sendRequest(
+                    GetSessionIdRequest.type,
+                    connectionDetails,
+                );
+
+            this._sessionIdToNodeLabelMap.set(response.sessionId, nodeLabel);
             let node = new TreeNodeInfo(
                 nodeLabel,
                 {
@@ -645,7 +635,7 @@ export class ObjectExplorerService {
             if (!this._objectExplorerProvider.objectExplorerExists) {
                 // if there are actually saved connections
                 this._rootTreeNodeArray = [];
-                this.getSavedConnections();
+                await this.getSavedConnections();
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
             } else {
@@ -664,7 +654,7 @@ export class ObjectExplorerService {
     public async createSession(
         promise: Deferred<vscode.TreeItem | undefined>,
         connectionCredentials?: IConnectionInfo,
-        context?: vscode.ExtensionContext,
+        _context?: vscode.ExtensionContext,
     ): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
@@ -777,9 +767,15 @@ export class ObjectExplorerService {
                     connectionProfile,
                 );
 
+            const sessionIdResponse: GetSessionIdResponse =
+                await this._connectionManager.client.sendRequest(
+                    GetSessionIdRequest.type,
+                    connectionDetails,
+                );
+
             if ((connectionProfile as IConnectionProfile).profileName) {
-                this._connectionProfileIdToNodeLabelMap.set(
-                    connectionProfile.id,
+                this._sessionIdToNodeLabelMap.set(
+                    sessionIdResponse.sessionId,
                     (connectionProfile as IConnectionProfile).profileName,
                 );
             }
@@ -869,7 +865,7 @@ export class ObjectExplorerService {
         isDisconnect: boolean = false,
     ): Promise<void> {
         await this.closeSession(node);
-        const nodeUri = ObjectExplorerUtils.getNodeUri(node);
+        const nodeUri = this.getNodeIdentifier(node);
         await this._connectionManager.disconnect(nodeUri);
         if (!isDisconnect) {
             const index = this._rootTreeNodeArray.indexOf(node, 0);
@@ -885,7 +881,7 @@ export class ObjectExplorerService {
                 subType: "",
             };
             node.sessionId = undefined;
-            if (!(<IConnectionProfile>node.connectionInfo).savePassword) {
+            if (!(node.connectionInfo as IConnectionProfile).savePassword) {
                 node.connectionInfo.password = "";
             }
             const label =
@@ -915,7 +911,18 @@ export class ObjectExplorerService {
                 new ConnectTreeNode(this._currentNode),
             ]);
         }
-        this._connectionProfileIdToNodeLabelMap.delete(node.nodePath); // TODO: update this to use connection id
+
+        const connectionDetails = ConnectionCredentials.createConnectionDetails(
+            node.connectionInfo,
+        );
+
+        const sessionIdResponse: GetSessionIdResponse =
+            await this._connectionManager.client.sendRequest(
+                GetSessionIdRequest.type,
+                connectionDetails,
+            );
+
+        this._sessionIdToNodeLabelMap.delete(sessionIdResponse.sessionId);
         this.cleanNodeChildren(node);
         sendActionEvent(
             TelemetryViews.ObjectExplorer,
@@ -1005,29 +1012,44 @@ export class ObjectExplorerService {
      * @param node
      */
     public async closeSession(node: TreeNodeInfo): Promise<void> {
-        if (node.sessionId) {
-            const closeSessionParams: CloseSessionParams = {
-                sessionId: node.sessionId,
-            };
-            const response: CloseSessionResponse =
-                await this._connectionManager.client.sendRequest(
-                    CloseSessionRequest.type,
-                    closeSessionParams,
-                );
-            if (response && response.success) {
-                this._sessionIdToConnectionProfileMap.delete(
-                    response.sessionId,
-                );
-                if (this._sessionIdToPromiseMap.has(node.sessionId)) {
-                    this._sessionIdToPromiseMap.delete(node.sessionId);
-                }
-                const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-                await this._connectionManager.disconnect(nodeUri);
-                this.cleanNodeChildren(node);
-                return;
-            }
+        if (!node.sessionId) {
+            return;
         }
-        return;
+
+        const closeSessionParams: CloseSessionParams = {
+            sessionId: node.sessionId,
+        };
+        const response: CloseSessionResponse =
+            await this._connectionManager.client.sendRequest(
+                CloseSessionRequest.type,
+                closeSessionParams,
+            );
+
+        if (response && response.success) {
+            if (response.sessionId !== node.sessionId) {
+                this._client.logger.error(
+                    "Session ID mismatch in closeSession() response",
+                );
+            }
+
+            this._sessionIdToConnectionProfileMap.delete(node.sessionId);
+            this._sessionIdToPromiseMap.delete(node.sessionId);
+
+            const nodeUri = this.getNodeIdentifier(node);
+            await this._connectionManager.disconnect(nodeUri);
+            this.cleanNodeChildren(node);
+
+            return;
+        }
+    }
+
+    private getNodeIdentifier(node: TreeNodeInfo): string {
+        if (node.sessionId) {
+            return node.sessionId;
+        } else {
+            this._client.logger.error("Node does not have a session ID");
+            return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
+        }
     }
 
     /** Getters */

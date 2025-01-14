@@ -678,7 +678,7 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(
-        uri: string,
+        _uri: string,
         profile: IConnectionProfile,
         ipAddress: string,
     ): Promise<boolean> {
