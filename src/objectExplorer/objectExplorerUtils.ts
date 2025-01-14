@@ -40,6 +40,7 @@ export class ObjectExplorerUtils {
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
 
+    // TODO: this function emulates one in STS; replace with call to STS to avoid mixups
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
         let uri: string;
         if (profile.connectionString) {

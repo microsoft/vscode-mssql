@@ -719,13 +719,19 @@ export class ConnectionUI {
     }
 
     private async promptForCreateProfile(): Promise<IConnectionProfile> {
-        return await ConnectionProfile.createProfile(
+        const profile = await ConnectionProfile.createProfile(
             this._prompter,
             this._connectionStore,
             this._context,
             this.connectionManager.azureController,
             this._accountStore,
         );
+
+        if (profile.id === undefined) {
+            profile.id = Utils.generateGuid();
+        }
+
+        return profile;
     }
 
     private async promptToRetryAndSaveProfile(
@@ -756,7 +762,7 @@ export class ConnectionUI {
             LocalizedConstants.retryLabel,
         );
         if (result === LocalizedConstants.retryLabel) {
-            return await ConnectionProfile.createProfile(
+            const newProfile = await ConnectionProfile.createProfile(
                 this._prompter,
                 this._connectionStore,
                 this._context,
@@ -764,6 +770,11 @@ export class ConnectionUI {
                 this._accountStore,
                 profile,
             );
+            if (newProfile.id === undefined) {
+                newProfile.id = Utils.generateGuid();
+            }
+
+            return newProfile;
         } else {
             // user cancelled the prompt - throw error so that we know user cancelled
             throw new CancelError();

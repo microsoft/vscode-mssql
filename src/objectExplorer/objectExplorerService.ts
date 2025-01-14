@@ -66,9 +66,9 @@ export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _currentNode: TreeNodeInfo;
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
-    private _nodePathToNodeLabelMap: Map<string, string>;
+    private _connectionProfileIdToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
-    private _sessionIdToConnectionCredentialsMap: Map<string, IConnectionInfo>;
+    private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
     private _expandParamsToTreeNodeInfoMap: Map<ExpandParams, TreeNodeInfo>;
 
     // Deferred promise maps
@@ -88,11 +88,11 @@ export class ObjectExplorerService {
             vscode.TreeItem[]
         >();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
-        this._sessionIdToConnectionCredentialsMap = new Map<
+        this._sessionIdToConnectionProfileMap = new Map<
             string,
-            IConnectionInfo
+            IConnectionProfile
         >();
-        this._nodePathToNodeLabelMap = new Map<string, string>();
+        this._connectionProfileIdToNodeLabelMap = new Map<string, string>();
         this._sessionIdToPromiseMap = new Map<
             string,
             Deferred<vscode.TreeItem>
@@ -123,17 +123,19 @@ export class ObjectExplorerService {
                 self.currentNode = getParentNode(self.currentNode);
             }
             if (result.success) {
-                let nodeLabel = this._nodePathToNodeLabelMap.get(
-                    result.rootNode.nodePath,
-                );
+                const connectionId = this._sessionIdToConnectionProfileMap.get(
+                    result.sessionId,
+                ).id;
+
+                let nodeLabel =
+                    this._connectionProfileIdToNodeLabelMap.get(connectionId);
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
                 let savedConnections =
                     this._connectionManager.connectionStore.readAllConnections();
-                let nodeConnection =
-                    this._sessionIdToConnectionCredentialsMap.get(
-                        result.sessionId,
-                    );
+                let nodeConnection = this._sessionIdToConnectionProfileMap.get(
+                    result.sessionId,
+                );
                 for (let connection of savedConnections) {
                     if (
                         Utils.isSameConnectionInfo(connection, nodeConnection)
@@ -362,10 +364,9 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
-                const credentials =
-                    self._sessionIdToConnectionCredentialsMap.get(
-                        result.sessionId,
-                    );
+                const credentials = self._sessionIdToConnectionProfileMap.get(
+                    result.sessionId,
+                );
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
                     nodePath: result.nodePath,
@@ -504,7 +505,7 @@ export class ObjectExplorerService {
                 ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
                     ? ConnInfo.getConnectionDisplayName(conn)
                     : ConnInfo.getSimpleConnectionDisplayName(conn);
-            this._nodePathToNodeLabelMap.set(conn.server, nodeLabel);
+            this._connectionProfileIdToNodeLabelMap.set(conn.id, nodeLabel);
             let node = new TreeNodeInfo(
                 nodeLabel,
                 {
@@ -777,11 +778,8 @@ export class ObjectExplorerService {
                 );
 
             if ((connectionProfile as IConnectionProfile).profileName) {
-                this._nodePathToNodeLabelMap.set(
-                    // using the server name as the key because that's what the rest of the OE service expects.
-                    // TODO: this service should be refactored to use something guaranteed to be unique across all connections,
-                    // but that likely involves a larger refactor of connection management.
-                    connectionProfile.server,
+                this._connectionProfileIdToNodeLabelMap.set(
+                    connectionProfile.id,
                     (connectionProfile as IConnectionProfile).profileName,
                 );
             }
@@ -792,7 +790,7 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
             if (response) {
-                this._sessionIdToConnectionCredentialsMap.set(
+                this._sessionIdToConnectionProfileMap.set(
                     response.sessionId,
                     connectionProfile,
                 );
@@ -860,8 +858,8 @@ export class ObjectExplorerService {
         }
     }
     public getConnectionCredentials(sessionId: string): IConnectionInfo {
-        if (this._sessionIdToConnectionCredentialsMap.has(sessionId)) {
-            return this._sessionIdToConnectionCredentialsMap.get(sessionId);
+        if (this._sessionIdToConnectionProfileMap.has(sessionId)) {
+            return this._sessionIdToConnectionProfileMap.get(sessionId);
         }
         return undefined;
     }
@@ -917,7 +915,7 @@ export class ObjectExplorerService {
                 new ConnectTreeNode(this._currentNode),
             ]);
         }
-        this._nodePathToNodeLabelMap.delete(node.nodePath);
+        this._connectionProfileIdToNodeLabelMap.delete(node.nodePath); // TODO: update this to use connection id
         this.cleanNodeChildren(node);
         sendActionEvent(
             TelemetryViews.ObjectExplorer,
@@ -1017,7 +1015,7 @@ export class ObjectExplorerService {
                     closeSessionParams,
                 );
             if (response && response.success) {
-                this._sessionIdToConnectionCredentialsMap.delete(
+                this._sessionIdToConnectionProfileMap.delete(
                     response.sessionId,
                 );
                 if (this._sessionIdToPromiseMap.has(node.sessionId)) {
