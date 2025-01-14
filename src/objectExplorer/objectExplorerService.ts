@@ -196,7 +196,7 @@ export class ObjectExplorerService {
                     errorNumber = result.errorNumber;
                 }
                 if (result.errorMessage) {
-                    error += ` : ${result.errorMessage}`;
+                    error += `: ${result.errorMessage}`;
                 }
 
                 if (
