@@ -145,6 +145,41 @@ export const DesignerMainPane = () => {
         }
     }
 
+    function getSortedSchemaValues() {
+        const schemas = (metadata.model?.["schema"] as DropDownProperties)
+            .values;
+        const systemSchemas = new Set([
+            "db_accessadmin",
+            "db_backupoperator",
+            "db_datareader",
+            "db_datawriter",
+            "db_ddladmin",
+            "db_denydatareader",
+            "db_denydatawriter",
+            "db_owner",
+            "db_securityadmin",
+        ]);
+
+        // Separate system schemas and user-defined schemas
+        const userSchemas: string[] = [];
+        const sysSchemas: string[] = [];
+
+        for (const schema of schemas) {
+            if (systemSchemas.has(schema)) {
+                sysSchemas.push(schema);
+            } else {
+                userSchemas.push(schema);
+            }
+        }
+
+        // Sort both arrays alphabetically
+        userSchemas.sort((a, b) => a.localeCompare(b));
+        sysSchemas.sort((a, b) => a.localeCompare(b));
+
+        // Concatenate user-defined schemas with system schemas at the end
+        return [...userSchemas, ...sysSchemas];
+    }
+
     return (
         <div className={classes.root}>
             <div className={classes.title}>
@@ -189,11 +224,12 @@ export const DesignerMainPane = () => {
                             });
                         }}
                     >
-                        {(
-                            metadata.model?.["schema"] as DropDownProperties
-                        )?.values.map((option) => {
-                            return <Option>{option}</Option>;
-                        })}
+                        {
+                            // Sort schema values alphabetically
+                            getSortedSchemaValues().map((option) => {
+                                return <Option>{option}</Option>;
+                            })
+                        }
                     </Dropdown>
                 </Field>
             </div>
