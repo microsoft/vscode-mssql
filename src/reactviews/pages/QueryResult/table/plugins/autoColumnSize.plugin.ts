@@ -188,9 +188,15 @@ export class AutoColumnSize<T extends Slick.SlickData>
         colIndices: number[],
     ): number[] {
         let data = this._grid.getData() as Slick.DataProvider<T>;
+        let dataLength = data.getLength();
         let viewPort = this._grid.getViewport();
         let start = Math.max(0, viewPort.top);
-        let end = Math.min(data.getLength(), viewPort.bottom);
+        let end = Math.min(dataLength, viewPort.bottom);
+        if (end < 50 && dataLength >= 50) {
+            end = 50;
+        } else if (end < 50 && dataLength < 50) {
+            end = dataLength;
+        }
         let allTexts: Array<string>[] = [];
         let rowElements: JQuery[] = [];
 
@@ -232,9 +238,15 @@ export class AutoColumnSize<T extends Slick.SlickData>
         let texts: Array<string> = [];
         let rowEl = this.createRow();
         let data = this._grid.getData() as Slick.DataProvider<T>;
+        let dataLength = data.getLength();
         let viewPort = this._grid.getViewport();
         let start = Math.max(0, viewPort.top);
-        let end = Math.min(data.getLength(), viewPort.bottom);
+        let end = Math.min(dataLength, viewPort.bottom);
+        if (end < 50 && dataLength >= 50) {
+            end = 50;
+        } else if (end < 50 && dataLength < 50) {
+            end = dataLength;
+        }
         for (let i = start; i < end; i++) {
             texts.push(data.getItem(i)[columnDef.field!]);
         }
