@@ -167,10 +167,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
 
         this.registerPlugin(
-            new AutoColumnSize({
-                maxWidth: MAX_COLUMN_WIDTH_PX,
-                autoSizeOnRender: this.webViewState.state.autoSizeColumns,
-            }),
+            new AutoColumnSize(
+                {
+                    maxWidth: MAX_COLUMN_WIDTH_PX,
+                    autoSizeOnRender: this.webViewState.state.autoSizeColumns,
+                },
+                this.webViewState,
+            ),
         );
 
         if (configuration && configuration.columns) {

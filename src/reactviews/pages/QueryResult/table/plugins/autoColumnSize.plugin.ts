@@ -5,7 +5,17 @@
 
 // Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
 
+import {
+    QueryResultWebviewState,
+    QueryResultReducers,
+} from "../../../../../sharedInterfaces/queryResult";
+import {
+    TelemetryActions,
+    TelemetryViews,
+} from "../../../../../sharedInterfaces/telemetry";
+import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
 import { deepClone } from "../../../../common/utils";
+import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { mixin } from "../objects";
 import { MAX_COLUMN_WIDTH_PX } from "../table";
 
@@ -31,14 +41,24 @@ export class AutoColumnSize<T extends Slick.SlickData>
     private _context!: CanvasRenderingContext2D;
     private _options: IAutoColumnSizeOptions;
     private onPostEventHandler = new Slick.EventHandler();
+    private webViewState: VscodeWebviewContext<
+        QueryResultWebviewState,
+        QueryResultReducers
+    >;
 
-    constructor(options: IAutoColumnSizeOptions = defaultOptions) {
+    constructor(
+        options: IAutoColumnSizeOptions = defaultOptions,
+        webViewState: VscodeWebviewContext<
+            QueryResultWebviewState,
+            QueryResultReducers
+        >,
+    ) {
         this._options = mixin(options, defaultOptions, false);
+        this.webViewState = webViewState;
     }
 
     public init(grid: Slick.Grid<T>) {
         this._grid = grid;
-
         if (this._options.autoSizeOnRender) {
             this.onPostEventHandler.subscribe(this._grid.onRendered, () =>
                 this.onPostRender(),
@@ -306,6 +326,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
         let max = 0,
             maxTemplate: JQuery | HTMLElement | string | undefined;
         let formatFun = columnDef.formatter;
+        let startTime = Date.now();
         texts.forEach((text, index) => {
             let template;
             if (formatFun) {
@@ -330,6 +351,16 @@ export class AutoColumnSize<T extends Slick.SlickData>
                 maxTemplate = template || text;
             }
         });
+        let endTime = Date.now();
+        let timeElapsed = endTime - startTime;
+        let telemetryEvent: WebviewTelemetryActionEvent = {
+            telemetryView: TelemetryViews.QueryResult,
+            telemetryAction: TelemetryActions.AutoColumnSize,
+            additionalMeasurements: {
+                timeElapsed,
+            },
+        };
+        this.webViewState.extensionRpc.sendActionEvent(telemetryEvent);
         return maxTemplate!;
     }
 
