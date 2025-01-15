@@ -87,7 +87,6 @@ export default class MainController implements vscode.Disposable {
         includeEstimatedExecutionPlanXml: false,
         includeActualExecutionPlanXml: false,
     };
-    private _nonTSqlKeywords: Set<string> = new Set();
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
