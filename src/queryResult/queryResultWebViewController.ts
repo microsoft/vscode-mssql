@@ -122,9 +122,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")
                 ) {
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.autoSizeColumns = this._vscodeWrapper
-                            .getConfiguration(Constants.extensionName)
-                            .get(Constants.configAutoColumnSizing);
+                        state.autoSizeColumns = this.getAutoSizeColumnsConfig();
                         this._queryResultStateMap.set(uri, state);
                     }
                 }

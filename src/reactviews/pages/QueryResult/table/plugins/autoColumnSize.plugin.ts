@@ -7,6 +7,7 @@
 
 import { deepClone } from "../../../../common/utils";
 import { mixin } from "../objects";
+import { MAX_COLUMN_WIDTH_PX } from "../table";
 
 export interface IAutoColumnSizeOptions extends Slick.PluginOptions {
     maxWidth?: number;
@@ -15,10 +16,12 @@ export interface IAutoColumnSizeOptions extends Slick.PluginOptions {
 }
 
 const defaultOptions: IAutoColumnSizeOptions = {
-    maxWidth: 212,
+    maxWidth: MAX_COLUMN_WIDTH_PX,
     autoSizeOnRender: false,
     extraColumnHeaderWidth: 0,
 };
+
+export const NUM_COLUMNS_TO_SCAN = 50;
 
 export class AutoColumnSize<T extends Slick.SlickData>
     implements Slick.Plugin<T>
@@ -149,10 +152,10 @@ export class AutoColumnSize<T extends Slick.SlickData>
         e.preventDefault();
         e.stopPropagation();
 
-        this.reSizeColumn(headerEl, columnDef);
+        this.resizeColumn(headerEl, columnDef);
     }
 
-    private reSizeColumn(headerEl: JQuery, columnDef: Slick.Column<T>) {
+    private resizeColumn(headerEl: JQuery, columnDef: Slick.Column<T>) {
         let headerWidth = this.getElementWidths([headerEl[0]])[0];
         let colIndex = this._grid.getColumnIndex(columnDef.id!);
         let origCols = this._grid.getColumns();
@@ -192,10 +195,9 @@ export class AutoColumnSize<T extends Slick.SlickData>
         let viewPort = this._grid.getViewport();
         let start = Math.max(0, viewPort.top);
         let end = Math.min(dataLength, viewPort.bottom);
-        if (end < 50 && dataLength >= 50) {
-            end = 50;
-        } else if (end < 50 && dataLength < 50) {
-            end = dataLength;
+        // limit column width calculation to 50 rows
+        if (end < NUM_COLUMNS_TO_SCAN) {
+            end = Math.min(NUM_COLUMNS_TO_SCAN, dataLength);
         }
         let allTexts: Array<string>[] = [];
         let rowElements: JQuery[] = [];
