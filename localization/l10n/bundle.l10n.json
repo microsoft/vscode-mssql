@@ -665,7 +665,7 @@
   "Choose SQL Language": "Choose SQL Language",
   "Use T-SQL intellisense and syntax error checking on current document": "Use T-SQL intellisense and syntax error checking on current document",
   "Disable intellisense and syntax error checking on current document": "Disable intellisense and syntax error checking on current document",
-  "Possible non-SQL Server SQL file detected. Automatically disable Intellisense for all non-SQL Server SQL files?": "Possible non-SQL Server SQL file detected. Automatically disable Intellisense for all non-SQL Server SQL files?",
+  "Non-SQL Server SQL file detected. Disable IntelliSense for such files?": "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
   "Add Connection": "Add Connection",
   "Azure: Sign In": "Azure: Sign In",
   "Sign in to your Azure subscription": "Sign in to your Azure subscription",

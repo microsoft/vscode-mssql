@@ -836,6 +836,9 @@
     <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
       <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
+      <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
       <source xml:lang="en">None</source>
     </trans-unit>
@@ -930,9 +933,6 @@
     <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b61b267adf730aabcbf4d29ce59e4cd98992da06b4191c639b818e2f77d50fb1">
-      <source xml:lang="en">Possible non-SQL Server SQL file detected. Automatically disable Intellisense for all non-SQL Server SQL files?</source>
     </trans-unit>
     <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
       <source xml:lang="en">Precision</source>
