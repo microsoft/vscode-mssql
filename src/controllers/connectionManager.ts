@@ -40,6 +40,10 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
+import {
+    changeLanguageServiceForFile,
+    LanguageServiceOptions,
+} from "../languageservice/utils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -203,6 +207,10 @@ export default class ConnectionManager {
             this.client.onNotification(
                 LanguageServiceContracts.IntelliSenseReadyNotification.type,
                 this.handleLanguageServiceUpdateNotification(),
+            );
+            this.client.onNotification(
+                LanguageServiceContracts.NonTSqlNotification.type,
+                this.handleNonTSqlNotification(),
             );
         }
     }
@@ -418,6 +426,64 @@ export default class ConnectionManager {
                 event.ownerUri,
                 LocalizedConstants.intelliSenseUpdatedStatus,
             );
+        };
+    }
+
+    public handleNonTSqlNotification(): NotificationHandler<LanguageServiceContracts.NonTSqlParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+
+        return async (
+            event: LanguageServiceContracts.NonTSqlParams,
+        ): Promise<void> => {
+            const isEnabled: number = await this._vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configAutoDisableNonTSqlLanguageService);
+
+            if (isEnabled === LanguageServiceOptions.SwitchEnabled) {
+                changeLanguageServiceForFile(
+                    SqlToolsServerClient.instance,
+                    event.ownerUri,
+                    Constants.noneProviderName,
+                    this._statusView,
+                );
+            } else if (isEnabled === LanguageServiceOptions.SwitchUnset) {
+                const selectedOption =
+                    await vscode.window.showInformationMessage(
+                        LocalizedConstants.autoDisableNonTSqlLanguageServicePrompt,
+                        LocalizedConstants.msgYes,
+                        LocalizedConstants.msgNo,
+                    );
+
+                if (selectedOption === LocalizedConstants.msgYes) {
+                    changeLanguageServiceForFile(
+                        SqlToolsServerClient.instance,
+                        event.ownerUri,
+                        Constants.noneProviderName,
+                        this._statusView,
+                    );
+
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                    );
+
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configAutoDisableNonTSqlLanguageService,
+                            LanguageServiceOptions.SwitchEnabled,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                } else {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configAutoDisableNonTSqlLanguageService,
+                            LanguageServiceOptions.SwitchDisabled,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                }
+            }
         };
     }
 
