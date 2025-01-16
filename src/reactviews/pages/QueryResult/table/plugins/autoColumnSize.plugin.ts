@@ -267,6 +267,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
         for (let i = start; i < end; i++) {
             texts.push(data.getItem(i)[columnDef.field!]);
         }
+        // adding -1 for column since this is a single column resize
         let template = this.getMaxTextTemplate(
             texts,
             columnDef,
