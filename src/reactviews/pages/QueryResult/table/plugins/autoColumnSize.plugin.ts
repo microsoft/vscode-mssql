@@ -192,12 +192,9 @@ export class AutoColumnSize<T extends Slick.SlickData>
                 this.getMaxColumnTextWidth(columnDef, colIndex),
             ) + 1;
 
-        // Only resize if the current width is smaller than the new width.
-        if (autoSizeWidth > column.width!) {
-            allColumns[colIndex].width = autoSizeWidth;
-            this._grid.setColumns(allColumns);
-            this._grid.onColumnsResized.notify();
-        }
+        allColumns[colIndex].width = autoSizeWidth;
+        this._grid.setColumns(allColumns);
+        this._grid.onColumnsResized.notify();
     }
 
     /**
