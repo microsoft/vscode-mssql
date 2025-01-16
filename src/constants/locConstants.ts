@@ -775,6 +775,10 @@ export class UserSurvey {
             args: [featureName],
             comment: ["{0} is the feature name"],
         });
+    public static fileABugPrompt = l10n.t(
+        "Are you encountering a bug that you would like to submit more details about?",
+    );
+    public static submitBug = l10n.t("Submit a bug");
 }
 
 export class Webview {

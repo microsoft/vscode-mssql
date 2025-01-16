@@ -6,6 +6,7 @@
 import * as constants from "../constants/constants";
 import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
+import * as os from "os";
 
 import {
     Answers,
@@ -38,51 +39,12 @@ export class UserSurvey {
         return UserSurvey._instance;
     }
 
+    /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
     public async promptUserForNPSFeedback(): Promise<void> {
         const globalState = this._context.globalState;
-
-        // If the user has opted out of the survey, don't prompt for feedback
-        const isNeverUser = globalState.get(NEVER_KEY, false);
-        if (isNeverUser) {
-            return;
-        }
-
-        // If the user has already been prompted for feedback in this version, don't prompt again
-        const extensionVersion =
-            vscode.extensions.getExtension(constants.extensionId).packageJSON
-                .version || "unknown";
-        const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
-        if (skipVersion === extensionVersion) {
-            return;
-        }
-
-        const date = new Date().toDateString();
-        const lastSessionDate = globalState.get(
-            LAST_SESSION_DATE_KEY,
-            new Date(0).toDateString(),
-        );
-
-        if (date === lastSessionDate) {
-            return;
-        }
-
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
-        await globalState.update(LAST_SESSION_DATE_KEY, date);
-        await globalState.update(SESSION_COUNT_KEY, sessionCount);
 
-        // don't prompt for feedback from users until they've had a chance to use the extension a few times
-        if (sessionCount < 5) {
-            return;
-        }
-
-        const isCandidate =
-            globalState.get(IS_CANDIDATE_KEY, false) ||
-            Math.random() < PROBABILITY;
-
-        await globalState.update(IS_CANDIDATE_KEY, isCandidate);
-
-        if (!isCandidate) {
-            await globalState.update(SKIP_VERSION_KEY, extensionVersion);
+        if (true && !this.shouldPromptForFeedback()) {
             return;
         }
 
@@ -90,31 +52,11 @@ export class UserSurvey {
             title: locConstants.UserSurvey.takeSurvey,
             run: async () => {
                 const state: UserSurveyState = getStandardNPSQuestions();
-                if (
-                    !this._webviewController ||
-                    this._webviewController.isDisposed
-                ) {
-                    this._webviewController = new UserSurveyWebviewController(
-                        this._context,
-                        state,
-                    );
-                } else {
-                    this._webviewController.updateState(state);
-                }
-                this._webviewController.revealToForeground();
+                await this.launchSurvey("nps", state);
 
-                const answers = await new Promise<Answers>((resolve) => {
-                    this._webviewController.onSubmit((e) => {
-                        resolve(e);
-                    });
-
-                    this._webviewController.onCancel(() => {
-                        resolve({});
-                    });
-                });
-                sendSurveyTelemetry("nps", answers);
-                await globalState.update(IS_CANDIDATE_KEY, false);
-                await globalState.update(SKIP_VERSION_KEY, extensionVersion);
+                // TODO: revert before PR
+                //await globalState.update(IS_CANDIDATE_KEY, false);
+                //await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             },
         };
         const remind = {
@@ -140,6 +82,7 @@ export class UserSurvey {
         await (button || remind).run();
     }
 
+    /** launches the survey directly and submits feedback; does not check for survey eligibility first */
     public async launchSurvey(
         surveyId: string,
         survey: UserSurveyState,
@@ -164,8 +107,64 @@ export class UserSurvey {
                 resolve({});
             });
         });
-        sendSurveyTelemetry(surveyId, answers);
+
+        // TODO: revert before PR
+        console.log(surveyId);
+        console.log(answers);
+
+        //sendSurveyTelemetry(surveyId, answers);
         return answers;
+    }
+
+    private async shouldPromptForFeedback(): Promise<boolean> {
+        const globalState = this._context.globalState;
+
+        // If the user has opted out of the survey, don't prompt for feedback
+        const isNeverUser = globalState.get(NEVER_KEY, false);
+        if (isNeverUser) {
+            return false;
+        }
+
+        // If the user has already been prompted for feedback in this version, don't prompt again
+        const extensionVersion =
+            vscode.extensions.getExtension(constants.extensionId).packageJSON
+                .version || "unknown";
+        const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
+        if (skipVersion === extensionVersion) {
+            return false;
+        }
+
+        const date = new Date().toDateString();
+        const lastSessionDate = globalState.get(
+            LAST_SESSION_DATE_KEY,
+            new Date(0).toDateString(),
+        );
+
+        if (date === lastSessionDate) {
+            return false;
+        }
+
+        const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
+        await globalState.update(LAST_SESSION_DATE_KEY, date);
+        await globalState.update(SESSION_COUNT_KEY, sessionCount);
+
+        // don't prompt for feedback from users until they've had a chance to use the extension a few times
+        if (sessionCount < 5) {
+            return false;
+        }
+
+        const isCandidate =
+            globalState.get(IS_CANDIDATE_KEY, false) ||
+            Math.random() < PROBABILITY;
+
+        await globalState.update(IS_CANDIDATE_KEY, isCandidate);
+
+        if (!isCandidate) {
+            await globalState.update(SKIP_VERSION_KEY, extensionVersion);
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -228,7 +227,43 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
 
         this.registerReducer("submit", async (state, payload) => {
             this._onSubmit.fire(payload.answers);
+
             this.panel.dispose();
+
+            if (
+                (payload.answers.nps as number) < 7 /* NPS detractor */ ||
+                (payload.answers.nsat as number) < 2 /* NSAT dissatisfied */
+            ) {
+                const response = await vscode.window.showInformationMessage(
+                    locConstants.UserSurvey.fileABugPrompt,
+                    locConstants.UserSurvey.submitBug,
+                    locConstants.Common.cancel,
+                );
+
+                if (response === locConstants.UserSurvey.submitBug) {
+                    const issueText = `- MSSQL Extension Version: ${context.extension.packageJSON.version}
+- VSCode Version: ${vscode.version}
+- OS Version: ${os.type()} ${os.release()}
+
+${payload.answers.comments}
+
+Steps to Reproduce:
+
+1.
+2.`;
+                    const issueBody = encodeURIComponent(
+                        payload.answers.comments || "",
+                    );
+                    const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?template=issue_template.md&body=${issueBody}`;
+                    vscode.env.openExternal(vscode.Uri.parse(issueUrl));
+
+                    vscode.commands.executeCommand("vscode.openIssueReporter", {
+                        extensionId: context.extension.id,
+                        issueBody: issueText,
+                    });
+                }
+            }
+
             return state;
         });
 
