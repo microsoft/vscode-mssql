@@ -82,6 +82,9 @@
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
     </trans-unit>
+    <trans-unit id="++CODE++a61052279572d9f7869dede2d4bb60dc9fb5c8280996262599f925ab6b59f63c">
+      <source xml:lang="en">Are you encountering a bug that you would like to submit more details about?</source>
+    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
@@ -1201,6 +1204,9 @@
     </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c58f4903df0dee7d95fbb89a5a9c8406d84d1ad258a0fd47106f630af5ed8d3b">
+      <source xml:lang="en">Submit a bug</source>
     </trans-unit>
     <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
       <source xml:lang="en">Subscription</source>
