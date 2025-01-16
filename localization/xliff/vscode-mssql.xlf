@@ -82,9 +82,6 @@
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
     </trans-unit>
-    <trans-unit id="++CODE++a61052279572d9f7869dede2d4bb60dc9fb5c8280996262599f925ab6b59f63c">
-      <source xml:lang="en">Are you encountering a bug that you would like to submit more details about?</source>
-    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
@@ -438,6 +435,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
+      <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
     </trans-unit>
     <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
       <source xml:lang="en">Encrypt</source>
@@ -1205,8 +1205,8 @@
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
-    <trans-unit id="++CODE++c58f4903df0dee7d95fbb89a5a9c8406d84d1ad258a0fd47106f630af5ed8d3b">
-      <source xml:lang="en">Submit a bug</source>
+    <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
+      <source xml:lang="en">Submit an issue</source>
     </trans-unit>
     <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
       <source xml:lang="en">Subscription</source>
