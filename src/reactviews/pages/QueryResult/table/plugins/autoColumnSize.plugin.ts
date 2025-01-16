@@ -184,7 +184,6 @@ export class AutoColumnSize<T extends Slick.SlickData>
             col.formatter = origCols[index].formatter;
             col.asyncPostRender = origCols[index].asyncPostRender;
         });
-        let column = allColumns[colIndex];
 
         let autoSizeWidth =
             Math.max(
