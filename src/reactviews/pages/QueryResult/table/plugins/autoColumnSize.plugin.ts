@@ -215,7 +215,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
         let viewPort = this._grid.getViewport();
         let start = Math.max(0, viewPort.top);
         let end = Math.min(dataLength, viewPort.bottom);
-        // limit column width calculation to 50 rows
+        // limit column width calculation to NUM_COLUMNS_TO_SCAN rows
         if (end < NUM_COLUMNS_TO_SCAN) {
             end = Math.min(NUM_COLUMNS_TO_SCAN, dataLength);
         }
@@ -273,6 +273,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
             colIndex,
             data,
             rowEl,
+            -1,
         );
         let width = this.getTemplateWidths([rowEl], [template])[0];
         this.deleteRow(rowEl);
@@ -305,6 +306,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
         data: Slick.DataProvider<T>,
         rowElements: JQuery[],
     ): (JQuery | HTMLElement | string)[] {
+        let numColumns = columnDefs.length;
         return columnDefs.map((columnDef, index) =>
             this.getMaxTextTemplate(
                 allTexts[index],
@@ -312,6 +314,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
                 colIndices[index],
                 data,
                 rowElements[index],
+                numColumns,
             ),
         );
     }
@@ -322,6 +325,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
         colIndex: number,
         data: Slick.DataProvider<T>,
         rowEl: JQuery,
+        numColumns: number,
     ): JQuery | HTMLElement | string {
         let max = 0,
             maxTemplate: JQuery | HTMLElement | string | undefined;
@@ -357,7 +361,9 @@ export class AutoColumnSize<T extends Slick.SlickData>
             telemetryView: TelemetryViews.QueryResult,
             telemetryAction: TelemetryActions.AutoColumnSize,
             additionalMeasurements: {
-                timeElapsed,
+                timeElapsed: timeElapsed,
+                rows: texts.length,
+                columns: numColumns,
             },
         };
         this.webViewState.extensionRpc.sendActionEvent(telemetryEvent);
