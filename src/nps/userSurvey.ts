@@ -233,12 +233,23 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                 (payload.answers.nsat as number) < 2 /* NSAT dissatisfied */
             ) {
                 const response = await vscode.window.showInformationMessage(
-                    locConstants.UserSurvey.fileABugPrompt,
-                    locConstants.UserSurvey.submitBug,
+                    locConstants.UserSurvey.fileAnIssuePrompt,
+                    locConstants.UserSurvey.submitIssue,
                     locConstants.Common.cancel,
                 );
 
-                if (response === locConstants.UserSurvey.submitBug) {
+                sendActionEvent(
+                    TelemetryViews.UserSurvey,
+                    TelemetryActions.SubmitGithubIssue,
+                    {
+                        response:
+                            response === locConstants.UserSurvey.submitIssue
+                                ? "submitted"
+                                : "not submitted",
+                    },
+                );
+
+                if (response === locConstants.UserSurvey.submitIssue) {
                     const encodedIssueBody = encodeURIComponent(
                         getGithubIssueText(
                             typeof payload.answers.comments === "string"
@@ -247,7 +258,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                             context.extension.packageJSON.version || "unknown",
                         ),
                     );
-                    const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?template=issue_template.md&body=${encodedIssueBody}`;
+                    const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?labels=User-filed,Triage:%20Needed&body=${encodedIssueBody}`;
                     vscode.env.openExternal(vscode.Uri.parse(issueUrl));
                 }
             }
