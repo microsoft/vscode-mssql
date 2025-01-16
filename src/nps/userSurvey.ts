@@ -43,8 +43,11 @@ export class UserSurvey {
     public async promptUserForNPSFeedback(): Promise<void> {
         const globalState = this._context.globalState;
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
+        const extensionVersion =
+            vscode.extensions.getExtension(constants.extensionId).packageJSON
+                .version || "unknown";
 
-        if (true && !this.shouldPromptForFeedback()) {
+        if (!this.shouldPromptForFeedback()) {
             return;
         }
 
@@ -54,9 +57,8 @@ export class UserSurvey {
                 const state: UserSurveyState = getStandardNPSQuestions();
                 await this.launchSurvey("nps", state);
 
-                // TODO: revert before PR
-                //await globalState.update(IS_CANDIDATE_KEY, false);
-                //await globalState.update(SKIP_VERSION_KEY, extensionVersion);
+                await globalState.update(IS_CANDIDATE_KEY, false);
+                await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             },
         };
         const remind = {
@@ -108,11 +110,7 @@ export class UserSurvey {
             });
         });
 
-        // TODO: revert before PR
-        console.log(surveyId);
-        console.log(answers);
-
-        //sendSurveyTelemetry(surveyId, answers);
+        sendSurveyTelemetry(surveyId, answers);
         return answers;
     }
 
@@ -246,7 +244,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                             typeof payload.answers.comments === "string"
                                 ? payload.answers.comments
                                 : "",
-                            context.extension.packageJSON.version,
+                            context.extension.packageJSON.version || "unknown",
                         ),
                     );
                     const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?template=issue_template.md&body=${encodedIssueBody}`;
@@ -279,18 +277,18 @@ export function getGithubIssueText(
     comments: string,
     extensionVersion: string,
 ): string {
-    return `Describe issue:
+    return `**Describe issue:**
 ${comments}
 
-Steps to Reproduce:
+**Steps to Reproduce:**
 1.
 2.
 3.
 
-Expected Behavior:
+**Expected Behavior:**
 
 
-Actual Behavior:
+**Actual Behavior:**
 
 
 ----
