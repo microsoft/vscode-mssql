@@ -241,26 +241,16 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                 );
 
                 if (response === locConstants.UserSurvey.submitBug) {
-                    const issueText = `- MSSQL Extension Version: ${context.extension.packageJSON.version}
-- VSCode Version: ${vscode.version}
-- OS Version: ${os.type()} ${os.release()}
-
-${payload.answers.comments}
-
-Steps to Reproduce:
-
-1.
-2.`;
-                    const issueBody = encodeURIComponent(
-                        payload.answers.comments || "",
+                    const encodedIssueBody = encodeURIComponent(
+                        getGithubIssueText(
+                            typeof payload.answers.comments === "string"
+                                ? payload.answers.comments
+                                : "",
+                            context.extension.packageJSON.version,
+                        ),
                     );
-                    const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?template=issue_template.md&body=${issueBody}`;
+                    const issueUrl = `https://github.com/microsoft/vscode-mssql/issues/new?template=issue_template.md&body=${encodedIssueBody}`;
                     vscode.env.openExternal(vscode.Uri.parse(issueUrl));
-
-                    vscode.commands.executeCommand("vscode.openIssueReporter", {
-                        extensionId: context.extension.id,
-                        issueBody: issueText,
-                    });
                 }
             }
 
@@ -283,6 +273,32 @@ Steps to Reproduce:
             this._onCancel.fire();
         });
     }
+}
+
+export function getGithubIssueText(
+    comments: string,
+    extensionVersion: string,
+): string {
+    return `Describe issue:
+${comments}
+
+Steps to Reproduce:
+1.
+2.
+3.
+
+Expected Behavior:
+
+
+Actual Behavior:
+
+
+----
+|Software|Version|
+|--|--|
+|MSSQL Extension|${extensionVersion}|
+|VS Code|${vscode.version}|
+|OS|${os.type()} ${os.release()}|`;
 }
 
 export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
