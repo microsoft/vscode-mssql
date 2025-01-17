@@ -2023,6 +2023,10 @@
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">如果执行超时为 0，则表示无限等待(不会超时)</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
+        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
+        <target state="new">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</target>
+      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">在新选项卡而不是查询窗格中自动显示查询结果。仅当启用了 `mssql.enableRichExperiences` 时，此选项才会生效。</target>
