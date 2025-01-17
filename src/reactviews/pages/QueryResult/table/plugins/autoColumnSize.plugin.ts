@@ -358,7 +358,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
             telemetryView: TelemetryViews.QueryResult,
             telemetryAction: TelemetryActions.AutoColumnSize,
             additionalMeasurements: {
-                timeElapsed: timeElapsed,
+                timeElapsedMs: timeElapsed,
                 rows: texts.length,
                 columns: numColumns,
             },
