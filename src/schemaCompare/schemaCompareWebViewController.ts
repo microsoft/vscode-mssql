@@ -27,12 +27,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "tableDesignerEditor_dark.svg", // lewissanchez TODO - update icon for edit data
+                        "schemaCompare_dark.svg", // lewissanchez TODO - update icon for edit data
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "tableDesignerEditor_light.svg", // lewissanchez TODO - update icon for edit data
+                        "schemaCompare_light.svg", // lewissanchez TODO - update icon for edit data
                     ),
                 },
             },
