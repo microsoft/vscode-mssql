@@ -256,6 +256,19 @@ export const DesignerPropertiesPane = () => {
             });
     };
 
+    const getExpandedGroups = () => {
+        // If expanded groups are set, return them
+        if (parentTableProperties.expandedGroups) {
+            return parentTableProperties.expandedGroups;
+        } else {
+            // If expanded groups are not set, expand the first group
+            if (getAccordionGroups().length > 0) {
+                return [groups[0]];
+            }
+            // If there are no groups, return empty array
+            return [];
+        }
+    };
     return (
         <div className={classes.root}>
             <div className={classes.title}>
@@ -316,9 +329,7 @@ export const DesignerPropertiesPane = () => {
                 <Accordion
                     multiple
                     collapsible
-                    defaultOpenItems={
-                        parentTableProperties.expandedGroups ?? []
-                    }
+                    defaultOpenItems={getExpandedGroups()}
                 >
                     {data && getAccordionGroups()}
                 </Accordion>
