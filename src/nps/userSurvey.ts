@@ -47,7 +47,7 @@ export class UserSurvey {
             vscode.extensions.getExtension(constants.extensionId).packageJSON
                 .version || "unknown";
 
-        if (!this.shouldPromptForFeedback()) {
+        if (!(await this.shouldPromptForFeedback())) {
             return;
         }
 
