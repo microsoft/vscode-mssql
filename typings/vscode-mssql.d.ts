@@ -1316,7 +1316,7 @@ declare module 'vscode-mssql' {
 
 	//#region ISqlProjectsService
 
-	// #region Parameters
+	//#region Parameters
 
 	export interface SqlProjectParams {
 		/**
