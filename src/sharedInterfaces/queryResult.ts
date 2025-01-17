@@ -78,6 +78,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     executionPlanState: ExecutionPlanState;
     filterState: Record<string, ColumnFilterState>;
     fontSettings: FontSettings;
+    autoSizeColumns?: boolean;
 }
 
 export interface QueryResultReducers
