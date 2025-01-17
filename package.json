@@ -423,6 +423,10 @@
           "group": "inline@2"
         },
         {
+          "command": "mssql.schemaCompare",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+        },
+        {
           "command": "mssql.filterNode",
           "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/"
         },
@@ -518,6 +522,10 @@
         {
           "command": "mssql.objectExplorerNewQuery",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+        },
+        {
+          "command": "mssql.schemaCompare",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
         },
         {
           "command": "mssql.removeObjectExplorerNode",
@@ -698,6 +706,11 @@
       {
         "command": "mssql.newQuery",
         "title": "%mssql.newQuery%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.schemaCompare",
+        "title": "%mssql.schemaCompare%",
         "category": "MS SQL"
       },
       {

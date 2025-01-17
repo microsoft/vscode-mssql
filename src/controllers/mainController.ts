@@ -60,6 +60,7 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 
 /**
  * The main controller class that initializes the extension
@@ -885,6 +886,13 @@ export default class MainController implements vscode.Disposable {
         );
 
         if (this.isRichExperiencesEnabled) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompare,
+                    async (node: TreeNodeInfo) => this.onSchemaCompare(node),
+                ),
+            );
+
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
@@ -1935,6 +1943,16 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onSchemaCompare(node: TreeNodeInfo): Promise<void> {
+        if (node) {
+            const schemaCompareWebView = new SchemaCompareWebViewController(
+                this._context,
+            );
+
+            schemaCompareWebView.revealToForeground();
+        }
     }
 
     /**
