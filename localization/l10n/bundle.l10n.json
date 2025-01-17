@@ -57,6 +57,7 @@
   "Check Constraint": "Check Constraint",
   "New Check Constraint": "New Check Constraint",
   "Advanced Options": "Advanced Options",
+  "Schema Compare (Preview)": "Schema Compare (Preview)",
   "{0} issue/{0} is the number of issues": {
     "message": "{0} issue",
     "comment": [
