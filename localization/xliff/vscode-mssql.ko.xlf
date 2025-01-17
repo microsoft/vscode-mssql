@@ -2023,6 +2023,10 @@
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">실행 시간 제한이 0이면 무제한 대기(시간 제한 없음)를 나타냅니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
+        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
+        <target state="new">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</target>
+      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">쿼리 창 대신 새 탭에 쿼리 결과를 자동으로 표시합니다. 이 옵션은 'mssql.enableRichExperiences'가 사용하도록 설정된 경우에만 적용됩니다.</target>
