@@ -30,6 +30,7 @@ import {
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultState } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
+import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -40,6 +41,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     } as Slick.GridOptions<T>;
 }
 
+export const MAX_COLUMN_WIDTH_PX = 400;
 export const ACTIONBAR_WIDTH_PX = 36;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
@@ -162,6 +164,16 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
         this.registerPlugin(
             new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
+        );
+
+        this.registerPlugin(
+            new AutoColumnSize(
+                {
+                    maxWidth: MAX_COLUMN_WIDTH_PX,
+                    autoSizeOnRender: this.webViewState.state.autoSizeColumns,
+                },
+                this.webViewState,
+            ),
         );
 
         if (configuration && configuration.columns) {
