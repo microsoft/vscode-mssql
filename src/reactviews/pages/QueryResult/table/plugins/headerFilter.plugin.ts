@@ -172,7 +172,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             $sortButton.removeClass("slick-header-sort-button");
                             $sortButton.addClass("slick-header-sortasc-button");
                             await this.handleMenuItemClick("sort-asc", column);
-                            this.grid.setSortColumn(column.id!, true);
                             this.columnSortButtonMapping.set(
                                 column.id!,
                                 SortProperties.ASC,
@@ -187,7 +186,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 "slick-header-sortdesc-button",
                             );
                             await this.handleMenuItemClick("sort-desc", column);
-                            this.grid.setSortColumn(column.id!, false);
                             this.columnSortButtonMapping.set(
                                 column.id!,
                                 SortProperties.DESC,
