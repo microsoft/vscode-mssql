@@ -10,10 +10,161 @@ import * as mssql from "vscode-mssql";
 export class SchemaCompareService implements mssql.ISchemaCompareService {
     constructor(private _client: SqlToolsServiceClient) {}
 
+    public schemaCompare(
+        operationId: string,
+        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        taskExecutionMode: mssql.TaskExecutionMode,
+        deploymentOptions: mssql.DeploymentOptions,
+    ): Thenable<mssql.SchemaCompareResult> {
+        const params: mssql.SchemaCompareParams = {
+            operationId: operationId,
+            sourceEndpointInfo: sourceEndpointInfo,
+            targetEndpointInfo: targetEndpointInfo,
+            taskExecutionMode: taskExecutionMode,
+            deploymentOptions: deploymentOptions,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareRequest.type,
+            params,
+        );
+    }
+
+    public schemaCompareGenerateScript(
+        operationId: string,
+        targetServerName: string,
+        targetDatabaseName: string,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ): Thenable<mssql.ResultStatus> {
+        const params: mssql.SchemaCompareGenerateScriptParams = {
+            operationId: operationId,
+            targetServerName: targetServerName,
+            targetDatabaseName: targetDatabaseName,
+            taskExecutionMode: taskExecutionMode,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareGenerateScriptRequest.type,
+            params,
+        );
+    }
+
+    public schemaComparePublishDatabaseChanges(
+        operationId: string,
+        targetServerName: string,
+        targetDatabaseName: string,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ): Thenable<mssql.ResultStatus> {
+        const params: mssql.SchemaComparePublishDatabaseChangesParams = {
+            operationId: operationId,
+            targetServerName: targetServerName,
+            targetDatabaseName: targetDatabaseName,
+            taskExecutionMode: taskExecutionMode,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaComparePublishDatabaseChangesRequest
+                .type,
+            params,
+        );
+    }
+
+    public schemaComparePublishProjectChanges(
+        operationId: string,
+        targetProjectPath: string,
+        targetFolderStructure: mssql.ExtractTarget,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ): Thenable<mssql.SchemaComparePublishProjectResult> {
+        const params: mssql.SchemaComparePublishProjectChangesParams = {
+            operationId: operationId,
+            targetProjectPath: targetProjectPath,
+            targetFolderStructure: targetFolderStructure,
+            taskExecutionMode: taskExecutionMode,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaComparePublishProjectChangesRequest
+                .type,
+            params,
+        );
+    }
+
     public schemaCompareGetDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
         const params: mssql.SchemaCompareGetOptionsParams = {};
+
         return this._client.sendRequest(
             schemaCompareContracts.SchemaCompareGetDefaultOptionsRequest.type,
+            params,
+        );
+    }
+
+    public schemaCompareIncludeExcludeNode(
+        operationId: string,
+        diffEntry: mssql.DiffEntry,
+        includeRequest: boolean,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ): Thenable<mssql.SchemaCompareIncludeExcludeResult> {
+        const params: mssql.SchemaCompareNodeParams = {
+            operationId: operationId,
+            diffEntry: diffEntry,
+            includeRequest: includeRequest,
+            taskExecutionMode: taskExecutionMode,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareIncludeExcludeNodeRequest.type,
+            params,
+        );
+    }
+
+    public schemaCompareOpenScmp(
+        filePath: string,
+    ): Thenable<mssql.SchemaCompareOpenScmpResult> {
+        const params: mssql.SchemaCompareOpenScmpParams = {
+            filePath: filePath,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareOpenScmpRequest.type,
+            params,
+        );
+    }
+
+    public schemaCompareSaveScmp(
+        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        taskExecutionMode: mssql.TaskExecutionMode,
+        deploymentOptions: mssql.DeploymentOptions,
+        scmpFilePath: string,
+        excludedSourceObjects: mssql.SchemaCompareObjectId[],
+        excludedTargetObjects: mssql.SchemaCompareObjectId[],
+    ): Thenable<mssql.ResultStatus> {
+        const params: mssql.SchemaCompareSaveScmpParams = {
+            sourceEndpointInfo: sourceEndpointInfo,
+            targetEndpointInfo: targetEndpointInfo,
+            taskExecutionMode: taskExecutionMode,
+            deploymentOptions: deploymentOptions,
+            scmpFilePath: scmpFilePath,
+            excludedSourceObjects: excludedSourceObjects,
+            excludedTargetObjects: excludedTargetObjects,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareSaveScmpRequest.type,
+            params,
+        );
+    }
+
+    public schemaCompareCancel(
+        operationId: string,
+    ): Thenable<mssql.ResultStatus> {
+        const params: mssql.SchemaCompareCancelParams = {
+            operationId: operationId,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareCancellationRequest.type,
             params,
         );
     }

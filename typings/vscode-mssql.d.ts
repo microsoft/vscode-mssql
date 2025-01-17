@@ -440,7 +440,15 @@ declare module 'vscode-mssql' {
 	}
 
 	export interface ISchemaCompareService {
+		schemaCompare(operationId: string, sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions): Thenable<SchemaCompareResult>;
+		schemaCompareGenerateScript(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
+		schemaComparePublishDatabaseChanges(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
+		schemaComparePublishProjectChanges(operationId: string, targetProjectPath: string, targetFolderStructure: ExtractTarget, taskExecutionMode: TaskExecutionMode): Thenable<SchemaComparePublishProjectResult>;
 		schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
+		schemaCompareIncludeExcludeNode(operationId: string, diffEntry: DiffEntry, includeRequest: boolean, taskExecutionMode: TaskExecutionMode): Thenable<SchemaCompareIncludeExcludeResult>;
+		schemaCompareOpenScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
+		schemaCompareSaveScmp(sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions, scmpFilePath: string, excludedSourceObjects: SchemaCompareObjectId[], excludedTargetObjects: SchemaCompareObjectId[]): Thenable<ResultStatus>;
+		schemaCompareCancel(operationId: string): Thenable<ResultStatus>;
 	}
 
 	export interface IDacFxService {
@@ -1155,10 +1163,147 @@ declare module 'vscode-mssql' {
 		createStreamingJobTsql: string;
 	}
 
+	export const enum SchemaCompareEndpointType {
+		Database = 0,
+		Dacpac = 1,
+		Project = 2,
+		// must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
+		// located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
+	}
+
+	export interface ConnectionInfo {
+		options: { [name: string]: any };
+	}
+
+	export interface SchemaCompareEndpointInfo {
+		endpointType: SchemaCompareEndpointType;
+		packageFilePath: string;
+		serverDisplayName: string;
+		serverName: string;
+		databaseName: string;
+		ownerUri: string;
+		connectionDetails: ConnectionInfo;
+		connectionName?: string;
+		projectFilePath: string;
+		targetScripts: string[];
+		extractTarget: ExtractTarget;
+		dataSchemaProvider: string;
+	}
+
+	export const enum SchemaUpdateAction {
+		Delete = 0,
+		Change = 1,
+		Add = 2
+	}
+
+	export const enum SchemaDifferenceType {
+		Object = 0,
+		Property = 1
+	}
+
+	export interface DiffEntry {
+		updateAction: SchemaUpdateAction;
+		differenceType: SchemaDifferenceType;
+		name: string;
+		sourceValue: string[];
+		targetValue: string[];
+		parent: DiffEntry;
+		children: DiffEntry[];
+		sourceScript: string;
+		targetScript: string;
+		included: boolean;
+	}
+
+	export interface SchemaCompareParams {
+		operationId: string;
+		sourceEndpointInfo: SchemaCompareEndpointInfo;
+		targetEndpointInfo: SchemaCompareEndpointInfo;
+		taskExecutionMode: TaskExecutionMode;
+		deploymentOptions: DeploymentOptions;
+	}
+
+	export interface SchemaCompareResult extends ResultStatus {
+		operationId: string;
+		areEqual: boolean;
+		differences: DiffEntry[];
+	}
+
+	export interface SchemaCompareGenerateScriptParams {
+		operationId: string;
+		targetServerName: string;
+		targetDatabaseName: string;
+		taskExecutionMode: TaskExecutionMode;
+	}
+
+	export interface SchemaComparePublishDatabaseChangesParams {
+		operationId: string;
+		targetServerName: string;
+		targetDatabaseName: string;
+		taskExecutionMode: TaskExecutionMode;
+	}
+
+	export interface SchemaComparePublishProjectChangesParams {
+		operationId: string;
+		targetProjectPath: string;
+		targetFolderStructure: ExtractTarget;
+		taskExecutionMode: TaskExecutionMode;
+	}
+
+	export interface SchemaComparePublishProjectResult extends ResultStatus {
+		changedFiles: string[];
+		addedFiles: string[];
+		deletedFiles: string[];
+	}
+
 	export interface SchemaCompareGetOptionsParams { }
 
 	export interface SchemaCompareOptionsResult extends ResultStatus {
 		defaultDeploymentOptions: DeploymentOptions;
+	}
+
+	export interface SchemaCompareNodeParams {
+		operationId: string;
+		diffEntry: DiffEntry;
+		includeRequest: boolean;
+		taskExecutionMode: TaskExecutionMode;
+	}
+
+	export interface SchemaCompareIncludeExcludeResult extends ResultStatus {
+		affectedDependencies: DiffEntry[];
+		blockingDependencies: DiffEntry[];
+	}
+
+	export interface SchemaCompareObjectId {
+		nameParts: string[];
+		sqlObjectType: string;
+	}
+
+	export interface SchemaCompareOpenScmpParams {
+		filePath: string;
+	}
+
+	export interface SchemaCompareOpenScmpResult extends ResultStatus {
+		sourceEndpointInfo: SchemaCompareEndpointInfo;
+		targetEndpointInfo: SchemaCompareEndpointInfo;
+		originalTargetName: string;
+		originalConnectionString: string;
+		deploymentOptions: DeploymentOptions;
+		excludedSourceElements: SchemaCompareObjectId[];
+		excludedTargetElements: SchemaCompareObjectId[];
+	}
+
+	export interface SchemaCompareSaveScmpParams {
+		sourceEndpointInfo: SchemaCompareEndpointInfo;
+		targetEndpointInfo: SchemaCompareEndpointInfo;
+		taskExecutionMode: TaskExecutionMode;
+		deploymentOptions: DeploymentOptions;
+		scmpFilePath: string;
+		excludedSourceObjects: SchemaCompareObjectId[];
+		excludedTargetObjects: SchemaCompareObjectId[];
+	}
+
+	export interface SchemaCompareCancelParams {
+		operationId: string;
 	}
 
 	export interface SavePublishProfileParams {
@@ -1171,7 +1316,7 @@ declare module 'vscode-mssql' {
 
 	//#region ISqlProjectsService
 
-	//#region Parameters
+	// #region Parameters
 
 	export interface SqlProjectParams {
 		/**
