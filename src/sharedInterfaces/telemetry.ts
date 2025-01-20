@@ -63,6 +63,7 @@ export enum TelemetryActions {
     LoadAzureTenantsForEntraAuth = "LoadAzureTenantsForEntraAuth",
     LoadConnections = "LoadConnections",
     AddFirewallRule = "AddFirewallRule",
+    AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
 }
 

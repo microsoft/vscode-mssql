@@ -198,6 +198,7 @@ export const configEnableNewQueryResultFeature =
     "mssql.enableNewQueryResultFeature";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
+export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
 export const configAutoDisableNonTSqlLanguageService =
     "mssql.autoDisableNonTSqlLanguageService";
 

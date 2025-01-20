@@ -1429,6 +1429,11 @@
           "default": 100,
           "description": "%mssql.logFilesRemovalLimit%"
         },
+        "mssql.resultsGrid.autoSizeColumns": {
+            "type": "boolean",
+            "default": true,
+            "description": "%mssql.resultsGrid.autoSizeColumns%"
+        },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",
           "default": true,
