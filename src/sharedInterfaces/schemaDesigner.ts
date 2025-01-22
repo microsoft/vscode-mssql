@@ -48,6 +48,10 @@ export interface IRelationship {
      */
     foreignKeyName: string;
     /**
+     * Schema of the relationship
+     */
+    schemaName: string;
+    /**
      * Parent entity of the relationship
      */
     entity: string;
@@ -55,6 +59,10 @@ export interface IRelationship {
      * Parent column of the relationship
      */
     column: string;
+    /**
+     * Referenced schema of the relationship
+     */
+    referencedSchemaName: string;
     /**
      * Referenced entity of the relationship
      */
@@ -81,7 +89,7 @@ export enum OnAction {
 }
 
 export interface GetSchemaModelRequestParams {
-    ownerUri: string;
+    ConnectionUri: string;
     databaseName: string;
 }
 

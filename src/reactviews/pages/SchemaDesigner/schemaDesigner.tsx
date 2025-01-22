@@ -48,21 +48,21 @@ export const SchemaDesigner = () => {
             div.innerHTML = "";
             const graph = new azdataGraph.SchemaDesigner(div, {
                 colors: {
-                    cellHighlight: "",
+                    cellHighlight: "#388a34",
                     cellForeground: "var(--vscode-editor-foreground)",
-                    cellBackground: "",
+                    cellBackground: "var(--vscode-editorInfo-foreground)",
                     cellBorder: "var(--vscode-badge-background)",
-                    toolbarBackground: "var(--vscode-breadcrumb-background)",
+                    toolbarBackground: "var(--vscode-editor-foreground)",
                     toolbarForeground: "",
                     toolbarHoverBackground: "",
-                    toolbarDividerBackground: "",
+                    toolbarDividerBackground: "#444444",
                     graphBackground: "var(--vscode-editor-background)",
                     graphGrid: "var(--vscode-badge-background)",
                     edge: "var(--vscode-editor-foreground)",
                     outlineCellBackground: "",
                     outlineBorder: "",
                     outlineSize: "",
-                    outlineSizerRectangle: "",
+                    outlineSizerRectangle: "var(--vscode-focusBorder)",
                     cellColumnHover: "var(--vscode-toolbar-hoverBackground)",
                 },
                 icons: {
@@ -93,8 +93,10 @@ export const SchemaDesigner = () => {
                     customDataTypeIcon: customDataTypeIcon,
                 },
                 graphFontFamily: "var(--vscode-font-family)",
-                isEditable: false,
+                isEditable: true,
             });
+            graph._graph.getStylesheet().getDefaultVertexStyle()["fillColor"] =
+                "#add6ff";
             graph.renderModel(context!.schema, true);
         }
         createGraph();
