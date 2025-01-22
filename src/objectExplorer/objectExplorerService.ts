@@ -379,6 +379,17 @@ export class ObjectExplorerService {
                     ),
                 );
                 self._treeNodeToChildrenMap.set(parentNode, children);
+                sendActionEvent(
+                    TelemetryViews.ObjectExplorer,
+                    TelemetryActions.ExpandNode,
+                    {
+                        nodeType: parentNode?.context?.subType ?? "",
+                        isErrored: (!!result.errorMessage).toString(),
+                    },
+                    {
+                        nodeCount: result?.nodes.length ?? 0,
+                    },
+                );
                 for (let key of self._expandParamsToPromiseMap.keys()) {
                     if (
                         key.sessionId === expandParams.sessionId &&
@@ -391,17 +402,6 @@ export class ObjectExplorerService {
                         return;
                     }
                 }
-                sendActionEvent(
-                    TelemetryViews.ObjectExplorer,
-                    TelemetryActions.ExpandNode,
-                    {
-                        nodeType: parentNode.nodeType,
-                        isErrored: (!!result.errorMessage).toString(),
-                    },
-                    {
-                        nodeCount: result?.nodes.length ?? 0,
-                    },
-                );
             }
         };
         return handler;
@@ -956,6 +956,7 @@ export class ObjectExplorerService {
             RefreshRequest.type,
             refreshParams,
         );
+        this._expandParamsToTreeNodeInfoMap.set(refreshParams, node);
         if (response) {
             this._treeNodeToChildrenMap.delete(node);
         }
