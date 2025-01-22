@@ -472,7 +472,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             gridId: this.gridId,
             columnFilters: columnFilterState,
         };
-        //TODO: update state using a record object instead of columnFilterState
         this.updateState(record);
     }
 
