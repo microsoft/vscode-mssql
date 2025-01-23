@@ -61,12 +61,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     private _eventManager = new EventManager();
     private queryResultState: QueryResultState;
-    private gridId: string;
 
     constructor(
         theme: ColorThemeKind,
         queryResultState: QueryResultState,
-        gridId: string,
+        private gridId: string,
     ) {
         this.queryResultState = queryResultState;
         this.theme = theme;
@@ -468,7 +467,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 sorted: this.columnDef.sorted,
             };
         }
-        let record: GridFilters = {
+        const record: GridFilters = {
             gridId: this.gridId,
             columnFilters: columnFilterState,
         };
