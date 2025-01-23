@@ -694,7 +694,7 @@ export function getCheckConstraintsTabComponents(
 export function getDesignerView(
     view: designer.TableDesignerView | undefined,
 ): designer.DesignerView {
-    return {
+    const viewDefinition = {
         tabs: [
             {
                 title: vscode.l10n.t("Columns"),
@@ -721,13 +721,23 @@ export function getDesignerView(
                 id: designer.DesignerMainPaneTabs.CheckConstraints,
                 components: getCheckConstraintsTabComponents(view),
             },
-            {
-                title: vscode.l10n.t("Advanced Options"),
-                id: designer.DesignerMainPaneTabs.AboutTable,
-                components: getAdvancedOptionsComponents(view),
-            },
         ],
     };
+
+    for (const tab of view.additionalTabs) {
+        viewDefinition.tabs.push({
+            title: tab.title,
+            id: tab.id as designer.DesignerMainPaneTabs,
+            components: tab.components,
+        });
+    }
+
+    viewDefinition.tabs.push({
+        title: vscode.l10n.t("Advanced Options"),
+        id: designer.DesignerMainPaneTabs.AboutTable,
+        components: getAdvancedOptionsComponents(view),
+    });
+    return viewDefinition;
 }
 
 function getTableDisplayProperties(

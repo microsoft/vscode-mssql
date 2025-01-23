@@ -61,6 +61,11 @@ export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
 }
 
+export interface FontSettings {
+    fontSize?: number;
+    fontFamily?: string;
+}
+
 export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     uri?: string;
     title?: string;
@@ -72,6 +77,8 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
     filterState: Record<string, ColumnFilterState>;
+    fontSettings: FontSettings;
+    autoSizeColumns?: boolean;
 }
 
 export interface QueryResultReducers

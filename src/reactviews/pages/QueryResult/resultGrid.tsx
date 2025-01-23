@@ -41,9 +41,6 @@ require("slickgrid/slick.core.js");
 require("slickgrid/slick.grid.js");
 require("slickgrid/plugins/slick.cellrangedecorator.js");
 
-//TODO: get hardcoded data & get gridpanel to render the hardcoded data
-// add console.log in the event handlers for example to onTableClick function
-
 declare global {
     interface Window {
         $: any;
@@ -135,8 +132,17 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     table.rerenderGrid();
                 }
             };
-
-            const ROW_HEIGHT = 25;
+            const DEFAULT_FONT_SIZE = 12;
+            console.log(
+                "resultGrid: ",
+                props.state.state.fontSettings.fontSize,
+            );
+            const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            const COLUMN_WIDTH = Math.max(
+                (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
+                    120,
+                120,
+            ); // Scale width with font size, but keep a minimum of 120px
             if (!props.resultSetSummary || !props.linkHandler) {
                 return;
             }
@@ -222,7 +228,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 rowHeight: ROW_HEIGHT,
                 showRowNumber: true,
                 forceFitColumns: false,
-                defaultColumnWidth: 120,
+                defaultColumnWidth: COLUMN_WIDTH,
             };
             let rowNumberColumn = new RowNumberColumn<Slick.SlickData>({
                 autoCellSelection: false,
@@ -239,7 +245,17 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             let dataProvider = new HybridDataProvider(
                 collection,
                 (_startIndex, _count) => {
-                    return props.loadFunc(_startIndex, _count);
+                    if (
+                        props.resultSetSummary?.rowCount &&
+                        props.resultSetSummary?.rowCount > 0
+                    ) {
+                        return props.loadFunc(_startIndex, _count);
+                    } else {
+                        console.info(
+                            `No rows to load: start index: ${_startIndex}, count: ${_count}`,
+                        );
+                        return Promise.resolve([]);
+                    }
                 },
                 (data: DbCellValue) => {
                     if (!data || data.isNull) {

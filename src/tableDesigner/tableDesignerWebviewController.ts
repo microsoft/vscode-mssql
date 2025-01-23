@@ -208,44 +208,50 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers() {
         this.registerReducer("processTableEdit", async (state, payload) => {
-            const editResponse =
-                await this._tableDesignerService.processTableEdit(
-                    payload.table,
-                    payload.tableChangeInfo,
+            try {
+                const editResponse =
+                    await this._tableDesignerService.processTableEdit(
+                        payload.table,
+                        payload.tableChangeInfo,
+                    );
+                sendActionEvent(
+                    TelemetryViews.TableDesigner,
+                    TelemetryActions.Edit,
+                    {
+                        type: payload.tableChangeInfo.type.toString(),
+                        source: payload.tableChangeInfo.source,
+                        correlationId: this._correlationId,
+                    },
                 );
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Edit,
-                {
-                    type: payload.tableChangeInfo.type.toString(),
-                    source: payload.tableChangeInfo.source,
-                    correlationId: this._correlationId,
-                },
-            );
-            if (editResponse.issues?.length === 0) {
-                state.tabStates.resultPaneTab =
-                    designer.DesignerResultPaneTabs.Script;
-            } else {
-                state.tabStates.resultPaneTab =
-                    designer.DesignerResultPaneTabs.Issues;
+                if (editResponse.issues?.length === 0) {
+                    state.tabStates.resultPaneTab =
+                        designer.DesignerResultPaneTabs.Script;
+                } else {
+                    state.tabStates.resultPaneTab =
+                        designer.DesignerResultPaneTabs.Issues;
+                }
+
+                this.showRestorePromptAfterClose = true;
+
+                const afterEditState = {
+                    ...state,
+                    view: editResponse.view
+                        ? getDesignerView(editResponse.view)
+                        : state.view,
+                    model: editResponse.viewModel,
+                    issues: editResponse.issues,
+                    isValid: editResponse.isValid,
+                    apiState: {
+                        ...state.apiState,
+                        editState: designer.LoadState.Loaded,
+                    },
+                };
+
+                return afterEditState;
+            } catch (e) {
+                vscode.window.showErrorMessage(e.message);
+                return state;
             }
-
-            this.showRestorePromptAfterClose = true;
-
-            const afterEditState = {
-                ...state,
-                view: editResponse.view
-                    ? getDesignerView(editResponse.view)
-                    : state.view,
-                model: editResponse.viewModel,
-                issues: editResponse.issues,
-                isValid: editResponse.isValid,
-                apiState: {
-                    ...state.apiState,
-                    editState: designer.LoadState.Loaded,
-                },
-            };
-            return afterEditState;
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {

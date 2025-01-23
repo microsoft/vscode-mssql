@@ -171,12 +171,12 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
-export const extConfigResultKeys = [
-    "shortcuts",
-    "messagesDefaultOpen",
-    "resultsFontSize",
-    "resultsFontFamily",
-];
+export enum extConfigResultKeys {
+    Shortcuts = "shortcuts",
+    MessagesDefaultOpen = "messagesDefaultOpen",
+    ResultsFontSize = "resultsFontSize",
+    ResultsFontFamily = "resultsFontFamily",
+}
 export const sqlToolsServiceInstallDirConfigKey = "installDir";
 export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
 export const sqlToolsServiceVersionConfigKey = "version";
@@ -199,6 +199,7 @@ export const configEnableNewQueryResultFeature =
     "mssql.enableNewQueryResultFeature";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
+export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
