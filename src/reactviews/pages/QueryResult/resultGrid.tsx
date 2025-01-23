@@ -60,6 +60,7 @@ export interface ResultGridProps {
     gridParentRef?: React.RefObject<HTMLDivElement>;
     state: QueryResultState;
     linkHandler: (fileContent: string, fileType: string) => void;
+    gridId: string;
 }
 
 export interface ResultGridHandle {
@@ -281,6 +282,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.webViewState!,
                 props.state,
                 props.linkHandler!,
+                props.gridId,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.gridParentRef,
