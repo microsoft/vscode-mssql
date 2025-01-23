@@ -70,7 +70,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         QueryResultReducers
     >;
     private linkHandler: (fileContent: string, fileType: string) => void;
-    private gridId: string;
 
     constructor(
         parent: HTMLElement,
@@ -83,7 +82,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         >,
         state: QueryResultState,
         linkHandler: (value: string, type: string) => void,
-        gridId: string,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
@@ -99,7 +97,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             },
             webViewState,
         );
-        this.gridId = gridId;
         if (
             !configuration ||
             !configuration.dataProvider ||
@@ -160,11 +157,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             newOptions,
         );
         this.registerPlugin(
-            new HeaderFilter(
-                webViewState.themeKind,
-                this.queryResultState,
-                gridId,
-            ),
+            new HeaderFilter(webViewState.themeKind, this.queryResultState),
         );
         this.registerPlugin(
             new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
@@ -220,11 +213,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.columns.forEach((column) => {
             if (column.field) {
                 const filters =
-                    this.queryResultState.state.filterState[this.gridId];
+                    this.queryResultState.state.filterState[column.field];
                 if (filters) {
                     (<FilterableColumn<T>>column).filterValues =
-                        //@ts-ignore
-                        filters.columnFilters.filterValues[column.field];
+                        filters.filterValues;
                 } else {
                     return false;
                 }

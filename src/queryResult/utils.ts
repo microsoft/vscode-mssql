@@ -227,8 +227,11 @@ export function registerCommonRequestHandlers(
     webviewController.registerReducer(
         "setFilterState",
         async (state, payload) => {
-            state.filterState[payload.filterState.gridId] = {
-                columnFilters: payload.filterState.columnFilters,
+            state.filterState[payload.filterState.columnDef] = {
+                filterValues: payload.filterState.filterValues,
+                columnDef: payload.filterState.columnDef,
+                seachText: payload.filterState.seachText,
+                sorted: payload.filterState.sorted,
             };
             return state;
         },
