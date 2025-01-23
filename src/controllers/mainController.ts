@@ -942,7 +942,7 @@ export default class MainController implements vscode.Disposable {
                     this._context,
                     node,
                 );
-                if (filters && filters.length > 0) {
+                if (filters) {
                     node.filters = filters;
                     if (
                         node.collapsibleState ===
