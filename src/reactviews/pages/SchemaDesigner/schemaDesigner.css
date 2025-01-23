@@ -28,10 +28,10 @@
     height: 100%;
     padding: 10px;
 }
+
 #graphContainer {
     position: absolute;
     width: 100%;
-    height: calc(100vh - 20px);
     min-width: 100%;
     min-height: calc(100vh - 20px);
     user-select: none;

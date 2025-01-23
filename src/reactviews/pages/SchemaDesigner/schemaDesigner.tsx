@@ -50,23 +50,24 @@ export const SchemaDesigner = () => {
             div.innerHTML = "";
             const graph = new azdataGraph.SchemaDesigner(div, {
                 colors: {
-                    cellHighlight: "",
-                    cellForeground: "",
-                    cellBackground: "",
-                    cellBorder: "",
-                    cellColumnHover: "",
-                    cellDivider: "",
-                    toolbarBackground: "",
-                    toolbarForeground: "",
-                    toolbarHoverBackground: "",
-                    toolbarDividerBackground: "",
-                    graphBackground: "",
-                    graphGrid: "",
-                    edge: "",
-                    outlineCellBackground: "",
-                    outlineBorder: "",
-                    outlineSize: "",
-                    outlineSizerRectangle: "",
+                    cellHighlight: "#00FF00",
+                    cellForeground: "var(--vscode-editor-foreground)",
+                    cellBackground: "var(--vscode-editor-background)",
+                    cellBorder: "var(--vscode-badge-background)",
+                    cellColumnHover:
+                        "var(--vscode-inputOption-hoverBackground)",
+                    cellDivider: "var(--vscode-badge-background)",
+                    toolbarBackground: "#2c2c2c",
+                    toolbarForeground: "#ffffff",
+                    toolbarHoverBackground: "#383838",
+                    toolbarDividerBackground: "#444444",
+                    graphBackground: "var(--vscode-editor-background)",
+                    graphGrid: "var(--vscode-badge-background)",
+                    edge: "var(--vscode-editor-foreground)",
+                    outlineCellBackground: "#00FF00",
+                    outlineBorder: "#00FF00",
+                    outlineSize: "#00FF00",
+                    outlineSizerRectangle: "#00FF00",
                 },
                 icons: {
                     addTableIcon: addTableIcon,
@@ -111,11 +112,9 @@ export const SchemaDesigner = () => {
                     exportIcon: exportIcon,
                     autoarrangeIcon: autoarrangeIcon,
                 },
-                graphFontFamily: "var(--vscode-font-family)",
+                graphFontFamily: "var(--vscode-editor-font-family)",
                 isEditable: false,
             });
-            graph._graph.getStylesheet().getDefaultVertexStyle()["fillColor"] =
-                "#add6ff";
             graph.renderModel(context!.schema, true);
         }
         createGraph();
