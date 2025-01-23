@@ -54,6 +54,11 @@ export interface ColumnFilterState {
     columnDef: string;
 }
 
+export interface GridFilters {
+    gridId: string;
+    columnFilters: ColumnFilterState;
+}
+
 export interface GridSortState {
     field: string;
     sortAsc: boolean;
