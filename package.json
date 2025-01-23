@@ -1451,8 +1451,8 @@
           "description": "%mssql.query.maxXmlCharsToStore%"
         },
         "mssql.autoDisableNonTSqlLanguageService": {
-          "type": "number",
-          "default": 2,
+          "type": ["boolean", "null"],
+          "default": null,
           "description": "%mssql.autoDisableNonTSqlLanguageService%"
         },
         "mssql.queryHistoryLimit": {

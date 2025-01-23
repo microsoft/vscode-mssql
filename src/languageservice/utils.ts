@@ -11,12 +11,6 @@ import {
 import StatusView from "../views/statusView";
 import SqlToolsServiceClient from "./serviceclient";
 
-export enum LanguageServiceOptions {
-    SwitchDisabled = 0,
-    SwitchEnabled = 1,
-    SwitchUnset = 2,
-}
-
 export function changeLanguageServiceForFile(
     client: SqlToolsServiceClient,
     uri: string,

@@ -40,10 +40,7 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
-import {
-    changeLanguageServiceForFile,
-    LanguageServiceOptions,
-} from "../languageservice/utils";
+import { changeLanguageServiceForFile } from "../languageservice/utils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -435,18 +432,19 @@ export default class ConnectionManager {
         return async (
             event: LanguageServiceContracts.NonTSqlParams,
         ): Promise<void> => {
-            const isEnabled: number = await this._vscodeWrapper
+            const autoDisable: boolean | undefined = await this._vscodeWrapper
                 .getConfiguration()
                 .get(Constants.configAutoDisableNonTSqlLanguageService);
-
-            if (isEnabled === LanguageServiceOptions.SwitchEnabled) {
+            if (autoDisable === false) {
+                return;
+            } else if (autoDisable) {
                 changeLanguageServiceForFile(
                     SqlToolsServerClient.instance,
                     event.ownerUri,
                     Constants.noneProviderName,
                     this._statusView,
                 );
-            } else if (isEnabled === LanguageServiceOptions.SwitchUnset) {
+            } else {
                 const selectedOption =
                     await vscode.window.showInformationMessage(
                         LocalizedConstants.autoDisableNonTSqlLanguageServicePrompt,
@@ -465,23 +463,35 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                        { selectedOption: LocalizedConstants.msgYes },
                     );
 
                     await this._vscodeWrapper
                         .getConfiguration()
                         .update(
                             Constants.configAutoDisableNonTSqlLanguageService,
-                            LanguageServiceOptions.SwitchEnabled,
+                            true,
                             vscode.ConfigurationTarget.Global,
                         );
-                } else {
+                } else if (selectedOption === LocalizedConstants.msgNo) {
                     await this._vscodeWrapper
                         .getConfiguration()
                         .update(
                             Constants.configAutoDisableNonTSqlLanguageService,
-                            LanguageServiceOptions.SwitchDisabled,
+                            false,
                             vscode.ConfigurationTarget.Global,
                         );
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                        { selectedOption: LocalizedConstants.msgNo },
+                    );
+                } else {
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                        { selectedOption: LocalizedConstants.dismiss },
+                    );
                 }
             }
         };
