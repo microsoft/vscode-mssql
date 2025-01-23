@@ -9,7 +9,6 @@
 import {
     ColumnFilterState,
     FilterableColumn,
-    GridFilters,
     SortProperties,
 } from "../interfaces";
 import { append, $ } from "../dom";
@@ -62,14 +61,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private _eventManager = new EventManager();
     private queryResultState: QueryResultState;
 
-    constructor(
-        theme: ColorThemeKind,
-        queryResultState: QueryResultState,
-        private gridId: string,
-    ) {
+    constructor(theme: ColorThemeKind, queryResultState: QueryResultState) {
         this.queryResultState = queryResultState;
         this.theme = theme;
-        this.gridId = gridId;
     }
 
     public init(grid: Slick.Grid<T>): void {
@@ -467,14 +461,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 sorted: this.columnDef.sorted,
             };
         }
-        const record: GridFilters = {
-            gridId: this.gridId,
-            columnFilters: columnFilterState,
-        };
-        this.updateState(record);
+        this.updateState(columnFilterState);
     }
 
-    private updateState(newState: GridFilters) {
+    private updateState(newState: ColumnFilterState) {
         this.queryResultState.provider.setFilterState(newState);
     }
 
