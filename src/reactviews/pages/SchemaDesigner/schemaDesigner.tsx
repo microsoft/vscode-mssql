@@ -10,27 +10,29 @@ import "azdataGraph/dist/index.css";
 import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
+import {
+    addTableIcon,
+    autoarrangeIcon,
+    bitIcon,
+    customDataTypeIcon,
+    dateTimeIcon,
+    decimalIcon,
+    deleteIcon,
+    entityIcon,
+    exportIcon,
+    geographyIcon,
+    intIcon,
+    moneyIcon,
+    redoIcon,
+    textIcon,
+    undoIcon,
+    varbinaryIcon,
+    zoomFitIcon,
+    zoomInIcon,
+    zoomOutIcon,
+} from "./schemaDesignerIcons";
 
-const addTableIcon = require("./icons/addTable.svg");
-const undoIcon = require("./icons/undo.svg");
-const redoIcon = require("./icons/redo.svg");
-const zoomInIcon = require("./icons/zoomIn.svg");
-const zoomOutIcon = require("./icons/zoomOut.svg");
-const deleteIcon = require("./icons/delete.svg");
-const entityIcon = require("./icons/table.svg");
 const connectorIcon = require("./icons/connector.svg");
-const exportIcon = require("./icons/export.svg");
-const autoarrangeIcon = require("./icons/arrange.svg");
-const customDataTypeIcon = require("./icons/datatype_custom.svg");
-const intDataTypeIcon = require("./icons/datatype_int.svg");
-const bitDataTypeIcon = require("./icons/datatype_bit.svg");
-const datetimeDataTypeIcon = require("./icons/datatype_datetime.svg");
-const decimalDataTypeIcon = require("./icons/datatype_decimal.svg");
-const geographyDataTypeIcon = require("./icons/datatype_geography.svg");
-const moneyDataTypeIcon = require("./icons/datatype_money.svg");
-const textDataTypeIcon = require("./icons/datatype_text.svg");
-const varbinaryDataTypeIcon = require("./icons/datatype_varbinary.svg");
-const zoomToFitIcon = require("./icons/zoomFit.svg");
 
 export const SchemaDesigner = () => {
     const context = useContext(SchemaDesignerContext);
@@ -48,22 +50,23 @@ export const SchemaDesigner = () => {
             div.innerHTML = "";
             const graph = new azdataGraph.SchemaDesigner(div, {
                 colors: {
-                    cellHighlight: "#388a34",
-                    cellForeground: "var(--vscode-editor-foreground)",
-                    cellBackground: "var(--vscode-editorInfo-foreground)",
-                    cellBorder: "var(--vscode-badge-background)",
-                    toolbarBackground: "var(--vscode-editor-foreground)",
+                    cellHighlight: "",
+                    cellForeground: "",
+                    cellBackground: "",
+                    cellBorder: "",
+                    cellColumnHover: "",
+                    cellDivider: "",
+                    toolbarBackground: "",
                     toolbarForeground: "",
                     toolbarHoverBackground: "",
-                    toolbarDividerBackground: "#444444",
-                    graphBackground: "var(--vscode-editor-background)",
-                    graphGrid: "var(--vscode-badge-background)",
-                    edge: "var(--vscode-editor-foreground)",
+                    toolbarDividerBackground: "",
+                    graphBackground: "",
+                    graphGrid: "",
+                    edge: "",
                     outlineCellBackground: "",
                     outlineBorder: "",
                     outlineSize: "",
-                    outlineSizerRectangle: "var(--vscode-focusBorder)",
-                    cellColumnHover: "var(--vscode-toolbar-hoverBackground)",
+                    outlineSizerRectangle: "",
                 },
                 icons: {
                     addTableIcon: addTableIcon,
@@ -71,29 +74,45 @@ export const SchemaDesigner = () => {
                     redoIcon: redoIcon,
                     zoomInIcon: zoomInIcon,
                     zoomOutIcon: zoomOutIcon,
+                    zoomFitIcon: zoomFitIcon,
                     deleteIcon: deleteIcon,
                     entityIcon: entityIcon,
-                    zoomFitIcon: zoomToFitIcon,
                     dataTypeIcons: {
-                        int: intDataTypeIcon,
-                        nvarchar: textDataTypeIcon,
-                        datetime: datetimeDataTypeIcon,
-                        datetime2: datetimeDataTypeIcon,
-                        bit: bitDataTypeIcon,
-                        geography: geographyDataTypeIcon,
-                        bigint: intDataTypeIcon,
-                        varbinary: varbinaryDataTypeIcon,
-                        decimal: decimalDataTypeIcon,
-                        date: datetimeDataTypeIcon,
-                        money: moneyDataTypeIcon,
+                        int: intIcon,
+                        tinyint: intIcon,
+                        smallint: intIcon,
+                        bigint: intIcon,
+                        numeric: decimalIcon,
+                        decimal: decimalIcon,
+                        money: moneyIcon,
+                        smallmoney: moneyIcon,
+                        bit: bitIcon,
+                        float: decimalIcon,
+                        real: decimalIcon,
+                        char: textIcon,
+                        varchar: textIcon,
+                        text: textIcon,
+                        nchar: textIcon,
+                        nvarchar: textIcon,
+                        ntext: textIcon,
+                        binary: varbinaryIcon,
+                        varbinary: varbinaryIcon,
+                        image: varbinaryIcon,
+                        geography: geographyIcon,
+                        datetime: dateTimeIcon,
+                        datetime2: dateTimeIcon,
+                        date: dateTimeIcon,
+                        time: dateTimeIcon,
+                        datetimeoffset: dateTimeIcon,
+                        smalldatetime: dateTimeIcon,
                     },
+                    customDataTypeIcon: customDataTypeIcon,
                     connectorIcon: connectorIcon,
                     exportIcon: exportIcon,
                     autoarrangeIcon: autoarrangeIcon,
-                    customDataTypeIcon: customDataTypeIcon,
                 },
                 graphFontFamily: "var(--vscode-font-family)",
-                isEditable: true,
+                isEditable: false,
             });
             graph._graph.getStylesheet().getDefaultVertexStyle()["fillColor"] =
                 "#add6ff";

@@ -62,7 +62,7 @@ export interface IRelationship {
     /**
      * Referenced schema of the relationship
      */
-    referencedSchemaName: string;
+    referencedSchema: string;
     /**
      * Referenced entity of the relationship
      */
