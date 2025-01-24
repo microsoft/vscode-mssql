@@ -796,6 +796,8 @@
       "{0} is the feature name"
     ]
   },
+  "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!": "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
+  "Submit an issue": "Submit an issue",
   "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
     "message": "{0} has been closed. Would you like to restore it?",
     "comment": [
