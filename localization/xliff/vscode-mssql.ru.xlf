@@ -1104,6 +1104,10 @@
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">Нет доступных подписок.  Настройте фильтры подписки, чтобы повторить попытку.</target>
       </trans-unit>
+      <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
+        <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
+        <target state="new">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</target>
+      </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
         <target state="translated">Отсутствует</target>
@@ -2442,6 +2446,10 @@
       <trans-unit id="mssql.format.keywordCasing">
         <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
         <target state="translated">Должен ли формат ключевых слов быть "ВЕРХНИЙ РЕГИСТР", "нижний регистр" или "нет" (формат отсутствует)</target>
+      </trans-unit>
+      <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
+        <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
+        <target state="new">Should language service be auto-disabled when extension detects Non-MSSQL files</target>
       </trans-unit>
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
