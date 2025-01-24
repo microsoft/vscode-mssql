@@ -71,31 +71,36 @@ const CommandBar = (props: CommandBarProps) => {
     return (
         <div className={classes.commandBar}>
             {hasMultipleResults && (
-                <Button
-                    appearance="subtle"
-                    onClick={() => {
-                        maxView
-                            ? props.restoreResults?.()
-                            : props.maximizeResults?.();
-                        setMaxView((prev) => !prev); // Toggle maxView state
-                    }}
-                    icon={
-                        maxView ? (
-                            <ArrowMinimize16Filled
-                                className={classes.buttonImg}
-                            />
-                        ) : (
-                            <ArrowMaximize16Filled
-                                className={classes.buttonImg}
-                            />
-                        )
-                    }
-                    title={
-                        maxView
-                            ? locConstants.queryResult.restore
-                            : locConstants.queryResult.maximize
-                    }
-                ></Button>
+                <Tooltip
+                    content={locConstants.queryResult.maximize}
+                    relationship="label"
+                >
+                    <Button
+                        appearance="subtle"
+                        onClick={() => {
+                            maxView
+                                ? props.restoreResults?.()
+                                : props.maximizeResults?.();
+                            setMaxView((prev) => !prev); // Toggle maxView state
+                        }}
+                        icon={
+                            maxView ? (
+                                <ArrowMinimize16Filled
+                                    className={classes.buttonImg}
+                                />
+                            ) : (
+                                <ArrowMaximize16Filled
+                                    className={classes.buttonImg}
+                                />
+                            )
+                        }
+                        title={
+                            maxView
+                                ? locConstants.queryResult.restore
+                                : locConstants.queryResult.maximize
+                        }
+                    ></Button>
+                </Tooltip>
             )}
 
             <Tooltip
