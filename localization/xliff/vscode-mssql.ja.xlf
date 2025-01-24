@@ -575,6 +575,10 @@
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">信頼サーバー証明書を有効にする</target>
       </trans-unit>
+      <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
+        <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
+        <target state="new">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">暗号化する</target>
@@ -1583,6 +1587,10 @@
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
         <target state="translated">送信</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
+        <source xml:lang="en">Submit an issue</source>
+        <target state="new">Submit an issue</target>
       </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
