@@ -404,6 +404,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
             );
+
             return true;
         }
     }

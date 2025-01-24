@@ -40,6 +40,7 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
+import { changeLanguageServiceForFile } from "../languageservice/utils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -203,6 +204,10 @@ export default class ConnectionManager {
             this.client.onNotification(
                 LanguageServiceContracts.IntelliSenseReadyNotification.type,
                 this.handleLanguageServiceUpdateNotification(),
+            );
+            this.client.onNotification(
+                LanguageServiceContracts.NonTSqlNotification.type,
+                this.handleNonTSqlNotification(),
             );
         }
     }
@@ -418,6 +423,83 @@ export default class ConnectionManager {
                 event.ownerUri,
                 LocalizedConstants.intelliSenseUpdatedStatus,
             );
+        };
+    }
+
+    public handleNonTSqlNotification(): NotificationHandler<LanguageServiceContracts.NonTSqlParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+
+        return async (
+            event: LanguageServiceContracts.NonTSqlParams,
+        ): Promise<void> => {
+            const autoDisable: boolean | undefined = await this._vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configAutoDisableNonTSqlLanguageService);
+
+            // autoDisable set to false, so do nothing
+            if (autoDisable === false) {
+                return;
+            }
+            // autoDisable set to true, so disable language service
+            else if (autoDisable) {
+                changeLanguageServiceForFile(
+                    SqlToolsServerClient.instance,
+                    event.ownerUri,
+                    Constants.noneProviderName,
+                    this._statusView,
+                );
+            }
+            // autoDisable not set yet; prompt the user for what to do
+            else {
+                const selectedOption =
+                    await vscode.window.showInformationMessage(
+                        LocalizedConstants.autoDisableNonTSqlLanguageServicePrompt,
+                        LocalizedConstants.msgYes,
+                        LocalizedConstants.msgNo,
+                    );
+
+                if (selectedOption === LocalizedConstants.msgYes) {
+                    changeLanguageServiceForFile(
+                        SqlToolsServerClient.instance,
+                        event.ownerUri,
+                        Constants.noneProviderName,
+                        this._statusView,
+                    );
+
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                        { selectedOption: LocalizedConstants.msgYes },
+                    );
+
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configAutoDisableNonTSqlLanguageService,
+                            true,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                } else if (selectedOption === LocalizedConstants.msgNo) {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configAutoDisableNonTSqlLanguageService,
+                            false,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                        { selectedOption: LocalizedConstants.msgNo },
+                    );
+                } else {
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
+                        { selectedOption: LocalizedConstants.dismiss },
+                    );
+                }
+            }
         };
     }
 

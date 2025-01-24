@@ -64,6 +64,7 @@ export enum TelemetryActions {
     LoadConnections = "LoadConnections",
     AddFirewallRule = "AddFirewallRule",
     AutoColumnSize = "AutoColumnSize",
+    DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
 }
 
 /**
