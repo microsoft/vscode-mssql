@@ -1,0 +1,103 @@
+// A launch configuration that compiles the extension and then opens it inside a new window
+{
+	"version": "0.1.0",
+	"configurations": [
+
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Gulp ext test",
+			"program": "${workspaceFolder}/node_modules/gulp/bin/gulp.js",
+			"args": [
+				"ext:test"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Gulp task",
+			"program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
+			"args": [
+				"package:offline"
+			]
+		},
+		{
+			"name": "Launch Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}"
+			],
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/src/**/*.js",
+			],
+			"rendererDebugOptions": {
+				"pauseForSourceMap": true,
+				"sourceMapRenames": true,
+				"sourceMaps": true,
+				"webRoot": "${workspaceRoot}/src/reactviews"
+			},
+			"debugWebWorkerHost": true,
+			"sourceMapRenames": true,
+			"pauseForSourceMap": true,
+			"env": {
+				// Uncomment this to use a specified version of STS, see
+				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
+				// for more details
+				// "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
+			}
+		},
+		{
+			"name": "Launch Extension (With Other Extensions Disabled)",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--disable-extensions",
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--skip-release-notes",
+				"--skip-welcome"
+			],
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/src/**/*.js",
+			],
+			"env": {
+				// Uncomment this to use a specified version of STS, see
+				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
+				// for more details
+				// "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
+			}
+		},
+		{
+			"name": "Launch Tests",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--extensionTestsPath=${workspaceRoot}/out/test"
+			],
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/test/**/*,js"
+			]
+		},
+		{
+			"name": "Launch Code Coverage",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}",
+				"--extensionTestsPath=${workspaceRoot}/out/test"
+			],
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceRoot}/out/test/**/*,js"
+			]
+		}
+	]
+}
