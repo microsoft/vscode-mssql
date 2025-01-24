@@ -17,7 +17,7 @@ import { UserSurvey } from "../../src/nps/userSurvey";
 import { stubTelemetry } from "./utils";
 
 suite("UserSurvey Tests", () => {
-    let sandbox;
+    let sandbox: sinon.SinonSandbox;
     let globalState;
     let context;
     let showInformationMessageStub: sinon.SinonStub;
@@ -59,10 +59,14 @@ suite("UserSurvey Tests", () => {
             true,
             "globalState.get should be called with 'nps/never' and false",
         );
+
         assert.strictEqual(
             showInformationMessageStub.called,
             false,
-            "showInformationMessage should not be called",
+            `showInformationMessage should not be called, but was called ${showInformationMessageStub.getCalls().length} times: ${showInformationMessageStub
+                .getCalls()
+                .map((call) => `"${call.args[0]}"`)
+                .join(", ")}`,
         );
     });
 
@@ -113,7 +117,6 @@ suite("UserSurvey Tests", () => {
         );
 
         const userSurvey = UserSurvey.getInstance();
-        sandbox.stub(userSurvey, "launchSurvey").resolves();
         const onSubmitStub = sandbox.stub();
         const onCancelStub = sandbox.stub();
         // Mock the webview controller
@@ -141,7 +144,7 @@ suite("UserSurvey Tests", () => {
         assert.strictEqual(
             mockWebviewController.revealToForeground.calledOnce,
             true,
-            "launchSurvey should be called",
+            "revealToForeground should have been called",
         );
 
         assert.strictEqual(
