@@ -1872,6 +1872,9 @@
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
     </trans-unit>
+    <trans-unit id="mssql.visualizeSchema">
+      <source xml:lang="en">Visualize Schema</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>

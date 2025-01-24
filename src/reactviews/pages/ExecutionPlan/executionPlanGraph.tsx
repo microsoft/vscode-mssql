@@ -139,7 +139,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         // @ts-ignore
         window["mxBasePath"] = "./src/reactviews/pages/ExecutionPlan/mxgraph";
 
-        const mxClient = azdataGraph.default();
+        const mxClient = azdataGraph.mx();
 
         function loadExecutionPlan() {
             if (executionPlanState && executionPlanState.executionPlanGraphs) {

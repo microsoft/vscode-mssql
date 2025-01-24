@@ -60,6 +60,8 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { SchemaDesignerService } from "../services/schemaDesignerService";
+import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -97,6 +99,7 @@ export default class MainController implements vscode.Disposable {
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
+    public schemaDesignerService: SchemaDesignerService;
 
     /**
      * The main controller constructor
@@ -361,6 +364,10 @@ export default class MainController implements vscode.Disposable {
             );
             this._queryResultWebviewController.setUntitledDocumentService(
                 this._untitledSqlDocumentService,
+            );
+
+            this.schemaDesignerService = new SchemaDesignerService(
+                SqlToolsServerClient.instance,
             );
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
@@ -897,6 +904,34 @@ export default class MainController implements vscode.Disposable {
                                 node.connectionInfo,
                             );
                         connDialog.revealToForeground();
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdVisualizeSchema,
+                    async (node: TreeNodeInfo) => {
+                        const uri = this.connectionManager.getUriForConnection(
+                            node.connectionInfo,
+                        );
+                        const schema =
+                            await this.schemaDesignerService.getSchemaModel({
+                                connectionUri: uri,
+                                databaseName: node.metadata.name,
+                            });
+
+                        console.log(schema);
+
+                        const schemaDesignerWebvie =
+                            new SchemaDesignerWebviewController(
+                                this._context,
+                                this.schemaDesignerService,
+                                node.metadata.name,
+                                schema,
+                            );
+
+                        schemaDesignerWebvie.revealToForeground();
                     },
                 ),
             );
