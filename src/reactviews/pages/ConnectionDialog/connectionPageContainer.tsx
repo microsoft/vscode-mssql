@@ -35,7 +35,6 @@ import { TrustServerCertificateDialog } from "./components/trustServerCertificat
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
-import { ConnectButtonId } from "./components/connectButton.component";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -63,13 +62,13 @@ export const ConnectionInfoFormContainer = () => {
         return saveIcon;
     }
 
-    function handleSubmit(event: React.FormEvent) {
+    function handleConnect(event: React.FormEvent) {
         event.preventDefault();
-        document.getElementById(ConnectButtonId)?.click();
+        context.connect();
     }
 
     return (
-        <form onSubmit={handleSubmit} className={formStyles.formRoot}>
+        <form onSubmit={handleConnect} className={formStyles.formRoot}>
             <ConnectionHeader />
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
