@@ -561,6 +561,9 @@ export let flavorDescriptionMssql = l10n.t(
 export let flavorDescriptionNone = l10n.t(
     "Disable intellisense and syntax error checking on current document",
 );
+export let autoDisableNonTSqlLanguageServicePrompt = l10n.t(
+    "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
+);
 export let msgAddConnection = l10n.t("Add Connection");
 export let msgConnect = l10n.t("Connect");
 export let azureSignIn = l10n.t("Azure: Sign In");
