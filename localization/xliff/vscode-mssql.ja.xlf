@@ -2467,6 +2467,10 @@
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
       </trans-unit>
+      <trans-unit id="mssql.visualizeSchema">
+        <source xml:lang="en">Visualize Schema</source>
+        <target state="new">Visualize Schema</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">有効にすると、オブジェクト エクスプローラー内のデータベース オブジェクトがスキーマ別に分類されます。</target>
