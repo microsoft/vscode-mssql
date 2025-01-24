@@ -89,7 +89,7 @@ export enum OnAction {
 }
 
 export interface GetSchemaModelRequestParams {
-    ConnectionUri: string;
+    connectionUri: string;
     databaseName: string;
 }
 
