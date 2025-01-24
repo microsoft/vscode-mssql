@@ -200,6 +200,8 @@ export const configEnableNewQueryResultFeature =
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configAutoDisableNonTSqlLanguageService =
+    "mssql.autoDisableNonTSqlLanguageService";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

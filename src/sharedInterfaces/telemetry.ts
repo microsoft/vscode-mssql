@@ -65,6 +65,7 @@ export enum TelemetryActions {
     AddFirewallRule = "AddFirewallRule",
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
+    DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
 }
 
 /**
