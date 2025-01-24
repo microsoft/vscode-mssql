@@ -500,7 +500,7 @@
         },
         {
           "command": "mssql.visualizeSchema",
-          "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+          "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && config.mssql.enableSchemaDesigner",
           "group": "MS_SQL@6"
         },
         {
