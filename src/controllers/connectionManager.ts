@@ -435,16 +435,22 @@ export default class ConnectionManager {
             const autoDisable: boolean | undefined = await this._vscodeWrapper
                 .getConfiguration()
                 .get(Constants.configAutoDisableNonTSqlLanguageService);
+
+            // autoDisable set to false, so do nothing
             if (autoDisable === false) {
                 return;
-            } else if (autoDisable) {
+            }
+            // autoDisable set to true, so disable language service
+            else if (autoDisable) {
                 changeLanguageServiceForFile(
                     SqlToolsServerClient.instance,
                     event.ownerUri,
                     Constants.noneProviderName,
                     this._statusView,
                 );
-            } else {
+            }
+            // autoDisable not set yet; prompt the user for what to do
+            else {
                 const selectedOption =
                     await vscode.window.showInformationMessage(
                         LocalizedConstants.autoDisableNonTSqlLanguageServicePrompt,
