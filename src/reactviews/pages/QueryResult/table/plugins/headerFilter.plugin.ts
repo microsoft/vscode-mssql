@@ -66,6 +66,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private _eventManager = new EventManager();
     private queryResultState: QueryResultState;
     private currentSortColumn: string = "";
+    private currentSortButton: JQuery<HTMLElement> | null = null;
 
     constructor(theme: ColorThemeKind, queryResultState: QueryResultState) {
         this.queryResultState = queryResultState;
@@ -128,7 +129,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             .addClass("slick-header-menubutton")
             .data("column", column);
         const $sortButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${SortAscendingText}" title="${SortAscendingText}"></button>`,
+            `<button tabindex="-1" id="anchor-btn" aria-label="${SortAscendingText}" title="${SortAscendingText} data-column-id=${column.id}"></button>`,
         )
             .addClass("slick-header-sort-button")
             .data("column", column);
@@ -170,13 +171,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
                     switch (sortState) {
                         case SortProperties.NONE:
-                            if (this.currentSortColumn) {
-                                const $prevSortButton = jQuery(args.node).find(
-                                    `button[data-column=${this.currentSortColumn}]`,
-                                );
-                                let prevColumnDef = jQuery(
-                                    $prevSortButton.get(0),
-                                ).data("column");
+                            if (
+                                this.currentSortColumn &&
+                                this.currentSortButton
+                            ) {
+                                const $prevSortButton = this.currentSortButton;
+                                let prevColumnDef =
+                                    jQuery($prevSortButton).data("column");
                                 $prevSortButton.removeClass(
                                     "slick-header-sortasc-button",
                                 );
@@ -207,6 +208,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             );
                             columnFilterState.sorted = SortProperties.ASC;
                             this.currentSortColumn = column.id!;
+                            this.currentSortButton = $sortButton;
                             break;
                         case SortProperties.ASC:
                             $sortButton.removeClass(
