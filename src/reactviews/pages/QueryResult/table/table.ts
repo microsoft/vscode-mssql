@@ -14,6 +14,7 @@ import {
     ITableConfiguration,
     ITableStyles,
     FilterableColumn,
+    GridColumnMap,
 } from "./interfaces";
 import * as DOM from "./dom";
 
@@ -31,6 +32,7 @@ import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultState } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
+import store from "../../../common/singletonStore";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -217,14 +219,25 @@ export class Table<T extends Slick.SlickData> implements IThemable {
      * @returns true if filters were successfully loaded and applied, false if no filters were found
      */
     public async setupFilterState(): Promise<boolean> {
+        const filterMapArray = store.get(
+            this.queryResultState.state.uri!,
+        ) as GridColumnMap[];
+        if (!filterMapArray) {
+            return false;
+        }
+        const filterMap = filterMapArray.find((filter) => filter[this.gridId]);
+        if (!filterMap || !filterMap[this.gridId]) {
+            console.log("No filters found in store");
+            return false;
+        }
         this.columns.forEach((column) => {
             if (column.field) {
-                const filters =
-                    this.queryResultState.state.filterState[this.gridId];
-                if (filters) {
+                if (!this.queryResultState.state.uri) {
+                    console.log("No uri found in query result state");
+                }
+                if (filterMap[this.gridId][column.field]) {
                     (<FilterableColumn<T>>column).filterValues =
-                        //@ts-ignore
-                        filters.columnFilters.filterValues[column.field];
+                        filterMap[this.gridId][column.field].filterValues;
                 } else {
                     return false;
                 }

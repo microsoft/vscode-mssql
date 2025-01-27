@@ -60,6 +60,7 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 
 /**
  * The main controller class that initializes the extension
@@ -1603,7 +1604,10 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-
+            self._queryResultWebviewController.postNotification(
+                DefaultWebviewNotifications.updateStorage,
+                uri,
+            );
             await self._outputContentProvider.runQuery(
                 self._statusview,
                 uri,

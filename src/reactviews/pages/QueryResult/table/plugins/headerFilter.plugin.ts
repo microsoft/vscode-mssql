@@ -7,9 +7,10 @@
 // heavily modified
 
 import {
+    ColumnFilterMap,
     ColumnFilterState,
     FilterableColumn,
-    GridFilters,
+    GridColumnMap,
     SortProperties,
 } from "../interfaces";
 import { append, $ } from "../dom";
@@ -25,6 +26,8 @@ import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
 
 import { QueryResultState } from "../../queryResultStateProvider";
+import store from "../../../../common/singletonStore";
+import singletonStore from "../../../../common/singletonStore";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -263,8 +266,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 !$target.closest("#anchor-btn").length &&
                 !$target.closest("#popup-menu").length
             ) {
-                this.activePopup!.fadeOut();
-                this.activePopup = null;
+                if (this.activePopup) {
+                    this.activePopup.fadeOut();
+                    this.activePopup = null;
+                }
             }
         });
 
@@ -312,6 +317,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             `#apply-${this.columnDef.id}`,
             async () => {
+                //TODO: there are two places where we set the columnDef.filterValues, should we remove one?
                 this.columnDef.filterValues = this._listData
                     .filter((element) => element.checked)
                     .map((element) => element.value);
@@ -455,11 +461,25 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.setFocusToColumn(columnDef);
         // clear filterValues if clear is true
         if (clear) {
+            //TODO: should clear at a grid level or a column level?
             columnFilterState = {
                 columnDef: this.columnDef.id!,
                 filterValues: [],
                 sorted: SortProperties.NONE,
             };
+            if (this.queryResultState.state.uri) {
+                if (singletonStore.has(this.queryResultState.state.uri)) {
+                    const gridColumnMap = singletonStore.get(
+                        this.queryResultState.state.uri!,
+                    ) as GridColumnMap;
+                    gridColumnMap[this.gridId][columnDef.id!] =
+                        columnFilterState;
+                    singletonStore.set(
+                        this.queryResultState.state.uri,
+                        gridColumnMap,
+                    );
+                }
+            }
         } else {
             columnFilterState = {
                 columnDef: this.columnDef.id!,
@@ -467,15 +487,72 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 sorted: this.columnDef.sorted,
             };
         }
-        const record: GridFilters = {
-            gridId: this.gridId,
-            columnFilters: columnFilterState,
+
+        let columnFilterMap: ColumnFilterMap = {
+            [columnDef.id!]: columnFilterState,
         };
-        this.updateState(record);
+        let gridColumnMap: GridColumnMap = {
+            [this.gridId]: columnFilterMap,
+        };
+        this.updateState(gridColumnMap, columnDef.id!);
     }
 
-    private updateState(newState: GridFilters) {
-        this.queryResultState.provider.setFilterState(newState);
+    private updateState(newState: GridColumnMap, columnId: string): void {
+        let newStateArray: GridColumnMap[];
+        //Check if there is any existing filter state
+        if (!this.queryResultState.state.uri) {
+            console.log("no uri set for query result state");
+            return;
+        }
+        const currentFiltersArray = store.get(
+            this.queryResultState.state.uri,
+        ) as GridColumnMap[];
+        if (currentFiltersArray) {
+            newStateArray = this.combineFilters(
+                currentFiltersArray,
+                newState,
+                columnId,
+            );
+        } else {
+            newStateArray = [newState];
+        }
+        store.set(this.queryResultState.state.uri, newStateArray);
+    }
+
+    private combineFilters(
+        currentFiltersArray: GridColumnMap[],
+        newFilters: GridColumnMap,
+        columnId: string,
+    ): GridColumnMap[] {
+        let combinedFiltersArray: GridColumnMap[] = [];
+        let combinedFilters: GridColumnMap[] = currentFiltersArray;
+        let currentFilter = currentFiltersArray.find((filter) =>
+            filter.hasOwnProperty(this.gridId),
+        );
+
+        if (currentFilter) {
+            if (currentFilter[this.gridId][columnId]) {
+                //Removes any duplicate values
+                let tempFilters = this.mergeUnique(
+                    currentFilter[this.gridId][columnId].filterValues,
+                    newFilters[this.gridId][columnId].filterValues,
+                );
+
+                currentFilter[this.gridId][columnId].filterValues = tempFilters;
+                combinedFiltersArray.push(currentFilter);
+            } else {
+                // currentFilter[this.gridId][columnId] =
+                //     newFilters[this.gridId][columnId];
+                combinedFiltersArray.push(newFilters);
+            }
+        } else {
+            combinedFiltersArray = combinedFilters.concat(newFilters);
+        }
+        return combinedFiltersArray;
+    }
+
+    private mergeUnique<T>(array1: T[], array2: T[]): T[] {
+        return Array.from(new Set([...array1, ...array2]));
     }
 
     private async handleMenuItemClick(
