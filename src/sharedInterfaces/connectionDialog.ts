@@ -16,7 +16,7 @@ export class ConnectionDialogWebviewState
     implements FormState<IConnectionDialogProfile>
 {
     /** the underlying connection profile for the form target; same as `connectionProfile` */
-    formState: IConnectionDialogProfile;
+    formState: IConnectionDialogProfile = {} as IConnectionDialogProfile;
     /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
     get connectionProfile(): IConnectionDialogProfile {
         return this.formState;
@@ -24,80 +24,50 @@ export class ConnectionDialogWebviewState
     set connectionProfile(value: IConnectionDialogProfile) {
         this.formState = value;
     }
-    public selectedInputMode: ConnectionInputMode;
-    public connectionComponents: {
-        components: Record<
-            keyof IConnectionDialogProfile,
-            ConnectionDialogFormItemSpec
-        >;
-        mainOptions: (keyof IConnectionDialogProfile)[];
-        topAdvancedOptions: (keyof IConnectionDialogProfile)[];
-        groupedAdvancedOptions: Record<
-            string,
-            (keyof IConnectionDialogProfile)[]
-        >;
+    public selectedInputMode: ConnectionInputMode =
+        ConnectionInputMode.Parameters;
+    public connectionComponents: ConnectionComponentsInfo = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        components: {} as any, // force empty record for intial blank state
+        mainOptions: [],
+        topAdvancedOptions: [],
+        groupedAdvancedOptions: [],
     };
-    public azureSubscriptions: AzureSubscriptionInfo[];
-    public azureServers: AzureSqlServerInfo[];
-    public savedConnections: IConnectionDialogProfile[];
-    public recentConnections: IConnectionDialogProfile[];
-    public connectionStatus: ApiStatus;
-    public formError: string;
-    public loadingAzureSubscriptionsStatus: ApiStatus;
-    public loadingAzureServersStatus: ApiStatus;
-    public trustServerCertError: string | undefined;
+    public azureSubscriptions: AzureSubscriptionInfo[] = [];
+    public azureServers: AzureSqlServerInfo[] = [];
+    public savedConnections: IConnectionDialogProfile[] = [];
+    public recentConnections: IConnectionDialogProfile[] = [];
+    public connectionStatus: ApiStatus = ApiStatus.NotStarted;
+    public formError: string = "";
+    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
+    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
+    public dialog: IDialogProps | undefined;
 
-    constructor({
-        connectionProfile,
-        selectedInputMode,
-        connectionComponents,
-        azureSubscriptions,
-        azureServers,
-        savedConnections,
-        recentConnections,
-        connectionStatus,
-        formError,
-        loadingAzureSubscriptionsStatus,
-        loadingAzureServersStatus,
-        trustServerCertError,
-    }: {
-        connectionProfile: IConnectionDialogProfile;
-        selectedInputMode: ConnectionInputMode;
-        connectionComponents: {
-            components: Record<
-                keyof IConnectionDialogProfile,
-                ConnectionDialogFormItemSpec
-            >;
-            mainOptions: (keyof IConnectionDialogProfile)[];
-            topAdvancedOptions: (keyof IConnectionDialogProfile)[];
-            groupedAdvancedOptions: Record<
-                string,
-                (keyof IConnectionDialogProfile)[]
-            >;
-        };
-        azureServers: AzureSqlServerInfo[];
-        azureSubscriptions: AzureSubscriptionInfo[];
-        savedConnections: IConnectionDialogProfile[];
-        recentConnections: IConnectionDialogProfile[];
-        connectionStatus: ApiStatus;
-        formError: string;
-        loadingAzureSubscriptionsStatus: ApiStatus;
-        loadingAzureServersStatus: ApiStatus;
-        trustServerCertError: string | undefined;
-    }) {
-        this.formState = connectionProfile;
-        this.selectedInputMode = selectedInputMode;
-        this.connectionComponents = connectionComponents;
-        this.azureSubscriptions = azureSubscriptions;
-        this.azureServers = azureServers;
-        this.savedConnections = savedConnections;
-        this.recentConnections = recentConnections;
-        this.connectionStatus = connectionStatus;
-        this.formError = formError;
-        this.loadingAzureSubscriptionsStatus = loadingAzureSubscriptionsStatus;
-        this.loadingAzureServersStatus = loadingAzureServersStatus;
-        this.trustServerCertError = trustServerCertError;
+    constructor(params?: Partial<ConnectionDialogWebviewState>) {
+        for (const key in params) {
+            if (key in this) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
+                (this as any)[key as keyof ConnectionDialogWebviewState] =
+                    params[key as keyof ConnectionDialogWebviewState]!;
+            }
+        }
     }
+}
+
+export interface IDialogProps {
+    type: "trustServerCert" | "addFirewallRule";
+}
+
+export interface TrustServerCertDialogProps extends IDialogProps {
+    type: "trustServerCert";
+    message: string;
+}
+
+export interface AddFirewallRuleDialogProps extends IDialogProps {
+    type: "addFirewallRule";
+    message: string;
+    clientIp: string;
+    tenants: { name: string; id: string }[];
 }
 
 export interface AzureSubscriptionInfo {
@@ -114,10 +84,28 @@ export interface AzureSqlServerInfo {
     subscription: string;
 }
 
+export interface ConnectionComponentsInfo {
+    components: Partial<
+        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
+    >;
+    mainOptions: (keyof IConnectionDialogProfile)[];
+    topAdvancedOptions: (keyof IConnectionDialogProfile)[];
+    groupedAdvancedOptions: ConnectionComponentGroup[];
+}
+
+export interface ConnectionComponentGroup {
+    groupName: string;
+    options: (keyof IConnectionDialogProfile)[];
+}
+
 export interface ConnectionDialogFormItemSpec
-    extends FormItemSpec<IConnectionDialogProfile> {
+    extends FormItemSpec<
+        ConnectionDialogWebviewState,
+        IConnectionDialogProfile
+    > {
     isAdvancedOption: boolean;
     optionCategory?: string;
+    optionCategoryLabel?: string;
 }
 
 export enum ConnectionInputMode {
@@ -146,7 +134,12 @@ export interface ConnectionDialogContextProps
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
-    cancelTrustServerCertDialog: () => void;
+    closeDialog: () => void;
+    addFirewallRule: (
+        name: string,
+        tenantId: string,
+        ip: string | { startIp: string; endIp: string },
+    ) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -173,7 +166,12 @@ export interface ConnectionDialogReducers {
     loadAzureServers: {
         subscriptionId: string;
     };
-    cancelTrustServerCertDialog: {};
+    addFirewallRule: {
+        name: string;
+        tenantId: string;
+        ip: string | { startIp: string; endIp: string };
+    };
+    closeDialog: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {

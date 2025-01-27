@@ -36,7 +36,7 @@ import {
 } from "./table/table";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
-import { hasResultsOrMessages } from "./queryResultUtils";
+import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -66,9 +66,7 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
         fontWeight: "normal",
-        fontSize: "12px",
     },
     queryResultPaneOpenButton: {
         position: "absolute",
@@ -78,14 +76,19 @@ const useStyles = makeStyles({
     messagesContainer: {
         width: "100%",
         height: "100%",
+        fontFamily: "var(--vscode-editor-font-family)",
         flexDirection: "column",
         "> *": {
             marginBottom: "10px",
         },
     },
+    messagesLink: {
+        fontSize: "var(--vscode-editor-font-size)",
+        fontFamily: "var(--vscode-editor-font-family)",
+    },
     messagesRows: {
         lineHeight: "18px",
-        fontSize: "12px",
+        fontSize: "var(--vscode-editor-font-size)",
         flexDirection: "row",
         borderBottom: "none",
     },
@@ -119,20 +122,61 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    webViewState;
-    var metadata = state?.state;
+    const metadata = state?.state;
+
+    // lifecycle logging right after context consumption
+    useEffect(() => {
+        console.debug("QueryResultPane mounted", {
+            hasMetadata: !!metadata,
+            metadata: metadata,
+            hasState: !!state,
+            state: state,
+            uri: metadata?.uri,
+            resultSetCount: Object.keys(metadata?.resultSetSummaries ?? {})
+                .length,
+            messageCount: metadata?.messages?.length,
+            isExecutionPlan: metadata?.isExecutionPlan,
+            hasExecutionPlanState: !!metadata?.executionPlanState,
+        });
+
+        return () => {
+            console.debug("QueryResultPane unmounted", {
+                hasMetadata: !!metadata,
+                metadata: metadata,
+                hasState: !!state,
+                state: state,
+                uri: metadata?.uri,
+            });
+        };
+    }, []);
+
+    // context change logging
+    useEffect(() => {
+        console.debug("QueryResultPane context updated", {
+            uri: metadata?.uri,
+            hasMetadata: !!metadata,
+            metadata: metadata,
+            hasState: !!state,
+            state: state,
+            resultSetCount: Object.keys(metadata?.resultSetSummaries ?? {})
+                .length,
+            messageCount: metadata?.messages?.length,
+        });
+    }, [metadata, state]);
+
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
+
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
         Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
         });
-        if (gridCount === 0) {
-            return; // Exit if there are no grids to render
+        if (gridCount === 0 && metadata?.messages?.length === 0) {
+            return; // Exit if there are no results/messages grids to render
         }
 
         const resultPaneParent = resultPaneParentRef.current;
@@ -148,7 +192,12 @@ export const QueryResultPane = () => {
                 resultPaneParent,
                 ribbonRef.current,
             );
-            setMessageGridHeight(availableHeight);
+            if (
+                metadata.tabStates?.resultPaneTab ===
+                qr.QueryResultPaneTabs.Messages
+            ) {
+                setMessageGridHeight(availableHeight);
+            }
             if (resultPaneParent.clientWidth && availableHeight) {
                 const gridHeight = calculateGridHeight(
                     gridCount,
@@ -242,6 +291,10 @@ export const QueryResultPane = () => {
                                   gridCount,
                               )}px`
                             : "",
+                    fontFamily: metadata.fontSettings.fontFamily
+                        ? metadata.fontSettings.fontFamily
+                        : "var(--vscode-editor-font-family)",
+                    fontSize: `${metadata.fontSettings.fontSize ?? 12}px`,
                 }}
             >
                 <ResultGrid
@@ -249,6 +302,13 @@ export const QueryResultPane = () => {
                         offset: number,
                         count: number,
                     ): Thenable<any[]> => {
+                        console.debug("getRows rpc call", {
+                            uri: metadata?.uri,
+                            batchId: batchId,
+                            resultId: resultId,
+                            rowStart: offset,
+                            numberOfRows: count,
+                        });
                         return webViewState.extensionRpc
                             .call("getRows", {
                                 uri: metadata?.uri,
@@ -306,9 +366,65 @@ export const QueryResultPane = () => {
                     resultSetSummary={
                         metadata?.resultSetSummaries[batchId][resultId]
                     }
+                    maximizeResults={() => {
+                        maximizeResults(gridRefs.current[gridCount]);
+                        hideOtherGrids(gridRefs, gridCount);
+                    }}
+                    restoreResults={() => {
+                        showOtherGrids(gridRefs, gridCount);
+                        restoreResults(gridRefs.current);
+                    }}
                 />
             </div>
         );
+    };
+
+    const hideOtherGrids = (
+        gridRefs: React.MutableRefObject<ResultGridHandle[]>,
+        gridCount: number,
+    ) => {
+        gridRefs.current.forEach((grid) => {
+            if (grid !== gridRefs.current[gridCount]) {
+                grid.hideGrid();
+            }
+        });
+    };
+
+    const showOtherGrids = (
+        gridRefs: React.MutableRefObject<ResultGridHandle[]>,
+        gridCount: number,
+    ) => {
+        gridRefs.current.forEach((grid) => {
+            if (grid !== gridRefs.current[gridCount]) {
+                grid.showGrid();
+            }
+        });
+    };
+
+    const maximizeResults = (gridRef: ResultGridHandle) => {
+        const height =
+            getAvailableHeight(
+                resultPaneParentRef.current!,
+                ribbonRef.current!,
+            ) - TABLE_ALIGN_PX;
+        const width =
+            resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+        gridRef.resizeGrid(width, height);
+    };
+
+    const restoreResults = (gridRefs: ResultGridHandle[]) => {
+        gridRefs.forEach((gridRef) => {
+            const height = calculateGridHeight(
+                gridRefs.length,
+                getAvailableHeight(
+                    resultPaneParentRef.current!,
+                    ribbonRef.current!,
+                ),
+            );
+            const width =
+                resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+            gridRef.resizeGrid(width, height);
+        });
     };
 
     const renderGridPanel = () => {
@@ -334,7 +450,14 @@ export const QueryResultPane = () => {
             columnId: "time",
             renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
             renderCell: (item) => (
-                <>{item.batchId === undefined ? item.time : null}</>
+                <div>
+                    <DataGridCell
+                        focusMode="group"
+                        style={{ minHeight: "18px", width: "100px" }}
+                    >
+                        {item.batchId === undefined ? item.time : null}
+                    </DataGridCell>
+                </div>
             ),
         }),
         createTableColumn({
@@ -343,48 +466,67 @@ export const QueryResultPane = () => {
             renderCell: (item) => {
                 if (item.link?.text && item.selection) {
                     return (
-                        <div>
-                            {item.message}{" "}
-                            <Link
-                                onClick={async () => {
-                                    await webViewState.extensionRpc.call(
-                                        "setEditorSelection",
-                                        {
-                                            uri: metadata?.uri,
-                                            selectionData: item.selection,
-                                        },
-                                    );
-                                }}
-                                inline
-                                style={{ fontSize: "12px" }}
-                            >
-                                {item?.link?.text}
-                            </Link>
-                        </div>
+                        <DataGridCell
+                            focusMode="group"
+                            style={{ minHeight: "18px" }}
+                        >
+                            <div style={{ whiteSpace: "nowrap" }}>
+                                {item.message}{" "}
+                                <Link
+                                    className={classes.messagesLink}
+                                    onClick={async () => {
+                                        await webViewState.extensionRpc.call(
+                                            "setEditorSelection",
+                                            {
+                                                uri: item.link?.uri,
+                                                selectionData: item.selection,
+                                            },
+                                        );
+                                    }}
+                                    inline
+                                >
+                                    {item?.link?.text}
+                                </Link>
+                            </div>
+                        </DataGridCell>
                     );
                 } else {
-                    return <>{item.message}</>;
+                    return (
+                        <DataGridCell
+                            focusMode="group"
+                            style={{ minHeight: "18px" }}
+                        >
+                            <div
+                                style={{
+                                    whiteSpace: "nowrap",
+                                    color: item.isError
+                                        ? "var(--vscode-errorForeground)"
+                                        : undefined,
+                                }}
+                            >
+                                {item.message}
+                            </div>
+                        </DataGridCell>
+                    );
                 }
             },
         }),
     ];
-    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => (
-        <DataGridRow<qr.IMessage>
-            key={rowId}
-            style={style}
-            className={classes.messagesRows}
-        >
-            {({ renderCell }) => (
-                <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
-                    {renderCell(item)}
-                </DataGridCell>
-            )}
-        </DataGridRow>
-    );
+    const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => {
+        return (
+            <DataGridRow<qr.IMessage>
+                key={rowId}
+                className={classes.messagesRows}
+                style={style}
+            >
+                {({ renderCell }) => <>{renderCell(item)}</>}
+            </DataGridRow>
+        );
+    };
 
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items = metadata?.messages ?? [];
+    const items: qr.IMessage[] = splitMessages(metadata?.messages) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -408,7 +550,7 @@ export const QueryResultPane = () => {
                 items={items}
                 columns={columns}
                 focusMode="cell"
-                resizableColumns
+                resizableColumns={true}
                 columnSizingOptions={columnSizingOption}
             >
                 <DataGridBody<qr.IMessage>
@@ -465,7 +607,7 @@ export const QueryResultPane = () => {
                     className={classes.hidePanelLink}
                     onClick={async () => {
                         await webViewState.extensionRpc.call("executeCommand", {
-                            command: "workbench.action.togglePanel",
+                            command: "workbench.action.closePanel",
                         });
                     }}
                 >
@@ -513,6 +655,7 @@ export const QueryResultPane = () => {
                 {webviewLocation === "panel" && (
                     <Button
                         icon={<OpenRegular />}
+                        iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
                             await webViewState.extensionRpc.call(
@@ -523,7 +666,10 @@ export const QueryResultPane = () => {
                             );
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
-                    ></Button>
+                        style={{ marginTop: "4px", marginBottom: "4px" }}
+                    >
+                        {locConstants.queryResult.openResultInNewTab}
+                    </Button>
                 )}
             </div>
             <div className={classes.tabContent}>

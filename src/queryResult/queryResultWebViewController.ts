@@ -22,6 +22,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
+    messageToString,
     recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
@@ -46,7 +47,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         private untitledSqlDocumentService: UntitledSqlDocumentService,
         private _vscodeWrapper: VscodeWrapper,
     ) {
-        super(context, "queryResult", {
+        super(context, "queryResult", "queryResult", {
             resultSetSummaries: {},
             messages: [],
             tabStates: {
@@ -54,6 +55,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             executionPlanState: {},
             filterState: {},
+            fontSettings: {},
         });
 
         void this.initialize();
@@ -73,6 +75,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         isExecutionPlan: false,
                         executionPlanState: {},
                         filterState: {},
+                        fontSettings: {
+                            fontSize: this.getFontSizeConfig(),
+
+                            fontFamily: this.getFontFamilyConfig(),
+                        },
+                        autoSizeColumns: this.getAutoSizeColumnsConfig(),
                     };
                 }
             });
@@ -82,6 +90,41 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 const uri = document.uri.toString(true);
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
+                }
+            });
+            this._vscodeWrapper.onDidChangeConfiguration((e) => {
+                if (e.affectsConfiguration("mssql.resultsFontFamily")) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.fontSettings.fontFamily = this._vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(
+                                Constants.extConfigResultKeys.ResultsFontFamily,
+                            );
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
+                if (e.affectsConfiguration("mssql.resultsFontSize")) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.fontSettings.fontSize =
+                            (this._vscodeWrapper
+                                .getConfiguration(Constants.extensionName)
+                                .get(
+                                    Constants.extConfigResultKeys
+                                        .ResultsFontSize,
+                                ) as number) ??
+                            (this._vscodeWrapper
+                                .getConfiguration("editor")
+                                .get("fontSize") as number);
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
+                if (
+                    e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")
+                ) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.autoSizeColumns = this.getAutoSizeColumnsConfig();
+                        this._queryResultStateMap.set(uri, state);
+                    }
                 }
             });
         }
@@ -224,8 +267,38 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 },
             }),
             filterState: {},
+            fontSettings: {
+                fontSize: this.getFontSizeConfig(),
+                fontFamily: this.getFontFamilyConfig(),
+            },
+            autoSizeColumns: this.getAutoSizeColumnsConfig(),
         };
         this._queryResultStateMap.set(uri, currentState);
+    }
+
+    public getAutoSizeColumnsConfig(): boolean {
+        return this._vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.configAutoColumnSizing);
+    }
+
+    public getFontSizeConfig(): number {
+        return (
+            (this._vscodeWrapper
+                .getConfiguration(Constants.extensionName)
+                .get(
+                    Constants.extConfigResultKeys.ResultsFontSize,
+                ) as number) ??
+            (this._vscodeWrapper
+                .getConfiguration("editor")
+                .get("fontSize") as number)
+        );
+    }
+
+    public getFontFamilyConfig(): string {
+        return this._vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
     }
 
     public setQueryResultState(uri: string, state: qr.QueryResultWebviewState) {
@@ -305,10 +378,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public async copyAllMessagesToClipboard(uri: string): Promise<void> {
         const messages = uri
-            ? this.getQueryResultState(uri)?.messages?.map(
-                  (message) => message.message,
+            ? this.getQueryResultState(uri)?.messages?.map((message) =>
+                  messageToString(message),
               )
-            : this.state?.messages?.map((message) => message.message);
+            : this.state?.messages?.map((message) => messageToString(message));
 
         if (!messages) {
             return;

@@ -4,3 +4,4 @@
  *--------------------------------------------------------------------------------------------*/
 
 export const connectionCertValidationFailedErrorCode = -2146893019;
+export const connectionFirewallErrorCode = 40615;

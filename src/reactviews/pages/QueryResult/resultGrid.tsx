@@ -41,9 +41,6 @@ require("slickgrid/slick.core.js");
 require("slickgrid/slick.grid.js");
 require("slickgrid/plugins/slick.cellrangedecorator.js");
 
-//TODO: get hardcoded data & get gridpanel to render the hardcoded data
-// add console.log in the event handlers for example to onTableClick function
-
 declare global {
     interface Window {
         $: any;
@@ -68,6 +65,8 @@ export interface ResultGridProps {
 export interface ResultGridHandle {
     refreshGrid: () => void;
     resizeGrid: (width: number, height: number) => void;
+    hideGrid: () => void;
+    showGrid: () => void;
 }
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
@@ -86,26 +85,64 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
-            let gridParent;
-            if (props.resultSetSummary) {
-                gridParent = document.getElementById(
-                    `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
-                );
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
             }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
             if (gridParent) {
-                gridParent.setAttribute("style", `width: ${width}px`);
-                gridParent.setAttribute("style", `height: ${height}px`);
+                gridParent.style.height = `${height}px`;
             }
             const dimension = new DOM.Dimension(width, height);
             table?.layout(dimension);
         };
+
+        const hideGrid = () => {
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
+            }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
+            if (gridParent) {
+                gridParent.style.display = "none";
+            }
+        };
+
+        const showGrid = () => {
+            let gridParent: HTMLElement | null;
+            if (!props.resultSetSummary) {
+                return;
+            }
+            gridParent = document.getElementById(
+                `grid-parent-${props.resultSetSummary.batchId}-${props.resultSetSummary.id}`,
+            );
+            if (gridParent) {
+                gridParent.style.display = "";
+            }
+        };
+
         useEffect(() => {
             const filter = async () => {
-                await table.setupState();
-                table.rerenderGrid();
+                let hasNewFilters = await table.setupFilterState();
+                if (hasNewFilters) {
+                    table.rerenderGrid();
+                }
             };
-
-            const ROW_HEIGHT = 25;
+            const DEFAULT_FONT_SIZE = 12;
+            console.log(
+                "resultGrid: ",
+                props.state.state.fontSettings.fontSize,
+            );
+            const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            const COLUMN_WIDTH = Math.max(
+                (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
+                    120,
+                120,
+            ); // Scale width with font size, but keep a minimum of 120px
             if (!props.resultSetSummary || !props.linkHandler) {
                 return;
             }
@@ -191,7 +228,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 rowHeight: ROW_HEIGHT,
                 showRowNumber: true,
                 forceFitColumns: false,
-                defaultColumnWidth: 120,
+                defaultColumnWidth: COLUMN_WIDTH,
             };
             let rowNumberColumn = new RowNumberColumn<Slick.SlickData>({
                 autoCellSelection: false,
@@ -208,7 +245,17 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             let dataProvider = new HybridDataProvider(
                 collection,
                 (_startIndex, _count) => {
-                    return props.loadFunc(_startIndex, _count);
+                    if (
+                        props.resultSetSummary?.rowCount &&
+                        props.resultSetSummary?.rowCount > 0
+                    ) {
+                        return props.loadFunc(_startIndex, _count);
+                    } else {
+                        console.info(
+                            `No rows to load: start index: ${_startIndex}, count: ${_count}`,
+                        );
+                        return Promise.resolve([]);
+                    }
                 },
                 (data: DbCellValue) => {
                     if (!data || data.isNull) {
@@ -263,6 +310,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         useImperativeHandle(ref, () => ({
             refreshGrid,
             resizeGrid,
+            hideGrid,
+            showGrid,
         }));
 
         return <div id="gridContainter" ref={gridContainerRef}></div>;

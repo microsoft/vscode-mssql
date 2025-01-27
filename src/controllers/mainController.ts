@@ -60,6 +60,8 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { SchemaDesignerService } from "../services/schemaDesignerService";
+import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import { CopilotService } from "../services/copilotService";
 
 /**
@@ -99,6 +101,7 @@ export default class MainController implements vscode.Disposable {
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
+    public schemaDesignerService: SchemaDesignerService;
 
     /**
      * The main controller constructor
@@ -368,6 +371,10 @@ export default class MainController implements vscode.Disposable {
                 this._untitledSqlDocumentService,
             );
 
+            this.schemaDesignerService = new SchemaDesignerService(
+                SqlToolsServerClient.instance,
+            );
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this.executionPlanService,
@@ -409,6 +416,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
             );
+
             return true;
         }
     }
@@ -908,6 +916,34 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
+                    Constants.cmdVisualizeSchema,
+                    async (node: TreeNodeInfo) => {
+                        const uri = this.connectionManager.getUriForConnection(
+                            node.connectionInfo,
+                        );
+                        const schema =
+                            await this.schemaDesignerService.getSchemaModel({
+                                connectionUri: uri,
+                                databaseName: node.metadata.name,
+                            });
+
+                        console.log(schema);
+
+                        const schemaDesignerWebvie =
+                            new SchemaDesignerWebviewController(
+                                this._context,
+                                this.schemaDesignerService,
+                                node.metadata.name,
+                                schema,
+                            );
+
+                        schemaDesignerWebvie.revealToForeground();
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
                     Constants.cmdNewTable,
                     async (node: TreeNodeInfo) => {
                         const reactPanel = new TableDesignerWebviewController(
@@ -1116,7 +1152,9 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdrevealQueryResultPanel,
                 () => {
-                    vscode.commands.executeCommand("queryResult.focus");
+                    vscode.commands.executeCommand("queryResult.focus", {
+                        preserveFocus: true,
+                    });
                 },
             ),
         );
@@ -1555,10 +1593,15 @@ export default class MainController implements vscode.Disposable {
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
-            self._executionPlanOptions.includeActualExecutionPlanXml =
-                self._queryResultWebviewController.actualPlanStatuses.includes(
-                    uri,
-                );
+            if (self._queryResultWebviewController) {
+                self._executionPlanOptions.includeActualExecutionPlanXml =
+                    self._queryResultWebviewController.actualPlanStatuses.includes(
+                        uri,
+                    );
+            } else {
+                self._executionPlanOptions.includeActualExecutionPlanXml =
+                    false;
+            }
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
@@ -1969,7 +2012,11 @@ export default class MainController implements vscode.Disposable {
     public async onDidCloseTextDocument(
         doc: vscode.TextDocument,
     ): Promise<void> {
-        if (this._connectionMgr === undefined) {
+        if (
+            this._connectionMgr === undefined ||
+            doc === undefined ||
+            doc.uri === undefined
+        ) {
             // Avoid processing events before initialization is complete
             return;
         }
@@ -2064,12 +2111,6 @@ export default class MainController implements vscode.Disposable {
             this._statusview.languageFlavorChanged(
                 doc.uri.toString(true),
                 Constants.mssqlProviderName,
-            );
-        }
-
-        if (doc && doc.languageId === Constants.sqlPlanLanguageId) {
-            vscode.commands.executeCommand(
-                "workbench.action.closeActiveEditor",
             );
         }
 
@@ -2311,6 +2352,10 @@ export default class MainController implements vscode.Disposable {
             const planContents = document.getText();
             let docName = document.fileName;
             docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
+
+            vscode.commands.executeCommand(
+                "workbench.action.closeActiveEditor",
+            );
 
             const executionPlanController = new ExecutionPlanWebviewController(
                 this.context,

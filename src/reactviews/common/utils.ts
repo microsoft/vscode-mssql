@@ -50,3 +50,19 @@ export function themeType(themeKind: ColorThemeKind): string {
 export function removeDuplicates<T>(array: T[]): T[] {
     return Array.from(new Set(array));
 }
+
+/** from vscode: https://github.com/microsoft/vscode/blob/5bd3d12fb18047ae33ac4b171dee3cd044b6f3d4/src/vs/base/common/objects.ts#L8 */
+export function deepClone<T>(obj: T): T {
+    if (!obj || typeof obj !== "object") {
+        return obj;
+    }
+    if (obj instanceof RegExp) {
+        return obj;
+    }
+    const result: any = Array.isArray(obj) ? [] : {};
+    Object.entries(obj).forEach(([key, value]) => {
+        result[key] =
+            value && typeof value === "object" ? deepClone(value) : value;
+    });
+    return result;
+}

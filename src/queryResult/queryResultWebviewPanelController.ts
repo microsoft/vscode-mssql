@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
-// import * as Constants from "../constants/constants";
 import { randomUUID } from "crypto";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
@@ -37,6 +36,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 },
                 executionPlanState: {},
                 filterState: {},
+                fontSettings: {},
             },
             {
                 title: vscode.l10n.t({
@@ -45,6 +45,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                     comment: "{0} is the editor title",
                 }),
                 viewColumn: _viewColumn,
+                preserveFocus: true,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
@@ -83,7 +84,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     }
 
     public revealToForeground() {
-        this.panel.reveal(this._viewColumn);
+        this.panel.reveal(this._viewColumn, true);
     }
 
     public getQueryResultWebviewViewController(): QueryResultWebviewController {

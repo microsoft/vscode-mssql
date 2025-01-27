@@ -22,7 +22,6 @@ export class LocConstants {
         return {
             delete: l10n.t("Delete"),
             cancel: l10n.t("Cancel"),
-            close: l10n.t("Close"),
             areYouSure: l10n.t("Are you sure?"),
             areYouSureYouWantTo: (action: string) =>
                 l10n.t({
@@ -30,6 +29,7 @@ export class LocConstants {
                     args: [action],
                     comment: ["{0} is the action being confirmed"],
                 }),
+            close: l10n.t("Close"),
         };
     }
 
@@ -190,7 +190,11 @@ export class LocConstants {
             enableTrustServerCertificateButton: l10n.t(
                 "Enable 'Trust Server Certificate'",
             ),
-            close: l10n.t("Close"),
+            createNewFirewallRule: l10n.t("Create a new firewall rule"),
+            firewallRuleNeededMessage: l10n.t(
+                "A firewall rule is required to access this server.",
+            ),
+            addFirewallRule: l10n.t("Add Firewall Rule"),
             azureFilterPlaceholder: (dropdownContentType: string) =>
                 l10n.t({
                     message: "Select a {0} for filtering",
@@ -313,6 +317,8 @@ export class LocConstants {
             clear: l10n.t("Clear"),
             search: l10n.t("Search..."),
             close: l10n.t("Close"),
+            maximize: l10n.t("Maximize"),
+            restore: l10n.t("Restore"),
         };
     }
 }

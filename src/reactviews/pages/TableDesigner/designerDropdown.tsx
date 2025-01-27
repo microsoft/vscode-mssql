@@ -108,15 +108,17 @@ export const DesignerDropdown = ({
                     state?.provider.getErrorMessage(componentPath) ?? ""
                 }
             >
-                {model.values.map((option, index) => (
-                    <Option
-                        key={componentPath.join(".") + index}
-                        text={option}
-                        value={option}
-                    >
-                        {option}
-                    </Option>
-                ))}
+                {model.values
+                    .sort((a, b) => a.localeCompare(b))
+                    .map((option, index) => (
+                        <Option
+                            key={componentPath.join(".") + index}
+                            text={option}
+                            value={option}
+                        >
+                            {option}
+                        </Option>
+                    ))}
             </Dropdown>
         </Field>
     );

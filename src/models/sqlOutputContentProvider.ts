@@ -21,7 +21,7 @@ import {
 } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
-import { QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
+import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import {
     TelemetryActions,
     TelemetryViews,
@@ -98,7 +98,7 @@ export class SqlOutputContentProvider {
             queryUri,
         );
         let config = new ResultsConfig();
-        for (let key of Constants.extConfigResultKeys) {
+        for (let key in Constants.extConfigResultKeys) {
             config[key] = extConfig[key];
         }
         return Promise.resolve(config);
@@ -451,9 +451,7 @@ export class SqlOutputContentProvider {
                     }
                     this._queryResultWebviewController.updatePanelState(uri);
                     if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        await vscode.commands.executeCommand(
-                            "queryResult.focus",
-                        );
+                        await this._queryResultWebviewController.revealToForeground();
                     }
                     sendActionEvent(
                         TelemetryViews.QueryResult,
@@ -485,7 +483,7 @@ export class SqlOutputContentProvider {
                     }
                 },
             );
-            queryRunner.eventEmitter.on("batchStart", (batch) => {
+            queryRunner.eventEmitter.on("batchStart", async (batch) => {
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
                     time = new Date(batch.executionStart).toLocaleTimeString();
@@ -493,7 +491,7 @@ export class SqlOutputContentProvider {
 
                 // Build a message for the selection and send the message
                 // from the webview
-                let message = {
+                let message: IMessage = {
                     message: LocalizedConstants.runQueryBatchStartMessage,
                     selection: batch.selection,
                     isError: false,
@@ -502,6 +500,7 @@ export class SqlOutputContentProvider {
                         text: LocalizedConstants.runQueryBatchStartLine(
                             batch.selection.startLine + 1,
                         ),
+                        uri: uri,
                     },
                 };
                 if (this.shouldUseOldResultPane) {
@@ -519,11 +518,11 @@ export class SqlOutputContentProvider {
                         );
                     this._queryResultWebviewController.updatePanelState(uri);
                     if (!this._queryResultWebviewController.hasPanel(uri)) {
-                        vscode.commands.executeCommand("queryResult.focus");
+                        await this._queryResultWebviewController.revealToForeground();
                     }
                 }
             });
-            queryRunner.eventEmitter.on("message", (message) => {
+            queryRunner.eventEmitter.on("message", async (message) => {
                 if (this.shouldUseOldResultPane) {
                     this._panels.get(uri).proxy.sendEvent("message", message);
                 } else {
@@ -548,7 +547,7 @@ export class SqlOutputContentProvider {
                             uri,
                         );
                         if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            vscode.commands.executeCommand("queryResult.focus");
+                            await this._queryResultWebviewController.revealToForeground();
                         }
                         this._lastSendMessageTime = Date.now();
                     }
@@ -556,7 +555,7 @@ export class SqlOutputContentProvider {
             });
             queryRunner.eventEmitter.on(
                 "complete",
-                (totalMilliseconds, hasError, isRefresh?) => {
+                async (totalMilliseconds, hasError, isRefresh?) => {
                     if (!isRefresh) {
                         // only update query history with new queries
                         this._vscodeWrapper.executeCommand(
@@ -577,7 +576,7 @@ export class SqlOutputContentProvider {
                                     LocalizedConstants.elapsedTimeLabel(
                                         totalMilliseconds,
                                     ),
-                                isError: hasError,
+                                isError: false, // Elapsed time messages are never displayed as errors
                             });
                         const tabState =
                             Object.keys(
@@ -598,7 +597,7 @@ export class SqlOutputContentProvider {
                             uri,
                         );
                         if (!this._queryResultWebviewController.hasPanel(uri)) {
-                            vscode.commands.executeCommand("queryResult.focus");
+                            await this._queryResultWebviewController.revealToForeground();
                         }
                     }
                 },

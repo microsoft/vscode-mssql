@@ -1604,6 +1604,70 @@ declare module 'vscode-mssql' {
 		options: { [name: string]: any };
 	}
 
+	export interface DataProtocolServerCapabilities {
+		protocolVersion: string;
+
+		providerName: string;
+
+		providerDisplayName: string;
+
+		connectionProvider: ConnectionProviderOptions;
+
+		adminServicesProvider: AdminServicesOptions;
+
+		features: FeatureMetadataProvider[];
+	}
+
+	export interface ConnectionProviderOptions {
+		options: ConnectionOption[];
+
+		groupDisplayNames: { [groupId: string]: string };
+	}
+
+	export interface ServiceOption {
+		name: string;
+
+		displayName: string;
+
+		description: string;
+
+		groupName: string;
+
+		valueType: ServiceOptionType;
+
+		defaultValue: string;
+
+		objectType: string;
+
+		categoryValues: CategoryValue[];
+
+		isRequired: boolean;
+
+		isArray: boolean;
+	}
+
+	export interface ConnectionOption extends ServiceOption {
+		specialValueType: ConnectionOptionSpecialType;
+
+		isIdentity: boolean;
+	}
+
+	export interface AdminServicesOptions {
+		databaseInfoOptions: ServiceOption[];
+
+		databaseFileInfoOptions: ServiceOption[];
+
+		fileGroupInfoOptions: ServiceOption[];
+	}
+
+	export interface FeatureMetadataProvider {
+		enabled: boolean;
+
+		featureName: string;
+
+		optionsMetadata: ServiceOption[];
+	}
+
 	/**
 	 * Namespace for Azure APIs
 	 */

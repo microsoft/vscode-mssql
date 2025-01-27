@@ -30,6 +30,7 @@ import {
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultState } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
+import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -40,6 +41,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     } as Slick.GridOptions<T>;
 }
 
+export const MAX_COLUMN_WIDTH_PX = 400;
 export const ACTIONBAR_WIDTH_PX = 36;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
@@ -164,6 +166,16 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
         );
 
+        this.registerPlugin(
+            new AutoColumnSize(
+                {
+                    maxWidth: MAX_COLUMN_WIDTH_PX,
+                    autoSizeOnRender: this.webViewState.state.autoSizeColumns,
+                },
+                this.webViewState,
+            ),
+        );
+
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;
         } else {
@@ -193,7 +205,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         // this.registerPlugin(new MouseWheelSupport());
     }
 
-    public async setupState(): Promise<boolean> {
+    /**
+     * Load filters from the query result state and apply them to the table
+     * @returns true if filters were successfully loaded and applied, false if no filters were found
+     */
+    public async setupFilterState(): Promise<boolean> {
         this.columns.forEach((column) => {
             if (column.field) {
                 const filters =
@@ -201,6 +217,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 if (filters) {
                     (<FilterableColumn<T>>column).filterValues =
                         filters.filterValues;
+                } else {
+                    return false;
                 }
             }
         });

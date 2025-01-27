@@ -20,6 +20,7 @@ import {
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { getErrorMessage } from "../utils/utils";
 
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
@@ -93,20 +94,29 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const connectionInfo = this._targetNode.connectionInfo;
         connectionInfo.database = databaseName;
 
-        const connectionDetails =
-            await this._connectionManager.createConnectionDetails(
-                connectionInfo,
-            );
-        const connectionString =
-            await this._connectionManager.getConnectionString(
-                connectionDetails,
-                true,
-                true,
-            );
+        let connectionString;
+        try {
+            const connectionDetails =
+                await this._connectionManager.createConnectionDetails(
+                    connectionInfo,
+                );
+            connectionString =
+                await this._connectionManager.getConnectionString(
+                    connectionDetails,
+                    true,
+                    true,
+                );
 
-        if (!connectionString || connectionString === "") {
+            if (!connectionString || connectionString === "") {
+                await vscode.window.showErrorMessage(
+                    "Unable to find connection string for the connection",
+                );
+                return;
+            }
+        } catch (e) {
             await vscode.window.showErrorMessage(
-                "Unable to find connection string for the connection",
+                "Unable to find connection string for the connection: " +
+                    getErrorMessage(e),
             );
             return;
         }
@@ -198,44 +208,50 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers() {
         this.registerReducer("processTableEdit", async (state, payload) => {
-            const editResponse =
-                await this._tableDesignerService.processTableEdit(
-                    payload.table,
-                    payload.tableChangeInfo,
+            try {
+                const editResponse =
+                    await this._tableDesignerService.processTableEdit(
+                        payload.table,
+                        payload.tableChangeInfo,
+                    );
+                sendActionEvent(
+                    TelemetryViews.TableDesigner,
+                    TelemetryActions.Edit,
+                    {
+                        type: payload.tableChangeInfo.type.toString(),
+                        source: payload.tableChangeInfo.source,
+                        correlationId: this._correlationId,
+                    },
                 );
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Edit,
-                {
-                    type: payload.tableChangeInfo.type.toString(),
-                    source: payload.tableChangeInfo.source,
-                    correlationId: this._correlationId,
-                },
-            );
-            if (editResponse.issues?.length === 0) {
-                state.tabStates.resultPaneTab =
-                    designer.DesignerResultPaneTabs.Script;
-            } else {
-                state.tabStates.resultPaneTab =
-                    designer.DesignerResultPaneTabs.Issues;
+                if (editResponse.issues?.length === 0) {
+                    state.tabStates.resultPaneTab =
+                        designer.DesignerResultPaneTabs.Script;
+                } else {
+                    state.tabStates.resultPaneTab =
+                        designer.DesignerResultPaneTabs.Issues;
+                }
+
+                this.showRestorePromptAfterClose = true;
+
+                const afterEditState = {
+                    ...state,
+                    view: editResponse.view
+                        ? getDesignerView(editResponse.view)
+                        : state.view,
+                    model: editResponse.viewModel,
+                    issues: editResponse.issues,
+                    isValid: editResponse.isValid,
+                    apiState: {
+                        ...state.apiState,
+                        editState: designer.LoadState.Loaded,
+                    },
+                };
+
+                return afterEditState;
+            } catch (e) {
+                vscode.window.showErrorMessage(e.message);
+                return state;
             }
-
-            this.showRestorePromptAfterClose = true;
-
-            const afterEditState = {
-                ...state,
-                view: editResponse.view
-                    ? getDesignerView(editResponse.view)
-                    : state.view,
-                model: editResponse.viewModel,
-                issues: editResponse.issues,
-                isValid: editResponse.isValid,
-                apiState: {
-                    ...state.apiState,
-                    editState: designer.LoadState.Loaded,
-                },
-            };
-            return afterEditState;
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {

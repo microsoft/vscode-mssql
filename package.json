@@ -1,8 +1,8 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.27.0",
-  "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
+  "version": "1.29.0",
+  "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
   "publisher": "ms-mssql",
   "preview": false,
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -123,7 +123,7 @@
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
     "assert": "^1.4.1",
-    "azdataGraph": "github:Microsoft/azdataGraph#0.0.68",
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.77",
     "chai": "^3.5.0",
     "cli-color": "^2.0.4",
     "coveralls": "^3.0.2",
@@ -512,6 +512,11 @@
           "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
         },
         {
+          "command": "mssql.visualizeSchema",
+          "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && config.mssql.enableSchemaDesigner",
+          "group": "MS_SQL@6"
+        },
+        {
           "command": "mssql.openQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@1"
@@ -807,6 +812,15 @@
         "icon": {
           "dark": "media/newTable_dark.svg",
           "light": "media/newTable_light.svg"
+        }
+      },
+      {
+        "command": "mssql.visualizeSchema",
+        "title": "%mssql.visualizeSchema%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/visualizeSchema_dark.svg",
+          "light": "media/visualizeSchema_light.svg"
         }
       },
       {
@@ -1235,16 +1249,20 @@
           "scope": "resource"
         },
         "mssql.resultsFontFamily": {
-          "type": "string",
-          "description": "%mssql.resultsFontFamily%",
-          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif",
-          "scope": "resource"
+            "type": "string",
+            "description": "%mssql.resultsFontFamily%",
+            "default": null,
+            "scope": "resource"
         },
         "mssql.resultsFontSize": {
-          "type": "number",
-          "description": "%mssql.resultsFontSize%",
-          "default": 13,
-          "scope": "resource"
+            "type": [
+                "number",
+                "null"
+            ],
+            "maximum": 24,
+            "description": "%mssql.resultsFontSize%",
+            "default": null,
+            "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
@@ -1438,6 +1456,11 @@
           "default": 100,
           "description": "%mssql.logFilesRemovalLimit%"
         },
+        "mssql.resultsGrid.autoSizeColumns": {
+            "type": "boolean",
+            "default": true,
+            "description": "%mssql.resultsGrid.autoSizeColumns%"
+        },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",
           "default": true,
@@ -1453,6 +1476,11 @@
           "type": "number",
           "default": 2097152,
           "description": "%mssql.query.maxXmlCharsToStore%"
+        },
+        "mssql.autoDisableNonTSqlLanguageService": {
+          "type": ["boolean", "null"],
+          "default": null,
+          "description": "%mssql.autoDisableNonTSqlLanguageService%"
         },
         "mssql.queryHistoryLimit": {
           "type": "number",

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles } from "@fluentui/react-components";
-import { useContext } from "react";
+import { Button, makeStyles, Tooltip } from "@fluentui/react-components";
+import { useContext, useState } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
@@ -15,6 +15,10 @@ import {
     saveAsJsonIcon,
 } from "./queryResultUtils";
 import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
+import {
+    ArrowMaximize16Filled,
+    ArrowMinimize16Filled,
+} from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -31,9 +35,13 @@ const useStyles = makeStyles({
 export interface CommandBarProps {
     uri?: string;
     resultSetSummary?: qr.ResultSetSummary;
+    maximizeResults?: () => void;
+    restoreResults?: () => void;
 }
 
 const CommandBar = (props: CommandBarProps) => {
+    const [maxView, setMaxView] = useState(false);
+
     const context = useContext(QueryResultContext);
     if (context === undefined) {
         return undefined;
@@ -56,50 +64,102 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
+    const hasMultipleResults =
+        context.state.resultSetSummaries &&
+        Object.keys(context.state.resultSetSummaries).length > 1;
+
     return (
         <div className={classes.commandBar}>
-            <Button
-                appearance="subtle"
-                onClick={(_event) => {
-                    saveResults("csv");
-                }}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={saveAsCsvIcon(context.theme)}
-                    />
-                }
-                className="codicon saveCsv"
-                title={locConstants.queryResult.saveAsCsv}
-            />
-            <Button
-                appearance="subtle"
-                onClick={(_event) => {
-                    saveResults("json");
-                }}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={saveAsJsonIcon(context.theme)}
-                    />
-                }
-                className="codicon saveJson"
-                title={locConstants.queryResult.saveAsJson}
-            />
-            <Button
-                appearance="subtle"
-                onClick={(_event) => {
-                    saveResults("excel");
-                }}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={saveAsExcelIcon(context.theme)}
-                    />
-                }
-                className="codicon saveExcel"
-                title={locConstants.queryResult.saveAsExcel}
-            />
+            {hasMultipleResults && (
+                <Tooltip
+                    content={locConstants.queryResult.maximize}
+                    relationship="label"
+                >
+                    <Button
+                        appearance="subtle"
+                        onClick={() => {
+                            maxView
+                                ? props.restoreResults?.()
+                                : props.maximizeResults?.();
+                            setMaxView((prev) => !prev); // Toggle maxView state
+                        }}
+                        icon={
+                            maxView ? (
+                                <ArrowMinimize16Filled
+                                    className={classes.buttonImg}
+                                />
+                            ) : (
+                                <ArrowMaximize16Filled
+                                    className={classes.buttonImg}
+                                />
+                            )
+                        }
+                        title={
+                            maxView
+                                ? locConstants.queryResult.restore
+                                : locConstants.queryResult.maximize
+                        }
+                    ></Button>
+                </Tooltip>
+            )}
+
+            <Tooltip
+                content={locConstants.queryResult.saveAsCsv}
+                relationship="label"
+            >
+                <Button
+                    appearance="subtle"
+                    onClick={(_event) => {
+                        saveResults("csv");
+                    }}
+                    icon={
+                        <img
+                            className={classes.buttonImg}
+                            src={saveAsCsvIcon(context.theme)}
+                        />
+                    }
+                    className="codicon saveCsv"
+                    title={locConstants.queryResult.saveAsCsv}
+                />
+            </Tooltip>
+            <Tooltip
+                content={locConstants.queryResult.saveAsJson}
+                relationship="label"
+            >
+                <Button
+                    appearance="subtle"
+                    onClick={(_event) => {
+                        saveResults("json");
+                    }}
+                    icon={
+                        <img
+                            className={classes.buttonImg}
+                            src={saveAsJsonIcon(context.theme)}
+                        />
+                    }
+                    className="codicon saveJson"
+                    title={locConstants.queryResult.saveAsJson}
+                />
+            </Tooltip>
+            <Tooltip
+                content={locConstants.queryResult.saveAsExcel}
+                relationship="label"
+            >
+                <Button
+                    appearance="subtle"
+                    onClick={(_event) => {
+                        saveResults("excel");
+                    }}
+                    icon={
+                        <img
+                            className={classes.buttonImg}
+                            src={saveAsExcelIcon(context.theme)}
+                        />
+                    }
+                    className="codicon saveExcel"
+                    title={locConstants.queryResult.saveAsExcel}
+                />
+            </Tooltip>
         </div>
     );
 };

@@ -6,9 +6,12 @@
 import "./sqlServerRotation.css";
 
 import {
+    AddFirewallRuleDialogProps,
     ConnectionDialogContextProps,
+    ConnectionDialogWebviewState,
     ConnectionInputMode,
     IConnectionDialogProfile,
+    TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
 import {
     Field,
@@ -31,6 +34,7 @@ import { FormItemSpec } from "../../common/forms/form";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
+import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
 
 function renderContent(
     connectionDialogContext: ConnectionDialogContextProps,
@@ -58,8 +62,13 @@ export const ConnectionInfoFormContainer = () => {
         return saveIcon;
     }
 
+    function handleConnect(event: React.FormEvent) {
+        event.preventDefault();
+        context.connect();
+    }
+
     return (
-        <div className={formStyles.formRoot}>
+        <form onSubmit={handleConnect} className={formStyles.formRoot}>
             <ConnectionHeader />
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
@@ -71,13 +80,31 @@ export const ConnectionInfoFormContainer = () => {
                         {context.state.formError}
                     </MessageBar>
                 )}
-                <TrustServerCertificateDialog />
+
+                {context.state.dialog?.type === "trustServerCert" && (
+                    <TrustServerCertificateDialog
+                        dialogProps={
+                            context.state.dialog as TrustServerCertDialogProps
+                        }
+                    />
+                )}
+                {context.state.dialog?.type === "addFirewallRule" && (
+                    <AddFirewallRuleDialog
+                        dialogProps={
+                            context.state.dialog as AddFirewallRuleDialogProps
+                        }
+                    />
+                )}
+
                 <FormField
                     context={context}
                     component={
                         context.state.connectionComponents.components[
                             "profileName"
-                        ] as FormItemSpec<IConnectionDialogProfile>
+                        ] as FormItemSpec<
+                            ConnectionDialogWebviewState,
+                            IConnectionDialogProfile
+                        >
                     }
                     idx={0}
                     props={{ orientation: "horizontal" }}
@@ -159,6 +186,6 @@ export const ConnectionInfoFormContainer = () => {
                 </div>
                 {renderContent(context)}
             </div>
-        </div>
+        </form>
     );
 };

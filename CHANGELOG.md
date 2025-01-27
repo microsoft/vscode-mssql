@@ -1,5 +1,16 @@
 # Change Log
 
+## Version 1.27.0
+* Release date: December 18, 2024
+* Release status: GA
+### What's new in 1.27.0
+* Added the ability to filter query result rows by value
+* Added the ability to maximize a specific result set from a query result with multiple sets
+* Added a prompt for adding a firewall rule when using the new Connection Dialog to connect to an Azure SQL Database logical server
+* Fixed usability bugs encountered when viewing query plans
+* Improved performance when resizing the new query results pane with many result sets
+* Fixed several bugs related to the query result message display
+
 ## Version 1.26.0
 * Release date: November 20, 2024
 * Release status: GA

@@ -7,7 +7,7 @@ import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./executionPlan.css";
 
-import * as azdataGraph from "azdataGraph/dist/build";
+import * as azdataGraph from "azdataGraph";
 import * as utils from "./queryPlanSetup";
 
 import {
@@ -139,7 +139,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         // @ts-ignore
         window["mxBasePath"] = "./src/reactviews/pages/ExecutionPlan/mxgraph";
 
-        const mxClient = azdataGraph.default();
+        const mxClient = azdataGraph.mx();
 
         function loadExecutionPlan() {
             if (executionPlanState && executionPlanState.executionPlanGraphs) {
