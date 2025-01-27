@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-//TODO: check if store is available across different webpages/tabs
 // SingletonStore.ts
 class SingletonStore {
     private static instance: SingletonStore;

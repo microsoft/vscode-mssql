@@ -27,7 +27,6 @@ import { EventManager } from "../../../../common/eventManager";
 
 import { QueryResultState } from "../../queryResultStateProvider";
 import store from "../../../../common/singletonStore";
-import singletonStore from "../../../../common/singletonStore";
 
 export type HeaderFilterCommands = "sort-asc" | "sort-desc";
 
@@ -317,10 +316,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             `#apply-${this.columnDef.id}`,
             async () => {
-                //TODO: there are two places where we set the columnDef.filterValues, should we remove one?
-                this.columnDef.filterValues = this._listData
-                    .filter((element) => element.checked)
-                    .map((element) => element.value);
                 closePopup($popup);
                 this.activePopup = null;
                 this.applyFilterSelections();
@@ -329,7 +324,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 }
                 this.setButtonImage(
                     $menuButton,
-                    this.columnDef.filterValues.length > 0,
+                    this.columnDef.filterValues!.length > 0,
                 );
                 await this.handleApply(this.columnDef);
             },
@@ -468,16 +463,27 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 sorted: SortProperties.NONE,
             };
             if (this.queryResultState.state.uri) {
-                if (singletonStore.has(this.queryResultState.state.uri)) {
-                    const gridColumnMap = singletonStore.get(
+                if (store.has(this.queryResultState.state.uri)) {
+                    const gridColumnMapArray = store.get(
                         this.queryResultState.state.uri!,
-                    ) as GridColumnMap;
-                    gridColumnMap[this.gridId][columnDef.id!] =
-                        columnFilterState;
-                    singletonStore.set(
-                        this.queryResultState.state.uri,
-                        gridColumnMap,
-                    );
+                    ) as GridColumnMap[];
+                    if (gridColumnMapArray) {
+                        let gridColumnMapIndex = gridColumnMapArray.findIndex(
+                            (filter) => filter.hasOwnProperty(this.gridId),
+                        );
+
+                        let gridColumnMap = gridColumnMapArray.splice(
+                            gridColumnMapIndex,
+                            1,
+                        );
+                        gridColumnMap[0][this.gridId][columnDef.id!] =
+                            columnFilterState;
+                        gridColumnMapArray.concat(gridColumnMap);
+                        store.set(
+                            this.queryResultState.state.uri,
+                            gridColumnMapArray,
+                        );
+                    }
                 }
             }
         } else {
