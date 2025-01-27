@@ -1947,8 +1947,14 @@ export default class MainController implements vscode.Disposable {
 
     public async onSchemaCompare(node: TreeNodeInfo): Promise<void> {
         if (node) {
+            const result =
+                await this.schemaCompareService.schemaCompareGetDefaultOptions();
             const schemaCompareWebView = new SchemaCompareWebViewController(
                 this._context,
+                node,
+                this.schemaCompareService,
+                this._connectionMgr,
+                result.defaultDeploymentOptions,
             );
 
             schemaCompareWebView.revealToForeground();
