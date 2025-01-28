@@ -4,7 +4,7 @@
 * Release date: January 29, 2025
 * Release status: GA
 ### What's new in 1.28.0
-* Added support for mssql.resultsFontSize and mssql.resultsFontFamily in the new query results grid, to enable customization of font size and style.
+* Added support for `mssql.resultsFontSize` and `mssql.resultsFontFamily` in the new query results grid, to enable customization of font size and style.
 * Added automatic detection of non T-SQL dialects, and disabling of error detection when found.
 * Added auto-resize functionality to the new query results grid, enabling columns to automatically adjust their width based on the data they contain.
 * Added support for Edge tables in the new Table Designer
