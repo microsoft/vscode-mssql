@@ -64,9 +64,20 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
+    const checkMultipleResults = () => {
+        let multipleResultsFlag = false;
+        Object.keys(context.state.resultSetSummaries).forEach((resultSet) => {
+            if (resultSet.length > 1) {
+                multipleResultsFlag = true;
+            }
+        });
+        return multipleResultsFlag;
+    };
+
     const hasMultipleResults =
         context.state.resultSetSummaries &&
-        Object.keys(context.state.resultSetSummaries).length > 1;
+        (Object.keys(context.state.resultSetSummaries).length > 1 ||
+            checkMultipleResults);
 
     return (
         <div className={classes.commandBar}>
