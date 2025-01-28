@@ -66,22 +66,28 @@ const CommandBar = (props: CommandBarProps) => {
 
     const checkMultipleResults = () => {
         let multipleResultsFlag = false;
-        Object.keys(context.state.resultSetSummaries).forEach((resultSet) => {
-            if (resultSet.length > 1) {
+        if (Object.keys(context.state.resultSetSummaries).length > 1) {
+            return true;
+        }
+        Object.values(context.state.resultSetSummaries).forEach((resultSet) => {
+            if (Object.keys(resultSet).length > 1) {
+                console.log("True");
                 multipleResultsFlag = true;
             }
         });
         return multipleResultsFlag;
     };
 
-    const hasMultipleResults =
-        context.state.resultSetSummaries &&
-        (Object.keys(context.state.resultSetSummaries).length > 1 ||
-            checkMultipleResults);
+    const hasMultipleResults = () => {
+        return (
+            Object.keys(context.state.resultSetSummaries).length > 0 &&
+            checkMultipleResults()
+        );
+    };
 
     return (
         <div className={classes.commandBar}>
-            {hasMultipleResults && (
+            {hasMultipleResults() && (
                 <Tooltip
                     content={locConstants.queryResult.maximize}
                     relationship="label"
