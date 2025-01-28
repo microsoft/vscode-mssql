@@ -440,15 +440,15 @@ declare module 'vscode-mssql' {
 	}
 
 	export interface ISchemaCompareService {
-		schemaCompare(operationId: string, sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions): Thenable<SchemaCompareResult>;
-		schemaCompareGenerateScript(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
-		schemaComparePublishDatabaseChanges(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
-		schemaComparePublishProjectChanges(operationId: string, targetProjectPath: string, targetFolderStructure: ExtractTarget, taskExecutionMode: TaskExecutionMode): Thenable<SchemaComparePublishProjectResult>;
-		schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
-		schemaCompareIncludeExcludeNode(operationId: string, diffEntry: DiffEntry, includeRequest: boolean, taskExecutionMode: TaskExecutionMode): Thenable<SchemaCompareIncludeExcludeResult>;
-		schemaCompareOpenScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
-		schemaCompareSaveScmp(sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions, scmpFilePath: string, excludedSourceObjects: SchemaCompareObjectId[], excludedTargetObjects: SchemaCompareObjectId[]): Thenable<ResultStatus>;
-		schemaCompareCancel(operationId: string): Thenable<ResultStatus>;
+		compare(operationId: string, sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions): Thenable<SchemaCompareResult>;
+		generateScript(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
+		publishDatabaseChanges(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
+		publishProjectChanges(operationId: string, targetProjectPath: string, targetFolderStructure: ExtractTarget, taskExecutionMode: TaskExecutionMode): Thenable<SchemaComparePublishProjectResult>;
+		getDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
+		includeExcludeNode(operationId: string, diffEntry: DiffEntry, includeRequest: boolean, taskExecutionMode: TaskExecutionMode): Thenable<SchemaCompareIncludeExcludeResult>;
+		openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
+		saveScmp(sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions, scmpFilePath: string, excludedSourceObjects: SchemaCompareObjectId[], excludedTargetObjects: SchemaCompareObjectId[]): Thenable<ResultStatus>;
+		cancel(operationId: string): Thenable<ResultStatus>;
 	}
 
 	export interface IDacFxService {
@@ -1171,7 +1171,7 @@ declare module 'vscode-mssql' {
 		// located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
 	}
 
-	export interface ConnectionInfo {
+	export interface SchemaCompareConnectionInfo {
 		options: { [name: string]: any };
 	}
 
@@ -1182,7 +1182,7 @@ declare module 'vscode-mssql' {
 		serverName: string;
 		databaseName: string;
 		ownerUri: string;
-		connectionDetails: ConnectionInfo;
+		connectionDetails: SchemaCompareConnectionInfo;
 		connectionName?: string;
 		projectFilePath: string;
 		targetScripts: string[];
