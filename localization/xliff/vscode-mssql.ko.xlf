@@ -2037,7 +2037,7 @@
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumns">
         <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
-        <target state="new">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</target>
+        <target state="translated">결과 집합에서 보이는 행에 따라 열 너비를 자동으로 조정합니다. 많은 수의 열 또는 큰 셀에 성능 문제가 있을 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
