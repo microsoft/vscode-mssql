@@ -36,6 +36,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 defaultDeploymentOptions: defaultDeploymentOptions,
                 sourceEndpointInfo: undefined,
                 targetEndpointInfo: undefined,
+                schemaCompareResult: undefined,
+                generateScriptResultStatus: undefined,
+                publishDatabaseChangesResultStatus: undefined,
+                schemaComparePublishProjectResult: undefined,
+                schemaCompareIncludeExcludeResult: undefined,
+                schemaCompareOpenScmpResult: undefined,
+                saveScmpResultStatus: undefined,
+                cancelResultStatus: undefined,
             },
             {
                 title: vscode.l10n.t("Schema Compare (Preview)"),
@@ -183,5 +191,114 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.updateState(this.state);
     }
 
-    private registerRpcHandlers(): void {}
+    private registerRpcHandlers(): void {
+        this.registerReducer("schemaCompare", async (state, payload) => {
+            const result = await this.schemaCompareService.schemaCompare(
+                payload.operationId,
+                payload.sourceEndpointInfo,
+                payload.targetEndpointInfo,
+                payload.taskExecutionMode,
+                payload.deploymentOptions,
+            );
+
+            return { ...state, schemaCompareResult: result };
+        });
+
+        this.registerReducer(
+            "schemaCompareGenerateScript",
+            async (state, payload) => {
+                const result =
+                    await this.schemaCompareService.schemaCompareGenerateScript(
+                        payload.operationId,
+                        payload.targetServerName,
+                        payload.targetDatabaseName,
+                        payload.taskExecutionMode,
+                    );
+
+                return { ...state, generateScriptResultStatus: result };
+            },
+        );
+
+        this.registerReducer(
+            "schemaComparePublishDatabaseChanges",
+            async (state, payload) => {
+                const result =
+                    await this.schemaCompareService.schemaComparePublishDatabaseChanges(
+                        payload.operationId,
+                        payload.targetServerName,
+                        payload.targetDatabaseName,
+                        payload.taskExecutionMode,
+                    );
+
+                return { ...state, publishDatabaseChangesResultStatus: result };
+            },
+        );
+
+        this.registerReducer(
+            "schemaComparePublishProjectChanges",
+            async (state, payload) => {
+                const result =
+                    await this.schemaCompareService.schemaComparePublishProjectChanges(
+                        payload.operationId,
+                        payload.targetProjectPath,
+                        payload.targetFolderStructure,
+                        payload.taskExecutionMode,
+                    );
+
+                return { ...state, schemaComparePublishProjectResult: result };
+            },
+        );
+
+        this.registerReducer(
+            "schemaCompareIncludeExcludeNode",
+            async (state, payload) => {
+                const result =
+                    await this.schemaCompareService.schemaCompareIncludeExcludeNode(
+                        payload.operationId,
+                        payload.diffEntry,
+                        payload.includeRequest,
+                        payload.taskExecutionMode,
+                    );
+
+                return { ...state, schemaCompareIncludeExcludeResult: result };
+            },
+        );
+
+        this.registerReducer(
+            "schemaCompareOpenScmp",
+            async (state, payload) => {
+                const result =
+                    await this.schemaCompareService.schemaCompareOpenScmp(
+                        payload.filePath,
+                    );
+                return { ...state, schemaCompareOpenScmpResult: result };
+            },
+        );
+
+        this.registerReducer(
+            "schemaCompareSaveScmp",
+            async (state, payload) => {
+                const result =
+                    await this.schemaCompareService.schemaCompareSaveScmp(
+                        payload.sourceEndpointInfo,
+                        payload.targetEndpointInfo,
+                        payload.taskExecutionMode,
+                        payload.deploymentOptions,
+                        payload.scmpFilePath,
+                        payload.excludedSourceObjects,
+                        payload.excludedTargetObjects,
+                    );
+
+                return { ...state, resultStatus: result };
+            },
+        );
+
+        this.registerReducer("schemaCompareCancel", async (state, payload) => {
+            const result = await this.schemaCompareService.schemaCompareCancel(
+                payload.operationId,
+            );
+
+            return { ...state, cancelResultStatus: result };
+        });
+    }
 }
