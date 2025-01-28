@@ -225,15 +225,6 @@ export function registerCommonRequestHandlers(
         },
     );
     webviewController.registerReducer(
-        "setFilterState",
-        async (state, payload) => {
-            state.filterState[payload.filterState.gridId] = {
-                columnFilters: payload.filterState.columnFilters,
-            };
-            return state;
-        },
-    );
-    webviewController.registerReducer(
         "getExecutionPlan",
         async (state, payload) => {
             // because this is an overridden call, this makes sure it is being
