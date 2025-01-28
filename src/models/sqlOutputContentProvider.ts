@@ -448,7 +448,6 @@ export class SqlOutputContentProvider {
                         await this._queryResultWebviewController.createPanelController(
                             uri,
                         );
-                        //Panel controller
                     }
                     this._queryResultWebviewController.updatePanelState(uri);
                     if (!this._queryResultWebviewController.hasPanel(uri)) {
