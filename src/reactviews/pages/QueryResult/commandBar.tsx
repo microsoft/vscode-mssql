@@ -65,17 +65,15 @@ const CommandBar = (props: CommandBarProps) => {
     };
 
     const checkMultipleResults = () => {
-        let multipleResultsFlag = false;
         if (Object.keys(context.state.resultSetSummaries).length > 1) {
             return true;
         }
-        Object.values(context.state.resultSetSummaries).forEach((resultSet) => {
+        for (let resultSet of Object.values(context.state.resultSetSummaries)) {
             if (Object.keys(resultSet).length > 1) {
-                console.log("True");
-                multipleResultsFlag = true;
+                return true;
             }
-        });
-        return multipleResultsFlag;
+        }
+        return false;
     };
 
     const hasMultipleResults = () => {
