@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
+import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
 export interface SchemaCompareWebViewState {
     defaultDeploymentOptions: mssql.DeploymentOptions;
@@ -75,4 +76,61 @@ export interface SchemaCompareReducers {
     schemaCompareCancel: {
         operationId: string;
     };
+}
+
+export interface SchemaCompareContextProps {
+    state: SchemaCompareWebViewState;
+    themeKind: ColorThemeKind;
+
+    schemaCompare: (
+        operationId: string,
+        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        taskExecutionMode: mssql.TaskExecutionMode,
+        deploymentOptions: mssql.DeploymentOptions,
+    ) => void;
+
+    schemaCompareGenerateScript: (
+        operationId: string,
+        targetServerName: string,
+        targetDatabaseName: string,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ) => void;
+
+    schemaComparePublishDatabaseChanges: (
+        operationId: string,
+        targetServerName: string,
+        targetDatabaseName: string,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ) => void;
+
+    schemaComparePublishProjectChanges: (
+        operationId: string,
+        targetProjectPath: string,
+        targetFolderStructure: mssql.ExtractTarget,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ) => void;
+
+    // schemaCompareGetDefaultOptions: () => void;
+
+    schemaCompareIncludeExcludeNode: (
+        operationId: string,
+        diffEntry: mssql.DiffEntry,
+        includeRequest: boolean,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ) => void;
+
+    schemaCompareOpenScmp: (filePath: string) => void;
+
+    schemaCompareSaveScmp: (
+        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+        taskExecutionMode: mssql.TaskExecutionMode,
+        deploymentOptions: mssql.DeploymentOptions,
+        scmpFilePath: string,
+        excludedSourceObjects: mssql.SchemaCompareObjectId[],
+        excludedTargetObjects: mssql.SchemaCompareObjectId[],
+    ) => void;
+
+    schemaCompareCancel: (operationId: string) => void;
 }
