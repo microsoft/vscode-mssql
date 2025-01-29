@@ -64,13 +64,28 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
-    const hasMultipleResults =
-        context.state.resultSetSummaries &&
-        Object.keys(context.state.resultSetSummaries).length > 1;
+    const checkMultipleResults = () => {
+        if (Object.keys(context.state.resultSetSummaries).length > 1) {
+            return true;
+        }
+        for (let resultSet of Object.values(context.state.resultSetSummaries)) {
+            if (Object.keys(resultSet).length > 1) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const hasMultipleResults = () => {
+        return (
+            Object.keys(context.state.resultSetSummaries).length > 0 &&
+            checkMultipleResults()
+        );
+    };
 
     return (
         <div className={classes.commandBar}>
-            {hasMultipleResults && (
+            {hasMultipleResults() && (
                 <Tooltip
                     content={locConstants.queryResult.maximize}
                     relationship="label"
