@@ -575,6 +575,10 @@
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Activer Approuver le certificat de serveur</target>
       </trans-unit>
+      <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
+        <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
+        <target state="new">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">Chiffrer</target>
@@ -1100,6 +1104,10 @@
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">Aucun abonnement disponible.  Ajustez vos filtres d’abonnement pour réessayer.</target>
       </trans-unit>
+      <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
+        <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
+        <target state="new">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</target>
+      </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
         <target state="translated">Aucun</target>
@@ -1584,6 +1592,10 @@
         <source xml:lang="en">Submit</source>
         <target state="translated">Envoyer</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
+        <source xml:lang="en">Submit an issue</source>
+        <target state="new">Submit an issue</target>
+      </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
         <target state="translated">Abonnement</target>
@@ -2023,6 +2035,10 @@
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">Un délai d’expiration de 0 indique une attente illimitée (aucun délai d’expiration)</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
+        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
+        <target state="translated">Ajustez automatiquement la largeur des colonnes en fonction des lignes visibles dans le jeu de résultats. Peut avoir des problèmes de performances avec un grand nombre de colonnes ou de cellules volumineuses</target>
+      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">Afficher automatiquement les résultats de la requête dans un nouvel onglet au lieu du volet de requête. Cette option prend effet uniquement si « mssql.enableRichExperiences » est activé.</target>
@@ -2431,6 +2447,10 @@
         <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
         <target state="translated">Spécifie si la mise en forme des mots clés est MAJUSCULES, minuscules, ou aucune (sans mise en forme)</target>
       </trans-unit>
+      <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
+        <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
+        <target state="new">Should language service be auto-disabled when extension detects Non-MSSQL files</target>
+      </trans-unit>
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">Spécifie si les sélections de résultat de requête et les positions de défilement doivent être enregistrées lors du passage d’un onglet à l’autre (peut impacter les performances)</target>
@@ -2462,6 +2482,10 @@
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Utiliser la base de données</target>
+      </trans-unit>
+      <trans-unit id="mssql.visualizeSchema">
+        <source xml:lang="en">Visualize Schema</source>
+        <target state="new">Visualize Schema</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

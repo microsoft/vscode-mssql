@@ -10,7 +10,7 @@ import * as mssql from "vscode-mssql";
 export class SchemaCompareService implements mssql.ISchemaCompareService {
     constructor(private _client: SqlToolsServiceClient) {}
 
-    public schemaCompare(
+    public compare(
         operationId: string,
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
@@ -31,7 +31,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaCompareGenerateScript(
+    public generateScript(
         operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
@@ -50,7 +50,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaComparePublishDatabaseChanges(
+    public publishDatabaseChanges(
         operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
@@ -70,7 +70,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaComparePublishProjectChanges(
+    public publishProjectChanges(
         operationId: string,
         targetProjectPath: string,
         targetFolderStructure: mssql.ExtractTarget,
@@ -90,7 +90,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaCompareGetDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
+    public getDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
         const params: mssql.SchemaCompareGetOptionsParams = {};
 
         return this._client.sendRequest(
@@ -99,7 +99,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaCompareIncludeExcludeNode(
+    public includeExcludeNode(
         operationId: string,
         diffEntry: mssql.DiffEntry,
         includeRequest: boolean,
@@ -118,7 +118,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaCompareOpenScmp(
+    public openScmp(
         filePath: string,
     ): Thenable<mssql.SchemaCompareOpenScmpResult> {
         const params: mssql.SchemaCompareOpenScmpParams = {
@@ -131,7 +131,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaCompareSaveScmp(
+    public saveScmp(
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
         taskExecutionMode: mssql.TaskExecutionMode,
@@ -156,9 +156,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public schemaCompareCancel(
-        operationId: string,
-    ): Thenable<mssql.ResultStatus> {
+    public cancel(operationId: string): Thenable<mssql.ResultStatus> {
         const params: mssql.SchemaCompareCancelParams = {
             operationId: operationId,
         };

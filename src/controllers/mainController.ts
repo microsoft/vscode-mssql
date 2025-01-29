@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -60,6 +60,8 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { SchemaDesignerService } from "../services/schemaDesignerService";
+import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 
 /**
@@ -98,6 +100,7 @@ export default class MainController implements vscode.Disposable {
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
+    public schemaDesignerService: SchemaDesignerService;
 
     /**
      * The main controller constructor
@@ -364,6 +367,10 @@ export default class MainController implements vscode.Disposable {
                 this._untitledSqlDocumentService,
             );
 
+            this.schemaDesignerService = new SchemaDesignerService(
+                SqlToolsServerClient.instance,
+            );
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this.executionPlanService,
@@ -405,6 +412,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
             );
+
             return true;
         }
     }
@@ -911,6 +919,34 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
+                    Constants.cmdVisualizeSchema,
+                    async (node: TreeNodeInfo) => {
+                        const uri = this.connectionManager.getUriForConnection(
+                            node.connectionInfo,
+                        );
+                        const schema =
+                            await this.schemaDesignerService.getSchemaModel({
+                                connectionUri: uri,
+                                databaseName: node.metadata.name,
+                            });
+
+                        console.log(schema);
+
+                        const schemaDesignerWebvie =
+                            new SchemaDesignerWebviewController(
+                                this._context,
+                                this.schemaDesignerService,
+                                node.metadata.name,
+                                schema,
+                            );
+
+                        schemaDesignerWebvie.revealToForeground();
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
                     Constants.cmdNewTable,
                     async (node: TreeNodeInfo) => {
                         const reactPanel = new TableDesignerWebviewController(
@@ -950,7 +986,7 @@ export default class MainController implements vscode.Disposable {
                     this._context,
                     node,
                 );
-                if (filters && filters.length > 0) {
+                if (filters) {
                     node.filters = filters;
                     if (
                         node.collapsibleState ===

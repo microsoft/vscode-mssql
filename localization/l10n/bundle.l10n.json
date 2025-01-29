@@ -666,6 +666,7 @@
   "Choose SQL Language": "Choose SQL Language",
   "Use T-SQL intellisense and syntax error checking on current document": "Use T-SQL intellisense and syntax error checking on current document",
   "Disable intellisense and syntax error checking on current document": "Disable intellisense and syntax error checking on current document",
+  "Non-SQL Server SQL file detected. Disable IntelliSense for such files?": "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
   "Add Connection": "Add Connection",
   "Azure: Sign In": "Azure: Sign In",
   "Sign in to your Azure subscription": "Sign in to your Azure subscription",
@@ -797,6 +798,8 @@
       "{0} is the feature name"
     ]
   },
+  "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!": "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
+  "Submit an issue": "Submit an issue",
   "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
     "message": "{0} has been closed. Would you like to restore it?",
     "comment": [

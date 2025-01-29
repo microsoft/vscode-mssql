@@ -575,6 +575,10 @@
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">启用“信任服务器证书”</target>
       </trans-unit>
+      <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
+        <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
+        <target state="new">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">加密</target>
@@ -1100,6 +1104,10 @@
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">没有可用的订阅。调整订阅筛选器以重试。</target>
       </trans-unit>
+      <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
+        <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
+        <target state="new">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</target>
+      </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
         <target state="translated">无</target>
@@ -1584,6 +1592,10 @@
         <source xml:lang="en">Submit</source>
         <target state="translated">提交</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
+        <source xml:lang="en">Submit an issue</source>
+        <target state="new">Submit an issue</target>
+      </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
         <target state="translated">订阅</target>
@@ -2023,6 +2035,10 @@
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">如果执行超时为 0，则表示无限等待(不会超时)</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
+        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
+        <target state="translated">根据结果集中的可见行自动调整列宽。可能会有大量列或大型单元格的性能问题</target>
+      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">在新选项卡而不是查询窗格中自动显示查询结果。仅当启用了 `mssql.enableRichExperiences` 时，此选项才会生效。</target>
@@ -2431,6 +2447,10 @@
         <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
         <target state="translated">关键字格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)</target>
       </trans-unit>
+      <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
+        <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
+        <target state="new">Should language service be auto-disabled when extension detects Non-MSSQL files</target>
+      </trans-unit>
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">切换选项卡时是否应保存查询结果选择项和滚动位置(可能影响性能)</target>
@@ -2462,6 +2482,10 @@
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">使用数据库</target>
+      </trans-unit>
+      <trans-unit id="mssql.visualizeSchema">
+        <source xml:lang="en">Visualize Schema</source>
+        <target state="new">Visualize Schema</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
