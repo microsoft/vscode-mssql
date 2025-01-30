@@ -495,6 +495,11 @@
           "group": "inline"
         },
         {
+          "command": "mssql.tableExplorer",
+          "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View)\\b/ && config.mssql.enableRichExperiences",
+          "group": "MS_SQL@0"
+        },
+        {
           "command": "mssql.copyObjectName",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
         },
@@ -804,6 +809,11 @@
           "dark": "media/editTable_dark.svg",
           "light": "media/editTable_light.svg"
         }
+      },
+      {
+        "command": "mssql.tableExplorer",
+        "title": "%mssql.tableExplorer%",
+        "category": "MS SQL"
       },
       {
         "command": "mssql.scriptAlter",

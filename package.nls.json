@@ -162,5 +162,6 @@
 "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description":"Do not show prompts to display query results in a new tab.",
 "mssql.enableNewQueryResultFeature.description":"Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
 "mssql.userFeedback":"Give Feedback",
-"mssql.selectedSubscriptions":"Selected Subscriptions"
+"mssql.selectedSubscriptions":"Selected Subscriptions",
+"mssql.tableExplorer": "Table Explorer"
 }

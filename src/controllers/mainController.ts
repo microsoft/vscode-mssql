@@ -60,6 +60,7 @@ import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
+import { TableExplorerWebviewController } from "../tableExplorer/tableExplorerWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -913,6 +914,18 @@ export default class MainController implements vscode.Disposable {
                             node,
                             this._objectExplorerProvider,
                             this.objectExplorerTree,
+                        );
+                        reactPanel.revealToForeground();
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdTableExplorer,
+                    async (node: TreeNodeInfo) => {
+                        const reactPanel = new TableExplorerWebviewController(
+                            this._context,
                         );
                         reactPanel.revealToForeground();
                     },
