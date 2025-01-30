@@ -128,7 +128,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 ownerUri: ownerUri,
                 packageFilePath: "",
                 connectionDetails: undefined,
-                connectionName: profile.profileName,
+                connectionName: profile.profileName ? profile.profileName : "",
                 projectFilePath: "",
                 targetScripts: [],
                 dataSchemaProvider: "",
