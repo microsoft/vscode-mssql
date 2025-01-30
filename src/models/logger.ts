@@ -8,15 +8,16 @@ import { ILogger } from "./interfaces";
 import * as Utils from "./utils";
 import { OutputChannel } from "vscode";
 
+/** Logger levels, ordered from most critical to most verbose */
 export enum LogLevel {
-    "Pii",
-    "Off",
-    "Critical",
-    "Error",
-    "Warning",
-    "Information",
-    "Verbose",
-    "All",
+    Pii = 0,
+    Off = 1,
+    Critical = 2,
+    Error = 3,
+    Warning = 4,
+    Information = 5,
+    Verbose = 6,
+    All = 7,
 }
 
 /*
@@ -49,7 +50,13 @@ export class Logger implements ILogger {
             LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
         const pii = Utils.getConfigPiiLogging();
 
-        return new Logger((text) => channel.append(text), logLevel, pii);
+        const logger = new Logger(
+            (text) => channel.append(text),
+            logLevel,
+            pii,
+        );
+
+        return logger;
     }
 
     /**
@@ -75,7 +82,7 @@ export class Logger implements ILogger {
                     (str) => `${str.name}=${shorten(str.value)}`,
                 ),
             ].join(" ");
-            this.write(LogLevel.Pii, msg, vals);
+            this.write(LogLevel.Pii, msg, ...vals);
         }
     }
 
@@ -86,7 +93,7 @@ export class Logger implements ILogger {
      */
     public pii(msg: any, ...vals: any[]): void {
         if (this.piiLogging) {
-            this.write(LogLevel.Pii, msg, vals);
+            this.write(LogLevel.Pii, msg, ...vals);
         }
     }
 
@@ -98,35 +105,67 @@ export class Logger implements ILogger {
         return this._piiLogging;
     }
 
-    public shouldLog(logLevel: LogLevel): Boolean {
+    /** If `mssql.logDebug` is enabled, prints the message to the developer console */
+    public logDebug(message: string): void {
+        Utils.logDebug(message);
+    }
+
+    /** Outputs a message with priority "All" (most verbose) */
+    public log(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.All, msg, ...vals);
+    }
+
+    public error(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.Error, msg, ...vals);
+        console.error(msg);
+    }
+
+    public info(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.Information, msg, ...vals);
+    }
+
+    public verbose(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.Verbose, msg, ...vals);
+    }
+
+    public increaseIndent(): void {
+        this._indentLevel += 1;
+    }
+
+    public decreaseIndent(): void {
+        if (this._indentLevel > 0) {
+            this._indentLevel -= 1;
+        }
+    }
+
+    /** Prints a message directly, regardless of log level */
+    public append(message?: string): void {
+        message = message || "";
+        this.appendCore(message);
+    }
+
+    /** Prints a message directly, regardless of log level */
+    public appendLine(message?: string): void {
+        message = message || "";
+        this.appendCore(message + os.EOL);
+        this._atLineStart = true;
+    }
+
+    private shouldLog(logLevel: LogLevel): Boolean {
         return logLevel <= this._logLevel;
     }
 
     private write(logLevel: LogLevel, msg: any, ...vals: any[]): void {
         if (this.shouldLog(logLevel) || logLevel === LogLevel.Pii) {
-            const fullMessage = `[${LogLevel[logLevel]}]: ${msg} - ${vals.map((v) => JSON.stringify(v)).join(" - ")}`;
+            let fullMessage = `[${LogLevel[logLevel]}]: ${msg}`;
+
+            // if present, append additional values to the message
+            if (vals.length > 0) {
+                fullMessage += ` - ${vals.map((v) => JSON.stringify(v)).join(" - ")}`;
+            }
+
             this.appendLine(fullMessage);
         }
-    }
-
-    public logDebug(message: string): void {
-        Utils.logDebug(message);
-    }
-
-    public log(msg: any, ...vals: any[]): void {
-        this.write(LogLevel.All, msg, vals);
-    }
-
-    public error(msg: any, ...vals: any[]): void {
-        this.write(LogLevel.Error, msg, vals);
-    }
-
-    public info(msg: any, ...vals: any[]): void {
-        this.write(LogLevel.Information, msg, vals);
-    }
-
-    public verbose(msg: any, ...vals: any[]): void {
-        this.write(LogLevel.Verbose, msg, vals);
     }
 
     private appendCore(message: string): void {
@@ -144,27 +183,6 @@ export class Logger implements ILogger {
         }
 
         this._writer(message);
-    }
-
-    public increaseIndent(): void {
-        this._indentLevel += 1;
-    }
-
-    public decreaseIndent(): void {
-        if (this._indentLevel > 0) {
-            this._indentLevel -= 1;
-        }
-    }
-
-    public append(message?: string): void {
-        message = message || "";
-        this.appendCore(message);
-    }
-
-    public appendLine(message?: string): void {
-        message = message || "";
-        this.appendCore(message + os.EOL);
-        this._atLineStart = true;
     }
 }
 

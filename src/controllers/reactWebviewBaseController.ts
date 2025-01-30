@@ -123,6 +123,8 @@ export abstract class ReactWebviewBaseController<State, Reducers>
 
     protected logger: Logger;
 
+    private static _channel: vscode.OutputChannel;
+
     /**
      * Creates a new ReactWebviewPanelController
      * @param _context The context of the extension
@@ -139,8 +141,11 @@ export abstract class ReactWebviewBaseController<State, Reducers>
             vscodeWrapper = new VscodeWrapper();
         }
 
-        let channel = vscodeWrapper.createOutputChannel("MSSQL WebViews"); // TODO: use name of webview?
-        this.logger = Logger.create(channel);
+        if (!ReactWebviewBaseController._channel) {
+            ReactWebviewBaseController._channel =
+                vscodeWrapper.createOutputChannel("MSSQL WebViews"); // TODO: use name of webview?
+        }
+        this.logger = Logger.create(ReactWebviewBaseController._channel);
     }
 
     protected initializeBase() {
