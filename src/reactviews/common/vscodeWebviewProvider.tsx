@@ -42,6 +42,21 @@ export interface VscodeWebviewContext<State, Reducers> {
     localization: boolean;
 }
 
+export interface WebviewContextProps<TState> {
+    /**
+     * Whether localized strings have been loaded for the webview
+     */
+    //isLocalizationLoaded: boolean; // TODO: this appears to be unused; confirm with Aasim if it can be removed
+    /**
+     * State of the webview.
+     */
+    state: TState;
+    /**
+     * Theme of the webview.
+     */
+    themeKind: ColorThemeKind;
+}
+
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
 
 const VscodeWebviewContext = createContext<

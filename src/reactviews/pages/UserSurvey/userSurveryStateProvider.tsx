@@ -43,6 +43,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
                         "openPrivacyStatement",
                     );
                 },
+                themeKind: vscodeWebviewProvider.themeKind,
             }}
         >
             {children}

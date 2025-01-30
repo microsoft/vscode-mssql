@@ -32,7 +32,7 @@ const ObjectExplorerFilterStateProvider: React.FC<
     return (
         <ObjectExplorerFilterContext.Provider
             value={{
-                isLocalizationLoaded: webviewState?.localization,
+                //isLocalizationLoaded: webviewState?.localization,
                 state: objectExplorerFilterState,
                 themeKind: webviewState?.themeKind,
                 submit: function (filters): void {

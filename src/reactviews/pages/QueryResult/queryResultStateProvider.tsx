@@ -6,16 +6,15 @@
 import * as qr from "../../../sharedInterfaces/queryResult";
 
 import {
-    ColorThemeKind,
     useVscodeWebview,
+    WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 import { ColumnFilterState } from "./table/interfaces";
 
-export interface QueryResultState {
+export interface QueryResultState
+    extends WebviewContextProps<qr.QueryResultWebviewState> {
     provider: qr.QueryResultReactProvider;
-    state: qr.QueryResultWebviewState;
-    theme: ColorThemeKind;
 }
 
 const QueryResultContext = createContext<QueryResultState | undefined>(
@@ -92,7 +91,7 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                 },
 
                 state: webViewState?.state as qr.QueryResultWebviewState,
-                theme: webViewState?.themeKind,
+                themeKind: webViewState?.themeKind,
             }}
         >
             {children}

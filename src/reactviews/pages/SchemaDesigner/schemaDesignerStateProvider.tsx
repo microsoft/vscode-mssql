@@ -8,9 +8,13 @@ import {
     ISchema,
     SchemaDesignerWebviewState,
 } from "../../../sharedInterfaces/schemaDesigner";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import {
+    useVscodeWebview,
+    WebviewContextProps,
+} from "../../common/vscodeWebviewProvider";
 
-export interface SchemaDesignerState {
+export interface SchemaDesignerState
+    extends WebviewContextProps<SchemaDesignerWebviewState> {
     schema: ISchema;
 }
 
@@ -28,7 +32,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerContextProps> = ({
     const webviewState = useVscodeWebview<SchemaDesignerWebviewState, any>();
     return (
         <SchemaDesignerContext.Provider
-            value={{ schema: webviewState.state.schema }}
+            value={{
+                schema: webviewState.state.schema,
+                state: webviewState.state,
+                themeKind: webviewState.themeKind,
+            }}
         >
             {children}
         </SchemaDesignerContext.Provider>
