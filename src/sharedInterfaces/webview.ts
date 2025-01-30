@@ -103,3 +103,17 @@ export interface MssqlWebviewPanelOptions {
      */
     showRestorePromptAfterClose?: boolean;
 }
+
+export interface LogEvent {
+    message: string;
+    level: LoggerLevels;
+}
+
+export type LoggerLevels = "log" | "logDebug" | "error" | "info" | "verbose";
+
+export interface CoreReducers {
+    log: {
+        message: string;
+        level: LoggerLevels | undefined;
+    };
+}

@@ -11,6 +11,7 @@ import {
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreReducers } from "../../common/utils";
 
 const ObjectExplorerFilterContext = createContext<
     ObjectExplorerFilterContextProps | undefined
@@ -32,6 +33,7 @@ const ObjectExplorerFilterStateProvider: React.FC<
     return (
         <ObjectExplorerFilterContext.Provider
             value={{
+                ...getCoreReducers(webviewState),
                 //isLocalizationLoaded: webviewState?.localization,
                 state: objectExplorerFilterState,
                 themeKind: webviewState?.themeKind,

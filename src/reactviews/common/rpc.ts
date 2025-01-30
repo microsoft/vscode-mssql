@@ -10,7 +10,7 @@ import {
 } from "../../sharedInterfaces/webview";
 
 /**
- * Rpc to communicate with the extension.
+ * RPC to communicate with the extension.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
 export class WebviewRpc<Reducers> {

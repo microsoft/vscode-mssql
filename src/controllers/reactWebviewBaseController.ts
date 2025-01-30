@@ -11,6 +11,7 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import {
+    LogEvent,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
@@ -21,6 +22,8 @@ import {
 } from "../telemetry/telemetry";
 
 import { getNonce } from "../utils/utils";
+import { Logger } from "../models/logger";
+import VscodeWrapper from "./vscodeWrapper";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -118,6 +121,8 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         }
     };
 
+    protected logger: Logger;
+
     /**
      * Creates a new ReactWebviewPanelController
      * @param _context The context of the extension
@@ -126,9 +131,17 @@ export abstract class ReactWebviewBaseController<State, Reducers>
      */
     constructor(
         protected _context: vscode.ExtensionContext,
+        protected vscodeWrapper: VscodeWrapper,
         private _sourceFile: string,
         private _initialData: State,
-    ) {}
+    ) {
+        if (!vscodeWrapper) {
+            vscodeWrapper = new VscodeWrapper();
+        }
+
+        let channel = vscodeWrapper.createOutputChannel("MSSQL WebViews"); // TODO: use name of webview?
+        this.logger = Logger.create(channel);
+    }
 
     protected initializeBase() {
         this.state = this._initialData;
@@ -282,8 +295,13 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                 ...args,
             );
         };
+
         this._webviewRequestHandlers["getPlatform"] = async () => {
             return process.platform;
+        };
+
+        this._webviewRequestHandlers["log"] = async (message: LogEvent) => {
+            this.logger[message.level ?? "log"](message.message);
         };
     }
 

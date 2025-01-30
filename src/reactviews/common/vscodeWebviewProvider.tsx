@@ -55,6 +55,7 @@ export interface WebviewContextProps<TState> {
      * Theme of the webview.
      */
     themeKind: ColorThemeKind;
+    log(message: string, level: string): void;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();

@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorThemeKind } from "./vscodeWebviewProvider";
+import { CoreReducers } from "../../sharedInterfaces/webview";
+import { ColorThemeKind, VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.
@@ -65,4 +66,17 @@ export function deepClone<T>(obj: T): T {
             value && typeof value === "object" ? deepClone(value) : value;
     });
     return result;
+}
+
+export function getCoreReducers<TState, TReducers extends CoreReducers>(
+    webviewState: VscodeWebviewContext<TState, TReducers>,
+): any {
+    return {
+        log: function (message: string) {
+            webviewState.extensionRpc.action("log", {
+                message,
+                level: "log",
+            });
+        },
+    };
 }

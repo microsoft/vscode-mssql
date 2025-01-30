@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ApiStatus, CoreReducers } from "../../../sharedInterfaces/webview";
 
 export interface ExecutionPlanWebviewState {
     executionPlanState: ExecutionPlanState;
@@ -26,7 +26,7 @@ export interface ExecutionPlanState {
     xmlPlans?: Record<string, string>;
 }
 
-export interface ExecutionPlanReducers {
+export interface ExecutionPlanReducers extends CoreReducers {
     /**
      * Gets the execution plan graph from the provider
      */

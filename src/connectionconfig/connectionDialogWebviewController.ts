@@ -49,7 +49,6 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { IConnectionInfo } from "vscode-mssql";
-import { Logger } from "../models/logger";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
@@ -94,8 +93,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         "encrypt",
     ];
 
-    private static _logger: Logger;
-
     private _connectionToEditCopy: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
 
@@ -103,34 +100,33 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     constructor(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         private _mainController: MainController,
         private _objectExplorerProvider: ObjectExplorerProvider,
         private _connectionToEdit?: IConnectionInfo,
     ) {
-        super(context, "connectionDialog", new ConnectionDialogWebviewState(), {
-            title: Loc.connectionDialog,
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_light.svg",
-                ),
+        super(
+            context,
+            vscodeWrapper,
+            "connectionDialog",
+            new ConnectionDialogWebviewState(),
+            {
+                title: Loc.connectionDialog,
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_light.svg",
+                    ),
+                },
             },
-        });
-
-        if (!ConnectionDialogWebviewController._logger) {
-            const vscodeWrapper = new VscodeWrapper();
-            const channel = vscodeWrapper.createOutputChannel(
-                Loc.connectionDialog,
-            );
-            ConnectionDialogWebviewController._logger = Logger.create(channel);
-        }
+        );
 
         this.registerRpcHandlers();
         this.initializeDialog().catch((err) => {
@@ -1027,7 +1023,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                                         account,
                                         undefined,
                                     );
-                                ConnectionDialogWebviewController._logger.log(
+                                this.logger.log(
                                     "Token refreshed",
                                     session.expiresOn,
                                 );
