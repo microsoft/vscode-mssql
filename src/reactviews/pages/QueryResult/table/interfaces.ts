@@ -54,10 +54,16 @@ export interface ColumnFilterState {
     columnDef: string;
 }
 
+/**
+ * Maps all the column filters for a specific grid ID
+ */
 export interface GridColumnMap {
     [gridId: string]: ColumnFilterMap;
 }
 
+/**
+ * Maps the column filter state for a specific column
+ */
 export interface ColumnFilterMap {
     [columnDef: string]: ColumnFilterState;
 }

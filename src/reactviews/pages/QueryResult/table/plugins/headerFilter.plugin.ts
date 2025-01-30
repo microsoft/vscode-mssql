@@ -468,11 +468,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         this.queryResultState.state.uri!,
                     ) as GridColumnMap[];
                     if (gridColumnMapArray) {
-                        let gridColumnMapIndex = gridColumnMapArray.findIndex(
+                        const gridColumnMapIndex = gridColumnMapArray.findIndex(
                             (filter) => filter.hasOwnProperty(this.gridId),
                         );
 
-                        let gridColumnMap = gridColumnMapArray.splice(
+                        const gridColumnMap = gridColumnMapArray.splice(
                             gridColumnMapIndex,
                             1,
                         );
@@ -525,6 +525,13 @@ export class HeaderFilter<T extends Slick.SlickData> {
         store.set(this.queryResultState.state.uri, newStateArray);
     }
 
+    /**
+     * Combines two GridColumnMaps into one, keeping filters separate for different gridIds and removing any duplicate filterValues within the same column id
+     * @param currentFiltersArray
+     * @param newFilters
+     * @param columnId
+     * @returns
+     */
     private combineFilters(
         currentFiltersArray: GridColumnMap[],
         newFilters: GridColumnMap,
@@ -547,8 +554,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 currentFilter[this.gridId][columnId].filterValues = tempFilters;
                 combinedFiltersArray.push(currentFilter);
             } else {
-                // currentFilter[this.gridId][columnId] =
-                //     newFilters[this.gridId][columnId];
                 combinedFiltersArray.push(newFilters);
             }
         } else {

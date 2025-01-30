@@ -380,7 +380,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
 export enum DefaultWebviewNotifications {
     updateState = "updateState",
     onDidChangeTheme = "onDidChangeTheme",
-    updateStorage = "updateStorage",
+    deleteFilters = "deleteFilters",
 }
 
 export type ReducerResponse<T> = T | Promise<T>;

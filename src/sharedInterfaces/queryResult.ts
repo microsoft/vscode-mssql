@@ -9,7 +9,6 @@ import {
     ExecutionPlanState,
     ExecutionPlanWebviewState,
 } from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
-import { ColumnFilterState } from "../reactviews/pages/QueryResult/table/interfaces";
 import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
 
 export enum QueryResultLoadState {
@@ -70,7 +69,6 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     actualPlanEnabled?: boolean;
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
-    filterState: Record<string, Record<string, ColumnFilterState>>;
     fontSettings: FontSettings;
     autoSizeColumns?: boolean;
 }

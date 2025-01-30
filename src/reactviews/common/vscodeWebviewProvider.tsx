@@ -123,11 +123,9 @@ export function VscodeWebviewProvider<State, Reducers>({
 
     extensionRpc.subscribe(
         "vscodeWebviewProvider",
-        "updateStorage",
+        "deleteFilters",
         (params) => {
-            if (singletonStore.has(params as string)) {
-                singletonStore.delete(params as string);
-            }
+            singletonStore.delete(params as string);
         },
     );
 
