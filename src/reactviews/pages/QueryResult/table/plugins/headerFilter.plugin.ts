@@ -468,6 +468,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         this.queryResultState.state.uri!,
                     ) as GridColumnMap[];
                     if (gridColumnMapArray) {
+                        //Find the index of the gridId in the array, and then update its columnFilterState with the new cleared state
                         const gridColumnMapIndex = gridColumnMapArray.findIndex(
                             (filter) => filter.hasOwnProperty(this.gridId),
                         );
