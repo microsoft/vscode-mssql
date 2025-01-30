@@ -1857,6 +1857,9 @@
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.tableExplorer">
+      <source xml:lang="en">Table Explorer</source>
+    </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
     </trans-unit>
