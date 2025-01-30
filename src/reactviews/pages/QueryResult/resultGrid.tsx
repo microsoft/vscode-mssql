@@ -40,6 +40,7 @@ require("slickgrid/lib/jquery-1.11.2.min.js");
 require("slickgrid/slick.core.js");
 require("slickgrid/slick.grid.js");
 require("slickgrid/plugins/slick.cellrangedecorator.js");
+require("slickgrid/slick.editors.js");
 
 declare global {
     interface Window {
@@ -157,6 +158,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                                 ? locConstants.queryResult.showplanXML
                                 : escape(c.columnName),
                         field: i.toString(),
+                        //TODO: Add corresponding editor for various data types
+                        // editor: Slick.Editors.Text,
                         formatter:
                             c.isXml || c.isJson
                                 ? hyperLinkFormatter
@@ -229,6 +232,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 showRowNumber: true,
                 forceFitColumns: false,
                 defaultColumnWidth: COLUMN_WIDTH,
+                //TODO: Add editable flag for edit data
+                // editable: true,
+                // autoEdit: false,
             };
             let rowNumberColumn = new RowNumberColumn<Slick.SlickData>({
                 autoCellSelection: false,
