@@ -140,10 +140,13 @@ export default [
         },
       ],
       "@stylistic/semi": "warn",
+      "max-len": ["off"],
       "prettier/prettier": [
-        "error",
+        "off", // Disable Prettier enforcement inside ESLint
         {
           endOfLine: "auto",
+          printWidth: 120,
+          proseWrap: "preserve",
         },
       ],
     },

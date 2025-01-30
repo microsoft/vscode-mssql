@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
@@ -41,6 +42,11 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
+
+        let conversationUri = getNextConversationUri();
+        let connectionUri = vscodeWrapper.activeTextEditorUri;
+        Utils.logDebug(`Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`);
+
         const prompt = request.prompt.trim();
         const [model] = await vscode.lm.selectChatModels(MODEL_SELECTOR);
 
@@ -54,8 +60,6 @@ export const createSqlAgentRequestHandler = (
                 `Using ${model.name} (${context.languageModelAccessInformation.canSendRequest(model)})...`,
             );
 
-            let conversationUri = getNextConversationUri();
-            let connectionUri = vscodeWrapper.activeTextEditorUri;
             if (!connectionUri) {
                 await sendToDefaultLanguageModel(prompt, model, stream, token);
                 return { metadata: { command: "" } };
@@ -77,6 +81,8 @@ export const createSqlAgentRequestHandler = (
             let printTextout = false;
 
             while (continuePollingMessages) {
+                Utils.logDebug(`Continue polling messages for '${conversationUri}'`);
+
                 // Default continuePollingMessages to true at the start of each loop
                 continuePollingMessages = true;
 
@@ -96,6 +102,7 @@ export const createSqlAgentRequestHandler = (
                 // Reset for the next iteration
                 replyText = "";
                 sqlTools = undefined;
+                conversationUri = result.conversationUri ?? conversationUri;
 
                 // Handle different message types
                 switch (result.messageType) {
@@ -108,8 +115,10 @@ export const createSqlAgentRequestHandler = (
                         break;
 
                     case MessageType.RequestLLM:
+                    case MessageType.RequestDirectLLM:
                         const { text, tools, print } =
                             await handleRequestLLMMessage(
+                                conversationUri,
                                 result,
                                 model,
                                 stream,
@@ -117,8 +126,12 @@ export const createSqlAgentRequestHandler = (
                             );
 
                         replyText = text;
-                        sqlTools = tools;
-                        printTextout = print;
+                        if (result.messageType === MessageType.RequestLLM) {
+                            sqlTools = tools;
+                            printTextout = print;
+                        } else {
+                            printTextout = false;
+                        }
                         break;
 
                     default:
@@ -129,6 +142,7 @@ export const createSqlAgentRequestHandler = (
                         break;
                 }
 
+                Utils.logDebug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
                     stream.markdown(replyText);
@@ -225,6 +239,7 @@ export const createSqlAgentRequestHandler = (
     }
 
     async function handleRequestLLMMessage(
+        conversationUri: string,
         result: GetNextMessageResponse,
         model: vscode.LanguageModelChat,
         stream: vscode.ChatResponseStream,
@@ -234,6 +249,8 @@ export const createSqlAgentRequestHandler = (
         tools: { tool: LanguageModelChatTool; parameters: string }[];
         print: boolean;
     }> {
+        Utils.logDebug(`Handle LLM request message for '${conversationUri}'`);
+
         const requestTools = mapRequestTools(result.tools);
         const options: vscode.LanguageModelChatRequestOptions = {
             justification: "SQL Server Copilot requested this information.",

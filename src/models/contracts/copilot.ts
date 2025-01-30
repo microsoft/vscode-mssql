@@ -10,6 +10,7 @@ export enum MessageType {
     Fragment = 0,
     Complete = 1,
     RequestLLM = 2,
+    RequestDirectLLM = 3,
 }
 
 export enum MessageRole {
@@ -39,6 +40,7 @@ export class GetNextMessageParams {
 }
 
 export class GetNextMessageResponse {
+    public conversationUri: string;
     public messageType: MessageType;
     public responseText: string;
     public tools: LanguageModelChatTool[];
