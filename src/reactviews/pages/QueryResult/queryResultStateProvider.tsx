@@ -11,7 +11,7 @@ import {
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 import { ColumnFilterState } from "./table/interfaces";
-import { getCoreReducers } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 
 export interface QueryResultState
     extends WebviewContextProps<qr.QueryResultWebviewState> {
@@ -37,7 +37,7 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
     return (
         <QueryResultContext.Provider
             value={{
-                ...getCoreReducers(webViewState),
+                ...getCoreRPCs(webViewState),
                 provider: {
                     setResultTab: function (
                         tabId: qr.QueryResultPaneTabs,

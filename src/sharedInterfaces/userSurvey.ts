@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
-import { CoreReducers } from "./webview";
 
 export interface UserSurveyState {
     /**
@@ -80,7 +79,7 @@ export interface UserSurveyContextProps
     openPrivacyStatement(): void;
 }
 
-export interface UserSurveyReducers extends CoreReducers {
+export interface UserSurveyReducers {
     submit: {
         answers: Answers;
     };

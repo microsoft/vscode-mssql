@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
-import { getCoreReducers } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 
 import {
     useVscodeWebview,
@@ -77,7 +77,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
     return (
         <TableDesignerContext.Provider
             value={{
-                ...getCoreReducers(webviewState),
+                ...getCoreRPCs(webviewState),
                 provider: {
                     processTableEdit: function (
                         tableChangeInfo: designer.DesignerEdit,

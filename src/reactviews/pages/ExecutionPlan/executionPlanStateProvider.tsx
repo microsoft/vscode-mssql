@@ -10,7 +10,7 @@ import {
     WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
-import { getCoreReducers } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 
 export interface ExecutionPlanState
     extends WebviewContextProps<ep.ExecutionPlanWebviewState> {
@@ -35,7 +35,7 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
     return (
         <ExecutionPlanContext.Provider
             value={{
-                ...getCoreReducers(webviewState),
+                ...getCoreRPCs(webviewState),
                 provider: {
                     getExecutionPlan: function (): void {
                         webviewState?.extensionRpc.action(

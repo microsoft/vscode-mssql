@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CoreReducers } from "./webview";
-
 /**
  * Definition for the table designer service.
  */
@@ -729,7 +727,7 @@ export enum InputType {
     Number = "number",
 }
 
-export interface TableDesignerReducers extends CoreReducers {
+export interface TableDesignerReducers {
     processTableEdit: {
         table: TableInfo;
         tableChangeInfo: DesignerEdit;

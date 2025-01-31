@@ -106,14 +106,14 @@ export interface MssqlWebviewPanelOptions {
 
 export interface LogEvent {
     message: string;
-    level: LoggerLevels;
+    level: LoggerLevel;
 }
 
-export type LoggerLevels = "log" | "logDebug" | "error" | "info" | "verbose";
-
-export interface CoreReducers {
-    log: {
-        message: string;
-        level: LoggerLevels | undefined;
-    };
-}
+// Names of the logging level methods (not the enums) in the Logger class
+export type LoggerLevel =
+    | "critical"
+    | "error"
+    | "warn"
+    | "info"
+    | "verbose"
+    | "log";

@@ -5,6 +5,8 @@
 
 import { WebviewApi } from "vscode-webview";
 import {
+    LogEvent,
+    LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
@@ -103,5 +105,9 @@ export class WebviewRpc<Reducers> {
 
     public sendErrorEvent(event: WebviewTelemetryErrorEvent) {
         void this.call("sendErrorEvent", event);
+    }
+
+    public log(message: string, level?: LoggerLevel) {
+        void this.call("log", { message, level } as LogEvent);
     }
 }

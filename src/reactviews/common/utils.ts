@@ -3,7 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CoreReducers } from "../../sharedInterfaces/webview";
+import {
+    LoggerLevel,
+    WebviewTelemetryActionEvent,
+    WebviewTelemetryErrorEvent,
+} from "../../sharedInterfaces/webview";
 import { ColorThemeKind, VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
@@ -68,15 +72,18 @@ export function deepClone<T>(obj: T): T {
     return result;
 }
 
-export function getCoreReducers<TState, TReducers extends CoreReducers>(
+export function getCoreRPCs<TState, TReducers>(
     webviewState: VscodeWebviewContext<TState, TReducers>,
 ): any {
     return {
-        log: function (message: string) {
-            webviewState.extensionRpc.action("log", {
-                message,
-                level: "log",
-            });
+        log(message: string, level?: LoggerLevel) {
+            webviewState.extensionRpc.log(message, level);
+        },
+        sendActionEvent(event: WebviewTelemetryActionEvent) {
+            webviewState.extensionRpc.sendActionEvent(event);
+        },
+        sendErrorEvent(event: WebviewTelemetryErrorEvent) {
+            webviewState.extensionRpc.sendErrorEvent(event);
         },
     };
 }

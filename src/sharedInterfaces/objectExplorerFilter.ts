@@ -6,7 +6,6 @@
 import * as vscodeMssql from "vscode-mssql";
 
 import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
-import { CoreReducers } from "./webview";
 
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
@@ -14,7 +13,7 @@ export interface ObjectExplorerFilterState {
     nodePath?: string;
 }
 
-export interface ObjectExplorerReducers extends CoreReducers {
+export interface ObjectExplorerReducers {
     submit: {
         filters: vscodeMssql.NodeFilter[];
     };

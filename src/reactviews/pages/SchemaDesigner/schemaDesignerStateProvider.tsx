@@ -12,7 +12,7 @@ import {
     useVscodeWebview,
     WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
-import { getCoreReducers } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 
 export interface SchemaDesignerState
     extends WebviewContextProps<SchemaDesignerWebviewState> {
@@ -34,7 +34,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerContextProps> = ({
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreReducers(webviewState),
+                ...getCoreRPCs(webviewState),
                 schema: webviewState.state.schema,
                 state: webviewState.state,
                 themeKind: webviewState.themeKind,

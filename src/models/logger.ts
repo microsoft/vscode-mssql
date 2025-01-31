@@ -110,14 +110,19 @@ export class Logger implements ILogger {
         Utils.logDebug(message);
     }
 
-    /** Outputs a message with priority "All" (most verbose) */
-    public log(msg: any, ...vals: any[]): void {
-        this.write(LogLevel.All, msg, ...vals);
+    public critical(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.Critical, msg, ...vals);
+        console.error(msg);
     }
 
     public error(msg: any, ...vals: any[]): void {
         this.write(LogLevel.Error, msg, ...vals);
         console.error(msg);
+    }
+
+    public warn(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.Warning, msg, ...vals);
+        console.warn(msg);
     }
 
     public info(msg: any, ...vals: any[]): void {
@@ -126,6 +131,11 @@ export class Logger implements ILogger {
 
     public verbose(msg: any, ...vals: any[]): void {
         this.write(LogLevel.Verbose, msg, ...vals);
+    }
+
+    /** Outputs a message with priority "All" (most verbose) */
+    public log(msg: any, ...vals: any[]): void {
+        this.write(LogLevel.All, msg, ...vals);
     }
 
     public increaseIndent(): void {
