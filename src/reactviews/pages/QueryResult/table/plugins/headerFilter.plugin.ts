@@ -456,7 +456,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.setFocusToColumn(columnDef);
         // clear filterValues if clear is true
         if (clear) {
-            //TODO: should clear at a grid level or a column level?
             columnFilterState = {
                 columnDef: this.columnDef.id!,
                 filterValues: [],
@@ -472,18 +471,19 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         const gridColumnMapIndex = gridColumnMapArray.findIndex(
                             (filter) => filter.hasOwnProperty(this.gridId),
                         );
-
-                        const gridColumnMap = gridColumnMapArray.splice(
-                            gridColumnMapIndex,
-                            1,
-                        );
-                        gridColumnMap[0][this.gridId][columnDef.id!] =
-                            columnFilterState;
-                        gridColumnMapArray.concat(gridColumnMap);
-                        store.set(
-                            this.queryResultState.state.uri,
-                            gridColumnMapArray,
-                        );
+                        if (gridColumnMapIndex >= 0) {
+                            const gridColumnMap = gridColumnMapArray.splice(
+                                gridColumnMapIndex,
+                                1,
+                            );
+                            gridColumnMap[0][this.gridId][columnDef.id!] =
+                                columnFilterState;
+                            gridColumnMapArray.concat(gridColumnMap);
+                            store.set(
+                                this.queryResultState.state.uri,
+                                gridColumnMapArray,
+                            );
+                        }
                     }
                 }
             }
@@ -545,8 +545,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
         );
 
         if (currentFilter) {
+            // If the current filter has a filter for the columnId, merge the new and current filterValues arrays
             if (currentFilter[this.gridId][columnId]) {
-                //Removes any duplicate values
+                // Removes any duplicate values when merging the filterValues arrays
                 let tempFilters = this.mergeUnique(
                     currentFilter[this.gridId][columnId].filterValues,
                     newFilters[this.gridId][columnId].filterValues,
@@ -555,9 +556,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 currentFilter[this.gridId][columnId].filterValues = tempFilters;
                 combinedFiltersArray.push(currentFilter);
             } else {
+                // If the current filter has a filter for a different columnId, add the new filter to the corresponding columnId
+                combinedFiltersArray = combinedFilters.concat(newFilters);
                 combinedFiltersArray.push(newFilters);
             }
         } else {
+            // If the current filter does not have a filter for the gridId, add the new filter to the gridId
             combinedFiltersArray = combinedFilters.concat(newFilters);
         }
         return combinedFiltersArray;
