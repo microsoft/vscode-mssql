@@ -156,12 +156,7 @@ export const UserSurveyPage = () => {
                 </div>
             </div>
             <div className={classes.privacyDisclaimer}>
-                <Popover
-                    inline
-                    withArrow
-                    openOnHover
-                    positioning={{ coverTarget: true }}
-                >
+                <Popover inline openOnHover positioning={{ coverTarget: true }}>
                     <PopoverTrigger>
                         <p>
                             {locConstants.userFeedback.feedbackStatementShort}
