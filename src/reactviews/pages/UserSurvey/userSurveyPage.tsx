@@ -20,6 +20,9 @@ import {
     Text,
     Textarea,
     makeStyles,
+    Popover,
+    PopoverTrigger,
+    PopoverSurface,
 } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 
@@ -51,6 +54,7 @@ const useStyles = makeStyles({
         },
     },
     privacyDisclaimer: {
+        marginTop: "30px",
         marginLeft: "auto",
     },
 });
@@ -150,6 +154,20 @@ export const UserSurveyPage = () => {
                             locConstants.common.cancel}
                     </Button>
                 </div>
+            </div>
+            <div className={classes.privacyDisclaimer}>
+                <Popover inline openOnHover positioning={{ coverTarget: true }}>
+                    <PopoverTrigger>
+                        <p>
+                            {locConstants.userFeedback.feedbackStatementShort}
+                        </p>
+                    </PopoverTrigger>
+                    <PopoverSurface>
+                        <div style={{ width: "600px" }}>
+                            {locConstants.userFeedback.feedbackStatementLong}
+                        </div>
+                    </PopoverSurface>
+                </Popover>
                 <Link
                     onClick={() => {
                         userSurveryProvider.openPrivacyStatement();
