@@ -164,26 +164,12 @@ export const UserSurveyPage = () => {
                 >
                     <PopoverTrigger>
                         <p>
-                            Microsoft will process the feedback you submit
-                            pursuant to your organization’s instructions in
-                            order to improve your and your organization’s
-                            experience with this product. If you have any
-                            questions about the use of feedback...
+                            {locConstants.userFeedback.feedbackStatementShort}
                         </p>
                     </PopoverTrigger>
                     <PopoverSurface>
                         <div style={{ width: "600px" }}>
-                            Microsoft will process the feedback you submit
-                            pursuant to your organization’s instructions in
-                            order to improve your and your organization’s
-                            experience with this product. If you have any
-                            questions about the use of feedback data, please
-                            contact your tenant administrator. Processing of
-                            feedback data is governed by the Microsoft Products
-                            and Services Data Protection Addendum between your
-                            organization and Microsoft, and the feedback you
-                            submit is considered Personal Data under that
-                            addendum.
+                            {locConstants.userFeedback.feedbackStatementLong}
                         </div>
                     </PopoverSurface>
                 </Popover>
