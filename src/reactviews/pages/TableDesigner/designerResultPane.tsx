@@ -102,7 +102,7 @@ export const DesignerResultPane = () => {
 
     const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
         const issuePath = issue.propertyPath ?? [];
-        console.log(`focusing on`, issuePath);
+        context?.log(`focusing on ${issuePath}`);
 
         if (!metadata?.view?.tabs || !context?.provider) {
             return;
