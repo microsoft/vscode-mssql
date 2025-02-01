@@ -10,6 +10,7 @@ import {
     ISchemaDesignerService,
     SchemaDesignerWebviewState,
 } from "../sharedInterfaces/schemaDesigner";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesignerWebviewState,
@@ -17,12 +18,15 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 > {
     constructor(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         public _schemaDesignerService: ISchemaDesignerService,
         _database: string,
         intialSchema: ISchema,
     ) {
         super(
             context,
+            vscodeWrapper,
+            "schemaDesigner",
             "schemaDesigner",
             {
                 schema: intialSchema,

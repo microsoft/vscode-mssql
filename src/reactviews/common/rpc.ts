@@ -5,12 +5,14 @@
 
 import { WebviewApi } from "vscode-webview";
 import {
+    LogEvent,
+    LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
 
 /**
- * Rpc to communicate with the extension.
+ * RPC to communicate with the extension.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
 export class WebviewRpc<Reducers> {
@@ -103,5 +105,9 @@ export class WebviewRpc<Reducers> {
 
     public sendErrorEvent(event: WebviewTelemetryErrorEvent) {
         void this.call("sendErrorEvent", event);
+    }
+
+    public log(message: string, level?: LoggerLevel) {
+        void this.call("log", { message, level } as LogEvent);
     }
 }

@@ -14,6 +14,7 @@ import {
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
 import { sendActionEvent } from "../telemetry/telemetry";
+import VscodeWrapper from "./vscodeWrapper";
 
 /**
  * ReactWebviewPanelController is a class that manages a vscode.WebviewPanel and provides
@@ -39,11 +40,13 @@ export class ReactWebviewPanelController<
      */
     constructor(
         _context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         sourceFile: string,
+        _viewId: string,
         initialData: State,
         private _options: MssqlWebviewPanelOptions,
     ) {
-        super(_context, sourceFile, initialData);
+        super(_context, vscodeWrapper, sourceFile, initialData, _viewId);
         this.createWebviewPanel();
         // This call sends messages to the Webview so it's called after the Webview creation.
         this.initializeBase();

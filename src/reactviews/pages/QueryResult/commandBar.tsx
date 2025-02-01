@@ -130,7 +130,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={saveAsCsvIcon(context.theme)}
+                            src={saveAsCsvIcon(context.themeKind)}
                         />
                     }
                     className="codicon saveCsv"
@@ -149,7 +149,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={saveAsJsonIcon(context.theme)}
+                            src={saveAsJsonIcon(context.themeKind)}
                         />
                     }
                     className="codicon saveJson"
@@ -168,7 +168,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={saveAsExcelIcon(context.theme)}
+                            src={saveAsExcelIcon(context.themeKind)}
                         />
                     }
                     className="codicon saveExcel"
