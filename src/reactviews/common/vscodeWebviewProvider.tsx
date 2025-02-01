@@ -12,7 +12,11 @@ import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import { webviewTheme } from "./theme";
-import { LoggerLevel } from "../../sharedInterfaces/webview";
+import {
+    LoggerLevel,
+    WebviewTelemetryActionEvent,
+    WebviewTelemetryErrorEvent,
+} from "../../sharedInterfaces/webview";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -57,6 +61,8 @@ export interface WebviewContextProps<TState> {
      */
     themeKind: ColorThemeKind;
     log(message: string, level?: LoggerLevel): void;
+    sendActionEvent(event: WebviewTelemetryActionEvent): void;
+    sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();

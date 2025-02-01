@@ -42,10 +42,11 @@ export class ReactWebviewPanelController<
         _context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         sourceFile: string,
+        _viewId: string,
         initialData: State,
         private _options: MssqlWebviewPanelOptions,
     ) {
-        super(_context, vscodeWrapper, sourceFile, initialData);
+        super(_context, vscodeWrapper, sourceFile, initialData, _viewId);
         this.createWebviewPanel();
         // This call sends messages to the Webview so it's called after the Webview creation.
         this.initializeBase();

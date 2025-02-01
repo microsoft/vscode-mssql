@@ -43,6 +43,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
             context,
             vscodeWrapper,
             "objectExplorerFilter",
+            "objectExplorerFilter",
             data ?? {
                 filterProperties: [],
                 existingFilters: [],

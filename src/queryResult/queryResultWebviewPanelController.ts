@@ -29,6 +29,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
             context,
             vscodeWrapper,
             "queryResult",
+            "queryResult",
             {
                 resultSetSummaries: {},
                 messages: [],

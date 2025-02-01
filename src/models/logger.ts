@@ -45,16 +45,16 @@ export class Logger implements ILogger {
         this._prefix = prefix;
     }
 
-    public static create(channel: OutputChannel) {
+    public static create(channel: OutputChannel, prefix?: string): Logger {
         const logLevel: LogLevel =
             LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
         const pii = Utils.getConfigPiiLogging();
 
-        const logger = new Logger(
-            (text) => channel.append(text),
-            logLevel,
-            pii,
-        );
+        function logToOutputChannel(message: string): void {
+            channel.append(message);
+        }
+
+        const logger = new Logger(logToOutputChannel, logLevel, pii, prefix);
 
         return logger;
     }

@@ -34,7 +34,7 @@ export class ReactWebviewViewController<State, Reducers>
         private _viewId: string,
         initialData: State,
     ) {
-        super(_context, _vscodeWrapper, _sourceFile, initialData);
+        super(_context, _vscodeWrapper, _sourceFile, initialData, _viewId);
     }
 
     protected _getWebview(): vscode.Webview {

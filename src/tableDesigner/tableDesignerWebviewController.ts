@@ -44,6 +44,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             context,
             vscodeWrapper,
             "tableDesigner",
+            "tableDesigner",
             {
                 apiState: {
                     editState: designer.LoadState.NotStarted,

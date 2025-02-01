@@ -27,6 +27,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             context,
             vscodeWrapper,
             "schemaDesigner",
+            "schemaDesigner",
             {
                 schema: intialSchema,
             },

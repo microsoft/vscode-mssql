@@ -36,6 +36,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             context,
             vscodeWrapper,
             "executionPlan",
+            "executionPlan",
             {
                 executionPlanState: {
                     loadState: ApiStatus.Loading,

@@ -218,7 +218,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
         vscodeWrapper: VscodeWrapper,
         state?: UserSurveyState,
     ) {
-        super(context, vscodeWrapper, "userSurvey", state, {
+        super(context, vscodeWrapper, "userSurvey", "userSurvey", state, {
             title: locConstants.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

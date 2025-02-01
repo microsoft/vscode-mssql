@@ -109,6 +109,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             context,
             vscodeWrapper,
             "connectionDialog",
+            "connectionDialog",
             new ConnectionDialogWebviewState(),
             {
                 title: Loc.connectionDialog,
