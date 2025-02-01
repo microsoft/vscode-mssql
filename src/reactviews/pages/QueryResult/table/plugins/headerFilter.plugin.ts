@@ -7,7 +7,6 @@
 // heavily modified
 
 import {
-    ColumnFilterMap,
     ColumnFilterState,
     FilterableColumn,
     GridColumnMap,
@@ -463,28 +462,17 @@ export class HeaderFilter<T extends Slick.SlickData> {
             };
             if (this.queryResultState.state.uri) {
                 if (store.has(this.queryResultState.state.uri)) {
-                    const gridColumnMapArray = store.get(
+                    let gridColumnMapArray = store.get(
                         this.queryResultState.state.uri!,
                     ) as GridColumnMap[];
-                    if (gridColumnMapArray) {
-                        //Find the index of the gridId in the array, and then update its columnFilterState with the new cleared state
-                        const gridColumnMapIndex = gridColumnMapArray.findIndex(
-                            (filter) => filter.hasOwnProperty(this.gridId),
-                        );
-                        if (gridColumnMapIndex >= 0) {
-                            const gridColumnMap = gridColumnMapArray.splice(
-                                gridColumnMapIndex,
-                                1,
-                            );
-                            gridColumnMap[0][this.gridId][columnDef.id!] =
-                                columnFilterState;
-                            gridColumnMapArray.concat(gridColumnMap);
-                            store.set(
-                                this.queryResultState.state.uri,
-                                gridColumnMapArray,
-                            );
-                        }
-                    }
+                    gridColumnMapArray = this.clearFilterValues(
+                        gridColumnMapArray,
+                        columnDef.id!,
+                    );
+                    store.set(
+                        this.queryResultState.state.uri,
+                        gridColumnMapArray,
+                    );
                 }
             }
         } else {
@@ -495,16 +483,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
             };
         }
 
-        let columnFilterMap: ColumnFilterMap = {
-            [columnDef.id!]: columnFilterState,
-        };
-        let gridColumnMap: GridColumnMap = {
-            [this.gridId]: columnFilterMap,
-        };
-        this.updateState(gridColumnMap, columnDef.id!);
+        this.updateState(columnFilterState, columnDef.id!);
     }
 
-    private updateState(newState: GridColumnMap, columnId: string): void {
+    private updateState(newState: ColumnFilterState, columnId: string): void {
         let newStateArray: GridColumnMap[];
         //Check if there is any existing filter state
         if (!this.queryResultState.state.uri) {
@@ -521,9 +503,37 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 columnId,
             );
         } else {
-            newStateArray = [newState];
+            newStateArray = [{ [this.gridId]: [{ [columnId]: [newState] }] }];
         }
         store.set(this.queryResultState.state.uri, newStateArray);
+    }
+
+    private clearFilterValues(
+        gridFiltersArray: GridColumnMap[],
+        columnId: string,
+    ) {
+        const targetGridFilters = gridFiltersArray.find(
+            (gridFilters) => gridFilters[this.gridId],
+        );
+
+        // Return original array if gridId is not found
+        if (!targetGridFilters) {
+            return gridFiltersArray;
+        }
+
+        // Iterate through each ColumnFilterMap and clear filterValues for the specified columnId
+        for (const columnFilterMap of targetGridFilters[this.gridId]) {
+            if (columnFilterMap[columnId]) {
+                columnFilterMap[columnId] = columnFilterMap[columnId].map(
+                    (filterState) => ({
+                        ...filterState,
+                        filterValues: [],
+                    }),
+                );
+            }
+        }
+
+        return [...gridFiltersArray];
     }
 
     /**
@@ -534,41 +544,46 @@ export class HeaderFilter<T extends Slick.SlickData> {
      * @returns
      */
     private combineFilters(
-        currentFiltersArray: GridColumnMap[],
-        newFilters: GridColumnMap,
+        gridFiltersArray: GridColumnMap[],
+        newFilterState: ColumnFilterState,
         columnId: string,
     ): GridColumnMap[] {
-        let combinedFiltersArray: GridColumnMap[] = [];
-        let combinedFilters: GridColumnMap[] = currentFiltersArray;
-        let currentFilter = currentFiltersArray.find((filter) =>
-            filter.hasOwnProperty(this.gridId),
+        // Find the appropriate GridColumnFilterMap for the gridId
+        let targetGridFilters = gridFiltersArray.find(
+            (gridFilters) => gridFilters[this.gridId],
         );
 
-        if (currentFilter) {
-            // If the current filter has a filter for the columnId, merge the new and current filterValues arrays
-            if (currentFilter[this.gridId][columnId]) {
-                // Removes any duplicate values when merging the filterValues arrays
-                let tempFilters = this.mergeUnique(
-                    currentFilter[this.gridId][columnId].filterValues,
-                    newFilters[this.gridId][columnId].filterValues,
-                );
-
-                currentFilter[this.gridId][columnId].filterValues = tempFilters;
-                combinedFiltersArray.push(currentFilter);
-            } else {
-                // If the current filter has a filter for a different columnId, add the new filter to the corresponding columnId
-                combinedFiltersArray = combinedFilters.concat(newFilters);
-                combinedFiltersArray.push(newFilters);
-            }
-        } else {
-            // If the current filter does not have a filter for the gridId, add the new filter to the gridId
-            combinedFiltersArray = combinedFilters.concat(newFilters);
+        if (!targetGridFilters) {
+            // If no GridColumnFilterMap found for the gridId, create a new one
+            targetGridFilters = { [this.gridId]: [] };
+            gridFiltersArray.push(targetGridFilters);
         }
-        return combinedFiltersArray;
-    }
 
-    private mergeUnique<T>(array1: T[], array2: T[]): T[] {
-        return Array.from(new Set([...array1, ...array2]));
+        let columnFilterMap = targetGridFilters[this.gridId].find(
+            (map) => map[columnId],
+        );
+
+        if (!columnFilterMap) {
+            // If no existing ColumnFilterMap for this column, create a new one
+            columnFilterMap = { [columnId]: [newFilterState] };
+            targetGridFilters[this.gridId].push(columnFilterMap);
+        } else {
+            // Update the existing column filter state
+            const filterStates = columnFilterMap[columnId];
+            const existingIndex = filterStates.findIndex(
+                (filter) => filter.columnDef === newFilterState.columnDef,
+            );
+
+            if (existingIndex !== -1) {
+                // Replace existing filter state for the column
+                filterStates[existingIndex] = newFilterState;
+            } else {
+                // Add new filter state for this column
+                filterStates.push(newFilterState);
+            }
+        }
+
+        return [...gridFiltersArray];
     }
 
     private async handleMenuItemClick(

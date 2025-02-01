@@ -230,19 +230,18 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             console.log("No filters found in store");
             return false;
         }
-        this.columns.forEach((column) => {
-            if (column.field) {
-                if (!this.queryResultState.state.uri) {
-                    console.log("No uri found in query result state");
-                }
-                if (filterMap[this.gridId][column.field]) {
-                    (<FilterableColumn<T>>column).filterValues =
-                        filterMap[this.gridId][column.field].filterValues;
-                } else {
-                    return false;
+        for (const column of this.columns) {
+            for (const columnFilterMap of filterMap[this.gridId]) {
+                for (const columnId in columnFilterMap) {
+                    columnFilterMap[columnId].forEach((filterState) => {
+                        if (filterState.columnDef === column.field) {
+                            (<FilterableColumn<T>>column).filterValues =
+                                filterState.filterValues;
+                        }
+                    });
                 }
             }
-        });
+        }
         await this._data.filter(this.columns);
         return true;
     }

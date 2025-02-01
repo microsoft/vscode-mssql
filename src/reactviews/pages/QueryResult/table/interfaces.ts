@@ -57,16 +57,12 @@ export interface ColumnFilterState {
 /**
  * Maps all the column filters for a specific grid ID
  */
-export interface GridColumnMap {
-    [gridId: string]: ColumnFilterMap;
-}
+export type GridColumnMap = Record<string, ColumnFilterMap[]>;
 
 /**
  * Maps the column filter state for a specific column
  */
-export interface ColumnFilterMap {
-    [columnDef: string]: ColumnFilterState;
-}
+export type ColumnFilterMap = Record<string, ColumnFilterState[]>;
 
 export interface GridFilters {
     gridId: string;
