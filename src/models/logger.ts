@@ -24,26 +24,16 @@ export enum LogLevel {
  * Logger class handles logging messages using the Util functions.
  */
 export class Logger implements ILogger {
-    private _writer: (message: string) => void;
-    private _piiLogging: boolean = false;
-    private _prefix: string;
-    private _logLevel: LogLevel;
-
     private _indentLevel: number = 0;
     private _indentSize: number = 4;
-    private _atLineStart: boolean = false;
+    private _atLineStart: boolean = true;
 
     constructor(
-        writer: (message: string) => void,
-        logLevel: LogLevel,
-        piiLogging: boolean,
-        prefix?: string,
-    ) {
-        this._writer = writer;
-        this._logLevel = logLevel;
-        this._piiLogging = piiLogging;
-        this._prefix = prefix;
-    }
+        private _writer: (message: string) => void,
+        private _logLevel: LogLevel,
+        private _piiLogging: boolean,
+        private _prefix?: string,
+    ) {}
 
     public static create(channel: OutputChannel, prefix?: string): Logger {
         const logLevel: LogLevel =
@@ -184,6 +174,8 @@ export class Logger implements ILogger {
                 const indent = " ".repeat(this._indentLevel * this._indentSize);
                 this._writer(indent);
             }
+
+            this._writer(`[${new Date().toLocaleTimeString()}] `);
 
             if (this._prefix) {
                 this._writer(`[${this._prefix}] `);
