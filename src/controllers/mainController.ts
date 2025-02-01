@@ -897,7 +897,7 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdSchemaCompare,
-                    async (node: TreeNodeInfo) => this.onSchemaCompare(node),
+                    async (node: any) => this.onSchemaCompare(node),
                 ),
             );
 
@@ -1981,7 +1981,7 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public async onSchemaCompare(node: TreeNodeInfo): Promise<void> {
+    public async onSchemaCompare(node: any): Promise<void> {
         if (node) {
             const result = await this.schemaCompareService.getDefaultOptions();
             const schemaCompareWebView = new SchemaCompareWebViewController(

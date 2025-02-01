@@ -24,7 +24,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        private node: TreeNodeInfo,
+        node: any,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
         defaultDeploymentOptions: mssql.DeploymentOptions,
@@ -62,6 +62,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             },
         );
+
+        if (!this.isTreeNodeInfoType(node)) {
+            node = this.getFullSqlProjectsPathFromNode(node);
+        }
 
         void this.start(node);
         this.registerRpcHandlers();
@@ -189,6 +193,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
         this.updateState(this.state);
+    }
+
+    private isTreeNodeInfoType(node: any): boolean {
+        if (node instanceof TreeNodeInfo) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private getFullSqlProjectsPathFromNode(node: any): string {
+        return node.treeDataProvider?.roots[0]?.projectFileUri?.fsPath ?? "";
     }
 
     private registerRpcHandlers(): void {
