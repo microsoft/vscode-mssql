@@ -82,10 +82,7 @@ export const ConnectionsListContainer = () => {
                 <Button
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
-                    onClick={() => {
-                        context.log(`Refreshing saved connections list`);
-                        context.refreshConnectionsList();
-                    }}
+                    onClick={context.refreshConnectionsList}
                 />
             </div>
             <div className={styles.main}>
