@@ -54,6 +54,21 @@ export interface ColumnFilterState {
     columnDef: string;
 }
 
+/**
+ * Maps all the column filters for a specific grid ID
+ */
+export type GridColumnMap = Record<string, ColumnFilterMap[]>;
+
+/**
+ * Maps the column filter state for a specific column
+ */
+export type ColumnFilterMap = Record<string, ColumnFilterState[]>;
+
+export interface GridFilters {
+    gridId: string;
+    columnFilters: ColumnFilterState;
+}
+
 export interface GridSortState {
     field: string;
     sortAsc: boolean;

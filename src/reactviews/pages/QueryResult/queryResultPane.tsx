@@ -275,6 +275,7 @@ export const QueryResultPane = () => {
         gridCount: number,
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
+        const gridId = `resultGrid-${batchId}-${resultId}`;
         return (
             <div
                 id={divId}
@@ -360,6 +361,7 @@ export const QueryResultPane = () => {
                     webViewState={webViewState}
                     state={state}
                     linkHandler={linkHandler}
+                    gridId={gridId}
                 />
                 <CommandBar
                     uri={metadata?.uri}

@@ -37,7 +37,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                     resultPaneTab: qr.QueryResultPaneTabs.Messages,
                 },
                 executionPlanState: {},
-                filterState: {},
                 fontSettings: {},
             },
             {

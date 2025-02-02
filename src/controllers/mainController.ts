@@ -1646,6 +1646,7 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
+            self._outputContentProvider.clearStorage(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
