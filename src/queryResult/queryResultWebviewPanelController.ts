@@ -19,7 +19,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     constructor(
         context: vscode.ExtensionContext,
-        private _vscodeWrapper: VscodeWrapper,
+        vscodeWrapper: VscodeWrapper,
         private _viewColumn: vscode.ViewColumn,
         private _uri: string,
         title: string,
@@ -27,6 +27,8 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     ) {
         super(
             context,
+            vscodeWrapper,
+            "queryResult",
             "queryResult",
             {
                 resultSetSummaries: {},
@@ -61,9 +63,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         );
 
         void this.initialize();
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
     }
 
     private async initialize() {

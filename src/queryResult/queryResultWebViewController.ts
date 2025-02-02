@@ -44,11 +44,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     constructor(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         private executionPlanService: ExecutionPlanService,
         private untitledSqlDocumentService: UntitledSqlDocumentService,
-        private _vscodeWrapper: VscodeWrapper,
     ) {
-        super(context, "queryResult", "queryResult", {
+        super(context, vscodeWrapper, "queryResult", "queryResult", {
             resultSetSummaries: {},
             messages: [],
             tabStates: {
@@ -59,9 +59,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         });
 
         void this.initialize();
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
+
         if (this.isRichExperiencesEnabled) {
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
@@ -85,16 +83,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
 
             // not the best api but it's the best we can do in VSCode
-            this._vscodeWrapper.onDidOpenTextDocument((document) => {
+            this.vscodeWrapper.onDidOpenTextDocument((document) => {
                 const uri = document.uri.toString(true);
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
                 }
             });
-            this._vscodeWrapper.onDidChangeConfiguration((e) => {
+            this.vscodeWrapper.onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration("mssql.resultsFontFamily")) {
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.fontSettings.fontFamily = this._vscodeWrapper
+                        state.fontSettings.fontFamily = this.vscodeWrapper
                             .getConfiguration(Constants.extensionName)
                             .get(
                                 Constants.extConfigResultKeys.ResultsFontFamily,
@@ -105,13 +103,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 if (e.affectsConfiguration("mssql.resultsFontSize")) {
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.fontSettings.fontSize =
-                            (this._vscodeWrapper
+                            (this.vscodeWrapper
                                 .getConfiguration(Constants.extensionName)
                                 .get(
                                     Constants.extConfigResultKeys
                                         .ResultsFontSize,
                                 ) as number) ??
-                            (this._vscodeWrapper
+                            (this.vscodeWrapper
                                 .getConfiguration("editor")
                                 .get("fontSize") as number);
                         this._queryResultStateMap.set(uri, state);
@@ -134,19 +132,19 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     private get isRichExperiencesEnabled(): boolean {
-        return this._vscodeWrapper
+        return this.vscodeWrapper
             .getConfiguration()
             .get(Constants.configEnableRichExperiences);
     }
 
     private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
-        return this._vscodeWrapper
+        return this.vscodeWrapper
             .getConfiguration()
             .get(Constants.configOpenQueryResultsInTabByDefault);
     }
 
     private get isDefaultQueryResultToDocumentDoNotShowPromptEnabled(): boolean {
-        return this._vscodeWrapper
+        return this.vscodeWrapper
             .getConfiguration()
             .get(Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt);
     }
@@ -164,7 +162,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
                 const response =
-                    await this._vscodeWrapper.showInformationMessage(
+                    await this.vscodeWrapper.showInformationMessage(
                         LocalizedConstants.openQueryResultsInTabByDefaultPrompt,
                         LocalizedConstants.alwaysShowInNewTab,
                         LocalizedConstants.keepInQueryPane,
@@ -190,7 +188,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 );
 
                 if (response === LocalizedConstants.alwaysShowInNewTab) {
-                    await this._vscodeWrapper
+                    await this.vscodeWrapper
                         .getConfiguration()
                         .update(
                             Constants.configOpenQueryResultsInTabByDefault,
@@ -199,7 +197,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         );
                 }
                 // show the prompt only once
-                await this._vscodeWrapper
+                await this.vscodeWrapper
                     .getConfiguration()
                     .update(
                         Constants.configOpenQueryResultsInTabByDefaultDoNotShowPrompt,
@@ -215,7 +213,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     public async createPanelController(uri: string) {
-        const viewColumn = getNewResultPaneViewColumn(uri, this._vscodeWrapper);
+        const viewColumn = getNewResultPaneViewColumn(uri, this.vscodeWrapper);
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
@@ -225,7 +223,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         const controller = new QueryResultWebviewPanelController(
             this._context,
-            this._vscodeWrapper,
+            this.vscodeWrapper,
             viewColumn,
             uri,
             this._queryResultStateMap.get(uri).title,
@@ -275,26 +273,26 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     public getAutoSizeColumnsConfig(): boolean {
-        return this._vscodeWrapper
+        return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.configAutoColumnSizing);
     }
 
     public getFontSizeConfig(): number {
         return (
-            (this._vscodeWrapper
+            (this.vscodeWrapper
                 .getConfiguration(Constants.extensionName)
                 .get(
                     Constants.extConfigResultKeys.ResultsFontSize,
                 ) as number) ??
-            (this._vscodeWrapper
+            (this.vscodeWrapper
                 .getConfiguration("editor")
                 .get("fontSize") as number)
         );
     }
 
     public getFontFamilyConfig(): string {
-        return this._vscodeWrapper
+        return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
     }
@@ -386,7 +384,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         }
 
         const messageText = messages.join("\n");
-        await this._vscodeWrapper.clipboardWriteText(messageText);
+        await this.vscodeWrapper.clipboardWriteText(messageText);
     }
 
     public getNumExecutionPlanResultSets(

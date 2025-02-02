@@ -8,10 +8,12 @@ import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
 import { stubTelemetry } from "./utils";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("ReactWebviewPanelController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -70,6 +72,8 @@ suite("ReactWebviewPanelController", () => {
             extensionPath: "path",
         } as unknown as vscode.ExtensionContext;
         sandbox.stub(utils, "getNonce").returns("test-nonce");
+
+        vscodeWrapper.reset();
     });
 
     teardown(() => {
@@ -313,6 +317,11 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
+const vscodeWrapper = TypeMoq.Mock.ofType(
+    VscodeWrapper,
+    TypeMoq.MockBehavior.Loose,
+);
+
 class TestReactWebviewPanelController extends ReactWebviewPanelController<
     TestState,
     TestReducers
@@ -321,6 +330,13 @@ class TestReactWebviewPanelController extends ReactWebviewPanelController<
         context: vscode.ExtensionContext,
         options: MssqlWebviewPanelOptions,
     ) {
-        super(context, "testSource", { count: 0 }, options);
+        super(
+            context,
+            vscodeWrapper.object,
+            "testSource",
+            "testSource",
+            { count: 0 },
+            options,
+        );
     }
 }
