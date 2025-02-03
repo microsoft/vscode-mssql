@@ -105,7 +105,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         args: Slick.OnHeaderCellRenderedEventArgs<T>,
     ) {
         const column = args.column as FilterableColumn<T>;
-        if ((<FilterableColumn<T>>column).filterable === false) {
+        if ((column as FilterableColumn<T>).filterable === false) {
             return;
         }
         if (args.node.classList.contains("slick-header-with-filter")) {
@@ -490,21 +490,20 @@ export class HeaderFilter<T extends Slick.SlickData> {
         let newStateArray: GridColumnMap[];
         //Check if there is any existing filter state
         if (!this.queryResultState.state.uri) {
-            console.log("no uri set for query result state");
+            this.queryResultState.log("no uri set for query result state");
             return;
         }
-        const currentFiltersArray = store.get(
+        let currentFiltersArray = store.get(
             this.queryResultState.state.uri,
         ) as GridColumnMap[];
-        if (currentFiltersArray) {
-            newStateArray = this.combineFilters(
-                currentFiltersArray,
-                newState,
-                columnId,
-            );
-        } else {
-            newStateArray = [{ [this.gridId]: [{ [columnId]: [newState] }] }];
+        if (!currentFiltersArray) {
+            currentFiltersArray = [];
         }
+        newStateArray = this.combineFilters(
+            currentFiltersArray,
+            newState,
+            columnId,
+        );
         store.set(this.queryResultState.state.uri, newStateArray);
     }
 
@@ -533,7 +532,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             }
         }
 
-        return [...gridFiltersArray];
+        return gridFiltersArray;
     }
 
     /**

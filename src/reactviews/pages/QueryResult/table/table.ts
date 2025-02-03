@@ -15,6 +15,7 @@ import {
     ITableStyles,
     FilterableColumn,
     GridColumnMap,
+    ColumnFilterState,
 } from "./interfaces";
 import * as DOM from "./dom";
 
@@ -227,18 +228,21 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         }
         const filterMap = filterMapArray.find((filter) => filter[this.gridId]);
         if (!filterMap || !filterMap[this.gridId]) {
-            console.log("No filters found in store");
+            this.queryResultState.log("No filters found in store");
             return false;
         }
         for (const column of this.columns) {
             for (const columnFilterMap of filterMap[this.gridId]) {
-                for (const columnId in columnFilterMap) {
-                    columnFilterMap[columnId].forEach((filterState) => {
-                        if (filterState.columnDef === column.field) {
-                            (<FilterableColumn<T>>column).filterValues =
-                                filterState.filterValues;
-                        }
-                    });
+                if (columnFilterMap[column.id!]) {
+                    const filterStateArray = columnFilterMap[column.id!];
+                    filterStateArray.forEach(
+                        (filterState: ColumnFilterState) => {
+                            if (filterState.columnDef === column.field) {
+                                (column as FilterableColumn<T>).filterValues =
+                                    filterState.filterValues;
+                            }
+                        },
+                    );
                 }
             }
         }
