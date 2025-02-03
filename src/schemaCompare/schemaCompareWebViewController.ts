@@ -28,6 +28,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
         defaultDeploymentOptions: mssql.DeploymentOptions,
+        title: string,
     ) {
         super(
             context,
@@ -46,7 +47,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 cancelResultStatus: undefined,
             },
             {
-                title: vscode.l10n.t("Schema Compare (Preview)"),
+                title: title,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(

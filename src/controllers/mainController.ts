@@ -63,6 +63,7 @@ import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExp
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
+import { SchemaCompare } from "../constants/locConstants";
 
 /**
  * The main controller class that initializes the extension
@@ -1990,6 +1991,7 @@ export default class MainController implements vscode.Disposable {
                 this.schemaCompareService,
                 this._connectionMgr,
                 result.defaultDeploymentOptions,
+                SchemaCompare.Title,
             );
 
             schemaCompareWebView.revealToForeground();
