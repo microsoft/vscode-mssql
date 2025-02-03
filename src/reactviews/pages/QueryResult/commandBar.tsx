@@ -64,38 +64,58 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
-    const hasMultipleResults =
-        context.state.resultSetSummaries &&
-        Object.keys(context.state.resultSetSummaries).length > 1;
+    const checkMultipleResults = () => {
+        if (Object.keys(context.state.resultSetSummaries).length > 1) {
+            return true;
+        }
+        for (let resultSet of Object.values(context.state.resultSetSummaries)) {
+            if (Object.keys(resultSet).length > 1) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const hasMultipleResults = () => {
+        return (
+            Object.keys(context.state.resultSetSummaries).length > 0 &&
+            checkMultipleResults()
+        );
+    };
 
     return (
         <div className={classes.commandBar}>
-            {hasMultipleResults && (
-                <Button
-                    appearance="subtle"
-                    onClick={() => {
-                        maxView
-                            ? props.restoreResults?.()
-                            : props.maximizeResults?.();
-                        setMaxView((prev) => !prev); // Toggle maxView state
-                    }}
-                    icon={
-                        maxView ? (
-                            <ArrowMinimize16Filled
-                                className={classes.buttonImg}
-                            />
-                        ) : (
-                            <ArrowMaximize16Filled
-                                className={classes.buttonImg}
-                            />
-                        )
-                    }
-                    title={
-                        maxView
-                            ? locConstants.queryResult.restore
-                            : locConstants.queryResult.maximize
-                    }
-                ></Button>
+            {hasMultipleResults() && (
+                <Tooltip
+                    content={locConstants.queryResult.maximize}
+                    relationship="label"
+                >
+                    <Button
+                        appearance="subtle"
+                        onClick={() => {
+                            maxView
+                                ? props.restoreResults?.()
+                                : props.maximizeResults?.();
+                            setMaxView((prev) => !prev); // Toggle maxView state
+                        }}
+                        icon={
+                            maxView ? (
+                                <ArrowMinimize16Filled
+                                    className={classes.buttonImg}
+                                />
+                            ) : (
+                                <ArrowMaximize16Filled
+                                    className={classes.buttonImg}
+                                />
+                            )
+                        }
+                        title={
+                            maxView
+                                ? locConstants.queryResult.restore
+                                : locConstants.queryResult.maximize
+                        }
+                    ></Button>
+                </Tooltip>
             )}
 
             <Tooltip
@@ -110,7 +130,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={saveAsCsvIcon(context.theme)}
+                            src={saveAsCsvIcon(context.themeKind)}
                         />
                     }
                     className="codicon saveCsv"
@@ -129,7 +149,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={saveAsJsonIcon(context.theme)}
+                            src={saveAsJsonIcon(context.themeKind)}
                         />
                     }
                     className="codicon saveJson"
@@ -148,7 +168,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={
                         <img
                             className={classes.buttonImg}
-                            src={saveAsExcelIcon(context.theme)}
+                            src={saveAsExcelIcon(context.themeKind)}
                         />
                     }
                     className="codicon saveExcel"

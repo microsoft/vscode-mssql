@@ -161,6 +161,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * An event that is emitted when a [text document change](#TextDocumentChange) is detected.
+     */
+    public get onDidChangeTextDocument(): vscode.Event<vscode.TextDocumentChangeEvent> {
+        return vscode.workspace.onDidChangeTextDocument;
+    }
+
+    /**
      * Opens the denoted document from disk. Will return early if the
      * document is already open, otherwise the document is loaded and the
      * [open document](#workspace.onDidOpenTextDocument)-event fires.

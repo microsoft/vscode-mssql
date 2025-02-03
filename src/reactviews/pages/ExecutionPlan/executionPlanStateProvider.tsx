@@ -6,15 +6,15 @@
 import * as ep from "./executionPlanInterfaces";
 
 import {
-    ColorThemeKind,
     useVscodeWebview,
+    WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
+import { getCoreRPCs } from "../../common/utils";
 
-export interface ExecutionPlanState {
+export interface ExecutionPlanState
+    extends WebviewContextProps<ep.ExecutionPlanWebviewState> {
     provider: ep.ExecutionPlanProvider;
-    state: ep.ExecutionPlanWebviewState;
-    themeKind: ColorThemeKind;
 }
 
 const ExecutionPlanContext = createContext<ExecutionPlanState | undefined>(
@@ -35,6 +35,7 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
     return (
         <ExecutionPlanContext.Provider
             value={{
+                ...getCoreRPCs(webviewState),
                 provider: {
                     getExecutionPlan: function (): void {
                         webviewState?.extensionRpc.action(

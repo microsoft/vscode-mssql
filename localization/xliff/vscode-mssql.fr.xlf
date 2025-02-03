@@ -575,6 +575,10 @@
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">Activer Approuver le certificat de serveur</target>
       </trans-unit>
+      <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
+        <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
+        <target state="new">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">Chiffrer</target>
@@ -1018,6 +1022,14 @@
         <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
         <target state="translated">Microsoft examine vos commentaires pour améliorer nos produits, donc veillez à ne pas inclure de données personnelles ou de contenu confidentiel/propriétaire.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1f5c209a4ee7cb85322b1d1fbde63de014d0871930fa88895405ebaea926535d">
+        <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.</source>
+        <target state="new">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87a43e5185b677199f2369f90cd8518b8b1d7702edff307ed9e79883f43aaaaa">
+        <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...</source>
+        <target state="new">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...</target>
+      </trans-unit>
       <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
         <source xml:lang="en">Microsoft would like your feedback</source>
         <target state="translated">Microsoft souhaite recevoir vos commentaires</target>
@@ -1099,6 +1111,10 @@
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">Aucun abonnement disponible.  Ajustez vos filtres d’abonnement pour réessayer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
+        <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
+        <target state="new">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1584,6 +1600,10 @@
         <source xml:lang="en">Submit</source>
         <target state="translated">Envoyer</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
+        <source xml:lang="en">Submit an issue</source>
+        <target state="new">Submit an issue</target>
+      </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
         <target state="translated">Abonnement</target>
@@ -2025,7 +2045,7 @@
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumns">
         <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
-        <target state="new">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</target>
+        <target state="translated">Ajustez automatiquement la largeur des colonnes en fonction des lignes visibles dans le jeu de résultats. Peut avoir des problèmes de performances avec un grand nombre de colonnes ou de cellules volumineuses</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
@@ -2435,6 +2455,10 @@
         <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
         <target state="translated">Spécifie si la mise en forme des mots clés est MAJUSCULES, minuscules, ou aucune (sans mise en forme)</target>
       </trans-unit>
+      <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
+        <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
+        <target state="new">Should language service be auto-disabled when extension detects Non-MSSQL files</target>
+      </trans-unit>
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">Spécifie si les sélections de résultat de requête et les positions de défilement doivent être enregistrées lors du passage d’un onglet à l’autre (peut impacter les performances)</target>
@@ -2466,6 +2490,10 @@
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Utiliser la base de données</target>
+      </trans-unit>
+      <trans-unit id="mssql.visualizeSchema">
+        <source xml:lang="en">Visualize Schema</source>
+        <target state="new">Visualize Schema</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

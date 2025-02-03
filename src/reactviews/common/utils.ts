@@ -3,7 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorThemeKind } from "./vscodeWebviewProvider";
+import {
+    LoggerLevel,
+    WebviewTelemetryActionEvent,
+    WebviewTelemetryErrorEvent,
+} from "../../sharedInterfaces/webview";
+import { ColorThemeKind, VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.
@@ -65,4 +70,20 @@ export function deepClone<T>(obj: T): T {
             value && typeof value === "object" ? deepClone(value) : value;
     });
     return result;
+}
+
+export function getCoreRPCs<TState, TReducers>(
+    webviewState: VscodeWebviewContext<TState, TReducers>,
+): any {
+    return {
+        log(message: string, level?: LoggerLevel) {
+            webviewState.extensionRpc.log(message, level);
+        },
+        sendActionEvent(event: WebviewTelemetryActionEvent) {
+            webviewState.extensionRpc.sendActionEvent(event);
+        },
+        sendErrorEvent(event: WebviewTelemetryErrorEvent) {
+            webviewState.extensionRpc.sendErrorEvent(event);
+        },
+    };
 }

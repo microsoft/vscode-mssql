@@ -90,6 +90,7 @@ export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
+export const cmdVisualizeSchema = "mssql.visualizeSchema";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider =
@@ -200,6 +201,8 @@ export const configEnableNewQueryResultFeature =
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configAutoDisableNonTSqlLanguageService =
+    "mssql.autoDisableNonTSqlLanguageService";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
@@ -229,7 +232,7 @@ export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
-    "https://www.microsoft.com/en-us/privacy/privacystatement";
+    "https://go.microsoft.com/fwlink/?LinkId=521839";
 export const sqlPlanLanguageId = "sqlplan";
 export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {
