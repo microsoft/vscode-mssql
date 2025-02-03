@@ -9,14 +9,20 @@ import {
     TableDesignerReducers,
     TableDesignerWebviewState,
 } from "../sharedInterfaces/tableDesigner";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class TableExplorerWebviewController extends ReactWebviewPanelController<
     TableDesignerWebviewState,
     TableDesignerReducers
 > {
-    constructor(private context: vscode.ExtensionContext) {
+    constructor(
+        private context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
+    ) {
         super(
             context,
+            vscodeWrapper,
+            "tableExplorer",
             "tableExplorer",
             {},
             {
