@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorThemeKind } from "../vscodeWebviewProvider";
+import { WebviewContextProps } from "../vscodeWebviewProvider";
 
 export interface FormState<T> {
     formState: T;
 }
 
-export interface FormContextProps<TState extends FormState<TForm>, TForm> {
-    state: TState;
-    themeKind: ColorThemeKind;
+export interface FormContextProps<TState extends FormState<TForm>, TForm>
+    extends WebviewContextProps<TState> {
     formAction: (event: FormEvent<TForm>) => void;
 }
 

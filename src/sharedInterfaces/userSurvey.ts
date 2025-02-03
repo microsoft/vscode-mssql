@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
+
 export interface UserSurveyState {
     /**
      * The title of the survey. By default, it is "Microsoft would like your feedback".
@@ -70,8 +72,8 @@ export interface Divider {
     type: "divider";
 }
 
-export interface UserSurveyContextProps {
-    state: UserSurveyState;
+export interface UserSurveyContextProps
+    extends WebviewContextProps<UserSurveyState> {
     submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;

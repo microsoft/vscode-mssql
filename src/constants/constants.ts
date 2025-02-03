@@ -231,7 +231,7 @@ export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
-    "https://www.microsoft.com/en-us/privacy/privacystatement";
+    "https://go.microsoft.com/fwlink/?LinkId=521839";
 export const sqlPlanLanguageId = "sqlplan";
 export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {

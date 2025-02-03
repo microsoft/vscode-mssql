@@ -7,7 +7,7 @@
   "preview": false,
   "license": "SEE LICENSE IN LICENSE.txt",
   "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
-  "icon": "images/sqlserver.png",
+  "icon": "images/extensionIcon.png",
   "galleryBanner": {
     "color": "#2F2F2F",
     "theme": "dark"
@@ -320,47 +320,47 @@
       "editor/title": [
         {
           "command": "mssql.runQuery",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && !isInDiffEditor",
           "group": "navigation@1"
         },
         {
           "command": "mssql.cancelQuery",
-          "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
+          "when": "editorLangId == sql && !isInDiffEditor && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
         },
         {
           "command": "mssql.revealQueryResultPanel",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && view.queryResult.visible == false",
+          "when": "editorLangId == sql && !isInDiffEditor && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && view.queryResult.visible == false",
           "group": "navigation@2"
         },
         {
           "command": "mssql.connect",
-          "when": "editorLangId == sql && resource not in mssql.connections",
+          "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections",
           "group": "navigation@3"
         },
         {
           "command": "mssql.disconnect",
-          "when": "editorLangId == sql && resource in mssql.connections",
+          "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections",
           "group": "navigation@3"
         },
         {
           "command": "mssql.changeDatabase",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && !isInDiffEditor",
           "group": "navigation@4"
         },
         {
           "command": "mssql.showExecutionPlanInResults",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature",
+          "when": "editorLangId == sql && !isInDiffEditor && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature",
           "group": "navigation@4"
         },
         {
           "command": "mssql.enableActualPlan",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+          "when": "editorLangId == sql && !isInDiffEditor && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
           "group": "navigation@5"
         },
         {
           "command": "mssql.disableActualPlan",
-          "when": "editorLangId == sql && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+          "when": "editorLangId == sql && !isInDiffEditor && config.mssql.enableRichExperiences && config.mssql.enableNewQueryResultFeature && resource in mssql.executionPlan.urisWithActualPlanEnabled",
           "group": "navigation@5"
         }
       ],
