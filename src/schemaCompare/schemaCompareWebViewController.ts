@@ -69,7 +69,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         void this.start(node);
-        this.registerRpcHandlers();
     }
 
     // schema compare can get started with four contexts for the source:
@@ -193,7 +192,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
-        this.updateState(this.state);
+        this.updateState();
+        this.registerRpcHandlers();
     }
 
     private isTreeNodeInfoType(node: any): boolean {
