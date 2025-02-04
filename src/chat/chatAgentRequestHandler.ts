@@ -253,9 +253,15 @@ export const createSqlAgentRequestHandler = (
 
         const requestTools = mapRequestTools(result.tools);
         const options: vscode.LanguageModelChatRequestOptions = {
-            justification: "SQL Server Copilot requested this information.",
-            tools: requestTools,
+            justification: "Azure SQL Copilot agent requires access to language model.",
+            tools: [],
         };
+
+        // Set the tools array only for RequestLLM messages
+        if (result.messageType === MessageType.RequestLLM) {
+            options.tools = requestTools;
+        }
+
         const messages = prepareRequestMessages(result);
 
         const chatResponse = await model.sendRequest(messages, options, token);
@@ -283,13 +289,9 @@ export const createSqlAgentRequestHandler = (
         let sqlToolParameters: string | undefined;
 
         // Tool lookup
-        const tool = resultTools.find(
-            (tool) => tool.functionName === part.name,
-        );
+        const tool = resultTools.find((tool) => tool.functionName === part.name);
         if (!tool) {
-            stream.markdown(
-                `Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}. Invoking external tool.`,
-            );
+            stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
             return { sqlTool, sqlToolParameters };
         }
 
