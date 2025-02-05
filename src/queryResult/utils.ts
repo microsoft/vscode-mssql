@@ -221,13 +221,11 @@ export function registerCommonRequestHandlers(
 
     // Register request handlers for query result filters
     webviewController.registerRequestHandler("getFilters", async (message) => {
-        console.log(store.get(message.uri));
         return store.get(message.uri);
     });
 
     webviewController.registerRequestHandler("setFilters", async (message) => {
         store.set(message.uri, message.filters);
-        console.log(store.get(message.uri));
         return true;
     });
 

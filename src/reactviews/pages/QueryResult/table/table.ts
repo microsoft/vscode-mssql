@@ -72,7 +72,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         QueryResultReducers
     >;
     private linkHandler: (fileContent: string, fileType: string) => void;
-    private gridId: string;
 
     constructor(
         parent: HTMLElement,
@@ -85,7 +84,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         >,
         state: QueryResultState,
         linkHandler: (value: string, type: string) => void,
-        gridId: string,
+        private gridId: string,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
@@ -101,7 +100,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             },
             webViewState,
         );
-        this.gridId = gridId;
         if (
             !configuration ||
             !configuration.dataProvider ||

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-class SingletonStore {
-    private static instance: SingletonStore;
+class QueryResultSingletonStore {
+    private static instance: QueryResultSingletonStore;
     private store: Map<string, any>;
 
     // Private constructor to prevent instantiation from outside
@@ -13,11 +13,12 @@ class SingletonStore {
     }
 
     // Method to get the single instance of the store
-    public static getInstance(): SingletonStore {
-        if (!SingletonStore.instance) {
-            SingletonStore.instance = new SingletonStore();
+    public static getInstance(): QueryResultSingletonStore {
+        if (!QueryResultSingletonStore.instance) {
+            QueryResultSingletonStore.instance =
+                new QueryResultSingletonStore();
         }
-        return SingletonStore.instance;
+        return QueryResultSingletonStore.instance;
     }
 
     // Method to set a value in the store
@@ -47,5 +48,5 @@ class SingletonStore {
 }
 
 // Export the singleton instance
-const store = SingletonStore.getInstance();
+const store = QueryResultSingletonStore.getInstance();
 export default store;

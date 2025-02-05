@@ -46,7 +46,6 @@ const ShowFilterText = locConstants.queryResult.showFilter;
 export const FilterButtonWidth: number = 34;
 
 export class HeaderFilter<T extends Slick.SlickData> {
-    public theme: ColorThemeKind;
     public onFilterApplied = new Slick.Event<{
         grid: Slick.Grid<T>;
         column: FilterableColumn<T>;
@@ -67,26 +66,16 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private _list!: VirtualizedList<TableFilterListElement>;
 
     private _eventManager = new EventManager();
-    private queryResultState: QueryResultState;
-    private webviewState: VscodeWebviewContext<
-        QueryResultWebviewState,
-        QueryResultReducers
-    >;
 
     constructor(
-        theme: ColorThemeKind,
-        queryResultState: QueryResultState,
-        webviewState: VscodeWebviewContext<
+        public theme: ColorThemeKind,
+        private queryResultState: QueryResultState,
+        private webviewState: VscodeWebviewContext<
             QueryResultWebviewState,
             QueryResultReducers
         >,
         private gridId: string,
-    ) {
-        this.queryResultState = queryResultState;
-        this.theme = theme;
-        this.gridId = gridId;
-        this.webviewState = webviewState;
-    }
+    ) {}
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
@@ -483,6 +472,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 if (!gridColumnMapArray) {
                     gridColumnMapArray = [];
                 }
+                // Drill down into the grid column map array and clear the filter values for the specified column
                 gridColumnMapArray = this.clearFilterValues(
                     gridColumnMapArray,
                     columnDef.id!,
@@ -503,12 +493,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
         await this.updateState(columnFilterState, columnDef.id!);
     }
 
+    /**
+     * Update the filter state in the query result singleton store
+     * @param newState
+     * @param columnId
+     * @returns
+     */
     private async updateState(
         newState: ColumnFilterState,
         columnId: string,
     ): Promise<void> {
         let newStateArray: GridColumnMap[];
-        //Check if there is any existing filter state
+        // Check if there is any existing filter state
         if (!this.queryResultState.state.uri) {
             this.queryResultState.log("no uri set for query result state");
             return;
@@ -533,6 +529,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
         });
     }
 
+    /**
+     * Drill down into the grid column map array and clear the filter values for the specified column
+     * @param gridFiltersArray
+     * @param columnId
+     * @returns
+     */
     private clearFilterValues(
         gridFiltersArray: GridColumnMap[],
         columnId: string,
@@ -563,7 +565,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     /**
      * Combines two GridColumnMaps into one, keeping filters separate for different gridIds and removing any duplicate filterValues within the same column id
-     * @param currentFiltersArray
+     * @param currentFiltersArray filters array for all grids
      * @param newFilters
      * @param columnId
      * @returns
