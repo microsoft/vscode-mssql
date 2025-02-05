@@ -16,6 +16,16 @@ import {
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
 import { IConnectionProfile } from "../models/interfaces";
+import {
+    cancel,
+    compare,
+    generateScript,
+    includeExcludeNode,
+    openScmp,
+    publishDatabaseChanges,
+    publishProjectChanges,
+    saveScmp,
+} from "./schemaCompareUtils";
 // import { ConnectionProfile } from "../models/connectionProfile";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
@@ -69,6 +79,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         void this.start(node);
+        this.registerRpcHandlers();
     }
 
     // schema compare can get started with four contexts for the source:
@@ -193,7 +204,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
         this.updateState();
-        this.registerRpcHandlers();
     }
 
     private isTreeNodeInfoType(node: any): boolean {
@@ -210,12 +220,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("schemaCompare", async (state, payload) => {
-            const result = await this.schemaCompareService.compare(
-                payload.operationId,
-                payload.sourceEndpointInfo,
-                payload.targetEndpointInfo,
-                payload.taskExecutionMode,
-                payload.deploymentOptions,
+            const result = await compare(
+                state,
+                payload,
+                this.schemaCompareService,
             );
 
             return { ...state, schemaCompareResult: result };
@@ -224,11 +232,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaCompareGenerateScript",
             async (state, payload) => {
-                const result = await this.schemaCompareService.generateScript(
-                    payload.operationId,
-                    payload.targetServerName,
-                    payload.targetDatabaseName,
-                    payload.taskExecutionMode,
+                const result = await generateScript(
+                    state,
+                    payload,
+                    this.schemaCompareService,
                 );
 
                 return { ...state, generateScriptResultStatus: result };
@@ -238,13 +245,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaComparePublishDatabaseChanges",
             async (state, payload) => {
-                const result =
-                    await this.schemaCompareService.publishDatabaseChanges(
-                        payload.operationId,
-                        payload.targetServerName,
-                        payload.targetDatabaseName,
-                        payload.taskExecutionMode,
-                    );
+                const result = await publishDatabaseChanges(
+                    state,
+                    payload,
+                    this.schemaCompareService,
+                );
 
                 return { ...state, publishDatabaseChangesResultStatus: result };
             },
@@ -253,13 +258,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaComparePublishProjectChanges",
             async (state, payload) => {
-                const result =
-                    await this.schemaCompareService.publishProjectChanges(
-                        payload.operationId,
-                        payload.targetProjectPath,
-                        payload.targetFolderStructure,
-                        payload.taskExecutionMode,
-                    );
+                const result = await publishProjectChanges(
+                    state,
+                    payload,
+                    this.schemaCompareService,
+                );
 
                 return { ...state, schemaComparePublishProjectResult: result };
             },
@@ -268,13 +271,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaCompareIncludeExcludeNode",
             async (state, payload) => {
-                const result =
-                    await this.schemaCompareService.includeExcludeNode(
-                        payload.operationId,
-                        payload.diffEntry,
-                        payload.includeRequest,
-                        payload.taskExecutionMode,
-                    );
+                const result = await includeExcludeNode(
+                    state,
+                    payload,
+                    this.schemaCompareService,
+                );
 
                 return { ...state, schemaCompareIncludeExcludeResult: result };
             },
@@ -283,9 +284,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaCompareOpenScmp",
             async (state, payload) => {
-                const result = await this.schemaCompareService.openScmp(
-                    payload.filePath,
+                const result = await openScmp(
+                    state,
+                    payload,
+                    this.schemaCompareService,
                 );
+
                 return { ...state, schemaCompareOpenScmpResult: result };
             },
         );
@@ -293,14 +297,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaCompareSaveScmp",
             async (state, payload) => {
-                const result = await this.schemaCompareService.saveScmp(
-                    payload.sourceEndpointInfo,
-                    payload.targetEndpointInfo,
-                    payload.taskExecutionMode,
-                    payload.deploymentOptions,
-                    payload.scmpFilePath,
-                    payload.excludedSourceObjects,
-                    payload.excludedTargetObjects,
+                const result = saveScmp(
+                    state,
+                    payload,
+                    this.schemaCompareService,
                 );
 
                 return { ...state, resultStatus: result };
@@ -308,8 +308,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         );
 
         this.registerReducer("schemaCompareCancel", async (state, payload) => {
-            const result = await this.schemaCompareService.cancel(
-                payload.operationId,
+            const result = await cancel(
+                state,
+                payload,
+                this.schemaCompareService,
             );
 
             return { ...state, cancelResultStatus: result };
