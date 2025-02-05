@@ -297,13 +297,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer(
             "schemaCompareSaveScmp",
             async (state, payload) => {
-                const result = saveScmp(
+                const result = await saveScmp(
                     state,
                     payload,
                     this.schemaCompareService,
                 );
 
-                return { ...state, resultStatus: result };
+                return { ...state, saveScmpResultStatus: result };
             },
         );
 

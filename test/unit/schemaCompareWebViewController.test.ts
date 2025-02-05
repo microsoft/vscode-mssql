@@ -225,7 +225,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("compare reducer - called - once", async () => {
+    test("compare reducer - when called - runs once", async () => {
         const compareResult: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
@@ -291,7 +291,42 @@ suite("SchemaCompareWebViewController Tests", () => {
         compareStub.restore();
     });
 
-    test("generateScript reducer - called - once", async () => {
+    test("compare reducer - when called - returns expected result", async () => {
+        const compareResult: mssql.SchemaCompareResult = {
+            operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+            areEqual: true,
+            differences: [],
+            success: true,
+            errorMessage: "",
+        };
+
+        const compareStub = sandbox
+            .stub(scUtils, "compare")
+            .resolves(compareResult);
+
+        const payload = {
+            operationId,
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            taskExecutionMode,
+            deploymentOptions,
+        };
+
+        const result = await controller["_reducers"]["schemaCompare"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            result.schemaCompareResult,
+            compareResult,
+            "compare should return expected result",
+        );
+
+        compareStub.restore();
+    });
+
+    test("generateScript reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -352,7 +387,37 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateScriptStub.restore();
     });
 
-    test("publishDatabaseChanges reducer - called - once", async () => {
+    test("generateScript reducer - when called - returns expected result", async () => {
+        const scriptResult = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const generateScriptStub = sandbox
+            .stub(scUtils, "generateScript")
+            .resolves(scriptResult);
+
+        const payload = {
+            operationId,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+            taskExecutionMode,
+        };
+
+        const result = await controller["_reducers"][
+            "schemaCompareGenerateScript"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            result.generateScriptResultStatus,
+            scriptResult,
+            "compare should return expected result",
+        );
+
+        generateScriptStub.restore();
+    });
+
+    test("publishDatabaseChanges reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -413,7 +478,37 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishDatabaseChangesStub.restore();
     });
 
-    test("schemaComparePublishProjectChanges reducer - called - once", async () => {
+    test("publishDatabaseChanges reducer - when called - returns expected result", async () => {
+        const publishDatabaseResult = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const publishDatabaseChangesStub = sandbox
+            .stub(scUtils, "publishDatabaseChanges")
+            .resolves(publishDatabaseResult);
+
+        const payload = {
+            operationId,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+            taskExecutionMode,
+        };
+
+        const actualResult = await controller["_reducers"][
+            "schemaComparePublishDatabaseChanges"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            actualResult.publishDatabaseChangesResultStatus,
+            publishDatabaseResult,
+            "publishDatabaseChanges should return expected result",
+        );
+
+        publishDatabaseChangesStub.restore();
+    });
+
+    test("schemaComparePublishProjectChanges reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -482,7 +577,41 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareIncludeExcludeNode reducer - called - once", async () => {
+    test("schemaComparePublishProjectChanges reducer - when called - returns expected result", async () => {
+        const publishProjectChangesResult = {
+            success: true,
+            errorMessage: "",
+            changedFiles: [],
+            addedFiles: [],
+            deletedFiles: [],
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "publishProjectChanges")
+            .resolves(publishProjectChangesResult);
+
+        const payload = {
+            operationId,
+            targetProjectPath:
+                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
+            taskExecutionMode,
+        };
+
+        const acutalResult = await controller["_reducers"][
+            "schemaComparePublishProjectChanges"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            acutalResult.schemaComparePublishProjectResult,
+            publishProjectChangesResult,
+            "schemaComparePublishProjectChanges should return expected result",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareIncludeExcludeNode reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -549,7 +678,40 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareOpenScmp reducer - called - once", async () => {
+    test("schemaCompareIncludeExcludeNode reducer - when called - returns expected result", async () => {
+        const includeExcludeNodeResult = {
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "includeExcludeNode")
+            .resolves(includeExcludeNodeResult);
+
+        const payload = {
+            operationId,
+            targetProjectPath:
+                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
+            taskExecutionMode,
+        };
+
+        const actualResult = await controller["_reducers"][
+            "schemaCompareIncludeExcludeNode"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            actualResult.schemaCompareIncludeExcludeResult,
+            includeExcludeNodeResult,
+            "schemaCompareIncludeExcludeNode should return expected result",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareOpenScmp reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -630,7 +792,47 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareSaveScmp reducer - called - once", async () => {
+    test("schemaCompareOpenScmp reducer - when called - returns expected result", async () => {
+        const openScmpResult = {
+            success: true,
+            errorMessage: "",
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            originalTargetName: "master",
+            originalTargetServerName: "localhost,1433",
+            originalConnectionString:
+                "Data Source=localhost,1433;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;Application Name=vscode-mssql;Current Language=us_english",
+            deploymentOptions,
+            excludedSourceElements: [],
+            excludedTargetElements: [],
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "openScmp")
+            .resolves(openScmpResult);
+
+        const payload = {
+            operationId,
+            targetProjectPath:
+                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
+            taskExecutionMode,
+        };
+
+        const actualResult = await controller["_reducers"][
+            "schemaCompareOpenScmp"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            actualResult.schemaCompareOpenScmpResult,
+            openScmpResult,
+            "schemaCompareOpenScmp should return expected result",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareSaveScmp reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -697,7 +899,40 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareCancel reducer - called - once", async () => {
+    test("schemaCompareSaveScmp reducer - when called - returns expected result", async () => {
+        const saveScmpResult = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "saveScmp")
+            .resolves(saveScmpResult);
+
+        const payload = {
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            taskExecutionMode: mssql.TaskExecutionMode.execute,
+            deploymentOptions,
+            scmpFilePath: "/TestSqlProject/TestProject/",
+            excludedSourceObjects: [],
+            excludedTargetObjects: [],
+        };
+
+        const actualResult = await controller["_reducers"][
+            "schemaCompareSaveScmp"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            actualResult.saveScmpResultStatus,
+            saveScmpResult,
+            "schemaCompareSaveScmp should return expected result",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareCancel reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -746,6 +981,33 @@ suite("SchemaCompareWebViewController Tests", () => {
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
+            "schemaCompareCancel should be called with correct arguments",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareCancel reducer - when called - returns expected result", async () => {
+        const cancelResult = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "cancel")
+            .resolves(cancelResult);
+
+        const payload = {
+            operationId,
+        };
+
+        const actualResult = await controller["_reducers"][
+            "schemaCompareCancel"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            actualResult.cancelResultStatus,
+            cancelResult,
             "schemaCompareCancel should be called with correct arguments",
         );
 
