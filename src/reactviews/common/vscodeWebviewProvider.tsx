@@ -12,7 +12,6 @@ import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import { webviewTheme } from "./theme";
-import singletonStore from "./singletonStore";
 import {
     LoggerLevel,
     WebviewTelemetryActionEvent,
@@ -143,14 +142,6 @@ export function VscodeWebviewProvider<State, Reducers>({
     extensionRpc.subscribe("vscodeWebviewProvider", "updateState", (params) => {
         setState(params as State);
     });
-
-    extensionRpc.subscribe(
-        "vscodeWebviewProvider",
-        "deleteFilters",
-        (params) => {
-            singletonStore.delete(params as string);
-        },
-    );
 
     function isInitialized(): boolean {
         return state !== undefined;

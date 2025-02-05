@@ -26,7 +26,6 @@ import {
     recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
-import { DefaultWebviewNotifications } from "../controllers/reactWebviewBaseController";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -409,30 +408,5 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
-    }
-
-    public clearStorage(uri: string, usePanelController: boolean) {
-        if (usePanelController) {
-            this._queryResultWebviewPanelControllerMap
-                .get(uri)
-                .postNotification(
-                    DefaultWebviewNotifications.deleteFilters,
-                    uri,
-                );
-        } else {
-            try {
-                this._queryResultWebviewPanelControllerMap
-                    .get(uri)
-                    .postNotification(
-                        DefaultWebviewNotifications.deleteFilters,
-                        uri,
-                    );
-            } catch {
-                this.postNotification(
-                    DefaultWebviewNotifications.deleteFilters,
-                    uri,
-                );
-            }
-        }
     }
 }

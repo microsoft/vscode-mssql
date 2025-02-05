@@ -33,7 +33,6 @@ import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultState } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
-import store from "../../../common/singletonStore";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -166,6 +165,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new HeaderFilter(
                 webViewState.themeKind,
                 this.queryResultState,
+                this.webViewState,
                 gridId,
             ),
         );
@@ -220,9 +220,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
      * @returns true if filters were successfully loaded and applied, false if no filters were found
      */
     public async setupFilterState(): Promise<boolean> {
-        const filterMapArray = store.get(
-            this.queryResultState.state.uri!,
-        ) as GridColumnMap[];
+        const filterMapArray = (await this.webViewState.extensionRpc.call(
+            "getFilters",
+            {
+                uri: this.queryResultState.state.uri,
+            },
+        )) as GridColumnMap[];
         if (!filterMapArray) {
             return false;
         }

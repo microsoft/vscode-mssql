@@ -62,6 +62,7 @@ import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
+import store from "../queryResult/singletonStore";
 
 /**
  * The main controller class that initializes the extension
@@ -1646,7 +1647,7 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-            self._outputContentProvider.clearStorage(uri);
+            store.delete(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,

@@ -22,6 +22,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
+import store from "./singletonStore";
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -217,6 +218,27 @@ export function registerCommonRequestHandlers(
                 message.selection,
             );
     });
+
+    // Register request handlers for query result filters
+    webviewController.registerRequestHandler("getFilters", async (message) => {
+        console.log(store.get(message.uri));
+        return store.get(message.uri);
+    });
+
+    webviewController.registerRequestHandler("setFilters", async (message) => {
+        store.set(message.uri, message.filters);
+        console.log(store.get(message.uri));
+        return true;
+    });
+
+    webviewController.registerRequestHandler(
+        "deleteFilter",
+        async (message) => {
+            store.delete(message.uri);
+            return true;
+        },
+    );
+
     webviewController.registerReducer(
         "setResultTab",
         async (state, payload) => {

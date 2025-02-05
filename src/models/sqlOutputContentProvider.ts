@@ -868,12 +868,4 @@ export class SqlOutputContentProvider {
     set setResultsMap(setMap: Map<string, QueryRunnerState>) {
         this._queryResultsMap = setMap;
     }
-
-    public clearStorage(uri: string) {
-        if (this.isOpenQueryResultsInTabByDefaultEnabled) {
-            this._queryResultWebviewController.clearStorage(uri, true);
-        } else {
-            this._queryResultWebviewController.clearStorage(uri, false);
-        }
-    }
 }
