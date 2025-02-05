@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -62,6 +62,8 @@ import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
+import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
+import { SchemaCompare } from "../constants/locConstants";
 
 /**
  * The main controller class that initializes the extension
@@ -895,6 +897,13 @@ export default class MainController implements vscode.Disposable {
         );
 
         if (this.isRichExperiencesEnabled) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompare,
+                    async (node: any) => this.onSchemaCompare(node),
+                ),
+            );
+
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
@@ -1978,6 +1987,22 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onSchemaCompare(node: any): Promise<void> {
+        if (node) {
+            const result = await this.schemaCompareService.getDefaultOptions();
+            const schemaCompareWebView = new SchemaCompareWebViewController(
+                this._context,
+                node,
+                this.schemaCompareService,
+                this._connectionMgr,
+                result.defaultDeploymentOptions,
+                SchemaCompare.Title,
+            );
+
+            schemaCompareWebView.revealToForeground();
+        }
     }
 
     /**

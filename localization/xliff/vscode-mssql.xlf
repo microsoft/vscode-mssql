@@ -1103,6 +1103,9 @@
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+      <source xml:lang="en">Schema Compare</source>
+    </trans-unit>
     <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
       <source xml:lang="en">Script As Create</source>
     </trans-unit>
@@ -1802,6 +1805,9 @@
     </trans-unit>
     <trans-unit id="mssql.runQueryHistory">
       <source xml:lang="en">Run Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.schemaCompare">
+      <source xml:lang="en">Schema Compare (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
