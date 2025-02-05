@@ -225,7 +225,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("compare reducer - called once", async () => {
+    test("compare reducer - called - once", async () => {
         const compareResult: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
@@ -252,9 +252,46 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         assert.ok(compareStub.calledOnce, "compare should be called once");
+
+        compareStub.restore();
     });
 
-    test("generateScript reducer - called once", async () => {
+    test("compare reducer - called - with correct arguments", async () => {
+        const compareResult: mssql.SchemaCompareResult = {
+            operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+            areEqual: true,
+            differences: [],
+            success: true,
+            errorMessage: "",
+        };
+
+        const compareStub = sandbox
+            .stub(scUtils, "compare")
+            .resolves(compareResult);
+
+        const payload = {
+            operationId,
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            taskExecutionMode,
+            deploymentOptions,
+        };
+
+        await controller["_reducers"]["schemaCompare"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            compareStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "compare should be called with correct arguments",
+        );
+
+        compareStub.restore();
+    });
+
+    test("generateScript reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -280,9 +317,42 @@ suite("SchemaCompareWebViewController Tests", () => {
             generateScriptStub.calledOnce,
             "generateScript should be called once",
         );
+
+        generateScriptStub.restore();
     });
 
-    test("publishDatabaseChanges reducer - called once", async () => {
+    test("generateScript reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const generateScriptStub = sandbox
+            .stub(scUtils, "generateScript")
+            .resolves(result);
+
+        const payload = {
+            operationId,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+            taskExecutionMode,
+        };
+
+        await controller["_reducers"]["schemaCompareGenerateScript"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            generateScriptStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "compare should be called with correct arguments",
+        );
+
+        generateScriptStub.restore();
+    });
+
+    test("publishDatabaseChanges reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -308,9 +378,42 @@ suite("SchemaCompareWebViewController Tests", () => {
             publishDatabaseChangesStub.calledOnce,
             "publishDatabaseChanges should be called once",
         );
+
+        publishDatabaseChangesStub.restore();
     });
 
-    test("schemaComparePublishProjectChanges reducer - called once", async () => {
+    test("publishDatabaseChanges reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const publishDatabaseChangesStub = sandbox
+            .stub(scUtils, "publishDatabaseChanges")
+            .resolves(result);
+
+        const payload = {
+            operationId,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+            taskExecutionMode,
+        };
+
+        await controller["_reducers"]["schemaComparePublishDatabaseChanges"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            publishDatabaseChangesStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "publishDatabaseChanges should be called with correct arguments",
+        );
+
+        publishDatabaseChangesStub.restore();
+    });
+
+    test("schemaComparePublishProjectChanges reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -340,9 +443,46 @@ suite("SchemaCompareWebViewController Tests", () => {
             publishProjectChangesStub.calledOnce,
             "schemaComparePublishProjectChanges should be called once",
         );
+
+        publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareIncludeExcludeNode reducer - called once", async () => {
+    test("schemaComparePublishProjectChanges reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+            changedFiles: [],
+            addedFiles: [],
+            deletedFiles: [],
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "publishProjectChanges")
+            .resolves(result);
+
+        const payload = {
+            operationId,
+            targetProjectPath:
+                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
+            taskExecutionMode,
+        };
+
+        await controller["_reducers"]["schemaComparePublishProjectChanges"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "schemaComparePublishProjectChanges should be called with correct arguments",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareIncludeExcludeNode reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -371,9 +511,45 @@ suite("SchemaCompareWebViewController Tests", () => {
             publishProjectChangesStub.calledOnce,
             "schemaCompareIncludeExcludeNode should be called once",
         );
+
+        publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareOpenScmp reducer - called once", async () => {
+    test("schemaCompareIncludeExcludeNode reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "includeExcludeNode")
+            .resolves(result);
+
+        const payload = {
+            operationId,
+            targetProjectPath:
+                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
+            taskExecutionMode,
+        };
+
+        await controller["_reducers"]["schemaCompareIncludeExcludeNode"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "schemaCompareIncludeExcludeNode should be called with correct arguments",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareOpenScmp reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -409,9 +585,52 @@ suite("SchemaCompareWebViewController Tests", () => {
             publishProjectChangesStub.calledOnce,
             "schemaCompareOpenScmp should be called once",
         );
+
+        publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareSaveScmp reducer - called once", async () => {
+    test("schemaCompareOpenScmp reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            originalTargetName: "master",
+            originalTargetServerName: "localhost,1433",
+            originalConnectionString:
+                "Data Source=localhost,1433;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;Application Name=vscode-mssql;Current Language=us_english",
+            deploymentOptions,
+            excludedSourceElements: [],
+            excludedTargetElements: [],
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "openScmp")
+            .resolves(result);
+
+        const payload = {
+            operationId,
+            targetProjectPath:
+                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
+            taskExecutionMode,
+        };
+
+        await controller["_reducers"]["schemaCompareOpenScmp"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "schemaCompareOpenScmp should be called with correct arguments",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareSaveScmp reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -440,9 +659,45 @@ suite("SchemaCompareWebViewController Tests", () => {
             publishProjectChangesStub.calledOnce,
             "schemaCompareSaveScmp should be called once",
         );
+
+        publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareCancel reducer - called once", async () => {
+    test("schemaCompareSaveScmp reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "saveScmp")
+            .resolves(result);
+
+        const payload = {
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            taskExecutionMode: mssql.TaskExecutionMode.execute,
+            deploymentOptions,
+            scmpFilePath: "/TestSqlProject/TestProject/",
+            excludedSourceObjects: [],
+            excludedTargetObjects: [],
+        };
+
+        await controller["_reducers"]["schemaCompareSaveScmp"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "schemaCompareSaveScmp should be called with correct arguments",
+        );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareCancel reducer - called - once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -465,5 +720,35 @@ suite("SchemaCompareWebViewController Tests", () => {
             publishProjectChangesStub.calledOnce,
             "schemaCompareCancel should be called once",
         );
+
+        publishProjectChangesStub.restore();
+    });
+
+    test("schemaCompareCancel reducer - called - with correct arguments", async () => {
+        const result = {
+            success: true,
+            errorMessage: "",
+        };
+
+        const publishProjectChangesStub = sandbox
+            .stub(scUtils, "cancel")
+            .resolves(result);
+
+        const payload = {
+            operationId,
+        };
+
+        await controller["_reducers"]["schemaCompareCancel"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [mockInitialState, payload, mockSchemaCompareService.object],
+            "schemaCompareCancel should be called with correct arguments",
+        );
+
+        publishProjectChangesStub.restore();
     });
 });
