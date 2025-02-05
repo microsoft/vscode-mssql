@@ -325,10 +325,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 if (!$menuButton) {
                     return;
                 }
-                this.setButtonImage(
-                    $menuButton,
-                    this.columnDef.filterValues!.length > 0,
-                );
+                if (this.columnDef.filterValues) {
+                    this.setButtonImage(
+                        $menuButton,
+                        this.columnDef.filterValues.length > 0,
+                    );
+                }
                 await this.handleApply(this.columnDef);
             },
         );
@@ -337,7 +339,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             `#clear-${this.columnDef.id}`,
             async () => {
-                this.columnDef.filterValues!.length = 0;
+                if (this.columnDef.filterValues) {
+                    this.columnDef.filterValues.length = 0;
+                }
 
                 closePopup($popup);
                 this.activePopup = null;
@@ -465,6 +469,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 sorted: SortProperties.NONE,
             };
             if (this.queryResultState.state.uri) {
+                // Get the current filters from the query result singleton store
                 let gridColumnMapArray =
                     (await this.webviewState.extensionRpc.call("getFilters", {
                         uri: this.queryResultState.state.uri,
