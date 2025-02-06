@@ -968,6 +968,7 @@ export default class MainController implements vscode.Disposable {
                         const reactPanel = new TableExplorerWebviewController(
                             this._context,
                             this._vscodeWrapper,
+                            node,
                         );
                         reactPanel.revealToForeground();
                     },

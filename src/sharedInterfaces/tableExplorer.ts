@@ -4,13 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * The definition of a designer tab.
+ * The definition of an explorer tab.
  */
 export interface ExplorerTab {
     /**
      * The title of the tab.
      */
     title: string;
+    /**
+     * The unique id of the tab.
+     */
     id: string;
 }
 
@@ -19,7 +22,13 @@ export interface ExplorerView {
 }
 
 export interface TableExplorerWebviewState {
-    view: ExplorerView;
+    view?: ExplorerView;
 }
 
-export interface TableExplorerReducers {}
+export interface TableExplorerReducers {
+    setTableExplorerResults: {
+        results: number;
+    };
+}
+
+export interface TableExplorerReactProvider {}

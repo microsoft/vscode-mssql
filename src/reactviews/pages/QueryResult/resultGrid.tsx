@@ -166,7 +166,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                                 : escape(c.columnName),
                         field: i.toString(),
                         //TODO: Add corresponding editor for various data types
-                        // editor: Slick.Editors.Text,
+                        editor: Slick.Editors.Text,
                         formatter:
                             c.isXml || c.isJson
                                 ? hyperLinkFormatter
