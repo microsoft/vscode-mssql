@@ -16,7 +16,7 @@ declare module 'istanbul' {
       utils: ObjectUtils;
       VERSION: string;
       Writer: Writer;
-    }
+    }...
 
     interface Collector {
       new (options?: any): Collector;
