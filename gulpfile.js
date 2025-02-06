@@ -252,6 +252,13 @@ gulp.task('ext:copy-html', (done) => {
 		.pipe(gulp.dest('out/src/controllers/'));
 });
 
+// Copy ps1
+gulp.task('ext:copy-scripts', (done) => {
+	return gulp.src([
+		config.paths.project.root + '/src/utils/*.ps1'])
+		.pipe(gulp.dest('out/src/utils/'));
+});
+
 // Copy css
 gulp.task('ext:copy-css', (done) => {
 	return gulp.src([
@@ -383,7 +390,7 @@ gulp.task('ext:copy-js', () => {
 });
 
 // Copy the files which aren't used in compilation
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-scripts','ext:copy-css', 'ext:copy-images'));
 
 gulp.task('ext:build', gulp.series('ext:generate-runtime-localization-files', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
 

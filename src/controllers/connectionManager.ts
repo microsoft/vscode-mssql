@@ -469,7 +469,7 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.msgYes },
+                        { selectedOption: "Yes" },
                     );
 
                     await this._vscodeWrapper
@@ -490,13 +490,13 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.msgNo },
+                        { selectedOption: "No" },
                     );
                 } else {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.dismiss },
+                        { selectedOption: "Dismiss" },
                     );
                 }
             }

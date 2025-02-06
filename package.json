@@ -912,6 +912,11 @@
           "dark": "media/disableActualExecutionPlan_dark.svg",
           "light": "media/disableActualExecutionPlan_light.svg"
         }
+      },
+      {
+        "command": "mssql.deployLocalDockerContainer",
+        "title": "%mssql.deployLocalDockerContainer%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -1202,6 +1207,11 @@
               "emptyPasswordInput": {
                 "type": "boolean",
                 "description": "%mssql.connection.emptyPasswordInput%"
+              },
+              "isLocalContainer": {
+                "type": "boolean",
+                "default": false,
+                "description": "%mssql.connection.isLocalContainer%"
               }
             }
           },

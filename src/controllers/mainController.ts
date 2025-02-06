@@ -62,6 +62,13 @@ import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
+import {
+    isDockerContainerRunning,
+    startDocker,
+    startSqlServerDockerContainer,
+    validateContainerName,
+    validateSqlServerPassword,
+} from "../utils/containerUtils";
 
 /**
  * The main controller class that initializes the extension
@@ -203,6 +210,13 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
+            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
+            this._event.on(
+                Constants.cmdDeployLocalDockerContainer,
+                async () => {
+                    await this.onDeployContainer();
+                },
+            );
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
                 void this.onRunCurrentStatement();
@@ -1440,6 +1454,112 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onDeployContainer(): Promise<boolean> {
+        vscode.window.showInformationMessage("Starting Docker...");
+        const startDockerResult = await startDocker();
+        if (!startDockerResult.success) {
+            vscode.window.showInformationMessage(
+                "Failed to start Docker. Please manually start it, and then try again.",
+            );
+            return false;
+        }
+
+        const acceptEula = await vscode.window.showQuickPick(["Yes", "No"], {
+            placeHolder: "Accept EULA? (Yes/No)",
+        });
+        if (acceptEula !== "Yes") {
+            vscode.window.showErrorMessage(
+                "You must accept the EULA to continue.",
+            );
+            return false;
+        }
+
+        const password = await vscode.window.showInputBox({
+            prompt: "Enter SA password for SQL Server",
+            password: true,
+            ignoreFocusOut: true,
+            validateInput: (value: string) => {
+                if (value.length < 8) {
+                    return "Password must be at least 8 characters long";
+                }
+
+                if (!validateSqlServerPassword(value)) {
+                    return "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character";
+                }
+                return null;
+            },
+        });
+        if (!password) return false;
+
+        const name = await vscode.window.showInputBox({
+            prompt: "Enter container name",
+            ignoreFocusOut: true,
+            validateInput: async (value: string) => {
+                const isValid = await validateContainerName(value);
+                if (isValid) {
+                    return null;
+                }
+                return "Please choose a unique name for the container";
+            },
+        });
+        if (!name) return false;
+
+        const version = await vscode.window.showQuickPick(
+            ["2022", "2019", "2017"],
+            {
+                placeHolder: "Select SQL Server version",
+            },
+        );
+        if (!version) return false;
+
+        const containerResult = await startSqlServerDockerContainer(
+            name,
+            password,
+            version,
+        );
+
+        if (!containerResult.port) return false;
+
+        const isRunning = await isDockerContainerRunning(name);
+
+        if (!isRunning) return false;
+
+        // connect, and add to connection profiles
+        const server = `localhost, ${containerResult.port}`;
+        const database = `master`;
+        const user = `SA`;
+        const containerUri = `${server}_${database}_${user}_${name}`;
+
+        const connection: any = {
+            connectionString: undefined,
+            encrypt: "Mandatory",
+            trustServerCertificate: true,
+            server: server,
+            database: database,
+            user: user,
+            connectTimeout: 15,
+            commandTimeout: 30,
+            applicationName: "vscode-mssql",
+            authenticationType: Constants.sqlAuthentication,
+            savePassword: true,
+            displayName: name,
+            profileName: name,
+            password: password,
+            accountId: undefined,
+            tenantId: undefined,
+        };
+
+        const connectionPromise = new Deferred<boolean>();
+
+        const result = await this.connect(
+            containerUri,
+            connection,
+            connectionPromise,
+            true,
+        );
+        return result;
     }
 
     /**

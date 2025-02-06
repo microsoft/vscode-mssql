@@ -56,6 +56,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public packetSize: number | undefined;
     public typeSystemVersion: string | undefined;
     public connectionString: string | undefined;
+    public isLocalContainer: boolean | undefined;
 
     /**
      * Create a connection details contract from connection credentials.
@@ -114,6 +115,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             credentials.multipleActiveResultSets;
         details.options["packetSize"] = credentials.packetSize;
         details.options["typeSystemVersion"] = credentials.typeSystemVersion;
+        details.options["isLocalContainer"] = credentials.isLocalContainer;
 
         return details;
     }
