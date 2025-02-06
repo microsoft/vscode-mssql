@@ -1,8 +1,8 @@
 # Change Log
 
 ## Version 1.28.0
-* Release date: January 29, 2025
-* Release status: GA
+* Release date: 2025-02-05
+* Release status: NY
 ### What's new in 1.28.0
 * Added support for `mssql.resultsFontSize` and `mssql.resultsFontFamily` in the new query results grid, to enable customization of font size and style.
 * Added automatic detection of non T-SQL dialects, and disabling of error detection when found.
