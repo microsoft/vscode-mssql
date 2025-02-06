@@ -1,10 +1,7 @@
--- SaNagama, 2016
--- Simple Clinic DB demo presented at the Azure Cloud Roadshow in Bengaluru (Bangalore), India.
 
-USE [master]
-GO
-
--- Create the Clinic database
+use []
+go
+database administration
 ALTER DATABASE [Clinic] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 GO
 DROP DATABASE IF EXISTS [Clinic];
