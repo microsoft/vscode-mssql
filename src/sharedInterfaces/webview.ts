@@ -103,3 +103,19 @@ export interface MssqlWebviewPanelOptions {
      */
     showRestorePromptAfterClose?: boolean;
 }
+
+export interface LogEvent {
+    message: string;
+    level: LoggerLevel;
+}
+
+export type LogCallback = (message: string, level?: LoggerLevel) => void;
+
+// Names of the logging level methods (not the enums) in the Logger class
+export type LoggerLevel =
+    | "critical"
+    | "error"
+    | "warn"
+    | "info"
+    | "verbose"
+    | "log";

@@ -10,6 +10,7 @@ import {
     UserSurveyState,
     UserSurveyReducers,
 } from "../../../sharedInterfaces/userSurvey";
+import { getCoreRPCs } from "../../common/utils";
 
 const UserSurveyContext = createContext<UserSurveyContextProps | undefined>(
     undefined,
@@ -30,6 +31,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
         <UserSurveyContext.Provider
             value={{
                 state: vscodeWebviewProvider.state,
+                ...getCoreRPCs(vscodeWebviewProvider),
                 submit: async (answers: Record<string, string>) => {
                     await vscodeWebviewProvider.extensionRpc.action("submit", {
                         answers: answers,
@@ -43,6 +45,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
                         "openPrivacyStatement",
                     );
                 },
+                themeKind: vscodeWebviewProvider.themeKind,
             }}
         >
             {children}

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
+
 export interface UserSurveyState {
     /**
      * The title of the survey. By default, it is "Microsoft would like your feedback".
@@ -44,14 +46,15 @@ export interface BaseQuestion {
 }
 
 /**
- * A question with a radio button with 0 to 10 options.
+ * A question with radio buttons with ratings of 0 through 10.
  */
 export interface NpsQuestion extends BaseQuestion {
     type: "nps";
 }
 
 /**
- * A question with a radio button with 'Very Satisfied', 'Satisfied', 'Dissatisfied', 'Very Dissatisfied' options.
+ * A question with radio buttons with 'Very Satisfied', 'Satisfied', 'Dissatisfied', 'Very Dissatisfied' options.
+ * Submitted as a number 0 through 3.
  */
 export interface NsatQuestion extends BaseQuestion {
     type: "nsat";
@@ -69,8 +72,8 @@ export interface Divider {
     type: "divider";
 }
 
-export interface UserSurveyContextProps {
-    state: UserSurveyState;
+export interface UserSurveyContextProps
+    extends WebviewContextProps<UserSurveyState> {
     submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;

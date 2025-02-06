@@ -6,6 +6,7 @@
 import $ from "jquery";
 import {
     forwardRef,
+    useContext,
     useEffect,
     useImperativeHandle,
     useRef,
@@ -32,7 +33,11 @@ import {
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
-import { QueryResultState } from "./queryResultStateProvider";
+import {
+    QueryResultContext,
+    QueryResultState,
+} from "./queryResultStateProvider";
+import { LogCallback } from "../../../sharedInterfaces/webview";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -60,6 +65,7 @@ export interface ResultGridProps {
     gridParentRef?: React.RefObject<HTMLDivElement>;
     state: QueryResultState;
     linkHandler: (fileContent: string, fileType: string) => void;
+    gridId: string;
 }
 
 export interface ResultGridHandle {
@@ -72,6 +78,8 @@ export interface ResultGridHandle {
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
     (props: ResultGridProps, ref) => {
         let table: Table<any>;
+
+        const context = useContext(QueryResultContext);
         const gridContainerRef = useRef<HTMLDivElement>(null);
         const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
@@ -133,10 +141,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
             };
             const DEFAULT_FONT_SIZE = 12;
-            console.log(
-                "resultGrid: ",
-                props.state.state.fontSettings.fontSize,
+            context?.log(
+                `resultGrid: ${props.state.state.fontSettings.fontSize}`,
             );
+
             const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
             const COLUMN_WIDTH = Math.max(
                 (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
@@ -173,7 +181,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                                             addClasses: string;
                                         } => {
                                       if (
-                                          isXmlCell(value) &&
+                                          isXmlCell(value, context?.log) &&
                                           props.resultSetSummary
                                       ) {
                                           props.resultSetSummary.columnInfo[
@@ -281,6 +289,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.webViewState!,
                 props.state,
                 props.linkHandler!,
+                props.gridId,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.gridParentRef,
@@ -322,7 +331,7 @@ function isJsonCell(value: DbCellValue): boolean {
     return !!(value && !value.isNull && value.displayValue?.match(IsJsonRegex));
 }
 
-function isXmlCell(value: DBCellValue): boolean {
+function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
     let isXML = false;
     try {
         if (value && !value.isNull && value.displayValue.trim() !== "") {
@@ -336,7 +345,7 @@ function isXmlCell(value: DBCellValue): boolean {
         }
     } catch (e) {
         // Ignore errors when parsing cell content, log and continue
-        console.log(`An error occurred when parsing data as XML: ${e}`);
+        log && log(`An error occurred when parsing data as XML: ${e}`); // only call if callback is defined
     }
     return isXML;
 }

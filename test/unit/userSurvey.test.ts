@@ -7,6 +7,7 @@ import * as assert from "assert";
 import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
 
 import {
     TelemetryActions,
@@ -15,9 +16,10 @@ import {
 
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { stubTelemetry } from "./utils";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("UserSurvey Tests", () => {
-    let sandbox;
+    let sandbox: sinon.SinonSandbox;
     let globalState;
     let context;
     let showInformationMessageStub: sinon.SinonStub;
@@ -29,6 +31,11 @@ suite("UserSurvey Tests", () => {
             update: sandbox.stub(),
         };
 
+        const vscodeWrapper = TypeMoq.Mock.ofType(
+            VscodeWrapper,
+            TypeMoq.MockBehavior.Loose,
+        );
+
         context = {
             globalState: globalState,
             extensionUri: vscode.Uri.file("test"),
@@ -38,7 +45,7 @@ suite("UserSurvey Tests", () => {
             vscode.window,
             "showInformationMessage",
         );
-        UserSurvey.createInstance(context);
+        UserSurvey.createInstance(context, vscodeWrapper.object);
     });
 
     teardown(() => {
@@ -59,10 +66,14 @@ suite("UserSurvey Tests", () => {
             true,
             "globalState.get should be called with 'nps/never' and false",
         );
+
         assert.strictEqual(
             showInformationMessageStub.called,
             false,
-            "showInformationMessage should not be called",
+            `showInformationMessage should not be called, but was called ${showInformationMessageStub.getCalls().length} times: ${showInformationMessageStub
+                .getCalls()
+                .map((call) => `"${call.args[0]}"`)
+                .join(", ")}`,
         );
     });
 
@@ -113,7 +124,6 @@ suite("UserSurvey Tests", () => {
         );
 
         const userSurvey = UserSurvey.getInstance();
-        sandbox.stub(userSurvey, "launchSurvey").resolves();
         const onSubmitStub = sandbox.stub();
         const onCancelStub = sandbox.stub();
         // Mock the webview controller
@@ -141,7 +151,7 @@ suite("UserSurvey Tests", () => {
         assert.strictEqual(
             mockWebviewController.revealToForeground.calledOnce,
             true,
-            "launchSurvey should be called",
+            "revealToForeground should have been called",
         );
 
         assert.strictEqual(

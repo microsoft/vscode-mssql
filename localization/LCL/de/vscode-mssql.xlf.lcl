@@ -541,6 +541,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1f5c209a4ee7cb85322b1d1fbde63de014d0871930fa88895405ebaea926535d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft wird das von Ihnen übermittelte Feedback gemäß den Anweisungen Ihres Unternehmens verarbeiten, um Ihre Erfahrungen mit diesem Produkt und die Ihres Unternehmens zu verbessern. Wenn Sie Fragen zur Verwendung von Feedback-Daten haben, wenden Sie sich an Ihren Mandantenadmin. Die Verarbeitung von Feedback-Daten unterliegt dem Datenschutz-Nachtrag für Microsoft-Produkte und -Dienste zwischen Ihrer Organisation und Microsoft, und das von Ihnen übermittelte Feedback wird im Rahmen dieses Nachtrags als personenbezogene Daten betrachtet.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select all]]></Val>
@@ -1387,6 +1396,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Non-SQL Server SQL file detected. Disable IntelliSense for such files?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Es wurde eine nicht SQL Server SQL-Datei erkannt. IntelliSense für solche Dateien deaktivieren?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Description]]></Val>
@@ -1981,6 +1999,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tritt ein Problem auf?  Teilen Sie uns die Details mit, indem Sie ein GitHub-Problem öffnen, damit wir uns verbessern können!]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++77252dc87eec71818cc0b5c0bc0e82792f92540faad923e81c6d5dcd3119e31a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Password? If 'No', password will be required each time you connect]]></Val>
@@ -2193,6 +2220,15 @@
           <Val><![CDATA[No connection was found. Please connect to a server first.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Es wurde keine Verbindung gefunden. Stellen Sie zunächst eine Verbindung mit einem Server her.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++87a43e5185b677199f2369f90cd8518b8b1d7702edff307ed9e79883f43aaaaa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft wird das von Ihnen übermittelte Feedback gemäß den Anweisungen Ihres Unternehmens verarbeiten, um Ihre Erfahrungen und die Ihres Unternehmens mit diesem Produkt zu verbessern. Wenn Sie Fragen haben, ...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3192,6 +3228,15 @@
           <Val><![CDATA[Remove]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Entfernen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Submit an issue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Problem übermitteln]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4378,6 +4423,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.autoDisableNonTSqlLanguageService" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Should language service be auto-disabled when extension detects Non-MSSQL files]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Gibt an, ob der Sprachdienst automatisch deaktiviert werden soll, wenn die Erweiterung Nicht-MSSQL-Dateien erkennt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.cancelQuery" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cancel Query]]></Val>
@@ -5557,6 +5611,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.resultsGrid.autoSizeColumns" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Passen Sie die Spaltenbreiten automatisch basierend auf den sichtbaren Zeilen im Resultset an. Es können Leistungsprobleme mit einer großen Anzahl von Spalten oder großen Zellen auftreten.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.revealQueryResultPanel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reveal Query Result Panel]]></Val>
@@ -5772,6 +5835,15 @@
           <Val><![CDATA[Give Feedback]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Feedback geben]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.visualizeSchema" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Visualize Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schema visualisieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

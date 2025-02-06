@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
+import { getCoreRPCs } from "../../common/utils";
 
 import {
-    ColorThemeKind,
     useVscodeWebview,
+    WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext, useRef, useState } from "react";
 
-export interface TableDesignerState {
+export interface TableDesignerState
+    extends WebviewContextProps<designer.TableDesignerWebviewState> {
     provider: designer.TableDesignerReactProvider;
-    state: designer.TableDesignerWebviewState;
-    themeKind: ColorThemeKind;
     resultPaneResizeInfo: {
         originalHeight: number;
         setOriginalHeight: (height: number) => void;
@@ -77,6 +77,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
     return (
         <TableDesignerContext.Provider
             value={{
+                ...getCoreRPCs(webviewState),
                 provider: {
                     processTableEdit: function (
                         tableChangeInfo: designer.DesignerEdit,
