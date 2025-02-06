@@ -2227,6 +2227,9 @@
       <Item ItemId=";bundle.++CODE++87a43e5185b677199f2369f90cd8518b8b1d7702edff307ed9e79883f43aaaaa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft elaborerà il feedback inviato in conformità alle istruzioni dell'organizzazione per migliorare l'esperienza dell'utente e dell'organizzazione con questo prodotto. In caso di domande...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
