@@ -34,10 +34,6 @@ export const SchemaDesigner = () => {
     const [displayEditor, setDisplayEditor] = useState(false);
 
     const [entity, setEntity] = useState<IEntity | undefined>(undefined);
-    const [originalPos, setOriginalPos] = useState({
-        x: 0,
-        y: 0,
-    });
 
     useEffect(() => {
         function createGraph() {
@@ -46,20 +42,12 @@ export const SchemaDesigner = () => {
                 return;
             }
             div.innerHTML = "";
-            div.addEventListener("scroll", (evt) => {
-                setEditorPos({
-                    x: originalPos.x - div.scrollLeft,
-                    y: originalPos.y - div.scrollTop,
-                    scale: editor_pos.scale,
-                });
-                console.log(
-                    "OriginalPos",
-                    originalPos,
-                    "editorPos",
-                    originalPos.x - div.scrollLeft,
-                    originalPos.y - div.scrollTop,
-                );
-            });
+
+            let originalPos = {
+                x: 0,
+                y: 0,
+            };
+
             const graph = new azdataGraph.SchemaDesigner(div, {
                 colors: {
                     cellHighlight: "#00FF00",
@@ -102,31 +90,22 @@ export const SchemaDesigner = () => {
                 isEditable: true,
                 editEntity: (
                     cell,
-                    x,
-                    y,
+                    _x,
+                    _y,
                     scale,
                     _incomingEdges,
                     outgoingEdges,
                     _model,
                 ) => {
-                    console.log("cell.geometry", cell.geometry);
                     setEditorPos({
                         x: cell.geometry.x * scale - div.scrollLeft,
                         y: cell.geometry.y * scale - div.scrollTop,
                         scale: scale,
                     });
-                    setOriginalPos({
+                    originalPos = {
                         x: cell.geometry.x * scale,
                         y: cell.geometry.y * scale,
-                    });
-                    console.log(
-                        "originalPos",
-                        cell.geometry.x * scale,
-                        cell.geometry.y * scale,
-                        "editorPos",
-                        cell.geometry.x * scale - div.scrollLeft,
-                        cell.geometry.y * scale - div.scrollTop,
-                    );
+                    };
                     setDisplayEditor(true);
                     setEntity(cell.value as IEntity);
                     return {
@@ -140,13 +119,21 @@ export const SchemaDesigner = () => {
                     return cell.value as IRelationship;
                 },
                 updateEditorPosition: (x, y, scale) => {
-                    // setDisplayEditor(true);
-                    // setEditorPos({
-                    //     x: x,
-                    //     y: y,
-                    //     scale: scale,
-                    // });
+                    setDisplayEditor(true);
+                    setEditorPos({
+                        x: x,
+                        y: y,
+                        scale: scale,
+                    });
                 },
+            });
+
+            div.addEventListener("scroll", (_evt) => {
+                setEditorPos({
+                    x: originalPos.x - div.scrollLeft,
+                    y: originalPos.y - div.scrollTop,
+                    scale: editor_pos.scale,
+                });
             });
             graph.renderModel(context!.schema, true);
         }
