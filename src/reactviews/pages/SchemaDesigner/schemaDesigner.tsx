@@ -130,17 +130,12 @@ export const SchemaDesigner = () => {
         >
             <div id="graphContainer" ref={graphContainerRef}></div>
             <div
-                id="editor"
+                className="sd-editor"
                 ref={editorDivRef}
                 style={{
-                    width: "400px",
-                    height: "400px",
-                    position: "absolute",
                     display: displayEditor ? "block" : "none",
                     backgroundColor: "white",
                     color: "black",
-                    zIndex: 2,
-                    transformOrigin: "top left",
                 }}
             >
                 <SchemaDesignerEntityEditor entity={entity!} />

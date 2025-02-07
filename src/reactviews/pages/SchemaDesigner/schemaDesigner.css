@@ -16,10 +16,23 @@
     min-width: 100%;
     min-height: calc(100vh - 20px);
     user-select: none;
+    z-index: 1;
 }
 
 .sd-outline {
     width: 300px;
     height: 200px;
     overflow: auto;
+}
+
+.sd-toolbar-belt {
+    z-index: 9999 !important;
+}
+
+.sd-editor {
+    z-index: 10;
+    width: 400px;
+    height: 400px;
+    position: absolute;
+    transform-origin: top left;
 }
