@@ -31,12 +31,15 @@ export const SchemaDesigner = () => {
 
     const [entity, setEntity] = useState<IEntity | undefined>(undefined);
 
-    const graphContainerRef = useRef<HTMLDivElement | undefined>(undefined);
-    const editorDivRef = useRef<HTMLDivElement | undefined>(undefined);
+    const graphContainerRef = useRef<HTMLDivElement | null>(null);
+    const editorDivRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const editorDiv = editorDivRef.current;
         function updateEditorPosition(x: number, y: number, scale: number) {
+            if (!editorDiv) {
+                return;
+            }
             editorDiv.style.transform = `scale(${scale})`;
             editorDiv.style.top = `${y}px`;
             editorDiv.style.left = `${x}px`;
@@ -46,7 +49,7 @@ export const SchemaDesigner = () => {
                 x: 0,
                 y: 0,
                 scale: 1,
-                cell: undefined as mxCell,
+                cell: undefined! as mxCell,
             };
             const div = graphContainerRef.current;
             if (!div) {
