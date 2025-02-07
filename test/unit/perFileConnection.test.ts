@@ -87,7 +87,7 @@ function createTestCredentials(): IConnectionInfo {
         packetSize: 8192,
         typeSystemVersion: "Latest",
         connectionString: "",
-        isLocalContainer: false,
+        containerName: "",
     };
     return creds;
 }

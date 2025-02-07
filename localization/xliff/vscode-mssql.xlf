@@ -1923,11 +1923,11 @@
     <trans-unit id="mssql.connection.currentLanguage">
       <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
     </trans-unit>
+    <trans-unit id="mssql.connection.containerName">
+      <source xml:lang="en">[Optional] Indicates the name of local docker container the connection is on</source>
+    </trans-unit>
     <trans-unit id="mssql.connection.emptyPasswordInput">
       <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
-    </trans-unit>
-    <trans-unit id="mssql.connection.isLocalContainer">
-      <source xml:lang="en">[Optional] Indicates whether this profile is running on a local docker container</source>
     </trans-unit>
     <trans-unit id="mssql.connection.typeSystemVersion">
       <source xml:lang="en">[Optional] Indicates which server type the provider will expose through the DataReader.</source>

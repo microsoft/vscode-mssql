@@ -9,6 +9,7 @@ import { ObjectExplorerService } from "./objectExplorerService";
 import { TreeNodeInfo } from "./treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
+import { startContainer } from "../utils/containerUtils";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> =
@@ -50,6 +51,12 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         connectionCredentials?: IConnectionInfo,
         context?: vscode.ExtensionContext,
     ): Promise<string> {
+        if (connectionCredentials && connectionCredentials.containerName) {
+            // wait here a lil bit for docker to start + run
+
+            // start docker and docker container
+            await startContainer(connectionCredentials.containerName);
+        }
         return this._objectExplorerService.createSession(
             promise,
             connectionCredentials,

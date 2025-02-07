@@ -1208,10 +1208,10 @@
                 "type": "boolean",
                 "description": "%mssql.connection.emptyPasswordInput%"
               },
-              "isLocalContainer": {
-                "type": "boolean",
-                "default": false,
-                "description": "%mssql.connection.isLocalContainer%"
+              "containerName": {
+                "type": "string",
+                "default": "",
+                "description": "%mssql.connection.containerName%"
               }
             }
           },

@@ -443,9 +443,10 @@ declare module "vscode-mssql" {
         connectionString: string | undefined;
 
         /**
-         * Gets or sets a boolean that indicates whether the connection is a local container
+         * Gets or sets the name of the connection's container; undefined if the
+         * connection is not hosted by a container
          */
-        isLocalContainer: boolean | undefined;
+        containerName: string | undefined;
     }
 
     export const enum ExtractTarget {

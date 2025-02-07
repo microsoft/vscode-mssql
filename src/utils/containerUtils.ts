@@ -7,6 +7,7 @@ import { exec } from "child_process";
 import { platform } from "os";
 import { sqlAuthentication } from "../constants/constants";
 import ConnectionManager from "../controllers/connectionManager";
+import { IConnectionProfile } from "../models/interfaces";
 
 export async function startDocker(): Promise<{
     success: boolean;
@@ -163,7 +164,7 @@ export async function addContainerConnection(
     password: string,
     port: number,
     connectionManager: ConnectionManager,
-): Promise<boolean> {
+): Promise<IConnectionProfile> {
     const server = `localhost, ${port}`;
     const connectionString = `Microsoft.SqlTools|itemtype:Profile|server:${server}|user:SA|isConnectionString:true`;
     const connection: any = {
@@ -178,10 +179,23 @@ export async function addContainerConnection(
         applicationName: "vscode-mssql",
         authenticationType: sqlAuthentication,
         savePassword: true,
-        isLocalContainer: true,
+        containerName: name,
     };
 
-    let savedProfile =
-        await connectionManager.connectionUI.saveProfile(connection);
-    return savedProfile != undefined;
+    return await connectionManager.connectionUI.saveProfile(connection);
+}
+
+export async function startContainer(name: string): Promise<boolean> {
+    const isDockerStarted = await startDocker();
+    if (!isDockerStarted) return false;
+    return new Promise((resolve) => {
+        exec(`docker start ${name}`, (error) => {
+            if (error) {
+                console.error("Failed to start container:", error);
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        });
+    });
 }
