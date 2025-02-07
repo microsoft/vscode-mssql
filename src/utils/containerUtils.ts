@@ -5,6 +5,8 @@
 
 import { exec } from "child_process";
 import { platform } from "os";
+import { sqlAuthentication } from "../constants/constants";
+import ConnectionManager from "../controllers/connectionManager";
 
 export async function startDocker(): Promise<{
     success: boolean;
@@ -109,7 +111,6 @@ export async function startSqlServerDockerContainer(
     return new Promise(async (resolve) => {
         const port = await findAvailablePort(1433);
         const command = `docker run -e \"ACCEPT_EULA=Y\" -e \"SA_PASSWORD=${password}\" -p ${port}:1433 --name ${name} -d mcr.microsoft.com/mssql/server:${version}-latest`;
-
         exec(command, (error, stdout, stderr) => {
             if (error) {
                 console.error("Failed to start SQL Server container:", error);
@@ -155,4 +156,32 @@ export async function validateContainerName(
             resolve(!runningContainers.includes(containerName));
         });
     });
+}
+
+export async function addContainerConnection(
+    name: string,
+    password: string,
+    port: number,
+    connectionManager: ConnectionManager,
+): Promise<boolean> {
+    const server = `localhost, ${port}`;
+    const connectionString = `Microsoft.SqlTools|itemtype:Profile|server:${server}|user:SA|isConnectionString:true`;
+    const connection: any = {
+        connectionString: connectionString,
+        profileName: name,
+        encrypt: "Mandatory",
+        trustServerCertificate: true,
+        server: server,
+        database: "",
+        user: "SA",
+        password: password,
+        applicationName: "vscode-mssql",
+        authenticationType: sqlAuthentication,
+        savePassword: true,
+        isLocalContainer: true,
+    };
+
+    let savedProfile =
+        await connectionManager.connectionUI.saveProfile(connection);
+    return savedProfile != undefined;
 }

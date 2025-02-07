@@ -63,7 +63,7 @@ import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExp
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import {
-    isDockerContainerRunning,
+    addContainerConnection,
     startDocker,
     startSqlServerDockerContainer,
     validateContainerName,
@@ -1522,44 +1522,13 @@ export default class MainController implements vscode.Disposable {
 
         if (!containerResult.port) return false;
 
-        const isRunning = await isDockerContainerRunning(name);
-
-        if (!isRunning) return false;
-
-        // connect, and add to connection profiles
-        const server = `localhost, ${containerResult.port}`;
-        const database = `master`;
-        const user = `SA`;
-        const containerUri = `${server}_${database}_${user}_${name}`;
-
-        const connection: any = {
-            connectionString: undefined,
-            encrypt: "Mandatory",
-            trustServerCertificate: true,
-            server: server,
-            database: database,
-            user: user,
-            connectTimeout: 15,
-            commandTimeout: 30,
-            applicationName: "vscode-mssql",
-            authenticationType: Constants.sqlAuthentication,
-            savePassword: true,
-            displayName: name,
-            profileName: name,
-            password: password,
-            accountId: undefined,
-            tenantId: undefined,
-        };
-
-        const connectionPromise = new Deferred<boolean>();
-
-        const result = await this.connect(
-            containerUri,
-            connection,
-            connectionPromise,
-            true,
+        // Add container connection to connection profiles
+        return addContainerConnection(
+            name,
+            password,
+            containerResult.port,
+            this.connectionManager,
         );
-        return result;
     }
 
     /**
