@@ -3,137 +3,114 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import * as azdataGraph from "azdataGraph";
 import "azdataGraph/dist/index.css";
 import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
-import * as schemaDesignerIcons from "./schemaDesignerIcons";
 import {
     IEntity,
     IRelationship,
 } from "../../../sharedInterfaces/schemaDesigner";
+import { config } from "./schemaDesignerConfig";
+import { mxCell } from "mxgraph";
+import { SchemaDesignerEntityEditor } from "./schemaDesignerEntityEditor";
 
-const connectorIcon = require("./icons/connector.svg");
+// Set the global mxLoadResources to false to prevent mxgraph from loading resources
+window["mxLoadResources"] = false;
 
 export const SchemaDesigner = () => {
     const context = useContext(SchemaDesignerContext);
-    window["mxLoadResources"] = false;
     if (!context) {
         return undefined;
     }
-
-    const [editor_pos, setEditorPos] = useState({
-        x: 0,
-        y: 0,
-        scale: 1,
-    });
 
     const [displayEditor, setDisplayEditor] = useState(false);
 
     const [entity, setEntity] = useState<IEntity | undefined>(undefined);
 
+    const graphContainerRef = useRef<HTMLDivElement | undefined>(undefined);
+    const editorDivRef = useRef<HTMLDivElement | undefined>(undefined);
+
     useEffect(() => {
+        const editorDiv = editorDivRef.current;
+        function updateEditorPosition(x: number, y: number, scale: number) {
+            editorDiv.style.transform = `scale(${scale})`;
+            editorDiv.style.top = `${y}px`;
+            editorDiv.style.left = `${x}px`;
+        }
         function createGraph() {
-            const div = document.getElementById("graphContainer");
+            let currentCell = {
+                x: 0,
+                y: 0,
+                scale: 1,
+                cell: undefined as mxCell,
+            };
+            const div = graphContainerRef.current;
             if (!div) {
                 return;
             }
             div.innerHTML = "";
+            const schemaDesignerConfig = config;
 
-            let originalPos = {
-                x: 0,
-                y: 0,
+            schemaDesignerConfig.editEntity = (
+                cell,
+                _x,
+                _y,
+                _scale,
+                _incomingEdges,
+                outgoingEdges,
+                _model,
+            ) => {
+                currentCell = {
+                    x: _x,
+                    y: _y,
+                    scale: _scale,
+                    cell: cell,
+                };
+                setDisplayEditor(true);
+                updateEditorPosition(
+                    _x - div.scrollLeft,
+                    _y - div.scrollTop,
+                    _scale,
+                );
+                setEntity(cell.value as IEntity);
+                return {
+                    editedEntity: cell.value as IEntity,
+                    editedOutgoingEdges: outgoingEdges.map(
+                        (edge) => edge.value as IRelationship,
+                    ),
+                };
             };
 
-            const graph = new azdataGraph.SchemaDesigner(div, {
-                colors: {
-                    cellHighlight: "#00FF00",
-                    cellForeground: "var(--vscode-editor-foreground)",
-                    cellBackground: "var(--vscode-editor-background)",
-                    cellBorder: "var(--vscode-badge-background)",
-                    cellColumnHover:
-                        "var(--vscode-inputOption-hoverBackground)",
-                    cellDivider: "var(--vscode-badge-background)",
-                    toolbarBackground: "#2c2c2c",
-                    toolbarForeground: "#ffffff",
-                    toolbarHoverBackground: "#383838",
-                    toolbarDividerBackground: "#444444",
-                    graphBackground: "var(--vscode-editor-background)",
-                    graphGrid: "var(--vscode-badge-background)",
-                    edge: "var(--vscode-editor-foreground)",
-                    outlineCellBackground: "#00FF00",
-                    outlineBorder: "#00FF00",
-                    outlineSize: "#00FF00",
-                    outlineSizerRectangle: "#00FF00",
-                },
-                icons: {
-                    addTableIcon: schemaDesignerIcons.addTableIcon,
-                    undoIcon: schemaDesignerIcons.undoIcon,
-                    redoIcon: schemaDesignerIcons.redoIcon,
-                    zoomInIcon: schemaDesignerIcons.zoomInIcon,
-                    zoomOutIcon: schemaDesignerIcons.zoomOutIcon,
-                    zoomFitIcon: schemaDesignerIcons.zoomFitIcon,
-                    deleteIcon: schemaDesignerIcons.deleteIcon,
-                    entityIcon: schemaDesignerIcons.entityIcon,
-                    connectorIcon: connectorIcon,
-                    exportIcon: schemaDesignerIcons.exportIcon,
-                    autoArrangeCellsIcon: schemaDesignerIcons.autoarrangeIcon,
-                    editIcon: schemaDesignerIcons.editIcon,
-                    cancelIcon: schemaDesignerIcons.cancelIcon,
-                    primaryKeyIcon: schemaDesignerIcons.primaryKeyIcon,
-                    foreignKeyIcon: schemaDesignerIcons.foreignKeyIcon,
-                },
-                graphFontFamily: "var(--vscode-editor-font-family)",
-                isEditable: true,
-                editEntity: (
-                    cell,
-                    _x,
-                    _y,
-                    scale,
-                    _incomingEdges,
-                    outgoingEdges,
-                    _model,
-                ) => {
-                    setEditorPos({
-                        x: cell.geometry.x * scale - div.scrollLeft,
-                        y: cell.geometry.y * scale - div.scrollTop,
-                        scale: scale,
-                    });
-                    originalPos = {
-                        x: cell.geometry.x * scale,
-                        y: cell.geometry.y * scale,
-                    };
-                    setDisplayEditor(true);
-                    setEntity(cell.value as IEntity);
-                    return {
-                        editedEntity: cell.value as IEntity,
-                        editedOutgoingEdges: outgoingEdges.map(
-                            (edge) => edge.value as IRelationship,
-                        ),
-                    };
-                },
-                editRelationship: (cell, _x, _y, _scale) => {
-                    return cell.value as IRelationship;
-                },
-                updateEditorPosition: (x, y, scale) => {
-                    setDisplayEditor(true);
-                    setEditorPos({
-                        x: x,
-                        y: y,
-                        scale: scale,
-                    });
-                },
-            });
+            schemaDesignerConfig.editRelationship = (cell, _x, _y, _scale) => {
+                return cell.value as IRelationship;
+            };
+
+            schemaDesignerConfig.updateEditorPosition = (_x, _y, _scale) => {
+                currentCell.x = _x;
+                currentCell.y = _y;
+                currentCell.scale = _scale;
+                updateEditorPosition(
+                    _x - div.scrollLeft,
+                    _y - div.scrollTop,
+                    graph._graph.view.scale,
+                );
+            };
+
+            const graph = new azdataGraph.SchemaDesigner(
+                div,
+                schemaDesignerConfig,
+            );
 
             div.addEventListener("scroll", (_evt) => {
-                setEditorPos({
-                    x: originalPos.x - div.scrollLeft,
-                    y: originalPos.y - div.scrollTop,
-                    scale: editor_pos.scale,
-                });
+                updateEditorPosition(
+                    currentCell.x - div.scrollLeft,
+                    currentCell.y - div.scrollTop,
+                    currentCell.scale,
+                );
             });
             graph.renderModel(context!.schema, true);
         }
@@ -148,22 +125,22 @@ export const SchemaDesigner = () => {
                 position: "relative",
             }}
         >
-            <div id="graphContainer"></div>
+            <div id="graphContainer" ref={graphContainerRef}></div>
             <div
                 id="editor"
+                ref={editorDivRef}
                 style={{
                     width: "400px",
                     height: "400px",
                     position: "absolute",
-                    top: editor_pos.y,
-                    left: editor_pos.x,
-                    transform: `scale(${editor_pos.scale})`,
                     display: displayEditor ? "block" : "none",
                     backgroundColor: "white",
-                    zIndex: 1000,
+                    color: "black",
+                    zIndex: 2,
+                    transformOrigin: "top left",
                 }}
             >
-                {entity ? entity.name : ""}
+                <SchemaDesignerEntityEditor entity={entity!} />
             </div>
         </div>
     );
