@@ -35,4 +35,8 @@
     height: 400px;
     position: absolute;
     transform-origin: top left;
+    border: 1px solid var(--vscode-badge-background);
+    background-color: var(--vscode-editor-background);
+    border-radius: 3px;
+    padding: 3px;
 }

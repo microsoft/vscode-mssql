@@ -134,11 +134,12 @@ export const SchemaDesigner = () => {
                 ref={editorDivRef}
                 style={{
                     display: displayEditor ? "block" : "none",
-                    backgroundColor: "white",
-                    color: "black",
                 }}
             >
-                <SchemaDesignerEntityEditor entity={entity!} />
+                <SchemaDesignerEntityEditor
+                    entity={entity!}
+                    schema={context.schema}
+                />
             </div>
         </div>
     );

@@ -327,6 +327,22 @@ export class LocConstants {
             restore: l10n.t("Restore"),
         };
     }
+
+    public get schemaDesigner() {
+        return {
+            schema: l10n.t("Schema"),
+            columns: l10n.t("Columns"),
+            newColumn: l10n.t("New Column"),
+            name: l10n.t("Name"),
+            table: l10n.t("Table"),
+            foreignKey: l10n.t("Foreign Key"),
+            save: l10n.t("Save"),
+            cancel: l10n.t("Cancel"),
+            dataType: l10n.t("Type"),
+            primaryKey: l10n.t("PK"),
+            delete: l10n.t("Delete"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();
