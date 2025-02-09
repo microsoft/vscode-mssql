@@ -252,10 +252,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             deploymentOptions,
         };
 
-        await controller["_reducers"]["schemaCompare"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["compare"](mockInitialState, payload);
 
         assert.ok(compareStub.calledOnce, "compare should be called once");
 
@@ -283,10 +280,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             deploymentOptions,
         };
 
-        await controller["_reducers"]["schemaCompare"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["compare"](mockInitialState, payload);
 
         assert.deepEqual(
             compareStub.firstCall.args,
@@ -318,7 +312,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             deploymentOptions,
         };
 
-        const result = await controller["_reducers"]["schemaCompare"](
+        const result = await controller["_reducers"]["compare"](
             mockInitialState,
             payload,
         );
@@ -349,7 +343,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaCompareGenerateScript"](
+        await controller["_reducers"]["generateScript"](
             mockInitialState,
             payload,
         );
@@ -379,7 +373,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaCompareGenerateScript"](
+        await controller["_reducers"]["generateScript"](
             mockInitialState,
             payload,
         );
@@ -387,7 +381,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         assert.deepEqual(
             generateScriptStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
-            "compare should be called with correct arguments",
+            "generateScript should be called with correct arguments",
         );
 
         generateScriptStub.restore();
@@ -410,14 +404,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        const result = await controller["_reducers"][
-            "schemaCompareGenerateScript"
-        ](mockInitialState, payload);
+        const result = await controller["_reducers"]["generateScript"](
+            mockInitialState,
+            payload,
+        );
 
         assert.deepEqual(
             result.generateScriptResultStatus,
             scriptResult,
-            "compare should return expected result",
+            "generateScript should return expected result",
         );
 
         generateScriptStub.restore();
@@ -440,7 +435,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaComparePublishDatabaseChanges"](
+        await controller["_reducers"]["publishDatabaseChanges"](
             mockInitialState,
             payload,
         );
@@ -470,7 +465,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaComparePublishDatabaseChanges"](
+        await controller["_reducers"]["publishDatabaseChanges"](
             mockInitialState,
             payload,
         );
@@ -502,7 +497,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
 
         const actualResult = await controller["_reducers"][
-            "schemaComparePublishDatabaseChanges"
+            "publishDatabaseChanges"
         ](mockInitialState, payload);
 
         assert.deepEqual(
@@ -514,7 +509,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishDatabaseChangesStub.restore();
     });
 
-    test("schemaComparePublishProjectChanges reducer - when called - runs once", async () => {
+    test("publishProjectChanges reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -535,20 +530,20 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaComparePublishProjectChanges"](
+        await controller["_reducers"]["publishProjectChanges"](
             mockInitialState,
             payload,
         );
 
         assert.ok(
             publishProjectChangesStub.calledOnce,
-            "schemaComparePublishProjectChanges should be called once",
+            "publishProjectChanges should be called once",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaComparePublishProjectChanges reducer - called - with correct arguments", async () => {
+    test("publishProjectChanges reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -569,7 +564,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaComparePublishProjectChanges"](
+        await controller["_reducers"]["publishProjectChanges"](
             mockInitialState,
             payload,
         );
@@ -577,13 +572,13 @@ suite("SchemaCompareWebViewController Tests", () => {
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
-            "schemaComparePublishProjectChanges should be called with correct arguments",
+            "publishProjectChanges should be called with correct arguments",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaComparePublishProjectChanges reducer - when called - returns expected result", async () => {
+    test("publishProjectChanges reducer - when called - returns expected result", async () => {
         const publishProjectChangesResult = {
             success: true,
             errorMessage: "",
@@ -605,46 +600,46 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
 
         const acutalResult = await controller["_reducers"][
-            "schemaComparePublishProjectChanges"
+            "publishProjectChanges"
         ](mockInitialState, payload);
 
         assert.deepEqual(
             acutalResult.schemaComparePublishProjectResult,
             publishProjectChangesResult,
-            "schemaComparePublishProjectChanges should return expected result",
+            "publishProjectChanges should return expected result",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("SchemaCompareGetDefaultOptions reducer - when called - runs once", async () => {
+    test("getDefaultOptions reducer - when called - runs once", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResult);
 
         const payload = {};
 
-        await controller["_reducers"]["schemaCompareGetDefaultOptions"](
+        await controller["_reducers"]["getDefaultOptions"](
             mockInitialState,
             payload,
         );
 
         assert.ok(
             getDefaultOptionsStub.calledOnce,
-            "SchemaCompareGetDefaultOptions should be called once",
+            "getDefaultOptions should be called once",
         );
 
         getDefaultOptionsStub.restore();
     });
 
-    test("SchemaCompareGetDefaultOptions reducer - called - with correct arguments", async () => {
+    test("getDefaultOptions reducer - called - with correct arguments", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResult);
 
         const payload = {};
 
-        await controller["_reducers"]["schemaCompareGetDefaultOptions"](
+        await controller["_reducers"]["getDefaultOptions"](
             mockInitialState,
             payload,
         );
@@ -652,33 +647,34 @@ suite("SchemaCompareWebViewController Tests", () => {
         assert.deepEqual(
             getDefaultOptionsStub.firstCall.args,
             [mockSchemaCompareService.object],
-            "SchemaCompareGetDefaultOptions should be called with correct arguments",
+            "getDefaultOptions should be called with correct arguments",
         );
 
         getDefaultOptionsStub.restore();
     });
 
-    test("SchemaCompareGetDefaultOptions reducer - when called - returns expected result", async () => {
+    test("getDefaultOptions reducer - when called - returns expected result", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResult);
 
         const payload = {};
 
-        const acutalResult = await controller["_reducers"][
-            "schemaCompareGetDefaultOptions"
-        ](mockInitialState, payload);
+        const acutalResult = await controller["_reducers"]["getDefaultOptions"](
+            mockInitialState,
+            payload,
+        );
 
         assert.deepEqual(
-            acutalResult,
+            acutalResult.defaultDeploymentOptionsResult,
             deploymentOptionsResult,
-            "SchemaCompareGetDefaultOptions should return expected result",
+            "getDefaultOptions should return expected result",
         );
 
         getDefaultOptionsStub.restore();
     });
 
-    test("schemaCompareIncludeExcludeNode reducer - when called - runs once", async () => {
+    test("includeExcludeNode reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -698,20 +694,20 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaCompareIncludeExcludeNode"](
+        await controller["_reducers"]["includeExcludeNode"](
             mockInitialState,
             payload,
         );
 
         assert.ok(
             publishProjectChangesStub.calledOnce,
-            "schemaCompareIncludeExcludeNode should be called once",
+            "includeExcludeNode should be called once",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareIncludeExcludeNode reducer - called - with correct arguments", async () => {
+    test("includeExcludeNode reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -731,7 +727,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaCompareIncludeExcludeNode"](
+        await controller["_reducers"]["includeExcludeNode"](
             mockInitialState,
             payload,
         );
@@ -739,13 +735,13 @@ suite("SchemaCompareWebViewController Tests", () => {
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
-            "schemaCompareIncludeExcludeNode should be called with correct arguments",
+            "includeExcludeNode should be called with correct arguments",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareIncludeExcludeNode reducer - when called - returns expected result", async () => {
+    test("includeExcludeNode reducer - when called - returns expected result", async () => {
         const includeExcludeNodeResult = {
             success: true,
             errorMessage: "",
@@ -766,19 +762,19 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
 
         const actualResult = await controller["_reducers"][
-            "schemaCompareIncludeExcludeNode"
+            "includeExcludeNode"
         ](mockInitialState, payload);
 
         assert.deepEqual(
             actualResult.schemaCompareIncludeExcludeResult,
             includeExcludeNodeResult,
-            "schemaCompareIncludeExcludeNode should return expected result",
+            "includeExcludeNode should return expected result",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareOpenScmp reducer - when called - runs once", async () => {
+    test("openScmp reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -805,20 +801,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaCompareOpenScmp"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["openScmp"](mockInitialState, payload);
 
         assert.ok(
             publishProjectChangesStub.calledOnce,
-            "schemaCompareOpenScmp should be called once",
+            "openScmp should be called once",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareOpenScmp reducer - called - with correct arguments", async () => {
+    test("openScmp reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -845,21 +838,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        await controller["_reducers"]["schemaCompareOpenScmp"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["openScmp"](mockInitialState, payload);
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
-            "schemaCompareOpenScmp should be called with correct arguments",
+            "openScmp should be called with correct arguments",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareOpenScmp reducer - when called - returns expected result", async () => {
+    test("openScmp reducer - when called - returns expected result", async () => {
         const openScmpResult = {
             success: true,
             errorMessage: "",
@@ -886,20 +876,21 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode,
         };
 
-        const actualResult = await controller["_reducers"][
-            "schemaCompareOpenScmp"
-        ](mockInitialState, payload);
+        const actualResult = await controller["_reducers"]["openScmp"](
+            mockInitialState,
+            payload,
+        );
 
         assert.deepEqual(
             actualResult.schemaCompareOpenScmpResult,
             openScmpResult,
-            "schemaCompareOpenScmp should return expected result",
+            "openScmp should return expected result",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareSaveScmp reducer - when called - runs once", async () => {
+    test("saveScmp reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -919,20 +910,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             excludedTargetObjects: [],
         };
 
-        await controller["_reducers"]["schemaCompareSaveScmp"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["saveScmp"](mockInitialState, payload);
 
         assert.ok(
             publishProjectChangesStub.calledOnce,
-            "schemaCompareSaveScmp should be called once",
+            "saveScmp should be called once",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareSaveScmp reducer - called - with correct arguments", async () => {
+    test("saveScmp reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -952,21 +940,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             excludedTargetObjects: [],
         };
 
-        await controller["_reducers"]["schemaCompareSaveScmp"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["saveScmp"](mockInitialState, payload);
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
-            "schemaCompareSaveScmp should be called with correct arguments",
+            "saveScmp should be called with correct arguments",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareSaveScmp reducer - when called - returns expected result", async () => {
+    test("saveScmp reducer - when called - returns expected result", async () => {
         const saveScmpResult = {
             success: true,
             errorMessage: "",
@@ -986,20 +971,21 @@ suite("SchemaCompareWebViewController Tests", () => {
             excludedTargetObjects: [],
         };
 
-        const actualResult = await controller["_reducers"][
-            "schemaCompareSaveScmp"
-        ](mockInitialState, payload);
+        const actualResult = await controller["_reducers"]["saveScmp"](
+            mockInitialState,
+            payload,
+        );
 
         assert.deepEqual(
             actualResult.saveScmpResultStatus,
             saveScmpResult,
-            "schemaCompareSaveScmp should return expected result",
+            "saveScmp should return expected result",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareCancel reducer - when called - runs once", async () => {
+    test("cancel reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -1013,20 +999,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             operationId,
         };
 
-        await controller["_reducers"]["schemaCompareCancel"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["cancel"](mockInitialState, payload);
 
         assert.ok(
             publishProjectChangesStub.calledOnce,
-            "schemaCompareCancel should be called once",
+            "cancel should be called once",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareCancel reducer - called - with correct arguments", async () => {
+    test("cancel reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -1040,21 +1023,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             operationId,
         };
 
-        await controller["_reducers"]["schemaCompareCancel"](
-            mockInitialState,
-            payload,
-        );
+        await controller["_reducers"]["cancel"](mockInitialState, payload);
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
             [mockInitialState, payload, mockSchemaCompareService.object],
-            "schemaCompareCancel should be called with correct arguments",
+            "cancel should be called with correct arguments",
         );
 
         publishProjectChangesStub.restore();
     });
 
-    test("schemaCompareCancel reducer - when called - returns expected result", async () => {
+    test("cancel reducer - when called - returns expected result", async () => {
         const cancelResult = {
             success: true,
             errorMessage: "",
@@ -1068,14 +1048,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             operationId,
         };
 
-        const actualResult = await controller["_reducers"][
-            "schemaCompareCancel"
-        ](mockInitialState, payload);
+        const actualResult = await controller["_reducers"]["cancel"](
+            mockInitialState,
+            payload,
+        );
 
         assert.deepEqual(
             actualResult.cancelResultStatus,
             cancelResult,
-            "schemaCompareCancel should be called with correct arguments",
+            "cancel should be called with correct arguments",
         );
 
         publishProjectChangesStub.restore();

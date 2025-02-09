@@ -11,7 +11,7 @@ import {
 
 export async function compare(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaCompare"],
+    payload: SchemaCompareReducers["compare"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareResult> {
     const result = await schemaCompareService.compare(
@@ -27,7 +27,7 @@ export async function compare(
 
 export async function generateScript(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaCompareGenerateScript"],
+    payload: SchemaCompareReducers["generateScript"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.generateScript(
@@ -42,7 +42,7 @@ export async function generateScript(
 
 export async function publishDatabaseChanges(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaComparePublishDatabaseChanges"],
+    payload: SchemaCompareReducers["publishDatabaseChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.publishDatabaseChanges(
@@ -57,7 +57,7 @@ export async function publishDatabaseChanges(
 
 export async function publishProjectChanges(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaComparePublishProjectChanges"],
+    payload: SchemaCompareReducers["publishProjectChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaComparePublishProjectResult> {
     const result = await schemaCompareService.publishProjectChanges(
@@ -80,7 +80,7 @@ export async function getDefaultOptions(
 
 export async function includeExcludeNode(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaCompareIncludeExcludeNode"],
+    payload: SchemaCompareReducers["includeExcludeNode"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
     const result = await schemaCompareService.includeExcludeNode(
@@ -95,7 +95,7 @@ export async function includeExcludeNode(
 
 export async function openScmp(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaCompareOpenScmp"],
+    payload: SchemaCompareReducers["openScmp"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
     const result = await schemaCompareService.openScmp(payload.filePath);
@@ -105,7 +105,7 @@ export async function openScmp(
 
 export async function saveScmp(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaCompareSaveScmp"],
+    payload: SchemaCompareReducers["saveScmp"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.saveScmp(
@@ -123,7 +123,7 @@ export async function saveScmp(
 
 export async function cancel(
     state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["schemaCompareCancel"],
+    payload: SchemaCompareReducers["cancel"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.cancel(payload.operationId);

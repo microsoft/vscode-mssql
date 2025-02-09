@@ -21,7 +21,7 @@ export interface SchemaCompareWebViewState {
 }
 
 export interface SchemaCompareReducers {
-    schemaCompare: {
+    compare: {
         operationId: string;
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
@@ -29,41 +29,41 @@ export interface SchemaCompareReducers {
         deploymentOptions: mssql.DeploymentOptions;
     };
 
-    schemaCompareGenerateScript: {
+    generateScript: {
         operationId: string;
         targetServerName: string;
         targetDatabaseName: string;
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
-    schemaComparePublishDatabaseChanges: {
+    publishDatabaseChanges: {
         operationId: string;
         targetServerName: string;
         targetDatabaseName: string;
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
-    schemaComparePublishProjectChanges: {
+    publishProjectChanges: {
         operationId: string;
         targetProjectPath: string;
         targetFolderStructure: mssql.ExtractTarget;
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
-    schemaCompareGetDefaultOptions: {};
+    getDefaultOptions: {};
 
-    schemaCompareIncludeExcludeNode: {
+    includeExcludeNode: {
         operationId: string;
         diffEntry: mssql.DiffEntry;
         includeRequest: boolean;
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
-    schemaCompareOpenScmp: {
+    openScmp: {
         filePath: string;
     };
 
-    schemaCompareSaveScmp: {
+    saveScmp: {
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
         taskExecutionMode: mssql.TaskExecutionMode;
@@ -73,7 +73,7 @@ export interface SchemaCompareReducers {
         excludedTargetObjects: mssql.SchemaCompareObjectId[];
     };
 
-    schemaCompareCancel: {
+    cancel: {
         operationId: string;
     };
 }
@@ -82,7 +82,7 @@ export interface SchemaCompareContextProps {
     state: SchemaCompareWebViewState;
     themeKind: ColorThemeKind;
 
-    schemaCompare: (
+    compare: (
         operationId: string,
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
@@ -90,39 +90,39 @@ export interface SchemaCompareContextProps {
         deploymentOptions: mssql.DeploymentOptions,
     ) => void;
 
-    schemaCompareGenerateScript: (
+    generateScript: (
         operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
-    schemaComparePublishDatabaseChanges: (
+    publishDatabaseChanges: (
         operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
-    schemaComparePublishProjectChanges: (
+    publishProjectChanges: (
         operationId: string,
         targetProjectPath: string,
         targetFolderStructure: mssql.ExtractTarget,
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
-    schemaCompareGetDefaultOptions: () => void;
+    getDefaultOptions: () => void;
 
-    schemaCompareIncludeExcludeNode: (
+    includeExcludeNode: (
         operationId: string,
         diffEntry: mssql.DiffEntry,
         includeRequest: boolean,
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
-    schemaCompareOpenScmp: (filePath: string) => void;
+    openScmp: (filePath: string) => void;
 
-    schemaCompareSaveScmp: (
+    saveScmp: (
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
         taskExecutionMode: mssql.TaskExecutionMode,
@@ -132,5 +132,5 @@ export interface SchemaCompareContextProps {
         excludedTargetObjects: mssql.SchemaCompareObjectId[],
     ) => void;
 
-    schemaCompareCancel: (operationId: string) => void;
+    cancel: (operationId: string) => void;
 }

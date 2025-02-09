@@ -220,7 +220,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
-        this.registerReducer("schemaCompare", async (state, payload) => {
+        this.registerReducer("compare", async (state, payload) => {
             const result = await compare(
                 state,
                 payload,
@@ -230,21 +230,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return { ...state, schemaCompareResult: result };
         });
 
-        this.registerReducer(
-            "schemaCompareGenerateScript",
-            async (state, payload) => {
-                const result = await generateScript(
-                    state,
-                    payload,
-                    this.schemaCompareService,
-                );
+        this.registerReducer("generateScript", async (state, payload) => {
+            const result = await generateScript(
+                state,
+                payload,
+                this.schemaCompareService,
+            );
 
-                return { ...state, generateScriptResultStatus: result };
-            },
-        );
+            return { ...state, generateScriptResultStatus: result };
+        });
 
         this.registerReducer(
-            "schemaComparePublishDatabaseChanges",
+            "publishDatabaseChanges",
             async (state, payload) => {
                 const result = await publishDatabaseChanges(
                     state,
@@ -257,7 +254,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         );
 
         this.registerReducer(
-            "schemaComparePublishProjectChanges",
+            "publishProjectChanges",
             async (state, payload) => {
                 const result = await publishProjectChanges(
                     state,
@@ -269,60 +266,46 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        this.registerReducer(
-            "schemaCompareGetDefaultOptions",
-            async (state) => {
-                const result = await getDefaultOptions(
-                    this.schemaCompareService,
-                );
+        this.registerReducer("getDefaultOptions", async (state) => {
+            const result = await getDefaultOptions(this.schemaCompareService);
 
-                return {
-                    ...state,
-                    defaultDeploymentOptionsResult: result,
-                };
-            },
-        );
+            return {
+                ...state,
+                defaultDeploymentOptionsResult: result,
+            };
+        });
 
-        this.registerReducer(
-            "schemaCompareIncludeExcludeNode",
-            async (state, payload) => {
-                const result = await includeExcludeNode(
-                    state,
-                    payload,
-                    this.schemaCompareService,
-                );
+        this.registerReducer("includeExcludeNode", async (state, payload) => {
+            const result = await includeExcludeNode(
+                state,
+                payload,
+                this.schemaCompareService,
+            );
 
-                return { ...state, schemaCompareIncludeExcludeResult: result };
-            },
-        );
+            return { ...state, schemaCompareIncludeExcludeResult: result };
+        });
 
-        this.registerReducer(
-            "schemaCompareOpenScmp",
-            async (state, payload) => {
-                const result = await openScmp(
-                    state,
-                    payload,
-                    this.schemaCompareService,
-                );
+        this.registerReducer("openScmp", async (state, payload) => {
+            const result = await openScmp(
+                state,
+                payload,
+                this.schemaCompareService,
+            );
 
-                return { ...state, schemaCompareOpenScmpResult: result };
-            },
-        );
+            return { ...state, schemaCompareOpenScmpResult: result };
+        });
 
-        this.registerReducer(
-            "schemaCompareSaveScmp",
-            async (state, payload) => {
-                const result = await saveScmp(
-                    state,
-                    payload,
-                    this.schemaCompareService,
-                );
+        this.registerReducer("saveScmp", async (state, payload) => {
+            const result = await saveScmp(
+                state,
+                payload,
+                this.schemaCompareService,
+            );
 
-                return { ...state, saveScmpResultStatus: result };
-            },
-        );
+            return { ...state, saveScmpResultStatus: result };
+        });
 
-        this.registerReducer("schemaCompareCancel", async (state, payload) => {
+        this.registerReducer("cancel", async (state, payload) => {
             const result = await cancel(
                 state,
                 payload,

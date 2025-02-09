@@ -31,14 +31,14 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             value={{
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
-                schemaCompare: function (
+                compare: function (
                     operationId: string,
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     taskExecutionMode: mssql.TaskExecutionMode,
                     deploymentOptions: mssql.DeploymentOptions,
                 ): void {
-                    webViewState?.extensionRpc.action("schemaCompare", {
+                    webViewState?.extensionRpc.action("compare", {
                         operationId: operationId,
                         sourceEndpointInfo: sourceEndpointInfo,
                         targetEndpointInfo: targetEndpointInfo,
@@ -46,14 +46,27 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         deploymentOptions: deploymentOptions,
                     });
                 },
-                schemaCompareGenerateScript: function (
+                generateScript: function (
+                    operationId: string,
+                    targetServerName: string,
+                    targetDatabaseName: string,
+                    taskExecutionMode: mssql.TaskExecutionMode,
+                ): void {
+                    webViewState?.extensionRpc.action("generateScript", {
+                        operationId: operationId,
+                        targetServerName: targetServerName,
+                        targetDatabaseName: targetDatabaseName,
+                        taskExecutionMode: taskExecutionMode,
+                    });
+                },
+                publishDatabaseChanges: function (
                     operationId: string,
                     targetServerName: string,
                     targetDatabaseName: string,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action(
-                        "schemaCompareGenerateScript",
+                        "publishDatabaseChanges",
                         {
                             operationId: operationId,
                             targetServerName: targetServerName,
@@ -62,66 +75,41 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         },
                     );
                 },
-                schemaComparePublishDatabaseChanges: function (
-                    operationId: string,
-                    targetServerName: string,
-                    targetDatabaseName: string,
-                    taskExecutionMode: mssql.TaskExecutionMode,
-                ): void {
-                    webViewState?.extensionRpc.action(
-                        "schemaComparePublishDatabaseChanges",
-                        {
-                            operationId: operationId,
-                            targetServerName: targetServerName,
-                            targetDatabaseName: targetDatabaseName,
-                            taskExecutionMode: taskExecutionMode,
-                        },
-                    );
-                },
-                schemaComparePublishProjectChanges: function (
+                publishProjectChanges: function (
                     operationId: string,
                     targetProjectPath: string,
                     targetFolderStructure: mssql.ExtractTarget,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
-                    webViewState?.extensionRpc.action(
-                        "schemaComparePublishProjectChanges",
-                        {
-                            operationId: operationId,
-                            targetProjectPath: targetProjectPath,
-                            targetFolderStructure: targetFolderStructure,
-                            taskExecutionMode: taskExecutionMode,
-                        },
-                    );
+                    webViewState?.extensionRpc.action("publishProjectChanges", {
+                        operationId: operationId,
+                        targetProjectPath: targetProjectPath,
+                        targetFolderStructure: targetFolderStructure,
+                        taskExecutionMode: taskExecutionMode,
+                    });
                 },
-                schemaCompareGetDefaultOptions: function (): void {
-                    webViewState?.extensionRpc.action(
-                        "schemaCompareGetDefaultOptions",
-                        {},
-                    );
+                getDefaultOptions: function (): void {
+                    webViewState?.extensionRpc.action("getDefaultOptions", {});
                 },
-                schemaCompareIncludeExcludeNode: function (
+                includeExcludeNode: function (
                     operationId: string,
                     diffEntry: mssql.DiffEntry,
                     includeRequest: boolean,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
-                    webViewState?.extensionRpc.action(
-                        "schemaCompareIncludeExcludeNode",
-                        {
-                            operationId: operationId,
-                            diffEntry: diffEntry,
-                            includeRequest: includeRequest,
-                            taskExecutionMode: taskExecutionMode,
-                        },
-                    );
+                    webViewState?.extensionRpc.action("includeExcludeNode", {
+                        operationId: operationId,
+                        diffEntry: diffEntry,
+                        includeRequest: includeRequest,
+                        taskExecutionMode: taskExecutionMode,
+                    });
                 },
-                schemaCompareOpenScmp: function (filePath: string): void {
-                    webViewState?.extensionRpc.action("schemaCompareOpenScmp", {
+                openScmp: function (filePath: string): void {
+                    webViewState?.extensionRpc.action("openScmp", {
                         filePath: filePath,
                     });
                 },
-                schemaCompareSaveScmp: function (
+                saveScmp: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     taskExecutionMode: mssql.TaskExecutionMode,
@@ -130,7 +118,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     excludedSourceObjects: mssql.SchemaCompareObjectId[],
                     excludedTargetObjects: mssql.SchemaCompareObjectId[],
                 ): void {
-                    webViewState?.extensionRpc.action("schemaCompareSaveScmp", {
+                    webViewState?.extensionRpc.action("saveScmp", {
                         sourceEndpointInfo: sourceEndpointInfo,
                         targetEndpointInfo: targetEndpointInfo,
                         taskExecutionMode: taskExecutionMode,
@@ -140,8 +128,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         excludedTargetObjects: excludedTargetObjects,
                     });
                 },
-                schemaCompareCancel: function (operationId: string): void {
-                    webViewState?.extensionRpc.action("schemaCompareCancel", {
+                cancel: function (operationId: string): void {
+                    webViewState?.extensionRpc.action("cancel", {
                         operationId: operationId,
                     });
                 },
