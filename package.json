@@ -428,7 +428,7 @@
         },
         {
           "command": "mssql.schemaCompare",
-          "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/"
+          "when": "view == dataworkspace.views.main && config.mssql.enableRichExperiences && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/"
         },
         {
           "command": "mssql.filterNode",

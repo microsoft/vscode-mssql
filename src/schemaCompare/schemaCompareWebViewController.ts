@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// import * as azdata from "azdata";
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
@@ -63,12 +62,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "schemaCompare_dark.svg", // lewissanchez TODO - update icon for edit data
+                        "schemaCompare_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "schemaCompare_light.svg", // lewissanchez TODO - update icon for edit data
+                        "schemaCompare_light.svg",
                     ),
                 },
             },
@@ -82,11 +81,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerRpcHandlers();
     }
 
+    /**
+     * Starts the schema comparison process.
+     * @param sourceContext can be undefined, connection profile, dacpac, or project.
+     * @param targetContext optional parameter, but can be connection profile, dacpac, or project.
+     * @param comparisonResult Result of a previous comparison, if available.
+     */
     // schema compare can get started with four contexts for the source:
-    // 1. undefined
-    // 2. connection profile
-    // 3. dacpac
-    // 4. project
     public async start(
         sourceContext: any,
         targetContext: mssql.SchemaCompareEndpointInfo = undefined,
