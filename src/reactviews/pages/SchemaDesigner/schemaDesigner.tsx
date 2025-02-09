@@ -30,6 +30,11 @@ export const SchemaDesigner = () => {
     const [displayEditor, setDisplayEditor] = useState(false);
 
     const [entity, setEntity] = useState<IEntity | undefined>(undefined);
+    const [entityPromiseResolver, setEntityPromiseResolver] = useState<
+        (value: IEntity) => void
+    >(() => {
+        return () => {};
+    });
 
     const graphContainerRef = useRef<HTMLDivElement | null>(null);
     const editorDivRef = useRef<HTMLDivElement | null>(null);
@@ -57,8 +62,7 @@ export const SchemaDesigner = () => {
             }
             div.innerHTML = "";
             const schemaDesignerConfig = config;
-
-            schemaDesignerConfig.editEntity = (
+            schemaDesignerConfig.editEntity = async (
                 cell,
                 _x,
                 _y,
@@ -80,12 +84,18 @@ export const SchemaDesigner = () => {
                     _scale,
                 );
                 setEntity(cell.value as IEntity);
-                return {
-                    editedEntity: cell.value as IEntity,
+                const promise = new Promise<IEntity>((resolve) => {
+                    setEntityPromiseResolver(() => resolve);
+                });
+                const editedEntity = await promise;
+                setDisplayEditor(false);
+                const result = {
+                    editedEntity: editedEntity,
                     editedOutgoingEdges: outgoingEdges.map(
                         (edge) => edge.value as IRelationship,
                     ),
                 };
+                return result;
             };
 
             schemaDesignerConfig.editRelationship = (cell, _x, _y, _scale) => {
@@ -139,6 +149,7 @@ export const SchemaDesigner = () => {
                 <SchemaDesignerEntityEditor
                     entity={entity!}
                     schema={context.schema}
+                    resolveEntity={entityPromiseResolver}
                 />
             </div>
         </div>

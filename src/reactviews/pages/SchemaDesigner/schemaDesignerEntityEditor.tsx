@@ -34,7 +34,7 @@ import {
     IEntity,
     ISchema,
 } from "../../../sharedInterfaces/schemaDesigner";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 
@@ -83,6 +83,7 @@ const useStyles = makeStyles({
 export const SchemaDesignerEntityEditor = (props: {
     entity: IEntity;
     schema: ISchema;
+    resolveEntity: (entity: IEntity) => void;
 }) => {
     if (!props.entity || !props.schema) {
         return undefined;
@@ -175,6 +176,12 @@ export const SchemaDesignerEntityEditor = (props: {
             }),
         ],
     );
+
+    useEffect(() => {
+        setTableColumns(props.entity.columns);
+        setTableName(props.entity.name);
+        setSchemaName(props.entity.schema);
+    }, [props.entity, props.resolveEntity]);
 
     function renderCell(column: IColumn, columnId: string, index: number) {
         switch (columnId) {
@@ -359,7 +366,6 @@ export const SchemaDesignerEntityEditor = (props: {
                             {getRows().map((row, index) => (
                                 <TableRow key={index}>
                                     {columns.map((column) => {
-                                        console.log(column);
                                         return (
                                             <TableCell
                                                 {...columnSizing_unstable.getTableCellProps(
@@ -402,10 +408,30 @@ export const SchemaDesignerEntityEditor = (props: {
                 )}
             </div>
             <div className={classes.buttonStickyContainer}>
-                <Button size="small" appearance="primary">
+                <Button
+                    size="small"
+                    appearance="primary"
+                    onClick={() => {
+                        props.resolveEntity({
+                            name: tableName,
+                            schema: schemaName,
+                            columns: tableColumns,
+                        });
+                    }}
+                >
                     {locConstants.schemaDesigner.save}
                 </Button>
-                <Button size="small" appearance="secondary">
+                <Button
+                    size="small"
+                    appearance="secondary"
+                    onClick={() => {
+                        props.resolveEntity({
+                            name: props.entity.name,
+                            schema: props.entity.schema,
+                            columns: props.entity.columns,
+                        });
+                    }}
+                >
                     {locConstants.schemaDesigner.cancel}
                 </Button>
             </div>

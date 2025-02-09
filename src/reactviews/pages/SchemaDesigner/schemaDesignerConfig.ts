@@ -60,7 +60,10 @@ export const config: SchemaDesignerConfig = {
         _incomingEdges: mxCell[],
         _outgoingEdges: mxCell[],
         _model: ISchema,
-    ): { editedEntity: IEntity; editedOutgoingEdges: IRelationship[] } {
+    ): Promise<{
+        editedEntity: IEntity;
+        editedOutgoingEdges: IRelationship[];
+    }> {
         throw new Error("Function not implemented.");
     },
     editRelationship: function (
