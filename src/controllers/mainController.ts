@@ -1990,7 +1990,7 @@ export default class MainController implements vscode.Disposable {
                 node,
                 this.schemaCompareService,
                 this._connectionMgr,
-                result.defaultDeploymentOptions,
+                result,
                 SchemaCompare.Title,
             );
 

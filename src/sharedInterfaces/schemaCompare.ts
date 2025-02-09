@@ -7,7 +7,7 @@ import * as mssql from "vscode-mssql";
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
 export interface SchemaCompareWebViewState {
-    defaultDeploymentOptions: mssql.DeploymentOptions;
+    defaultDeploymentOptionsResult: mssql.SchemaCompareOptionsResult;
     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
     targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
     schemaCompareResult: mssql.SchemaCompareResult;
@@ -50,7 +50,7 @@ export interface SchemaCompareReducers {
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
-    // schemaCompareGetDefaultOptions: {};
+    schemaCompareGetDefaultOptions: {};
 
     schemaCompareIncludeExcludeNode: {
         operationId: string;
@@ -111,7 +111,7 @@ export interface SchemaCompareContextProps {
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
-    // schemaCompareGetDefaultOptions: () => void;
+    schemaCompareGetDefaultOptions: () => void;
 
     schemaCompareIncludeExcludeNode: (
         operationId: string,

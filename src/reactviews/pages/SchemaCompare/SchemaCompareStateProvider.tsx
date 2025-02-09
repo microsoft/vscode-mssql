@@ -94,6 +94,12 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         },
                     );
                 },
+                schemaCompareGetDefaultOptions: function (): void {
+                    webViewState?.extensionRpc.action(
+                        "schemaCompareGetDefaultOptions",
+                        {},
+                    );
+                },
                 schemaCompareIncludeExcludeNode: function (
                     operationId: string,
                     diffEntry: mssql.DiffEntry,

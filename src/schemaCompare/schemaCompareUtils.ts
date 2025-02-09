@@ -70,6 +70,14 @@ export async function publishProjectChanges(
     return result;
 }
 
+export async function getDefaultOptions(
+    schemaCompareService: mssql.ISchemaCompareService,
+): Promise<mssql.SchemaCompareOptionsResult> {
+    const result = await schemaCompareService.getDefaultOptions();
+
+    return result;
+}
+
 export async function includeExcludeNode(
     state: SchemaCompareWebViewState,
     payload: SchemaCompareReducers["schemaCompareIncludeExcludeNode"],

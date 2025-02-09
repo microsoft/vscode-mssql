@@ -65,6 +65,12 @@ suite("SchemaCompareWebViewController Tests", () => {
         },
     };
 
+    const deploymentOptionsResult: mssql.SchemaCompareOptionsResult = {
+        success: true,
+        errorMessage: "",
+        defaultDeploymentOptions: deploymentOptions,
+    };
+
     const sourceEndpointInfo = {
         endpointType: 2,
         packageFilePath: "",
@@ -116,7 +122,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
 
         mockInitialState = {
-            defaultDeploymentOptions: deploymentOptions,
+            defaultDeploymentOptionsResult: deploymentOptionsResult,
             sourceEndpointInfo: sourceEndpointInfo,
             targetEndpointInfo: undefined,
             schemaCompareResult: undefined,
@@ -208,7 +214,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             treeNode,
             mockSchemaCompareService.object,
             mockConnectionManager.object,
-            deploymentOptions,
+            deploymentOptionsResult,
             schemaCompareWebViewTitle,
         );
     });
@@ -609,6 +615,67 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         publishProjectChangesStub.restore();
+    });
+
+    test("SchemaCompareGetDefaultOptions reducer - when called - runs once", async () => {
+        const getDefaultOptionsStub = sandbox
+            .stub(scUtils, "getDefaultOptions")
+            .resolves(deploymentOptionsResult);
+
+        const payload = {};
+
+        await controller["_reducers"]["schemaCompareGetDefaultOptions"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.ok(
+            getDefaultOptionsStub.calledOnce,
+            "SchemaCompareGetDefaultOptions should be called once",
+        );
+
+        getDefaultOptionsStub.restore();
+    });
+
+    test("SchemaCompareGetDefaultOptions reducer - called - with correct arguments", async () => {
+        const getDefaultOptionsStub = sandbox
+            .stub(scUtils, "getDefaultOptions")
+            .resolves(deploymentOptionsResult);
+
+        const payload = {};
+
+        await controller["_reducers"]["schemaCompareGetDefaultOptions"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            getDefaultOptionsStub.firstCall.args,
+            [mockSchemaCompareService.object],
+            "SchemaCompareGetDefaultOptions should be called with correct arguments",
+        );
+
+        getDefaultOptionsStub.restore();
+    });
+
+    test("SchemaCompareGetDefaultOptions reducer - when called - returns expected result", async () => {
+        const getDefaultOptionsStub = sandbox
+            .stub(scUtils, "getDefaultOptions")
+            .resolves(deploymentOptionsResult);
+
+        const payload = {};
+
+        const acutalResult = await controller["_reducers"][
+            "schemaCompareGetDefaultOptions"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            acutalResult,
+            deploymentOptionsResult,
+            "SchemaCompareGetDefaultOptions should return expected result",
+        );
+
+        getDefaultOptionsStub.restore();
     });
 
     test("schemaCompareIncludeExcludeNode reducer - when called - runs once", async () => {

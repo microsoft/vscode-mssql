@@ -19,13 +19,13 @@ import {
     cancel,
     compare,
     generateScript,
+    getDefaultOptions,
     includeExcludeNode,
     openScmp,
     publishDatabaseChanges,
     publishProjectChanges,
     saveScmp,
 } from "./schemaCompareUtils";
-// import { ConnectionProfile } from "../models/connectionProfile";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -36,14 +36,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         node: any,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
-        defaultDeploymentOptions: mssql.DeploymentOptions,
+        schemaCompareOptionsResult: mssql.SchemaCompareOptionsResult,
         title: string,
     ) {
         super(
             context,
             "schemaCompare",
             {
-                defaultDeploymentOptions: defaultDeploymentOptions,
+                defaultDeploymentOptionsResult: schemaCompareOptionsResult,
                 sourceEndpointInfo: undefined,
                 targetEndpointInfo: undefined,
                 schemaCompareResult: undefined,
@@ -266,6 +266,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
 
                 return { ...state, schemaComparePublishProjectResult: result };
+            },
+        );
+
+        this.registerReducer(
+            "schemaCompareGetDefaultOptions",
+            async (state) => {
+                const result = await getDefaultOptions(
+                    this.schemaCompareService,
+                );
+
+                return {
+                    ...state,
+                    defaultDeploymentOptionsResult: result,
+                };
             },
         );
 
