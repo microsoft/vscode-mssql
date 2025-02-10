@@ -108,6 +108,7 @@
 "mssql.format.placeCommasBeforeNextStatement":"should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'",
 "mssql.format.placeSelectStatementReferencesOnNewLine":"Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines",
 "mssql.applyLocalization":"[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)",
+"mssql.resultsGrid.autoSizeColumns": "Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells",
 "mssql.query.displayBitAsNumber":"Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'",
 "mssql.intelliSense.enableIntelliSense":"Should IntelliSense be enabled",
 "mssql.intelliSense.enableErrorChecking":"Should IntelliSense error checking be enabled",
@@ -117,6 +118,7 @@
 "mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
 "mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
 "mssql.queryHistoryLimit":"Number of query history entries to show in the Query History view",
+"mssql.autoDisableNonTSqlLanguageService":"Should language service be auto-disabled when extension detects Non-MSSQL files",
 "mssql.createAzureFunction":"Create Azure Function with SQL binding",
 "mssql.query.maxXmlCharsToStore":"Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.",
 "mssql.query.maxCharsToStore":"Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.",
@@ -169,5 +171,6 @@
 "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description":"Do not show prompts to display query results in a new tab.",
 "mssql.enableNewQueryResultFeature.description":"Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
 "mssql.userFeedback":"Give Feedback",
-"mssql.selectedSubscriptions":"Selected Subscriptions"
+"mssql.selectedSubscriptions":"Selected Subscriptions",
+"mssql.visualizeSchema": "Visualize Schema"
 }

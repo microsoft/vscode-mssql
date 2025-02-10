@@ -19,6 +19,7 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import { TreeNodeInfo } from "./treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "../telemetry/telemetry";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPanelController<
     ObjectExplorerFilterState,
@@ -35,10 +36,13 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
 
     constructor(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         data?: ObjectExplorerFilterState,
     ) {
         super(
             context,
+            vscodeWrapper,
+            "objectExplorerFilter",
             "objectExplorerFilter",
             data ?? {
                 filterProperties: [],
@@ -91,6 +95,7 @@ export class ObjectExplorerFilter {
      */
     public static async getFilters(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         treeNode: TreeNodeInfo,
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         return await new Promise((resolve, _reject) => {
@@ -108,11 +113,15 @@ export class ObjectExplorerFilter {
                 this._filterWebviewController.isDisposed
             ) {
                 this._filterWebviewController =
-                    new ObjectExplorerFilterReactWebviewController(context, {
-                        filterProperties: treeNode.filterableProperties,
-                        existingFilters: treeNode.filters,
-                        nodePath: treeNode.nodePath,
-                    });
+                    new ObjectExplorerFilterReactWebviewController(
+                        context,
+                        vscodeWrapper,
+                        {
+                            filterProperties: treeNode.filterableProperties,
+                            existingFilters: treeNode.filters,
+                            nodePath: treeNode.nodePath,
+                        },
+                    );
             } else {
                 this._filterWebviewController.loadData({
                     filterProperties: treeNode.filterableProperties,

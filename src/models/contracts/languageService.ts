@@ -75,6 +75,31 @@ export class StatusChangeParams {
 
 // ------------------------------- </ Status Sent Event > ----------------------------------
 
+// ------------------------------- < Non T-Sql Event > ------------------------------------
+
+export class NonTSqlParams {
+    /**
+     * URI identifying the text document
+     */
+    public ownerUri: string;
+    /**
+     * Indicates whether the file was flagged due to containing
+     * non-TSQL keywords or hitting the error limit.
+     */
+    public containsNonTSqlKeywords: boolean;
+}
+
+/**
+ *
+ */
+export namespace NonTSqlNotification {
+    export const type = new NotificationType<NonTSqlParams, void>(
+        "textDocument/nonTSqlFileDetected",
+    );
+}
+
+// ------------------------------- </ Non T-Sql Event > ----------------------------------
+
 // ------------------------------- < Language Flavor Changed Event > ------------------------------------
 /**
  * Language flavor change event parameters

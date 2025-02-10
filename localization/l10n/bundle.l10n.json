@@ -275,6 +275,8 @@
   "Not likely at all": "Not likely at all",
   "Extremely likely": "Extremely likely",
   "Privacy Statement": "Privacy Statement",
+  "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
+  "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
   "Results": "Results",
   "Messages": "Messages",
   "Timestamp": "Timestamp",
@@ -665,6 +667,7 @@
   "Choose SQL Language": "Choose SQL Language",
   "Use T-SQL intellisense and syntax error checking on current document": "Use T-SQL intellisense and syntax error checking on current document",
   "Disable intellisense and syntax error checking on current document": "Disable intellisense and syntax error checking on current document",
+  "Non-SQL Server SQL file detected. Disable IntelliSense for such files?": "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
   "Add Connection": "Add Connection",
   "Azure: Sign In": "Azure: Sign In",
   "Sign in to your Azure subscription": "Sign in to your Azure subscription",
@@ -796,6 +799,8 @@
       "{0} is the feature name"
     ]
   },
+  "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!": "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
+  "Submit an issue": "Submit an issue",
   "{0} has been closed. Would you like to restore it?/{0} is the webview name": {
     "message": "{0} has been closed. Would you like to restore it?",
     "comment": [

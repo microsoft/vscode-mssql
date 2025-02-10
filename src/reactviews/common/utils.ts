@@ -3,7 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorThemeKind } from "./vscodeWebviewProvider";
+import {
+    LoggerLevel,
+    WebviewTelemetryActionEvent,
+    WebviewTelemetryErrorEvent,
+} from "../../sharedInterfaces/webview";
+import { ColorThemeKind, VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.
@@ -49,4 +54,36 @@ export function themeType(themeKind: ColorThemeKind): string {
 /** Removes duplicate values from an array */
 export function removeDuplicates<T>(array: T[]): T[] {
     return Array.from(new Set(array));
+}
+
+/** from vscode: https://github.com/microsoft/vscode/blob/5bd3d12fb18047ae33ac4b171dee3cd044b6f3d4/src/vs/base/common/objects.ts#L8 */
+export function deepClone<T>(obj: T): T {
+    if (!obj || typeof obj !== "object") {
+        return obj;
+    }
+    if (obj instanceof RegExp) {
+        return obj;
+    }
+    const result: any = Array.isArray(obj) ? [] : {};
+    Object.entries(obj).forEach(([key, value]) => {
+        result[key] =
+            value && typeof value === "object" ? deepClone(value) : value;
+    });
+    return result;
+}
+
+export function getCoreRPCs<TState, TReducers>(
+    webviewState: VscodeWebviewContext<TState, TReducers>,
+): any {
+    return {
+        log(message: string, level?: LoggerLevel) {
+            webviewState.extensionRpc.log(message, level);
+        },
+        sendActionEvent(event: WebviewTelemetryActionEvent) {
+            webviewState.extensionRpc.sendActionEvent(event);
+        },
+        sendErrorEvent(event: WebviewTelemetryErrorEvent) {
+            webviewState.extensionRpc.sendErrorEvent(event);
+        },
+    };
 }

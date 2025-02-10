@@ -13,6 +13,7 @@ import {
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 
 const ConnectionDialogContext = createContext<
     ConnectionDialogContextProps | undefined
@@ -35,6 +36,7 @@ const ConnectionDialogStateProvider: React.FC<
             value={{
                 state: connectionDialogState,
                 themeKind: webviewState?.themeKind,
+                ...getCoreRPCs(webviewState),
                 loadConnection: function (
                     connection: IConnectionDialogProfile,
                 ): void {

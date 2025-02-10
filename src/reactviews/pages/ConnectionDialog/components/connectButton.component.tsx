@@ -30,9 +30,6 @@ export const ConnectButton = ({
             type="submit"
             appearance="primary"
             disabled={context.state.connectionStatus === ApiStatus.Loading}
-            onClick={(_event) => {
-                context.connect();
-            }}
             className={className}
             style={style}
             iconPosition="after"

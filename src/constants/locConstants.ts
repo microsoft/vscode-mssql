@@ -561,6 +561,9 @@ export let flavorDescriptionMssql = l10n.t(
 export let flavorDescriptionNone = l10n.t(
     "Disable intellisense and syntax error checking on current document",
 );
+export let autoDisableNonTSqlLanguageServicePrompt = l10n.t(
+    "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
+);
 export let msgAddConnection = l10n.t("Add Connection");
 export let msgConnect = l10n.t("Connect");
 export let azureSignIn = l10n.t("Azure: Sign In");
@@ -775,6 +778,10 @@ export class UserSurvey {
             args: [featureName],
             comment: ["{0} is the feature name"],
         });
+    public static fileAnIssuePrompt = l10n.t(
+        "Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!",
+    );
+    public static submitIssue = l10n.t("Submit an issue");
 }
 
 export class Webview {

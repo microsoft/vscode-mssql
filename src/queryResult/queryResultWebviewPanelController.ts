@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import * as qr from "../sharedInterfaces/queryResult";
-// import * as Constants from "../constants/constants";
 import { randomUUID } from "crypto";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
@@ -20,7 +19,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     constructor(
         context: vscode.ExtensionContext,
-        private _vscodeWrapper: VscodeWrapper,
+        vscodeWrapper: VscodeWrapper,
         private _viewColumn: vscode.ViewColumn,
         private _uri: string,
         title: string,
@@ -28,6 +27,8 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     ) {
         super(
             context,
+            vscodeWrapper,
+            "queryResult",
             "queryResult",
             {
                 resultSetSummaries: {},
@@ -36,7 +37,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                     resultPaneTab: qr.QueryResultPaneTabs.Messages,
                 },
                 executionPlanState: {},
-                filterState: {},
+                fontSettings: {},
             },
             {
                 title: vscode.l10n.t({
@@ -62,9 +63,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
         );
 
         void this.initialize();
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
     }
 
     private async initialize() {

@@ -90,6 +90,7 @@ export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
+export const cmdVisualizeSchema = "mssql.visualizeSchema";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider =
@@ -171,12 +172,12 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
-export const extConfigResultKeys = [
-    "shortcuts",
-    "messagesDefaultOpen",
-    "resultsFontSize",
-    "resultsFontFamily",
-];
+export enum extConfigResultKeys {
+    Shortcuts = "shortcuts",
+    MessagesDefaultOpen = "messagesDefaultOpen",
+    ResultsFontSize = "resultsFontSize",
+    ResultsFontFamily = "resultsFontFamily",
+}
 export const sqlToolsServiceInstallDirConfigKey = "installDir";
 export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
 export const sqlToolsServiceVersionConfigKey = "version";
@@ -199,6 +200,9 @@ export const configEnableNewQueryResultFeature =
     "mssql.enableNewQueryResultFeature";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
+export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configAutoDisableNonTSqlLanguageService =
+    "mssql.autoDisableNonTSqlLanguageService";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
@@ -228,7 +232,7 @@ export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
-    "https://www.microsoft.com/en-us/privacy/privacystatement";
+    "https://go.microsoft.com/fwlink/?LinkId=521839";
 export const sqlPlanLanguageId = "sqlplan";
 export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {

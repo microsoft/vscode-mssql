@@ -11,6 +11,7 @@ import {
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 
 const ObjectExplorerFilterContext = createContext<
     ObjectExplorerFilterContextProps | undefined
@@ -32,7 +33,8 @@ const ObjectExplorerFilterStateProvider: React.FC<
     return (
         <ObjectExplorerFilterContext.Provider
             value={{
-                isLocalizationLoaded: webviewState?.localization,
+                ...getCoreRPCs(webviewState),
+                //isLocalizationLoaded: webviewState?.localization,
                 state: objectExplorerFilterState,
                 themeKind: webviewState?.themeKind,
                 submit: function (filters): void {
