@@ -64,7 +64,6 @@ import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import {
     addContainerConnection,
-    isDockerContainerRunning,
     startDocker,
     startSqlServerDockerContainer,
     validateContainerName,
@@ -1523,8 +1522,6 @@ export default class MainController implements vscode.Disposable {
 
         if (!containerResult.port) return false;
 
-        // wait here a lil bit for docker to start + run
-
         // Add container connection to connection profiles
         const connectionProfile = await addContainerConnection(
             name,
@@ -1533,14 +1530,9 @@ export default class MainController implements vscode.Disposable {
             this.connectionManager,
         );
 
-        const containerUri = `Server=localhost, ${containerResult.port};User Id=SA; Encrypt=true; Trust Server Certificate=true;`;
-        const connectionPromise = new Deferred<boolean>();
-        return this.connect(
-            containerUri,
-            connectionProfile as IConnectionInfo,
-            connectionPromise,
-            true,
-        );
+        // const containerUri = `Server=localhost, ${containerResult.port};User Id=SA; Encrypt=true; Trust Server Certificate=true;`;
+        // const connectionPromise = new Deferred<boolean>();
+        return this.createObjectExplorerSession(connectionProfile);
     }
 
     /**

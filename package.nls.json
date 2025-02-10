@@ -165,5 +165,6 @@
 "mssql.enableNewQueryResultFeature.description":"Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
 "mssql.userFeedback":"Give Feedback",
 "mssql.selectedSubscriptions":"Selected Subscriptions",
-"mssql.visualizeSchema": "Visualize Schema"
+"mssql.visualizeSchema": "Visualize Schema",
+"mssql.deployLocalDockerContainer": "Deploy and connect to a SQL Server Docker Container"
 }

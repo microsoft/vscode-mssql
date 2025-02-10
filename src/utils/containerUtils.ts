@@ -112,7 +112,7 @@ export async function startSqlServerDockerContainer(
     return new Promise(async (resolve) => {
         const port = await findAvailablePort(1433);
         const command = `docker run -e \"ACCEPT_EULA=Y\" -e \"SA_PASSWORD=${password}\" -p ${port}:1433 --name ${name} -d mcr.microsoft.com/mssql/server:${version}-latest`;
-        exec(command, (error, stdout, stderr) => {
+        exec(command, async (error, stdout, stderr) => {
             if (error) {
                 console.error("Failed to start SQL Server container:", error);
                 return resolve({ port: undefined, error: error.message });
@@ -121,6 +121,14 @@ export async function startSqlServerDockerContainer(
             console.log(
                 `SQL Server container started successfully on port ${port}.`,
             );
+            const isContainerReady =
+                await checkIfContainerIsReadyForConnections(name);
+            if (!isContainerReady)
+                return resolve({
+                    port: undefined,
+                    error: "Could not set up container",
+                });
+
             return resolve({ port: port });
         });
     });
@@ -166,9 +174,8 @@ export async function addContainerConnection(
     connectionManager: ConnectionManager,
 ): Promise<IConnectionProfile> {
     const server = `localhost, ${port}`;
-    const connectionString = `Microsoft.SqlTools|itemtype:Profile|server:${server}|user:SA|isConnectionString:true`;
     const connection: any = {
-        connectionString: connectionString,
+        connectionString: undefined,
         profileName: name,
         encrypt: "Mandatory",
         trustServerCertificate: true,
@@ -189,13 +196,38 @@ export async function startContainer(name: string): Promise<boolean> {
     const isDockerStarted = await startDocker();
     if (!isDockerStarted) return false;
     return new Promise((resolve) => {
-        exec(`docker start ${name}`, (error) => {
+        exec(`docker start ${name}`, async (error) => {
             if (error) {
                 console.error("Failed to start container:", error);
                 resolve(false);
             } else {
-                resolve(true);
+                // Let SQL server container setup finish
+                // Wait for SQL Server to initialize
+                resolve(checkIfContainerIsReadyForConnections(name));
             }
         });
+    });
+}
+
+export async function checkIfContainerIsReadyForConnections(
+    name: string,
+): Promise<boolean> {
+    return new Promise((resolve) => {
+        const grepCommand =
+            platform() === "win32"
+                ? `findstr "Recovery is complete"`
+                : `grep "Recovery is complete"`;
+
+        const interval = setInterval(() => {
+            exec(
+                `docker logs --tail 15 ${name} | ${grepCommand}`,
+                (error, stdout) => {
+                    if (!error && stdout.includes("Recovery is complete")) {
+                        clearInterval(interval);
+                        resolve(true);
+                    }
+                },
+            );
+        }, 1000); // Check every second
     });
 }

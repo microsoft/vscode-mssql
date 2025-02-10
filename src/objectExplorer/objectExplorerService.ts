@@ -52,6 +52,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { startContainer } from "../utils/containerUtils";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -680,6 +681,11 @@ export class ObjectExplorerService {
             );
         }
         if (connectionCredentials) {
+            // Local container, ensure it is started
+            if (connectionCredentials.containerName) {
+                // start docker and docker container
+                await startContainer(connectionCredentials.containerName);
+            }
             // connection string based credential
             if (connectionCredentials.connectionString) {
                 if (
