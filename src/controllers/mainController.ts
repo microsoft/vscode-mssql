@@ -962,6 +962,7 @@ export default class MainController implements vscode.Disposable {
                 ),
             );
 
+            //TODO: remove command before release
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdTableExplorer,

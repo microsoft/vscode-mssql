@@ -46,7 +46,6 @@ export class TableExplorerWebviewController extends ReactWebviewPanelController<
             return;
         }
 
-        const tableName = this.getTableNameForNode(this._targetNode);
         this.state = {
             view: {
                 tabs: [

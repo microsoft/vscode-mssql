@@ -31,4 +31,11 @@ export interface TableExplorerReducers {
     };
 }
 
+export interface TableDesignerComponentProperties {
+    title?: string;
+    ariaLabel?: string;
+    width?: number;
+    enabled?: boolean;
+}
+
 export interface TableExplorerReactProvider {}
