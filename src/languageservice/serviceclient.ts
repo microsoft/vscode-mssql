@@ -31,7 +31,7 @@ import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { IConfig } from "../languageservice/interfaces";
 import { exists } from "../utils/utils";
-// import { env } from "process";
+import { env } from "process";
 import {
     getAppDataPath,
     getEnableConnectionPoolingConfig,
@@ -39,7 +39,7 @@ import {
 } from "../azure/utils";
 import { serviceName } from "../azure/constants";
 
-// const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
+const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 
 let _channel: vscode.OutputChannel = undefined;
 
@@ -360,8 +360,7 @@ export default class SqlToolsServiceClient {
             // This env var is used to override the base install location of STS - primarily to be used for debugging scenarios.
             try {
                 const exeFiles = this._config.getSqlToolsExecutableFiles();
-                const stsRootPath =
-                    "C:\\Users\\benjind\\Source\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Release\\net8.0\\publish"; //env[STS_OVERRIDE_ENV_VAR];
+                const stsRootPath = env[STS_OVERRIDE_ENV_VAR];
                 if (stsRootPath) {
                     for (const exeFile of exeFiles) {
                         const serverFullPath = path.join(stsRootPath, exeFile);
