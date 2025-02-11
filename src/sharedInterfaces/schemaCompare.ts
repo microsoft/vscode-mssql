@@ -22,7 +22,6 @@ export interface SchemaCompareWebViewState {
 
 export interface SchemaCompareReducers {
     compare: {
-        operationId: string;
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
         taskExecutionMode: mssql.TaskExecutionMode;
@@ -30,21 +29,18 @@ export interface SchemaCompareReducers {
     };
 
     generateScript: {
-        operationId: string;
         targetServerName: string;
         targetDatabaseName: string;
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
     publishDatabaseChanges: {
-        operationId: string;
         targetServerName: string;
         targetDatabaseName: string;
         taskExecutionMode: mssql.TaskExecutionMode;
     };
 
     publishProjectChanges: {
-        operationId: string;
         targetProjectPath: string;
         targetFolderStructure: mssql.ExtractTarget;
         taskExecutionMode: mssql.TaskExecutionMode;
@@ -53,7 +49,6 @@ export interface SchemaCompareReducers {
     getDefaultOptions: {};
 
     includeExcludeNode: {
-        operationId: string;
         diffEntry: mssql.DiffEntry;
         includeRequest: boolean;
         taskExecutionMode: mssql.TaskExecutionMode;
@@ -73,9 +68,7 @@ export interface SchemaCompareReducers {
         excludedTargetObjects: mssql.SchemaCompareObjectId[];
     };
 
-    cancel: {
-        operationId: string;
-    };
+    cancel: {};
 }
 
 export interface SchemaCompareContextProps {
@@ -83,7 +76,6 @@ export interface SchemaCompareContextProps {
     themeKind: ColorThemeKind;
 
     compare: (
-        operationId: string,
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
         taskExecutionMode: mssql.TaskExecutionMode,
@@ -91,21 +83,18 @@ export interface SchemaCompareContextProps {
     ) => void;
 
     generateScript: (
-        operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
     publishDatabaseChanges: (
-        operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
         taskExecutionMode: mssql.TaskExecutionMode,
     ) => void;
 
     publishProjectChanges: (
-        operationId: string,
         targetProjectPath: string,
         targetFolderStructure: mssql.ExtractTarget,
         taskExecutionMode: mssql.TaskExecutionMode,
@@ -114,7 +103,6 @@ export interface SchemaCompareContextProps {
     getDefaultOptions: () => void;
 
     includeExcludeNode: (
-        operationId: string,
         diffEntry: mssql.DiffEntry,
         includeRequest: boolean,
         taskExecutionMode: mssql.TaskExecutionMode,
@@ -132,5 +120,5 @@ export interface SchemaCompareContextProps {
         excludedTargetObjects: mssql.SchemaCompareObjectId[],
     ) => void;
 
-    cancel: (operationId: string) => void;
+    cancel: () => void;
 }

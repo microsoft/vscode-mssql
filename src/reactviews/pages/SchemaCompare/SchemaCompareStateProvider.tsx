@@ -32,14 +32,12 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
                 compare: function (
-                    operationId: string,
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     taskExecutionMode: mssql.TaskExecutionMode,
                     deploymentOptions: mssql.DeploymentOptions,
                 ): void {
                     webViewState?.extensionRpc.action("compare", {
-                        operationId: operationId,
                         sourceEndpointInfo: sourceEndpointInfo,
                         targetEndpointInfo: targetEndpointInfo,
                         taskExecutionMode: taskExecutionMode,
@@ -47,20 +45,17 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     });
                 },
                 generateScript: function (
-                    operationId: string,
                     targetServerName: string,
                     targetDatabaseName: string,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("generateScript", {
-                        operationId: operationId,
                         targetServerName: targetServerName,
                         targetDatabaseName: targetDatabaseName,
                         taskExecutionMode: taskExecutionMode,
                     });
                 },
                 publishDatabaseChanges: function (
-                    operationId: string,
                     targetServerName: string,
                     targetDatabaseName: string,
                     taskExecutionMode: mssql.TaskExecutionMode,
@@ -68,7 +63,6 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     webViewState?.extensionRpc.action(
                         "publishDatabaseChanges",
                         {
-                            operationId: operationId,
                             targetServerName: targetServerName,
                             targetDatabaseName: targetDatabaseName,
                             taskExecutionMode: taskExecutionMode,
@@ -76,13 +70,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     );
                 },
                 publishProjectChanges: function (
-                    operationId: string,
                     targetProjectPath: string,
                     targetFolderStructure: mssql.ExtractTarget,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("publishProjectChanges", {
-                        operationId: operationId,
                         targetProjectPath: targetProjectPath,
                         targetFolderStructure: targetFolderStructure,
                         taskExecutionMode: taskExecutionMode,
@@ -92,13 +84,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     webViewState?.extensionRpc.action("getDefaultOptions", {});
                 },
                 includeExcludeNode: function (
-                    operationId: string,
                     diffEntry: mssql.DiffEntry,
                     includeRequest: boolean,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("includeExcludeNode", {
-                        operationId: operationId,
                         diffEntry: diffEntry,
                         includeRequest: includeRequest,
                         taskExecutionMode: taskExecutionMode,
@@ -128,10 +118,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         excludedTargetObjects: excludedTargetObjects,
                     });
                 },
-                cancel: function (operationId: string): void {
-                    webViewState?.extensionRpc.action("cancel", {
-                        operationId: operationId,
-                    });
+                cancel: function (): void {
+                    webViewState?.extensionRpc.action("cancel", {});
                 },
             }}
         >

@@ -27,6 +27,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     const schemaCompareWebViewTitle: string = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
+    let generateOperationIdStub: sinon.SinonStub<[], string>;
 
     const deploymentOptions: mssql.DeploymentOptions = {
         excludeObjectTypes: {
@@ -216,6 +217,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             .setup((mgr) => mgr.getUriForConnection(TypeMoq.It.isAny()))
             .returns(() => "localhost,1433_undefined_sa_undefined");
 
+        generateOperationIdStub = sandbox
+            .stub(scUtils, "generateOperationId")
+            .returns(operationId);
+
         controller = new SchemaCompareWebViewController(
             mockContext,
             vscodeWrapper.object,
@@ -228,6 +233,8 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     teardown(() => {
+        generateOperationIdStub.restore();
+
         sandbox.restore();
     });
 
@@ -253,7 +260,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(compareResult);
 
         const payload = {
-            operationId,
             sourceEndpointInfo,
             targetEndpointInfo,
             taskExecutionMode,
@@ -281,7 +287,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(compareResult);
 
         const payload = {
-            operationId,
             sourceEndpointInfo,
             targetEndpointInfo,
             taskExecutionMode,
@@ -292,7 +297,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             compareStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [operationId, payload, mockSchemaCompareService.object],
             "compare should be called with correct arguments",
         );
 
@@ -313,7 +318,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(compareResult);
 
         const payload = {
-            operationId,
             sourceEndpointInfo,
             targetEndpointInfo,
             taskExecutionMode,
@@ -345,7 +349,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
             taskExecutionMode,
@@ -375,7 +378,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
             taskExecutionMode,
@@ -388,7 +390,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             generateScriptStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [operationId, payload, mockSchemaCompareService.object],
             "generateScript should be called with correct arguments",
         );
 
@@ -406,7 +408,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(scriptResult);
 
         const payload = {
-            operationId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
             taskExecutionMode,
@@ -437,7 +438,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
             taskExecutionMode,
@@ -467,7 +467,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
             taskExecutionMode,
@@ -480,7 +479,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishDatabaseChangesStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [operationId, payload, mockSchemaCompareService.object],
             "publishDatabaseChanges should be called with correct arguments",
         );
 
@@ -498,7 +497,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(publishDatabaseResult);
 
         const payload = {
-            operationId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
             taskExecutionMode,
@@ -531,7 +529,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetProjectPath:
                 "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
@@ -565,7 +562,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetProjectPath:
                 "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
@@ -579,7 +575,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [operationId, payload, mockSchemaCompareService.object],
             "publishProjectChanges should be called with correct arguments",
         );
 
@@ -600,7 +596,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(publishProjectChangesResult);
 
         const payload = {
-            operationId,
             targetProjectPath:
                 "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
@@ -695,7 +690,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetProjectPath:
                 "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
@@ -728,7 +722,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
             targetProjectPath:
                 "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
@@ -742,7 +735,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [operationId, payload, mockSchemaCompareService.object],
             "includeExcludeNode should be called with correct arguments",
         );
 
@@ -762,7 +755,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(includeExcludeNodeResult);
 
         const payload = {
-            operationId,
             targetProjectPath:
                 "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
@@ -802,11 +794,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
+            filePath: "/comparison/comparison.scmp",
         };
 
         await controller["_reducers"]["openScmp"](mockInitialState, payload);
@@ -839,18 +827,14 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(result);
 
         const payload = {
-            operationId,
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
+            filePath: "/comparison/comparison.scmp",
         };
 
         await controller["_reducers"]["openScmp"](mockInitialState, payload);
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [payload, mockSchemaCompareService.object],
             "openScmp should be called with correct arguments",
         );
 
@@ -877,11 +861,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(openScmpResult);
 
         const payload = {
-            operationId,
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
+            filePath: "/comparison/comparison.scmp",
         };
 
         const actualResult = await controller["_reducers"]["openScmp"](
@@ -952,7 +932,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [payload, mockSchemaCompareService.object],
             "saveScmp should be called with correct arguments",
         );
 
@@ -1003,9 +983,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "cancel")
             .resolves(result);
 
-        const payload = {
-            operationId,
-        };
+        const payload = {};
 
         await controller["_reducers"]["cancel"](mockInitialState, payload);
 
@@ -1027,15 +1005,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "cancel")
             .resolves(result);
 
-        const payload = {
-            operationId,
-        };
+        const payload = {};
 
         await controller["_reducers"]["cancel"](mockInitialState, payload);
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [mockInitialState, payload, mockSchemaCompareService.object],
+            [operationId, mockSchemaCompareService.object],
             "cancel should be called with correct arguments",
         );
 
@@ -1052,9 +1028,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "cancel")
             .resolves(cancelResult);
 
-        const payload = {
-            operationId,
-        };
+        const payload = {};
 
         const actualResult = await controller["_reducers"]["cancel"](
             mockInitialState,

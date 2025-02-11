@@ -4,26 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
-import {
-    SchemaCompareReducers,
-    SchemaCompareWebViewState,
-} from "../sharedInterfaces/schemaCompare";
+import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
+import { generateGuid } from "../models/utils";
+
+/**
+ * Generates a unique operation ID.
+ *
+ * @returns {string} A new GUID representing the operation ID.
+ */
+export function generateOperationId(): string {
+    return generateGuid();
+}
 
 /**
  * Compares the schema between the source and target endpoints.
  *
- * @param state - The current state of the Schema Compare web view.
+ * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing the comparison parameters.
  * @param schemaCompareService - The service used to perform the schema comparison.
  * @returns A promise that resolves to the result of the schema comparison.
  */
 export async function compare(
-    state: SchemaCompareWebViewState,
+    operationId: string,
     payload: SchemaCompareReducers["compare"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareResult> {
     const result = await schemaCompareService.compare(
-        payload.operationId,
+        operationId,
         payload.sourceEndpointInfo,
         payload.targetEndpointInfo,
         payload.taskExecutionMode,
@@ -36,18 +43,18 @@ export async function compare(
 /**
  * Generates a deploy script for the schema comparison operation.
  *
- * @param state - The current state of the Schema Compare web view.
+ * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing parameters for generating the script.
  * @param schemaCompareService - The service used to perform schema comparison operations.
  * @returns A promise that resolves to the result status of the script generation operation.
  */
 export async function generateScript(
-    state: SchemaCompareWebViewState,
+    operationId: string,
     payload: SchemaCompareReducers["generateScript"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.generateScript(
-        payload.operationId,
+        operationId,
         payload.targetServerName,
         payload.targetDatabaseName,
         payload.taskExecutionMode,
@@ -59,18 +66,18 @@ export async function generateScript(
 /**
  * Publishes the database changes script using the provided schema compare service.
  *
- * @param state - The current state of the Schema Compare web view.
+ * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing the details required to publish the database changes.
  * @param schemaCompareService - The service used to perform schema compare operations.
  * @returns A promise that resolves to the result status of the publish operation.
  */
 export async function publishDatabaseChanges(
-    state: SchemaCompareWebViewState,
+    operationId: string,
     payload: SchemaCompareReducers["publishDatabaseChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.publishDatabaseChanges(
-        payload.operationId,
+        operationId,
         payload.targetServerName,
         payload.targetDatabaseName,
         payload.taskExecutionMode,
@@ -82,18 +89,18 @@ export async function publishDatabaseChanges(
 /**
  * Publishes the changes script from a schema compare operation to a database project.
  *
- * @param state - The current state of the Schema Compare web view.
+ * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing the details required to publish the project changes.
  * @param schemaCompareService - The service used to perform schema compare operations.
  * @returns A promise that resolves to the result of the publish project changes operation.
  */
 export async function publishProjectChanges(
-    state: SchemaCompareWebViewState,
+    operationId: string,
     payload: SchemaCompareReducers["publishProjectChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaComparePublishProjectResult> {
     const result = await schemaCompareService.publishProjectChanges(
-        payload.operationId,
+        operationId,
         payload.targetProjectPath,
         payload.targetFolderStructure,
         payload.taskExecutionMode,
@@ -119,18 +126,18 @@ export async function getDefaultOptions(
 /**
  * Includes or excludes a node in the schema comparison.
  *
- * @param state - The current state of the Schema Compare web view.
+ * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing the details for including or excluding the node.
  * @param schemaCompareService - The service used to perform the include/exclude operation.
  * @returns A promise that resolves to the result of the include/exclude operation.
  */
 export async function includeExcludeNode(
-    state: SchemaCompareWebViewState,
+    operationId: string,
     payload: SchemaCompareReducers["includeExcludeNode"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
     const result = await schemaCompareService.includeExcludeNode(
-        payload.operationId,
+        operationId,
         payload.diffEntry,
         payload.includeRequest,
         payload.taskExecutionMode,
@@ -142,13 +149,11 @@ export async function includeExcludeNode(
 /**
  * Opens a schema compare (.scmp) file and returns the result.
  *
- * @param state - The current state of the Schema Compare web view.
  * @param payload - The payload containing the file path of the .scmp file to open.
  * @param schemaCompareService - The service used to open the .scmp file.
  * @returns A promise that resolves to the result of opening the .scmp file.
  */
 export async function openScmp(
-    state: SchemaCompareWebViewState,
     payload: SchemaCompareReducers["openScmp"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
@@ -160,13 +165,11 @@ export async function openScmp(
 /**
  * Saves the schema compare (.scmp) file using the provided state and payload.
  *
- * @param state - The current state of the Schema Compare web view.
  * @param payload - The payload containing the necessary information to save the .scmp file.
  * @param schemaCompareService - The service used to perform schema compare operations.
  * @returns A promise that resolves to the result status of the save operation.
  */
 export async function saveScmp(
-    state: SchemaCompareWebViewState,
     payload: SchemaCompareReducers["saveScmp"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
@@ -186,17 +189,15 @@ export async function saveScmp(
 /**
  * Cancels an ongoing schema comparison operation.
  *
- * @param state - The current state of the Schema Compare web view.
- * @param payload - The payload containing the operation ID to cancel.
+ * @param operationId - The ID of the schema comparison operation to cancel.
  * @param schemaCompareService - The service used to perform schema comparison operations.
  * @returns A promise that resolves to the result status of the cancel operation.
  */
 export async function cancel(
-    state: SchemaCompareWebViewState,
-    payload: SchemaCompareReducers["cancel"],
+    operationId: string,
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
-    const result = await schemaCompareService.cancel(payload.operationId);
+    const result = await schemaCompareService.cancel(operationId);
 
     return result;
 }
