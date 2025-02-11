@@ -13,8 +13,7 @@ import {
 import { ReactNode, createContext, useRef, useState } from "react";
 
 export interface TableDesignerContextProps
-    extends WebviewContextProps<designer.TableDesignerWebviewState>,
-        designer.TableDesignerReactProvider {
+    extends WebviewContextProps<designer.TableDesignerWebviewState> {
     resultPaneResizeInfo: {
         originalHeight: number;
         setOriginalHeight: (height: number) => void;
@@ -37,6 +36,94 @@ export interface TableDesignerContextProps
         ref: any,
         UiArea: designer.DesignerUIArea,
     ) => void;
+
+    /**
+     * Initialize the table designer for the specified table.
+     * @param table the table information.
+     */
+    initializeTableDesigner(): void;
+
+    /**
+     * Process the table change.
+     * @param table the table information
+     * @param tableChangeInfo the information about the change user made through the UI.
+     */
+    processTableEdit(tableChangeInfo: designer.DesignerEdit): void;
+
+    /**
+     * Publish the changes.
+     * @param table the table information
+     */
+    publishChanges(): void;
+
+    /**
+     * Generate script for the changes.
+     * @param table the table information
+     */
+    generateScript(): void;
+
+    /**
+     * Generate preview report describing the changes to be made.
+     * @param table the table information
+     */
+    generatePreviewReport(): void;
+
+    /**
+     * Change the active tab of table designer pane.
+     * @param tabId
+     */
+    setTab: (tabId: designer.DesignerMainPaneTabs) => void;
+
+    /**
+     * Create a new sql create script for the table.
+     */
+    scriptAsCreate: () => void;
+
+    /**
+     * Copy the 'Script as create' script to the clipboard.
+     */
+    copyScriptAsCreateToClipboard: () => void;
+
+    /**
+     * Get the unique id for the component.
+     * @param componentPath the path of the component.
+     */
+    getComponentId: (componentPath: (string | number)[]) => string;
+
+    /**
+     * Get the error message for the component.
+     * @param componentPath the path of the component.
+     */
+    getErrorMessage: (componentPath: (string | number)[]) => string | undefined;
+
+    /**
+     * Set the properties components.
+     * @param data the properties components data.
+     */
+    setPropertiesComponents: (
+        data: designer.PropertiesPaneData | undefined,
+    ) => void;
+
+    /**
+     * Set the active result pane tab.
+     * @param tabId the tab id.
+     */
+    setResultTab: (tabId: designer.DesignerResultPaneTabs) => void;
+
+    /**
+     * Close the table designer.
+     */
+    closeDesigner: () => void;
+
+    /**
+     * Continue editing the table.
+     */
+    continueEditing: () => void;
+
+    /**
+     * Copy the publish error to the clipboard.
+     */
+    copyPublishErrorToClipboard: () => void;
 }
 
 const TableDesignerContext = createContext<
