@@ -54,7 +54,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
             },
             executionPlanState: {},
-            filterState: {},
             fontSettings: {},
         });
 
@@ -72,7 +71,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         tabStates: undefined,
                         isExecutionPlan: false,
                         executionPlanState: {},
-                        filterState: {},
                         fontSettings: {
                             fontSize: this.getFontSizeConfig(),
 
@@ -264,7 +262,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     xmlPlans: {},
                 },
             }),
-            filterState: {},
             fontSettings: {
                 fontSize: this.getFontSizeConfig(),
                 fontFamily: this.getFontFamilyConfig(),

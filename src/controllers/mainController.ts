@@ -63,6 +63,7 @@ import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExp
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import { CopilotService } from "../services/copilotService";
+import store from "../queryResult/singletonStore";
 
 /**
  * The main controller class that initializes the extension
@@ -1651,6 +1652,8 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
+            // Delete query result filters for the current uri when we run a new query
+            store.delete(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -2100,6 +2103,9 @@ export default class MainController implements vscode.Disposable {
         if (diagnostics.has(doc.uri)) {
             diagnostics.delete(doc.uri);
         }
+
+        // Delete query result fiters for the closed uri
+        store.delete(closedDocumentUri);
     }
 
     /**
