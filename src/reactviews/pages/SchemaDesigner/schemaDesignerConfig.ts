@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    IEntity,
-    IRelationship,
-    ISchema,
-    SchemaDesignerConfig,
-} from "azdataGraph/dist/src/ts/schemaDesigner/schemaDesignerInterfaces";
-import { mxCell } from "mxgraph";
+import { SchemaDesignerConfig } from "azdataGraph/dist/src/ts/schemaDesigner/schemaDesignerInterfaces";
 import * as schemaDesignerIcons from "./schemaDesignerIcons";
 const connectorIcon = require("./icons/connector.svg");
+import * as azdataGraph from "azdataGraph";
+import {
+    ISchema,
+    IEntity,
+    IRelationship,
+} from "../../../sharedInterfaces/schemaDesigner";
 
 export const config: SchemaDesignerConfig = {
     icons: {
@@ -53,12 +53,12 @@ export const config: SchemaDesignerConfig = {
     graphFontFamily: "",
     isEditable: true,
     editEntity: function (
-        _cell: mxCell,
+        _cell: azdataGraph.mxCell,
         _x: number,
         _y: number,
         _scale: number,
-        _incomingEdges: mxCell[],
-        _outgoingEdges: mxCell[],
+        _incomingEdges: azdataGraph.mxCell[],
+        _outgoingEdges: azdataGraph.mxCell[],
         _model: ISchema,
     ): Promise<{
         editedEntity: IEntity;
@@ -67,7 +67,7 @@ export const config: SchemaDesignerConfig = {
         throw new Error("Function not implemented.");
     },
     editRelationship: function (
-        _cell: mxCell,
+        _cell: azdataGraph.mxCell,
         _x: number,
         _y: number,
         _scale: number,

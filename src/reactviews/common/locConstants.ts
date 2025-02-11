@@ -343,16 +343,17 @@ export class LocConstants {
             delete: l10n.t("Delete"),
             tableExists: l10n.t("Table already exists"),
             newForeignKey: l10n.t("New Foreign Key"),
-            nameWithIndex: (index: number) =>
+            foreignKeyIndex: (index: number) =>
                 l10n.t({
-                    message: "{0}: Name",
+                    message: "Foreign Key {0}",
                     args: [index],
-                    comment: ["{0} is the index of the name"],
+                    comment: ["{0} is the index of the foreign key"],
                 }),
             columnMapping: l10n.t("Column Mapping"),
-            column: l10n.t("Column"),
+            sourceColumn: l10n.t("Source Column"),
             targetTable: l10n.t("Target Table"),
             targetColumn: l10n.t("Target Column"),
+            foreignColumn: l10n.t("Foreign Column"),
         };
     }
 }

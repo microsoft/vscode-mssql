@@ -13,6 +13,7 @@ import "./schemaDesigner.css";
 import {
     IEntity,
     IRelationship,
+    SchemaDesignerEditorPromise,
 } from "../../../sharedInterfaces/schemaDesigner";
 import { config } from "./schemaDesignerConfig";
 import { mxCell } from "mxgraph";
@@ -31,7 +32,11 @@ export const SchemaDesigner = () => {
 
     const [entity, setEntity] = useState<IEntity | undefined>(undefined);
     const [entityPromiseResolver, setEntityPromiseResolver] = useState<
-        (value: IEntity) => void
+        (
+            value:
+                | SchemaDesignerEditorPromise
+                | PromiseLike<SchemaDesignerEditorPromise>,
+        ) => void
     >(() => {
         return () => {};
     });
@@ -87,22 +92,22 @@ export const SchemaDesigner = () => {
                     scale,
                 );
                 setEntity(cell.value as IEntity);
-                const promise = new Promise<IEntity>((resolve) => {
-                    setEntityPromiseResolver(() => resolve);
-                });
+                const promise = new Promise<SchemaDesignerEditorPromise>(
+                    (resolve) => {
+                        setEntityPromiseResolver(() => resolve);
+                    },
+                );
                 setOutgoingEdges(
                     outgoingEdges.map((edge) => edge.value as IRelationship),
                 );
                 setIncomingEdges(
                     incomingEdges.map((edge) => edge.value as IRelationship),
                 );
-                const editedEntity = await promise;
+                const editedObject = await promise;
                 setDisplayEditor(false);
                 const result = {
-                    editedEntity: editedEntity,
-                    editedOutgoingEdges: outgoingEdges.map(
-                        (edge) => edge.value as IRelationship,
-                    ),
+                    editedEntity: editedObject.editedEntity,
+                    editedOutgoingEdges: editedObject.editedOutgoingEdges,
                 };
                 return result;
             };

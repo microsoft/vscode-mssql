@@ -6,6 +6,7 @@
 import {
     Button,
     Card,
+    CardHeader,
     Checkbox,
     createTableColumn,
     Dropdown,
@@ -35,6 +36,8 @@ import {
     IEntity,
     IRelationship,
     ISchema,
+    OnAction,
+    SchemaDesignerEditorPromise,
 } from "../../../sharedInterfaces/schemaDesigner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
@@ -56,6 +59,8 @@ const useStyles = makeStyles({
         flexDirection: "row",
         justifyContent: "right",
         gap: "5px",
+        borderTop: "1px solid var(--vscode-badge-background)",
+        paddingTop: "5px",
     },
     tablePanel: {
         display: "flex",
@@ -71,7 +76,6 @@ const useStyles = makeStyles({
         flex: "1",
         gap: "5px",
         padding: "0px 5px",
-        marginBottom: "5px",
     },
     dataTypeDropdown: {
         minWidth: "110px",
@@ -94,7 +98,11 @@ export const SchemaDesignerEntityEditor = (props: {
     schema: ISchema;
     incomingEdges: IRelationship[];
     outgoingEdges: IRelationship[];
-    resolveEntity: (entity: IEntity) => void;
+    resolveEntity: (
+        value:
+            | SchemaDesignerEditorPromise
+            | PromiseLike<SchemaDesignerEditorPromise>,
+    ) => void;
 }) => {
     if (!props.entity || !props.schema) {
         return undefined;
@@ -122,8 +130,13 @@ export const SchemaDesignerEntityEditor = (props: {
         () => getUniqueDatatypes(props.schema),
         [props.schema],
     );
+
+    const entityNameRef = useRef<HTMLInputElement | null>(null);
+
     // Storing column names inputs for focusing
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+    const foreignKeyNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
     const columnsTableColumnDefinitions: TableColumnDefinition<IColumn>[] = [
         createTableColumn({
@@ -212,6 +225,7 @@ export const SchemaDesignerEntityEditor = (props: {
         setSchemaName(props.entity.schema);
         setIncomingEdges(props.incomingEdges);
         setOutgoingEdges(props.outgoingEdges);
+        entityNameRef.current?.focus();
     }, [
         props.entity,
         props.resolveEntity,
@@ -300,6 +314,7 @@ export const SchemaDesignerEntityEditor = (props: {
                 return <Text>{columnId}</Text>;
         }
     }
+
     function tablePanel() {
         return (
             <div className={classes.tablePanel}>
@@ -341,6 +356,7 @@ export const SchemaDesignerEntityEditor = (props: {
                         <Input
                             autoFocus
                             size="small"
+                            ref={entityNameRef}
                             value={tableName}
                             onChange={(_e, d) => {
                                 setTableName(d.value);
@@ -384,7 +400,13 @@ export const SchemaDesignerEntityEditor = (props: {
                     </Button>
                 </div>
                 {/* Columns table */}
-                <div style={{ flex: "1", overflow: "auto" }}>
+                <div
+                    style={{
+                        flex: "1",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                    }}
+                >
                     <Table
                         {...keyboardNavAttr}
                         as="table"
@@ -445,6 +467,32 @@ export const SchemaDesignerEntityEditor = (props: {
                         marginBottom: "5px",
                     }}
                     icon={<AddRegular />}
+                    onClick={() => {
+                        const firstEntity = getAllEntities(
+                            props.schema,
+                            props.entity,
+                        )[0];
+                        const newRelationship: IRelationship = {
+                            foreignKeyName:
+                                getNextForeignKeyName(outgoingEdges),
+                            schemaName: schemaName,
+                            entity: tableName,
+                            column: tableColumns[0].name,
+                            referencedSchema: firstEntity.schema,
+                            referencedEntity: firstEntity.name,
+                            referencedColumn: firstEntity.columns[0].name,
+                            onDeleteAction: OnAction.NO_ACTION,
+                            onUpdateAction: OnAction.NO_ACTION,
+                        };
+                        setOutgoingEdges([...outgoingEdges, newRelationship]);
+                        setTimeout(() => {
+                            if (foreignKeyNameInputRefs.current.length > 0) {
+                                foreignKeyNameInputRefs.current[
+                                    foreignKeyNameInputRefs.current.length - 1
+                                ]?.focus();
+                            }
+                        }, 100);
+                    }}
                 >
                     {locConstants.schemaDesigner.newForeignKey}
                 </Button>
@@ -457,13 +505,39 @@ export const SchemaDesignerEntityEditor = (props: {
                 >
                     {outgoingEdges.map((edge, index) => {
                         return (
-                            <Card style={{ marginBottom: "10px" }}>
+                            <Card
+                                style={{
+                                    marginBottom: "10px",
+                                    borderColor:
+                                        "var(--vscode-badge-background)",
+                                }}
+                            >
+                                <CardHeader
+                                    header={
+                                        <Text>
+                                            {locConstants.schemaDesigner.foreignKeyIndex(
+                                                index + 1,
+                                            )}
+                                        </Text>
+                                    }
+                                    action={
+                                        <Button
+                                            appearance="subtle"
+                                            icon={<DeleteRegular />}
+                                            onClick={() => {
+                                                const newEdges = [
+                                                    ...outgoingEdges,
+                                                ];
+                                                newEdges.splice(index, 1);
+                                                setOutgoingEdges(newEdges);
+                                            }}
+                                        ></Button>
+                                    }
+                                ></CardHeader>
                                 <div className={classes.tablePanelRow}>
                                     <Field style={{ flex: 1 }} size="small">
                                         <Label>
-                                            {locConstants.schemaDesigner.nameWithIndex(
-                                                index,
-                                            )}
+                                            {locConstants.schemaDesigner.name}
                                         </Label>
                                         <Input
                                             size="small"
@@ -471,6 +545,11 @@ export const SchemaDesignerEntityEditor = (props: {
                                                 outgoingEdges[index]
                                                     .foreignKeyName
                                             }
+                                            ref={(ref) => {
+                                                foreignKeyNameInputRefs.current[
+                                                    index
+                                                ] = ref;
+                                            }}
                                             onChange={(_e, d) => {
                                                 const newEdges = [
                                                     ...outgoingEdges,
@@ -481,6 +560,8 @@ export const SchemaDesignerEntityEditor = (props: {
                                             }}
                                         />
                                     </Field>
+                                </div>
+                                <div className={classes.tablePanelRow}>
                                     <Field style={{ flex: 1 }} size="small">
                                         <Label>
                                             {
@@ -502,45 +583,53 @@ export const SchemaDesignerEntityEditor = (props: {
                                                 const newEdges = [
                                                     ...outgoingEdges,
                                                 ];
+                                                const entity =
+                                                    getEntityFromDisplayName(
+                                                        props.schema,
+                                                        data.optionText,
+                                                    );
                                                 newEdges[
                                                     index
                                                 ].referencedEntity =
-                                                    data.optionText;
+                                                    entity.name;
+                                                newEdges[
+                                                    index
+                                                ].referencedSchema =
+                                                    entity.schema;
+                                                newEdges[
+                                                    index
+                                                ].referencedColumn =
+                                                    entity.columns[0].name;
                                                 setOutgoingEdges(newEdges);
                                             }}
                                             style={{
                                                 minWidth: "auto",
                                             }}
                                         >
-                                            {getTablesNames(props.schema, {
-                                                name: tableName,
-                                                schema: schemaName,
-                                                columns: [],
-                                            }).map((table) => (
-                                                <Option
-                                                    key={table.displayTableName}
-                                                    value={
-                                                        table.displayTableName
-                                                    }
-                                                >
-                                                    {table.displayTableName}
-                                                </Option>
-                                            ))}
+                                            {getAllEntities(
+                                                props.schema,
+                                                props.entity,
+                                            ).map((table) => {
+                                                const displayName = `${table.schema}.${table.name}`;
+                                                return (
+                                                    <Option
+                                                        key={table.name}
+                                                        value={displayName}
+                                                    >
+                                                        {displayName}
+                                                    </Option>
+                                                );
+                                            })}
                                         </Dropdown>
                                     </Field>
                                 </div>
                                 <div className={classes.tablePanelRow}>
-                                    <Text>
-                                        {
-                                            locConstants.schemaDesigner
-                                                .columnMapping
-                                        }
-                                    </Text>
-                                </div>
-                                <div className={classes.tablePanelRow}>
-                                    <Field>
+                                    <Field style={{ flex: 1 }}>
                                         <Label>
-                                            {locConstants.schemaDesigner.column}
+                                            {
+                                                locConstants.schemaDesigner
+                                                    .sourceColumn
+                                            }
                                         </Label>
                                         <Dropdown
                                             size="small"
@@ -562,16 +651,58 @@ export const SchemaDesignerEntityEditor = (props: {
                                                 minWidth: "auto",
                                             }}
                                         >
-                                            {getTableColumnMap(props.schema)
-                                                .get(tableName)
-                                                ?.map((column) => (
-                                                    <Option
-                                                        key={column}
-                                                        value={column}
-                                                    >
-                                                        {column}
-                                                    </Option>
-                                                ))}
+                                            {tableColumns.map((column) => (
+                                                <Option
+                                                    key={column.name}
+                                                    value={column.name}
+                                                >
+                                                    {column.name}
+                                                </Option>
+                                            ))}
+                                        </Dropdown>
+                                    </Field>
+                                    <Field style={{ flex: 1 }}>
+                                        <Label>
+                                            {
+                                                locConstants.schemaDesigner
+                                                    .foreignColumn
+                                            }
+                                        </Label>
+                                        <Dropdown
+                                            size="small"
+                                            value={edge.referencedColumn}
+                                            selectedOptions={[
+                                                edge.referencedColumn,
+                                            ]}
+                                            multiselect={false}
+                                            onOptionSelect={(_e, data) => {
+                                                if (!data.optionText) {
+                                                    return;
+                                                }
+                                                const newEdges = [
+                                                    ...outgoingEdges,
+                                                ];
+                                                newEdges[
+                                                    index
+                                                ].referencedColumn =
+                                                    data.optionText;
+                                                setOutgoingEdges(newEdges);
+                                            }}
+                                            style={{
+                                                minWidth: "auto",
+                                            }}
+                                        >
+                                            {getEntityFromDisplayName(
+                                                props.schema,
+                                                `${edge.referencedSchema}.${edge.referencedEntity}`,
+                                            ).columns.map((column) => (
+                                                <Option
+                                                    key={column.name}
+                                                    value={column.name}
+                                                >
+                                                    {column.name}
+                                                </Option>
+                                            ))}
                                         </Dropdown>
                                     </Field>
                                 </div>
@@ -605,9 +736,12 @@ export const SchemaDesignerEntityEditor = (props: {
                     appearance="primary"
                     onClick={() => {
                         props.resolveEntity({
-                            name: tableName,
-                            schema: schemaName,
-                            columns: tableColumns,
+                            editedEntity: {
+                                name: tableName,
+                                schema: schemaName,
+                                columns: tableColumns,
+                            },
+                            editedOutgoingEdges: outgoingEdges,
                         });
                     }}
                 >
@@ -618,9 +752,12 @@ export const SchemaDesignerEntityEditor = (props: {
                     appearance="secondary"
                     onClick={() => {
                         props.resolveEntity({
-                            name: props.entity.name,
-                            schema: props.entity.schema,
-                            columns: props.entity.columns,
+                            editedEntity: {
+                                name: props.entity.name,
+                                schema: props.entity.schema,
+                                columns: props.entity.columns,
+                            },
+                            editedOutgoingEdges: props.outgoingEdges,
                         });
                     }}
                 >
@@ -659,34 +796,33 @@ function getNextColumnName(existingColumns: IColumn[]): string {
     return columnName;
 }
 
-function getTablesNames(
-    schema: ISchema,
-    currentTable: IEntity,
-): {
-    displayTableName: string;
-    entity: IEntity;
-}[] {
-    const filterEntities = schema.entities.filter(
-        (entity) =>
-            entity.name !== currentTable.name &&
-            entity.schema === currentTable.schema,
-    );
-
-    return filterEntities.map((entity) => {
-        return {
-            displayTableName: `${entity.schema}.${entity.name}`,
-            entity: entity,
-        };
-    });
+function getNextForeignKeyName(existingEdges: IRelationship[]): string {
+    let index = 1;
+    let foreignKeyName = `FK_${index}`;
+    while (
+        existingEdges.some((edge) => edge.foreignKeyName === foreignKeyName)
+    ) {
+        index++;
+        foreignKeyName = `FK_${index}`;
+    }
+    return foreignKeyName;
 }
 
-function getTableColumnMap(schema: ISchema): Map<string, string[]> {
-    const tableColumnMap = new Map<string, string[]>();
-    schema.entities.forEach((entity) => {
-        tableColumnMap.set(
-            entity.name,
-            entity.columns.map((col) => col.name),
-        );
-    });
-    return tableColumnMap;
+function getAllEntities(schema: ISchema, currentEntity: IEntity): IEntity[] {
+    return schema.entities
+        .filter(
+            (entity) =>
+                entity.schema !== currentEntity.schema ||
+                entity.name !== currentEntity.name,
+        )
+        .sort();
+}
+
+function getEntityFromDisplayName(
+    schema: ISchema,
+    displayName: string,
+): IEntity {
+    return schema.entities.find(
+        (entity) => `${entity.schema}.${entity.name}` === displayName,
+    )!;
 }
