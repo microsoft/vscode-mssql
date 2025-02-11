@@ -1997,6 +1997,7 @@ export default class MainController implements vscode.Disposable {
             const result = await this.schemaCompareService.getDefaultOptions();
             const schemaCompareWebView = new SchemaCompareWebViewController(
                 this._context,
+                this._vscodeWrapper,
                 node,
                 this.schemaCompareService,
                 this._connectionMgr,

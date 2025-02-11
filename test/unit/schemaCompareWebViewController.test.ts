@@ -14,6 +14,7 @@ import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -23,6 +24,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     let mockSchemaCompareService: TypeMoq.IMock<mssql.ISchemaCompareService>;
     let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
     let mockInitialState: SchemaCompareWebViewState;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     const schemaCompareWebViewTitle: string = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
 
@@ -204,6 +206,11 @@ suite("SchemaCompareWebViewController Tests", () => {
         mockSchemaCompareService =
             TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
 
+        vscodeWrapper = TypeMoq.Mock.ofType(
+            VscodeWrapper,
+            TypeMoq.MockBehavior.Loose,
+        );
+
         mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
         mockConnectionManager
             .setup((mgr) => mgr.getUriForConnection(TypeMoq.It.isAny()))
@@ -211,6 +218,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         controller = new SchemaCompareWebViewController(
             mockContext,
+            vscodeWrapper.object,
             treeNode,
             mockSchemaCompareService.object,
             mockConnectionManager.object,

@@ -26,6 +26,7 @@ import {
     publishProjectChanges,
     saveScmp,
 } from "./schemaCompareUtils";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -33,6 +34,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         node: any,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
@@ -41,6 +43,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     ) {
         super(
             context,
+            vscodeWrapper,
+            "schemaCompare",
             "schemaCompare",
             {
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
