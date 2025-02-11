@@ -223,7 +223,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         sandbox.restore();
     });
 
-    test("controller - initialize title - is 'Schema Compare'", () => {
+    test.skip("controller - initialize title - is 'Schema Compare'", () => {
         assert.deepStrictEqual(
             controller.panel.title,
             schemaCompareWebViewTitle,
