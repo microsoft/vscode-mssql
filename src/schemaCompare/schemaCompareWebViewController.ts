@@ -82,7 +82,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Starts the schema comparison process.
+     * Starts the schema comparison process. Schema compare can get started with four contexts for the source:
+     * 1. undefined
+     * 2. Connection profile
+     * 3. Dacpac
+     * 4. Project
      * @param sourceContext can be undefined, connection profile, dacpac, or project.
      * @param comparisonResult Result of a previous comparison, if available.
      */
