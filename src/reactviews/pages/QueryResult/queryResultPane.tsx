@@ -115,6 +115,7 @@ function getAvailableHeight(
 export const QueryResultPane = () => {
     const classes = useStyles();
     const context = useContext(QueryResultContext);
+
     if (!context) {
         return;
     }
@@ -122,7 +123,7 @@ export const QueryResultPane = () => {
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    const state = context?.state;
+    const state = context.state;
 
     // lifecycle logging right after context consumption
     useEffect(() => {
@@ -261,7 +262,7 @@ export const QueryResultPane = () => {
 
     const linkHandler = (fileContent: string, fileType: string) => {
         if (context) {
-            context.provider.openFileThroughLink(fileContent, fileType);
+            context.openFileThroughLink(fileContent, fileType);
         }
     };
 
@@ -356,7 +357,7 @@ export const QueryResultPane = () => {
                     gridParentRef={gridParentRef}
                     uri={state?.uri}
                     webViewState={webViewState}
-                    state={context}
+                    context={context}
                     linkHandler={linkHandler}
                     gridId={gridId}
                 />
@@ -574,7 +575,7 @@ export const QueryResultPane = () => {
             state.executionPlanState &&
             !state.executionPlanState.executionPlanGraphs!.length
         ) {
-            context.provider.getExecutionPlan(state.uri);
+            context.getExecutionPlan(state.uri);
         }
     }, [state?.executionPlanState?.xmlPlans]);
     //#endregion
@@ -621,7 +622,7 @@ export const QueryResultPane = () => {
                     size="medium"
                     selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
-                        context?.provider.setResultTab(
+                        context.setResultTab(
                             data.value as qr.QueryResultPaneTabs,
                         );
                     }}

@@ -13,9 +13,8 @@ import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 
 export interface QueryResultContextProps
-    extends WebviewContextProps<qr.QueryResultWebviewState> {
-    provider: qr.QueryResultReactProvider;
-}
+    extends WebviewContextProps<qr.QueryResultWebviewState>,
+        qr.QueryResultReactProvider {}
 
 const QueryResultContext = createContext<QueryResultContextProps | undefined>(
     undefined,
@@ -37,51 +36,44 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({
         <QueryResultContext.Provider
             value={{
                 ...getCoreRPCs(webViewState),
-                provider: {
-                    setResultTab: function (
-                        tabId: qr.QueryResultPaneTabs,
-                    ): void {
-                        webViewState?.extensionRpc.action("setResultTab", {
-                            tabId: tabId,
-                        });
-                    },
-                    getExecutionPlan: function (uri: string): void {
-                        webViewState?.extensionRpc.action("getExecutionPlan", {
-                            uri: uri,
-                        });
-                    },
-                    openFileThroughLink: function (
-                        content: string,
-                        type: string,
-                    ): void {
-                        webViewState?.extensionRpc.action(
-                            "openFileThroughLink",
-                            {
-                                content: content,
-                                type: type,
-                            },
-                        );
-                    },
-                    saveExecutionPlan: function (sqlPlanContent: string): void {
-                        webViewState?.extensionRpc.action("saveExecutionPlan", {
-                            sqlPlanContent: sqlPlanContent,
-                        });
-                    },
-                    showPlanXml: function (sqlPlanContent: string): void {
-                        webViewState?.extensionRpc.action("showPlanXml", {
-                            sqlPlanContent: sqlPlanContent,
-                        });
-                    },
-                    showQuery: function (query: string): void {
-                        webViewState?.extensionRpc.action("showQuery", {
-                            query: query,
-                        });
-                    },
-                    updateTotalCost: function (addedCost: number): void {
-                        webViewState?.extensionRpc.action("updateTotalCost", {
-                            addedCost: addedCost,
-                        });
-                    },
+                setResultTab: function (tabId: qr.QueryResultPaneTabs): void {
+                    webViewState?.extensionRpc.action("setResultTab", {
+                        tabId: tabId,
+                    });
+                },
+                getExecutionPlan: function (uri: string): void {
+                    webViewState?.extensionRpc.action("getExecutionPlan", {
+                        uri: uri,
+                    });
+                },
+                openFileThroughLink: function (
+                    content: string,
+                    type: string,
+                ): void {
+                    webViewState?.extensionRpc.action("openFileThroughLink", {
+                        content: content,
+                        type: type,
+                    });
+                },
+                saveExecutionPlan: function (sqlPlanContent: string): void {
+                    webViewState?.extensionRpc.action("saveExecutionPlan", {
+                        sqlPlanContent: sqlPlanContent,
+                    });
+                },
+                showPlanXml: function (sqlPlanContent: string): void {
+                    webViewState?.extensionRpc.action("showPlanXml", {
+                        sqlPlanContent: sqlPlanContent,
+                    });
+                },
+                showQuery: function (query: string): void {
+                    webViewState?.extensionRpc.action("showQuery", {
+                        query: query,
+                    });
+                },
+                updateTotalCost: function (addedCost: number): void {
+                    webViewState?.extensionRpc.action("updateTotalCost", {
+                        addedCost: addedCost,
+                    });
                 },
 
                 state: webViewState?.state as qr.QueryResultWebviewState,
