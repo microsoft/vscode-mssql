@@ -305,13 +305,14 @@
   "Save": "Save",
   "PK": "PK",
   "Table already exists": "Table already exists",
-  "{0}: Name/{0} is the index of the name": {
-    "message": "{0}: Name",
+  "Foreign Key {0}/{0} is the index of the foreign key": {
+    "message": "Foreign Key {0}",
     "comment": [
-      "{0} is the index of the name"
+      "{0} is the index of the foreign key"
     ]
   },
   "Column Mapping": "Column Mapping",
+  "Source Column": "Source Column",
   "Target Table": "Target Table",
   "Target Column": "Target Column",
   "{0} (Preview)/{0} is the editor title": {
