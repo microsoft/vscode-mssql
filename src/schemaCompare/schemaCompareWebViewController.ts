@@ -84,103 +84,34 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     /**
      * Starts the schema comparison process.
      * @param sourceContext can be undefined, connection profile, dacpac, or project.
-     * @param targetContext optional parameter, but can be connection profile, dacpac, or project.
      * @param comparisonResult Result of a previous comparison, if available.
      */
     // schema compare can get started with four contexts for the source:
     public async start(
         sourceContext: any,
-        targetContext: mssql.SchemaCompareEndpointInfo = undefined,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
         let source: mssql.SchemaCompareEndpointInfo;
-        let target: mssql.SchemaCompareEndpointInfo;
 
-        const targetIsSetAsProject: boolean =
-            targetContext &&
-            targetContext.endpointType ===
-                mssql.SchemaCompareEndpointType.Project;
+        let connectionProfile: IConnectionProfile | undefined = sourceContext
+            ? <IConnectionProfile>sourceContext.ConnectionInfo
+            : undefined;
 
-        let profile: IConnectionProfile;
-
-        if (targetIsSetAsProject) {
-            profile = sourceContext;
-            target = targetContext;
-        } else {
-            if (!sourceContext) {
-                profile = undefined;
-            } else {
-                profile = <IConnectionProfile>sourceContext.connectionInfo;
-            }
-        }
-
-        let sourceDacpac = undefined;
-        let sourceProject = undefined;
-
-        if (
-            !profile &&
+        if (connectionProfile) {
+            source = await this.getEndpointInfoFromConnectionProfile(
+                connectionProfile,
+                sourceContext,
+            );
+        } else if (
             (sourceContext as string) &&
             (sourceContext as string).endsWith(".dacpac")
         ) {
-            sourceDacpac = sourceContext as string;
-        } else if (!profile) {
-            sourceProject = sourceContext as string;
+            source = this.getEndpointInfoFromDacpac(sourceContext as string);
+        } else {
+            source = this.getEndpointInfoFromProject(sourceContext as string);
         }
 
-        if (profile) {
-            let ownerUri =
-                await this.connectionMgr.getUriForConnection(profile);
-            let usr = profile.user;
-            if (!usr) {
-                usr = "default";
-            }
-
-            source = {
-                endpointType: mssql.SchemaCompareEndpointType.Database,
-                serverDisplayName: `${profile.server} (${usr})`,
-                serverName: profile.server,
-                databaseName:
-                    ObjectExplorerUtils.getDatabaseName(sourceContext),
-                ownerUri: ownerUri,
-                packageFilePath: "",
-                connectionDetails: undefined,
-                connectionName: profile.profileName ? profile.profileName : "",
-                projectFilePath: "",
-                targetScripts: [],
-                dataSchemaProvider: "",
-                extractTarget: mssql.ExtractTarget.schemaObjectType,
-            };
-        } else if (sourceDacpac) {
-            source = {
-                endpointType: mssql.SchemaCompareEndpointType.Dacpac,
-                serverDisplayName: "",
-                serverName: "",
-                databaseName: "",
-                ownerUri: "",
-                packageFilePath: sourceDacpac,
-                connectionDetails: undefined,
-                projectFilePath: "",
-                targetScripts: [],
-                dataSchemaProvider: "",
-                extractTarget: mssql.ExtractTarget.schemaObjectType,
-            };
-        } else if (sourceProject) {
-            source = {
-                endpointType: mssql.SchemaCompareEndpointType.Project,
-                packageFilePath: "",
-                serverDisplayName: "",
-                serverName: "",
-                databaseName: "",
-                ownerUri: "",
-                connectionDetails: undefined,
-                projectFilePath: sourceProject,
-                targetScripts: [],
-                dataSchemaProvider: undefined,
-                extractTarget: mssql.ExtractTarget.schemaObjectType,
-            };
-        }
-
-        await this.launch(source, target, false, comparisonResult);
+        await this.launch(source, undefined, false, comparisonResult);
     }
 
     /**
@@ -205,6 +136,77 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
         this.updateState();
+    }
+
+    private async getEndpointInfoFromConnectionProfile(
+        connectionProfile: IConnectionProfile,
+        sourceContext: any,
+    ): Promise<mssql.SchemaCompareEndpointInfo> {
+        let ownerUri =
+            await this.connectionMgr.getUriForConnection(connectionProfile);
+        let user = connectionProfile.user;
+        if (!user) {
+            user = "default";
+        }
+
+        const source = {
+            endpointType: mssql.SchemaCompareEndpointType.Database,
+            serverDisplayName: `${connectionProfile.server} (${user})`,
+            serverName: connectionProfile.server,
+            databaseName: ObjectExplorerUtils.getDatabaseName(sourceContext),
+            ownerUri: ownerUri,
+            packageFilePath: "",
+            connectionDetails: undefined,
+            connectionName: connectionProfile.profileName
+                ? connectionProfile.profileName
+                : "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: mssql.ExtractTarget.schemaObjectType,
+        };
+
+        return source;
+    }
+
+    private getEndpointInfoFromDacpac(
+        sourceDacpac: string,
+    ): mssql.SchemaCompareEndpointInfo {
+        const source = {
+            endpointType: mssql.SchemaCompareEndpointType.Dacpac,
+            serverDisplayName: "",
+            serverName: "",
+            databaseName: "",
+            ownerUri: "",
+            packageFilePath: sourceDacpac,
+            connectionDetails: undefined,
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: mssql.ExtractTarget.schemaObjectType,
+        };
+
+        return source;
+    }
+
+    private getEndpointInfoFromProject(
+        sourceProject: string,
+    ): mssql.SchemaCompareEndpointInfo {
+        const source = {
+            endpointType: mssql.SchemaCompareEndpointType.Project,
+            packageFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            databaseName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            projectFilePath: sourceProject,
+            targetScripts: [],
+            dataSchemaProvider: undefined,
+            extractTarget: mssql.ExtractTarget.schemaObjectType,
+        };
+
+        return source;
     }
 
     private isTreeNodeInfoType(node: any): boolean {
