@@ -993,7 +993,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("cancel reducer - when called - runs once", async () => {
+    test("cancel reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -1017,7 +1017,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("cancel reducer - called - with correct arguments", async () => {
+    test("cancel reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -1042,7 +1042,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("cancel reducer - when called - returns expected result", async () => {
+    test("cancel reducer - when called - returns expected result", async () => {
         const cancelResult = {
             success: true,
             errorMessage: "",
