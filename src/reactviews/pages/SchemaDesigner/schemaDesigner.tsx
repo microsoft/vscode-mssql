@@ -36,6 +36,9 @@ export const SchemaDesigner = () => {
         return () => {};
     });
 
+    const [incomingEdges, setIncomingEdges] = useState<IRelationship[]>([]);
+    const [outgoingEdges, setOutgoingEdges] = useState<IRelationship[]>([]);
+
     const graphContainerRef = useRef<HTMLDivElement | null>(null);
     const editorDivRef = useRef<HTMLDivElement | null>(null);
 
@@ -64,29 +67,35 @@ export const SchemaDesigner = () => {
             const schemaDesignerConfig = config;
             schemaDesignerConfig.editEntity = async (
                 cell,
-                _x,
-                _y,
-                _scale,
-                _incomingEdges,
+                x,
+                y,
+                scale,
+                incomingEdges,
                 outgoingEdges,
                 _model,
             ) => {
                 currentCell = {
-                    x: _x,
-                    y: _y,
-                    scale: _scale,
+                    x: x,
+                    y: y,
+                    scale: scale,
                     cell: cell,
                 };
                 setDisplayEditor(true);
                 updateEditorPosition(
-                    _x - div.scrollLeft,
-                    _y - div.scrollTop,
-                    _scale,
+                    x - div.scrollLeft,
+                    y - div.scrollTop,
+                    scale,
                 );
                 setEntity(cell.value as IEntity);
                 const promise = new Promise<IEntity>((resolve) => {
                     setEntityPromiseResolver(() => resolve);
                 });
+                setOutgoingEdges(
+                    outgoingEdges.map((edge) => edge.value as IRelationship),
+                );
+                setIncomingEdges(
+                    incomingEdges.map((edge) => edge.value as IRelationship),
+                );
                 const editedEntity = await promise;
                 setDisplayEditor(false);
                 const result = {
@@ -149,6 +158,8 @@ export const SchemaDesigner = () => {
                 <SchemaDesignerEntityEditor
                     entity={entity!}
                     schema={context.schema}
+                    incomingEdges={incomingEdges}
+                    outgoingEdges={outgoingEdges}
                     resolveEntity={entityPromiseResolver}
                 />
             </div>
