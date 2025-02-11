@@ -231,7 +231,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         sandbox.restore();
     });
 
-    test.skip("controller - initialize title - is 'Schema Compare'", () => {
+    test("controller - initialize title - is 'Schema Compare'", () => {
         assert.deepStrictEqual(
             controller.panel.title,
             schemaCompareWebViewTitle,
@@ -239,7 +239,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test.skip("compare reducer - when called - runs once", async () => {
+    test("compare reducer - when called - runs once", async () => {
         const compareResult: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
@@ -267,7 +267,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         compareStub.restore();
     });
 
-    test.skip("compare reducer - called - with correct arguments", async () => {
+    test("compare reducer - called - with correct arguments", async () => {
         const compareResult: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
@@ -299,7 +299,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         compareStub.restore();
     });
 
-    test.skip("compare reducer - when called - returns expected result", async () => {
+    test("compare reducer - when called - returns expected result", async () => {
         const compareResult: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
@@ -334,7 +334,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         compareStub.restore();
     });
 
-    test.skip("generateScript reducer - when called - runs once", async () => {
+    test("generateScript reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -364,7 +364,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateScriptStub.restore();
     });
 
-    test.skip("generateScript reducer - called - with correct arguments", async () => {
+    test("generateScript reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -395,7 +395,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateScriptStub.restore();
     });
 
-    test.skip("generateScript reducer - when called - returns expected result", async () => {
+    test("generateScript reducer - when called - returns expected result", async () => {
         const scriptResult = {
             success: true,
             errorMessage: "",
@@ -426,7 +426,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateScriptStub.restore();
     });
 
-    test.skip("publishDatabaseChanges reducer - when called - runs once", async () => {
+    test("publishDatabaseChanges reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -456,7 +456,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishDatabaseChangesStub.restore();
     });
 
-    test.skip("publishDatabaseChanges reducer - called - with correct arguments", async () => {
+    test("publishDatabaseChanges reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -487,7 +487,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishDatabaseChangesStub.restore();
     });
 
-    test.skip("publishDatabaseChanges reducer - when called - returns expected result", async () => {
+    test("publishDatabaseChanges reducer - when called - returns expected result", async () => {
         const publishDatabaseResult = {
             success: true,
             errorMessage: "",
@@ -517,7 +517,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishDatabaseChangesStub.restore();
     });
 
-    test.skip("publishProjectChanges reducer - when called - runs once", async () => {
+    test("publishProjectChanges reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -551,7 +551,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("publishProjectChanges reducer - called - with correct arguments", async () => {
+    test("publishProjectChanges reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -586,7 +586,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("publishProjectChanges reducer - when called - returns expected result", async () => {
+    test("publishProjectChanges reducer - when called - returns expected result", async () => {
         const publishProjectChangesResult = {
             success: true,
             errorMessage: "",
@@ -620,7 +620,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("getDefaultOptions reducer - when called - runs once", async () => {
+    test("getDefaultOptions reducer - when called - runs once", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResult);
@@ -640,7 +640,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         getDefaultOptionsStub.restore();
     });
 
-    test.skip("getDefaultOptions reducer - called - with correct arguments", async () => {
+    test("getDefaultOptions reducer - called - with correct arguments", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResult);
@@ -661,7 +661,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         getDefaultOptionsStub.restore();
     });
 
-    test.skip("getDefaultOptions reducer - when called - returns expected result", async () => {
+    test("getDefaultOptions reducer - when called - returns expected result", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResult);
@@ -682,7 +682,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         getDefaultOptionsStub.restore();
     });
 
-    test.skip("includeExcludeNode reducer - when called - runs once", async () => {
+    test("includeExcludeNode reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -715,7 +715,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("includeExcludeNode reducer - called - with correct arguments", async () => {
+    test("includeExcludeNode reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -749,7 +749,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("includeExcludeNode reducer - when called - returns expected result", async () => {
+    test("includeExcludeNode reducer - when called - returns expected result", async () => {
         const includeExcludeNodeResult = {
             success: true,
             errorMessage: "",
@@ -782,7 +782,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("openScmp reducer - when called - runs once", async () => {
+    test("openScmp reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -819,7 +819,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("openScmp reducer - called - with correct arguments", async () => {
+    test("openScmp reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -857,7 +857,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("openScmp reducer - when called - returns expected result", async () => {
+    test("openScmp reducer - when called - returns expected result", async () => {
         const openScmpResult = {
             success: true,
             errorMessage: "",
@@ -898,7 +898,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("saveScmp reducer - when called - runs once", async () => {
+    test("saveScmp reducer - when called - runs once", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -928,7 +928,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("saveScmp reducer - called - with correct arguments", async () => {
+    test("saveScmp reducer - called - with correct arguments", async () => {
         const result = {
             success: true,
             errorMessage: "",
@@ -959,7 +959,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test.skip("saveScmp reducer - when called - returns expected result", async () => {
+    test("saveScmp reducer - when called - returns expected result", async () => {
         const saveScmpResult = {
             success: true,
             errorMessage: "",
