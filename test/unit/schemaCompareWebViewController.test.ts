@@ -246,65 +246,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("compare reducer - when called - runs once", async () => {
-        const compareResultMock: mssql.SchemaCompareResult = {
-            operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
-            areEqual: true,
-            differences: [],
-            success: true,
-            errorMessage: "",
-        };
-
-        const compareStub = sandbox
-            .stub(scUtils, "compare")
-            .resolves(compareResultMock);
-
-        const payload = {
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            taskExecutionMode,
-            deploymentOptions,
-        };
-
-        await controller["_reducers"]["compare"](mockInitialState, payload);
-
-        assert.ok(compareStub.calledOnce, "compare should be called once");
-
-        compareStub.restore();
-    });
-
-    test("compare reducer - called - with correct arguments", async () => {
-        const compareResultMock: mssql.SchemaCompareResult = {
-            operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
-            areEqual: true,
-            differences: [],
-            success: true,
-            errorMessage: "",
-        };
-
-        const compareStub = sandbox
-            .stub(scUtils, "compare")
-            .resolves(compareResultMock);
-
-        const payload = {
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            taskExecutionMode,
-            deploymentOptions,
-        };
-
-        await controller["_reducers"]["compare"](mockInitialState, payload);
-
-        assert.deepEqual(
-            compareStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
-            "compare should be called with correct arguments",
-        );
-
-        compareStub.restore();
-    });
-
-    test("compare reducer - when called - returns expected result", async () => {
+    test("compare reducer - when called - completes successfully", async () => {
         const expectedCompareResultMock: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
@@ -330,6 +272,14 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         assert.deepEqual(
+            compareStub.firstCall.args,
+            [operationId, payload, mockSchemaCompareService.object],
+            "compare should be called with correct arguments",
+        );
+
+        assert.ok(compareStub.calledOnce, "compare should be called once");
+
+        assert.deepEqual(
             result.schemaCompareResult,
             expectedCompareResultMock,
             "compare should return expected result",
@@ -338,66 +288,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         compareStub.restore();
     });
 
-    test("generateScript reducer - when called - runs once", async () => {
-        const scriptResultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const generateScriptStub = sandbox
-            .stub(scUtils, "generateScript")
-            .resolves(scriptResultMock);
-
-        const payload = {
-            targetServerName: "localhost,1433",
-            targetDatabaseName: "master",
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["generateScript"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.ok(
-            generateScriptStub.calledOnce,
-            "generateScript should be called once",
-        );
-
-        generateScriptStub.restore();
-    });
-
-    test("generateScript reducer - called - with correct arguments", async () => {
-        const scriptResultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const generateScriptStub = sandbox
-            .stub(scUtils, "generateScript")
-            .resolves(scriptResultMock);
-
-        const payload = {
-            targetServerName: "localhost,1433",
-            targetDatabaseName: "master",
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["generateScript"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.deepEqual(
-            generateScriptStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
-            "generateScript should be called with correct arguments",
-        );
-
-        generateScriptStub.restore();
-    });
-
-    test("generateScript reducer - when called - returns expected result", async () => {
+    test("generateScript reducer - when called - completes successfully", async () => {
         const expectedScriptResultMock = {
             success: true,
             errorMessage: "",
@@ -418,6 +309,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
+        assert.ok(
+            generateScriptStub.calledOnce,
+            "generateScript should be called once",
+        );
+
+        assert.deepEqual(
+            generateScriptStub.firstCall.args,
+            [operationId, payload, mockSchemaCompareService.object],
+            "generateScript should be called with correct arguments",
+        );
+
         assert.deepEqual(
             result.generateScriptResultStatus,
             expectedScriptResultMock,
@@ -427,66 +329,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateScriptStub.restore();
     });
 
-    test("publishDatabaseChanges reducer - when called - runs once", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const publishDatabaseChangesStub = sandbox
-            .stub(scUtils, "publishDatabaseChanges")
-            .resolves(resultMock);
-
-        const payload = {
-            targetServerName: "localhost,1433",
-            targetDatabaseName: "master",
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["publishDatabaseChanges"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.ok(
-            publishDatabaseChangesStub.calledOnce,
-            "publishDatabaseChanges should be called once",
-        );
-
-        publishDatabaseChangesStub.restore();
-    });
-
-    test("publishDatabaseChanges reducer - called - with correct arguments", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const publishDatabaseChangesStub = sandbox
-            .stub(scUtils, "publishDatabaseChanges")
-            .resolves(resultMock);
-
-        const payload = {
-            targetServerName: "localhost,1433",
-            targetDatabaseName: "master",
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["publishDatabaseChanges"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.deepEqual(
-            publishDatabaseChangesStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
-            "publishDatabaseChanges should be called with correct arguments",
-        );
-
-        publishDatabaseChangesStub.restore();
-    });
-
-    test("publishDatabaseChanges reducer - when called - returns expected result", async () => {
+    test("publishDatabaseChanges reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
@@ -506,6 +349,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             "publishDatabaseChanges"
         ](mockInitialState, payload);
 
+        assert.ok(
+            publishDatabaseChangesStub.calledOnce,
+            "publishDatabaseChanges should be called once",
+        );
+
+        assert.deepEqual(
+            publishDatabaseChangesStub.firstCall.args,
+            [operationId, payload, mockSchemaCompareService.object],
+            "publishDatabaseChanges should be called with correct arguments",
+        );
+
         assert.deepEqual(
             actualResult.publishDatabaseChangesResultStatus,
             expectedResultMock,
@@ -515,74 +369,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishDatabaseChangesStub.restore();
     });
 
-    test("publishProjectChanges reducer - when called - runs once", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-            changedFiles: [],
-            addedFiles: [],
-            deletedFiles: [],
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "publishProjectChanges")
-            .resolves(resultMock);
-
-        const payload = {
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["publishProjectChanges"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "publishProjectChanges should be called once",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("publishProjectChanges reducer - called - with correct arguments", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-            changedFiles: [],
-            addedFiles: [],
-            deletedFiles: [],
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "publishProjectChanges")
-            .resolves(resultMock);
-
-        const payload = {
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["publishProjectChanges"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
-            "publishProjectChanges should be called with correct arguments",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("publishProjectChanges reducer - when called - returns expected result", async () => {
+    test("publishProjectChanges reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
@@ -606,6 +393,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             "publishProjectChanges"
         ](mockInitialState, payload);
 
+        assert.ok(
+            publishProjectChangesStub.calledOnce,
+            "publishProjectChanges should be called once",
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [operationId, payload, mockSchemaCompareService.object],
+            "publishProjectChanges should be called with correct arguments",
+        );
+
         assert.deepEqual(
             acutalResult.schemaComparePublishProjectResult,
             expectedResultMock,
@@ -615,48 +413,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("getDefaultOptions reducer - when called - runs once", async () => {
-        const getDefaultOptionsStub = sandbox
-            .stub(scUtils, "getDefaultOptions")
-            .resolves(deploymentOptionsResultMock);
-
-        const payload = {};
-
-        await controller["_reducers"]["getDefaultOptions"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.ok(
-            getDefaultOptionsStub.calledOnce,
-            "getDefaultOptions should be called once",
-        );
-
-        getDefaultOptionsStub.restore();
-    });
-
-    test("getDefaultOptions reducer - called - with correct arguments", async () => {
-        const getDefaultOptionsStub = sandbox
-            .stub(scUtils, "getDefaultOptions")
-            .resolves(deploymentOptionsResultMock);
-
-        const payload = {};
-
-        await controller["_reducers"]["getDefaultOptions"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.deepEqual(
-            getDefaultOptionsStub.firstCall.args,
-            [mockSchemaCompareService.object],
-            "getDefaultOptions should be called with correct arguments",
-        );
-
-        getDefaultOptionsStub.restore();
-    });
-
-    test("getDefaultOptions reducer - when called - returns expected result", async () => {
+    test("getDefaultOptions reducer - when called - completes successfully", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
             .resolves(deploymentOptionsResultMock);
@@ -668,6 +425,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
+        assert.ok(
+            getDefaultOptionsStub.calledOnce,
+            "getDefaultOptions should be called once",
+        );
+
+        assert.deepEqual(
+            getDefaultOptionsStub.firstCall.args,
+            [mockSchemaCompareService.object],
+            "getDefaultOptions should be called with correct arguments",
+        );
+
         assert.deepEqual(
             acutalResult.defaultDeploymentOptionsResult,
             deploymentOptionsResultMock,
@@ -677,72 +445,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         getDefaultOptionsStub.restore();
     });
 
-    test("includeExcludeNode reducer - when called - runs once", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-            affectedDependencies: [],
-            blockingDependencies: [],
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "includeExcludeNode")
-            .resolves(resultMock);
-
-        const payload = {
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["includeExcludeNode"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "includeExcludeNode should be called once",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("includeExcludeNode reducer - called - with correct arguments", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-            affectedDependencies: [],
-            blockingDependencies: [],
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "includeExcludeNode")
-            .resolves(resultMock);
-
-        const payload = {
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
-        };
-
-        await controller["_reducers"]["includeExcludeNode"](
-            mockInitialState,
-            payload,
-        );
-
-        assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
-            "includeExcludeNode should be called with correct arguments",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("includeExcludeNode reducer - when called - returns expected result", async () => {
+    test("includeExcludeNode reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
@@ -765,6 +468,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             "includeExcludeNode"
         ](mockInitialState, payload);
 
+        assert.ok(
+            publishProjectChangesStub.calledOnce,
+            "includeExcludeNode should be called once",
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [operationId, payload, mockSchemaCompareService.object],
+            "includeExcludeNode should be called with correct arguments",
+        );
+
         assert.deepEqual(
             actualResult.schemaCompareIncludeExcludeResult,
             expectedResultMock,
@@ -774,74 +488,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("openScmp reducer - when called - runs once", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            originalTargetName: "master",
-            originalTargetServerName: "localhost,1433",
-            originalConnectionString:
-                "Data Source=localhost,1433;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;Application Name=vscode-mssql;Current Language=us_english",
-            deploymentOptions,
-            excludedSourceElements: [],
-            excludedTargetElements: [],
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "openScmp")
-            .resolves(resultMock);
-
-        const payload = {
-            filePath: "/comparison/comparison.scmp",
-        };
-
-        await controller["_reducers"]["openScmp"](mockInitialState, payload);
-
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "openScmp should be called once",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("openScmp reducer - called - with correct arguments", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            originalTargetName: "master",
-            originalTargetServerName: "localhost,1433",
-            originalConnectionString:
-                "Data Source=localhost,1433;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;Application Name=vscode-mssql;Current Language=us_english",
-            deploymentOptions,
-            excludedSourceElements: [],
-            excludedTargetElements: [],
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "openScmp")
-            .resolves(resultMock);
-
-        const payload = {
-            filePath: "/comparison/comparison.scmp",
-        };
-
-        await controller["_reducers"]["openScmp"](mockInitialState, payload);
-
-        assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [payload, mockSchemaCompareService.object],
-            "openScmp should be called with correct arguments",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("openScmp reducer - when called - returns expected result", async () => {
+    test("openScmp reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
@@ -869,6 +516,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
+        assert.ok(
+            publishProjectChangesStub.calledOnce,
+            "openScmp should be called once",
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [payload, mockSchemaCompareService.object],
+            "openScmp should be called with correct arguments",
+        );
+
         assert.deepEqual(
             actualResult.schemaCompareOpenScmpResult,
             expectedResultMock,
@@ -878,68 +536,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("saveScmp reducer - when called - runs once", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "saveScmp")
-            .resolves(resultMock);
-
-        const payload = {
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            taskExecutionMode: mssql.TaskExecutionMode.execute,
-            deploymentOptions,
-            scmpFilePath: "/TestSqlProject/TestProject/",
-            excludedSourceObjects: [],
-            excludedTargetObjects: [],
-        };
-
-        await controller["_reducers"]["saveScmp"](mockInitialState, payload);
-
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "saveScmp should be called once",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("saveScmp reducer - called - with correct arguments", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "saveScmp")
-            .resolves(resultMock);
-
-        const payload = {
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            taskExecutionMode: mssql.TaskExecutionMode.execute,
-            deploymentOptions,
-            scmpFilePath: "/TestSqlProject/TestProject/",
-            excludedSourceObjects: [],
-            excludedTargetObjects: [],
-        };
-
-        await controller["_reducers"]["saveScmp"](mockInitialState, payload);
-
-        assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [payload, mockSchemaCompareService.object],
-            "saveScmp should be called with correct arguments",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("saveScmp reducer - when called - returns expected result", async () => {
+    test("saveScmp reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
@@ -964,6 +561,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
+        assert.ok(
+            publishProjectChangesStub.calledOnce,
+            "saveScmp should be called once",
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [payload, mockSchemaCompareService.object],
+            "saveScmp should be called with correct arguments",
+        );
+
         assert.deepEqual(
             actualResult.saveScmpResultStatus,
             expectedResultMock,
@@ -973,52 +581,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("cancel reducer - when called - runs once", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "cancel")
-            .resolves(resultMock);
-
-        const payload = {};
-
-        await controller["_reducers"]["cancel"](mockInitialState, payload);
-
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "cancel should be called once",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("cancel reducer - called - with correct arguments", async () => {
-        const resultMock = {
-            success: true,
-            errorMessage: "",
-        };
-
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "cancel")
-            .resolves(resultMock);
-
-        const payload = {};
-
-        await controller["_reducers"]["cancel"](mockInitialState, payload);
-
-        assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [operationId, mockSchemaCompareService.object],
-            "cancel should be called with correct arguments",
-        );
-
-        publishProjectChangesStub.restore();
-    });
-
-    test("cancel reducer - when called - returns expected result", async () => {
+    test("cancel reducer - when called - completes successfully", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
@@ -1033,6 +596,17 @@ suite("SchemaCompareWebViewController Tests", () => {
         const actualResult = await controller["_reducers"]["cancel"](
             mockInitialState,
             payload,
+        );
+
+        assert.ok(
+            publishProjectChangesStub.calledOnce,
+            "cancel should be called once",
+        );
+
+        assert.deepEqual(
+            publishProjectChangesStub.firstCall.args,
+            [operationId, mockSchemaCompareService.object],
+            "cancel should be called with correct arguments",
         );
 
         assert.deepEqual(
