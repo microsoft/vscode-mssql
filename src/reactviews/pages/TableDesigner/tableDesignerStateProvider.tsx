@@ -12,7 +12,7 @@ import {
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext, useRef, useState } from "react";
 
-export interface TableDesignerState
+export interface TableDesignerContextProps
     extends WebviewContextProps<designer.TableDesignerWebviewState> {
     provider: designer.TableDesignerReactProvider;
     resultPaneResizeInfo: {
@@ -39,15 +39,15 @@ export interface TableDesignerState
     ) => void;
 }
 
-const TableDesignerContext = createContext<TableDesignerState | undefined>(
-    undefined,
-);
+const TableDesignerContext = createContext<
+    TableDesignerContextProps | undefined
+>(undefined);
 
-interface TableDesignerContextProps {
+interface TableDesignerProviderProps {
     children: ReactNode;
 }
 
-const TableDesignerStateProvider: React.FC<TableDesignerContextProps> = ({
+const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({
     children,
 }) => {
     const webviewState = useVscodeWebview<

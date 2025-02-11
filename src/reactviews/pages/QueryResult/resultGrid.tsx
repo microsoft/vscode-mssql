@@ -35,7 +35,7 @@ import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import {
     QueryResultContext,
-    QueryResultState,
+    QueryResultContextProps,
 } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 
@@ -63,7 +63,7 @@ export interface ResultGridProps {
         QueryResultReducers
     >;
     gridParentRef?: React.RefObject<HTMLDivElement>;
-    state: QueryResultState;
+    state: QueryResultContextProps;
     linkHandler: (fileContent: string, fileType: string) => void;
     gridId: string;
 }

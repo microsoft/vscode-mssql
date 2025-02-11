@@ -12,20 +12,20 @@ import {
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 
-export interface ExecutionPlanState
+export interface ExecutionPlanContextProps
     extends WebviewContextProps<ep.ExecutionPlanWebviewState> {
     provider: ep.ExecutionPlanProvider;
 }
 
-const ExecutionPlanContext = createContext<ExecutionPlanState | undefined>(
-    undefined,
-);
+const ExecutionPlanContext = createContext<
+    ExecutionPlanContextProps | undefined
+>(undefined);
 
-interface ExecutionPlanContextProps {
+interface ExecutionPlanProviderProps {
     children: ReactNode;
 }
 
-const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
+const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({
     children,
 }) => {
     const webviewState = useVscodeWebview<

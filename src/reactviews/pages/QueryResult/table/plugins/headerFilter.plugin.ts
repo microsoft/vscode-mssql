@@ -27,7 +27,7 @@ import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
 
-import { QueryResultState } from "../../queryResultStateProvider";
+import { QueryResultContextProps } from "../../queryResultStateProvider";
 import {
     QueryResultReducers,
     QueryResultWebviewState,
@@ -69,7 +69,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     constructor(
         public theme: ColorThemeKind,
-        private queryResultState: QueryResultState,
+        private queryResultState: QueryResultContextProps,
         private webviewState: VscodeWebviewContext<
             QueryResultWebviewState,
             QueryResultReducers

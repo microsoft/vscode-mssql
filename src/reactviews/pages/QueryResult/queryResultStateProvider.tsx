@@ -12,20 +12,20 @@ import {
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 
-export interface QueryResultState
+export interface QueryResultContextProps
     extends WebviewContextProps<qr.QueryResultWebviewState> {
     provider: qr.QueryResultReactProvider;
 }
 
-const QueryResultContext = createContext<QueryResultState | undefined>(
+const QueryResultContext = createContext<QueryResultContextProps | undefined>(
     undefined,
 );
 
-interface QueryResultContextProps {
+interface QueryResultProviderProps {
     children: ReactNode;
 }
 
-const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
+const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({
     children,
 }) => {
     const webViewState = useVscodeWebview<
