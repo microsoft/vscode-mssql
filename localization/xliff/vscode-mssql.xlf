@@ -249,6 +249,9 @@
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
     </trans-unit>
+    <trans-unit id="++CODE++975a5ec9ab0cd92f808a1441af3826d71cf27ba6adbf817753c937bb97c1935b">
+      <source xml:lang="en">Column Mapping</source>
+    </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
     </trans-unit>
@@ -1250,11 +1253,20 @@
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++1321ffd5e7ff1148409bea3dc1a971624be5c8220ed68c65abc2af059c38492e">
+      <source xml:lang="en">Table already exists</source>
+    </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
+    </trans-unit>
+    <trans-unit id="++CODE++95605dfe23756acffa506a239678845b1479c435202b52fd40b3b74638a472cd">
+      <source xml:lang="en">Target Column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
+      <source xml:lang="en">Target Table</source>
     </trans-unit>
     <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
       <source xml:lang="en">Tenant</source>
@@ -1531,6 +1543,10 @@
       <source xml:lang="en">{0}. {1}</source>
       <note>{0} is the status
 {1} is the message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e11b40d7aa038cee12001e41ec98e2e2bc873dd711e0fb1205e978c89bd9d82c">
+      <source xml:lang="en">{0}: Name</source>
+      <note>{0} is the index of the name</note>
     </trans-unit>
     <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
       <source xml:lang="en">{0}: {1}</source>
