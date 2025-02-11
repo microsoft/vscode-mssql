@@ -41,13 +41,12 @@ export const ExecutionPlanPage = () => {
     useEffect(() => {
         if (
             context &&
-            context.provider &&
             executionPlanState &&
             // checks if execution plans have already been gotten
             executionPlanState.executionPlanGraphs &&
             !executionPlanState.executionPlanGraphs.length
         ) {
-            context.provider.getExecutionPlan();
+            context.getExecutionPlan();
         }
     }, [executionPlanState]);
 

@@ -13,9 +13,8 @@ import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 
 export interface ExecutionPlanContextProps
-    extends WebviewContextProps<ep.ExecutionPlanWebviewState> {
-    provider: ep.ExecutionPlanProvider;
-}
+    extends WebviewContextProps<ep.ExecutionPlanWebviewState>,
+        ep.ExecutionPlanProvider {}
 
 const ExecutionPlanContext = createContext<
     ExecutionPlanContextProps | undefined
@@ -36,33 +35,28 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({
         <ExecutionPlanContext.Provider
             value={{
                 ...getCoreRPCs(webviewState),
-                provider: {
-                    getExecutionPlan: function (): void {
-                        webviewState?.extensionRpc.action(
-                            "getExecutionPlan",
-                            {},
-                        );
-                    },
-                    saveExecutionPlan: function (sqlPlanContent: string): void {
-                        webviewState?.extensionRpc.action("saveExecutionPlan", {
-                            sqlPlanContent: sqlPlanContent,
-                        });
-                    },
-                    showPlanXml: function (sqlPlanContent: string): void {
-                        webviewState?.extensionRpc.action("showPlanXml", {
-                            sqlPlanContent: sqlPlanContent,
-                        });
-                    },
-                    showQuery: function (query: string): void {
-                        webviewState?.extensionRpc.action("showQuery", {
-                            query: query,
-                        });
-                    },
-                    updateTotalCost: function (addedCost: number): void {
-                        webviewState?.extensionRpc.action("updateTotalCost", {
-                            addedCost: addedCost,
-                        });
-                    },
+                getExecutionPlan: function (): void {
+                    webviewState?.extensionRpc.action("getExecutionPlan", {});
+                },
+                saveExecutionPlan: function (sqlPlanContent: string): void {
+                    webviewState?.extensionRpc.action("saveExecutionPlan", {
+                        sqlPlanContent: sqlPlanContent,
+                    });
+                },
+                showPlanXml: function (sqlPlanContent: string): void {
+                    webviewState?.extensionRpc.action("showPlanXml", {
+                        sqlPlanContent: sqlPlanContent,
+                    });
+                },
+                showQuery: function (query: string): void {
+                    webviewState?.extensionRpc.action("showQuery", {
+                        query: query,
+                    });
+                },
+                updateTotalCost: function (addedCost: number): void {
+                    webviewState?.extensionRpc.action("updateTotalCost", {
+                        addedCost: addedCost,
+                    });
                 },
                 state: webviewState?.state as ep.ExecutionPlanWebviewState,
                 themeKind: webviewState?.themeKind,

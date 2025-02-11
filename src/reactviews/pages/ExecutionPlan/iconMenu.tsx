@@ -71,7 +71,12 @@ export const IconStack: React.FC<IconStackProps> = ({
 }) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
-    const theme = context!.themeKind;
+
+    if (!context) {
+        return undefined;
+    }
+
+    const theme = context.themeKind;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {
         CustomZoom,
@@ -94,15 +99,15 @@ export const IconStack: React.FC<IconStackProps> = ({
     const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
 
     const handleSavePlan = async () => {
-        await context!.provider.saveExecutionPlan(xml);
+        await context.saveExecutionPlan(xml);
     };
 
     const handleShowXml = async () => {
-        await context!.provider.showPlanXml(xml);
+        await context.showPlanXml(xml);
     };
 
     const handleShowQuery = async () => {
-        await context!.provider.showQuery(query);
+        await context.showQuery(query);
     };
 
     const handleZoomIn = async () => {
