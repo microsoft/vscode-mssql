@@ -106,7 +106,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         let source: mssql.SchemaCompareEndpointInfo;
 
         let connectionProfile: IConnectionProfile | undefined = sourceContext
-            ? <IConnectionProfile>sourceContext.ConnectionInfo
+            ? (sourceContext.ConnectionInfo as IConnectionProfile)
             : undefined;
 
         if (connectionProfile) {
@@ -241,7 +241,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.schemaCompareService,
             );
 
-            return { ...state, schemaCompareResult: result };
+            state.schemaCompareResult = result;
+            return state;
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
@@ -251,7 +252,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.schemaCompareService,
             );
 
-            return { ...state, generateScriptResultStatus: result };
+            state.generateScriptResultStatus = result;
+            return state;
         });
 
         this.registerReducer(
@@ -263,7 +265,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     this.schemaCompareService,
                 );
 
-                return { ...state, publishDatabaseChangesResultStatus: result };
+                state.publishDatabaseChangesResultStatus = result;
+                return state;
             },
         );
 
@@ -276,17 +279,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     this.schemaCompareService,
                 );
 
-                return { ...state, schemaComparePublishProjectResult: result };
+                state.schemaComparePublishProjectResult = result;
+                return state;
             },
         );
 
         this.registerReducer("getDefaultOptions", async (state) => {
             const result = await getDefaultOptions(this.schemaCompareService);
 
-            return {
-                ...state,
-                defaultDeploymentOptionsResult: result,
-            };
+            state.defaultDeploymentOptionsResult = result;
+            return state;
         });
 
         this.registerReducer("includeExcludeNode", async (state, payload) => {
@@ -296,19 +298,22 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.schemaCompareService,
             );
 
-            return { ...state, schemaCompareIncludeExcludeResult: result };
+            state.schemaCompareIncludeExcludeResult = result;
+            return state;
         });
 
         this.registerReducer("openScmp", async (state, payload) => {
             const result = await openScmp(payload, this.schemaCompareService);
 
-            return { ...state, schemaCompareOpenScmpResult: result };
+            state.schemaCompareOpenScmpResult = result;
+            return state;
         });
 
         this.registerReducer("saveScmp", async (state, payload) => {
             const result = await saveScmp(payload, this.schemaCompareService);
 
-            return { ...state, saveScmpResultStatus: result };
+            state.saveScmpResultStatus = result;
+            return state;
         });
 
         this.registerReducer("cancel", async (state) => {
@@ -317,7 +322,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.schemaCompareService,
             );
 
-            return { ...state, cancelResultStatus: result };
+            state.cancelResultStatus = result;
+            return state;
         });
     }
 }

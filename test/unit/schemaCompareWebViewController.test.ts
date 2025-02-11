@@ -68,7 +68,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         },
     };
 
-    const deploymentOptionsResult: mssql.SchemaCompareOptionsResult = {
+    const deploymentOptionsResultMock: mssql.SchemaCompareOptionsResult = {
         success: true,
         errorMessage: "",
         defaultDeploymentOptions: deploymentOptions,
@@ -125,7 +125,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
 
         mockInitialState = {
-            defaultDeploymentOptionsResult: deploymentOptionsResult,
+            defaultDeploymentOptionsResult: deploymentOptionsResultMock,
             sourceEndpointInfo: sourceEndpointInfo,
             targetEndpointInfo: undefined,
             schemaCompareResult: undefined,
@@ -227,7 +227,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             treeNode,
             mockSchemaCompareService.object,
             mockConnectionManager.object,
-            deploymentOptionsResult,
+            deploymentOptionsResultMock,
             schemaCompareWebViewTitle,
         );
     });
@@ -247,7 +247,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("compare reducer - when called - runs once", async () => {
-        const compareResult: mssql.SchemaCompareResult = {
+        const compareResultMock: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
             differences: [],
@@ -257,7 +257,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const compareStub = sandbox
             .stub(scUtils, "compare")
-            .resolves(compareResult);
+            .resolves(compareResultMock);
 
         const payload = {
             sourceEndpointInfo,
@@ -274,7 +274,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("compare reducer - called - with correct arguments", async () => {
-        const compareResult: mssql.SchemaCompareResult = {
+        const compareResultMock: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
             differences: [],
@@ -284,7 +284,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const compareStub = sandbox
             .stub(scUtils, "compare")
-            .resolves(compareResult);
+            .resolves(compareResultMock);
 
         const payload = {
             sourceEndpointInfo,
@@ -305,7 +305,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("compare reducer - when called - returns expected result", async () => {
-        const compareResult: mssql.SchemaCompareResult = {
+        const expectedCompareResultMock: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
             areEqual: true,
             differences: [],
@@ -315,7 +315,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const compareStub = sandbox
             .stub(scUtils, "compare")
-            .resolves(compareResult);
+            .resolves(expectedCompareResultMock);
 
         const payload = {
             sourceEndpointInfo,
@@ -331,7 +331,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             result.schemaCompareResult,
-            compareResult,
+            expectedCompareResultMock,
             "compare should return expected result",
         );
 
@@ -339,14 +339,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("generateScript reducer - when called - runs once", async () => {
-        const result = {
+        const scriptResultMock = {
             success: true,
             errorMessage: "",
         };
 
         const generateScriptStub = sandbox
             .stub(scUtils, "generateScript")
-            .resolves(result);
+            .resolves(scriptResultMock);
 
         const payload = {
             targetServerName: "localhost,1433",
@@ -368,14 +368,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("generateScript reducer - called - with correct arguments", async () => {
-        const result = {
+        const scriptResultMock = {
             success: true,
             errorMessage: "",
         };
 
         const generateScriptStub = sandbox
             .stub(scUtils, "generateScript")
-            .resolves(result);
+            .resolves(scriptResultMock);
 
         const payload = {
             targetServerName: "localhost,1433",
@@ -398,14 +398,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("generateScript reducer - when called - returns expected result", async () => {
-        const scriptResult = {
+        const expectedScriptResultMock = {
             success: true,
             errorMessage: "",
         };
 
         const generateScriptStub = sandbox
             .stub(scUtils, "generateScript")
-            .resolves(scriptResult);
+            .resolves(expectedScriptResultMock);
 
         const payload = {
             targetServerName: "localhost,1433",
@@ -420,7 +420,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             result.generateScriptResultStatus,
-            scriptResult,
+            expectedScriptResultMock,
             "generateScript should return expected result",
         );
 
@@ -428,14 +428,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("publishDatabaseChanges reducer - when called - runs once", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishDatabaseChangesStub = sandbox
             .stub(scUtils, "publishDatabaseChanges")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             targetServerName: "localhost,1433",
@@ -457,14 +457,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("publishDatabaseChanges reducer - called - with correct arguments", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishDatabaseChangesStub = sandbox
             .stub(scUtils, "publishDatabaseChanges")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             targetServerName: "localhost,1433",
@@ -487,14 +487,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("publishDatabaseChanges reducer - when called - returns expected result", async () => {
-        const publishDatabaseResult = {
+        const expectedResultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishDatabaseChangesStub = sandbox
             .stub(scUtils, "publishDatabaseChanges")
-            .resolves(publishDatabaseResult);
+            .resolves(expectedResultMock);
 
         const payload = {
             targetServerName: "localhost,1433",
@@ -508,7 +508,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             actualResult.publishDatabaseChangesResultStatus,
-            publishDatabaseResult,
+            expectedResultMock,
             "publishDatabaseChanges should return expected result",
         );
 
@@ -516,7 +516,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("publishProjectChanges reducer - when called - runs once", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
             changedFiles: [],
@@ -526,7 +526,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "publishProjectChanges")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             targetProjectPath:
@@ -549,7 +549,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("publishProjectChanges reducer - called - with correct arguments", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
             changedFiles: [],
@@ -559,7 +559,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "publishProjectChanges")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             targetProjectPath:
@@ -583,7 +583,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("publishProjectChanges reducer - when called - returns expected result", async () => {
-        const publishProjectChangesResult = {
+        const expectedResultMock = {
             success: true,
             errorMessage: "",
             changedFiles: [],
@@ -593,7 +593,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "publishProjectChanges")
-            .resolves(publishProjectChangesResult);
+            .resolves(expectedResultMock);
 
         const payload = {
             targetProjectPath:
@@ -608,7 +608,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             acutalResult.schemaComparePublishProjectResult,
-            publishProjectChangesResult,
+            expectedResultMock,
             "publishProjectChanges should return expected result",
         );
 
@@ -618,7 +618,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     test("getDefaultOptions reducer - when called - runs once", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
-            .resolves(deploymentOptionsResult);
+            .resolves(deploymentOptionsResultMock);
 
         const payload = {};
 
@@ -638,7 +638,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     test("getDefaultOptions reducer - called - with correct arguments", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
-            .resolves(deploymentOptionsResult);
+            .resolves(deploymentOptionsResultMock);
 
         const payload = {};
 
@@ -659,7 +659,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     test("getDefaultOptions reducer - when called - returns expected result", async () => {
         const getDefaultOptionsStub = sandbox
             .stub(scUtils, "getDefaultOptions")
-            .resolves(deploymentOptionsResult);
+            .resolves(deploymentOptionsResultMock);
 
         const payload = {};
 
@@ -670,7 +670,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             acutalResult.defaultDeploymentOptionsResult,
-            deploymentOptionsResult,
+            deploymentOptionsResultMock,
             "getDefaultOptions should return expected result",
         );
 
@@ -678,7 +678,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("includeExcludeNode reducer - when called - runs once", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
             affectedDependencies: [],
@@ -687,7 +687,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "includeExcludeNode")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             targetProjectPath:
@@ -710,7 +710,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("includeExcludeNode reducer - called - with correct arguments", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
             affectedDependencies: [],
@@ -719,7 +719,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "includeExcludeNode")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             targetProjectPath:
@@ -743,7 +743,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("includeExcludeNode reducer - when called - returns expected result", async () => {
-        const includeExcludeNodeResult = {
+        const expectedResultMock = {
             success: true,
             errorMessage: "",
             affectedDependencies: [],
@@ -752,7 +752,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "includeExcludeNode")
-            .resolves(includeExcludeNodeResult);
+            .resolves(expectedResultMock);
 
         const payload = {
             targetProjectPath:
@@ -767,7 +767,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             actualResult.schemaCompareIncludeExcludeResult,
-            includeExcludeNodeResult,
+            expectedResultMock,
             "includeExcludeNode should return expected result",
         );
 
@@ -775,7 +775,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("openScmp reducer - when called - runs once", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
             sourceEndpointInfo,
@@ -791,7 +791,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "openScmp")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             filePath: "/comparison/comparison.scmp",
@@ -808,7 +808,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("openScmp reducer - called - with correct arguments", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
             sourceEndpointInfo,
@@ -824,7 +824,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "openScmp")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             filePath: "/comparison/comparison.scmp",
@@ -842,7 +842,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("openScmp reducer - when called - returns expected result", async () => {
-        const openScmpResult = {
+        const expectedResultMock = {
             success: true,
             errorMessage: "",
             sourceEndpointInfo,
@@ -858,7 +858,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "openScmp")
-            .resolves(openScmpResult);
+            .resolves(expectedResultMock);
 
         const payload = {
             filePath: "/comparison/comparison.scmp",
@@ -871,7 +871,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             actualResult.schemaCompareOpenScmpResult,
-            openScmpResult,
+            expectedResultMock,
             "openScmp should return expected result",
         );
 
@@ -879,14 +879,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("saveScmp reducer - when called - runs once", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "saveScmp")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             sourceEndpointInfo,
@@ -909,14 +909,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("saveScmp reducer - called - with correct arguments", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "saveScmp")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {
             sourceEndpointInfo,
@@ -940,14 +940,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("saveScmp reducer - when called - returns expected result", async () => {
-        const saveScmpResult = {
+        const expectedResultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "saveScmp")
-            .resolves(saveScmpResult);
+            .resolves(expectedResultMock);
 
         const payload = {
             sourceEndpointInfo,
@@ -966,7 +966,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             actualResult.saveScmpResultStatus,
-            saveScmpResult,
+            expectedResultMock,
             "saveScmp should return expected result",
         );
 
@@ -974,14 +974,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("cancel reducer - when called - runs once", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "cancel")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {};
 
@@ -996,14 +996,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("cancel reducer - called - with correct arguments", async () => {
-        const result = {
+        const resultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "cancel")
-            .resolves(result);
+            .resolves(resultMock);
 
         const payload = {};
 
@@ -1019,14 +1019,14 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("cancel reducer - when called - returns expected result", async () => {
-        const cancelResult = {
+        const expectedResultMock = {
             success: true,
             errorMessage: "",
         };
 
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "cancel")
-            .resolves(cancelResult);
+            .resolves(expectedResultMock);
 
         const payload = {};
 
@@ -1037,7 +1037,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             actualResult.cancelResultStatus,
-            cancelResult,
+            expectedResultMock,
             "cancel should be called with correct arguments",
         );
 
