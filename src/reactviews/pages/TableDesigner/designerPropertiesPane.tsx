@@ -315,7 +315,7 @@ export const DesignerPropertiesPane = () => {
                 <Button
                     appearance="transparent"
                     onClick={() => {
-                        context.provider.setPropertiesComponents(undefined);
+                        context.setPropertiesComponents(undefined);
                     }}
                     title={
                         context.propertiesPaneResizeInfo.isMaximized

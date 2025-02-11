@@ -131,7 +131,7 @@ export const DesignerChangesPreviewButton = () => {
                     <MessageBarActions>
                         <Button
                             onClick={() =>
-                                designerContext.provider.copyPublishErrorToClipboard()
+                                designerContext.copyPublishErrorToClipboard()
                             }
                             icon={<CopyRegular />}
                         >
@@ -144,7 +144,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     appearance="primary"
                     onClick={() => {
-                        designerContext.provider.publishChanges();
+                        designerContext.publishChanges();
                     }}
                 >
                     {locConstants.tableDesigner.retry}
@@ -152,7 +152,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     onClick={() => {
                         setIsConfirmationChecked(false);
-                        designerContext.provider.generatePreviewReport();
+                        designerContext.generatePreviewReport();
                     }}
                     style={{
                         width: "150px",
@@ -176,7 +176,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     size="medium"
                     appearance="primary"
-                    onClick={designerContext.provider.closeDesigner}
+                    onClick={designerContext.closeDesigner}
                 >
                     {locConstants.tableDesigner.closeDesigner}
                 </Button>
@@ -186,7 +186,7 @@ export const DesignerChangesPreviewButton = () => {
                         appearance="secondary"
                         onClick={() => {
                             setIsConfirmationChecked(false);
-                            designerContext.provider.continueEditing;
+                            designerContext.continueEditing;
                         }}
                     >
                         {locConstants.tableDesigner.continueEditing}
@@ -217,7 +217,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     className={classes.retryButton}
                     onClick={() => {
-                        designerContext.provider.generatePreviewReport();
+                        designerContext.generatePreviewReport();
                     }}
                 >
                     {locConstants.tableDesigner.retry}
@@ -282,7 +282,7 @@ export const DesignerChangesPreviewButton = () => {
                                 LoadState.Loaded
                             }
                             appearance="secondary"
-                            onClick={designerContext.provider.generateScript}
+                            onClick={designerContext.generateScript}
                         >
                             {locConstants.tableDesigner.generateScript}
                         </Button>
@@ -298,7 +298,7 @@ export const DesignerChangesPreviewButton = () => {
                         }
                         appearance="primary"
                         onClick={() => {
-                            designerContext.provider.publishChanges();
+                            designerContext.publishChanges();
                         }}
                     >
                         {locConstants.tableDesigner.updateDatabase}
@@ -337,7 +337,7 @@ export const DesignerChangesPreviewButton = () => {
                     title={locConstants.tableDesigner.publish}
                     icon={<DatabaseArrowDownRegular />}
                     onClick={() => {
-                        designerContext.provider.generatePreviewReport();
+                        designerContext.generatePreviewReport();
                     }}
                     disabled={(state?.issues?.length ?? 0) > 0}
                 >

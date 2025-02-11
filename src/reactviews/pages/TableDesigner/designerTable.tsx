@@ -159,7 +159,7 @@ export const DesignerTable = ({
     const rows = getRows();
 
     const moveRows = (from: number, to: number) => {
-        context?.provider.processTableEdit({
+        context.processTableEdit({
             type: designer.DesignerEditType.Move,
             path: [...componentPath, from],
             value: to,
@@ -167,7 +167,7 @@ export const DesignerTable = ({
         });
 
         // Focus on the first cell of the moved row
-        const firstCellElementId = context?.provider.getComponentId([
+        const firstCellElementId = context?.getComponentId([
             ...componentPath,
             to,
             columns[1].columnId,
@@ -245,7 +245,7 @@ export const DesignerTable = ({
                         size="small"
                         icon={<DeleteRegular />}
                         onClick={async () => {
-                            context?.provider.processTableEdit({
+                            context.processTableEdit({
                                 path: [...componentPath, row.rowId],
                                 source: UiArea,
                                 type: designer.DesignerEditType.Remove,
@@ -333,7 +333,7 @@ export const DesignerTable = ({
                         appearance="transparent"
                         icon={<AddFilled className={classes.tableActionIcon} />}
                         onClick={() => {
-                            context?.provider.processTableEdit({
+                            context.processTableEdit({
                                 path: [...componentPath, rows.length],
                                 source: UiArea,
                                 type: designer.DesignerEditType.Add,
@@ -473,16 +473,14 @@ export const DesignerTable = ({
                                         ) {
                                             return;
                                         }
-                                        context?.provider.setPropertiesComponents(
-                                            {
-                                                componentPath: [
-                                                    ...componentPath,
-                                                    row.rowId,
-                                                ],
-                                                component: component,
-                                                model: model,
-                                            },
-                                        );
+                                        context?.setPropertiesComponents({
+                                            componentPath: [
+                                                ...componentPath,
+                                                row.rowId,
+                                            ],
+                                            component: component,
+                                            model: model,
+                                        });
                                         setFocusedRowId(index);
                                         event.preventDefault();
                                     }}

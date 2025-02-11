@@ -67,7 +67,7 @@ export const DesignerCheckbox = ({
                     if (model.enabled === false) {
                         return;
                     }
-                    await context?.provider.processTableEdit({
+                    await context.processTableEdit({
                         path: componentPath,
                         value: data.checked,
                         type: DesignerEditType.Update,

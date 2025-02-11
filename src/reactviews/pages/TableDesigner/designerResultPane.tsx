@@ -100,11 +100,15 @@ export const DesignerResultPane = () => {
     const context = useContext(TableDesignerContext);
     const state = context?.state;
 
+    if (!state) {
+        return undefined;
+    }
+
     const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
         const issuePath = issue.propertyPath ?? [];
         context?.log(`focusing on ${issuePath}`);
 
-        if (!state?.view?.tabs || !context?.provider) {
+        if (!state?.view?.tabs) {
             return;
         }
         const containingTab = state.view.tabs.find((tab) => {
@@ -116,7 +120,7 @@ export const DesignerResultPane = () => {
         if (!containingTab) {
             return;
         } else {
-            context.provider.setTab(containingTab.id as any);
+            context.setTab(containingTab.id as any);
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
         let tableComponent;
@@ -133,7 +137,7 @@ export const DesignerResultPane = () => {
             if (!tableModel) {
                 return;
             }
-            context?.provider.setPropertiesComponents({
+            context.setPropertiesComponents({
                 componentPath: [issuePath[0], issuePath[1]],
                 component: tableComponent,
                 model: tableModel,
@@ -147,7 +151,7 @@ export const DesignerResultPane = () => {
             case 5: // This is a component in the table inside the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
                 elementToFocus =
                     context.elementRefs.current[
-                        context.provider.getComponentId(issuePath as any)
+                        context.getComponentId(issuePath as any)
                     ];
                 break;
             case 2: // This is table row. Therefore focuing on the first property of the row
@@ -159,7 +163,7 @@ export const DesignerResultPane = () => {
                 ).itemProperties[0].propertyName;
                 elementToFocus =
                     context.elementRefs.current[
-                        context.provider.getComponentId([
+                        context.getComponentId([
                             ...issuePath,
                             firstProperty,
                         ] as any)
@@ -181,7 +185,7 @@ export const DesignerResultPane = () => {
                 ).itemProperties[0].propertyName;
                 elementToFocus =
                     context.elementRefs.current[
-                        context.provider.getComponentId([
+                        context.getComponentId([
                             ...issuePath,
                             firstPropertyInSubTable,
                         ] as any)
@@ -201,9 +205,6 @@ export const DesignerResultPane = () => {
         }
     };
 
-    if (!state) {
-        return undefined;
-    }
     return (
         <div className={classes.root}>
             <div className={classes.ribbon}>
@@ -211,7 +212,7 @@ export const DesignerResultPane = () => {
                     size="small"
                     selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
-                        context.provider.setResultTab(
+                        context.setResultTab(
                             data.value as DesignerResultPaneTabs,
                         );
                     }}
@@ -240,7 +241,7 @@ export const DesignerResultPane = () => {
                         <Button
                             size="small"
                             appearance="outline"
-                            onClick={() => context.provider.scriptAsCreate()}
+                            onClick={() => context.scriptAsCreate()}
                             title={locConstants.tableDesigner.openInEditor}
                             icon={<OpenFilled />}
                         >
@@ -250,7 +251,7 @@ export const DesignerResultPane = () => {
                             size="small"
                             appearance="outline"
                             onClick={() =>
-                                context.provider.copyScriptAsCreateToClipboard()
+                                context.copyScriptAsCreateToClipboard()
                             }
                             title={locConstants.tableDesigner.copyScript}
                             icon={<CopyFilled />}

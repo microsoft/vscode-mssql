@@ -45,12 +45,11 @@ export const DesignerInputBox = ({
 }: DesignerInputBoxProps) => {
     const [value, setValue] = useState(model.value);
     const context = useContext(TableDesignerContext);
+
     if (!context) {
         return undefined;
     }
-    const dropdownId = useId(
-        context?.provider.getComponentId(componentPath) ?? "",
-    );
+    const dropdownId = useId(context.getComponentId(componentPath) ?? "");
     const width =
         UiArea === "PropertiesView"
             ? "100%"
@@ -71,18 +70,13 @@ export const DesignerInputBox = ({
                 ) : undefined,
             }}
             validationState={
-                context?.provider.getErrorMessage(componentPath)
-                    ? "error"
-                    : undefined
+                context.getErrorMessage(componentPath) ? "error" : undefined
             }
             validationMessage={
-                showError
-                    ? context?.provider.getErrorMessage(componentPath)
-                    : undefined
+                showError ? context.getErrorMessage(componentPath) : undefined
             }
             validationMessageIcon={
-                showError &&
-                context?.provider.getErrorMessage(componentPath) ? (
+                showError && context.getErrorMessage(componentPath) ? (
                     <ErrorCircleRegular />
                 ) : undefined
             }
@@ -104,7 +98,7 @@ export const DesignerInputBox = ({
                         if (value === model.value) {
                             return;
                         }
-                        await context?.provider.processTableEdit({
+                        await context.processTableEdit({
                             path: componentPath,
                             value: value,
                             type: DesignerEditType.Update,
@@ -131,7 +125,7 @@ export const DesignerInputBox = ({
                         if (value === model.value) {
                             return;
                         }
-                        await context?.provider.processTableEdit({
+                        await context?.processTableEdit({
                             path: componentPath,
                             value: value,
                             type: DesignerEditType.Update,

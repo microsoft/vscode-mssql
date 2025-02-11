@@ -194,7 +194,7 @@ export const DesignerMainPane = () => {
                         }}
                         autoFocus // initial focus
                         onBlur={(_event) => {
-                            context.provider.processTableEdit({
+                            context.processTableEdit({
                                 source: "TabsView",
                                 type: DesignerEditType.Update,
                                 path: ["name"],
@@ -215,7 +215,7 @@ export const DesignerMainPane = () => {
                                 return;
                             }
                             setSchema(data?.optionValue);
-                            context.provider.processTableEdit({
+                            context.processTableEdit({
                                 source: "TabsView",
                                 type: DesignerEditType.Update,
                                 path: ["schema"],
@@ -236,8 +236,8 @@ export const DesignerMainPane = () => {
                 size="small"
                 selectedValue={state.tabStates?.mainPaneTab}
                 onTabSelect={(_event, data) => {
-                    context.provider.setTab(data.value as DesignerMainPaneTabs);
-                    context.provider.setPropertiesComponents(undefined);
+                    context.setTab(data.value as DesignerMainPaneTabs);
+                    context.setPropertiesComponents(undefined);
                 }}
             >
                 {state.view?.tabs.map((tab) => {

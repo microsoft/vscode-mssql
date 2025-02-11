@@ -47,9 +47,7 @@ export const DesignerDropdown = ({
         UiArea === "PropertiesView"
             ? "100%"
             : (component.componentProperties.width ?? "350px");
-    const dropdownId = useId(
-        context?.provider.getComponentId(componentPath) ?? "",
-    );
+    const dropdownId = useId(context.getComponentId(componentPath) ?? "");
 
     useEffect(() => {
         setValue([model.value]);
@@ -67,14 +65,12 @@ export const DesignerDropdown = ({
                 ) : undefined,
             }}
             validationState={
-                showError && context?.provider.getErrorMessage(componentPath)
+                showError && context.getErrorMessage(componentPath)
                     ? "error"
                     : undefined
             }
             validationMessage={
-                showError
-                    ? context?.provider.getErrorMessage(componentPath)
-                    : ""
+                showError ? context.getErrorMessage(componentPath) : ""
             }
             style={{ width: width }}
             size="small"
@@ -89,7 +85,7 @@ export const DesignerDropdown = ({
                     width: width,
                     minWidth: width,
                     maxWidth: width,
-                    border: context?.provider.getErrorMessage(componentPath)
+                    border: context.getErrorMessage(componentPath)
                         ? "1px solid var(--vscode-errorForeground)"
                         : undefined,
                 }}
@@ -99,16 +95,14 @@ export const DesignerDropdown = ({
                     if (model.enabled === false) {
                         return;
                     }
-                    context?.provider.processTableEdit({
+                    context.processTableEdit({
                         path: componentPath,
                         value: option.optionValue!.toString(),
                         type: DesignerEditType.Update,
                         source: UiArea,
                     });
                 }}
-                aria-errormessage={
-                    context?.provider.getErrorMessage(componentPath) ?? ""
-                }
+                aria-errormessage={context.getErrorMessage(componentPath) ?? ""}
             >
                 {model.values
                     .sort((a, b) => a.localeCompare(b))
