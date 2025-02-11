@@ -1389,6 +1389,7 @@ export default class ConnectionManager {
             throw new Error(LocalizedConstants.serverNameMissing);
         }
 
+        // Refresh Azure auth token if necessary
         if (connectionCreds.authenticationType === Constants.azureMfa) {
             if (
                 AzureController.isTokenInValid(
@@ -1450,6 +1451,7 @@ export default class ConnectionManager {
             }
         }
 
+        // Fetch the connection string from the connection store if necessary
         if (
             connectionCreds.connectionString?.includes(
                 ConnectionStore.CRED_PREFIX,

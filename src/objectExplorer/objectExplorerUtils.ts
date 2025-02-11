@@ -19,7 +19,7 @@ export class ObjectExplorerUtils {
 
     public static iconPath(label: string): string {
         if (label) {
-            if (label === Constants.disconnectedServerLabel) {
+            if (label === Constants.disconnectedServerNodeType) {
                 // if disconnected
                 label = `${Constants.serverLabel}_red`;
             } else if (label === Constants.serverLabel) {
@@ -68,7 +68,7 @@ export class ObjectExplorerUtils {
         // We're on a server node so just use the database directly from the connection string
         if (
             node.nodeType === Constants.serverLabel ||
-            node.nodeType === Constants.disconnectedServerLabel
+            node.nodeType === Constants.disconnectedServerNodeType
         ) {
             return node.connectionInfo.database;
         }

@@ -43,7 +43,7 @@ import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import providerSettings from "../azure/providerSettings";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, TreeNodeContextValue } from "vscode-mssql";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IAccount } from "../models/contracts/azure";
 import * as AzureConstants from "../azure/constants";
@@ -477,7 +477,7 @@ export class ObjectExplorerService {
     /**
      * Get nodes from saved connections
      */
-    private async getSavedConnections(): Promise<void> {
+    private async addSavedNodesConnectionsToRoot(): Promise<void> {
         let savedConnections =
             this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
@@ -498,16 +498,11 @@ export class ObjectExplorerService {
             this._sessionIdToNodeLabelMap.set(response.sessionId, nodeLabel);
             let node = new TreeNodeInfo(
                 nodeLabel,
-                {
-                    type: Constants.disconnectedServerLabel,
-                    filterable: false,
-                    hasFilters: false,
-                    subType: "",
-                },
+                ObjectExplorerService.disconnectedNodeContextValue,
                 TreeItemCollapsibleState.Collapsed,
                 undefined,
                 undefined,
-                Constants.disconnectedServerLabel,
+                Constants.disconnectedServerNodeType,
                 undefined,
                 conn,
                 undefined,
@@ -515,6 +510,15 @@ export class ObjectExplorerService {
             );
             this._rootTreeNodeArray.push(node);
         }
+    }
+
+    private static get disconnectedNodeContextValue(): TreeNodeContextValue {
+        return {
+            type: Constants.disconnectedServerNodeType,
+            filterable: false,
+            hasFilters: false,
+            subType: "",
+        };
     }
 
     /**
@@ -635,7 +639,7 @@ export class ObjectExplorerService {
             if (!this._objectExplorerProvider.objectExplorerExists) {
                 // if there are actually saved connections
                 this._rootTreeNodeArray = [];
-                await this.getSavedConnections();
+                await this.addSavedNodesConnectionsToRoot();
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
             } else {
@@ -873,13 +877,8 @@ export class ObjectExplorerService {
                 this._rootTreeNodeArray.splice(index, 1);
             }
         } else {
-            node.nodeType = Constants.disconnectedServerLabel;
-            node.context = {
-                type: Constants.disconnectedServerLabel,
-                filterable: false,
-                hasFilters: false,
-                subType: "",
-            };
+            node.nodeType = Constants.disconnectedServerNodeType;
+            node.context = ObjectExplorerService.disconnectedNodeContextValue;
             node.sessionId = undefined;
             if (!(node.connectionInfo as IConnectionProfile).savePassword) {
                 node.connectionInfo.password = "";
@@ -889,16 +888,11 @@ export class ObjectExplorerService {
             // make a new node to show disconnected behavior
             let disconnectedNode = new TreeNodeInfo(
                 label,
-                {
-                    type: Constants.disconnectedServerLabel,
-                    filterable: false,
-                    hasFilters: false,
-                    subType: "",
-                },
+                ObjectExplorerService.disconnectedNodeContextValue,
                 node.collapsibleState,
                 node.nodePath,
                 node.nodeStatus,
-                Constants.disconnectedServerLabel,
+                Constants.disconnectedServerNodeType,
                 undefined,
                 node.connectionInfo,
                 node.parentNode,
@@ -990,16 +984,11 @@ export class ObjectExplorerService {
             : ConnInfo.getConnectionDisplayName(connectionCredentials);
         const node = new TreeNodeInfo(
             label,
-            {
-                type: Constants.disconnectedServerLabel,
-                filterable: false,
-                hasFilters: false,
-                subType: "",
-            },
+            ObjectExplorerService.disconnectedNodeContextValue,
             vscode.TreeItemCollapsibleState.Collapsed,
             undefined,
             undefined,
-            Constants.disconnectedServerLabel,
+            Constants.disconnectedServerNodeType,
             undefined,
             connectionCredentials,
             undefined,

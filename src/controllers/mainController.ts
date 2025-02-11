@@ -1116,7 +1116,8 @@ export default class MainController implements vscode.Disposable {
                         return;
                     } else if (
                         node.context.type === Constants.serverLabel ||
-                        node.context.type === Constants.disconnectedServerLabel
+                        node.context.type ===
+                            Constants.disconnectedServerNodeType
                     ) {
                         const label =
                             typeof node.label === "string"
