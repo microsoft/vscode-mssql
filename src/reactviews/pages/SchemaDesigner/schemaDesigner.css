@@ -27,6 +27,9 @@
 
 .sd-toolbar-belt {
     z-index: 9999 !important;
+    width: fit-content;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .sd-editor {

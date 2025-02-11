@@ -225,7 +225,9 @@ export const SchemaDesignerEntityEditor = (props: {
         setSchemaName(props.entity.schema);
         setIncomingEdges(props.incomingEdges);
         setOutgoingEdges(props.outgoingEdges);
-        entityNameRef.current?.focus();
+        if (entityNameRef.current) {
+            entityNameRef.current?.focus();
+        }
     }, [
         props.entity,
         props.resolveEntity,
@@ -609,17 +611,28 @@ export const SchemaDesignerEntityEditor = (props: {
                                             {getAllEntities(
                                                 props.schema,
                                                 props.entity,
-                                            ).map((table) => {
-                                                const displayName = `${table.schema}.${table.name}`;
-                                                return (
-                                                    <Option
-                                                        key={table.name}
-                                                        value={displayName}
-                                                    >
-                                                        {displayName}
-                                                    </Option>
-                                                );
-                                            })}
+                                            )
+                                                .slice()
+                                                .sort((a, b) => {
+                                                    const displayNameA = `${a.schema}.${a.name}`;
+                                                    const displayNameB = `${b.schema}.${b.name}`;
+                                                    return displayNameA
+                                                        .toLowerCase()
+                                                        .localeCompare(
+                                                            displayNameB.toLowerCase(),
+                                                        );
+                                                })
+                                                .map((table) => {
+                                                    const displayName = `${table.schema}.${table.name}`;
+                                                    return (
+                                                        <Option
+                                                            key={table.name}
+                                                            value={displayName}
+                                                        >
+                                                            {displayName}
+                                                        </Option>
+                                                    );
+                                                })}
                                         </Dropdown>
                                     </Field>
                                 </div>
@@ -651,14 +664,23 @@ export const SchemaDesignerEntityEditor = (props: {
                                                 minWidth: "auto",
                                             }}
                                         >
-                                            {tableColumns.map((column) => (
-                                                <Option
-                                                    key={column.name}
-                                                    value={column.name}
-                                                >
-                                                    {column.name}
-                                                </Option>
-                                            ))}
+                                            {tableColumns
+                                                .slice()
+                                                .sort((a, b) => {
+                                                    return a.name
+                                                        .toLowerCase()
+                                                        .localeCompare(
+                                                            b.name.toLowerCase(),
+                                                        );
+                                                })
+                                                .map((column) => (
+                                                    <Option
+                                                        key={column.name}
+                                                        value={column.name}
+                                                    >
+                                                        {column.name}
+                                                    </Option>
+                                                ))}
                                         </Dropdown>
                                     </Field>
                                     <Field style={{ flex: 1 }}>
@@ -695,14 +717,23 @@ export const SchemaDesignerEntityEditor = (props: {
                                             {getEntityFromDisplayName(
                                                 props.schema,
                                                 `${edge.referencedSchema}.${edge.referencedEntity}`,
-                                            ).columns.map((column) => (
-                                                <Option
-                                                    key={column.name}
-                                                    value={column.name}
-                                                >
-                                                    {column.name}
-                                                </Option>
-                                            ))}
+                                            )
+                                                .columns.slice()
+                                                .sort((a, b) => {
+                                                    return a.name
+                                                        .toLowerCase()
+                                                        .localeCompare(
+                                                            b.name.toLowerCase(),
+                                                        );
+                                                })
+                                                .map((column) => (
+                                                    <Option
+                                                        key={column.name}
+                                                        value={column.name}
+                                                    >
+                                                        {column.name}
+                                                    </Option>
+                                                ))}
                                         </Dropdown>
                                     </Field>
                                 </div>
@@ -773,7 +804,9 @@ function getUniqueSchemaNames(schema: ISchema): string[] {
     schema.entities.forEach((entity) => {
         schemaNames.add(entity.schema);
     });
-    return Array.from(schemaNames).sort();
+    return Array.from(schemaNames).sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase()),
+    );
 }
 
 function getUniqueDatatypes(schema: ISchema): string[] {
