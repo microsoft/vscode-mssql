@@ -799,3 +799,7 @@ export class TableDesigner {
     public static Columns = l10n.t("Columns");
     public static AdvancedOptions = l10n.t("Advanced Options");
 }
+
+export class SchemaCompare {
+    public static Title = l10n.t("Schema Compare");
+}
