@@ -6,11 +6,13 @@
 import * as assert from "assert";
 import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
 
 import Sinon, * as sinon from "sinon";
 
 import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
 import { stubTelemetry } from "./utils";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("ReactWebviewController Tests", () => {
     let controller: TestWebviewController;
@@ -27,6 +29,7 @@ suite("ReactWebviewController Tests", () => {
             extensionUri: vscode.Uri.parse("file://test"),
             // Add other properties if needed
         } as unknown as vscode.ExtensionContext;
+        vscodeWrapper.reset();
         controller = new TestWebviewController(mockContext, "testSource", {
             count: 0,
         });
@@ -366,6 +369,11 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
+const vscodeWrapper = TypeMoq.Mock.ofType(
+    VscodeWrapper,
+    TypeMoq.MockBehavior.Loose,
+);
+
 class TestWebviewController extends ReactWebviewBaseController<
     TestState,
     TestReducers
@@ -377,7 +385,7 @@ class TestWebviewController extends ReactWebviewBaseController<
         sourceFile: string,
         initialData: TestState,
     ) {
-        super(context, sourceFile, initialData);
+        super(context, vscodeWrapper.object, sourceFile, initialData);
         this._webview = {
             postMessage: sinon.stub(),
             options: {},

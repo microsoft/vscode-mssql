@@ -62,6 +62,7 @@ import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
+import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 
@@ -116,12 +117,12 @@ export default class MainController implements vscode.Disposable {
         if (connectionManager) {
             this._connectionMgr = connectionManager;
         }
-        this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
+        this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(
             this._vscodeWrapper,
         );
         this.configuration = vscode.workspace.getConfiguration();
-        UserSurvey.createInstance(this._context);
+        UserSurvey.createInstance(this._context, this._vscodeWrapper);
     }
 
     /**
@@ -374,6 +375,7 @@ export default class MainController implements vscode.Disposable {
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
+                this._vscodeWrapper,
                 this.executionPlanService,
                 this._untitledSqlDocumentService,
             );
@@ -548,9 +550,9 @@ export default class MainController implements vscode.Disposable {
         // Init Query Results Webview Controller
         this._queryResultWebviewController = new QueryResultWebviewController(
             this._context,
+            this._vscodeWrapper,
             this.executionPlanService,
             this.untitledSqlDocumentService,
-            this._vscodeWrapper,
         );
 
         // Init content provider for results pane
@@ -764,6 +766,7 @@ export default class MainController implements vscode.Disposable {
 
                 const connDialog = new ConnectionDialogWebviewController(
                     this._context,
+                    this._vscodeWrapper,
                     this,
                     this._objectExplorerProvider,
                     connectionInfo,
@@ -909,6 +912,7 @@ export default class MainController implements vscode.Disposable {
                         const connDialog =
                             new ConnectionDialogWebviewController(
                                 this._context,
+                                this._vscodeWrapper,
                                 this,
                                 this._objectExplorerProvider,
                                 node.connectionInfo,
@@ -936,6 +940,7 @@ export default class MainController implements vscode.Disposable {
                         const schemaDesignerWebvie =
                             new SchemaDesignerWebviewController(
                                 this._context,
+                                this._vscodeWrapper,
                                 this.schemaDesignerService,
                                 node.metadata.name,
                                 schema,
@@ -952,6 +957,7 @@ export default class MainController implements vscode.Disposable {
                     async (node: TreeNodeInfo) => {
                         const reactPanel = new TableDesignerWebviewController(
                             this._context,
+                            this._vscodeWrapper,
                             this.tableDesignerService,
                             this._connectionMgr,
                             this._untitledSqlDocumentService,
@@ -970,6 +976,7 @@ export default class MainController implements vscode.Disposable {
                     async (node: TreeNodeInfo) => {
                         const reactPanel = new TableDesignerWebviewController(
                             this._context,
+                            this._vscodeWrapper,
                             this.tableDesignerService,
                             this._connectionMgr,
                             this._untitledSqlDocumentService,
@@ -985,6 +992,7 @@ export default class MainController implements vscode.Disposable {
             const filterNode = async (node: TreeNodeInfo) => {
                 const filters = await ObjectExplorerFilter.getFilters(
                     this._context,
+                    this._vscodeWrapper,
                     node,
                 );
                 if (filters) {
@@ -1648,6 +1656,8 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
+            // Delete query result filters for the current uri when we run a new query
+            store.delete(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -2113,6 +2123,9 @@ export default class MainController implements vscode.Disposable {
         if (diagnostics.has(doc.uri)) {
             diagnostics.delete(doc.uri);
         }
+
+        // Delete query result fiters for the closed uri
+        store.delete(closedDocumentUri);
     }
 
     /**
@@ -2349,13 +2362,11 @@ export default class MainController implements vscode.Disposable {
     private ExecutionPlanCustomEditorProvider = class
         implements vscode.CustomTextEditorProvider
     {
-        context: vscode.ExtensionContext;
-        executionPlanService: ExecutionPlanService;
-        untitledSqlService: UntitledSqlDocumentService;
         constructor(
-            context: vscode.ExtensionContext,
-            executionPlanService: ExecutionPlanService,
-            untitledSqlService: UntitledSqlDocumentService,
+            public context: vscode.ExtensionContext,
+            public vscodeWrapper: VscodeWrapper,
+            public executionPlanService: ExecutionPlanService,
+            public untitledSqlService: UntitledSqlDocumentService,
         ) {
             this.context = context;
             this.executionPlanService = executionPlanService;
@@ -2379,6 +2390,7 @@ export default class MainController implements vscode.Disposable {
 
             const executionPlanController = new ExecutionPlanWebviewController(
                 this.context,
+                this.vscodeWrapper,
                 this.executionPlanService,
                 this.untitledSqlService,
                 planContents,

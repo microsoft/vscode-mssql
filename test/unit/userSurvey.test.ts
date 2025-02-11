@@ -7,6 +7,7 @@ import * as assert from "assert";
 import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
 
 import {
     TelemetryActions,
@@ -15,6 +16,7 @@ import {
 
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { stubTelemetry } from "./utils";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("UserSurvey Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -29,6 +31,11 @@ suite("UserSurvey Tests", () => {
             update: sandbox.stub(),
         };
 
+        const vscodeWrapper = TypeMoq.Mock.ofType(
+            VscodeWrapper,
+            TypeMoq.MockBehavior.Loose,
+        );
+
         context = {
             globalState: globalState,
             extensionUri: vscode.Uri.file("test"),
@@ -38,7 +45,7 @@ suite("UserSurvey Tests", () => {
             vscode.window,
             "showInformationMessage",
         );
-        UserSurvey.createInstance(context);
+        UserSurvey.createInstance(context, vscodeWrapper.object);
     });
 
     teardown(() => {

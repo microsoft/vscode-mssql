@@ -6,16 +6,15 @@
 import * as qr from "../../../sharedInterfaces/queryResult";
 
 import {
-    ColorThemeKind,
     useVscodeWebview,
+    WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
-import { ColumnFilterState } from "./table/interfaces";
+import { getCoreRPCs } from "../../common/utils";
 
-export interface QueryResultState {
+export interface QueryResultState
+    extends WebviewContextProps<qr.QueryResultWebviewState> {
     provider: qr.QueryResultReactProvider;
-    state: qr.QueryResultWebviewState;
-    theme: ColorThemeKind;
 }
 
 const QueryResultContext = createContext<QueryResultState | undefined>(
@@ -37,19 +36,13 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
     return (
         <QueryResultContext.Provider
             value={{
+                ...getCoreRPCs(webViewState),
                 provider: {
                     setResultTab: function (
                         tabId: qr.QueryResultPaneTabs,
                     ): void {
                         webViewState?.extensionRpc.action("setResultTab", {
                             tabId: tabId,
-                        });
-                    },
-                    setFilterState: function (
-                        filterState: ColumnFilterState,
-                    ): void {
-                        webViewState?.extensionRpc.action("setFilterState", {
-                            filterState: filterState,
                         });
                     },
                     getExecutionPlan: function (uri: string): void {
@@ -92,7 +85,7 @@ const QueryResultStateProvider: React.FC<QueryResultContextProps> = ({
                 },
 
                 state: webViewState?.state as qr.QueryResultWebviewState,
-                theme: webViewState?.themeKind,
+                themeKind: webViewState?.themeKind,
             }}
         >
             {children}
