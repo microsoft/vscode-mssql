@@ -103,8 +103,8 @@ const useStyles = makeStyles({
 
 export const TableDesigner = () => {
     const classes = useStyles();
-    const state = useContext(TableDesignerContext);
-    const tableDesignerState = state?.state;
+    const context = useContext(TableDesignerContext);
+    const tableDesignerState = context?.state;
     if (!tableDesignerState) {
         return null;
     }
@@ -146,16 +146,16 @@ export const TableDesigner = () => {
                             }}
                             vertical
                         />
-                        {state.state.propertiesPaneData && (
+                        {context.state.propertiesPaneData && (
                             <ResizableBox
                                 width={
-                                    state.propertiesPaneResizeInfo.isMaximized
+                                    context.propertiesPaneResizeInfo.isMaximized
                                         ? 9999999
-                                        : state.propertiesPaneResizeInfo
+                                        : context.propertiesPaneResizeInfo
                                               .currentWidth
                                 }
                                 onResizeStart={(_e, _div) => {
-                                    state.propertiesPaneResizeInfo.setIsMaximized(
+                                    context.propertiesPaneResizeInfo.setIsMaximized(
                                         false,
                                     );
                                 }}
@@ -169,17 +169,17 @@ export const TableDesigner = () => {
                                         currentDivWidth >=
                                         parentContainerWidth - 50
                                     ) {
-                                        state.propertiesPaneResizeInfo.setIsMaximized(
+                                        context.propertiesPaneResizeInfo.setIsMaximized(
                                             true,
                                         );
-                                        state.propertiesPaneResizeInfo.setCurrentWidth(
+                                        context.propertiesPaneResizeInfo.setCurrentWidth(
                                             parentContainerWidth,
                                         );
                                     } else {
-                                        state.propertiesPaneResizeInfo.setCurrentWidth(
+                                        context.propertiesPaneResizeInfo.setCurrentWidth(
                                             div.size.width,
                                         );
-                                        state.propertiesPaneResizeInfo.setOriginalWidth(
+                                        context.propertiesPaneResizeInfo.setOriginalWidth(
                                             div.size.width,
                                         );
                                     }
@@ -202,9 +202,9 @@ export const TableDesigner = () => {
                     <ResizableBox
                         width={Infinity}
                         height={
-                            state.resultPaneResizeInfo.isMaximized
+                            context.resultPaneResizeInfo.isMaximized
                                 ? 9999999
-                                : state.resultPaneResizeInfo.currentHeight
+                                : context.resultPaneResizeInfo.currentHeight
                         }
                         maxConstraints={[Infinity, Infinity]}
                         minConstraints={[Infinity, 10]}
@@ -212,7 +212,7 @@ export const TableDesigner = () => {
                         handle={<div className={classes.resultPaneHandle} />}
                         className={classes.resultPaneContainer}
                         onResizeStart={(_e, _div) => {
-                            state.resultPaneResizeInfo.setIsMaximized(false);
+                            context.resultPaneResizeInfo.setIsMaximized(false);
                         }}
                         onResizeStop={(_e, div) => {
                             const parentContainerHeight =
@@ -224,15 +224,17 @@ export const TableDesigner = () => {
                                 currentDivHeight >=
                                 parentContainerHeight - 50
                             ) {
-                                state.resultPaneResizeInfo.setIsMaximized(true);
-                                state.resultPaneResizeInfo.setCurrentHeight(
+                                context.resultPaneResizeInfo.setIsMaximized(
+                                    true,
+                                );
+                                context.resultPaneResizeInfo.setCurrentHeight(
                                     parentContainerHeight,
                                 );
                             } else {
-                                state.resultPaneResizeInfo.setCurrentHeight(
+                                context.resultPaneResizeInfo.setCurrentHeight(
                                     div.size.height,
                                 );
-                                state.resultPaneResizeInfo.setOriginalHeight(
+                                context.resultPaneResizeInfo.setOriginalHeight(
                                     div.size.height,
                                 );
                             }

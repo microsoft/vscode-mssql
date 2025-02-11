@@ -44,12 +44,12 @@ export const DesignerInputBox = ({
     horizontal = false,
 }: DesignerInputBoxProps) => {
     const [value, setValue] = useState(model.value);
-    const state = useContext(TableDesignerContext);
-    if (!state) {
+    const context = useContext(TableDesignerContext);
+    if (!context) {
         return undefined;
     }
     const dropdownId = useId(
-        state?.provider.getComponentId(componentPath) ?? "",
+        context?.provider.getComponentId(componentPath) ?? "",
     );
     const width =
         UiArea === "PropertiesView"
@@ -71,17 +71,18 @@ export const DesignerInputBox = ({
                 ) : undefined,
             }}
             validationState={
-                state?.provider.getErrorMessage(componentPath)
+                context?.provider.getErrorMessage(componentPath)
                     ? "error"
                     : undefined
             }
             validationMessage={
                 showError
-                    ? state?.provider.getErrorMessage(componentPath)
+                    ? context?.provider.getErrorMessage(componentPath)
                     : undefined
             }
             validationMessageIcon={
-                showError && state?.provider.getErrorMessage(componentPath) ? (
+                showError &&
+                context?.provider.getErrorMessage(componentPath) ? (
                     <ErrorCircleRegular />
                 ) : undefined
             }
@@ -92,7 +93,9 @@ export const DesignerInputBox = ({
             {!multiline ? (
                 <Input
                     aria-labelledby={dropdownId}
-                    ref={(el) => state.addElementRef(componentPath, el, UiArea)}
+                    ref={(el) =>
+                        context.addElementRef(componentPath, el, UiArea)
+                    }
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");
@@ -101,7 +104,7 @@ export const DesignerInputBox = ({
                         if (value === model.value) {
                             return;
                         }
-                        await state?.provider.processTableEdit({
+                        await context?.provider.processTableEdit({
                             path: componentPath,
                             value: value,
                             type: DesignerEditType.Update,
@@ -117,7 +120,9 @@ export const DesignerInputBox = ({
             ) : (
                 <Textarea
                     aria-labelledby={dropdownId}
-                    ref={(el) => state.addElementRef(componentPath, el, UiArea)}
+                    ref={(el) =>
+                        context.addElementRef(componentPath, el, UiArea)
+                    }
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");
@@ -126,7 +131,7 @@ export const DesignerInputBox = ({
                         if (value === model.value) {
                             return;
                         }
-                        await state?.provider.processTableEdit({
+                        await context?.provider.processTableEdit({
                             path: componentPath,
                             value: value,
                             type: DesignerEditType.Update,

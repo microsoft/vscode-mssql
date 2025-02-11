@@ -54,8 +54,8 @@ export const DesignerTable = ({
 }: DesignerTableProps) => {
     const tableProps =
         component.componentProperties as designer.DesignerTableProperties;
-    const state = useContext(TableDesignerContext);
-    if (!state) {
+    const context = useContext(TableDesignerContext);
+    if (!context) {
         return undefined;
     }
     const classes = useStyles();
@@ -159,7 +159,7 @@ export const DesignerTable = ({
     const rows = getRows();
 
     const moveRows = (from: number, to: number) => {
-        state?.provider.processTableEdit({
+        context?.provider.processTableEdit({
             type: designer.DesignerEditType.Move,
             path: [...componentPath, from],
             value: to,
@@ -167,17 +167,17 @@ export const DesignerTable = ({
         });
 
         // Focus on the first cell of the moved row
-        const firstCellElementId = state?.provider.getComponentId([
+        const firstCellElementId = context?.provider.getComponentId([
             ...componentPath,
             to,
             columns[1].columnId,
         ]);
-        const element = state.elementRefs.current[firstCellElementId];
+        const element = context.elementRefs.current[firstCellElementId];
         element?.focus();
     };
 
     const getRowError = (index: number): string | undefined => {
-        const issue = state?.state.issues?.find((i) => {
+        const issue = context?.state.issues?.find((i) => {
             if (!i.propertyPath) {
                 return false;
             }
@@ -245,7 +245,7 @@ export const DesignerTable = ({
                         size="small"
                         icon={<DeleteRegular />}
                         onClick={async () => {
-                            state?.provider.processTableEdit({
+                            context?.provider.processTableEdit({
                                 path: [...componentPath, row.rowId],
                                 source: UiArea,
                                 type: designer.DesignerEditType.Remove,
@@ -333,7 +333,7 @@ export const DesignerTable = ({
                         appearance="transparent"
                         icon={<AddFilled className={classes.tableActionIcon} />}
                         onClick={() => {
-                            state?.provider.processTableEdit({
+                            context?.provider.processTableEdit({
                                 path: [...componentPath, rows.length],
                                 source: UiArea,
                                 type: designer.DesignerEditType.Add,
@@ -473,7 +473,7 @@ export const DesignerTable = ({
                                         ) {
                                             return;
                                         }
-                                        state?.provider.setPropertiesComponents(
+                                        context?.provider.setPropertiesComponents(
                                             {
                                                 componentPath: [
                                                     ...componentPath,
@@ -499,7 +499,7 @@ export const DesignerTable = ({
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     column.columnId,
                                                 )}
-                                                id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
+                                                id={`table-cell-${context?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
                                                     paddingBottom: "5px",

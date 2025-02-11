@@ -72,17 +72,17 @@ const useStyles = makeStyles({
 
 export const DesignerPropertiesPane = () => {
     const classes = useStyles();
-    const state = useContext(TableDesignerContext);
-    if (!state) {
+    const context = useContext(TableDesignerContext);
+    if (!context) {
         return null;
     }
-    const propertiesPaneData = state.state.propertiesPaneData!;
+    const propertiesPaneData = context.state.propertiesPaneData!;
     const componentPath = propertiesPaneData.componentPath!;
     const tablePropertyName = componentPath[0] as string;
     const index = componentPath[componentPath.length - 1] as number;
-    const parentTableProperties = state.state.propertiesPaneData?.component
+    const parentTableProperties = context.state.propertiesPaneData?.component
         .componentProperties as DesignerTableProperties;
-    const parentTablePropertiesModel = state.state.model![
+    const parentTablePropertiesModel = context.state.model![
         tablePropertyName
     ] as DesignerTableProperties;
     const data = parentTablePropertiesModel.data![index];
@@ -275,22 +275,22 @@ export const DesignerPropertiesPane = () => {
                 <Button
                     appearance="transparent"
                     onClick={() => {
-                        if (state.propertiesPaneResizeInfo.isMaximized) {
-                            state.propertiesPaneResizeInfo.setCurrentWidth(
-                                state.propertiesPaneResizeInfo.originalWidth,
+                        if (context.propertiesPaneResizeInfo.isMaximized) {
+                            context.propertiesPaneResizeInfo.setCurrentWidth(
+                                context.propertiesPaneResizeInfo.originalWidth,
                             );
                         }
-                        state.propertiesPaneResizeInfo.setIsMaximized(
-                            !state.propertiesPaneResizeInfo.isMaximized,
+                        context.propertiesPaneResizeInfo.setIsMaximized(
+                            !context.propertiesPaneResizeInfo.isMaximized,
                         );
                     }}
                     title={
-                        state.propertiesPaneResizeInfo.isMaximized
+                        context.propertiesPaneResizeInfo.isMaximized
                             ? locConstants.tableDesigner.restorePanelSize
                             : locConstants.tableDesigner.maximizePanelSize
                     }
                     icon={
-                        state.propertiesPaneResizeInfo.isMaximized ? (
+                        context.propertiesPaneResizeInfo.isMaximized ? (
                             <ChevronRightFilled />
                         ) : (
                             <ChevronLeftFilled />
@@ -315,10 +315,10 @@ export const DesignerPropertiesPane = () => {
                 <Button
                     appearance="transparent"
                     onClick={() => {
-                        state.provider.setPropertiesComponents(undefined);
+                        context.provider.setPropertiesComponents(undefined);
                     }}
                     title={
-                        state.propertiesPaneResizeInfo.isMaximized
+                        context.propertiesPaneResizeInfo.isMaximized
                             ? locConstants.tableDesigner.restorePanelSize
                             : locConstants.tableDesigner.maximizePanelSize
                     }

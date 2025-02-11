@@ -98,16 +98,16 @@ const useStyles = makeStyles({
 export const DesignerResultPane = () => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const metadata = context?.state;
+    const state = context?.state;
 
     const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
         const issuePath = issue.propertyPath ?? [];
         context?.log(`focusing on ${issuePath}`);
 
-        if (!metadata?.view?.tabs || !context?.provider) {
+        if (!state?.view?.tabs || !context?.provider) {
             return;
         }
-        const containingTab = metadata.view.tabs.find((tab) => {
+        const containingTab = state.view.tabs.find((tab) => {
             return tab.components.find((c) => {
                 return c.propertyName === issuePath[0];
             });
@@ -129,7 +129,7 @@ export const DesignerResultPane = () => {
             if (!tableComponent) {
                 return;
             }
-            tableModel = metadata.model![tableComponent.propertyName];
+            tableModel = state.model![tableComponent.propertyName];
             if (!tableModel) {
                 return;
             }
@@ -201,7 +201,7 @@ export const DesignerResultPane = () => {
         }
     };
 
-    if (!metadata) {
+    if (!state) {
         return undefined;
     }
     return (
@@ -209,7 +209,7 @@ export const DesignerResultPane = () => {
             <div className={classes.ribbon}>
                 <TabList
                     size="small"
-                    selectedValue={metadata.tabStates!.resultPaneTab}
+                    selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
                         context.provider.setResultTab(
                             data.value as DesignerResultPaneTabs,
@@ -223,18 +223,18 @@ export const DesignerResultPane = () => {
                     >
                         {locConstants.tableDesigner.scriptAsCreate}
                     </Tab>
-                    {metadata.issues?.length !== 0 && (
+                    {state.issues?.length !== 0 && (
                         <Tab
                             value={DesignerResultPaneTabs.Issues}
                             key={DesignerResultPaneTabs.Issues}
                         >
                             {locConstants.tableDesigner.issuesTabHeader(
-                                metadata.issues?.length!,
+                                state.issues?.length!,
                             )}
                         </Tab>
                     )}
                 </TabList>
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Script && (
                     <>
                         <Button
@@ -287,7 +287,7 @@ export const DesignerResultPane = () => {
                 />
             </div>
             <div className={classes.tabContent}>
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Script && (
                     <div className={classes.designerResultPaneScript}>
                         <Editor
@@ -296,11 +296,8 @@ export const DesignerResultPane = () => {
                             language="sql"
                             theme={resolveVscodeThemeType(context?.themeKind)}
                             value={
-                                (
-                                    metadata?.model![
-                                        "script"
-                                    ] as InputBoxProperties
-                                ).value ?? ""
+                                (state?.model!["script"] as InputBoxProperties)
+                                    .value ?? ""
                             }
                             options={{
                                 readOnly: true,
@@ -308,12 +305,12 @@ export const DesignerResultPane = () => {
                         ></Editor>
                     </div>
                 )}
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Issues &&
-                    metadata.issues?.length !== 0 && (
+                    state.issues?.length !== 0 && (
                         <div className={classes.issuesContainer}>
                             <List navigationMode="items">
-                                {metadata.issues!.map((item, index) => {
+                                {state.issues!.map((item, index) => {
                                     return (
                                         <ListItem
                                             key={`issue-${index}`}

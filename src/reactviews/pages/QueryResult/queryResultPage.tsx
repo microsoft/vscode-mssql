@@ -91,9 +91,9 @@ const useStyles = makeStyles({
 
 export const QueryResult = () => {
     const classes = useStyles();
-    const state = useContext(QueryResultContext);
-    const queryResultState = state?.state;
-    if (!queryResultState) {
+    const context = useContext(QueryResultContext);
+    const state = context?.state;
+    if (!state) {
         return null;
     }
     return (
