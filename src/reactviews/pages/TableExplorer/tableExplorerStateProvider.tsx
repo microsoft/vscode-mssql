@@ -59,7 +59,20 @@ const TableExplorerStateProvider: React.FC<TableExplorerContextProps> = ({
         <TableExplorerContext.Provider
             value={{
                 ...getCoreRPCs(webviewState),
-                provider: {},
+                provider: {
+                    openFileThroughLink: function (
+                        content: string,
+                        type: string,
+                    ): void {
+                        webviewState?.extensionRpc.action(
+                            "openFileThroughLink",
+                            {
+                                content: content,
+                                type: type,
+                            },
+                        );
+                    },
+                },
                 state: webviewState?.state as TableExplorerWebviewState,
                 themeKind: webviewState?.themeKind,
             }}

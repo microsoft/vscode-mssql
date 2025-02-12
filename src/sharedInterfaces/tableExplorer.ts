@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ResultSetSummary } from "./queryResult";
+
 /**
  * The definition of an explorer tab.
  */
@@ -23,12 +25,15 @@ export interface ExplorerView {
 
 export interface TableExplorerWebviewState {
     view?: ExplorerView;
+    resultSetSummaries?: Record<number, Record<number, ResultSetSummary>>;
+    uri?: string;
+    // fontSettings: FontSettings;
 }
 
 export interface TableExplorerReducers {
-    setTableExplorerResults: {
-        results: number;
-    };
+    // setTableExplorerResults: {
+    //     results: number;
+    // };
 }
 
 export interface TableDesignerComponentProperties {
@@ -38,4 +43,6 @@ export interface TableDesignerComponentProperties {
     enabled?: boolean;
 }
 
-export interface TableExplorerReactProvider {}
+export interface TableExplorerReactProvider {
+    openFileThroughLink(content: string, type: string): void;
+}

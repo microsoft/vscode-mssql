@@ -33,10 +33,7 @@ import {
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
-import {
-    QueryResultContext,
-    QueryResultState,
-} from "./queryResultStateProvider";
+import { QueryResultContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 
 window.jQuery = $ as any;
@@ -64,7 +61,6 @@ export interface ResultGridProps {
         QueryResultReducers
     >;
     gridParentRef?: React.RefObject<HTMLDivElement>;
-    state: QueryResultState;
     linkHandler: (fileContent: string, fileType: string) => void;
     gridId: string;
 }
@@ -142,14 +138,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
             };
             const DEFAULT_FONT_SIZE = 12;
-            context?.log(
-                `resultGrid: ${props.state.state.fontSettings.fontSize}`,
-            );
+            //TODO: uncomment these
+            // context?.log(`resultGrid: ${context.state.fontSettings.fontSize}`);
 
-            const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            // const ROW_HEIGHT = context.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            const ROW_HEIGHT = 12 + 12; // 12 px is the padding
+
             const COLUMN_WIDTH = Math.max(
-                (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
-                    120,
+                // (context.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
+                //     120,
                 120,
             ); // Scale width with font size, but keep a minimum of 120px
             if (!props.resultSetSummary || !props.linkHandler) {
@@ -293,7 +290,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.uri!,
                 props.resultSetSummary!,
                 props.webViewState!,
-                props.state,
+                context,
                 props.linkHandler!,
                 props.gridId,
                 { dataProvider: dataProvider, columns: columns },
