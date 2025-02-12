@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -62,6 +62,9 @@ import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
+import store from "../queryResult/singletonStore";
+import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
+import { SchemaCompare } from "../constants/locConstants";
 
 /**
  * The main controller class that initializes the extension
@@ -897,6 +900,13 @@ export default class MainController implements vscode.Disposable {
         if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompare,
+                    async (node: any) => this.onSchemaCompare(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
                     async (node: TreeNodeInfo) => {
                         const connDialog =
@@ -1646,6 +1656,8 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
+            // Delete query result filters for the current uri when we run a new query
+            store.delete(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -1980,6 +1992,23 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
+    public async onSchemaCompare(node: any): Promise<void> {
+        if (node) {
+            const result = await this.schemaCompareService.getDefaultOptions();
+            const schemaCompareWebView = new SchemaCompareWebViewController(
+                this._context,
+                this._vscodeWrapper,
+                node,
+                this.schemaCompareService,
+                this._connectionMgr,
+                result,
+                SchemaCompare.Title,
+            );
+
+            schemaCompareWebView.revealToForeground();
+        }
+    }
+
     /**
      * Check if the extension launched file exists.
      * This is to detect when we are running in a clean install scenario.
@@ -2095,6 +2124,9 @@ export default class MainController implements vscode.Disposable {
         if (diagnostics.has(doc.uri)) {
             diagnostics.delete(doc.uri);
         }
+
+        // Delete query result fiters for the closed uri
+        store.delete(closedDocumentUri);
     }
 
     /**

@@ -14,6 +14,8 @@ import {
     ITableConfiguration,
     ITableStyles,
     FilterableColumn,
+    GridColumnMap,
+    ColumnFilterState,
 } from "./interfaces";
 import * as DOM from "./dom";
 
@@ -28,7 +30,7 @@ import {
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
-import { QueryResultState } from "../queryResultStateProvider";
+import { QueryResultContextProps } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
@@ -49,7 +51,7 @@ export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
 
 export class Table<T extends Slick.SlickData> implements IThemable {
-    public queryResultState: QueryResultState;
+    public queryResultState: QueryResultContextProps;
     protected styleElement: HTMLStyleElement;
     protected idPrefix: string;
 
@@ -80,8 +82,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             QueryResultWebviewState,
             QueryResultReducers
         >,
-        state: QueryResultState,
+        state: QueryResultContextProps,
         linkHandler: (value: string, type: string) => void,
+        private gridId: string,
         configuration?: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
@@ -157,7 +160,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             newOptions,
         );
         this.registerPlugin(
-            new HeaderFilter(webViewState.themeKind, this.queryResultState),
+            new HeaderFilter(
+                webViewState.themeKind,
+                this.queryResultState,
+                this.webViewState,
+                gridId,
+            ),
         );
         this.registerPlugin(
             new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
@@ -210,18 +218,35 @@ export class Table<T extends Slick.SlickData> implements IThemable {
      * @returns true if filters were successfully loaded and applied, false if no filters were found
      */
     public async setupFilterState(): Promise<boolean> {
-        this.columns.forEach((column) => {
-            if (column.field) {
-                const filters =
-                    this.queryResultState.state.filterState[column.field];
-                if (filters) {
-                    (<FilterableColumn<T>>column).filterValues =
-                        filters.filterValues;
-                } else {
-                    return false;
+        const filterMapArray = (await this.webViewState.extensionRpc.call(
+            "getFilters",
+            {
+                uri: this.queryResultState.state.uri,
+            },
+        )) as GridColumnMap[];
+        if (!filterMapArray) {
+            return false;
+        }
+        const filterMap = filterMapArray.find((filter) => filter[this.gridId]);
+        if (!filterMap || !filterMap[this.gridId]) {
+            this.queryResultState.log("No filters found in store");
+            return false;
+        }
+        for (const column of this.columns) {
+            for (const columnFilterMap of filterMap[this.gridId]) {
+                if (columnFilterMap[column.id!]) {
+                    const filterStateArray = columnFilterMap[column.id!];
+                    filterStateArray.forEach(
+                        (filterState: ColumnFilterState) => {
+                            if (filterState.columnDef === column.field) {
+                                (column as FilterableColumn<T>).filterValues =
+                                    filterState.filterValues;
+                            }
+                        },
+                    );
                 }
             }
-        });
+        }
         await this._data.filter(this.columns);
         return true;
     }

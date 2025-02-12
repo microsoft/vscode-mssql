@@ -114,38 +114,38 @@ function getAvailableHeight(
 
 export const QueryResultPane = () => {
     const classes = useStyles();
-    const state = useContext(QueryResultContext);
-    if (!state) {
+    const context = useContext(QueryResultContext);
+
+    if (!context) {
         return;
     }
     const webViewState = useVscodeWebview<
         qr.QueryResultWebviewState,
         qr.QueryResultReducers
     >();
-    const metadata = state?.state;
+    const state = context.state;
 
     // lifecycle logging right after context consumption
     useEffect(() => {
         console.debug("QueryResultPane mounted", {
-            hasMetadata: !!metadata,
-            metadata: metadata,
             hasState: !!state,
             state: state,
-            uri: metadata?.uri,
-            resultSetCount: Object.keys(metadata?.resultSetSummaries ?? {})
-                .length,
-            messageCount: metadata?.messages?.length,
-            isExecutionPlan: metadata?.isExecutionPlan,
-            hasExecutionPlanState: !!metadata?.executionPlanState,
+            hasContext: !!context,
+            context: context,
+            uri: state?.uri,
+            resultSetCount: Object.keys(state?.resultSetSummaries ?? {}).length,
+            messageCount: state?.messages?.length,
+            isExecutionPlan: state?.isExecutionPlan,
+            hasExecutionPlanState: !!state?.executionPlanState,
         });
 
         return () => {
             console.debug("QueryResultPane unmounted", {
-                hasMetadata: !!metadata,
-                metadata: metadata,
                 hasState: !!state,
                 state: state,
-                uri: metadata?.uri,
+                hasContext: !!context,
+                context: context,
+                uri: state?.uri,
             });
         };
     }, []);
@@ -153,16 +153,15 @@ export const QueryResultPane = () => {
     // context change logging
     useEffect(() => {
         console.debug("QueryResultPane context updated", {
-            uri: metadata?.uri,
-            hasMetadata: !!metadata,
-            metadata: metadata,
-            hasState: !!state,
-            state: state,
-            resultSetCount: Object.keys(metadata?.resultSetSummaries ?? {})
-                .length,
-            messageCount: metadata?.messages?.length,
+            uri: state?.uri,
+            hasMetadata: !!state,
+            metadata: state,
+            hasState: !!context,
+            state: context,
+            resultSetCount: Object.keys(state?.resultSetSummaries ?? {}).length,
+            messageCount: state?.messages?.length,
         });
-    }, [metadata, state]);
+    }, [state, context]);
 
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
@@ -172,10 +171,10 @@ export const QueryResultPane = () => {
     // Resize grid when parent element resizes
     useEffect(() => {
         let gridCount = 0;
-        Object.values(metadata?.resultSetSummaries ?? []).forEach((v) => {
+        Object.values(state?.resultSetSummaries ?? []).forEach((v) => {
             gridCount += Object.keys(v).length;
         });
-        if (gridCount === 0 && metadata?.messages?.length === 0) {
+        if (gridCount === 0 && state?.messages?.length === 0) {
             return; // Exit if there are no results/messages grids to render
         }
 
@@ -193,7 +192,7 @@ export const QueryResultPane = () => {
                 ribbonRef.current,
             );
             if (
-                metadata.tabStates?.resultPaneTab ===
+                state.tabStates?.resultPaneTab ===
                 qr.QueryResultPaneTabs.Messages
             ) {
                 setMessageGridHeight(availableHeight);
@@ -223,7 +222,7 @@ export const QueryResultPane = () => {
         return () => {
             observer.disconnect();
         };
-    }, [metadata?.resultSetSummaries, resultPaneParentRef.current]);
+    }, [state?.resultSetSummaries, resultPaneParentRef.current]);
 
     const calculateGridHeight = (
         gridCount: number,
@@ -262,8 +261,8 @@ export const QueryResultPane = () => {
     };
 
     const linkHandler = (fileContent: string, fileType: string) => {
-        if (state) {
-            state.provider.openFileThroughLink(fileContent, fileType);
+        if (context) {
+            context.openFileThroughLink(fileContent, fileType);
         }
     };
 
@@ -275,6 +274,7 @@ export const QueryResultPane = () => {
         gridCount: number,
     ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
+        const gridId = `resultGrid-${batchId}-${resultId}`;
         return (
             <div
                 id={divId}
@@ -291,10 +291,10 @@ export const QueryResultPane = () => {
                                   gridCount,
                               )}px`
                             : "",
-                    fontFamily: metadata.fontSettings.fontFamily
-                        ? metadata.fontSettings.fontFamily
+                    fontFamily: state.fontSettings.fontFamily
+                        ? state.fontSettings.fontFamily
                         : "var(--vscode-editor-font-family)",
-                    fontSize: `${metadata.fontSettings.fontSize ?? 12}px`,
+                    fontSize: `${state.fontSettings.fontSize ?? 12}px`,
                 }}
             >
                 <ResultGrid
@@ -303,7 +303,7 @@ export const QueryResultPane = () => {
                         count: number,
                     ): Thenable<any[]> => {
                         console.debug("getRows rpc call", {
-                            uri: metadata?.uri,
+                            uri: state?.uri,
                             batchId: batchId,
                             resultId: resultId,
                             rowStart: offset,
@@ -311,7 +311,7 @@ export const QueryResultPane = () => {
                         });
                         return webViewState.extensionRpc
                             .call("getRows", {
-                                uri: metadata?.uri,
+                                uri: state?.uri,
                                 batchId: batchId,
                                 resultId: resultId,
                                 rowStart: offset,
@@ -323,9 +323,8 @@ export const QueryResultPane = () => {
                                 }
                                 let r = response as qr.ResultSetSubset;
                                 var columnLength =
-                                    metadata?.resultSetSummaries[batchId][
-                                        resultId
-                                    ]?.columnInfo?.length;
+                                    state?.resultSetSummaries[batchId][resultId]
+                                        ?.columnInfo?.length;
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
                                         [key: string]: any;
@@ -353,18 +352,19 @@ export const QueryResultPane = () => {
                     }}
                     ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
                     resultSetSummary={
-                        metadata?.resultSetSummaries[batchId][resultId]
+                        state?.resultSetSummaries[batchId][resultId]
                     }
                     gridParentRef={gridParentRef}
-                    uri={metadata?.uri}
+                    uri={state?.uri}
                     webViewState={webViewState}
-                    state={state}
+                    context={context}
                     linkHandler={linkHandler}
+                    gridId={gridId}
                 />
                 <CommandBar
-                    uri={metadata?.uri}
+                    uri={state?.uri}
                     resultSetSummary={
-                        metadata?.resultSetSummaries[batchId][resultId]
+                        state?.resultSetSummaries[batchId][resultId]
                     }
                     maximizeResults={() => {
                         maximizeResults(gridRefs.current[gridCount]);
@@ -431,9 +431,9 @@ export const QueryResultPane = () => {
         const grids = [];
         gridRefs.current.forEach((r) => r?.refreshGrid());
         let count = 0;
-        for (const batchIdStr in metadata?.resultSetSummaries ?? {}) {
+        for (const batchIdStr in state?.resultSetSummaries ?? {}) {
             const batchId = parseInt(batchIdStr);
-            for (const resultIdStr in metadata?.resultSetSummaries[batchId] ??
+            for (const resultIdStr in state?.resultSetSummaries[batchId] ??
                 {}) {
                 const resultId = parseInt(resultIdStr);
                 grids.push(renderGrid(batchId, resultId, count));
@@ -526,7 +526,7 @@ export const QueryResultPane = () => {
 
     const [columns] =
         useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items: qr.IMessage[] = splitMessages(metadata?.messages) ?? [];
+    const items: qr.IMessage[] = splitMessages(state?.messages) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {
@@ -568,23 +568,23 @@ export const QueryResultPane = () => {
     useEffect(() => {
         // gets execution plans
         if (
+            context &&
             state &&
-            metadata &&
-            metadata.isExecutionPlan &&
-            metadata.uri &&
-            metadata.executionPlanState &&
-            !metadata.executionPlanState.executionPlanGraphs!.length
+            state.isExecutionPlan &&
+            state.uri &&
+            state.executionPlanState &&
+            !state.executionPlanState.executionPlanGraphs!.length
         ) {
-            state.provider.getExecutionPlan(metadata.uri);
+            context.getExecutionPlan(state.uri);
         }
-    }, [metadata?.executionPlanState?.xmlPlans]);
+    }, [state?.executionPlanState?.xmlPlans]);
     //#endregion
 
     const getWebviewLocation = async () => {
         const res = (await webViewState.extensionRpc.call(
             "getWebviewLocation",
             {
-                uri: metadata?.uri,
+                uri: state?.uri,
             },
         )) as string;
         setWebviewLocation(res);
@@ -597,7 +597,7 @@ export const QueryResultPane = () => {
         });
     }, []);
 
-    return !metadata || !hasResultsOrMessages(metadata) ? (
+    return !state || !hasResultsOrMessages(state) ? (
         <div>
             <div className={classes.noResultMessage}>
                 {locConstants.queryResult.noResultMessage}
@@ -620,15 +620,15 @@ export const QueryResultPane = () => {
             <div className={classes.ribbon} ref={ribbonRef}>
                 <TabList
                     size="medium"
-                    selectedValue={metadata.tabStates!.resultPaneTab}
+                    selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
-                        state?.provider.setResultTab(
+                        context.setResultTab(
                             data.value as qr.QueryResultPaneTabs,
                         );
                     }}
                     className={classes.queryResultPaneTabs}
                 >
-                    {Object.keys(metadata.resultSetSummaries).length > 0 && (
+                    {Object.keys(state.resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
                             key={qr.QueryResultPaneTabs.Results}
@@ -642,8 +642,8 @@ export const QueryResultPane = () => {
                     >
                         {locConstants.queryResult.messages}
                     </Tab>
-                    {Object.keys(metadata.resultSetSummaries).length > 0 &&
-                        metadata.isExecutionPlan && (
+                    {Object.keys(state.resultSetSummaries).length > 0 &&
+                        state.isExecutionPlan && (
                             <Tab
                                 value={qr.QueryResultPaneTabs.ExecutionPlan}
                                 key={qr.QueryResultPaneTabs.ExecutionPlan}
@@ -661,7 +661,7 @@ export const QueryResultPane = () => {
                             await webViewState.extensionRpc.call(
                                 "openInNewTab",
                                 {
-                                    uri: metadata?.uri,
+                                    uri: state?.uri,
                                 },
                             );
                         }}
@@ -673,25 +673,25 @@ export const QueryResultPane = () => {
                 )}
             </div>
             <div className={classes.tabContent}>
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Results &&
-                    Object.keys(metadata.resultSetSummaries).length > 0 &&
+                    Object.keys(state.resultSetSummaries).length > 0 &&
                     renderGridPanel()}
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.Messages && (
                     <div
                         className={classes.messagesContainer}
                         data-vscode-context={JSON.stringify({
                             webviewSection: "queryResultMessagesPane",
-                            uri: metadata?.uri,
+                            uri: state?.uri,
                         })}
                     >
                         {renderMessageGrid()}
                     </div>
                 )}
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     qr.QueryResultPaneTabs.ExecutionPlan &&
-                    metadata.isExecutionPlan && (
+                    state.isExecutionPlan && (
                         <div
                             id={"executionPlanResultsTab"}
                             className={classes.queryResultContainer}

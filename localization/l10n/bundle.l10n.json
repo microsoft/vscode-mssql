@@ -822,6 +822,7 @@
     ]
   },
   "General": "General",
+  "Schema Compare": "Schema Compare",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

@@ -35,7 +35,7 @@ import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import {
     QueryResultContext,
-    QueryResultState,
+    QueryResultContextProps,
 } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 
@@ -63,8 +63,9 @@ export interface ResultGridProps {
         QueryResultReducers
     >;
     gridParentRef?: React.RefObject<HTMLDivElement>;
-    state: QueryResultState;
+    context: QueryResultContextProps;
     linkHandler: (fileContent: string, fileType: string) => void;
+    gridId: string;
 }
 
 export interface ResultGridHandle {
@@ -141,12 +142,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             };
             const DEFAULT_FONT_SIZE = 12;
             context?.log(
-                `resultGrid: ${props.state.state.fontSettings.fontSize}`,
+                `resultGrid: ${props.context.state.fontSettings.fontSize}`,
             );
 
-            const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            const ROW_HEIGHT = props.context.state.fontSettings.fontSize! + 12; // 12 px is the padding
             const COLUMN_WIDTH = Math.max(
-                (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
+                (props.context.state.fontSettings.fontSize! /
+                    DEFAULT_FONT_SIZE) *
                     120,
                 120,
             ); // Scale width with font size, but keep a minimum of 120px
@@ -286,8 +288,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.uri!,
                 props.resultSetSummary!,
                 props.webViewState!,
-                props.state,
+                props.context,
                 props.linkHandler!,
+                props.gridId,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.gridParentRef,
