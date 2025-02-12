@@ -10,9 +10,9 @@ interface Props {}
 const ActionsToolbar: React.FC<Props> = () => {
     return (
         <Toolbar>
-            <ToolbarButton>Options</ToolbarButton>
+            <ToolbarButton>Generate Migration</ToolbarButton>
             <ToolbarButton>Apply Migration</ToolbarButton>
-            <ToolbarButton>Generate Script</ToolbarButton>
+            <ToolbarButton>Options</ToolbarButton>
         </Toolbar>
     );
 };
