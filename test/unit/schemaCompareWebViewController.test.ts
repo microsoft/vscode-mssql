@@ -155,7 +155,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             authenticationType: "SqlLogin",
             azureAccountToken: undefined,
             connectTimeout: 15,
-            password: "Pa$$w0rd",
+            password: "",
             server: "localhost,1433",
             trustServerCertificate: true,
             user: "sa",
