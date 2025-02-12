@@ -100,8 +100,3 @@ export interface ISchemaDesignerService {
 export interface SchemaDesignerWebviewState {
     schema: ISchema;
 }
-
-export interface SchemaDesignerEditorPromise {
-    editedEntity: IEntity;
-    editedOutgoingEdges: IRelationship[];
-}

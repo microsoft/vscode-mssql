@@ -37,11 +37,11 @@ import {
     IRelationship,
     ISchema,
     OnAction,
-    SchemaDesignerEditorPromise,
 } from "../../../sharedInterfaces/schemaDesigner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
+import * as azdataGraph from "azdataGraph";
 
 const useStyles = makeStyles({
     editor: {
@@ -98,11 +98,8 @@ export const SchemaDesignerEntityEditor = (props: {
     schema: ISchema;
     incomingEdges: IRelationship[];
     outgoingEdges: IRelationship[];
-    resolveEntity: (
-        value:
-            | SchemaDesignerEditorPromise
-            | PromiseLike<SchemaDesignerEditorPromise>,
-    ) => void;
+    schemaDesigner: azdataGraph.SchemaDesigner | undefined;
+    onClose: () => void;
 }) => {
     if (!props.entity || !props.schema) {
         return undefined;
@@ -230,9 +227,9 @@ export const SchemaDesignerEntityEditor = (props: {
         }
     }, [
         props.entity,
-        props.resolveEntity,
         props.incomingEdges,
         props.outgoingEdges,
+        props.schemaDesigner,
     ]);
 
     function renderColumnTableCell(
@@ -766,14 +763,17 @@ export const SchemaDesignerEntityEditor = (props: {
                     size="small"
                     appearance="primary"
                     onClick={() => {
-                        props.resolveEntity({
-                            editedEntity: {
-                                name: tableName,
-                                schema: schemaName,
-                                columns: tableColumns,
-                            },
-                            editedOutgoingEdges: outgoingEdges,
-                        });
+                        if (props.schemaDesigner) {
+                            props.schemaDesigner.editedEntity(
+                                {
+                                    name: tableName,
+                                    schema: schemaName,
+                                    columns: tableColumns,
+                                },
+                                outgoingEdges,
+                            );
+                        }
+                        props.onClose();
                     }}
                 >
                     {locConstants.schemaDesigner.save}
@@ -782,14 +782,17 @@ export const SchemaDesignerEntityEditor = (props: {
                     size="small"
                     appearance="secondary"
                     onClick={() => {
-                        props.resolveEntity({
-                            editedEntity: {
-                                name: props.entity.name,
-                                schema: props.entity.schema,
-                                columns: props.entity.columns,
-                            },
-                            editedOutgoingEdges: props.outgoingEdges,
-                        });
+                        if (props.schemaDesigner) {
+                            props.schemaDesigner.editedEntity(
+                                {
+                                    name: props.entity.name,
+                                    schema: props.entity.schema,
+                                    columns: props.entity.columns,
+                                },
+                                props.outgoingEdges,
+                            );
+                        }
+                        props.onClose();
                     }}
                 >
                     {locConstants.schemaDesigner.cancel}
