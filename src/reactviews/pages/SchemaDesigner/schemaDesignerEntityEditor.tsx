@@ -764,7 +764,7 @@ export const SchemaDesignerEntityEditor = (props: {
                     appearance="primary"
                     onClick={() => {
                         if (props.schemaDesigner) {
-                            props.schemaDesigner.editedEntity(
+                            props.schemaDesigner.updateActiveCellStateEntity(
                                 {
                                     name: tableName,
                                     schema: schemaName,
@@ -783,7 +783,7 @@ export const SchemaDesignerEntityEditor = (props: {
                     appearance="secondary"
                     onClick={() => {
                         if (props.schemaDesigner) {
-                            props.schemaDesigner.editedEntity(
+                            props.schemaDesigner.updateActiveCellStateEntity(
                                 {
                                     name: props.entity.name,
                                     schema: props.entity.schema,

@@ -106,7 +106,7 @@ export const SchemaDesigner = () => {
                 updateEditorPosition(
                     _x - div.scrollLeft,
                     _y - div.scrollTop,
-                    graph._graph.view.scale,
+                    graph.mxGraph.view.scale,
                 );
             };
 
@@ -122,7 +122,7 @@ export const SchemaDesigner = () => {
                     currentCell.scale,
                 );
             });
-            graph.renderModel(context!.schema, true);
+            graph.renderSchema(context!.schema, true);
             setSchemaDesigner(graph);
         }
         createGraph();
