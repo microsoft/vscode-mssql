@@ -30,7 +30,7 @@ import {
     ResultSetSummary,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
-import { QueryResultState } from "../queryResultStateProvider";
+import { QueryResultContextProps } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
@@ -51,7 +51,7 @@ export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
 
 export class Table<T extends Slick.SlickData> implements IThemable {
-    public queryResultState: QueryResultState;
+    public queryResultState: QueryResultContextProps;
     protected styleElement: HTMLStyleElement;
     protected idPrefix: string;
 
@@ -82,7 +82,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             QueryResultWebviewState,
             QueryResultReducers
         >,
-        state: QueryResultState,
+        state: QueryResultContextProps,
         linkHandler: (value: string, type: string) => void,
         private gridId: string,
         configuration?: ITableConfiguration<T>,

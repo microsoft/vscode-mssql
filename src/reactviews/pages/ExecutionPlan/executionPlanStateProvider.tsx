@@ -12,20 +12,19 @@ import {
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 
-export interface ExecutionPlanState
-    extends WebviewContextProps<ep.ExecutionPlanWebviewState> {
-    provider: ep.ExecutionPlanProvider;
-}
+export interface ExecutionPlanContextProps
+    extends WebviewContextProps<ep.ExecutionPlanWebviewState>,
+        ep.ExecutionPlanProvider {}
 
-const ExecutionPlanContext = createContext<ExecutionPlanState | undefined>(
-    undefined,
-);
+const ExecutionPlanContext = createContext<
+    ExecutionPlanContextProps | undefined
+>(undefined);
 
-interface ExecutionPlanContextProps {
+interface ExecutionPlanProviderProps {
     children: ReactNode;
 }
 
-const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
+const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({
     children,
 }) => {
     const webviewState = useVscodeWebview<
@@ -36,33 +35,28 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanContextProps> = ({
         <ExecutionPlanContext.Provider
             value={{
                 ...getCoreRPCs(webviewState),
-                provider: {
-                    getExecutionPlan: function (): void {
-                        webviewState?.extensionRpc.action(
-                            "getExecutionPlan",
-                            {},
-                        );
-                    },
-                    saveExecutionPlan: function (sqlPlanContent: string): void {
-                        webviewState?.extensionRpc.action("saveExecutionPlan", {
-                            sqlPlanContent: sqlPlanContent,
-                        });
-                    },
-                    showPlanXml: function (sqlPlanContent: string): void {
-                        webviewState?.extensionRpc.action("showPlanXml", {
-                            sqlPlanContent: sqlPlanContent,
-                        });
-                    },
-                    showQuery: function (query: string): void {
-                        webviewState?.extensionRpc.action("showQuery", {
-                            query: query,
-                        });
-                    },
-                    updateTotalCost: function (addedCost: number): void {
-                        webviewState?.extensionRpc.action("updateTotalCost", {
-                            addedCost: addedCost,
-                        });
-                    },
+                getExecutionPlan: function (): void {
+                    webviewState?.extensionRpc.action("getExecutionPlan", {});
+                },
+                saveExecutionPlan: function (sqlPlanContent: string): void {
+                    webviewState?.extensionRpc.action("saveExecutionPlan", {
+                        sqlPlanContent: sqlPlanContent,
+                    });
+                },
+                showPlanXml: function (sqlPlanContent: string): void {
+                    webviewState?.extensionRpc.action("showPlanXml", {
+                        sqlPlanContent: sqlPlanContent,
+                    });
+                },
+                showQuery: function (query: string): void {
+                    webviewState?.extensionRpc.action("showQuery", {
+                        query: query,
+                    });
+                },
+                updateTotalCost: function (addedCost: number): void {
+                    webviewState?.extensionRpc.action("updateTotalCost", {
+                        addedCost: addedCost,
+                    });
                 },
                 state: webviewState?.state as ep.ExecutionPlanWebviewState,
                 themeKind: webviewState?.themeKind,
