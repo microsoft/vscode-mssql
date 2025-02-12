@@ -8,6 +8,7 @@ import {
     Input,
     Button,
     makeStyles,
+    mergeClasses,
     shorthands,
     useId,
     type InputProps,
@@ -17,7 +18,7 @@ import { ArrowSwapFilled, AddFilled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     topMargin: {
-        ...shorthands.margin("32px", "0", "0"),
+        ...shorthands.margin("32px", "32px", "0"),
     },
 
     positionItemsHorizontally: {
@@ -59,17 +60,17 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
     return (
         <>
             <div
-                className={[
+                className={mergeClasses(
                     classes.positionItemsHorizontally,
                     classes.center,
                     classes.topMargin,
-                ].join(" ")}
+                )}
             >
                 <div
-                    className={[
+                    className={mergeClasses(
                         classes.positionItemsVertically,
                         classes.inputWidth,
-                    ].join(" ")}
+                    )}
                 >
                     <Label
                         htmlFor={sourceId}
@@ -97,10 +98,10 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                 />
 
                 <div
-                    className={[
+                    className={mergeClasses(
                         classes.positionItemsVertically,
                         classes.inputWidth,
-                    ].join(" ")}
+                    )}
                 >
                     <Label
                         htmlFor={targetId}
