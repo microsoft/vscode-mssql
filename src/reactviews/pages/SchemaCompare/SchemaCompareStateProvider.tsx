@@ -6,7 +6,7 @@
 import * as sc from "../../../sharedInterfaces/schemaCompare";
 import * as mssql from "vscode-mssql";
 
-import { createContext } from "react";
+import { createContext, ReactNode } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const schemaCompareContext = createContext<sc.SchemaCompareContextProps>(
@@ -14,7 +14,7 @@ const schemaCompareContext = createContext<sc.SchemaCompareContextProps>(
 );
 
 interface SchemaCompareStateProviderProps {
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({

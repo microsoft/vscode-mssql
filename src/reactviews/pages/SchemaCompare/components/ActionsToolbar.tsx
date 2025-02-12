@@ -3,15 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import ActionsToolbar from "./components/ActionsToolbar";
-import SelectionPanel from "./components/SelectionPanel";
+import { Toolbar, ToolbarButton } from "@fluentui/react-components";
 
-export const SchemaComparePage = () => {
+interface Props {}
+
+const ActionsToolbar: React.FC<Props> = () => {
     return (
-        <>
-            <ActionsToolbar />
-            <SelectionPanel />
-            {/* <h1>Schema Compare Page</h1> */}
-        </>
+        <Toolbar>
+            <ToolbarButton>Options</ToolbarButton>
+            <ToolbarButton>Apply Migration</ToolbarButton>
+            <ToolbarButton>Generate Script</ToolbarButton>
+        </Toolbar>
     );
 };
+
+export default ActionsToolbar;
