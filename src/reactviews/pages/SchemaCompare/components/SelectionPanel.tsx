@@ -42,11 +42,18 @@ const useStyles = makeStyles({
         minwidth: "300px",
     },
 
-    swapButton: {
+    button: {
         height: "40px",
         position: "relative",
         top: "20px",
+    },
+
+    buttonHorizontalMargin: {
         ...shorthands.margin("0", "32px"),
+    },
+
+    buttonLeftMargin: {
+        marginLeft: "32px",
     },
 });
 
@@ -92,7 +99,10 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                 </div>
 
                 <Button
-                    className={classes.swapButton}
+                    className={mergeClasses(
+                        classes.button,
+                        classes.buttonHorizontalMargin,
+                    )}
                     size="large"
                     icon={<ArrowSwapFilled />}
                 />
@@ -121,6 +131,16 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                         <Button size="large" icon={<AddFilled />} />
                     </div>
                 </div>
+
+                <Button
+                    className={mergeClasses(
+                        classes.button,
+                        classes.buttonLeftMargin,
+                    )}
+                    size="large"
+                >
+                    Compare
+                </Button>
             </div>
         </>
     );
