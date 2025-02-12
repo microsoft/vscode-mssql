@@ -8,6 +8,7 @@ import {
     Button,
     makeStyles,
     shorthands,
+    type InputProps,
 } from "@fluentui/react-components";
 
 import { ArrowSwapFilled, AddFilled } from "@fluentui/react-icons";
@@ -30,29 +31,32 @@ const useStyles = makeStyles({
     },
 });
 
-interface Props {}
-
-const SelectionPanel: React.FC<Props> = () => {
+const SelectionPanel: React.FC<InputProps> = (props: InputProps) => {
     const classes = useStyles();
 
     return (
         <div className={classes.container}>
             <Input
                 className={classes.inputWidth}
+                {...props}
                 value="C:\DatabaseProjects\SampleProj\SampleProj.sqlproj"
                 readOnly
             />
+
             <Button size="large" icon={<AddFilled />} />
             <Button
                 className={classes.horizonalMargin}
                 size="large"
                 icon={<ArrowSwapFilled />}
             />
+
             <Input
                 className={classes.inputWidth}
+                {...props}
                 value="C:\DatabaseProjects\SampleProj2\SampleProj2.sqlproj"
                 readOnly
             />
+
             <Button size="large" icon={<AddFilled />} />
         </div>
     );
