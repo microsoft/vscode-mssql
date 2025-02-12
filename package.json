@@ -118,7 +118,7 @@
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
     "assert": "^1.4.1",
-    "azdataGraph": "github:Microsoft/azdataGraph#0.0.86",
+    "azdataGraph": "github:Microsoft/azdataGraph#0.0.87",
     "chai": "^3.5.0",
     "cli-color": "^2.0.4",
     "coveralls": "^3.0.2",
