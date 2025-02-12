@@ -10,6 +10,8 @@ import {
     shorthands,
 } from "@fluentui/react-components";
 
+import { ArrowSwapFilled, AddFilled } from "@fluentui/react-icons";
+
 const useStyles = makeStyles({
     container: {
         display: "flex",
@@ -17,13 +19,13 @@ const useStyles = makeStyles({
         ...shorthands.margin("32px", "32px", "0"),
     },
 
-    input: {
+    inputWidth: {
         width: "100%",
         maxWidth: "745px",
         minwidth: "300px",
     },
 
-    button: {
+    horizonalMargin: {
         ...shorthands.margin("0", "32px"),
     },
 });
@@ -36,16 +38,22 @@ const SelectionPanel: React.FC<Props> = () => {
     return (
         <div className={classes.container}>
             <Input
-                className={classes.input}
+                className={classes.inputWidth}
                 value="C:\DatabaseProjects\SampleProj\SampleProj.sqlproj"
                 readOnly
             />
-            <Button className={classes.button}>Change Direction</Button>
+            <Button size="large" icon={<AddFilled />} />
+            <Button
+                className={classes.horizonalMargin}
+                size="large"
+                icon={<ArrowSwapFilled />}
+            />
             <Input
-                className={classes.input}
+                className={classes.inputWidth}
                 value="C:\DatabaseProjects\SampleProj2\SampleProj2.sqlproj"
                 readOnly
             />
+            <Button size="large" icon={<AddFilled />} />
         </div>
     );
 };
