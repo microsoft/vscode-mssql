@@ -39,17 +39,15 @@ export const DesignerDropdown = ({
     horizontal = false,
 }: DesignerDropdownProps) => {
     const [value, setValue] = useState<string[]>([]);
-    const state = useContext(TableDesignerContext);
-    if (!state) {
+    const context = useContext(TableDesignerContext);
+    if (!context) {
         return undefined;
     }
     const width =
         UiArea === "PropertiesView"
             ? "100%"
             : (component.componentProperties.width ?? "350px");
-    const dropdownId = useId(
-        state?.provider.getComponentId(componentPath) ?? "",
-    );
+    const dropdownId = useId(context.getComponentId(componentPath) ?? "");
 
     useEffect(() => {
         setValue([model.value]);
@@ -67,12 +65,12 @@ export const DesignerDropdown = ({
                 ) : undefined,
             }}
             validationState={
-                showError && state?.provider.getErrorMessage(componentPath)
+                showError && context.getErrorMessage(componentPath)
                     ? "error"
                     : undefined
             }
             validationMessage={
-                showError ? state?.provider.getErrorMessage(componentPath) : ""
+                showError ? context.getErrorMessage(componentPath) : ""
             }
             style={{ width: width }}
             size="small"
@@ -80,14 +78,14 @@ export const DesignerDropdown = ({
         >
             <Dropdown
                 aria-labelledby={dropdownId}
-                ref={(el) => state.addElementRef(componentPath, el, UiArea)}
+                ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                 selectedOptions={value}
                 disabled={model.enabled === undefined ? false : !model.enabled}
                 style={{
                     width: width,
                     minWidth: width,
                     maxWidth: width,
-                    border: state?.provider.getErrorMessage(componentPath)
+                    border: context.getErrorMessage(componentPath)
                         ? "1px solid var(--vscode-errorForeground)"
                         : undefined,
                 }}
@@ -97,16 +95,14 @@ export const DesignerDropdown = ({
                     if (model.enabled === false) {
                         return;
                     }
-                    state?.provider.processTableEdit({
+                    context.processTableEdit({
                         path: componentPath,
                         value: option.optionValue!.toString(),
                         type: DesignerEditType.Update,
                         source: UiArea,
                     });
                 }}
-                aria-errormessage={
-                    state?.provider.getErrorMessage(componentPath) ?? ""
-                }
+                aria-errormessage={context.getErrorMessage(componentPath) ?? ""}
             >
                 {model.values
                     .sort((a, b) => a.localeCompare(b))

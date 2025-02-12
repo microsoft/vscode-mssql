@@ -99,8 +99,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     graphIndex,
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state.executionPlanState;
+    const context = useContext(ExecutionPlanContext);
+    const executionPlanState = context?.state.executionPlanState;
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
@@ -162,7 +162,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     iconPaths: utils.getIconPaths(),
                     badgeIconPaths: utils.getBadgePaths(),
                     expandCollapsePaths: utils.getCollapseExpandPaths(
-                        state.themeKind,
+                        context.themeKind,
                     ),
                     showTooltipOnClick: true,
                 };
