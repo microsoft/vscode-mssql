@@ -996,10 +996,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         account,
                         undefined,
                     );
-                const isTokenExpired = AzureController.isTokenInValid(
+                const isTokenExpired = !AzureController.isTokenValid(
                     session.token,
                     session.expiresOn,
                 );
+
                 if (isTokenExpired) {
                     actionButtons.push({
                         label: refreshTokenLabel,
