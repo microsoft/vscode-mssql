@@ -16,13 +16,17 @@ import {
 import { ArrowSwapFilled, AddFilled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
-    topAndSideMargin: {
-        ...shorthands.margin("32px", "32px", "0"),
+    topMargin: {
+        ...shorthands.margin("32px", "0", "0"),
     },
 
     positionItemsHorizontally: {
         display: "flex",
         flexDirection: "row",
+    },
+
+    center: {
+        justifyContent: "center",
     },
 
     positionItemsVertically: {
@@ -57,7 +61,8 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
             <div
                 className={[
                     classes.positionItemsHorizontally,
-                    classes.topAndSideMargin,
+                    classes.center,
+                    classes.topMargin,
                 ].join(" ")}
             >
                 <div
