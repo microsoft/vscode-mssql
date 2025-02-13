@@ -101,28 +101,17 @@ export const SchemaDesignerEntityEditor = (props: {
     schemaDesigner: azdataGraph.SchemaDesigner | undefined;
     onClose: () => void;
 }) => {
-    if (!props.entity || !props.schema) {
-        return undefined;
-    }
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
 
     const [selectedTabValue, setSelectedTabValue] = useState<TabValue>("table");
-    const [selectedSchema, setSelectedSchema] = useState<string[]>([
-        props.entity.schema,
-    ]);
-    const [schemaName, setSchemaName] = useState<string>(props.entity.schema);
-    const [tableName, setTableName] = useState<string>(props.entity.name);
+    const [selectedSchema, setSelectedSchema] = useState<string[]>([]);
+    const [schemaName, setSchemaName] = useState<string>("");
+    const [tableName, setTableName] = useState<string>("");
     const [nameValidation, _setNameValidation] = useState<string>("");
-    const [tableColumns, setTableColumns] = useState<IColumn[]>(
-        props.entity.columns,
-    );
-    const [incomingEdges, setIncomingEdges] = useState<IRelationship[]>(
-        props.incomingEdges,
-    );
-    const [outgoingEdges, setOutgoingEdges] = useState<IRelationship[]>(
-        props.outgoingEdges,
-    );
+    const [tableColumns, setTableColumns] = useState<IColumn[]>([]);
+    const [incomingEdges, setIncomingEdges] = useState<IRelationship[]>([]);
+    const [outgoingEdges, setOutgoingEdges] = useState<IRelationship[]>([]);
     const datatypes = useMemo(
         () => getUniqueDatatypes(props.schema),
         [props.schema],
@@ -217,11 +206,14 @@ export const SchemaDesignerEntityEditor = (props: {
 
     useEffect(() => {
         setSelectedTabValue("table");
-        setTableColumns(props.entity.columns);
-        setTableName(props.entity.name);
-        setSchemaName(props.entity.schema);
-        setIncomingEdges(props.incomingEdges);
-        setOutgoingEdges(props.outgoingEdges);
+        if (props.entity) {
+            setTableColumns(props.entity.columns);
+            setTableName(props.entity.name);
+            setSchemaName(props.entity.schema);
+            setIncomingEdges(props.incomingEdges);
+            setOutgoingEdges(props.outgoingEdges);
+            setSelectedSchema([props.entity.schema]);
+        }
         if (entityNameRef.current) {
             entityNameRef.current?.focus();
         }
@@ -742,6 +734,10 @@ export const SchemaDesignerEntityEditor = (props: {
         );
     }
 
+    if (!props.entity || !props.schema) {
+        return undefined;
+    }
+
     return (
         <div className={classes.editor}>
             <TabList
@@ -782,16 +778,6 @@ export const SchemaDesignerEntityEditor = (props: {
                     size="small"
                     appearance="secondary"
                     onClick={() => {
-                        if (props.schemaDesigner) {
-                            props.schemaDesigner.updateActiveCellStateEntity(
-                                {
-                                    name: props.entity.name,
-                                    schema: props.entity.schema,
-                                    columns: props.entity.columns,
-                                },
-                                props.outgoingEdges,
-                            );
-                        }
                         props.onClose();
                     }}
                 >
