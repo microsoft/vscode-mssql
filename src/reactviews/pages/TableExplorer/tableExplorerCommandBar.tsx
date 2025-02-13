@@ -11,6 +11,8 @@ import {
     Dropdown,
     Option,
     makeStyles,
+    OptionOnSelectData,
+    SelectionEvents,
 } from "@fluentui/react-components";
 import { ArrowClockwise16Filled } from "@fluentui/react-icons";
 
@@ -24,7 +26,17 @@ const useStyles = makeStyles({
     dropdown: {
         marginLeft: "auto",
     },
+    refreshButton: {
+        border: "none",
+    },
 });
+
+const options = ["10 rows", "100 rows", "1000 rows"];
+const valueMap: Record<string, number> = {
+    "10 rows": 10,
+    "100 rows": 100,
+    "1000 rows": 1000,
+};
 
 export const TableExplorerCommandBar = () => {
     const classes = useStyles();
@@ -35,20 +47,34 @@ export const TableExplorerCommandBar = () => {
         return null;
     }
 
-    const onRowNumberOptionSelect = () => {
-        //TODO: implement row number selection change event
+    const onRowNumberOptionSelect = (
+        _: SelectionEvents,
+        data: OptionOnSelectData,
+    ) => {
+        //TODO: trigger state update using reducer
+        context.setTableExplorerResults(valueMap[data.optionValue]);
     };
 
-    const options = ["10 rows", "100 rows", "1000 rows"];
+    //TODO: implement refresh data
+    const onRefresh = () => {};
+
+    //TODO: implement search on type
+    const onSearch = () => {};
 
     return (
         <div className={classes.commandBar}>
-            <SearchBox placeholder="Search" />
-            <Button icon={<ArrowClockwise16Filled />}></Button>
+            <SearchBox placeholder="Search" onKeyDown={onSearch} />
+            <Button disabled={true}>View SQL Script</Button>
+            <Button
+                className={classes.refreshButton}
+                icon={<ArrowClockwise16Filled />}
+                onClick={onRefresh}
+            ></Button>
             <Dropdown
-                value={"10 rows"}
                 onOptionSelect={onRowNumberOptionSelect}
                 className={classes.dropdown}
+                //TODO: update this based on a config setting
+                defaultValue={options[0]}
             >
                 {options.map((option) => (
                     <Option key={option}>{option}</Option>

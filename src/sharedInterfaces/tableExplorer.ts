@@ -27,13 +27,14 @@ export interface TableExplorerWebviewState {
     view?: ExplorerView;
     resultSetSummaries?: Record<number, Record<number, ResultSetSummary>>;
     uri?: string;
+    resultCount: number;
     // fontSettings: FontSettings;
 }
 
 export interface TableExplorerReducers {
-    // setTableExplorerResults: {
-    //     results: number;
-    // };
+    setTableExplorerResults: {
+        resultCount: number;
+    };
 }
 
 export interface TableDesignerComponentProperties {
@@ -44,5 +45,11 @@ export interface TableDesignerComponentProperties {
 }
 
 export interface TableExplorerReactProvider {
+    /**
+     * Set the number of results to display in the table explorer
+     * @param resultCount
+     * @returns
+     */
+    setTableExplorerResults: (resultCount: number) => void;
     openFileThroughLink(content: string, type: string): void;
 }

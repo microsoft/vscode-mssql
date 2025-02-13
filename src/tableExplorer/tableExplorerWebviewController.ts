@@ -26,7 +26,9 @@ export class TableExplorerWebviewController extends ReactWebviewPanelController<
             vscodeWrapper,
             "tableExplorer",
             "tableExplorer",
-            {},
+            {
+                resultCount: 0,
+            },
             {
                 //TODO: add database name here
                 title: `Table Explorer - [database name]`,
@@ -39,12 +41,13 @@ export class TableExplorerWebviewController extends ReactWebviewPanelController<
     }
 
     private async initialize() {
-        if (!this._targetNode) {
-            await vscode.window.showErrorMessage(
-                "Unable to find object explorer node",
-            );
-            return;
-        }
+        //TODO: uncomment before release, commented now to use command bar call
+        // if (!this._targetNode) {
+        //     await vscode.window.showErrorMessage(
+        //         "Unable to find object explorer node",
+        //     );
+        //     return;
+        // }
 
         this.state = {
             view: {
@@ -55,14 +58,18 @@ export class TableExplorerWebviewController extends ReactWebviewPanelController<
                     },
                 ],
             },
+            //TODO: change this according to config
+            resultCount: 10,
         };
         this.registerRpcHandlers();
     }
 
     private registerRpcHandlers() {
-        // this.registerReducer("setTableExplorerResults", (state, results) => {
-        //TODO: change number of results displayed, will need to call backend API
-        // });
+        this.registerReducer("setTableExplorerResults", (state, results) => {
+            // TODO: change number of results displayed, will need to call backend API
+            state.resultCount = results.resultCount;
+            return state;
+        });
     }
 
     private getTableNameForNode(node: TreeNodeInfo): string {

@@ -15,20 +15,19 @@ import {
 } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 
-export interface TableExplorerState
-    extends WebviewContextProps<TableExplorerWebviewState> {
-    provider: TableExplorerReactProvider;
-}
+export interface TableExplorerContextProps
+    extends WebviewContextProps<TableExplorerWebviewState>,
+        TableExplorerReactProvider {}
 
-const TableExplorerContext = createContext<TableExplorerState | undefined>(
-    undefined,
-);
+const TableExplorerContext = createContext<
+    TableExplorerContextProps | undefined
+>(undefined);
 
-interface TableExplorerContextProps {
+interface TableExplorerProviderProps {
     children: ReactNode;
 }
 
-const TableExplorerStateProvider: React.FC<TableExplorerContextProps> = ({
+const TableExplorerStateProvider: React.FC<TableExplorerProviderProps> = ({
     children,
 }) => {
     const webviewState = useVscodeWebview<
@@ -59,19 +58,21 @@ const TableExplorerStateProvider: React.FC<TableExplorerContextProps> = ({
         <TableExplorerContext.Provider
             value={{
                 ...getCoreRPCs(webviewState),
-                provider: {
-                    openFileThroughLink: function (
-                        content: string,
-                        type: string,
-                    ): void {
-                        webviewState?.extensionRpc.action(
-                            "openFileThroughLink",
-                            {
-                                content: content,
-                                type: type,
-                            },
-                        );
-                    },
+
+                setTableExplorerResults: function (resultCount: number): void {
+                    webviewState.extensionRpc.action(
+                        "setTableExplorerResults",
+                        { resultCount: resultCount },
+                    );
+                },
+                openFileThroughLink: function (
+                    content: string,
+                    type: string,
+                ): void {
+                    webviewState?.extensionRpc.action("openFileThroughLink", {
+                        content: content,
+                        type: type,
+                    });
                 },
                 state: webviewState?.state as TableExplorerWebviewState,
                 themeKind: webviewState?.themeKind,
