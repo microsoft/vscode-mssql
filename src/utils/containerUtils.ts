@@ -9,57 +9,67 @@ import { sqlAuthentication } from "../constants/constants";
 import ConnectionManager from "../controllers/connectionManager";
 import { IConnectionProfile } from "../models/interfaces";
 
-export async function startDocker(): Promise<{
+const COMMANDS = {
+    CHECK_DOCKER: "docker info",
+    START_DOCKER: {
+        win32: 'start "" "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"',
+        // still need to test
+        darwin: "open -a Docker",
+        // still need to test
+        linux: "systemctl start docker",
+    },
+    GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
+    INSPECT: (id) => `docker inspect ${id}`,
+    FIND_PORTS: {
+        win32: `powershell -Command "docker ps -a --format '{{.ID}}' | ForEach-Object { docker inspect $_ | Select-String -Pattern '\"HostPort\":' | Select-Object -First 1 | ForEach-Object { ($_ -split ':')[1].Trim() -replace '\"', '' }}"`,
+        // still need to test
+        darwin: `docker ps -a --format "{{.ID}}" | xargs -I {} sh -c 'docker inspect {} | grep -m 1 -oP "\"HostPort\": \"\K\d+"'`,
+        // still need to test
+        linux: `docker ps -a --format "{{.ID}}" | xargs -I {} sh -c 'docker inspect {} | grep -m 1 -oP "\"HostPort\": \"\K\d+"'`,
+    },
+    START_SQL_SERVER: (name, password, port, version) =>
+        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:1433 --name ${name} -d mcr.microsoft.com/mssql/server:${version}-latest`,
+    CHECK_CONTAINER_RUNNING: (name) =>
+        `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
+    VALIDATE_CONTAINER_NAME: 'docker ps --format "{{.Names}}"',
+    START_CONTAINER: (name) => `docker start ${name}`,
+    CHECK_LOGS: (name) =>
+        `docker logs --tail 15 ${name} | ${platform() === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+    CHECK_CONTAINER_READY: `Recovery is complete`,
+};
+
+export type DockerCommandParams = {
     success: boolean;
     error?: string;
-}> {
+    port?: number;
+};
+
+export async function startDocker(): Promise<DockerCommandParams> {
     return new Promise((resolve) => {
-        exec("docker info", (err) => {
-            if (!err) {
-                return resolve({ success: true }); // Docker is already running
-            }
+        exec(COMMANDS.CHECK_DOCKER, (err) => {
+            if (!err) return resolve({ success: true });
 
-            console.log("Docker is not running. Attempting to start Docker...");
+            const startCommand = COMMANDS.START_DOCKER[platform()];
 
-            let startCommand;
-            switch (platform()) {
-                case "win32":
-                    startCommand =
-                        'start "" "C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe"';
-                    break;
-                case "darwin":
-                    startCommand = "open -a Docker"; // macOS
-                    break;
-                case "linux":
-                    startCommand = "systemctl start docker"; // Linux (may require sudo)
-                    break;
-                default:
-                    console.error(
-                        "Unsupported platform for Docker:",
-                        platform(),
-                    );
-                    return resolve({ success: false, error: err.message });
+            if (!startCommand) {
+                console.error("Unsupported platform for Docker:", platform());
+                return resolve({ success: false, error: err.message });
             }
 
             exec(startCommand, (err) => {
-                if (err) {
-                    console.error("Failed to start Docker:", err);
-                    return resolve({ success: false, error: err.message });
-                }
-
+                if (err) return resolve({ success: false, error: err.message });
                 console.log("Docker started. Waiting for initialization...");
 
                 let attempts = 0;
-                const maxAttempts = 30; // Max wait time: 60s (30 * 2s)
-                const interval = 2000; // Check every 2 seconds
+                const maxAttempts = 30;
+                const interval = 2000;
 
                 const checkDocker = setInterval(() => {
-                    exec("docker info", (err) => {
+                    exec(COMMANDS.CHECK_DOCKER, (err) => {
                         if (!err) {
                             clearInterval(checkDocker);
                             return resolve({ success: true });
                         }
-
                         if (++attempts >= maxAttempts) {
                             clearInterval(checkDocker);
                             return resolve({
@@ -75,95 +85,132 @@ export async function startDocker(): Promise<{
 }
 
 async function findAvailablePort(startPort: number): Promise<number> {
-    return new Promise((resolve) => {
-        const checkPort = (port: number) => {
-            exec(`docker ps --format \"{{.Ports}}\"`, (error, stdout) => {
-                if (error) {
-                    console.error("Error checking Docker ports:", error);
-                    return resolve(startPort); // Default to startPort if check fails
-                }
+    return new Promise((resolve, reject) => {
+        exec(COMMANDS.GET_CONTAINERS, (error, stdout) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                return reject(-1);
+            }
 
-                const portsInUse = stdout
-                    .split("\n")
-                    .flatMap(
-                        (line) =>
-                            line
-                                .match(/:(\d+)->1433\/tcp/g)
-                                ?.map((match) =>
-                                    parseInt(match.split(":")[1]),
-                                ) || [],
-                    );
+            const containerIds = stdout.trim().split("\n").filter(Boolean);
+            if (containerIds.length === 0) return resolve(startPort);
 
-                if (!portsInUse.includes(port)) {
-                    return resolve(port);
-                }
-                checkPort(port + 1);
+            const usedPorts: Set<number> = new Set();
+            const inspections = containerIds.map(
+                (containerId) =>
+                    new Promise<void>((resolve) => {
+                        exec(
+                            `docker inspect ${containerId}`,
+                            (inspectError, inspectStdout) => {
+                                if (!inspectError) {
+                                    const hostPortMatches = inspectStdout.match(
+                                        /"HostPort":\s*"(\d+)"/g,
+                                    );
+                                    hostPortMatches?.forEach((match) =>
+                                        usedPorts.add(
+                                            Number(match.match(/\d+/)![0]),
+                                        ),
+                                    );
+                                } else {
+                                    console.error(
+                                        `Error inspecting container ${containerId}: ${inspectError.message}`,
+                                    );
+                                }
+                                resolve();
+                            },
+                        );
+                    }),
+            );
+
+            // @typescript-eslint/no-floating-promises
+            void Promise.all(inspections).then(() => {
+                let port = startPort;
+                while (usedPorts.has(port)) port++;
+                resolve(port);
             });
-        };
-        checkPort(startPort);
+        });
     });
 }
 
 export async function startSqlServerDockerContainer(
-    name: string,
-    password: string,
-    version: string,
-): Promise<{ port: number; error?: string }> {
-    return new Promise(async (resolve) => {
-        const port = await findAvailablePort(1433);
-        const command = `docker run -e \"ACCEPT_EULA=Y\" -e \"SA_PASSWORD=${password}\" -p ${port}:1433 --name ${name} -d mcr.microsoft.com/mssql/server:${version}-latest`;
-        exec(command, async (error, stdout, stderr) => {
-            if (error) {
-                console.error("Failed to start SQL Server container:", error);
-                return resolve({ port: undefined, error: error.message });
-            }
-
-            console.log(
-                `SQL Server container started successfully on port ${port}.`,
-            );
-            const isContainerReady =
-                await checkIfContainerIsReadyForConnections(name);
-            if (!isContainerReady)
-                return resolve({
-                    port: undefined,
-                    error: "Could not set up container",
-                });
-
-            return resolve({ port: port });
-        });
-    });
-}
-
-export async function isDockerContainerRunning(name: string): Promise<boolean> {
+    name,
+    password,
+    version,
+): Promise<DockerCommandParams> {
+    const port = await findAvailablePort(1433);
     return new Promise((resolve) => {
-        const command = `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`;
+        exec(
+            COMMANDS.START_SQL_SERVER(name, password, port, version),
+            async (error) => {
+                if (error)
+                    return resolve({
+                        success: false,
+                        error: error.message,
+                        port: undefined,
+                    });
+                console.log(`SQL Server container started on port ${port}.`);
+                const isReady =
+                    await checkIfContainerIsReadyForConnections(name);
+                return resolve(
+                    isReady
+                        ? { success: true, port: port }
+                        : {
+                              success: false,
+                              error: "Could not set up container",
+                              port: undefined,
+                          },
+                );
+            },
+        );
+    });
+}
 
-        exec(command, (error, stdout) => {
-            if (error) {
-                console.error("Error checking Docker container status:", error);
-                return resolve(false);
-            }
-
-            resolve(stdout.trim() === name);
+export async function isDockerContainerRunning(name): Promise<boolean> {
+    return new Promise((resolve) => {
+        exec(COMMANDS.CHECK_CONTAINER_RUNNING(name), (error, stdout) => {
+            resolve(!error && stdout.trim() === name);
         });
     });
 }
 
-export function validateSqlServerPassword(password: string): boolean {
-    // Example SQL Server password validation logic (adjust as needed)
-    const regex =
-        /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-    return regex.test(password);
+export function validateSqlServerPassword(password): boolean {
+    return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
+        password,
+    );
 }
 
-export async function validateContainerName(
-    containerName: string,
-): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-        exec('docker ps --format "{{.Names}}"', (error, stdout, stderr) => {
-            const runningContainers = stdout.split("\n");
-            resolve(!runningContainers.includes(containerName));
+export async function validateContainerName(containerName): Promise<boolean> {
+    return new Promise((resolve) => {
+        exec(COMMANDS.VALIDATE_CONTAINER_NAME, (error, stdout) => {
+            resolve(!stdout.split("\n").includes(containerName));
         });
+    });
+}
+
+export async function startContainer(name): Promise<boolean> {
+    const isDockerStarted = await startDocker();
+    if (!isDockerStarted) return false;
+    return new Promise((resolve) => {
+        exec(COMMANDS.START_CONTAINER(name), async (error) => {
+            resolve(
+                !error && (await checkIfContainerIsReadyForConnections(name)),
+            );
+        });
+    });
+}
+
+export async function checkIfContainerIsReadyForConnections(
+    name,
+): Promise<boolean> {
+    return new Promise((resolve) => {
+        const interval = setInterval(() => {
+            exec(COMMANDS.CHECK_LOGS(name), (error, stdout) => {
+                if (!error && stdout.includes(COMMANDS.CHECK_CONTAINER_READY)) {
+                    clearInterval(interval);
+                    resolve(true);
+                }
+            });
+        }, 1000);
     });
 }
 
@@ -190,44 +237,4 @@ export async function addContainerConnection(
     };
 
     return await connectionManager.connectionUI.saveProfile(connection);
-}
-
-export async function startContainer(name: string): Promise<boolean> {
-    const isDockerStarted = await startDocker();
-    if (!isDockerStarted) return false;
-    return new Promise((resolve) => {
-        exec(`docker start ${name}`, async (error) => {
-            if (error) {
-                console.error("Failed to start container:", error);
-                resolve(false);
-            } else {
-                // Let SQL server container setup finish
-                // Wait for SQL Server to initialize
-                resolve(checkIfContainerIsReadyForConnections(name));
-            }
-        });
-    });
-}
-
-export async function checkIfContainerIsReadyForConnections(
-    name: string,
-): Promise<boolean> {
-    return new Promise((resolve) => {
-        const grepCommand =
-            platform() === "win32"
-                ? `findstr "Recovery is complete"`
-                : `grep "Recovery is complete"`;
-
-        const interval = setInterval(() => {
-            exec(
-                `docker logs --tail 15 ${name} | ${grepCommand}`,
-                (error, stdout) => {
-                    if (!error && stdout.includes("Recovery is complete")) {
-                        clearInterval(interval);
-                        resolve(true);
-                    }
-                },
-            );
-        }, 1000); // Check every second
-    });
 }
