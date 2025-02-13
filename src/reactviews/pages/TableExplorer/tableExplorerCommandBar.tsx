@@ -69,7 +69,9 @@ export const TableExplorerCommandBar = () => {
                 className={classes.refreshButton}
                 icon={<ArrowClockwise16Filled />}
                 onClick={onRefresh}
-            ></Button>
+            >
+                Refresh
+            </Button>
             <Dropdown
                 onOptionSelect={onRowNumberOptionSelect}
                 className={classes.dropdown}

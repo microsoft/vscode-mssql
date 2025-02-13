@@ -201,7 +201,7 @@ export const TableExplorer = () => {
             className={classes.root}
             ref={gridParentRef}
             style={{
-                height: "400px",
+                height: "600px",
                 // fontFamily: context.state.fontSettings.fontFamily
                 //     ? context.state.fontSettings.fontFamily
                 //     : "var(--vscode-editor-font-family)",
