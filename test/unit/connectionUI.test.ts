@@ -121,6 +121,7 @@ suite("Connection UI tests", () => {
         quickPickMock
             .setup((q) => q.onDidChangeSelection)
             .returns(() => onDidChangeSelectionEventEmitter.event);
+
         // createProfile prompter stub
         prompter
             .setup((p) => p.prompt(TypeMoq.It.isAny(), true))

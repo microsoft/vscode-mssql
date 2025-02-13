@@ -113,6 +113,7 @@ export class ConnectionUI {
             connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
             connectionProfileQuickPick.canSelectMany = false;
             connectionProfileQuickPick.busy = false;
+
             connectionProfileQuickPick.show();
             connectionProfileQuickPick.onDidChangeSelection((selection) => {
                 if (selection[0]) {
