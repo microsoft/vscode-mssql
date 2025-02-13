@@ -727,10 +727,6 @@ export class ConnectionUI {
             this._accountStore,
         );
 
-        if (profile.id === undefined) {
-            profile.id = Utils.generateGuid();
-        }
-
         return profile;
     }
 
@@ -770,9 +766,6 @@ export class ConnectionUI {
                 this._accountStore,
                 profile,
             );
-            if (newProfile.id === undefined) {
-                newProfile.id = Utils.generateGuid();
-            }
 
             return newProfile;
         } else {

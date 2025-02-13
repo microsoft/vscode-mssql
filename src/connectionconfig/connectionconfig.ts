@@ -10,6 +10,7 @@ import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { Deferred } from "../protocol";
+import { ConnectionProfile } from "../models/connectionProfile";
 
 /**
  * Implements connection profile file storage.
@@ -65,9 +66,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // ensure each profile has an id
         profiles.forEach((profile) => {
-            if (!profile.id) {
-                profile.id = Utils.generateGuid();
-            }
+            ConnectionProfile.addIdIfMissing(profile);
         });
 
         // ensure each profile is in a group
