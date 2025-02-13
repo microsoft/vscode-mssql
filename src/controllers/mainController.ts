@@ -69,6 +69,7 @@ import {
     validateContainerName,
     validateSqlServerPassword,
 } from "../utils/containerUtils";
+import { ContainerDeploymentWebviewController } from "./containerDeploymentWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -1457,6 +1458,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onDeployContainer(): Promise<boolean> {
+        /*
         vscode.window.showInformationMessage("Starting Docker...");
         const startDockerResult = await startDocker();
         if (!startDockerResult.success) {
@@ -1533,6 +1535,13 @@ export default class MainController implements vscode.Disposable {
         // const containerUri = `Server=localhost, ${containerResult.port};User Id=SA; Encrypt=true; Trust Server Certificate=true;`;
         // const connectionPromise = new Deferred<boolean>();
         return this.createObjectExplorerSession(connectionProfile);
+        */
+        const reactPanel = new ContainerDeploymentWebviewController(
+            this._context,
+            this._connectionMgr,
+        );
+        reactPanel.revealToForeground();
+        return true;
     }
 
     /**

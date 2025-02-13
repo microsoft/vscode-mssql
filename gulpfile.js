@@ -184,6 +184,7 @@ async function generateReactWebviewsBundle() {
 		 */
 		entryPoints: {
 			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
+			'containerDeployment': 'src/reactviews/pages/ContainerDeployment/index.tsx',
 			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
 			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
 			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
