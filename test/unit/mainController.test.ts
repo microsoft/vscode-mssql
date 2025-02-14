@@ -184,8 +184,9 @@ suite("MainController Tests", function () {
                 connectionManager.verify(
                     (x) =>
                         x.transferFileConnection(
-                            TypeMoq.It.is((x) => !x.endsWith("settings.json")), // exclude changes to settings.json because MainController setup adds missing mssql connection settings
-                            TypeMoq.It.isAny(),
+                            // ignore changes to settings.json because MainController setup adds missing mssql connection settings
+                            TypeMoq.It.is((x) => !x.endsWith("settings.json")),
+                            TypeMoq.It.is((x) => !x.endsWith("settings.json")),
                         ),
                     TypeMoq.Times.never(),
                 );
