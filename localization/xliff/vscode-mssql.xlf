@@ -1972,7 +1972,7 @@
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
-      <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as your default behavior.</source>
+      <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as the default behavior.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.description">
       <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
