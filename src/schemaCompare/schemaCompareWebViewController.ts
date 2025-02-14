@@ -106,7 +106,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         let source: mssql.SchemaCompareEndpointInfo;
 
         let connectionProfile: IConnectionProfile | undefined = sourceContext
-            ? (sourceContext.ConnectionInfo as IConnectionProfile)
+            ? (sourceContext.connectionInfo as IConnectionProfile)
             : undefined;
 
         if (connectionProfile) {
