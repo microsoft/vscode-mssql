@@ -179,11 +179,12 @@ suite("MainController Tests", function () {
         // Cause event time out (above 10 ms should work)
         setTimeout(() => {
             void mainController.onDidCloseTextDocument(document);
+
             try {
                 connectionManager.verify(
                     (x) =>
                         x.transferFileConnection(
-                            TypeMoq.It.isAny(),
+                            TypeMoq.It.is((x) => !x.endsWith("settings.json")), // exclude changes to settings.json because MainController setup adds missing mssql connection settings
                             TypeMoq.It.isAny(),
                         ),
                     TypeMoq.Times.never(),
