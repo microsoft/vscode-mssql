@@ -21,8 +21,6 @@ import { SchemaDesignerEntityEditor } from "./schemaDesignerEntityEditor";
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
 
-const EDITOR_HEIGHT = 400;
-
 export const SchemaDesigner = () => {
     const context = useContext(SchemaDesignerContext);
     if (!context) {
@@ -76,17 +74,16 @@ export const SchemaDesigner = () => {
                 outgoingEdges,
                 _model,
             ) => {
+                const cellPosition = calculateEditorPosition(
+                    x,
+                    y,
+                    cell.geometry.height,
+                    scale,
+                    div.scrollHeight,
+                );
                 currentCell = {
-                    x: x - 3 * scale,
-                    y: Math.min(
-                        Math.max(
-                            y +
-                                ((currentCell.height - EDITOR_HEIGHT) * scale) /
-                                    2,
-                            10 * scale,
-                        ),
-                        div.scrollHeight - (EDITOR_HEIGHT + 20) * scale,
-                    ),
+                    x: cellPosition.x,
+                    y: cellPosition.y,
                     scale: scale,
                     cell: cell,
                     height: cell.geometry.height,
@@ -115,14 +112,15 @@ export const SchemaDesigner = () => {
             };
 
             schemaDesignerConfig.updateEditorPosition = (x, y, scale) => {
-                currentCell.x = x - 3 * scale;
-                currentCell.y = Math.max(
-                    Math.max(
-                        y + ((currentCell.height - EDITOR_HEIGHT) * scale) / 2,
-                        10 * scale,
-                    ),
-                    div.scrollHeight - (EDITOR_HEIGHT + 20) * scale,
+                const cellPosition = calculateEditorPosition(
+                    x,
+                    y,
+                    currentCell.height,
+                    scale,
+                    div.scrollHeight,
                 );
+                currentCell.x = cellPosition.x;
+                currentCell.y = cellPosition.y;
                 currentCell.scale = scale;
 
                 updateEditorPosition(
@@ -130,11 +128,6 @@ export const SchemaDesigner = () => {
                     y - div.scrollTop,
                     graph.mxGraph.view.scale,
                 );
-                console.log({
-                    x: x - div.scrollLeft,
-                    y: y - div.scrollTop,
-                    scale: graph.mxGraph.view.scale,
-                });
             };
 
             const graph = new azdataGraph.SchemaDesigner(
@@ -148,11 +141,6 @@ export const SchemaDesigner = () => {
                     currentCell.y - div.scrollTop,
                     currentCell.scale,
                 );
-                console.log({
-                    x: currentCell.x - div.scrollLeft,
-                    y: currentCell.y - div.scrollTop,
-                    scale: currentCell.scale,
-                });
             });
             graph.renderSchema(context!.schema, true);
             setSchemaDesigner(graph);
@@ -188,3 +176,21 @@ export const SchemaDesigner = () => {
         </div>
     );
 };
+
+function calculateEditorPosition(
+    cellX: number,
+    cellY: number,
+    cellHeight: number,
+    mxGraphScale: number,
+    mxGraphDivScrollHeight: number,
+) {
+    const EDITOR_HEIGHT = 400;
+    const x = cellX - 3 * mxGraphScale; // Make sure the editor doesn't go off the left side of the cell
+    const y = cellY + ((cellHeight - EDITOR_HEIGHT) * mxGraphScale) / 2; // Center the editor vertically in the cell
+    const minY = 10 * mxGraphScale; // Make sure the editor doesn't go off the top of the graph div
+    const maxY = mxGraphDivScrollHeight - (EDITOR_HEIGHT + 20) * mxGraphScale; // Make sure the editor doesn't go off the bottom of the graph div
+    return {
+        x: x,
+        y: Math.min(Math.max(y, minY), maxY),
+    };
+}

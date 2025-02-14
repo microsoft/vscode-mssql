@@ -45,7 +45,7 @@ export const config: SchemaDesignerConfig = {
         graphBackground: "var(--vscode-editor-background)",
         graphGrid: "var(--vscode-badge-background)",
         edge: "var(--vscode-editor-foreground)",
-        outlineHandleFill: "#00FF00",
+        outlineHandleFill: "#00ff00",
         outline: "#00FF00",
         graphHandlePreview: "var(--vscode-editor-foreground)",
     },
