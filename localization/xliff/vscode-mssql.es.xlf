@@ -1791,6 +1791,10 @@
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
         <target state="translated">No se puede expandir. Consulte los registros para obtener más información.</target>
       </trans-unit>
+      <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
+        <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
+        <target state="new">Unable to read proxy agent options to get tenants.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
         <source xml:lang="en">Update Database</source>
         <target state="translated">Actualizar base de datos</target>
@@ -2381,7 +2385,7 @@
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="new">Schema Compare (Preview)</target>
+        <target state="translated">Comparación de esquemas (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
