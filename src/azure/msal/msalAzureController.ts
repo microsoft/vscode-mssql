@@ -107,6 +107,7 @@ export class MsalAzureController extends AzureController {
     }
 
     public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
+        this.logger.verbose(`Logging in with with authType: ${authType}`);
         let azureAuth = await this.getAzureAuthInstance(authType);
         let response = await azureAuth!.startLogin();
         return response ? (response as IAccount) : undefined;
