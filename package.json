@@ -1652,7 +1652,7 @@
                         "title": "%mssql.walkthroughs.getStarted.enableModernFeatures.title%",
                         "description": "%mssql.walkthroughs.getStarted.enableModernFeatures.description%",
                         "media": {
-                            "image": "images/ux/enable-features.png",
+                            "image": "images/walkthroughs/enableModernFeatures.png",
                             "altText": "%mssql.walkthroughs.getStarted.enableModernFeatures.altText%"
                         },
                         "completionEvents": [
@@ -1665,7 +1665,7 @@
                         "title": "%mssql.walkthroughs.getStarted.connectToDatabase.title%",
                         "description": "%mssql.walkthroughs.getStarted.connectToDatabase.description%",
                         "media": {
-                            "image": "images/ux/connectionDialog.png",
+                            "image": "images/walkthroughs/connectToDatabase.png",
                             "altText": "%mssql.walkthroughs.getStarted.connectToDatabase.altText%"
                         },
                         "completionEvents": [
@@ -1673,12 +1673,12 @@
                         ]
                     },
                     {
-                        "id": "createANewTable",
-                        "title": "%mssql.walkthroughs.getStarted.createANewTable.title%",
-                        "description": "%mssql.walkthroughs.getStarted.createANewTable.description%",
+                        "id": "createNewTable",
+                        "title": "%mssql.walkthroughs.getStarted.createNewTable.title%",
+                        "description": "%mssql.walkthroughs.getStarted.createNewTable.description%",
                         "media": {
-                            "image": "images/ux/table-designer.png",
-                            "altText": "%mssql.walkthroughs.getStarted.createANewTable.altText%"
+                            "image": "images/walkthroughs/createNewTable.png",
+                            "altText": "%mssql.walkthroughs.getStarted.createNewTable.altText%"
                         },
                         "completionEvents": [
                             "onCommand:mssql.newTable",
@@ -1690,7 +1690,7 @@
                         "title": "%mssql.walkthroughs.getStarted.runQueries.title%",
                         "description": "%mssql.walkthroughs.getStarted.runQueries.description%",
                         "media": {
-                            "image": "images/ux/query-results.png",
+                            "image": "images/walkthroughs/runQueries.png",
                             "altText": "%mssql.walkthroughs.getStarted.runQueries.altText%"
                         },
                         "completionEvents": [
