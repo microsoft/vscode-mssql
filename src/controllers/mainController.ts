@@ -1993,20 +1993,18 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onSchemaCompare(node: any): Promise<void> {
-        if (node) {
-            const result = await this.schemaCompareService.getDefaultOptions();
-            const schemaCompareWebView = new SchemaCompareWebViewController(
-                this._context,
-                this._vscodeWrapper,
-                node,
-                this.schemaCompareService,
-                this._connectionMgr,
-                result,
-                SchemaCompare.Title,
-            );
+        const result = await this.schemaCompareService.getDefaultOptions();
+        const schemaCompareWebView = new SchemaCompareWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            node,
+            this.schemaCompareService,
+            this._connectionMgr,
+            result,
+            SchemaCompare.Title,
+        );
 
-            schemaCompareWebView.revealToForeground();
-        }
+        schemaCompareWebView.revealToForeground();
     }
 
     /**
