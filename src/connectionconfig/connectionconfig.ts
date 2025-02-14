@@ -232,14 +232,17 @@ export class ConnectionConfig implements IConnectionConfig {
         );
     }
 
-    /** Sort by profile name if available, otherwise fall back to server name or connection string */
-    private compareConnectionProfile(connA, connB) {
-        let nameA = connA.profileName
+    /** Compare function for sorting by profile name if available, otherwise fall back to server name or connection string */
+    private compareConnectionProfile(
+        connA: IConnectionProfile,
+        connB: IConnectionProfile,
+    ): number {
+        const nameA = connA.profileName
             ? connA.profileName
             : connA.server
               ? connA.server
               : connA.connectionString;
-        let nameB = connB.profileName
+        const nameB = connB.profileName
             ? connB.profileName
             : connB.server
               ? connB.server
