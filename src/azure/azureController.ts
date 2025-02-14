@@ -222,7 +222,7 @@ export abstract class AzureController {
     ): Promise<void> {
         if (
             session?.account &&
-            AzureController.isTokenInValid(
+            !AzureController.isTokenValid(
                 session.token!.token,
                 session.token!.expiresOn,
             )
@@ -245,12 +245,12 @@ export abstract class AzureController {
     }
 
     /**
-     * Returns true if token is invalid or expired
+     * Returns false if token is invalid or expired
      * @param token Token
      * @param token expiry
      */
-    public static isTokenInValid(token: string, expiresOn?: number): boolean {
-        return !token || AzureController.isTokenExpired(expiresOn);
+    public static isTokenValid(token: string, expiresOn?: number): boolean {
+        return !!token && !AzureController.isTokenExpired(expiresOn);
     }
 
     /**
