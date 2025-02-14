@@ -213,20 +213,20 @@ export const DesignerTable = ({
                                 }}
                                 onDragEnd={() => {
                                     if (
-                                        draggedRowId === undefined ||
-                                        draggedOverRowId === undefined
+                                        draggedRowId === -1 ||
+                                        draggedOverRowId === -1
                                     ) {
                                         return;
                                     }
                                     moveRows(draggedRowId, draggedOverRowId);
-                                    setDraggedRowId(undefined);
-                                    setDraggedOverRowId(undefined);
+                                    setDraggedRowId(-1);
+                                    setDraggedOverRowId(-1);
                                 }}
                                 onDrag={() => {
                                     setDraggedRowId(rowIndex);
                                 }}
                                 onDragStart={() => {
-                                    setDraggedOverRowId(undefined);
+                                    setDraggedOverRowId(-1);
                                     setDraggedRowId(rowIndex);
                                 }}
                             />
@@ -315,12 +315,8 @@ export const DesignerTable = ({
         }
     };
 
-    const [draggedRowId, setDraggedRowId] = useState<number | undefined>(
-        undefined,
-    );
-    const [draggedOverRowId, setDraggedOverRowId] = useState<
-        number | undefined
-    >(undefined);
+    const [draggedRowId, setDraggedRowId] = useState<number>(-1);
+    const [draggedOverRowId, setDraggedOverRowId] = useState<number>(-1);
     const [focusedRowId, setFocusedRowId] = useState<number | undefined>(
         undefined,
     );
