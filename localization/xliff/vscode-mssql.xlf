@@ -1807,7 +1807,7 @@
       <source xml:lang="en">Object Explorer filters</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
-      <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.</source>
+      <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
     </trans-unit>
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
@@ -1835,9 +1835,6 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
       <source xml:lang="en">Query plan visualization</source>
-    </trans-unit>
-    <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText">
-      <source xml:lang="en">Query results pane filtering</source>
     </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>
@@ -1935,6 +1932,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>
     </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText">
+      <source xml:lang="en">Sort and filter options for query results</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
       <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
     </trans-unit>
@@ -1957,7 +1957,7 @@
       <source xml:lang="en">True for the messages pane to be open by default; false for closed</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.description">
-      <source xml:lang="en">Understand what your query is doing by viewing the query plan.  See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</source>
+      <source xml:lang="en">Understand what your query is doing by viewing the query plan.&#10;See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</source>
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
@@ -1972,7 +1972,7 @@
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
-      <source xml:lang="en">Write a SQL query, and run it against your database.  You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as your default behavior.</source>
+      <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as your default behavior.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.description">
       <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
