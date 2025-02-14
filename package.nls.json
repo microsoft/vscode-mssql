@@ -178,7 +178,7 @@
     "mssql.walkthroughs.getStarted.createNewTable.description": "Create a new table in your database, or edit existing tables with the table designer.\nOnce you're done making your changes, click the 'Publish' button to send the changes to your database.",
     "mssql.walkthroughs.getStarted.createNewTable.altText": "Table Designer",
     "mssql.walkthroughs.getStarted.runQueries.title": "Run a SQL Query",
-    "mssql.walkthroughs.getStarted.runQueries.description": "Write a SQL query, and run it against your database.\nYou can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as your default behavior.",
+    "mssql.walkthroughs.getStarted.runQueries.description": "Write a SQL query, and run it against your database.\nYou can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.",
     "mssql.walkthroughs.getStarted.runQueries.altText": "Query editor and query results pane",
     "mssql.walkthroughs.nextSteps.title": "Next steps with MSSQL for Visual Studio Code",
     "mssql.walkthroughs.nextSteps.description": "Familiarize yourself with more features of the MSSQL extension that can help you be more productive.",

@@ -1611,11 +1611,11 @@
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.createANewTable.title">
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
     </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.createANewTable.description">
-      <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.</source>
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
+      <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
@@ -1765,7 +1765,7 @@
       <source xml:lang="en">MSSQL configuration</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
-      <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
+      <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
     </trans-unit>
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
@@ -1941,7 +1941,7 @@
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.createANewTable.altText">
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
     </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">

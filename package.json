@@ -1719,7 +1719,7 @@
                         "title": "%mssql.walkthroughs.nextSteps.viewQueryPlan.title%",
                         "description": "%mssql.walkthroughs.nextSteps.viewQueryPlan.description%",
                         "media": {
-                            "image": "images/ux/sql-plan-visualizer.png",
+                            "image": "images/walkthroughs/viewQueryPlan.png",
                             "altText": "%mssql.walkthroughs.nextSteps.viewQueryPlan.altText%"
                         },
                         "completionEvents": [
@@ -1733,7 +1733,7 @@
                         "title": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.title%",
                         "description": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.description%",
                         "media": {
-                            "image": "images/ux/object-explorer-filtering.png",
+                            "image": "images/walkthroughs/objectExplorerFilters.png",
                             "altText": "%mssql.walkthroughs.enxtSteps.objectExplorerFilters.altText%"
                         },
                         "completionEvents": [
