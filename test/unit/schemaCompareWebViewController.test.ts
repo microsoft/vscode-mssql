@@ -246,7 +246,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("start - called with sqlproject path - completes successfully", async () => {
+    test("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
         const mockSqlProjectNode = {
             treeDataProvider: {
                 roots: [
