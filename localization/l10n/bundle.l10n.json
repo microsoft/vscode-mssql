@@ -421,6 +421,7 @@
       "{0} is the provider"
     ]
   },
+  "Unable to read proxy agent options to get tenants.": "Unable to read proxy agent options to get tenants.",
   "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.": "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
   "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.": "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.",
   "Authentication failed due to a state mismatch, please close ADS and try again.": "Authentication failed due to a state mismatch, please close ADS and try again.",
