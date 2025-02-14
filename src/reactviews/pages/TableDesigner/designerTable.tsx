@@ -457,10 +457,17 @@ export const DesignerTable = ({
                                         backgroundColor: backgroundColor,
                                         width: "calc(100% - 10px)",
                                         borderTop:
-                                            draggedOverRowId === index
+                                            draggedOverRowId === index &&
+                                            draggedRowId !== index &&
+                                            draggedRowId > index
                                                 ? draggedOverBorder
                                                 : border,
-                                        borderBottom: border,
+                                        borderBottom:
+                                            draggedOverRowId === index &&
+                                            draggedRowId !== index &&
+                                            draggedRowId < index
+                                                ? draggedOverBorder
+                                                : border,
                                         borderLeft: border,
                                         borderRight: border,
                                         marginTop: rowError ? "5px" : "",
