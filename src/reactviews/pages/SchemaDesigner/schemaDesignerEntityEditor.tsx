@@ -810,10 +810,10 @@ function getUniqueDatatypes(schema: ISchema): string[] {
 
 function getNextColumnName(existingColumns: IColumn[]): string {
     let index = 1;
-    let columnName = `Column_${index}`;
+    let columnName = `column_${index}`;
     while (existingColumns.some((column) => column.name === columnName)) {
         index++;
-        columnName = `Column_${index}`;
+        columnName = `column_${index}`;
     }
     return columnName;
 }

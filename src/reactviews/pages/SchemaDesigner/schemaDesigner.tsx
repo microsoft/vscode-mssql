@@ -31,6 +31,8 @@ export const SchemaDesigner = () => {
 
     const [entity, setEntity] = useState<IEntity | undefined>(undefined);
 
+    const [schema, setSchema] = useState<azdataGraph.ISchema>(context.schema);
+
     const [incomingEdges, setIncomingEdges] = useState<IRelationship[]>([]);
     const [outgoingEdges, setOutgoingEdges] = useState<IRelationship[]>([]);
 
@@ -166,11 +168,16 @@ export const SchemaDesigner = () => {
             >
                 <SchemaDesignerEntityEditor
                     entity={entity!}
-                    schema={context.schema}
+                    schema={schema}
                     incomingEdges={incomingEdges}
                     outgoingEdges={outgoingEdges}
                     schemaDesigner={schemaDesigner}
-                    onClose={() => setDisplayEditor(false)}
+                    onClose={() => {
+                        setDisplayEditor(false);
+                        if (schemaDesigner) {
+                            setSchema(schemaDesigner.schema);
+                        }
+                    }}
                 />
             </div>
         </div>
