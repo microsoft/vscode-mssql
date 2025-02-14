@@ -519,11 +519,11 @@ export abstract class MsalAzureAuth {
             proxyStrictSSL,
         );
         if (!agentOptions || !agentOptions.host || !agentOptions.port) {
-            this.logger.verbose(
+            this.logger.error(
                 "Unable to read proxy agent options to create proxy agent.",
             );
             throw new Error(
-                "Unable to read proxy agent options to create proxy agent.",
+                LocalizedConstants.unableToGetProxyAgentOptionsToGetTenants,
             );
         }
 
