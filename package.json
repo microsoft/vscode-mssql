@@ -1257,8 +1257,8 @@
         },
         "mssql.resultsFontSize": {
             "type": [
-              "number",
-              "null"
+                "number",
+                "null"
             ],
             "maximum": 24,
             "description": "%mssql.resultsFontSize%",
@@ -1458,9 +1458,9 @@
           "description": "%mssql.logFilesRemovalLimit%"
         },
         "mssql.resultsGrid.autoSizeColumns": {
-          "type": "boolean",
-          "default": true,
-          "description": "%mssql.resultsGrid.autoSizeColumns%"
+            "type": "boolean",
+            "default": true,
+            "description": "%mssql.resultsGrid.autoSizeColumns%"
         },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",
