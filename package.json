@@ -921,11 +921,11 @@
           "dark": "media/disableActualExecutionPlan_dark.svg",
           "light": "media/disableActualExecutionPlan_light.svg"
         }
-            },
-            {
-                "command": "mssql.enableRichExperiences",
-                "title": "%mssql.enableRichExperiences%",
-                "category": "MS SQL"
+      },
+      {
+          "command": "mssql.enableRichExperiences",
+          "title": "%mssql.enableRichExperiences%",
+          "category": "MS SQL"
       }
     ],
     "keybindings": [
