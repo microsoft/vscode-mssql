@@ -332,6 +332,25 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
+            this._event.on(
+                Constants.cmdEnableRichExperiencesCommand,
+                async () => {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configEnableRichExperiences,
+                            true,
+                            vscode.ConfigurationTarget.Global,
+                        );
+
+                    // reload immediately so that the changes take effect
+                    await vscode.commands.executeCommand(
+                        "workbench.action.reloadWindow",
+                    );
+                },
+            );
+
             this.initializeQueryHistory();
 
             this.sqlTasksService = new SqlTasksService(
@@ -1853,18 +1872,7 @@ export default class MainController implements vscode.Disposable {
         this.doesExtensionLaunchedFileExist(); // create the "extensionLaunched" file since this takes the place of the release notes prompt
 
         if (response === LocalizedConstants.enableRichExperiences) {
-            await this._vscodeWrapper
-                .getConfiguration()
-                .update(
-                    Constants.configEnableRichExperiences,
-                    true,
-                    vscode.ConfigurationTarget.Global,
-                );
-
-            // reload immediately
-            await vscode.commands.executeCommand(
-                "workbench.action.reloadWindow",
-            );
+            await vscode.commands.executeCommand("mssql.enableRichExperiences");
         } else if (response === LocalizedConstants.Common.dontShowAgain) {
             await this._vscodeWrapper
                 .getConfiguration()
