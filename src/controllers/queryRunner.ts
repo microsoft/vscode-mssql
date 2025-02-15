@@ -634,8 +634,6 @@ export default class QueryRunner {
         // create a mapping of the ranges to get promises
         let tasks = selection.map((range) => {
             return async () => {
-                //TODO: instead of using get rows, we should use the data provider to fetch the data and get the sorted rows
-                //TODO: need to check if data is in memory or not from the data provider so we know if it's sorted
                 const result = await this.getRows(
                     range.fromRow,
                     range.toRow - range.fromRow + 1,
@@ -723,14 +721,12 @@ export default class QueryRunner {
     }
 
     public async sendToClipboard(
-        //TODO: what type is data?
         data: DbCellValue[][],
         batchId: number,
         resultId: number,
         selection: ISlickRange[],
         headersFlag,
     ) {
-        //TODO: filter array data based on the columns selected
         let copyString = "";
         if (headersFlag) {
             copyString = this.addHeaders(

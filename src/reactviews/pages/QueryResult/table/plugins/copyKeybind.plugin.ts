@@ -92,7 +92,6 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         uri: string,
         resultSetSummary: ResultSetSummary,
     ) {
-        //TODO: handle isdatainmemory just like context menu
         let selectedRanges = grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
