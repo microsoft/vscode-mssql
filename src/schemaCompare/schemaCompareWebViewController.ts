@@ -82,7 +82,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         this.operationId = generateOperationId();
 
-        if (!this.isTreeNodeInfoType(node)) {
+        if (node && !this.isTreeNodeInfoType(node)) {
             node = this.getFullSqlProjectsPathFromNode(node);
         }
 
@@ -106,7 +106,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         let source: mssql.SchemaCompareEndpointInfo;
 
         let connectionProfile: IConnectionProfile | undefined = sourceContext
-            ? (sourceContext.ConnectionInfo as IConnectionProfile)
+            ? (sourceContext.connectionInfo as IConnectionProfile)
             : undefined;
 
         if (connectionProfile) {
@@ -115,11 +115,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 sourceContext,
             );
         } else if (
+            sourceContext &&
             (sourceContext as string) &&
             (sourceContext as string).endsWith(".dacpac")
         ) {
             source = this.getEndpointInfoFromDacpac(sourceContext as string);
-        } else {
+        } else if (sourceContext) {
             source = this.getEndpointInfoFromProject(sourceContext as string);
         }
 

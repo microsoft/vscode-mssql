@@ -246,6 +246,50 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
+    test("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
+        const mockSqlProjectNode = {
+            treeDataProvider: {
+                roots: [
+                    {
+                        projectFileUri: {
+                            fsPath: "c:\\TestSqlProject\\TestProject.sqlproj",
+                        },
+                    },
+                ],
+            },
+        };
+
+        const scController = new SchemaCompareWebViewController(
+            mockContext,
+            vscodeWrapper.object,
+            mockSqlProjectNode,
+            mockSchemaCompareService.object,
+            mockConnectionManager.object,
+            deploymentOptionsResultMock,
+            schemaCompareWebViewTitle,
+        );
+
+        const expected = {
+            endpointType: 2,
+            packageFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            databaseName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            projectFilePath: "c:\\TestSqlProject\\TestProject.sqlproj",
+            targetScripts: [],
+            dataSchemaProvider: undefined,
+            extractTarget: 5,
+        };
+
+        assert.deepEqual(
+            scController.state.sourceEndpointInfo,
+            expected,
+            "sourceEndpointInfo should match the expected path",
+        );
+    });
+
     test("compare reducer - when called - completes successfully", async () => {
         const expectedCompareResultMock: mssql.SchemaCompareResult = {
             operationId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
