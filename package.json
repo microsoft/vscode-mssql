@@ -1250,20 +1250,20 @@
           "scope": "resource"
         },
         "mssql.resultsFontFamily": {
-          "type": "string",
-          "description": "%mssql.resultsFontFamily%",
-          "default": null,
-          "scope": "resource"
+            "type": "string",
+            "description": "%mssql.resultsFontFamily%",
+            "default": null,
+            "scope": "resource"
         },
         "mssql.resultsFontSize": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "maximum": 24,
-          "description": "%mssql.resultsFontSize%",
-          "default": null,
-          "scope": "resource"
+            "type": [
+              "number",
+              "null"
+            ],
+            "maximum": 24,
+            "description": "%mssql.resultsFontSize%",
+            "default": null,
+            "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
