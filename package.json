@@ -525,6 +525,10 @@
           "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
         },
         {
+          "command": "mssql.schemaCompare",
+          "when": "config.mssql.enableRichExperiences"
+        },
+        {
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/"
         },
