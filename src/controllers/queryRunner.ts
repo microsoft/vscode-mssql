@@ -616,33 +616,14 @@ export default class QueryRunner {
     ): Promise<void> {
         let copyString = "";
 
-        // add the column headers
         if (this.shouldIncludeHeaders(includeHeaders)) {
-            let firstCol: number;
-            let lastCol: number;
-            for (let range of selection) {
-                if (firstCol === undefined || range.fromCell < firstCol) {
-                    firstCol = range.fromCell;
-                }
-                if (lastCol === undefined || range.toCell > lastCol) {
-                    lastCol = range.toCell;
-                }
-            }
-            let columnRange: ISlickRange = {
-                fromCell: firstCol,
-                toCell: lastCol,
-                fromRow: undefined,
-                toRow: undefined,
-            };
-            let columnHeaders = this.getColumnHeaders(
+            copyString = this.addHeaders(
+                copyString,
                 batchId,
                 resultId,
-                columnRange,
+                selection,
             );
-            copyString += columnHeaders.join("\t");
-            copyString += os.EOL;
         }
-
         // sort the selections by row to maintain copy order
         selection.sort((a, b) => a.fromRow - b.fromRow);
 
@@ -653,6 +634,8 @@ export default class QueryRunner {
         // create a mapping of the ranges to get promises
         let tasks = selection.map((range) => {
             return async () => {
+                //TODO: instead of using get rows, we should use the data provider to fetch the data and get the sorted rows
+                //TODO: need to check if data is in memory or not from the data provider so we know if it's sorted
                 const result = await this.getRows(
                     range.fromRow,
                     range.toRow - range.fromRow + 1,
@@ -736,6 +719,150 @@ export default class QueryRunner {
             );
         }
 
+        await this.writeStringToClipboard(copyString);
+    }
+
+    public async sendToClipboard(
+        //TODO: what type is data?
+        data: DbCellValue[][],
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+        headersFlag,
+    ) {
+        //TODO: filter array data based on the columns selected
+        let copyString = "";
+        if (headersFlag) {
+            copyString = this.addHeaders(
+                copyString,
+                batchId,
+                resultId,
+                selection,
+            );
+        }
+
+        // create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = data;
+                let count = 0;
+                for (let row of result) {
+                    let rowNumber = count + range.fromRow;
+                    if (rowIdToSelectionMap.has(rowNumber)) {
+                        let rowSelection = rowIdToSelectionMap.get(rowNumber);
+                        rowSelection.push(range);
+                    } else {
+                        rowIdToSelectionMap.set(rowNumber, [range]);
+                    }
+                    rowIdToRowMap.set(rowNumber, row);
+                    count += 1;
+                }
+            };
+        });
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        // Go through all rows and get selections for them
+        let allRowIds = rowIdToRowMap.keys();
+        const endColumns = this.getSelectionEndColumns(
+            rowIdToRowMap,
+            rowIdToSelectionMap,
+        );
+        const firstColumn = endColumns[0];
+        const lastColumn = endColumns[1];
+        for (let rowId of allRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+
+            // sort selections by column to go from left to right
+            rowSelections.sort((a, b) => {
+                return a.fromCell < b.fromCell
+                    ? -1
+                    : a.fromCell > b.fromCell
+                      ? 1
+                      : 0;
+            });
+
+            for (let i = 0; i < rowSelections.length; i++) {
+                let rowSelection = rowSelections[i];
+
+                // Add tabs starting from the first column of the selection
+                for (let j = firstColumn; j < rowSelection.fromCell; j++) {
+                    copyString += "\t";
+                }
+                let cellObjects = row.slice(
+                    rowSelection.fromCell,
+                    rowSelection.toCell + 1,
+                );
+
+                // Remove newlines if requested
+                let cells = this.shouldRemoveNewLines()
+                    ? cellObjects.map((x) =>
+                          this.removeNewLines(x.displayValue),
+                      )
+                    : cellObjects.map((x) => x.displayValue);
+                copyString += cells.join("\t");
+
+                // Add tabs until the end column of the selection
+                for (let k = rowSelection.toCell; k < lastColumn; k++) {
+                    copyString += "\t";
+                }
+            }
+            copyString += os.EOL;
+        }
+
+        // Remove the last extra new line
+        if (copyString.length > 1) {
+            copyString = copyString.substring(
+                0,
+                copyString.length - os.EOL.length,
+            );
+        }
+
+        await this.writeStringToClipboard(copyString);
+    }
+
+    public addHeaders(
+        copyString: string,
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+    ): string {
+        // add the column headers
+        let firstCol: number;
+        let lastCol: number;
+        for (let range of selection) {
+            if (firstCol === undefined || range.fromCell < firstCol) {
+                firstCol = range.fromCell;
+            }
+            if (lastCol === undefined || range.toCell > lastCol) {
+                lastCol = range.toCell;
+            }
+        }
+        let columnRange: ISlickRange = {
+            fromCell: firstCol,
+            toCell: lastCol,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+        let columnHeaders = this.getColumnHeaders(
+            batchId,
+            resultId,
+            columnRange,
+        );
+        copyString += columnHeaders.join("\t");
+        copyString += os.EOL;
+        return copyString;
+    }
+
+    public async writeStringToClipboard(copyString: string): Promise<void> {
         let oldLang: string;
         if (process.platform === "darwin") {
             oldLang = process.env["LANG"];
