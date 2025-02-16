@@ -122,11 +122,11 @@ export const SchemaDesignerEntityEditor = (props: {
     // Storing column names inputs for focusing
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
-        useState<number>(0);
+        useState<number>(-1);
 
     const foreignKeyNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [lastForeignKeyNameInputIndex, setLastForeignKeyNameInputIndex] =
-        useState<number>(0);
+        useState<number>(-1);
 
     const columnsTableColumnDefinitions: TableColumnDefinition<IColumn>[] = [
         createTableColumn({
@@ -217,6 +217,8 @@ export const SchemaDesignerEntityEditor = (props: {
             setIncomingEdges(props.incomingEdges);
             setOutgoingEdges(props.outgoingEdges);
             setSelectedSchema([props.entity.schema]);
+            setLastColumnNameInputIndex(-1);
+            setLastForeignKeyNameInputIndex(-1);
         }
         if (entityNameRef.current) {
             entityNameRef.current?.focus();
@@ -513,6 +515,7 @@ export const SchemaDesignerEntityEditor = (props: {
                                     borderColor:
                                         "var(--vscode-badge-background)",
                                 }}
+                                key={`${edge.foreignKeyName}-${index}`}
                             >
                                 <CardHeader
                                     header={
