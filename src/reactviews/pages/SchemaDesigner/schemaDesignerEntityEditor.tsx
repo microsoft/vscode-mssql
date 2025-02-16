@@ -121,8 +121,12 @@ export const SchemaDesignerEntityEditor = (props: {
 
     // Storing column names inputs for focusing
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+    const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
+        useState<number>(0);
 
     const foreignKeyNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+    const [lastForeignKeyNameInputIndex, setLastForeignKeyNameInputIndex] =
+        useState<number>(0);
 
     const columnsTableColumnDefinitions: TableColumnDefinition<IColumn>[] = [
         createTableColumn({
@@ -223,6 +227,20 @@ export const SchemaDesignerEntityEditor = (props: {
         props.outgoingEdges,
         props.schemaDesigner,
     ]);
+
+    useEffect(() => {
+        if (lastColumnNameInputIndex >= 0) {
+            columnNameInputRefs.current[lastColumnNameInputIndex]?.focus();
+        }
+    }, [lastColumnNameInputIndex]);
+
+    useEffect(() => {
+        if (lastForeignKeyNameInputIndex >= 0) {
+            foreignKeyNameInputRefs.current[
+                lastForeignKeyNameInputIndex
+            ]?.focus();
+        }
+    }, [lastForeignKeyNameInputIndex]);
 
     function renderColumnTableCell(
         column: IColumn,
@@ -377,14 +395,7 @@ export const SchemaDesignerEntityEditor = (props: {
                                 isIdentity: false,
                             });
                             setTableColumns(newColumns);
-                            // Focus on the new row
-                            setTimeout(() => {
-                                if (columnNameInputRefs.current.length > 0) {
-                                    columnNameInputRefs.current[
-                                        columnNameInputRefs.current.length - 1
-                                    ]?.focus();
-                                }
-                            }, 100);
+                            setLastColumnNameInputIndex(newColumns.length - 1);
                         }}
                     >
                         {locConstants.schemaDesigner.newColumn}
@@ -475,14 +486,14 @@ export const SchemaDesignerEntityEditor = (props: {
                             onDeleteAction: OnAction.NO_ACTION,
                             onUpdateAction: OnAction.NO_ACTION,
                         };
-                        setOutgoingEdges([...outgoingEdges, newRelationship]);
-                        setTimeout(() => {
-                            if (foreignKeyNameInputRefs.current.length > 0) {
-                                foreignKeyNameInputRefs.current[
-                                    foreignKeyNameInputRefs.current.length - 1
-                                ]?.focus();
-                            }
-                        }, 100);
+                        const newOutgoingEdges = [
+                            ...outgoingEdges,
+                            newRelationship,
+                        ];
+                        setOutgoingEdges(newOutgoingEdges);
+                        setLastForeignKeyNameInputIndex(
+                            newOutgoingEdges.length - 1,
+                        );
                     }}
                 >
                     {locConstants.schemaDesigner.newForeignKey}
