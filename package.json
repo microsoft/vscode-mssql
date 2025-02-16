@@ -124,7 +124,7 @@
     "coveralls": "^3.0.2",
     "decache": "^4.1.0",
     "del": "^2.2.1",
-    "esbuild": "^0.22.0",
+    "esbuild": "^0.25.0",
     "esbuild-plugin-copy": "^2.1.1",
     "eslint": "^9.11.1",
     "eslint-config-prettier": "^9.1.0",
@@ -530,6 +530,10 @@
           "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
         },
         {
+          "command": "mssql.schemaCompare",
+          "when": "config.mssql.enableRichExperiences"
+        },
+        {
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/"
         },
@@ -708,6 +712,11 @@
       {
         "command": "mssql.newQuery",
         "title": "%mssql.newQuery%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.schemaCompare",
+        "title": "%mssql.schemaCompare%",
         "category": "MS SQL"
       },
       {
