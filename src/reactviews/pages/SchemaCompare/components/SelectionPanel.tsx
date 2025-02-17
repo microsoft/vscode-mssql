@@ -52,6 +52,10 @@ const useStyles = makeStyles({
         ...shorthands.margin("0", "32px"),
     },
 
+    buttonLeftSmallMargin: {
+        marginLeft: "2px",
+    },
+
     buttonLeftMargin: {
         marginLeft: "32px",
     },
@@ -94,7 +98,11 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                             value="C:\DatabaseProjects\SampleProj\SampleProj.sqlproj"
                             readOnly
                         />
-                        <Button size="large" icon={<AddFilled />} />
+                        <Button
+                            className={classes.buttonLeftSmallMargin}
+                            size="large"
+                            icon={<AddFilled />}
+                        />
                     </div>
                 </div>
 
@@ -128,7 +136,11 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                             value="C:\DatabaseProjects\SampleProj\SampleProj.sqlproj"
                             readOnly
                         />
-                        <Button size="large" icon={<AddFilled />} />
+                        <Button
+                            className={classes.buttonLeftSmallMargin}
+                            size="large"
+                            icon={<AddFilled />}
+                        />
                     </div>
                 </div>
 
