@@ -375,15 +375,28 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                         correlationId: this._correlationId,
                     },
                 );
-                state = {
-                    ...state,
-                    apiState: {
-                        ...state.apiState,
-                        previewState: designer.LoadState.Loaded,
-                        publishState: designer.LoadState.NotStarted,
-                    },
-                    generatePreviewReportResult: previewReport,
-                };
+
+                if (previewReport.schemaValidationError) {
+                    state = {
+                        ...state,
+                        apiState: {
+                            ...state.apiState,
+                            previewState: designer.LoadState.Error,
+                            publishState: designer.LoadState.NotStarted,
+                        },
+                        generatePreviewReportResult: previewReport,
+                    };
+                } else {
+                    state = {
+                        ...state,
+                        apiState: {
+                            ...state.apiState,
+                            previewState: designer.LoadState.Loaded,
+                            publishState: designer.LoadState.NotStarted,
+                        },
+                        generatePreviewReportResult: previewReport,
+                    };
+                }
                 return state;
             },
         );
