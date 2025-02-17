@@ -6,7 +6,7 @@
 import * as sc from "../../../sharedInterfaces/schemaCompare";
 import * as mssql from "vscode-mssql";
 
-import { createContext, ReactNode } from "react";
+import { createContext, ReactNode, useState } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const schemaCompareContext = createContext<sc.SchemaCompareContextProps>(
@@ -26,11 +26,27 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     >();
     const schemaCompareState = webViewState?.state;
 
+    const [openSelectSource, setOpenSelectSource] = useState(false);
+
     return (
         <schemaCompareContext.Provider
             value={{
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
+                selectSourceDrawer: {
+                    open: openSelectSource,
+                    setOpen: setOpenSelectSource,
+                },
+
+                getFilePath: function (
+                    endpointInfo: mssql.SchemaCompareEndpointInfo,
+                    fileType: string,
+                ): void {
+                    webViewState?.extensionRpc.action("getFilePath", {
+                        endpoint: endpointInfo,
+                        fileType: fileType,
+                    });
+                },
                 compare: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
@@ -128,4 +144,4 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     );
 };
 
-export { SchemaCompareStateProvider };
+export { schemaCompareContext, SchemaCompareStateProvider };

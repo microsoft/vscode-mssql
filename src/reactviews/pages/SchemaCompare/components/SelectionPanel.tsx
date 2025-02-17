@@ -15,6 +15,8 @@ import {
 } from "@fluentui/react-components";
 
 import { ArrowSwapFilled, AddFilled } from "@fluentui/react-icons";
+import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useContext } from "react";
 
 const useStyles = makeStyles({
     topMargin: {
@@ -67,6 +69,11 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
     const sourceId = useId("source");
     const targetId = useId("target");
     const classes = useStyles();
+    const context = useContext(schemaCompareContext);
+
+    const handleAddSource = () => {
+        context.selectSourceDrawer.setOpen(true);
+    };
 
     return (
         <>
@@ -102,6 +109,7 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                             className={classes.buttonLeftSmallMargin}
                             size="large"
                             icon={<AddFilled />}
+                            onClick={handleAddSource}
                         />
                     </div>
                 </div>

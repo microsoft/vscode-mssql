@@ -26,6 +26,7 @@ import {
     publishDatabaseChanges,
     publishProjectChanges,
     saveScmp,
+    getFile,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
@@ -61,6 +62,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 schemaCompareOpenScmpResult: undefined,
                 saveScmpResultStatus: undefined,
                 cancelResultStatus: undefined,
+                filePath: undefined,
             },
             {
                 title: title,
@@ -234,6 +236,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.registerReducer("getFilePath", async (state, payload) => {
+            const filePath = await getFile(payload);
+            if (filePath) {
+                let newState = state;
+                newState.filePath = filePath;
+                this.updateState(newState);
+
+                return newState;
+            }
+
+            return state;
+        });
+
         this.registerReducer("compare", async (state, payload) => {
             const result = await compare(
                 this.operationId,

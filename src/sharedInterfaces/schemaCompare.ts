@@ -18,9 +18,15 @@ export interface SchemaCompareWebViewState {
     schemaCompareOpenScmpResult: mssql.SchemaCompareOpenScmpResult;
     saveScmpResultStatus: mssql.ResultStatus;
     cancelResultStatus: mssql.ResultStatus;
+    filePath: string;
 }
 
 export interface SchemaCompareReducers {
+    getFilePath: {
+        endpoint: mssql.SchemaCompareEndpointInfo;
+        fileType: string;
+    };
+
     compare: {
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
@@ -71,9 +77,20 @@ export interface SchemaCompareReducers {
     cancel: {};
 }
 
+export interface SelectSourceDrawer {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+}
+
 export interface SchemaCompareContextProps {
     state: SchemaCompareWebViewState;
     themeKind: ColorThemeKind;
+    selectSourceDrawer: SelectSourceDrawer;
+
+    getFilePath: (
+        endpointInfo: mssql.SchemaCompareEndpointInfo,
+        fileType: string,
+    ) => void;
 
     compare: (
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
