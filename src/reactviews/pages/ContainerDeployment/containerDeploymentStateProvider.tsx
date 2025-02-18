@@ -36,8 +36,20 @@ const ContainerDeploymentStateProvider: React.FC<
         <ContainerDeploymentContext.Provider
             value={{
                 provider: {
+                    checkDockerInstallation: function (): void {
+                        webviewState?.extensionRpc.action(
+                            "checkDockerInstallation",
+                            {},
+                        );
+                    },
                     startDocker: function (): void {
                         webviewState?.extensionRpc.action("startDocker", {});
+                    },
+                    checkLinuxEngine: function (): void {
+                        webviewState?.extensionRpc.action(
+                            "checkLinuxEngine",
+                            {},
+                        );
                     },
                 },
                 state: webviewState?.state as cd.ContainerDeploymentWebviewState,

@@ -62,13 +62,6 @@ import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
-import {
-    addContainerConnection,
-    startDocker,
-    startSqlServerDockerContainer,
-    validateContainerName,
-    validateSqlServerPassword,
-} from "../utils/containerUtils";
 import { ContainerDeploymentWebviewController } from "./containerDeploymentWebviewController";
 
 /**

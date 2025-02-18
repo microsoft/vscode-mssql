@@ -44,6 +44,14 @@ export type DockerCommandParams = {
     port?: number;
 };
 
+export async function checkDockerInstallation(): Promise<boolean> {
+    return new Promise((resolve) => {
+        exec(COMMANDS.CHECK_DOCKER, (error) => {
+            resolve(!error);
+        });
+    });
+}
+
 export async function startDocker(): Promise<DockerCommandParams> {
     return new Promise((resolve) => {
         exec(COMMANDS.CHECK_DOCKER, (err) => {
