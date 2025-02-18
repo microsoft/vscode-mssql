@@ -181,7 +181,7 @@
 "mssql.walkthroughs.getStarted.runQueries.title": "Run a SQL Query",
 "mssql.walkthroughs.getStarted.runQueries.description": "Write a SQL query, and run it against your database.\nYou can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.",
 "mssql.walkthroughs.getStarted.runQueries.altText": "Query editor and query results pane",
-"mssql.walkthroughs.nextSteps.title": "Next steps with MSSQL for Visual Studio Code",
+"mssql.walkthroughs.nextSteps.title": "Next Steps with MSSQL for Visual Studio Code",
 "mssql.walkthroughs.nextSteps.description": "Familiarize yourself with more features of the MSSQL extension that can help you be more productive.",
 "mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title": "Sort and Filter Query Results",
 "mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description": "Sort and filter your query results to find the data you need quickly.",
