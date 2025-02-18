@@ -1872,7 +1872,9 @@ export default class MainController implements vscode.Disposable {
         this.doesExtensionLaunchedFileExist(); // create the "extensionLaunched" file since this takes the place of the release notes prompt
 
         if (response === LocalizedConstants.enableRichExperiences) {
-            await vscode.commands.executeCommand("mssql.enableRichExperiences");
+            await vscode.commands.executeCommand(
+                Constants.cmdEnableRichExperiencesCommand,
+            );
         } else if (response === LocalizedConstants.Common.dontShowAgain) {
             await this._vscodeWrapper
                 .getConfiguration()
