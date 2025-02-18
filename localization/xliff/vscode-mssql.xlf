@@ -1801,7 +1801,7 @@
       <source xml:lang="en">New Table</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.title">
-      <source xml:lang="en">Next steps with MSSQL for Visual Studio Code</source>
+      <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
     </trans-unit>
     <trans-unit id="mssql.logRetentionMinutes">
       <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
