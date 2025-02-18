@@ -1455,7 +1455,7 @@
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">Comparación de esquemas</target>
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
@@ -1793,7 +1793,7 @@
       </trans-unit>
       <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
-        <target state="new">Unable to read proxy agent options to get tenants.</target>
+        <target state="translated">No se pueden leer las opciones del agente proxy para obtener inquilinos.</target>
       </trans-unit>
       <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
         <source xml:lang="en">Update Database</source>
