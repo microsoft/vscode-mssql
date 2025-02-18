@@ -61,16 +61,14 @@ export class ConnectionConfig implements IConnectionConfig {
             groups.push(rootGroup);
         }
 
-        // Connection profiles
+        // Clean up connection profiles
         const profiles: IConnectionProfile[] = this.getProfilesFromSettings();
 
-        // ensure each profile has an id
         profiles.forEach((profile) => {
+            // ensure each profile has an id
             ConnectionProfile.addIdIfMissing(profile);
-        });
 
-        // ensure each profile is in a group
-        profiles.forEach((profile) => {
+            // ensure each profile is in a group
             if (!profile.groupId) {
                 profile.groupId = rootGroup.id;
             }

@@ -703,7 +703,7 @@ export class ObjectExplorerService {
                     if (Utils.isEmpty(password)) {
                         // if password isn't saved
                         if (
-                            !(<IConnectionProfile>connectionProfile)
+                            !(connectionProfile as IConnectionProfile)
                                 .savePassword
                         ) {
                             // prompt for password
