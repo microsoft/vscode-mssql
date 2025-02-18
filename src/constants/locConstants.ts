@@ -171,6 +171,9 @@ export function azureNoMicrosoftResource(provider: string) {
         comment: ["{0} is the provider"],
     });
 }
+export let unableToGetProxyAgentOptionsToGetTenants = l10n.t(
+    "Unable to read proxy agent options to get tenants.",
+);
 export let azureServerCouldNotStart = l10n.t(
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
 );
@@ -798,4 +801,8 @@ export class TableDesigner {
     public static General = l10n.t("General");
     public static Columns = l10n.t("Columns");
     public static AdvancedOptions = l10n.t("Advanced Options");
+}
+
+export class SchemaCompare {
+    public static Title = l10n.t("Schema Compare");
 }

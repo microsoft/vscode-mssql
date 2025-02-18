@@ -121,8 +121,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     setPropertiesClicked,
 }) => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
-    const theme = state!.themeKind;
+    const context = useContext(ExecutionPlanContext);
+    const theme = context!.themeKind;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
