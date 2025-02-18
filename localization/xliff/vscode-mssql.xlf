@@ -1653,6 +1653,9 @@
     <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
       <source xml:lang="en">Enable Modern Features</source>
     </trans-unit>
+    <trans-unit id="mssql.enableRichExperiences">
+      <source xml:lang="en">Enable Modern Features</source>
+    </trans-unit>
     <trans-unit id="mssql.query.alwaysEncryptedParameterization">
       <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
     </trans-unit>
