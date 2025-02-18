@@ -94,22 +94,22 @@ function isAzureDatabase(server: string): boolean {
  * Gets a label describing a connection in the picklist UI
  *
  * @export connectionInfo/getPicklistLabel
- * @param connCreds connection to create a label for
+ * @param connection connection to create a label for
  * @param itemType type of quickpick item to display - this influences the icon shown to the user
  * @returns user readable label
  */
-export function getPicklistLabel(
-    connCreds: IConnectionInfo,
-    itemType: Interfaces.CredentialsQuickPickItemType,
+export function getSimpleConnectionDisplayName(
+    connection: IConnectionInfo,
 ): string {
-    let profile: Interfaces.IConnectionProfile = <
-        Interfaces.IConnectionProfile
-    >connCreds;
+    let profile: Interfaces.IConnectionProfile =
+        connection as Interfaces.IConnectionProfile;
 
     if (profile.profileName) {
         return profile.profileName;
     } else {
-        return connCreds.server ? connCreds.server : connCreds.connectionString;
+        return connection.server
+            ? connection.server
+            : connection.connectionString;
     }
 }
 
