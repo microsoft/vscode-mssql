@@ -158,6 +158,7 @@
 "mssql.clearFilters":"Clear Filters",
 "mssql.openExecutionPlanFile":"Open Execution Plan File",
 "mssql.enableExperimentalFeatures.description":"Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
+"mssql.enableRichExperiences":"Enable Modern Features",
 "mssql.enableRichExperiences.description":"Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.",
 "mssql.enableRichExperiencesDoNotShowPrompt.description":"Do not show prompts to enable UI-based features",
 "mssql.openQueryResultsInTabByDefault.description":"Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.",

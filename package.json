@@ -1726,7 +1726,7 @@
             "description": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.description%",
             "media": {
               "image": "images/walkthroughs/objectExplorerFilters.png",
-              "altText": "%mssql.walkthroughs.enxtSteps.objectExplorerFilters.altText%"
+              "altText": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.altText%"
             },
             "completionEvents": [
               "onCommand:mssql.filterNodeWithExistingFilters",
