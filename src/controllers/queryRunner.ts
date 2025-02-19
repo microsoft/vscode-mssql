@@ -660,7 +660,7 @@ export default class QueryRunner {
         }
         await p;
 
-        this.constructCopyString(
+        copyString = this.constructCopyString(
             copyString,
             rowIdToRowMap,
             rowIdToSelectionMap,
@@ -714,7 +714,7 @@ export default class QueryRunner {
         }
         await p;
 
-        this.constructCopyString(
+        copyString = this.constructCopyString(
             copyString,
             rowIdToRowMap,
             rowIdToSelectionMap,
