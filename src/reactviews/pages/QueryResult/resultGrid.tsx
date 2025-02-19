@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import $ from "jquery";
-import {
-    forwardRef,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import "../../media/slickgrid.css";
 import { ACTIONBAR_WIDTH_PX, range, Table } from "./table/table";
 import { defaultTableStyles } from "./table/interfaces";
