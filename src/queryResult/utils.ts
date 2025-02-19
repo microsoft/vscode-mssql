@@ -156,6 +156,30 @@ export function registerCommonRequestHandlers(
                 message.selection,
             );
     });
+
+    webviewController.registerRequestHandler(
+        "sendToClipboard",
+        async (message) => {
+            sendActionEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CopyResults,
+                {
+                    correlationId: correlationId,
+                },
+            );
+            return webviewViewController
+                .getSqlOutputContentProvider()
+                .sendToClipboard(
+                    message.uri,
+                    message.data,
+                    message.batchId,
+                    message.resultId,
+                    message.selection,
+                    message.headersFlag,
+                );
+        },
+    );
+
     webviewController.registerRequestHandler(
         "copySelection",
         async (message) => {
