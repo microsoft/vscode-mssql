@@ -162,7 +162,7 @@ export class SqlOutputContentProvider {
         console.log(data);
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.sendToClipboard(
+            .queryRunner.exportCellsToClipboard(
                 data,
                 batchId,
                 resultId,

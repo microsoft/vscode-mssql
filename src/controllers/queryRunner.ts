@@ -617,7 +617,7 @@ export default class QueryRunner {
         let copyString = "";
 
         if (this.shouldIncludeHeaders(includeHeaders)) {
-            copyString = this.addHeaders(
+            copyString = this.addHeadersToCopyString(
                 copyString,
                 batchId,
                 resultId,
@@ -660,67 +660,16 @@ export default class QueryRunner {
         }
         await p;
 
-        // Go through all rows and get selections for them
-        let allRowIds = rowIdToRowMap.keys();
-        const endColumns = this.getSelectionEndColumns(
+        this.constructCopyString(
+            copyString,
             rowIdToRowMap,
             rowIdToSelectionMap,
         );
-        const firstColumn = endColumns[0];
-        const lastColumn = endColumns[1];
-        for (let rowId of allRowIds) {
-            let row = rowIdToRowMap.get(rowId);
-            const rowSelections = rowIdToSelectionMap.get(rowId);
-
-            // sort selections by column to go from left to right
-            rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell
-                    ? -1
-                    : a.fromCell > b.fromCell
-                      ? 1
-                      : 0;
-            });
-
-            for (let i = 0; i < rowSelections.length; i++) {
-                let rowSelection = rowSelections[i];
-
-                // Add tabs starting from the first column of the selection
-                for (let j = firstColumn; j < rowSelection.fromCell; j++) {
-                    copyString += "\t";
-                }
-                let cellObjects = row.slice(
-                    rowSelection.fromCell,
-                    rowSelection.toCell + 1,
-                );
-
-                // Remove newlines if requested
-                let cells = this.shouldRemoveNewLines()
-                    ? cellObjects.map((x) =>
-                          this.removeNewLines(x.displayValue),
-                      )
-                    : cellObjects.map((x) => x.displayValue);
-                copyString += cells.join("\t");
-
-                // Add tabs until the end column of the selection
-                for (let k = rowSelection.toCell; k < lastColumn; k++) {
-                    copyString += "\t";
-                }
-            }
-            copyString += os.EOL;
-        }
-
-        // Remove the last extra new line
-        if (copyString.length > 1) {
-            copyString = copyString.substring(
-                0,
-                copyString.length - os.EOL.length,
-            );
-        }
 
         await this.writeStringToClipboard(copyString);
     }
 
-    public async sendToClipboard(
+    public async exportCellsToClipboard(
         data: DbCellValue[][],
         batchId: number,
         resultId: number,
@@ -729,7 +678,7 @@ export default class QueryRunner {
     ) {
         let copyString = "";
         if (headersFlag) {
-            copyString = this.addHeaders(
+            copyString = this.addHeadersToCopyString(
                 copyString,
                 batchId,
                 resultId,
@@ -765,6 +714,20 @@ export default class QueryRunner {
         }
         await p;
 
+        this.constructCopyString(
+            copyString,
+            rowIdToRowMap,
+            rowIdToSelectionMap,
+        );
+
+        await this.writeStringToClipboard(copyString);
+    }
+
+    private constructCopyString(
+        copyString: string,
+        rowIdToRowMap: Map<number, DbCellValue[]>,
+        rowIdToSelectionMap: Map<number, ISlickRange[]>,
+    ) {
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
         const endColumns = this.getSelectionEndColumns(
@@ -821,11 +784,18 @@ export default class QueryRunner {
                 copyString.length - os.EOL.length,
             );
         }
-
-        await this.writeStringToClipboard(copyString);
+        return copyString;
     }
 
-    public addHeaders(
+    /**
+     * Add the column headers to the copy string
+     * @param copyString
+     * @param batchId
+     * @param resultId
+     * @param selection
+     * @returns
+     */
+    public addHeadersToCopyString(
         copyString: string,
         batchId: number,
         resultId: number,
