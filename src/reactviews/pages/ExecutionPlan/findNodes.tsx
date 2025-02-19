@@ -231,8 +231,8 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 onClick={() => setFindNodeClicked(false)}
                 size="small"
                 appearance="subtle"
-                title={locConstants.queryResult.close}
-                aria-label={locConstants.queryResult.close}
+                title={locConstants.common.close}
+                aria-label={locConstants.common.close}
                 icon={<Dismiss20Regular />}
             />
         </div>

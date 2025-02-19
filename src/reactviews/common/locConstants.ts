@@ -30,6 +30,7 @@ export class LocConstants {
                     comment: ["{0} is the action being confirmed"],
                 }),
             close: l10n.t("Close"),
+            apply: l10n.t("Apply"),
         };
     }
 

@@ -96,6 +96,7 @@
     ]
   },
   "Close": "Close",
+  "Apply": "Apply",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -301,7 +302,6 @@
   "Copy Headers": "Copy Headers",
   "NULL": "NULL",
   "Blanks": "Blanks",
-  "Apply": "Apply",
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",

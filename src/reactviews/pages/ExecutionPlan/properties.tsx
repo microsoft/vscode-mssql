@@ -369,8 +369,8 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                 background: tokens.colorNeutralBackground2,
                             }}
                             onClick={() => setPropertiesClicked(false)}
-                            title={locConstants.queryResult.close}
-                            aria-label={locConstants.queryResult.close}
+                            title={locConstants.common.close}
+                            aria-label={locConstants.common.close}
                             icon={<Dismiss12Regular />}
                         />
                     </div>

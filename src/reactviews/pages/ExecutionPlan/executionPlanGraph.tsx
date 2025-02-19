@@ -318,16 +318,16 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                             onClick={handleCustomZoomInput}
                             size="small"
                             appearance="subtle"
-                            title={locConstants.queryResult.apply}
-                            aria-label={locConstants.queryResult.apply}
+                            title={locConstants.common.apply}
+                            aria-label={locConstants.common.apply}
                             icon={<Checkmark20Regular />}
                         />
                         <Button
                             icon={<Dismiss20Regular />}
                             size="small"
                             appearance="subtle"
-                            title={locConstants.queryResult.close}
-                            aria-label={locConstants.queryResult.close}
+                            title={locConstants.common.close}
+                            aria-label={locConstants.common.close}
                             onClick={() => setCustomZoomClicked(false)}
                         />
                     </div>
