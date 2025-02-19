@@ -18,7 +18,8 @@ export interface SchemaCompareWebViewState {
     schemaCompareOpenScmpResult: mssql.SchemaCompareOpenScmpResult;
     saveScmpResultStatus: mssql.ResultStatus;
     cancelResultStatus: mssql.ResultStatus;
-    filePath: string;
+    dacpacPath: string;
+    sqlProjPath: string;
 }
 
 export interface SchemaCompareReducers {

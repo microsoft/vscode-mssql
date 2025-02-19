@@ -136,6 +136,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareOpenScmpResult: undefined,
             saveScmpResultStatus: undefined,
             cancelResultStatus: undefined,
+            dacpacPath: undefined,
+            sqlProjPath: undefined,
         };
 
         mockContext = {

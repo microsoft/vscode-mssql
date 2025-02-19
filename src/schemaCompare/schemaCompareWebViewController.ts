@@ -62,7 +62,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 schemaCompareOpenScmpResult: undefined,
                 saveScmpResultStatus: undefined,
                 cancelResultStatus: undefined,
-                filePath: undefined,
+                dacpacPath: undefined,
+                sqlProjPath: undefined,
             },
             {
                 title: title,
@@ -240,7 +241,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const filePath = await getFile(payload);
             if (filePath) {
                 let newState = state;
-                newState.filePath = filePath;
+
+                if (payload.fileType === "dacpac") {
+                    newState.dacpacPath = filePath;
+                } else if (payload.fileType === "sqlproj") {
+                    newState.sqlProjPath = filePath;
+                }
                 this.updateState(newState);
 
                 return newState;

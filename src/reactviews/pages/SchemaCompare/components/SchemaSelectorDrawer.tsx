@@ -24,7 +24,7 @@ import {
     FolderFilled,
     PlugDisconnectedFilled,
 } from "@fluentui/react-icons";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
 const useStyles = makeStyles({
@@ -54,11 +54,24 @@ const useStyles = makeStyles({
 interface Props extends InputProps {}
 
 const SchemaSelectorDrawer = (props: Props) => {
+    const classes = useStyles();
+    const context = useContext(schemaCompareContext);
+
     const fileId = useId("file");
     const serverId = useId("server");
     const databaseId = useId("database");
-    const context = useContext(schemaCompareContext);
-    const classes = useStyles();
+
+    const [schemaType, setSchemaType] = useState("database");
+    const [disableOkButton, setDisableOkButton] = useState(true);
+
+    useEffect(() => {
+        context.state.dacpacPath = "";
+        context.state.sqlProjPath = "";
+    }, []);
+
+    useEffect(() => {
+        updateOkButtonState(schemaType);
+    }, [context.state.dacpacPath, context.state.sqlProjPath]);
 
     let drawerTitle = "";
     if (context.selectSourceDrawer.open) {
@@ -69,11 +82,29 @@ const SchemaSelectorDrawer = (props: Props) => {
         context.selectSourceDrawer.setOpen(false);
     };
 
+    const updateOkButtonState = (type: string) => {
+        if (type === "dacpac") {
+            setDisableOkButton(
+                context.state.dacpacPath === "" ||
+                    context.state.dacpacPath === undefined,
+            );
+        } else if (type === "sqlproj") {
+            setDisableOkButton(
+                context.state.sqlProjPath === "" ||
+                    context.state.sqlProjPath === undefined,
+            );
+        }
+    };
+
+    const handleSchemaTypeChange = (type: string) => {
+        setSchemaType(type);
+
+        updateOkButtonState(type);
+    };
+
     const handleSelectFile = () => {
         context.getFilePath(context.state.sourceEndpointInfo, schemaType);
     };
-
-    const [schemaType, setSchemaType] = useState("database");
 
     return (
         <InlineDrawer
@@ -101,7 +132,9 @@ const SchemaSelectorDrawer = (props: Props) => {
                 <Field label="Type">
                     <RadioGroup
                         value={schemaType}
-                        onChange={(_, data) => setSchemaType(data.value)}
+                        onChange={(_, data) =>
+                            handleSchemaTypeChange(data.value)
+                        }
                     >
                         <Radio value="database" label="Database" />
                         <Radio
@@ -112,7 +145,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                     </RadioGroup>
                 </Field>
 
-                {schemaType !== "database" && (
+                {schemaType === "dacpac" && (
                     <>
                         <Label
                             htmlFor={fileId}
@@ -126,7 +159,35 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 id={fileId}
                                 className={classes.fileInputWidth}
                                 {...props}
-                                value={context.state.filePath || ""}
+                                value={context.state.dacpacPath || ""}
+                                readOnly
+                            />
+
+                            <Button
+                                className={classes.buttonLeftMargin}
+                                size="large"
+                                icon={<FolderFilled />}
+                                onClick={handleSelectFile}
+                            />
+                        </div>
+                    </>
+                )}
+
+                {schemaType === "sqlproj" && (
+                    <>
+                        <Label
+                            htmlFor={fileId}
+                            size={props.size}
+                            disabled={props.disabled}
+                        >
+                            File
+                        </Label>
+                        <div className={classes.positionItemsHorizontally}>
+                            <Input
+                                id={fileId}
+                                className={classes.fileInputWidth}
+                                {...props}
+                                value={context.state.sqlProjPath || ""}
                                 readOnly
                             />
 
@@ -154,7 +215,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 id={serverId}
                                 className={classes.fileInputWidth}
                                 {...props}
-                                value={context.state.filePath || ""}
+                                value={""}
                                 readOnly
                             />
 
@@ -175,17 +236,14 @@ const SchemaSelectorDrawer = (props: Props) => {
                             id={databaseId}
                             className={classes.fileInputWidth}
                             {...props}
-                            value={context.state.filePath || ""}
+                            value={""}
                             readOnly
                         />
                     </>
                 )}
             </DrawerBody>
             <DrawerFooter className={classes.footer}>
-                <Button
-                    disabled={(context.state.filePath || "") === ""}
-                    appearance="primary"
-                >
+                <Button disabled={disableOkButton} appearance="primary">
                     OK
                 </Button>
                 <Button appearance="secondary" onClick={closeDrawer}>
