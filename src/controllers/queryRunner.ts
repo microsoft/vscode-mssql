@@ -640,16 +640,12 @@ export default class QueryRunner {
                     batchId,
                     resultId,
                 );
-                for (let row of result.resultSubset.rows) {
-                    let rowNumber = row[0].rowId + range.fromRow;
-                    if (rowIdToSelectionMap.has(rowNumber)) {
-                        let rowSelection = rowIdToSelectionMap.get(rowNumber);
-                        rowSelection.push(range);
-                    } else {
-                        rowIdToSelectionMap.set(rowNumber, [range]);
-                    }
-                    rowIdToRowMap.set(rowNumber, row);
-                }
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
             };
         });
 
@@ -694,18 +690,12 @@ export default class QueryRunner {
         let tasks = selection.map((range) => {
             return async () => {
                 const result = data;
-                let count = 0;
-                for (let row of result) {
-                    let rowNumber = count + range.fromRow;
-                    if (rowIdToSelectionMap.has(rowNumber)) {
-                        let rowSelection = rowIdToSelectionMap.get(rowNumber);
-                        rowSelection.push(range);
-                    } else {
-                        rowIdToSelectionMap.set(rowNumber, [range]);
-                    }
-                    rowIdToRowMap.set(rowNumber, row);
-                    count += 1;
-                }
+                this.getRowMappings(
+                    result,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
             };
         });
         let p = tasks[0]();
@@ -721,6 +711,26 @@ export default class QueryRunner {
         );
 
         await this.writeStringToClipboard(copyString);
+    }
+
+    private getRowMappings(
+        data: DbCellValue[][],
+        range: ISlickRange,
+        rowIdToSelectionMap,
+        rowIdToRowMap,
+    ) {
+        let count = 0;
+        for (let row of data) {
+            let rowNumber = count + range.fromRow;
+            if (rowIdToSelectionMap.has(rowNumber)) {
+                let rowSelection = rowIdToSelectionMap.get(rowNumber);
+                rowSelection.push(range);
+            } else {
+                rowIdToSelectionMap.set(rowNumber, [range]);
+            }
+            rowIdToRowMap.set(rowNumber, row);
+            count += 1;
+        }
     }
 
     private constructCopyString(
