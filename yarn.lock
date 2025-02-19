@@ -3414,11 +3414,12 @@ axobject-query@^4.1.0:
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-4.1.0.tgz#28768c76d0e3cff21bc62a9e2d0b6ac30042a1ee"
   integrity sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==
 
-"azdataGraph@github:Microsoft/azdataGraph#0.0.90":
-  version "0.0.90"
-  resolved "https://codeload.github.com/Microsoft/azdataGraph/tar.gz/277695964fd0de0b542fd01d24a253dcdfb1dbbf"
+"azdataGraph@github:Microsoft/azdataGraph#0.0.95":
+  version "0.0.95"
+  resolved "https://codeload.github.com/Microsoft/azdataGraph/tar.gz/3be5cad3b500245d0382e7070d3edb19c982232a"
   dependencies:
     create-color "^2.0.6"
+    uuid "^11.0.5"
 
 azure-devops-node-api@^12.5.0:
   version "12.5.0"
@@ -12473,6 +12474,11 @@ util@0.10.3:
   integrity sha1-evsa/lCAUkZInj23/g7TeTNqwPk=
   dependencies:
     inherits "2.0.1"
+
+uuid@^11.0.5:
+  version "11.0.5"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.0.5.tgz#07b46bdfa6310c92c3fb3953a8720f170427fc62"
+  integrity sha512-508e6IcKLrhxKdBbcA2b4KQZlLVp2+J5UwQ6F7Drckkc5N9ZJwFa4TgWtsww9UG8fGHbm6gbV19TdM5pQ4GaIA==
 
 uuid@^3.3.2:
   version "3.4.0"

@@ -33,8 +33,8 @@ import {
 } from "@fluentui/react-components";
 import {
     IColumn,
-    IEntity,
-    IRelationship,
+    ITable,
+    IForeignKey,
     ISchema,
     OnAction,
 } from "../../../sharedInterfaces/schemaDesigner";
@@ -42,6 +42,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import * as azdataGraph from "azdataGraph";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles({
     editor: {
@@ -93,11 +94,9 @@ const useStyles = makeStyles({
     },
 });
 
-export const SchemaDesignerEntityEditor = (props: {
-    entity: IEntity;
+export const SchemaDesignerTableEditor = (props: {
+    table: ITable;
     schema: ISchema;
-    incomingEdges: IRelationship[];
-    outgoingEdges: IRelationship[];
     schemaDesigner: azdataGraph.SchemaDesigner | undefined;
     onClose: () => void;
 }) => {
@@ -110,8 +109,7 @@ export const SchemaDesignerEntityEditor = (props: {
     const [tableName, setTableName] = useState<string>("");
     const [nameValidation, _setNameValidation] = useState<string>("");
     const [tableColumns, setTableColumns] = useState<IColumn[]>([]);
-    const [incomingEdges, setIncomingEdges] = useState<IRelationship[]>([]);
-    const [outgoingEdges, setOutgoingEdges] = useState<IRelationship[]>([]);
+    const [tableForeignKeys, setTableForeignKeys] = useState<IForeignKey[]>([]);
     const datatypes = useMemo(
         () => getUniqueDatatypes(props.schema),
         [props.schema],
@@ -156,12 +154,19 @@ export const SchemaDesignerEntityEditor = (props: {
     ];
 
     function getColumnDeleteButtonState(column: IColumn): boolean {
-        // If there is an incoming or outgoing edge with this column, disable delete
-        return incomingEdges.some(
-            (edge) => edge.referencedColumn === column.name,
-        )
-            ? true
-            : outgoingEdges.some((edge) => edge.column === column.name);
+        // If there is an incoming or outgoing foreign key with this column, disable delete
+        const doesColumnHaveForeignKey =
+            tableForeignKeys.filter((fk) => fk.columns.includes(column.name))
+                .length > 0;
+
+        const isColumnAlsoAReferencedColumn =
+            getAllEntities(props.schema, props.table).filter((table) => {
+                return table.foreignKeys.some((fk) =>
+                    fk.referencedColumns.includes(column.name),
+                );
+            }).length > 0;
+
+        return doesColumnHaveForeignKey || isColumnAlsoAReferencedColumn;
     }
 
     const [columnsTableSizingOptions, _setColumnsTableSizingOptions] =
@@ -210,25 +215,19 @@ export const SchemaDesignerEntityEditor = (props: {
 
     useEffect(() => {
         setSelectedTabValue("table");
-        if (props.entity) {
-            setTableColumns(props.entity.columns);
-            setTableName(props.entity.name);
-            setSchemaName(props.entity.schema);
-            setIncomingEdges(props.incomingEdges);
-            setOutgoingEdges(props.outgoingEdges);
-            setSelectedSchema([props.entity.schema]);
+        if (props.table) {
+            setTableColumns(JSON.parse(JSON.stringify(props.table.columns)));
+            setTableName(props.table.name);
+            setSchemaName(props.table.schema);
+            setTableForeignKeys(props.table.foreignKeys.slice());
+            setSelectedSchema([props.table.schema]);
             setLastColumnNameInputIndex(-1);
             setLastForeignKeyNameInputIndex(-1);
         }
         if (entityNameRef.current) {
             entityNameRef.current?.focus();
         }
-    }, [
-        props.entity,
-        props.incomingEdges,
-        props.outgoingEdges,
-        props.schemaDesigner,
-    ]);
+    }, [props.table, props.schemaDesigner]);
 
     useEffect(() => {
         if (lastColumnNameInputIndex >= 0) {
@@ -391,6 +390,7 @@ export const SchemaDesignerEntityEditor = (props: {
                         onClick={() => {
                             const newColumns = [...tableColumns];
                             newColumns.push({
+                                id: uuidv4(),
                                 name: getNextColumnName(tableColumns),
                                 dataType: datatypes[0],
                                 isPrimaryKey: false,
@@ -472,29 +472,27 @@ export const SchemaDesignerEntityEditor = (props: {
                     }}
                     icon={<AddRegular />}
                     onClick={() => {
-                        const firstEntity = getAllEntities(
+                        const firstTable = getAllEntities(
                             props.schema,
-                            props.entity,
+                            props.table,
                         )[0];
-                        const newRelationship: IRelationship = {
-                            foreignKeyName:
-                                getNextForeignKeyName(outgoingEdges),
-                            schemaName: schemaName,
-                            entity: tableName,
-                            column: tableColumns[0].name,
-                            referencedSchema: firstEntity.schema,
-                            referencedEntity: firstEntity.name,
-                            referencedColumn: firstEntity.columns[0].name,
-                            onDeleteAction: OnAction.NO_ACTION,
-                            onUpdateAction: OnAction.NO_ACTION,
+                        const newForeignKey: IForeignKey = {
+                            id: uuidv4(),
+                            name: getNextForeignKeyName(tableForeignKeys),
+                            columns: [tableColumns[0].name],
+                            referencedSchemaName: firstTable.schema,
+                            referencedTableName: firstTable.name,
+                            referencedColumns: [firstTable.columns[0].name],
+                            onDeleteAction: OnAction.CASCADE,
+                            onUpdateAction: OnAction.CASCADE,
                         };
-                        const newOutgoingEdges = [
-                            ...outgoingEdges,
-                            newRelationship,
+                        const newForeignKeys = [
+                            ...tableForeignKeys,
+                            newForeignKey,
                         ];
-                        setOutgoingEdges(newOutgoingEdges);
+                        setTableForeignKeys(newForeignKeys);
                         setLastForeignKeyNameInputIndex(
-                            newOutgoingEdges.length - 1,
+                            newForeignKeys.length - 1,
                         );
                     }}
                 >
@@ -507,7 +505,7 @@ export const SchemaDesignerEntityEditor = (props: {
                         padding: "5px",
                     }}
                 >
-                    {outgoingEdges.map((edge, index) => {
+                    {tableForeignKeys.map((fk, index) => {
                         return (
                             <Card
                                 style={{
@@ -515,7 +513,7 @@ export const SchemaDesignerEntityEditor = (props: {
                                     borderColor:
                                         "var(--vscode-badge-background)",
                                 }}
-                                key={`${edge.foreignKeyName}-${index}`}
+                                key={`${fk.name}-${index}`}
                             >
                                 <CardHeader
                                     header={
@@ -530,11 +528,13 @@ export const SchemaDesignerEntityEditor = (props: {
                                             appearance="subtle"
                                             icon={<DeleteRegular />}
                                             onClick={() => {
-                                                const newEdges = [
-                                                    ...outgoingEdges,
+                                                const newForeignKeys = [
+                                                    ...tableForeignKeys,
                                                 ];
-                                                newEdges.splice(index, 1);
-                                                setOutgoingEdges(newEdges);
+                                                newForeignKeys.splice(index, 1);
+                                                setTableForeignKeys(
+                                                    newForeignKeys,
+                                                );
                                             }}
                                         ></Button>
                                     }
@@ -546,10 +546,7 @@ export const SchemaDesignerEntityEditor = (props: {
                                         </Label>
                                         <Input
                                             size="small"
-                                            value={
-                                                outgoingEdges[index]
-                                                    .foreignKeyName
-                                            }
+                                            value={tableForeignKeys[index].name}
                                             ref={(ref) => {
                                                 foreignKeyNameInputRefs.current[
                                                     index
@@ -557,11 +554,10 @@ export const SchemaDesignerEntityEditor = (props: {
                                             }}
                                             onChange={(_e, d) => {
                                                 const newEdges = [
-                                                    ...outgoingEdges,
+                                                    ...tableForeignKeys,
                                                 ];
-                                                newEdges[index].foreignKeyName =
-                                                    d.value;
-                                                setOutgoingEdges(newEdges);
+                                                newEdges[index].name = d.value;
+                                                setTableForeignKeys(newEdges);
                                             }}
                                         />
                                     </Field>
@@ -576,36 +572,39 @@ export const SchemaDesignerEntityEditor = (props: {
                                         </Label>
                                         <Dropdown
                                             size="small"
-                                            value={`${edge.referencedSchema}.${edge.referencedEntity}`}
+                                            value={`${fk.referencedSchemaName}.${fk.referencedTableName}`}
                                             selectedOptions={[
-                                                `${edge.referencedSchema}.${edge.referencedEntity}`,
+                                                `${fk.referencedSchemaName}.${fk.referencedTableName}`,
                                             ]}
                                             multiselect={false}
                                             onOptionSelect={(_e, data) => {
                                                 if (!data.optionText) {
                                                     return;
                                                 }
-                                                const newEdges = [
-                                                    ...outgoingEdges,
+                                                const newForeignKeys = [
+                                                    ...tableForeignKeys,
                                                 ];
                                                 const entity =
                                                     getEntityFromDisplayName(
                                                         props.schema,
                                                         data.optionText,
                                                     );
-                                                newEdges[
+                                                newForeignKeys[
                                                     index
-                                                ].referencedEntity =
+                                                ].referencedTableName =
                                                     entity.name;
-                                                newEdges[
+                                                newForeignKeys[
                                                     index
-                                                ].referencedSchema =
+                                                ].referencedSchemaName =
                                                     entity.schema;
-                                                newEdges[
+                                                newForeignKeys[
                                                     index
-                                                ].referencedColumn =
-                                                    entity.columns[0].name;
-                                                setOutgoingEdges(newEdges);
+                                                ].referencedColumns = [
+                                                    entity.columns[0].name,
+                                                ];
+                                                setTableForeignKeys(
+                                                    newForeignKeys,
+                                                );
                                             }}
                                             style={{
                                                 minWidth: "auto",
@@ -613,7 +612,7 @@ export const SchemaDesignerEntityEditor = (props: {
                                         >
                                             {getAllEntities(
                                                 props.schema,
-                                                props.entity,
+                                                props.table,
                                             )
                                                 .slice()
                                                 .sort((a, b) => {
@@ -649,19 +648,21 @@ export const SchemaDesignerEntityEditor = (props: {
                                         </Label>
                                         <Dropdown
                                             size="small"
-                                            value={edge.column}
-                                            selectedOptions={[edge.column]}
+                                            value={fk.columns[0]}
+                                            selectedOptions={[fk.columns[0]]}
                                             multiselect={false}
                                             onOptionSelect={(_e, data) => {
                                                 if (!data.optionText) {
                                                     return;
                                                 }
-                                                const newEdges = [
-                                                    ...outgoingEdges,
+                                                const newForeignKeys = [
+                                                    ...tableForeignKeys,
                                                 ];
-                                                newEdges[index].column =
-                                                    data.optionText;
-                                                setOutgoingEdges(newEdges);
+                                                newForeignKeys[index].columns =
+                                                    [data.optionText];
+                                                setTableForeignKeys(
+                                                    newForeignKeys,
+                                                );
                                             }}
                                             style={{
                                                 minWidth: "auto",
@@ -695,23 +696,26 @@ export const SchemaDesignerEntityEditor = (props: {
                                         </Label>
                                         <Dropdown
                                             size="small"
-                                            value={edge.referencedColumn}
+                                            value={fk.referencedColumns[0]}
                                             selectedOptions={[
-                                                edge.referencedColumn,
+                                                fk.referencedColumns[0],
                                             ]}
                                             multiselect={false}
                                             onOptionSelect={(_e, data) => {
                                                 if (!data.optionText) {
                                                     return;
                                                 }
-                                                const newEdges = [
-                                                    ...outgoingEdges,
+                                                const newForeignKeys = [
+                                                    ...tableForeignKeys,
                                                 ];
-                                                newEdges[
+                                                newForeignKeys[
                                                     index
-                                                ].referencedColumn =
-                                                    data.optionText;
-                                                setOutgoingEdges(newEdges);
+                                                ].referencedColumns = [
+                                                    data.optionText,
+                                                ];
+                                                setTableForeignKeys(
+                                                    newForeignKeys,
+                                                );
                                             }}
                                             style={{
                                                 minWidth: "auto",
@@ -719,7 +723,7 @@ export const SchemaDesignerEntityEditor = (props: {
                                         >
                                             {getEntityFromDisplayName(
                                                 props.schema,
-                                                `${edge.referencedSchema}.${edge.referencedEntity}`,
+                                                `${fk.referencedSchemaName}.${fk.referencedTableName}`,
                                             )
                                                 .columns.slice()
                                                 .sort((a, b) => {
@@ -748,7 +752,7 @@ export const SchemaDesignerEntityEditor = (props: {
         );
     }
 
-    if (!props.entity || !props.schema) {
+    if (!props.table || !props.schema) {
         return undefined;
     }
 
@@ -774,14 +778,13 @@ export const SchemaDesignerEntityEditor = (props: {
                     appearance="primary"
                     onClick={() => {
                         if (props.schemaDesigner) {
-                            props.schemaDesigner.updateActiveCellStateEntity(
-                                {
-                                    name: tableName,
-                                    schema: schemaName,
-                                    columns: tableColumns,
-                                },
-                                outgoingEdges,
-                            );
+                            props.schemaDesigner.updateActiveCellStateTable({
+                                id: props.table.id,
+                                name: tableName,
+                                schema: schemaName,
+                                columns: tableColumns,
+                                foreignKeys: tableForeignKeys,
+                            });
                         }
                         props.onClose();
                     }}
@@ -804,7 +807,7 @@ export const SchemaDesignerEntityEditor = (props: {
 
 function getUniqueSchemaNames(schema: ISchema): string[] {
     const schemaNames: Set<string> = new Set<string>();
-    schema.entities.forEach((entity) => {
+    schema.tables.forEach((entity) => {
         schemaNames.add(entity.schema);
     });
     return Array.from(schemaNames).sort((a, b) =>
@@ -814,8 +817,8 @@ function getUniqueSchemaNames(schema: ISchema): string[] {
 
 function getUniqueDatatypes(schema: ISchema): string[] {
     const datatypes: Set<string> = new Set<string>();
-    schema.entities.forEach((entity) => {
-        entity.columns.forEach((column) => {
+    schema.tables.forEach((table) => {
+        table.columns.forEach((column) => {
             datatypes.add(column.dataType);
         });
     });
@@ -832,20 +835,18 @@ function getNextColumnName(existingColumns: IColumn[]): string {
     return columnName;
 }
 
-function getNextForeignKeyName(existingEdges: IRelationship[]): string {
+function getNextForeignKeyName(existingEdges: IForeignKey[]): string {
     let index = 1;
     let foreignKeyName = `FK_${index}`;
-    while (
-        existingEdges.some((edge) => edge.foreignKeyName === foreignKeyName)
-    ) {
+    while (existingEdges.some((edge) => edge.name === foreignKeyName)) {
         index++;
         foreignKeyName = `FK_${index}`;
     }
     return foreignKeyName;
 }
 
-function getAllEntities(schema: ISchema, currentEntity: IEntity): IEntity[] {
-    return schema.entities
+function getAllEntities(schema: ISchema, currentEntity: ITable): ITable[] {
+    return schema.tables
         .filter(
             (entity) =>
                 entity.schema !== currentEntity.schema ||
@@ -857,8 +858,8 @@ function getAllEntities(schema: ISchema, currentEntity: IEntity): IEntity[] {
 function getEntityFromDisplayName(
     schema: ISchema,
     displayName: string,
-): IEntity {
-    return schema.entities.find(
+): ITable {
+    return schema.tables.find(
         (entity) => `${entity.schema}.${entity.name}` === displayName,
     )!;
 }

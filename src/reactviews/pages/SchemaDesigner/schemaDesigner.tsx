@@ -10,13 +10,10 @@ import "azdataGraph/dist/index.css";
 import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
-import {
-    IEntity,
-    IRelationship,
-} from "../../../sharedInterfaces/schemaDesigner";
 import { config } from "./schemaDesignerConfig";
 import { mxCell } from "mxgraph";
-import { SchemaDesignerEntityEditor } from "./schemaDesignerEntityEditor";
+import { SchemaDesignerTableEditor } from "./schemaDesignerEntityEditor";
+import { ITable } from "../../../sharedInterfaces/schemaDesigner";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
@@ -29,12 +26,9 @@ export const SchemaDesigner = () => {
 
     const [displayEditor, setDisplayEditor] = useState(false);
 
-    const [entity, setEntity] = useState<IEntity | undefined>(undefined);
+    const [table, setTable] = useState<ITable | undefined>(undefined);
 
     const [schema, setSchema] = useState<azdataGraph.ISchema>(context.schema);
-
-    const [incomingEdges, setIncomingEdges] = useState<IRelationship[]>([]);
-    const [outgoingEdges, setOutgoingEdges] = useState<IRelationship[]>([]);
 
     const graphContainerRef = useRef<HTMLDivElement | null>(null);
     const editorDivRef = useRef<HTMLDivElement | null>(null);
@@ -67,14 +61,13 @@ export const SchemaDesigner = () => {
             }
             div.innerHTML = "";
             const schemaDesignerConfig = config;
-            schemaDesignerConfig.editEntity = async (
+            schemaDesignerConfig.editTable = async (
+                table,
                 cell,
                 x,
                 y,
                 scale,
-                incomingEdges,
-                outgoingEdges,
-                _model,
+                model,
             ) => {
                 const cellPosition = calculateEditorPosition(
                     x,
@@ -99,18 +92,8 @@ export const SchemaDesigner = () => {
                     scale,
                 );
 
-                setEntity(cell.value as IEntity);
-
-                setOutgoingEdges(
-                    outgoingEdges.map((edge) => edge.value as IRelationship),
-                );
-                setIncomingEdges(
-                    incomingEdges.map((edge) => edge.value as IRelationship),
-                );
-            };
-
-            schemaDesignerConfig.editRelationship = (cell, _x, _y, _scale) => {
-                return cell.value as IRelationship;
+                setTable(table);
+                setSchema(model);
             };
 
             schemaDesignerConfig.updateEditorPosition = (x, y, scale) => {
@@ -166,11 +149,9 @@ export const SchemaDesigner = () => {
                     display: displayEditor ? "block" : "none",
                 }}
             >
-                <SchemaDesignerEntityEditor
-                    entity={entity!}
+                <SchemaDesignerTableEditor
+                    table={table!}
                     schema={schema}
-                    incomingEdges={incomingEdges}
-                    outgoingEdges={outgoingEdges}
                     schemaDesigner={schemaDesigner}
                     onClose={() => {
                         setDisplayEditor(false);

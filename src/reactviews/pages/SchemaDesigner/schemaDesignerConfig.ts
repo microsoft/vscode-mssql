@@ -7,11 +7,7 @@ import { SchemaDesignerConfig } from "azdataGraph/dist/src/ts/schemaDesigner/sch
 import * as schemaDesignerIcons from "./schemaDesignerIcons";
 const connectorIcon = require("./icons/connector.svg");
 import * as azdataGraph from "azdataGraph";
-import {
-    ISchema,
-    IEntity,
-    IRelationship,
-} from "../../../sharedInterfaces/schemaDesigner";
+import { ISchema, ITable } from "../../../sharedInterfaces/schemaDesigner";
 
 export const config: SchemaDesignerConfig = {
     icons: {
@@ -51,26 +47,14 @@ export const config: SchemaDesignerConfig = {
     },
     graphFontFamily: "",
     isEditable: true,
-    editEntity: function (
+    editTable: function (
+        _table: ITable,
         _cell: azdataGraph.mxCell,
         _x: number,
         _y: number,
         _scale: number,
-        _incomingEdges: azdataGraph.mxCell[],
-        _outgoingEdges: azdataGraph.mxCell[],
         _model: ISchema,
-    ): Promise<{
-        editedEntity: IEntity;
-        editedOutgoingEdges: IRelationship[];
-    }> {
-        throw new Error("Function not implemented.");
-    },
-    editRelationship: function (
-        _cell: azdataGraph.mxCell,
-        _x: number,
-        _y: number,
-        _scale: number,
-    ): IRelationship {
+    ): Promise<ITable> {
         throw new Error("Function not implemented.");
     },
     updateEditorPosition: function (
