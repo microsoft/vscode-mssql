@@ -10,8 +10,9 @@ import {
     ResultSetSummary,
 } from "../../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-import { tryCombineSelectionsForResults } from "../utils";
+import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import { Keys } from "../../keys";
+import { IDisposableDataProvider } from "../dataProvider";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -33,6 +34,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             QueryResultWebviewState,
             QueryResultReducers
         >,
+        private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
@@ -93,11 +95,37 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         let selectedRanges = grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
-        await webViewState.extensionRpc.call("copySelection", {
-            uri: uri,
-            batchId: resultSetSummary.batchId,
-            resultId: resultSetSummary.id,
-            selection: selection,
-        });
+        if (this.dataProvider.isDataInMemory) {
+            let range = selectionToRange(selection[0]);
+            let data = await this.dataProvider.getRangeAsync(
+                range.start,
+                range.length,
+            );
+            const dataArray = data.map((map) => {
+                const maxKey = Math.max(
+                    ...Array.from(Object.keys(map)).map(Number),
+                ); // Get the maximum key
+                return Array.from({ length: maxKey + 1 }, (_, index) => ({
+                    rowId: index,
+                    displayValue: map[index].displayValue || null,
+                }));
+            });
+
+            await this.webViewState.extensionRpc.call("sendToClipboard", {
+                uri: this.uri,
+                data: dataArray,
+                batchId: this.resultSetSummary.batchId,
+                resultId: this.resultSetSummary.id,
+                selection: selection,
+                headersFlag: false,
+            });
+        } else {
+            await webViewState.extensionRpc.call("copySelection", {
+                uri: uri,
+                batchId: resultSetSummary.batchId,
+                resultId: resultSetSummary.id,
+                selection: selection,
+            });
+        }
     }
 }

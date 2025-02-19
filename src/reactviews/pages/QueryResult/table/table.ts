@@ -85,7 +85,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         state: QueryResultContextProps,
         linkHandler: (value: string, type: string) => void,
         private gridId: string,
-        configuration?: ITableConfiguration<T>,
+        private configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
     ) {
@@ -168,10 +168,20 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             ),
         );
         this.registerPlugin(
-            new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
+            new ContextMenu(
+                this.uri,
+                this.resultSetSummary,
+                this.webViewState,
+                this.configuration.dataProvider as IDisposableDataProvider<T>,
+            ),
         );
         this.registerPlugin(
-            new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
+            new CopyKeybind(
+                this.uri,
+                this.resultSetSummary,
+                this.webViewState,
+                this.configuration.dataProvider as IDisposableDataProvider<T>,
+            ),
         );
 
         this.registerPlugin(
