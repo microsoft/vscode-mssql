@@ -82,7 +82,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         >,
         state: QueryResultState,
         linkHandler: (value: string, type: string) => void,
-        configuration?: ITableConfiguration<T>,
+        private configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
     ) {
@@ -160,10 +160,20 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new HeaderFilter(webViewState.themeKind, this.queryResultState),
         );
         this.registerPlugin(
-            new ContextMenu(this.uri, this.resultSetSummary, this.webViewState),
+            new ContextMenu(
+                this.uri,
+                this.resultSetSummary,
+                this.webViewState,
+                this.configuration.dataProvider as IDisposableDataProvider<T>,
+            ),
         );
         this.registerPlugin(
-            new CopyKeybind(this.uri, this.resultSetSummary, this.webViewState),
+            new CopyKeybind(
+                this.uri,
+                this.resultSetSummary,
+                this.webViewState,
+                this.configuration.dataProvider as IDisposableDataProvider<T>,
+            ),
         );
 
         this.registerPlugin(
