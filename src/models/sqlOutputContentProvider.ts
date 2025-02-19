@@ -159,7 +159,6 @@ export class SqlOutputContentProvider {
         selection: ISlickRange[],
         headersFlag: boolean,
     ): void {
-        console.log(data);
         void this._queryResultsMap
             .get(uri)
             .queryRunner.exportCellsToClipboard(
