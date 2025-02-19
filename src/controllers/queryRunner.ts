@@ -713,6 +713,13 @@ export default class QueryRunner {
         await this.writeStringToClipboard(copyString);
     }
 
+    /**
+     * Construct the row mappings, which contain the row data and selection data and are used to construct the copy string
+     * @param data
+     * @param range
+     * @param rowIdToSelectionMap
+     * @param rowIdToRowMap
+     */
     private getRowMappings(
         data: DbCellValue[][],
         range: ISlickRange,
