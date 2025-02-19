@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IConnectionProfile } from "../../../models/interfaces";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { FormState } from "../../common/forms/form";
 
 export interface ContainerDeploymentWebviewState {
     containerDeploymentState: ContainerDeploymentState;
@@ -11,7 +13,7 @@ export interface ContainerDeploymentWebviewState {
     errorMessage?: string;
 }
 
-export interface ContainerDeploymentState {
+export class ContainerDeploymentState implements FormState<IConnectionProfile> {
     dockerInstallStatus: {
         loadState: ApiStatus;
         errorMessage?: string;
@@ -24,14 +26,9 @@ export interface ContainerDeploymentState {
         loadState: ApiStatus;
         errorMessage?: string;
     };
-    containerStatus: {
-        loadState: ApiStatus;
-        errorMessage?: string;
-        containerName: string;
-        password: string;
-        version: string;
-        port: number;
-    };
+    containerLoadState: ApiStatus.Loading;
+    version: string;
+    formState: IConnectionProfile;
     platform: string;
 }
 

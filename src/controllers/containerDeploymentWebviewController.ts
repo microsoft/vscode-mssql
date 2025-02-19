@@ -10,6 +10,8 @@ import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import ConnectionManager from "./connectionManager";
 import { exec } from "child_process";
 import { platform } from "os";
+import { IConnectionProfile } from "../models/interfaces";
+import { sqlAuthentication } from "../constants/constants";
 
 export class ContainerDeploymentWebviewController extends ReactWebviewPanelController<
     cd.ContainerDeploymentWebviewState,
@@ -34,13 +36,9 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     dockerEngineStatus: {
                         loadState: ApiStatus.Loading,
                     },
-                    containerStatus: {
-                        loadState: ApiStatus.Loading,
-                        containerName: "",
-                        password: "",
-                        version: "2022",
-                        port: 1433,
-                    },
+                    formState: getDefaultConnectionProfile(),
+                    version: "2022",
+                    containerLoadState: ApiStatus.Loading,
                     platform: platform(),
                 },
             },
@@ -185,4 +183,23 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             });
         });
     }
+}
+
+export function getDefaultConnectionProfile(): IConnectionProfile {
+    const connection: any = {
+        connectionString: undefined,
+        profileName: "",
+        encrypt: "Mandatory",
+        trustServerCertificate: true,
+        server: "",
+        database: "",
+        user: "SA",
+        password: "",
+        applicationName: "vscode-mssql",
+        authenticationType: sqlAuthentication,
+        savePassword: true,
+        containerName: "",
+    };
+
+    return connection;
 }
