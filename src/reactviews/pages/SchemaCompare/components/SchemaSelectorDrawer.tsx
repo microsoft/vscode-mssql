@@ -6,6 +6,7 @@
 import {
     Button,
     DrawerBody,
+    DrawerFooter,
     DrawerHeader,
     DrawerHeaderTitle,
     Field,
@@ -18,7 +19,11 @@ import {
     RadioGroup,
     useId,
 } from "@fluentui/react-components";
-import { Dismiss24Regular, FolderFilled } from "@fluentui/react-icons";
+import {
+    Dismiss24Regular,
+    FolderFilled,
+    PlugDisconnectedFilled,
+} from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
@@ -39,25 +44,36 @@ const useStyles = makeStyles({
     buttonLeftMargin: {
         marginLeft: "2px",
     },
+
+    footer: {
+        display: "flex",
+        justifyContent: "flex-end",
+    },
 });
 
 interface Props extends InputProps {}
 
 const SchemaSelectorDrawer = (props: Props) => {
     const fileId = useId("file");
+    const serverId = useId("server");
+    const databaseId = useId("database");
     const context = useContext(schemaCompareContext);
     const classes = useStyles();
-
-    const handleSelectFile = () => {
-        context.getFilePath(context.state.sourceEndpointInfo, "dacpac");
-    };
 
     let drawerTitle = "";
     if (context.selectSourceDrawer.open) {
         drawerTitle = "Select Source";
     }
 
-    const [value, setValue] = useState(0);
+    const closeDrawer = () => {
+        context.selectSourceDrawer.setOpen(false);
+    };
+
+    const handleSelectFile = () => {
+        context.getFilePath(context.state.sourceEndpointInfo, schemaType);
+    };
+
+    const [schemaType, setSchemaType] = useState("database");
 
     return (
         <InlineDrawer
@@ -73,9 +89,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                             appearance="subtle"
                             aria-label="Close"
                             icon={<Dismiss24Regular />}
-                            onClick={() =>
-                                context.selectSourceDrawer.setOpen(false)
-                            }
+                            onClick={closeDrawer}
                         />
                     }
                 >
@@ -86,42 +100,98 @@ const SchemaSelectorDrawer = (props: Props) => {
             <DrawerBody>
                 <Field label="Type">
                     <RadioGroup
-                        value={value.toString()}
-                        onChange={(_, data) => setValue(Number(data.value))}
+                        value={schemaType}
+                        onChange={(_, data) => setSchemaType(data.value)}
                     >
-                        <Radio value="0" label="Database" />
+                        <Radio value="database" label="Database" />
                         <Radio
-                            value="1"
+                            value="dacpac"
                             label="Data-tier Application File (.dacpac)"
                         />
-                        <Radio value="2" label="Database Project" />
+                        <Radio value="sqlproj" label="Database Project" />
                     </RadioGroup>
                 </Field>
 
-                <Label
-                    htmlFor={fileId}
-                    size={props.size}
-                    disabled={props.disabled}
-                >
-                    File
-                </Label>
-                <div className={classes.positionItemsHorizontally}>
-                    <Input
-                        id={fileId}
-                        className={classes.fileInputWidth}
-                        {...props}
-                        value={context.state.filePath || ""}
-                        readOnly
-                    />
+                {schemaType !== "database" && (
+                    <>
+                        <Label
+                            htmlFor={fileId}
+                            size={props.size}
+                            disabled={props.disabled}
+                        >
+                            File
+                        </Label>
+                        <div className={classes.positionItemsHorizontally}>
+                            <Input
+                                id={fileId}
+                                className={classes.fileInputWidth}
+                                {...props}
+                                value={context.state.filePath || ""}
+                                readOnly
+                            />
 
-                    <Button
-                        className={classes.buttonLeftMargin}
-                        size="large"
-                        icon={<FolderFilled />}
-                        onClick={handleSelectFile}
-                    />
-                </div>
+                            <Button
+                                className={classes.buttonLeftMargin}
+                                size="large"
+                                icon={<FolderFilled />}
+                                onClick={handleSelectFile}
+                            />
+                        </div>
+                    </>
+                )}
+
+                {schemaType === "database" && (
+                    <>
+                        <Label
+                            htmlFor={serverId}
+                            size={props.size}
+                            disabled={props.disabled}
+                        >
+                            Server
+                        </Label>
+                        <div className={classes.positionItemsHorizontally}>
+                            <Input
+                                id={serverId}
+                                className={classes.fileInputWidth}
+                                {...props}
+                                value={context.state.filePath || ""}
+                                readOnly
+                            />
+
+                            <Button
+                                className={classes.buttonLeftMargin}
+                                size="large"
+                                icon={<PlugDisconnectedFilled />}
+                            />
+                        </div>
+                        <Label
+                            htmlFor={databaseId}
+                            size={props.size}
+                            disabled={props.disabled}
+                        >
+                            Database
+                        </Label>
+                        <Input
+                            id={databaseId}
+                            className={classes.fileInputWidth}
+                            {...props}
+                            value={context.state.filePath || ""}
+                            readOnly
+                        />
+                    </>
+                )}
             </DrawerBody>
+            <DrawerFooter className={classes.footer}>
+                <Button
+                    disabled={(context.state.filePath || "") === ""}
+                    appearance="primary"
+                >
+                    OK
+                </Button>
+                <Button appearance="secondary" onClick={closeDrawer}>
+                    Cancel
+                </Button>
+            </DrawerFooter>
         </InlineDrawer>
     );
 };
