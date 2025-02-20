@@ -64,4 +64,7 @@ export const config: SchemaDesignerConfig = {
     ): void {
         throw new Error("Function not implemented.");
     },
+    publish(_schema: ISchema): void {
+        throw new Error("Function not implemented.");
+    },
 };
