@@ -10,6 +10,7 @@ import {
 } from "../../../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../../../common/locConstants";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { QueryResultContextProps } from "../../queryResultStateProvider";
 import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
 import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
@@ -18,18 +19,13 @@ import "./contextMenu.css";
 export class ContextMenu<T extends Slick.SlickData> {
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
-    private uri: string;
-    private resultSetSummary: ResultSetSummary;
-    private webViewState: VscodeWebviewContext<
-        QueryResultWebviewState,
-        QueryResultReducers
-    >;
     private activeContextMenu: JQuery<HTMLElement> | null = null;
 
     constructor(
-        uri: string,
-        resultSetSummary: ResultSetSummary,
-        webViewState: VscodeWebviewContext<
+        private uri: string,
+        private resultSetSummary: ResultSetSummary,
+        private queryResultContext: QueryResultContextProps,
+        private webViewState: VscodeWebviewContext<
             QueryResultWebviewState,
             QueryResultReducers
         >,
@@ -105,7 +101,7 @@ export class ContextMenu<T extends Slick.SlickData> {
         let selection = tryCombineSelectionsForResults(selectedRanges);
         switch (action) {
             case "select-all":
-                console.log("Select All action triggered");
+                this.queryResultContext.log("Select All action triggered");
                 const data = this.grid.getData() as HybridDataProvider<T>;
                 let selectionModel = this.grid.getSelectionModel();
                 selectionModel.setSelectedRanges([
@@ -118,7 +114,11 @@ export class ContextMenu<T extends Slick.SlickData> {
                 ]);
                 break;
             case "copy":
+                this.queryResultContext.log("Copy action triggered");
                 if (this.dataProvider.isDataInMemory) {
+                    this.queryResultContext.log(
+                        "Sorted/filtered grid detected, fetching data from data provider",
+                    );
                     let range = selectionToRange(selection[0]);
                     let data = await this.dataProvider.getRangeAsync(
                         range.start,
@@ -157,10 +157,17 @@ export class ContextMenu<T extends Slick.SlickData> {
                     });
                 }
 
-                console.log("Copy action triggered");
                 break;
             case "copy-with-headers":
+                this.queryResultContext.log(
+                    "Copy with headers action triggered",
+                );
+
                 if (this.dataProvider.isDataInMemory) {
+                    this.queryResultContext.log(
+                        "Sorted/filtered grid detected, fetching data from data provider",
+                    );
+
                     let range = selectionToRange(selection[0]);
                     let data = await this.dataProvider.getRangeAsync(
                         range.start,
@@ -204,13 +211,13 @@ export class ContextMenu<T extends Slick.SlickData> {
 
                 break;
             case "copy-headers":
+                this.queryResultContext.log("Copy Headers action triggered");
                 await this.webViewState.extensionRpc.call("copyHeaders", {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
                     selection: selection,
                 });
-                console.log("Copy Headers action triggered");
                 break;
             default:
                 console.warn("Unknown action:", action);

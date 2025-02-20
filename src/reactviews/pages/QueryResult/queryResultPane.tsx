@@ -357,7 +357,6 @@ export const QueryResultPane = () => {
                     gridParentRef={gridParentRef}
                     uri={state?.uri}
                     webViewState={webViewState}
-                    context={context}
                     linkHandler={linkHandler}
                     gridId={gridId}
                 />
