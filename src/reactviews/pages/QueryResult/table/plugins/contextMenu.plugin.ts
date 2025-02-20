@@ -10,8 +10,9 @@ import {
 } from "../../../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../../../common/locConstants";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
-import { tryCombineSelectionsForResults } from "../utils";
+import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import "./contextMenu.css";
 
 export class ContextMenu<T extends Slick.SlickData> {
@@ -32,6 +33,7 @@ export class ContextMenu<T extends Slick.SlickData> {
             QueryResultWebviewState,
             QueryResultReducers
         >,
+        private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
@@ -116,24 +118,90 @@ export class ContextMenu<T extends Slick.SlickData> {
                 ]);
                 break;
             case "copy":
-                await this.webViewState.extensionRpc.call("copySelection", {
-                    uri: this.uri,
-                    batchId: this.resultSetSummary.batchId,
-                    resultId: this.resultSetSummary.id,
-                    selection: selection,
-                });
+                if (this.dataProvider.isDataInMemory) {
+                    let range = selectionToRange(selection[0]);
+                    let data = await this.dataProvider.getRangeAsync(
+                        range.start,
+                        range.length,
+                    );
+                    const dataArray = data.map((map) => {
+                        const maxKey = Math.max(
+                            ...Array.from(Object.keys(map)).map(Number),
+                        ); // Get the maximum key
+                        return Array.from(
+                            { length: maxKey + 1 },
+                            (_, index) => ({
+                                rowId: index,
+                                displayValue: map[index].displayValue || null,
+                            }),
+                        );
+                    });
+
+                    await this.webViewState.extensionRpc.call(
+                        "sendToClipboard",
+                        {
+                            uri: this.uri,
+                            data: dataArray,
+                            batchId: this.resultSetSummary.batchId,
+                            resultId: this.resultSetSummary.id,
+                            selection: selection,
+                            headersFlag: false,
+                        },
+                    );
+                } else {
+                    await this.webViewState.extensionRpc.call("copySelection", {
+                        uri: this.uri,
+                        batchId: this.resultSetSummary.batchId,
+                        resultId: this.resultSetSummary.id,
+                        selection: selection,
+                    });
+                }
 
                 console.log("Copy action triggered");
                 break;
             case "copy-with-headers":
-                await this.webViewState.extensionRpc.call("copyWithHeaders", {
-                    uri: this.uri,
-                    batchId: this.resultSetSummary.batchId,
-                    resultId: this.resultSetSummary.id,
-                    selection: selection,
-                });
+                if (this.dataProvider.isDataInMemory) {
+                    let range = selectionToRange(selection[0]);
+                    let data = await this.dataProvider.getRangeAsync(
+                        range.start,
+                        range.length,
+                    );
+                    const dataArray = data.map((map) => {
+                        const maxKey = Math.max(
+                            ...Array.from(Object.keys(map)).map(Number),
+                        ); // Get the maximum key
+                        return Array.from(
+                            { length: maxKey + 1 },
+                            (_, index) => ({
+                                rowId: index,
+                                displayValue: map[index].displayValue || null,
+                            }),
+                        );
+                    });
 
-                console.log("Copy with Headers action triggered");
+                    await this.webViewState.extensionRpc.call(
+                        "sendToClipboard",
+                        {
+                            uri: this.uri,
+                            data: dataArray,
+                            batchId: this.resultSetSummary.batchId,
+                            resultId: this.resultSetSummary.id,
+                            selection: selection,
+                            headersFlag: true,
+                        },
+                    );
+                } else {
+                    await this.webViewState.extensionRpc.call(
+                        "copyWithHeaders",
+                        {
+                            uri: this.uri,
+                            batchId: this.resultSetSummary.batchId,
+                            resultId: this.resultSetSummary.id,
+                            selection: selection,
+                        },
+                    );
+                }
+
                 break;
             case "copy-headers":
                 await this.webViewState.extensionRpc.call("copyHeaders", {

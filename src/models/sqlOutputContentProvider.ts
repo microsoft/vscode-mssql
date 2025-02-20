@@ -151,6 +151,25 @@ export class SqlOutputContentProvider {
             );
     }
 
+    public sendToClipboard(
+        uri: string,
+        data: Array<any>,
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+        headersFlag: boolean,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.exportCellsToClipboard(
+                data,
+                batchId,
+                resultId,
+                selection,
+                headersFlag,
+            );
+    }
+
     public editorSelectionRequestHandler(
         uri: string,
         selection: ISelectionData,
