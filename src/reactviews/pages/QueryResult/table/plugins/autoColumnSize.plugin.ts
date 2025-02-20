@@ -41,14 +41,10 @@ export class AutoColumnSize<T extends Slick.SlickData>
     private _context!: CanvasRenderingContext2D;
     private _options: IAutoColumnSizeOptions;
     private onPostEventHandler = new Slick.EventHandler();
-    private webViewState: VscodeWebviewContext<
-        QueryResultWebviewState,
-        QueryResultReducers
-    >;
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
-        webViewState: VscodeWebviewContext<
+        private webViewState: VscodeWebviewContext<
             QueryResultWebviewState,
             QueryResultReducers
         >,

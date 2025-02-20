@@ -10,6 +10,11 @@ export interface ISlickRange {
     toRow: number;
 }
 
+export interface RowRange {
+    start: number;
+    length: number;
+}
+
 export function tryCombineSelectionsForResults(
     selections: ISlickRange[],
 ): ISlickRange[] {
@@ -22,6 +27,14 @@ export function tryCombineSelectionsForResults(
             toRow: range.toRow,
         };
     });
+}
+
+export function selectionToRange(selection: ISlickRange): RowRange {
+    let range: RowRange = {
+        start: selection.fromRow,
+        length: selection.toRow - selection.fromRow + 1,
+    };
+    return range;
 }
 
 export function tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {

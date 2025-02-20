@@ -96,6 +96,7 @@
     ]
   },
   "Close": "Close",
+  "Apply": "Apply",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -265,6 +266,10 @@
   "Expand All": "Expand All",
   "Collapse All": "Collapse All",
   "Filter for any field...": "Filter for any field...",
+  "Next": "Next",
+  "Previous": "Previous",
+  "Expand": "Expand",
+  "Collapse": "Collapse",
   "Microsoft would like your feedback": "Microsoft would like your feedback",
   "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
   "Very Satisfied": "Very Satisfied",
@@ -297,7 +302,6 @@
   "Copy Headers": "Copy Headers",
   "NULL": "NULL",
   "Blanks": "Blanks",
-  "Apply": "Apply",
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
@@ -421,6 +425,7 @@
       "{0} is the provider"
     ]
   },
+  "Unable to read proxy agent options to get tenants.": "Unable to read proxy agent options to get tenants.",
   "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.": "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
   "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.": "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.",
   "Authentication failed due to a state mismatch, please close ADS and try again.": "Authentication failed due to a state mismatch, please close ADS and try again.",
@@ -808,6 +813,7 @@
     ]
   },
   "General": "General",
+  "Schema Compare": "Schema Compare",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

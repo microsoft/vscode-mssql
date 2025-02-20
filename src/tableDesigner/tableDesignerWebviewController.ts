@@ -375,11 +375,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                         correlationId: this._correlationId,
                     },
                 );
+
                 state = {
                     ...state,
                     apiState: {
                         ...state.apiState,
-                        previewState: designer.LoadState.Loaded,
+                        previewState: previewReport.schemaValidationError
+                            ? designer.LoadState.Error
+                            : designer.LoadState.Loaded,
                         publishState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: previewReport,
