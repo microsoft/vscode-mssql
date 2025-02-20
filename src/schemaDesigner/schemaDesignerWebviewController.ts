@@ -49,5 +49,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 showRestorePromptAfterClose: false,
             },
         );
+
+        this._schemaDesignerService.onModelReady(() => {
+            vscodeWrapper.showInformationMessage(
+                "Schema Designer model is ready.",
+            );
+        });
     }
 }

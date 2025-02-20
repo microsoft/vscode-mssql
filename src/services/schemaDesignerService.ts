@@ -9,10 +9,22 @@ import {
     ISchemaDesignerService,
 } from "../sharedInterfaces/schemaDesigner";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import { GetSchemaModelRequest } from "../models/contracts/schemaDesigner";
+import {
+    GetSchemaModelRequest,
+    ModelReadyNotification,
+} from "../models/contracts/schemaDesigner";
 
 export class SchemaDesignerService implements ISchemaDesignerService {
-    constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
+    private _modelReadyListeners: (() => void)[] = [];
+
+    constructor(private _sqlToolsClient: SqlToolsServiceClient) {
+        this._sqlToolsClient.onNotification(
+            ModelReadyNotification.type,
+            (result) => {
+                this._modelReadyListeners.forEach((listener) => listener());
+            },
+        );
+    }
     async getSchemaModel(
         request: GetSchemaModelRequestParams,
     ): Promise<ISchema> {
@@ -25,5 +37,9 @@ export class SchemaDesignerService implements ISchemaDesignerService {
             this._sqlToolsClient.logger.error(e);
             throw e;
         }
+    }
+
+    onModelReady(listener: () => void): void {
+        this._modelReadyListeners.push(listener);
     }
 }

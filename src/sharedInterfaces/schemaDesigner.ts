@@ -102,6 +102,7 @@ export interface GetSchemaModelRequestParams {
 
 export interface ISchemaDesignerService {
     getSchemaModel(request: GetSchemaModelRequestParams): Thenable<ISchema>;
+    onModelReady(listener: () => void): void;
 }
 
 export interface SchemaDesignerWebviewState {

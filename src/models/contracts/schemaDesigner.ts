@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-languageclient";
+import { NotificationType, RequestType } from "vscode-languageclient";
 import {
     GetSchemaModelRequestParams,
     ISchema,
@@ -16,4 +16,14 @@ export namespace GetSchemaModelRequest {
         void,
         void
     >("schemaDesigner/getSchemaModel");
+}
+
+export namespace ModelReadyNotification {
+    export const type = new NotificationType<
+        {
+            model: ISchema;
+            originalModel: ISchema;
+        },
+        void
+    >("schemaDesigner/modelReady");
 }
