@@ -2730,8 +2730,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[Facoltativo] Specificare il tempo di attesa in secondi per l'esecuzione di un comando prima di terminare il tentativo e generare un errore. Il valore predefinito è 30 secondi.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
-        <target state="translated">[Facoltativo] Specificare la durata in secondi dell'attesa di una connessione al server prima di terminare il tentativo di connessione e generare un errore. Il valore predefinito è 15 secondi per le connessioni in locale e 30 secondi per le connessioni al database SQL di Azure.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
