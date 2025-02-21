@@ -314,6 +314,11 @@ declare module 'vscode-mssql' {
 		persistSecurityInfo: boolean | undefined;
 
 		/**
+         * Gets or sets a value that specifies that Always Encrypted with Secure Enclaves is enabled in a connection.
+		 */
+		secureEnclaves: string | undefined;
+
+		/**
 		 * Gets or sets a string value that specifies whether Always Encrypted is enabled or disabled for the connection.
 		 */
 		columnEncryptionSetting: string | undefined;

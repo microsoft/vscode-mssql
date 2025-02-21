@@ -33,6 +33,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public trustServerCertificate: boolean | undefined;
     public hostNameInCertificate: string | undefined;
     public persistSecurityInfo: boolean | undefined;
+    public secureEnclaves: string | undefined;
     public columnEncryptionSetting: string | undefined;
     public attestationProtocol: string | undefined;
     public enclaveAttestationUrl: string | undefined;
@@ -86,6 +87,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             credentials.hostNameInCertificate;
         details.options["persistSecurityInfo"] =
             credentials.persistSecurityInfo;
+        details.options["secureEnclaves"] = credentials.secureEnclaves;
         details.options["columnEncryptionSetting"] =
             credentials.columnEncryptionSetting;
         details.options["attestationProtocol"] =
