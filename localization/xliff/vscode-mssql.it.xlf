@@ -666,6 +666,10 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">Errore durante il caricamento dell'anteprima</target>
       </trans-unit>
+      <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+        <source xml:lang="en">Error loading; refresh to try again</source>
+        <target state="new">Error loading; refresh to try again</target>
+      </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">Si è verificato un errore durante l'apertura del contenuto nell'editor.</target>
