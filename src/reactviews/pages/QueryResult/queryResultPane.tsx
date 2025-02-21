@@ -357,7 +357,6 @@ export const QueryResultPane = () => {
                     gridParentRef={gridParentRef}
                     uri={state?.uri}
                     webViewState={webViewState}
-                    context={context}
                     linkHandler={linkHandler}
                     gridId={gridId}
                 />
@@ -429,7 +428,6 @@ export const QueryResultPane = () => {
 
     const renderGridPanel = () => {
         const grids = [];
-        gridRefs.current.forEach((r) => r?.refreshGrid());
         let count = 0;
         for (const batchIdStr in state?.resultSetSummaries ?? {}) {
             const batchId = parseInt(batchIdStr);

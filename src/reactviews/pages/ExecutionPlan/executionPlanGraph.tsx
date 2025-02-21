@@ -216,6 +216,13 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         return percentage.toFixed(2);
     };
 
+    const getQueryCostString = () => {
+        return locConstants.executionPlan.queryCostRelativeToScript(
+            graphIndex + 1,
+            getQueryCostPercentage(),
+        );
+    };
+
     // this is for resizing the properties panel
     const onMouseDown = (e: any) => {
         e.preventDefault();
@@ -256,11 +263,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     style={{
                         background: tokens.colorNeutralBackground2,
                     }}
+                    aria-live="polite"
+                    aria-label={`${getQueryCostString()}, ${query}`}
                 >
-                    {locConstants.executionPlan.queryCostRelativeToScript(
-                        graphIndex + 1,
-                        getQueryCostPercentage(),
-                    )}
+                    {getQueryCostString()}
                     <br />
                     {query}
                 </div>
@@ -281,12 +287,16 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         style={{
                             background: tokens.colorNeutralBackground1,
                         }}
+                        tabIndex={0}
                     >
                         <Input
                             id="customZoomInputBox"
                             type="number"
                             size="small"
                             min={1}
+                            tabIndex={0}
+                            title={locConstants.executionPlan.customZoom}
+                            aria-label={locConstants.executionPlan.customZoom}
                             defaultValue={Math.floor(zoomNumber).toString()}
                             input={{
                                 style: {
@@ -308,33 +318,41 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                             onClick={handleCustomZoomInput}
                             size="small"
                             appearance="subtle"
+                            title={locConstants.common.apply}
+                            aria-label={locConstants.common.apply}
                             icon={<Checkmark20Regular />}
                         />
                         <Button
                             icon={<Dismiss20Regular />}
                             size="small"
                             appearance="subtle"
+                            title={locConstants.common.close}
+                            aria-label={locConstants.common.close}
                             onClick={() => setCustomZoomClicked(false)}
                         />
                     </div>
                 </Popover>
                 <Popover open={findNodeClicked}>
-                    <FindNode
-                        // guaranteed to be non-null, because the plan will only
-                        // show if it's non-null
-                        executionPlanView={executionPlanView!}
-                        setExecutionPlanView={setExecutionPlanView}
-                        findNodeOptions={findNodeOptions}
-                        setFindNodeClicked={setFindNodeClicked}
-                    />
+                    <div tabIndex={0}>
+                        <FindNode
+                            // guaranteed to be non-null, because the plan will only
+                            // show if it's non-null
+                            executionPlanView={executionPlanView!}
+                            setExecutionPlanView={setExecutionPlanView}
+                            findNodeOptions={findNodeOptions}
+                            setFindNodeClicked={setFindNodeClicked}
+                        />
+                    </div>
                 </Popover>
                 <Popover open={highlightOpsClicked}>
-                    <HighlightExpensiveOperations
-                        // guaranteed to be non-null
-                        executionPlanView={executionPlanView!}
-                        setExecutionPlanView={setExecutionPlanView}
-                        setHighlightOpsClicked={setHighlightOpsClicked}
-                    />
+                    <div tabIndex={0}>
+                        <HighlightExpensiveOperations
+                            // guaranteed to be non-null
+                            executionPlanView={executionPlanView!}
+                            setExecutionPlanView={setExecutionPlanView}
+                            setHighlightOpsClicked={setHighlightOpsClicked}
+                        />
+                    </div>
                 </Popover>
                 {propertiesClicked && (
                     <div
@@ -347,11 +365,13 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                             onMouseDown={onMouseDown}
                         ></div>
                         <Popover open={propertiesClicked}>
-                            <PropertiesPane
-                                // guaranteed to be non-null
-                                executionPlanView={executionPlanView!}
-                                setPropertiesClicked={setPropertiesClicked}
-                            />
+                            <div>
+                                <PropertiesPane
+                                    // guaranteed to be non-null
+                                    executionPlanView={executionPlanView!}
+                                    setPropertiesClicked={setPropertiesClicked}
+                                />
+                            </div>
                         </Popover>
                     </div>
                 )}

@@ -616,33 +616,14 @@ export default class QueryRunner {
     ): Promise<void> {
         let copyString = "";
 
-        // add the column headers
         if (this.shouldIncludeHeaders(includeHeaders)) {
-            let firstCol: number;
-            let lastCol: number;
-            for (let range of selection) {
-                if (firstCol === undefined || range.fromCell < firstCol) {
-                    firstCol = range.fromCell;
-                }
-                if (lastCol === undefined || range.toCell > lastCol) {
-                    lastCol = range.toCell;
-                }
-            }
-            let columnRange: ISlickRange = {
-                fromCell: firstCol,
-                toCell: lastCol,
-                fromRow: undefined,
-                toRow: undefined,
-            };
-            let columnHeaders = this.getColumnHeaders(
+            copyString = this.addHeadersToCopyString(
+                copyString,
                 batchId,
                 resultId,
-                columnRange,
+                selection,
             );
-            copyString += columnHeaders.join("\t");
-            copyString += os.EOL;
         }
-
         // sort the selections by row to maintain copy order
         selection.sort((a, b) => a.fromRow - b.fromRow);
 
@@ -659,16 +640,12 @@ export default class QueryRunner {
                     batchId,
                     resultId,
                 );
-                for (let row of result.resultSubset.rows) {
-                    let rowNumber = row[0].rowId + range.fromRow;
-                    if (rowIdToSelectionMap.has(rowNumber)) {
-                        let rowSelection = rowIdToSelectionMap.get(rowNumber);
-                        rowSelection.push(range);
-                    } else {
-                        rowIdToSelectionMap.set(rowNumber, [range]);
-                    }
-                    rowIdToRowMap.set(rowNumber, row);
-                }
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
             };
         });
 
@@ -679,6 +656,95 @@ export default class QueryRunner {
         }
         await p;
 
+        copyString = this.constructCopyString(
+            copyString,
+            rowIdToRowMap,
+            rowIdToSelectionMap,
+        );
+
+        await this.writeStringToClipboard(copyString);
+    }
+
+    public async exportCellsToClipboard(
+        data: DbCellValue[][],
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+        headersFlag,
+    ) {
+        let copyString = "";
+        if (headersFlag) {
+            copyString = this.addHeadersToCopyString(
+                copyString,
+                batchId,
+                resultId,
+                selection,
+            );
+        }
+
+        // create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = data;
+                this.getRowMappings(
+                    result,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            };
+        });
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        copyString = this.constructCopyString(
+            copyString,
+            rowIdToRowMap,
+            rowIdToSelectionMap,
+        );
+
+        await this.writeStringToClipboard(copyString);
+    }
+
+    /**
+     * Construct the row mappings, which contain the row data and selection data and are used to construct the copy string
+     * @param data
+     * @param range
+     * @param rowIdToSelectionMap
+     * @param rowIdToRowMap
+     */
+    private getRowMappings(
+        data: DbCellValue[][],
+        range: ISlickRange,
+        rowIdToSelectionMap,
+        rowIdToRowMap,
+    ) {
+        let count = 0;
+        for (let row of data) {
+            let rowNumber = count + range.fromRow;
+            if (rowIdToSelectionMap.has(rowNumber)) {
+                let rowSelection = rowIdToSelectionMap.get(rowNumber);
+                rowSelection.push(range);
+            } else {
+                rowIdToSelectionMap.set(rowNumber, [range]);
+            }
+            rowIdToRowMap.set(rowNumber, row);
+            count += 1;
+        }
+    }
+
+    private constructCopyString(
+        copyString: string,
+        rowIdToRowMap: Map<number, DbCellValue[]>,
+        rowIdToSelectionMap: Map<number, ISlickRange[]>,
+    ) {
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
         const endColumns = this.getSelectionEndColumns(
@@ -735,7 +801,51 @@ export default class QueryRunner {
                 copyString.length - os.EOL.length,
             );
         }
+        return copyString;
+    }
 
+    /**
+     * Add the column headers to the copy string
+     * @param copyString
+     * @param batchId
+     * @param resultId
+     * @param selection
+     * @returns
+     */
+    public addHeadersToCopyString(
+        copyString: string,
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+    ): string {
+        // add the column headers
+        let firstCol: number;
+        let lastCol: number;
+        for (let range of selection) {
+            if (firstCol === undefined || range.fromCell < firstCol) {
+                firstCol = range.fromCell;
+            }
+            if (lastCol === undefined || range.toCell > lastCol) {
+                lastCol = range.toCell;
+            }
+        }
+        let columnRange: ISlickRange = {
+            fromCell: firstCol,
+            toCell: lastCol,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+        let columnHeaders = this.getColumnHeaders(
+            batchId,
+            resultId,
+            columnRange,
+        );
+        copyString += columnHeaders.join("\t");
+        copyString += os.EOL;
+        return copyString;
+    }
+
+    public async writeStringToClipboard(copyString: string): Promise<void> {
         let oldLang: string;
         if (process.platform === "darwin") {
             oldLang = process.env["LANG"];
