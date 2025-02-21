@@ -18,12 +18,18 @@ import { AccountSignInTreeNode } from "../../src/objectExplorer/accountSignInTre
 import { ConnectTreeNode } from "../../src/objectExplorer/connectTreeNode";
 import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
 import { Deferred } from "../../src/protocol";
+import {
+    ExpandParams,
+    ExpandResponse,
+} from "../../src/models/contracts/objectExplorer/expandNodeRequest";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
-suite("Object Explorer Provider Tests", () => {
+suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let objectExplorerProvider: ObjectExplorerProvider;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
         let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
@@ -42,6 +48,21 @@ suite("Object Explorer Provider Tests", () => {
             c.onNotification(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
         );
         connectionManager.object.client = client.object;
+
+        vscodeWrapper = TypeMoq.Mock.ofType(
+            VscodeWrapper,
+            TypeMoq.MockBehavior.Loose,
+        );
+
+        vscodeWrapper.setup((v) =>
+            v.showErrorMessage(TypeMoq.It.isAnyString()),
+        );
+
+        connectionManager
+            .setup((c) => c.vscodeWrapper)
+            .returns(() => vscodeWrapper.object);
+        connectionManager.object.vscodeWrapper = vscodeWrapper.object;
+
         objectExplorerProvider = new ObjectExplorerProvider(
             connectionManager.object,
         );
@@ -49,6 +70,7 @@ suite("Object Explorer Provider Tests", () => {
             objectExplorerProvider,
             "Object Explorer Provider is initialzied properly",
         ).is.not.equal(undefined);
+
         objectExplorerService = TypeMoq.Mock.ofType(
             ObjectExplorerService,
             TypeMoq.MockBehavior.Loose,
@@ -332,6 +354,146 @@ suite("Object Explorer Provider Tests", () => {
         );
         let treeItem = objectExplorerProvider.getTreeItem(node);
         assert.equal(treeItem, node);
+    });
+
+    const mockParentTreeNode = new TreeNodeInfo(
+        "Parent Node",
+        undefined,
+        undefined,
+        "parentNodePath",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+    );
+
+    test("Test handleExpandSessionNotification returns child nodes upon success", async function () {
+        const childNodeInfo: NodeInfo = {
+            nodePath: `${mockParentTreeNode.nodePath}/childNodePath`,
+            nodeStatus: undefined,
+            nodeSubType: undefined,
+            nodeType: undefined,
+            label: "Child Node",
+            isLeaf: true,
+            errorMessage: undefined,
+            metadata: undefined,
+        };
+
+        const mockExpandResponse: ExpandResponse = {
+            sessionId: "test_session",
+            nodePath: mockParentTreeNode.nodePath,
+            nodes: [childNodeInfo],
+            errorMessage: undefined,
+        };
+
+        const testOeService = new ObjectExplorerService(
+            connectionManager.object,
+            objectExplorerProvider,
+        );
+
+        let notificationObject =
+            testOeService.handleExpandSessionNotification();
+
+        const expandParams: ExpandParams = {
+            sessionId: mockExpandResponse.sessionId,
+            nodePath: mockExpandResponse.nodePath,
+        };
+
+        testOeService["_expandParamsToTreeNodeInfoMap"].set(
+            expandParams,
+            mockParentTreeNode,
+        );
+
+        testOeService["_sessionIdToConnectionCredentialsMap"].set(
+            mockExpandResponse.sessionId,
+            undefined,
+        );
+
+        const outputPromise = new Deferred<TreeNodeInfo[]>();
+
+        testOeService["_expandParamsToPromiseMap"].set(
+            expandParams,
+            outputPromise,
+        );
+
+        notificationObject.call(testOeService, mockExpandResponse);
+
+        const childNodes = await outputPromise;
+        assert.equal(childNodes.length, 1, "Child nodes length");
+        assert.equal(
+            childNodes[0].label,
+            childNodeInfo.label,
+            "Child node label",
+        );
+        assert.equal(
+            childNodes[0].nodePath,
+            childNodeInfo.nodePath,
+            "Child node path",
+        );
+    });
+
+    test("Test handleExpandSessionNotification returns message node upon failure", async function () {
+        this.timeout(0);
+
+        const mockExpandResponse: ExpandResponse = {
+            sessionId: "test_session",
+            nodePath: mockParentTreeNode.nodePath,
+            nodes: [],
+            errorMessage: "Error occurred when expanding node",
+        };
+
+        const testOeService = new ObjectExplorerService(
+            connectionManager.object,
+            objectExplorerProvider,
+        );
+
+        let notificationObject =
+            testOeService.handleExpandSessionNotification();
+
+        const expandParams: ExpandParams = {
+            sessionId: mockExpandResponse.sessionId,
+            nodePath: mockExpandResponse.nodePath,
+        };
+
+        testOeService["_expandParamsToTreeNodeInfoMap"].set(
+            expandParams,
+            mockParentTreeNode,
+        );
+
+        testOeService["_sessionIdToConnectionCredentialsMap"].set(
+            mockExpandResponse.sessionId,
+            undefined,
+        );
+
+        const outputPromise = new Deferred<TreeNodeInfo[]>();
+
+        testOeService["_expandParamsToPromiseMap"].set(
+            expandParams,
+            outputPromise,
+        );
+
+        notificationObject.call(testOeService, mockExpandResponse);
+
+        const childNodes = await outputPromise;
+
+        vscodeWrapper.verify(
+            (x) => x.showErrorMessage(mockExpandResponse.errorMessage),
+            TypeMoq.Times.once(),
+        );
+
+        assert.equal(childNodes.length, 1, "Child nodes length");
+        assert.equal(
+            childNodes[0].label,
+            "Error loading; refresh to try again",
+            "Error node label",
+        );
+        assert.equal(
+            childNodes[0].tooltip,
+            mockExpandResponse.errorMessage,
+            "Error node tooltip",
+        );
     });
 
     test("Test signInNode function", () => {
