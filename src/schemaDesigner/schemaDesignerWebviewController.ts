@@ -8,13 +8,14 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import {
     ISchema,
     ISchemaDesignerService,
+    SchemaDesignerReducers,
     SchemaDesignerWebviewState,
 } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesignerWebviewState,
-    any
+    SchemaDesignerReducers
 > {
     constructor(
         context: vscode.ExtensionContext,
@@ -54,6 +55,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             vscodeWrapper.showInformationMessage(
                 "Schema Designer model is ready.",
             );
+        });
+
+        this.registerReducer("publishSchema", async () => {
+            console.log("Publishing schema");
+            return this.state;
         });
     }
 }

@@ -100,11 +100,22 @@ export interface GetSchemaModelRequestParams {
     databaseName: string;
 }
 
+export interface PublishSchemaRequestParams {
+    connectionUri: string;
+    databaseName: string;
+    modifiedSchema: ISchema;
+}
+
 export interface ISchemaDesignerService {
     getSchemaModel(request: GetSchemaModelRequestParams): Thenable<ISchema>;
     onModelReady(listener: () => void): void;
+    publishSchema(request: PublishSchemaRequestParams): Thenable<void>;
 }
 
 export interface SchemaDesignerWebviewState {
     schema: ISchema;
+}
+
+export interface SchemaDesignerReducers {
+    publishSchema: (modifiedSchema: ISchema) => void;
 }

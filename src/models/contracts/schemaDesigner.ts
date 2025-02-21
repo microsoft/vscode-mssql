@@ -18,6 +18,17 @@ export namespace GetSchemaModelRequest {
     >("schemaDesigner/getSchemaModel");
 }
 
+export namespace PublishSchemaRequest {
+    export const type = new RequestType<
+        {
+            modifiedSchema: ISchema;
+        },
+        void,
+        void,
+        void
+    >("schemaDesigner/publishSchema");
+}
+
 export namespace ModelReadyNotification {
     export const type = new NotificationType<
         {
