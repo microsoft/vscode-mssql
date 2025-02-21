@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import SelectSchemasPanel from "./components/SelectSchemasPanel";
+
 export const SchemaComparePage = () => {
     return (
         <div>
-            {/* WIP/Initial Checkin: Page is a work in progress */}
-            <h1>Schema Compare Page</h1>
+            <SelectSchemasPanel />
         </div>
     );
 };
