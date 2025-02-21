@@ -5,28 +5,20 @@
 
 import * as cd from "./containerDeploymentInterfaces";
 
-import {
-    ColorThemeKind,
-    useVscodeWebview,
-} from "../../common/vscodeWebviewProvider";
-import { ReactNode, createContext } from "react";
-
-export interface ContainerDeploymentState {
-    provider: cd.ContainerDeploymentProvider;
-    state: cd.ContainerDeploymentWebviewState;
-    themeKind: ColorThemeKind;
-}
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { createContext } from "react";
+import { ContainerDeploymentContextProps } from "./containerDeploymentInterfaces";
 
 const ContainerDeploymentContext = createContext<
-    ContainerDeploymentState | undefined
+    ContainerDeploymentContextProps | undefined
 >(undefined);
 
-interface ContainerDeploymentContextProps {
-    children: ReactNode;
+interface ContainerDeploymentProviderProps {
+    children: React.ReactNode;
 }
 
 const ContainerDeploymentStateProvider: React.FC<
-    ContainerDeploymentContextProps
+    ContainerDeploymentProviderProps
 > = ({ children }) => {
     const webviewState = useVscodeWebview<
         cd.ContainerDeploymentWebviewState,
@@ -35,25 +27,30 @@ const ContainerDeploymentStateProvider: React.FC<
     return (
         <ContainerDeploymentContext.Provider
             value={{
-                provider: {
-                    checkDockerInstallation: function (): void {
-                        webviewState?.extensionRpc.action(
-                            "checkDockerInstallation",
-                            {},
-                        );
-                    },
-                    startDocker: function (): void {
-                        webviewState?.extensionRpc.action("startDocker", {});
-                    },
-                    checkLinuxEngine: function (): void {
-                        webviewState?.extensionRpc.action(
-                            "checkLinuxEngine",
-                            {},
-                        );
-                    },
-                },
-                state: webviewState?.state as cd.ContainerDeploymentWebviewState,
+                state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
+                formAction: function (event): void {
+                    webviewState?.extensionRpc.action("formAction", {
+                        event: event,
+                    });
+                },
+                checkDockerInstallation: function (): void {
+                    webviewState?.extensionRpc.action(
+                        "checkDockerInstallation",
+                        {},
+                    );
+                },
+                startDocker: function (): void {
+                    webviewState?.extensionRpc.action("startDocker", {});
+                },
+                checkLinuxEngine: function (): void {
+                    webviewState?.extensionRpc.action("checkLinuxEngine", {});
+                },
+                validateContainerName: function (name: string): void {
+                    webviewState?.extensionRpc.action("validateContainerName", {
+                        name: name,
+                    });
+                },
             }}
         >
             {children}

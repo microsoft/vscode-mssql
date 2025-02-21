@@ -55,38 +55,38 @@ export const PrereqCheckPage: React.FC = () => {
     const state = useContext(ContainerDeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
-    const containerDeploymentState = state?.state.containerDeploymentState;
+    const containerDeploymentState = state?.state;
 
-    useEffect(async () => {
+    useEffect(() => {
         const checkAndStartDocker = async () => {
             if (
-                containerDeploymentState.dockerInstallStatus.loadState ===
+                containerDeploymentState?.dockerInstallStatus.loadState ===
                 ApiStatus.Loading
             ) {
-                await state.provider.checkDockerInstallation();
+                await state.checkDockerInstallation();
             }
 
             if (
-                containerDeploymentState.dockerInstallStatus.loadState ===
+                containerDeploymentState?.dockerInstallStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState.dockerStatus.loadState ===
+                containerDeploymentState?.dockerStatus.loadState ===
                     ApiStatus.Loading
             ) {
-                await state.provider.startDocker();
+                await state.startDocker();
             }
 
             if (
-                containerDeploymentState.dockerInstallStatus.loadState ===
+                containerDeploymentState?.dockerInstallStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState.dockerStatus.loadState ===
+                containerDeploymentState?.dockerStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState.dockerEngineStatus.loadState ===
+                containerDeploymentState?.dockerEngineStatus.loadState ===
                     ApiStatus.Loading
             ) {
-                await state.provider.checkLinuxEngine();
+                await state?.checkLinuxEngine();
             }
         };
-        await checkAndStartDocker();
+        void checkAndStartDocker();
     }, [containerDeploymentState]);
 
     useEffect(() => {
@@ -106,14 +106,14 @@ export const PrereqCheckPage: React.FC = () => {
         <div className={classes.outerDiv}>
             <div className={classes.stepsDiv}>
                 <div className={classes.stepsHeader}>
-                    Getting Docker Ready for Container Deployment...
+                    Getting Docker Ready...
                 </div>
                 <div className={classes.stepsSubheader}>
                     Checking pre-requisites
                 </div>
                 <StepCard stepName="dockerInstallStatus" />
                 <StepCard stepName="dockerStatus" />
-                {containerDeploymentState.platform === "win32" && (
+                {containerDeploymentState?.platform === "win32" && (
                     <StepCard stepName="dockerEngineStatus" />
                 )}
                 {stepsLoaded ? (

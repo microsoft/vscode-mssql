@@ -62,21 +62,23 @@ interface StepCardProps {
 export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state.containerDeploymentState;
+    const containerDeploymentState = state?.state;
     const [expanded, setExpanded] = useState(false);
 
-    const getLoadStatus = (stepName: string) => {
+    const getLoadStatus = (stepName: string): ApiStatus => {
         switch (stepName) {
             case "dockerInstallStatus":
-                return containerDeploymentState.dockerInstallStatus.loadState;
+                return containerDeploymentState?.dockerInstallStatus.loadState;
             case "dockerStatus":
-                return containerDeploymentState.dockerStatus.loadState;
+                return containerDeploymentState?.dockerStatus.loadState;
             case "dockerEngineStatus":
-                return containerDeploymentState.dockerEngineStatus.loadState;
+                return containerDeploymentState?.dockerEngineStatus.loadState;
+            default:
+                return ApiStatus.Error;
         }
     };
 
-    const getHeaderText = (stepName: string) => {
+    const getHeaderText = (stepName: string): string => {
         switch (stepName) {
             case "dockerInstallStatus":
                 return "Checking if Docker is installed";
@@ -84,10 +86,12 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                 return "Starting Docker";
             case "dockerEngineStatus":
                 return "Starting Docker Engine";
+            default:
+                return "Unknown Step";
         }
     };
 
-    const getBodyText = (stepName: string) => {
+    const getBodyText = (stepName: string): string => {
         switch (stepName) {
             case "dockerInstallStatus":
                 return "Install Text TBD";
@@ -95,6 +99,8 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                 return "Status Text TBD";
             case "dockerEngineStatus":
                 return "Engine Text TBD";
+            default:
+                return "Unknown Step";
         }
     };
 

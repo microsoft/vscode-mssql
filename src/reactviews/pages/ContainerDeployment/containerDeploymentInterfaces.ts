@@ -3,33 +3,76 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IConnectionProfile } from "../../../models/interfaces";
+import * as vscodeMssql from "vscode-mssql";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { FormState } from "../../common/forms/form";
+import {
+    FormContextProps,
+    FormEvent,
+    FormState,
+} from "../../common/forms/form";
 
-export interface ContainerDeploymentWebviewState {
-    containerDeploymentState: ContainerDeploymentState;
-    loadState?: ApiStatus;
+export class ContainerDeploymentWebviewState
+    implements FormState<DockerConnectionProfile>
+{
+    loadState: ApiStatus = ApiStatus.Loading;
+    errorMessage?: string;
+    public dockerInstallStatus: DockerStep = {
+        loadState: ApiStatus.Loading,
+    };
+    public dockerStatus: DockerStep = {
+        loadState: ApiStatus.Loading,
+    };
+    public dockerEngineStatus: DockerStep = {
+        loadState: ApiStatus.Loading,
+    };
+    formState: DockerConnectionProfile = undefined;
+    platform: string = "";
+    // Used for container name validation within the form
+    isValidContainerName: boolean = false;
+
+    constructor(params?: Partial<ContainerDeploymentWebviewState>) {
+        for (const key in params) {
+            if (key in this) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
+                (this as any)[key as keyof ContainerDeploymentWebviewState] =
+                    params[key as keyof ContainerDeploymentWebviewState]!;
+            }
+        }
+    }
+}
+
+export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
+    containerLoadState: ApiStatus.Loading;
+    version: string;
+    acceptEula: boolean;
+}
+
+export interface DockerStep {
+    loadState: ApiStatus;
     errorMessage?: string;
 }
 
-export class ContainerDeploymentState implements FormState<IConnectionProfile> {
-    dockerInstallStatus: {
-        loadState: ApiStatus;
-        errorMessage?: string;
-    };
-    dockerStatus: {
-        loadState: ApiStatus;
-        errorMessage?: string;
-    };
-    dockerEngineStatus: {
-        loadState: ApiStatus;
-        errorMessage?: string;
-    };
-    containerLoadState: ApiStatus.Loading;
-    version: string;
-    formState: IConnectionProfile;
-    platform: string;
+export interface ContainerDeploymentContextProps
+    extends FormContextProps<
+        ContainerDeploymentWebviewState,
+        DockerConnectionProfile
+    > {
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    checkDockerInstallation(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    startDocker(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    checkLinuxEngine(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    validateContainerName(name: string): void;
 }
 
 export interface ContainerDeploymentReducers {
@@ -47,21 +90,15 @@ export interface ContainerDeploymentReducers {
      * Gets the execution plan graph from the provider
      */
     checkLinuxEngine: {};
-}
 
-export interface ContainerDeploymentProvider {
     /**
      * Gets the execution plan graph from the provider
      */
-    checkDockerInstallation(): void;
-    /**
-     * Gets the execution plan graph from the provider
-     */
-    startDocker(): void;
-    /**
-     * Gets the execution plan graph from the provider
-     */
-    checkLinuxEngine(): void;
+    validateContainerName: { name: string };
+
+    formAction: {
+        event: FormEvent<DockerConnectionProfile>;
+    };
 }
 
 export const COMMANDS = {

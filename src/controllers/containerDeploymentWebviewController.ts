@@ -10,8 +10,8 @@ import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import ConnectionManager from "./connectionManager";
 import { exec } from "child_process";
 import { platform } from "os";
-import { IConnectionProfile } from "../models/interfaces";
 import { sqlAuthentication } from "../constants/constants";
+import { IConnectionProfile } from "../models/interfaces";
 
 export class ContainerDeploymentWebviewController extends ReactWebviewPanelController<
     cd.ContainerDeploymentWebviewState,
@@ -24,24 +24,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
         super(
             context,
             "containerDeployment",
-            {
-                loadState: ApiStatus.Loading,
-                containerDeploymentState: {
-                    dockerInstallStatus: {
-                        loadState: ApiStatus.Loading,
-                    },
-                    dockerStatus: {
-                        loadState: ApiStatus.Loading,
-                    },
-                    dockerEngineStatus: {
-                        loadState: ApiStatus.Loading,
-                    },
-                    formState: getDefaultConnectionProfile(),
-                    version: "2022",
-                    containerLoadState: ApiStatus.Loading,
-                    platform: platform(),
-                },
-            },
+            new cd.ContainerDeploymentWebviewState(),
             {
                 title: `Deploy a local SQL Server Docker container`,
                 viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
@@ -64,12 +47,26 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
 
     private async initialize() {
         this.state.loadState = ApiStatus.Loading;
+        this.state.formState = getDefaultConnectionProfile();
+        this.state.platform = platform();
         this.updateState();
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
     }
 
     private registerRpcHandlers() {
+        this.registerReducer("formAction", async (state, payload) => {
+            if (payload.event.isAction) {
+                // connect to profile
+            } else {
+                (this.state.formState[
+                    payload.event.propertyName
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = payload.event.value;
+            }
+
+            return state;
+        });
         this.registerReducer(
             "checkDockerInstallation",
             async (state, payload) => {
@@ -77,18 +74,14 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     await this.checkDockerInstallation();
                 let newState = state;
                 if (!dockerInstallResult) {
-                    newState.containerDeploymentState.dockerInstallStatus.errorMessage =
+                    newState.dockerInstallStatus.errorMessage =
                         "Docker not installed, please install and retry";
-                    newState.containerDeploymentState.dockerInstallStatus.loadState =
-                        ApiStatus.Error;
-                    newState.containerDeploymentState.dockerStatus.loadState =
-                        ApiStatus.Error;
-                    newState.containerDeploymentState.dockerEngineStatus.loadState =
-                        ApiStatus.Error;
+                    newState.dockerInstallStatus.loadState = ApiStatus.Error;
+                    newState.dockerStatus.loadState = ApiStatus.Error;
+                    newState.dockerEngineStatus.loadState = ApiStatus.Error;
                     return newState;
                 }
-                newState.containerDeploymentState.dockerInstallStatus.loadState =
-                    ApiStatus.Loaded;
+                newState.dockerInstallStatus.loadState = ApiStatus.Loaded;
                 return newState;
             },
         );
@@ -96,38 +89,40 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             const startDockerResult = await this.startDocker();
             let newState = state;
             if (!startDockerResult.success) {
-                newState.containerDeploymentState.dockerStatus.errorMessage =
+                newState.dockerStatus.errorMessage =
                     "Failed to start Docker. Please manually start it, and then try again.";
-                newState.containerDeploymentState.dockerStatus.loadState =
-                    ApiStatus.Error;
-                newState.containerDeploymentState.dockerEngineStatus.loadState =
-                    ApiStatus.Error;
+                newState.dockerStatus.loadState = ApiStatus.Error;
+                newState.dockerEngineStatus.loadState = ApiStatus.Error;
                 return newState;
             }
-            newState.containerDeploymentState.dockerStatus.loadState =
-                ApiStatus.Loaded;
+            newState.dockerStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
         this.registerReducer("checkLinuxEngine", async (state, payload) => {
-            if (state.containerDeploymentState.platform == "win32") {
-                state.containerDeploymentState.dockerEngineStatus.loadState =
-                    ApiStatus.Loaded;
+            if (state.platform == "win32") {
+                state.dockerEngineStatus.loadState = ApiStatus.Loaded;
                 return state;
             }
 
             const checkLinuxEngineResult = await this.checkLinuxEngine();
             let newState = state;
             if (!checkLinuxEngineResult) {
-                newState.containerDeploymentState.dockerEngineStatus.errorMessage =
+                newState.dockerEngineStatus.errorMessage =
                     "Failed to prepare engine. Please switch to linux engine and try again.";
-                newState.containerDeploymentState.dockerEngineStatus.loadState =
-                    ApiStatus.Error;
+                newState.dockerEngineStatus.loadState = ApiStatus.Error;
                 return newState;
             }
-            newState.containerDeploymentState.dockerStatus.loadState =
-                ApiStatus.Loaded;
+            newState.dockerStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
+        this.registerReducer(
+            "validateContainerName",
+            async (state, payload) => {
+                state.isValidContainerName =
+                    (await this.validateContainerName(payload.name)) !== "";
+                return state;
+            },
+        );
     }
 
     public async checkDockerInstallation(): Promise<boolean> {
@@ -183,9 +178,49 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             });
         });
     }
+
+    public async validateContainerName(containerName: string): Promise<string> {
+        return new Promise((resolve) => {
+            exec(cd.COMMANDS.VALIDATE_CONTAINER_NAME, (error, stdout) => {
+                const existingContainers = stdout.trim().split("\n");
+
+                let newContainerName: string = "";
+                if (containerName.trim() == "") {
+                    let newContainerName = "sql_server_container";
+                    let counter = 1;
+
+                    while (existingContainers.includes(newContainerName)) {
+                        newContainerName = `sql_server_container${++counter}`;
+                    }
+                } else if (!existingContainers.includes(containerName)) {
+                    newContainerName = containerName;
+                }
+                resolve(newContainerName);
+            });
+        });
+    }
+
+    public async addContainerConnection(
+        dockerProfile: cd.DockerConnectionProfile,
+    ): Promise<IConnectionProfile> {
+        let connection: any = {
+            ...dockerProfile,
+            profileName: dockerProfile.user,
+            savePassword: true,
+            emptyPasswordInput: false,
+            azureAuthType: undefined,
+            accountStore: undefined,
+            isValidProfile: () => true,
+            isAzureActiveDirectory: () => false,
+        };
+
+        return await this.connectionManager.connectionUI.saveProfile(
+            connection as IConnectionProfile,
+        );
+    }
 }
 
-export function getDefaultConnectionProfile(): IConnectionProfile {
+export function getDefaultConnectionProfile(): cd.DockerConnectionProfile {
     const connection: any = {
         connectionString: undefined,
         profileName: "",
@@ -199,6 +234,8 @@ export function getDefaultConnectionProfile(): IConnectionProfile {
         authenticationType: sqlAuthentication,
         savePassword: true,
         containerName: "",
+        version: "2022",
+        loadStatus: ApiStatus.Loading,
     };
 
     return connection;

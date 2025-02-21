@@ -187,10 +187,25 @@ export function validateSqlServerPassword(password): boolean {
     );
 }
 
-export async function validateContainerName(containerName): Promise<boolean> {
+export async function validateContainerName(
+    containerName: string,
+): Promise<string> {
     return new Promise((resolve) => {
         exec(COMMANDS.VALIDATE_CONTAINER_NAME, (error, stdout) => {
-            resolve(!stdout.split("\n").includes(containerName));
+            const existingContainers = stdout.split("\n");
+
+            let newContainerName: string = "";
+            if (containerName.trim() == "") {
+                let newContainerName = "sql_server_container";
+                let counter = 1;
+
+                while (existingContainers.includes(newContainerName)) {
+                    newContainerName = `sql_server_container${++counter}`;
+                }
+            } else if (!existingContainers.includes(containerName)) {
+                newContainerName = containerName;
+            }
+            resolve(newContainerName);
         });
     });
 }
