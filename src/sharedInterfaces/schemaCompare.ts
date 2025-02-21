@@ -28,6 +28,12 @@ export interface SchemaCompareReducers {
         fileType: string;
     };
 
+    updateSelectedSchema: {
+        endpointType: string;
+        schemaType: string;
+        filePath: string;
+    };
+
     compare: {
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
@@ -91,6 +97,12 @@ export interface SchemaCompareContextProps {
     getFilePath: (
         endpointInfo: mssql.SchemaCompareEndpointInfo,
         fileType: string,
+    ) => void;
+
+    updateSelectedSchema: (
+        endpointType: string,
+        schemaType: string,
+        filePath: string,
     ) => void;
 
     compare: (

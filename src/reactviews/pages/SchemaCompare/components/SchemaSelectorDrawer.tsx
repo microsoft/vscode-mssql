@@ -106,6 +106,16 @@ const SchemaSelectorDrawer = (props: Props) => {
         context.getFilePath(context.state.sourceEndpointInfo, schemaType);
     };
 
+    const handleConfirmSelectedSchema = () => {
+        context.updateSelectedSchema(
+            "source",
+            schemaType,
+            schemaType === "dacpac"
+                ? context.state.dacpacPath
+                : context.state.sqlProjPath,
+        );
+    };
+
     return (
         <InlineDrawer
             separator
@@ -243,7 +253,11 @@ const SchemaSelectorDrawer = (props: Props) => {
                 )}
             </DrawerBody>
             <DrawerFooter className={classes.footer}>
-                <Button disabled={disableOkButton} appearance="primary">
+                <Button
+                    disabled={disableOkButton}
+                    appearance="primary"
+                    onClick={handleConfirmSelectedSchema}
+                >
                     OK
                 </Button>
                 <Button appearance="secondary" onClick={closeDrawer}>

@@ -240,17 +240,31 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("getFilePath", async (state, payload) => {
             const filePath = await getFile(payload);
             if (filePath) {
-                let newState = state;
-
                 if (payload.fileType === "dacpac") {
-                    newState.dacpacPath = filePath;
+                    state.dacpacPath = filePath;
                 } else if (payload.fileType === "sqlproj") {
-                    newState.sqlProjPath = filePath;
+                    state.sqlProjPath = filePath;
                 }
-                this.updateState(newState);
-
-                return newState;
+                this.updateState(state);
             }
+
+            return state;
+        });
+
+        this.registerReducer("updateSelectedSchema", (state, payload) => {
+            if (payload.endpointType === "source") {
+                state.sourceEndpointInfo =
+                    payload.schemaType === "dacpac"
+                        ? this.getEndpointInfoFromDacpac(payload.filePath)
+                        : this.getEndpointInfoFromProject(payload.filePath);
+            } else {
+                state.targetEndpointInfo =
+                    payload.schemaType === "dacpac"
+                        ? this.getEndpointInfoFromDacpac(payload.filePath)
+                        : this.getEndpointInfoFromProject(payload.filePath);
+            }
+
+            this.updateState(state);
 
             return state;
         });

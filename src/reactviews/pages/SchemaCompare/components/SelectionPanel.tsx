@@ -16,7 +16,8 @@ import {
 
 import { ArrowSwapFilled, AddFilled } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
+import { SchemaCompareEndpointType } from "vscode-mssql";
 
 const useStyles = makeStyles({
     topMargin: {
@@ -71,6 +72,15 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
 
+    let sourceEndpoint = "";
+    useEffect(() => {
+        sourceEndpoint =
+            context.state.sourceEndpointInfo.endpointType ===
+            SchemaCompareEndpointType.Dacpac
+                ? context.state.sourceEndpointInfo.packageFilePath
+                : context.state.sourceEndpointInfo.projectFilePath;
+    }, []);
+
     const handleAddSource = () => {
         context.selectSourceDrawer.setOpen(true);
     };
@@ -102,7 +112,7 @@ const SelectionPanel: React.FC<Props> = (props: Props) => {
                             id={sourceId}
                             className={classes.inputWidth}
                             {...props}
-                            value="C:\DatabaseProjects\SampleProj\SampleProj.sqlproj"
+                            value={sourceEndpoint}
                             readOnly
                         />
                         <Button
