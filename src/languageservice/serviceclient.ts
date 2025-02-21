@@ -537,6 +537,17 @@ export default class SqlToolsServiceClient {
             serverArgs.push("--application-name", serviceName);
             serverArgs.push("--data-path", getAppDataPath());
 
+            /**
+             * Adds a dummy argument to sts to indicate that the server is launched
+             * from the VS Code debug panel. This helps distinguish the sts process
+             * in the process list (for .NET Core attach), especially when multiple
+             * instances of the extension are running. This is particularly useful on
+             * macOS, where the process path is not visible in the process list.
+             */
+            if (process.env[STS_OVERRIDE_ENV_VAR]) {
+                serverArgs.push("--vscode-debug-launch");
+            }
+
             // Enable SQL Auth Provider registration for Azure MFA Authentication
             const enableSqlAuthenticationProvider =
                 getEnableSqlAuthenticationProviderConfig();

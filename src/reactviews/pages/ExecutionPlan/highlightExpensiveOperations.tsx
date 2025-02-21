@@ -132,12 +132,16 @@ export const HighlightExpensiveOperations: React.FC<
                 onClick={handleHighlightExpensiveOperation}
                 size="small"
                 appearance="subtle"
+                title={locConstants.common.apply}
+                aria-label={locConstants.common.apply}
                 icon={<Checkmark20Regular />}
             />
             <Button
                 icon={<Dismiss20Regular />}
                 size="small"
                 appearance="subtle"
+                title={locConstants.common.close}
+                aria-label={locConstants.common.close}
                 onClick={handleHighlightClose}
             />
         </div>

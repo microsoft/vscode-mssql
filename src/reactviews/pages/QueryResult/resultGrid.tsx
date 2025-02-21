@@ -10,7 +10,6 @@ import {
     useEffect,
     useImperativeHandle,
     useRef,
-    useState,
 } from "react";
 import "../../media/slickgrid.css";
 import { ACTIONBAR_WIDTH_PX, range, Table } from "./table/table";
@@ -77,8 +76,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         let table: Table<any>;
 
         const context = useContext(QueryResultContext);
+        if (!context) {
+            return undefined;
+        }
         const gridContainerRef = useRef<HTMLDivElement>(null);
-        const [refreshkey, setRefreshKey] = useState(0);
         const refreshGrid = () => {
             if (gridContainerRef.current) {
                 while (gridContainerRef.current.firstChild) {
@@ -87,7 +88,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     );
                 }
             }
-            setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
             let gridParent: HTMLElement | null;
@@ -317,7 +317,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     ),
                 );
             }
-        }, [refreshkey]);
+        }, []);
 
         useImperativeHandle(ref, () => ({
             refreshGrid,

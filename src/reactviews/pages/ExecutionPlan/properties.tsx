@@ -301,6 +301,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                             <Button
                                 size="small"
                                 className={classes.chevronButton}
+                                aria-label={
+                                    openedButtons.includes(item.name)
+                                        ? locConstants.executionPlan.collapse
+                                        : locConstants.executionPlan.expand
+                                }
                                 icon={
                                     openedButtons.includes(item.name) ? (
                                         <ChevronDown20Regular />
@@ -354,19 +359,29 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         background: tokens.colorNeutralBackground2,
                     }}
                 >
-                    <div>{PROPERTIES}</div>
-                    <div>
+                    <div aria-label={PROPERTIES} tabIndex={0}>
+                        {PROPERTIES}
+                    </div>
+                    <div tabIndex={0}>
                         <Button
                             className={classes.dismissButton}
                             style={{
                                 background: tokens.colorNeutralBackground2,
                             }}
                             onClick={() => setPropertiesClicked(false)}
+                            title={locConstants.common.close}
+                            aria-label={locConstants.common.close}
                             icon={<Dismiss12Regular />}
                         />
                     </div>
                 </div>
-                <div className={classes.nameContainer}>{name}</div>
+                <div
+                    className={classes.nameContainer}
+                    aria-label={name}
+                    tabIndex={0}
+                >
+                    {name}
+                </div>
                 <Toolbar className={classes.toolbar} size="small">
                     <ToolbarButton
                         className={classes.button}
@@ -484,7 +499,9 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<ep.ExecutionPlanPropertyTableItem>>
+                    <DataGridBody<ep.ExecutionPlanPropertyTableItem>
+                        tabIndex={0}
+                    >
                         {({ item, rowId }) => (
                             <>
                                 {(!item.isChild ||

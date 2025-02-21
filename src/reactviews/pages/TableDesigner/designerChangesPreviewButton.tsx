@@ -53,8 +53,9 @@ const useStyles = makeStyles({
     errorIcon: {
         fontSize: "100px",
         opacity: 0.5,
+        color: "var(--vscode-errorForeground)",
     },
-    retryButton: {
+    dialogFooterButtons: {
         marginTop: "10px",
     },
     markdownContainer: {
@@ -96,7 +97,6 @@ export const DesignerChangesPreviewButton = () => {
         return (
             <DialogTrigger disableButtonEnhancement>
                 <Button
-                    size="medium"
                     appearance="secondary"
                     onClick={() => setIsConfirmationChecked(false)}
                 >
@@ -211,11 +211,20 @@ export const DesignerChangesPreviewButton = () => {
         <>
             <DialogContent className={classes.dialogContent}>
                 <ErrorCircleRegular className={classes.errorIcon} />
-                <div>{locConstants.tableDesigner.errorLoadingPreview}</div>
+                <div>
+                    {designerContext.state.generatePreviewReportResult
+                        ?.schemaValidationError ??
+                        locConstants.tableDesigner.errorLoadingPreview}
+                </div>
             </DialogContent>
             <DialogActions>
+                <DialogTrigger action="close">
+                    <Button className={classes.dialogFooterButtons}>
+                        {locConstants.common.close}
+                    </Button>
+                </DialogTrigger>
                 <Button
-                    className={classes.retryButton}
+                    className={classes.dialogFooterButtons}
                     onClick={() => {
                         designerContext.generatePreviewReport();
                     }}
