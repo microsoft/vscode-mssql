@@ -1103,7 +1103,7 @@
               },
               "connectTimeout": {
                 "type": "number",
-                "default": 15,
+                "default": 30,
                 "description": "%mssql.connection.connectTimeout%"
               },
               "commandTimeout": {
