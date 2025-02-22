@@ -8,6 +8,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
     FormContextProps,
     FormEvent,
+    FormItemSpec,
     FormState,
 } from "../../common/forms/form";
 
@@ -26,6 +27,10 @@ export class ContainerDeploymentWebviewState
         loadState: ApiStatus.Loading,
     };
     formState: DockerConnectionProfile = undefined;
+    formComponents: Record<
+        string,
+        FormItemSpec<ContainerDeploymentWebviewState, DockerConnectionProfile>
+    > = {};
     platform: string = "";
     // Used for container name validation within the form
     isValidContainerName: boolean = false;
@@ -90,6 +95,13 @@ export interface ContainerDeploymentReducers {
      * Gets the execution plan graph from the provider
      */
     checkLinuxEngine: {};
+
+    setFormComponents: {
+        components: FormItemSpec<
+            ContainerDeploymentWebviewState,
+            DockerConnectionProfile
+        >[];
+    };
 
     /**
      * Gets the execution plan graph from the provider

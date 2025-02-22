@@ -13,7 +13,7 @@ import {
 import {
     Checkmark20Regular,
     ChevronUp20Regular,
-    ChevronDown20Regular,
+    ChevronLeft20Regular,
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
@@ -127,7 +127,7 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                 <Button
                     icon={
                         expanded ? (
-                            <ChevronDown20Regular />
+                            <ChevronLeft20Regular />
                         ) : (
                             <ChevronUp20Regular />
                         )

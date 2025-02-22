@@ -12,6 +12,11 @@ import { exec } from "child_process";
 import { platform } from "os";
 import { sqlAuthentication } from "../constants/constants";
 import { IConnectionProfile } from "../models/interfaces";
+import {
+    FormItemType,
+    FormItemOptions,
+    FormItemSpec,
+} from "../reactviews/common/forms/form";
 
 export class ContainerDeploymentWebviewController extends ReactWebviewPanelController<
     cd.ContainerDeploymentWebviewState,
@@ -49,6 +54,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
         this.state.loadState = ApiStatus.Loading;
         this.state.formState = getDefaultConnectionProfile();
         this.state.platform = platform();
+        this.state.formComponents = this.setFormComponents();
         this.updateState();
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -56,14 +62,20 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
 
     private registerRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            if (payload.event.isAction) {
-                // connect to profile
-            } else {
-                (this.state.formState[
-                    payload.event.propertyName
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ] as any) = payload.event.value;
+            (this.state.formState[
+                payload.event.propertyName
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ] as any) = payload.event.value;
+            if (payload.event.propertyName == "containerName") {
+                this.state.isValidContainerName =
+                    (await this.validateContainerName(
+                        payload.event.value.toString(),
+                    )) !== "";
             }
+            await this.validateDockerConnectionProfile(
+                this.state.formState,
+                payload.event.propertyName,
+            );
 
             return state;
         });
@@ -115,14 +127,6 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             newState.dockerStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
-        this.registerReducer(
-            "validateContainerName",
-            async (state, payload) => {
-                state.isValidContainerName =
-                    (await this.validateContainerName(payload.name)) !== "";
-                return state;
-            },
-        );
     }
 
     public async checkDockerInstallation(): Promise<boolean> {
@@ -186,7 +190,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
 
                 let newContainerName: string = "";
                 if (containerName.trim() == "") {
-                    let newContainerName = "sql_server_container";
+                    newContainerName = "sql_server_container";
                     let counter = 1;
 
                     while (existingContainers.includes(newContainerName)) {
@@ -197,6 +201,148 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                 }
                 resolve(newContainerName);
             });
+        });
+    }
+
+    public validateSqlServerPassword(password: string): boolean {
+        return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
+            password,
+        );
+    }
+
+    public async validateDockerConnectionProfile(
+        dockerConnectionProfile: cd.DockerConnectionProfile,
+        propertyName: keyof cd.DockerConnectionProfile,
+    ): Promise<string[]> {
+        const erroredInputs: string[] = [];
+        const component = this.state.formComponents[propertyName];
+        if (component && component.validate) {
+            component.validation = component.validate(
+                this.state,
+                dockerConnectionProfile[propertyName],
+            );
+            if (!component.validation.isValid) {
+                erroredInputs.push(component.propertyName);
+            }
+        }
+        return erroredInputs;
+    }
+
+    async findAvailablePort(startPort: number): Promise<number> {
+        return new Promise((resolve, reject) => {
+            exec(cd.COMMANDS.GET_CONTAINERS, (error, stdout) => {
+                if (error) {
+                    console.error(`Error: ${error.message}`);
+                    return reject(-1);
+                }
+
+                const containerIds = stdout.trim().split("\n").filter(Boolean);
+                if (containerIds.length === 0) return resolve(startPort);
+
+                const usedPorts: Set<number> = new Set();
+                const inspections = containerIds.map(
+                    (containerId) =>
+                        new Promise<void>((resolve) => {
+                            exec(
+                                `docker inspect ${containerId}`,
+                                (inspectError, inspectStdout) => {
+                                    if (!inspectError) {
+                                        const hostPortMatches =
+                                            inspectStdout.match(
+                                                /"HostPort":\s*"(\d+)"/g,
+                                            );
+                                        hostPortMatches?.forEach((match) =>
+                                            usedPorts.add(
+                                                Number(match.match(/\d+/)![0]),
+                                            ),
+                                        );
+                                    } else {
+                                        console.error(
+                                            `Error inspecting container ${containerId}: ${inspectError.message}`,
+                                        );
+                                    }
+                                    resolve();
+                                },
+                            );
+                        }),
+                );
+
+                // @typescript-eslint/no-floating-promises
+                void Promise.all(inspections).then(() => {
+                    let port = startPort;
+                    while (usedPorts.has(port)) port++;
+                    resolve(port);
+                });
+            });
+        });
+    }
+
+    public async startSqlServerDockerContainer(
+        name: string,
+        password: string,
+        version: string,
+    ): Promise<cd.DockerCommandParams> {
+        const port = await this.findAvailablePort(1433);
+        return new Promise((resolve) => {
+            exec(
+                cd.COMMANDS.START_SQL_SERVER(
+                    name,
+                    password,
+                    port,
+                    Number(version),
+                ),
+                async (error) => {
+                    if (error)
+                        return resolve({
+                            success: false,
+                            error: error.message,
+                            port: undefined,
+                        });
+                    console.log(
+                        `SQL Server container started on port ${port}.`,
+                    );
+                    const isReady =
+                        await this.checkIfContainerIsReadyForConnections(name);
+                    return resolve(
+                        isReady
+                            ? { success: true, port: port }
+                            : {
+                                  success: false,
+                                  error: "Could not set up container",
+                                  port: undefined,
+                              },
+                    );
+                },
+            );
+        });
+    }
+
+    public async isDockerContainerRunning(name: string): Promise<boolean> {
+        return new Promise((resolve) => {
+            exec(cd.COMMANDS.CHECK_CONTAINER_RUNNING(name), (error, stdout) => {
+                resolve(!error && stdout.trim() === name);
+            });
+        });
+    }
+
+    public async checkIfContainerIsReadyForConnections(
+        name: string,
+    ): Promise<boolean> {
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                exec(
+                    cd.COMMANDS.CHECK_LOGS(name, platform()),
+                    (error, stdout) => {
+                        if (
+                            !error &&
+                            stdout.includes(cd.COMMANDS.CHECK_CONTAINER_READY)
+                        ) {
+                            clearInterval(interval);
+                            resolve(true);
+                        }
+                    },
+                );
+            }, 1000);
         });
     }
 
@@ -217,6 +363,93 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
         return await this.connectionManager.connectionUI.saveProfile(
             connection as IConnectionProfile,
         );
+    }
+
+    public setFormComponents(): Record<
+        string,
+        FormItemSpec<
+            cd.ContainerDeploymentWebviewState,
+            cd.DockerConnectionProfile
+        >
+    > {
+        return {
+            version: {
+                type: FormItemType.Dropdown,
+                propertyName: "version",
+                label: "SQL Server Container Version",
+                required: true,
+                tooltip: "SQL Server Container Version",
+                options: [
+                    { displayName: "2022", value: "2022" },
+                    { displayName: "2019", value: "2019" },
+                    { displayName: "2017", value: "2017" },
+                ] as FormItemOptions[],
+            } as FormItemSpec<
+                cd.ContainerDeploymentWebviewState,
+                cd.DockerConnectionProfile
+            >,
+
+            password: {
+                type: FormItemType.Password,
+                propertyName: "password",
+                label: "SQL Server Container Password",
+                required: true,
+                tooltip: "SQL Server Container Password",
+                validate(_, value) {
+                    if (this.validateSqlServerPassword(value)) {
+                        return { isValid: true, validationMessage: "" };
+                    }
+                    return {
+                        isValid: false,
+                        validationMessage:
+                            "Please make your password at least 8 characters",
+                    };
+                },
+            } as FormItemSpec<
+                cd.ContainerDeploymentWebviewState,
+                cd.DockerConnectionProfile
+            >,
+
+            containerName: {
+                type: FormItemType.Input,
+                propertyName: "containerName",
+                label: "SQL Server Container Name",
+                required: false,
+                tooltip: "SQL Server Container Name",
+                validate(containerDeploymentState, _) {
+                    return containerDeploymentState.isValidContainerName
+                        ? { isValid: true, validationMessage: "" }
+                        : {
+                              isValid: false,
+                              validationMessage:
+                                  "Please use a unique container name",
+                          };
+                },
+            } as FormItemSpec<
+                cd.ContainerDeploymentWebviewState,
+                cd.DockerConnectionProfile
+            >,
+
+            acceptEula: {
+                type: FormItemType.Checkbox,
+                propertyName: "acceptEula",
+                label: "Accept Docker Eula",
+                required: true,
+                tooltip: "Accept Docker Eula",
+                validate(_, value) {
+                    if (value) {
+                        return { isValid: true, validationMessage: "" };
+                    }
+                    return {
+                        isValid: false,
+                        validationMessage: "Please accept the Docker Eula",
+                    };
+                },
+            } as FormItemSpec<
+                cd.ContainerDeploymentWebviewState,
+                cd.DockerConnectionProfile
+            >,
+        };
     }
 }
 
