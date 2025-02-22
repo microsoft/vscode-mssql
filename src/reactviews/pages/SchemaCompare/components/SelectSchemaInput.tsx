@@ -37,7 +37,7 @@ const useStyles = makeStyles({
 
 interface Props extends InputProps {
     label: string;
-    onClick: () => void;
+    selectFile: () => void;
 }
 
 const SelectSchemaInput = (props: Props) => {
@@ -68,7 +68,7 @@ const SelectSchemaInput = (props: Props) => {
                 <Button
                     size="small"
                     className={classes.buttonLeftSmallMargin}
-                    onClick={props.onClick}
+                    onClick={props.selectFile}
                 >
                     ...
                 </Button>

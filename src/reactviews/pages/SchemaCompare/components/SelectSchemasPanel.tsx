@@ -70,15 +70,15 @@ const SelectSchemasPanel = () => {
             <SelectSchemaInput
                 id={sourceId}
                 label="Source"
-                value=""
-                onClick={() => handleSelectFile("source")}
+                value={context.state.sourceEndpointInfo?.packageFilePath || ""}
+                selectFile={() => handleSelectFile("source")}
             />
 
             <SelectSchemaInput
                 id={targetId}
                 label="Target"
-                value=""
-                onClick={() => handleSelectFile("target")}
+                value={context.state.targetEndpointInfo?.packageFilePath || ""}
+                selectFile={() => handleSelectFile("target")}
             />
 
             <Button
