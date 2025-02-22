@@ -9,6 +9,7 @@ import {
     FormContextProps,
     FormEvent,
     FormState,
+    FormReducers,
 } from "../reactviews/common/forms/form";
 import { ApiStatus } from "./webview";
 
@@ -152,12 +153,10 @@ export enum AuthenticationType {
     AzureMFA = "AzureMFA",
 }
 
-export interface ConnectionDialogReducers {
+export interface ConnectionDialogReducers
+    extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
-    };
-    formAction: {
-        event: FormEvent<IConnectionDialogProfile>;
     };
     loadConnection: {
         connection: IConnectionDialogProfile;

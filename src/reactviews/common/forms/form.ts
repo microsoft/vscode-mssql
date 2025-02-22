@@ -5,13 +5,19 @@
 
 import { WebviewContextProps } from "../vscodeWebviewProvider";
 
-export interface FormState<T> {
-    formState: T;
+export interface FormState<TForm> {
+    formState: TForm;
 }
 
 export interface FormContextProps<TState extends FormState<TForm>, TForm>
     extends WebviewContextProps<TState> {
     formAction: (event: FormEvent<TForm>) => void;
+}
+
+export interface FormReducers<TForm> {
+    formAction: {
+        event: FormEvent<TForm>;
+    };
 }
 
 /**
