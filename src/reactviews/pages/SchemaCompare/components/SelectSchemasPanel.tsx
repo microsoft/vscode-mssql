@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useContext } from "react";
 import {
     Button,
     makeStyles,
@@ -11,6 +12,7 @@ import {
     useId,
 } from "@fluentui/react-components";
 import SelectSchemaInput from "./SelectSchemaInput";
+import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
 const useStyles = makeStyles({
     topMargin: {
@@ -47,6 +49,15 @@ const SelectSchemasPanel = () => {
     const sourceId = useId("source");
     const targetId = useId("target");
     const classes = useStyles();
+    const context = useContext(schemaCompareContext);
+
+    const handleSelectFile = (endpointType: "source" | "target") => {
+        const endpoint =
+            endpointType === "source"
+                ? context.state.sourceEndpointInfo
+                : context.state.targetEndpointInfo;
+        context.selectFile(endpoint, endpointType, "dacpac");
+    };
 
     return (
         <div
@@ -60,14 +71,14 @@ const SelectSchemasPanel = () => {
                 id={sourceId}
                 label="Source"
                 value=""
-                onClick={() => {}}
+                onClick={() => handleSelectFile("source")}
             />
 
             <SelectSchemaInput
                 id={targetId}
                 label="Target"
                 value=""
-                onClick={() => {}}
+                onClick={() => handleSelectFile("target")}
             />
 
             <Button

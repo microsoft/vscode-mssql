@@ -26,6 +26,7 @@ import {
     publishDatabaseChanges,
     publishProjectChanges,
     saveScmp,
+    openFileDialog,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
@@ -235,6 +236,26 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.registerReducer("selectFile", async (state, payload) => {
+            const filePath = await openFileDialog(payload);
+            const updatedEndpointInfo =
+                this.getEndpointInfoFromDacpac(filePath);
+
+            if (filePath) {
+                if (payload.fileType === "dacpac") {
+                    if (payload.endpointType === "source") {
+                        state.sourceEndpointInfo = updatedEndpointInfo;
+                    } else {
+                        state.targetEndpointInfo = updatedEndpointInfo;
+                    }
+                }
+
+                this.updateState(state);
+            }
+
+            return state;
+        });
+
         this.registerReducer("compare", async (state, payload) => {
             const result = await compare(
                 this.operationId,

@@ -31,6 +31,18 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             value={{
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
+
+                selectFile: function (
+                    endpoint: mssql.SchemaCompareEndpointInfo,
+                    endpointType: "source" | "target",
+                    fileType: "dacpac",
+                ): void {
+                    webViewState?.extensionRpc.action("selectFile", {
+                        endpoint: endpoint,
+                        endpointType: endpointType,
+                        fileType: fileType,
+                    });
+                },
                 compare: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
@@ -128,4 +140,4 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     );
 };
 
-export { SchemaCompareStateProvider };
+export { schemaCompareContext, SchemaCompareStateProvider };

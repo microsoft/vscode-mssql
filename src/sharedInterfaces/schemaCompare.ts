@@ -21,6 +21,12 @@ export interface SchemaCompareWebViewState {
 }
 
 export interface SchemaCompareReducers {
+    selectFile: {
+        endpoint: mssql.SchemaCompareEndpointInfo;
+        endpointType: "source" | "target";
+        fileType: "dacpac";
+    };
+
     compare: {
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
@@ -74,6 +80,12 @@ export interface SchemaCompareReducers {
 export interface SchemaCompareContextProps {
     state: SchemaCompareWebViewState;
     themeKind: ColorThemeKind;
+
+    selectFile: (
+        endpoint: mssql.SchemaCompareEndpointInfo,
+        endpointType: "source" | "target",
+        fileType: "dacpac",
+    ) => void;
 
     compare: (
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,

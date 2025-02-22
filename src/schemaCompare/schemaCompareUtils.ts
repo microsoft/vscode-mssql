@@ -3,7 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
+import * as os from "os";
+import { promises as fs } from "fs";
 import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
 
@@ -14,6 +17,57 @@ import { generateGuid } from "../models/utils";
  */
 export function generateOperationId(): string {
     return generateGuid();
+}
+
+/**
+ * Retrieves a file path from the user using a file dialog.
+ *
+ * @param payload - The payload containing the endpoint and file type information.
+ * @returns A promise that resolves to the selected file path or undefined if no file was selected.
+ */
+export async function openFileDialog(
+    payload: SchemaCompareReducers["selectFile"],
+): Promise<string> {
+    const rootPath = getRootPath();
+    const defaultUri =
+        payload.endpoint &&
+        payload.endpoint.packageFilePath &&
+        (await fileExists(payload.endpoint.packageFilePath))
+            ? payload.endpoint.packageFilePath
+            : rootPath;
+
+    const fileUris = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        defaultUri: vscode.Uri.file(defaultUri),
+        openLabel: "Open",
+        filters: {
+            Files: [payload.fileType],
+        },
+    });
+
+    if (!fileUris || fileUris.length === 0) {
+        return undefined;
+    }
+
+    const fileUri = fileUris[0];
+    return fileUri.fsPath;
+}
+
+function getRootPath(): string {
+    return vscode.workspace.workspaceFolders
+        ? vscode.workspace.workspaceFolders[0].uri.fsPath
+        : os.homedir();
+}
+
+async function fileExists(path: string): Promise<boolean> {
+    try {
+        await fs.access(path);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 /**
