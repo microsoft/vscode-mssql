@@ -46,13 +46,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 compare: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                     deploymentOptions: mssql.DeploymentOptions,
                 ): void {
                     webViewState?.extensionRpc.action("compare", {
                         sourceEndpointInfo: sourceEndpointInfo,
                         targetEndpointInfo: targetEndpointInfo,
-                        taskExecutionMode: taskExecutionMode,
                         deploymentOptions: deploymentOptions,
                     });
                 },

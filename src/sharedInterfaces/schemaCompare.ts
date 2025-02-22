@@ -30,7 +30,6 @@ export interface SchemaCompareReducers {
     compare: {
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        taskExecutionMode: mssql.TaskExecutionMode;
         deploymentOptions: mssql.DeploymentOptions;
     };
 
@@ -90,7 +89,6 @@ export interface SchemaCompareContextProps {
     compare: (
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        taskExecutionMode: mssql.TaskExecutionMode,
         deploymentOptions: mssql.DeploymentOptions,
     ) => void;
 

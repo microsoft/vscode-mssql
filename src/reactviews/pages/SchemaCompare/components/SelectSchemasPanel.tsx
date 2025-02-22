@@ -59,6 +59,15 @@ const SelectSchemasPanel = () => {
         context.selectFile(endpoint, endpointType, "dacpac");
     };
 
+    const handleCompare = () => {
+        context.compare(
+            context.state.sourceEndpointInfo,
+            context.state.targetEndpointInfo,
+            context.state.defaultDeploymentOptionsResult
+                .defaultDeploymentOptions,
+        );
+    };
+
     return (
         <div
             className={mergeClasses(
@@ -87,6 +96,7 @@ const SelectSchemasPanel = () => {
                     classes.buttonLeftMargin,
                 )}
                 size="medium"
+                onClick={handleCompare}
             >
                 Compare
             </Button>

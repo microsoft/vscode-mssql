@@ -29,6 +29,7 @@ import {
     openFileDialog,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { TaskExecutionMode } from "vscode-mssql";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -259,11 +260,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("compare", async (state, payload) => {
             const result = await compare(
                 this.operationId,
+                TaskExecutionMode.execute,
                 payload,
                 this.schemaCompareService,
             );
 
             state.schemaCompareResult = result;
+            this.updateState(state);
+
             return state;
         });
 

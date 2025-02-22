@@ -80,6 +80,7 @@ async function fileExists(path: string): Promise<boolean> {
  */
 export async function compare(
     operationId: string,
+    taskExecutionMode: mssql.TaskExecutionMode,
     payload: SchemaCompareReducers["compare"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareResult> {
@@ -87,7 +88,7 @@ export async function compare(
         operationId,
         payload.sourceEndpointInfo,
         payload.targetEndpointInfo,
-        payload.taskExecutionMode,
+        taskExecutionMode,
         payload.deploymentOptions,
     );
 
