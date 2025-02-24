@@ -666,6 +666,10 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">미리 보기를 로드하는 동안 오류 발생</target>
       </trans-unit>
+      <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+        <source xml:lang="en">Error loading; refresh to try again</source>
+        <target state="new">Error loading; refresh to try again</target>
+      </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">편집기에서 콘텐츠를 여는 동안 오류가 발생했습니다.</target>
@@ -2730,8 +2734,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[선택 사항] 시도를 종료하고 오류를 생성하기 전에 명령 실행을 기다리는 시간(초)을 지정합니다. 기본값은 30초입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
-        <target state="translated">[선택 사항] 연결 시도를 종료하고 오류를 생성하기 전에 서버에 대한 연결을 기다리는 시간(초)을 지정합니다. 기본값은 온-프레미스의 경우 15초, Azure SQL Database 연결의 경우 30초입니다.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>

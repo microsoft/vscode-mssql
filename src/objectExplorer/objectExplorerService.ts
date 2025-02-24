@@ -357,10 +357,19 @@ export class ObjectExplorerService {
         return undefined;
     }
 
-    private handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
+    /**
+     * Handler for async response from SQL Tools Service.
+     * Public only for testing
+     */
+    public handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
         const self = this;
         const handler = (result: ExpandResponse) => {
-            if (result && result.nodes) {
+            if (!result) {
+                return undefined;
+            }
+
+            if (result.nodes && !result.errorMessage) {
+                // successfully received children from SQL Tools Service
                 const credentials =
                     self._sessionIdToConnectionCredentialsMap.get(
                         result.sessionId,
@@ -397,6 +406,42 @@ export class ObjectExplorerService {
                     ) {
                         let promise = self._expandParamsToPromiseMap.get(key);
                         promise.resolve(children);
+                        self._expandParamsToPromiseMap.delete(key);
+                        self._expandParamsToTreeNodeInfoMap.delete(key);
+                        return;
+                    }
+                }
+            } else {
+                // failure to expand node; display error
+
+                if (result.errorMessage) {
+                    self._connectionManager.vscodeWrapper.showErrorMessage(
+                        result.errorMessage,
+                    );
+                }
+
+                const expandParams: ExpandParams = {
+                    sessionId: result.sessionId,
+                    nodePath: result.nodePath,
+                };
+                const parentNode = self.getParentFromExpandParams(expandParams);
+
+                const errorNode = new vscode.TreeItem(
+                    LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
+                    TreeItemCollapsibleState.None,
+                );
+
+                errorNode.tooltip = result.errorMessage;
+
+                self._treeNodeToChildrenMap.set(parentNode, [errorNode]);
+
+                for (let key of self._expandParamsToPromiseMap.keys()) {
+                    if (
+                        key.sessionId === expandParams.sessionId &&
+                        key.nodePath === expandParams.nodePath
+                    ) {
+                        let promise = self._expandParamsToPromiseMap.get(key);
+                        promise.resolve([errorNode as TreeNodeInfo]);
                         self._expandParamsToPromiseMap.delete(key);
                         self._expandParamsToTreeNodeInfoMap.delete(key);
                         return;

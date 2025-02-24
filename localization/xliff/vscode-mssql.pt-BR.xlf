@@ -666,6 +666,10 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">Erro ao carregar a exibição</target>
       </trans-unit>
+      <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+        <source xml:lang="en">Error loading; refresh to try again</source>
+        <target state="new">Error loading; refresh to try again</target>
+      </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">Erro ao abrir o conteúdo no editor.</target>
@@ -2730,8 +2734,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[Opcional] Especifique o período de tempo em segundos para aguardar a execução de um comando antes de encerrar a tentativa e gerar um erro. O valor padrão é 30 segundos.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
-        <target state="translated">[Opcional] Especifique o período de tempo em segundos para aguardar uma conexão com o servidor antes de encerrar a tentativa de conexão e gerar um erro. O valor padrão é 15 segundos para conexões locais e 30 segundos para conexões de Banco de Dados SQL do Azure.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>

@@ -506,6 +506,9 @@
     <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
       <source xml:lang="en">Error loading preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+      <source xml:lang="en">Error loading; refresh to try again</source>
+    </trans-unit>
     <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
       <source xml:lang="en">Error occurred opening content in editor.</source>
     </trans-unit>
@@ -2059,7 +2062,7 @@
       <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.connectTimeout">
-      <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+      <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.maxPoolSize">
       <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
