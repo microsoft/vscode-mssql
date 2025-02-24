@@ -9,6 +9,43 @@ const connectorIcon = require("./icons/connector.svg");
 import * as azdataGraph from "azdataGraph";
 import { ISchema, ITable } from "../../../sharedInterfaces/schemaDesigner";
 
+export function getSchemaDesignerColors(): azdataGraph.SchemaDesignerColors {
+    const body = document.body;
+    const computedStyle = getComputedStyle(body);
+    return {
+        cellHighlight: computedStyle.getPropertyValue("--vscode-focusBorder"),
+        cellForeground: computedStyle.getPropertyValue(
+            "--vscode-editor-foreground",
+        ),
+        cellBackground: computedStyle.getPropertyValue(
+            "--vscode-editor-background",
+        ),
+        cellBorder: computedStyle.getPropertyValue("--vscode-badge-background"),
+        cellColumnHover: computedStyle.getPropertyValue(
+            "--vscode-inputOption-hoverBackground",
+        ),
+        cellDivider: computedStyle.getPropertyValue(
+            "--vscode-badge-background",
+        ),
+        toolbarBackground: "#2c2c2c",
+        toolbarForeground: "#ffffff",
+        toolbarHoverBackground: "#383838",
+        toolbarDividerBackground: "#444444",
+        graphBackground: computedStyle.getPropertyValue(
+            "--vscode-editor-background",
+        ),
+        graphGrid: computedStyle.getPropertyValue("--vscode-badge-background"),
+        edge: computedStyle.getPropertyValue("--vscode-editor-foreground"),
+        outlineHandleFill: computedStyle.getPropertyValue(
+            "--vscode-focusBorder",
+        ),
+        outline: computedStyle.getPropertyValue("--vscode-focusBorder"),
+        graphHandlePreview: computedStyle.getPropertyValue(
+            "--vscode-editor-foreground",
+        ),
+    };
+}
+
 export const config: SchemaDesignerConfig = {
     icons: {
         addTableIcon: schemaDesignerIcons.addTableIcon,
@@ -27,24 +64,7 @@ export const config: SchemaDesignerConfig = {
         primaryKeyIcon: schemaDesignerIcons.primaryKeyIcon,
         foreignKeyIcon: schemaDesignerIcons.foreignKeyIcon,
     },
-    colors: {
-        cellHighlight: "#00FF00",
-        cellForeground: "var(--vscode-editor-foreground)",
-        cellBackground: "var(--vscode-editor-background)",
-        cellBorder: "var(--vscode-badge-background)",
-        cellColumnHover: "var(--vscode-inputOption-hoverBackground)",
-        cellDivider: "var(--vscode-badge-background)",
-        toolbarBackground: "#2c2c2c",
-        toolbarForeground: "#ffffff",
-        toolbarHoverBackground: "#383838",
-        toolbarDividerBackground: "#444444",
-        graphBackground: "var(--vscode-editor-background)",
-        graphGrid: "var(--vscode-badge-background)",
-        edge: "var(--vscode-editor-foreground)",
-        outlineHandleFill: "#00ff00",
-        outline: "#00FF00",
-        graphHandlePreview: "var(--vscode-editor-foreground)",
-    },
+    colors: getSchemaDesignerColors(),
     graphFontFamily: "",
     isEditable: true,
     editTable: function (

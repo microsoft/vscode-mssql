@@ -22,8 +22,7 @@ export class SchemaDesignerService implements ISchemaDesignerService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {
         this._sqlToolsClient.onNotification(
             ModelReadyNotification.type,
-            (result) => {
-                console.log("result", result);
+            (_result) => {
                 this._modelReadyListeners.forEach((listener) => listener());
             },
         );

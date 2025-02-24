@@ -13,10 +13,12 @@ import {
     WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
+import { WebviewRpc } from "../../common/rpc";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesignerWebviewState> {
     schema: ISchema; // TODO: is this redundant with state.schema?
+    extensionRpc: WebviewRpc<any>;
 }
 
 const SchemaDesignerContext = createContext<
@@ -35,6 +37,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         <SchemaDesignerContext.Provider
             value={{
                 ...getCoreRPCs(webviewState),
+                extensionRpc: webviewState.extensionRpc,
                 schema: webviewState.state.schema,
                 state: webviewState.state,
                 themeKind: webviewState.themeKind,
