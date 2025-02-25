@@ -69,7 +69,6 @@ import {
 import { IAccount } from "../models/contracts/azure";
 import {
     generateConnectionComponents,
-    getActiveFormComponents,
     groupAdvancedOptions,
 } from "./formComponentHelpers";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -1279,7 +1278,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private clearFormError() {
         this.state.formError = "";
-        for (const component of getActiveFormComponents(this.state).map(
+        for (const component of this.getActiveFormComponents(this.state).map(
             (x) => this.state.formComponents[x],
         )) {
             component.validation = undefined;

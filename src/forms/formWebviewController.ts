@@ -70,17 +70,6 @@ export abstract class FormWebviewController<
     }
 
     /**
-     * Method called after a form value has been set and validated.
-     * Override to perform additional actions after setting a form property.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async afterSetFormProperty(propertyName: keyof TForm): Promise<void> {
-        return;
-    }
-
-    abstract updateItemVisibility(): Promise<void>;
-
-    /**
      * Runs validation across the form fields
      * @param formTarget
      * @param propertyName
@@ -131,6 +120,18 @@ export abstract class FormWebviewController<
 
         return erroredInputs;
     }
+
+    /**
+     * Method called after a form value has been set and validated.
+     * Override to perform additional actions after setting a form property.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async afterSetFormProperty(propertyName: keyof TForm): Promise<void> {
+        return;
+    }
+
+    /** Updates the `hidden` property of each form component based on the current selections */
+    abstract updateItemVisibility(): Promise<void>;
 
     /** Gets the property names of the active form components */
     protected abstract getActiveFormComponents(state: TState): (keyof TForm)[];

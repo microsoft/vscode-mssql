@@ -352,15 +352,3 @@ export async function completeFormComponents(
         };
     };
 }
-
-export function getActiveFormComponents(
-    state: ConnectionDialogWebviewState,
-): (keyof IConnectionDialogProfile)[] {
-    if (
-        state.selectedInputMode === ConnectionInputMode.Parameters ||
-        state.selectedInputMode === ConnectionInputMode.AzureBrowse
-    ) {
-        return state.connectionComponents.mainOptions;
-    }
-    return ["connectionString", "profileName"];
-}
