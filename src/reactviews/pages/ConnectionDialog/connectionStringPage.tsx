@@ -6,13 +6,14 @@
 import { useContext } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { ConnectButton } from "./components/connectButton.component";
+import { TextareaProps } from "@fluentui/react-components";
 import {
+    ConnectionDialogContextProps,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import { FormItemSpec } from "../../common/forms/form";
-import { ConnectButton } from "./components/connectButton.component";
-import { TextareaProps } from "@fluentui/react-components";
 
 export const ConnectionStringPage = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -25,15 +26,18 @@ export const ConnectionStringPage = () => {
     let index = 0;
     return (
         <div>
-            <FormField
+            <FormField<
+                IConnectionDialogProfile,
+                ConnectionDialogWebviewState,
+                ConnectionDialogFormItemSpec,
+                ConnectionDialogContextProps
+            >
                 key={index++}
                 context={connectionDialogContext}
                 component={
-                    connectionDialogContext.state.connectionComponents
-                        .components["connectionString"] as FormItemSpec<
-                        ConnectionDialogWebviewState,
-                        IConnectionDialogProfile
-                    >
+                    connectionDialogContext.state.formComponents[
+                        "connectionString"
+                    ]!
                 }
                 idx={index}
                 props={{ orientation: "horizontal" }}

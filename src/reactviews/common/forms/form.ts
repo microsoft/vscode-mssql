@@ -5,19 +5,37 @@
 
 import { WebviewContextProps } from "../vscodeWebviewProvider";
 
-export interface FormState<T> {
-    formState: T;
+export interface FormState<
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+> {
+    formState: TForm;
+    formComponents: Partial<Record<keyof TForm, TFormItemSpec>>;
 }
 
-export interface FormContextProps<TState extends FormState<TForm>, TForm>
-    extends WebviewContextProps<TState> {
+export interface FormContextProps<
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+> extends WebviewContextProps<TState> {
     formAction: (event: FormEvent<TForm>) => void;
+}
+
+export interface FormReducers<TForm> {
+    formAction: {
+        event: FormEvent<TForm>;
+    };
 }
 
 /**
  * Describes a field in a connection dialog form.
  */
-export interface FormItemSpec<TState extends FormState<TForm>, TForm> {
+export interface FormItemSpec<
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+> {
     /**
      * The type of the form item
      */

@@ -7,8 +7,9 @@ import { useContext, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { FormItemSpec } from "../../common/forms/form";
 import {
+    ConnectionDialogContextProps,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -30,7 +31,7 @@ export const ConnectionFormPage = () => {
             {context.state.connectionComponents.mainOptions.map(
                 (inputName, idx) => {
                     const component =
-                        context.state.connectionComponents.components[
+                        context.state.formComponents[
                             inputName as keyof IConnectionDialogProfile
                         ];
                     if (component?.hidden !== false) {
@@ -38,15 +39,15 @@ export const ConnectionFormPage = () => {
                     }
 
                     return (
-                        <FormField
+                        <FormField<
+                            IConnectionDialogProfile,
+                            ConnectionDialogWebviewState,
+                            ConnectionDialogFormItemSpec,
+                            ConnectionDialogContextProps
+                        >
                             key={idx}
                             context={context}
-                            component={
-                                component as FormItemSpec<
-                                    ConnectionDialogWebviewState,
-                                    IConnectionDialogProfile
-                                >
-                            }
+                            component={component}
                             idx={idx}
                             props={{ orientation: "horizontal" }}
                         />
