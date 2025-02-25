@@ -1608,14 +1608,14 @@
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect</source>
     </trans-unit>
-    <trans-unit id="mssql.connectionGroups">
-      <source xml:lang="en">Connection groups</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
       <source xml:lang="en">Connection Dialog</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups">
+      <source xml:lang="en">Connection groups</source>
     </trans-unit>
     <trans-unit id="mssql.connections">
       <source xml:lang="en">Connection profiles defined in &apos;User Settings&apos; are shown under &apos;MS SQL: Connect&apos; command in the command palette.</source>
@@ -1965,14 +1965,14 @@
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
+      <source xml:lang="en">Table Designer</source>
+    </trans-unit>
     <trans-unit id="mssql.connectionGroup.color">
       <source xml:lang="en">The color of the connection group.</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.description">
       <source xml:lang="en">The description of the connection group.</source>
-    </trans-unit>
-    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
-      <source xml:lang="en">Table Designer</source>
     </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
