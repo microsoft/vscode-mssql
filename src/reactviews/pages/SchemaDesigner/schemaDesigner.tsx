@@ -169,7 +169,20 @@ export const SchemaDesigner = () => {
         createGraph();
     }, [context.schema]);
 
-    function exportAs(format: "svg" | "png" | "jpg") {
+    async function exportAs(format: "svg" | "png" | "jpg") {
+        if (!schemaDesigner) {
+            return;
+        }
+        const imageContent = await schemaDesigner.exportImage(format);
+        if (imageContent && context) {
+            context.saveAs(
+                imageContent.fileContent,
+                imageContent.format,
+                imageContent.width,
+                imageContent.height,
+            );
+            return;
+        }
         // transperant background
         var background = "none";
         var scale = 1;
@@ -350,7 +363,7 @@ export const SchemaDesigner = () => {
                         <MenuItem
                             onClick={async (_e) => {
                                 setTimeout(() => {
-                                    exportAs("svg");
+                                    void exportAs("svg");
                                 }, 0);
                             }}
                         >
@@ -359,7 +372,7 @@ export const SchemaDesigner = () => {
                         <MenuItem
                             onClick={(_e) => {
                                 setTimeout(() => {
-                                    exportAs("png");
+                                    void exportAs("png");
                                 }, 0);
                             }}
                         >
@@ -368,7 +381,7 @@ export const SchemaDesigner = () => {
                         <MenuItem
                             onClick={(_e) => {
                                 setTimeout(() => {
-                                    exportAs("jpg");
+                                    void exportAs("jpg");
                                 }, 0);
                             }}
                         >
