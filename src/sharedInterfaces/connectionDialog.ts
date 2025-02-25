@@ -7,7 +7,6 @@ import * as vscodeMssql from "vscode-mssql";
 import {
     FormItemSpec,
     FormContextProps,
-    FormEvent,
     FormState,
     FormReducers,
 } from "../reactviews/common/forms/form";
@@ -25,11 +24,24 @@ export class ConnectionDialogWebviewState
     set connectionProfile(value: IConnectionDialogProfile) {
         this.formState = value;
     }
+
+    // formComponents: Partial<
+    //     Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
+    // > = {};
+
+    formComponents: Partial<
+        Record<
+            keyof IConnectionDialogProfile,
+            FormItemSpec<
+                FormState<IConnectionDialogProfile>,
+                IConnectionDialogProfile
+            >
+        >
+    > = {};
+
     public selectedInputMode: ConnectionInputMode =
         ConnectionInputMode.Parameters;
     public connectionComponents: ConnectionComponentsInfo = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        components: {} as any, // force empty record for intial blank state
         mainOptions: [],
         topAdvancedOptions: [],
         groupedAdvancedOptions: [],
@@ -86,9 +98,6 @@ export interface AzureSqlServerInfo {
 }
 
 export interface ConnectionComponentsInfo {
-    components: Partial<
-        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-    >;
     mainOptions: (keyof IConnectionDialogProfile)[];
     topAdvancedOptions: (keyof IConnectionDialogProfile)[];
     groupedAdvancedOptions: ConnectionComponentGroup[];

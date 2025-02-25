@@ -11,7 +11,7 @@ import {
 } from "../reactviews/common/forms/form";
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 
-abstract class FormWebviewController<
+export abstract class FormWebviewController<
     TForm,
     TState extends FormState<TForm>,
     TReducers extends FormReducers<TForm>,
@@ -33,15 +33,51 @@ abstract class FormWebviewController<
             options,
         );
 
-        this.registerRpcHandlers();
+        this.registerFormRpcHandlers();
     }
 
-    private registerRpcHandlers() {
-        this.registerReducer("formAction", (state, payload) => {
-            // TODO
+    private registerFormRpcHandlers() {
+        this.registerReducer("formAction", async (state, payload) => {
+            if (payload.event.isAction) {
+                const component = this.getFormComponent(
+                    this.state,
+                    payload.event.propertyName,
+                );
+                if (component && component.actionButtons) {
+                    const actionButton = component.actionButtons.find(
+                        (b) => b.id === payload.event.value,
+                    );
+                    if (actionButton?.callback) {
+                        await actionButton.callback();
+                    }
+                }
+            } else {
+                (this.state.formState[
+                    payload.event.propertyName
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = payload.event.value;
+                await this.validateForm(
+                    this.state.formState,
+                    payload.event.propertyName,
+                );
+                await this.afterSetFormProperty(payload.event.propertyName);
+            }
+            await this.updateItemVisibility();
+
             return state;
         });
     }
+
+    /**
+     * Method called after a form value has been set and validated.
+     * Override to perform additional actions after setting a form property.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async afterSetFormProperty(propertyName: keyof TForm): Promise<void> {
+        return;
+    }
+
+    abstract updateItemVisibility(): Promise<void>;
 
     /**
      * Runs validation across the form fields
@@ -51,11 +87,11 @@ abstract class FormWebviewController<
      */
     protected async validateForm(
         formTarget: TForm,
-        propertyName: keyof TForm,
+        propertyName?: keyof TForm,
     ): Promise<string[]> {
         const erroredInputs = [];
         if (propertyName) {
-            const component = this.getFormComponent(this.state, propertyName);
+            const component = this.state.formComponents[propertyName];
             if (component && component.validate) {
                 component.validation = component.validate(
                     this.state,
@@ -67,7 +103,7 @@ abstract class FormWebviewController<
             }
         } else {
             this.getActiveFormComponents(this.state)
-                .map((x) => this.state.connectionComponents.components[x])
+                .map((x) => this.state.formComponents[x])
                 .forEach((c) => {
                     if (c.hidden) {
                         c.validation = {
@@ -79,7 +115,10 @@ abstract class FormWebviewController<
                         if (c.validate) {
                             c.validation = c.validate(
                                 this.state,
-                                formTarget[c.propertyName],
+                                formTarget[c.propertyName] as
+                                    | string
+                                    | boolean
+                                    | number,
                             );
                             if (!c.validation.isValid) {
                                 erroredInputs.push(c.propertyName);
@@ -92,10 +131,16 @@ abstract class FormWebviewController<
         return erroredInputs;
     }
 
+    /** Gets the property names of the active form components */
     protected abstract getActiveFormComponents(state: TState): (keyof TForm)[];
 
-    protected abstract getFormComponent(
+    /** Gets a specific form component */
+    protected getFormComponent(
         state: TState,
         propertyName: keyof TForm,
-    ): FormItemSpec<TState, TForm>;
+    ): FormItemSpec<TState, TForm> {
+        return this.getActiveFormComponents(state).includes(propertyName)
+            ? state.formComponents[propertyName]
+            : undefined;
+    }
 }

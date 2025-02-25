@@ -342,7 +342,7 @@ export const AzureBrowsePage = () => {
                     <FormField
                         context={context}
                         component={
-                            context.state.connectionComponents.components[
+                            context.state.formComponents[
                                 "trustServerCertificate"
                             ] as FormItemSpec<
                                 ConnectionDialogWebviewState,
@@ -383,7 +383,7 @@ export const AzureBrowsePage = () => {
                         )
                         .map((inputName, idx) => {
                             const component =
-                                context.state.connectionComponents.components[
+                                context.state.formComponents[
                                     inputName as keyof IConnectionDialogProfile
                                 ];
                             if (component?.hidden !== false) {

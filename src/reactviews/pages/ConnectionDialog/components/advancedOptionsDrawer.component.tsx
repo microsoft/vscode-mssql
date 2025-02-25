@@ -70,8 +70,7 @@ export const AdvancedOptionsDrawer = ({
                                     key={idx}
                                     context={context}
                                     component={
-                                        context.state.connectionComponents
-                                            .components[
+                                        context.state.formComponents[
                                             optionName
                                         ] as FormItemSpec<
                                             ConnectionDialogWebviewState,
@@ -100,9 +99,9 @@ export const AdvancedOptionsDrawer = ({
                                             (optionName, idx) => {
                                                 if (
                                                     context.state
-                                                        .connectionComponents
-                                                        .components[optionName]
-                                                        ?.hidden === true
+                                                        .formComponents[
+                                                        optionName
+                                                    ]?.hidden === true
                                                 ) {
                                                     return undefined;
                                                 }
@@ -112,8 +111,7 @@ export const AdvancedOptionsDrawer = ({
                                                         context={context}
                                                         component={
                                                             context.state
-                                                                .connectionComponents
-                                                                .components[
+                                                                .formComponents[
                                                                 optionName
                                                             ] as FormItemSpec<
                                                                 ConnectionDialogWebviewState,

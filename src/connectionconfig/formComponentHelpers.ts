@@ -100,6 +100,10 @@ export async function generateConnectionComponents(
 }
 
 export function groupAdvancedOptions(
+    components: Record<
+        keyof IConnectionDialogProfile,
+        ConnectionDialogFormItemSpec
+    >,
     componentsInfo: ConnectionComponentsInfo,
 ): ConnectionComponentGroup[] {
     const groupMap: Map<string, ConnectionComponentGroup> = new Map([
@@ -112,7 +116,7 @@ export function groupAdvancedOptions(
         ["context", undefined],
     ]);
 
-    const optionsToGroup = Object.values(componentsInfo.components).filter(
+    const optionsToGroup = Object.values(components).filter(
         (c) =>
             c.isAdvancedOption &&
             !componentsInfo.mainOptions.includes(c.propertyName) &&
@@ -355,15 +359,4 @@ export function getActiveFormComponents(
         return state.connectionComponents.mainOptions;
     }
     return ["connectionString", "profileName"];
-}
-
-export function getFormComponent(
-    state: ConnectionDialogWebviewState,
-    propertyName: keyof IConnectionDialogProfile,
-):
-    | FormItemSpec<ConnectionDialogWebviewState, IConnectionDialogProfile>
-    | undefined {
-    return getActiveFormComponents(state).includes(propertyName)
-        ? state.connectionComponents.components[propertyName]
-        : undefined;
 }

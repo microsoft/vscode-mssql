@@ -30,7 +30,7 @@ export const ConnectionFormPage = () => {
             {context.state.connectionComponents.mainOptions.map(
                 (inputName, idx) => {
                     const component =
-                        context.state.connectionComponents.components[
+                        context.state.formComponents[
                             inputName as keyof IConnectionDialogProfile
                         ];
                     if (component?.hidden !== false) {

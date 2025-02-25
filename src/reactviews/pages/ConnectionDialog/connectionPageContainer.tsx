@@ -99,7 +99,7 @@ export const ConnectionInfoFormContainer = () => {
                 <FormField
                     context={context}
                     component={
-                        context.state.connectionComponents.components[
+                        context.state.formComponents[
                             "profileName"
                         ] as FormItemSpec<
                             ConnectionDialogWebviewState,

@@ -29,8 +29,9 @@ export const ConnectionStringPage = () => {
                 key={index++}
                 context={connectionDialogContext}
                 component={
-                    connectionDialogContext.state.connectionComponents
-                        .components["connectionString"] as FormItemSpec<
+                    connectionDialogContext.state.formComponents[
+                        "connectionString"
+                    ] as FormItemSpec<
                         ConnectionDialogWebviewState,
                         IConnectionDialogProfile
                     >

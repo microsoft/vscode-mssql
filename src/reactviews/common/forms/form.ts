@@ -7,6 +7,9 @@ import { WebviewContextProps } from "../vscodeWebviewProvider";
 
 export interface FormState<TForm> {
     formState: TForm;
+    formComponents: Partial<
+        Record<keyof TForm, FormItemSpec<FormState<TForm>, TForm>>
+    >;
 }
 
 export interface FormContextProps<TState extends FormState<TForm>, TForm>
