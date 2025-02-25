@@ -384,6 +384,42 @@ export class ObjectExplorerService {
                         return;
                     }
                 }
+            } else {
+                // failure to expand node; display error
+
+                if (result.errorMessage) {
+                    self._connectionManager.vscodeWrapper.showErrorMessage(
+                        result.errorMessage,
+                    );
+                }
+
+                const expandParams: ExpandParams = {
+                    sessionId: result.sessionId,
+                    nodePath: result.nodePath,
+                };
+                const parentNode = self.getParentFromExpandParams(expandParams);
+
+                const errorNode = new vscode.TreeItem(
+                    LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
+                    TreeItemCollapsibleState.None,
+                );
+
+                errorNode.tooltip = result.errorMessage;
+
+                self._treeNodeToChildrenMap.set(parentNode, [errorNode]);
+
+                for (let key of self._expandParamsToPromiseMap.keys()) {
+                    if (
+                        key.sessionId === expandParams.sessionId &&
+                        key.nodePath === expandParams.nodePath
+                    ) {
+                        let promise = self._expandParamsToPromiseMap.get(key);
+                        promise.resolve([errorNode as TreeNodeInfo]);
+                        self._expandParamsToPromiseMap.delete(key);
+                        self._expandParamsToTreeNodeInfoMap.delete(key);
+                        return;
+                    }
+                }
             }
         };
         return handler;

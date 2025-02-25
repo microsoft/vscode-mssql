@@ -885,7 +885,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadEmptyConnection() {
         const emptyConnection = {
             authenticationType: AuthenticationType.SqlLogin,
-            connectTimeout: 15, // seconds
+            connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
         } as IConnectionDialogProfile;
         this.state.connectionProfile = emptyConnection;

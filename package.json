@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.29.0",
+  "version": "1.30.0",
   "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
   "publisher": "ms-mssql",
   "preview": false,
@@ -104,6 +104,7 @@
     "@types/react-resizable": "^3.0.8",
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
+    "@types/tunnel": "0.0.1",
     "@types/underscore": "1.8.3",
     "@types/vscode": "1.83.1",
     "@types/vscode-webview": "^1.57.5",
@@ -204,6 +205,7 @@
     "signal-exit": "^4.1.0",
     "tar": "^7.4.3",
     "tmp": "^0.0.28",
+    "tunnel": "0.0.6",
     "underscore": "^1.8.3",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
@@ -921,6 +923,11 @@
           "dark": "media/disableActualExecutionPlan_dark.svg",
           "light": "media/disableActualExecutionPlan_light.svg"
         }
+      },
+      {
+          "command": "mssql.enableRichExperiences",
+          "title": "%mssql.enableRichExperiences%",
+          "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -1133,7 +1140,7 @@
               },
               "connectTimeout": {
                 "type": "number",
-                "default": 15,
+                "default": 30,
                 "description": "%mssql.connection.connectTimeout%"
               },
               "commandTimeout": {
@@ -1511,7 +1518,10 @@
           "description": "%mssql.query.maxXmlCharsToStore%"
         },
         "mssql.autoDisableNonTSqlLanguageService": {
-          "type": ["boolean", "null"],
+          "type": [
+            "boolean",
+            "null"
+          ],
           "default": null,
           "description": "%mssql.autoDisableNonTSqlLanguageService%"
         },
@@ -1661,6 +1671,109 @@
           "description": "%mssql.objectExplorer.expandTimeout%"
         }
       }
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "mssql.getStarted",
+        "title": "%mssql.walkthroughs.getStarted.title%",
+        "description": "%mssql.walkthroughs.getStarted.description%",
+        "steps": [
+          {
+            "id": "enableModernFeatures",
+            "title": "%mssql.walkthroughs.getStarted.enableModernFeatures.title%",
+            "description": "%mssql.walkthroughs.getStarted.enableModernFeatures.description%",
+            "media": {
+              "image": "images/walkthroughs/enableModernFeatures.png",
+              "altText": "%mssql.walkthroughs.getStarted.enableModernFeatures.altText%"
+            },
+            "completionEvents": [
+              "onCommand:mssql.enableRichExperiences",
+              "config.mssql.enableRichExperiences == true"
+            ]
+          },
+          {
+            "id": "connectToDatabase",
+            "title": "%mssql.walkthroughs.getStarted.connectToDatabase.title%",
+            "description": "%mssql.walkthroughs.getStarted.connectToDatabase.description%",
+            "media": {
+              "image": "images/walkthroughs/connectToDatabase.png",
+              "altText": "%mssql.walkthroughs.getStarted.connectToDatabase.altText%"
+            },
+            "completionEvents": [
+              "onCommand:mssql.addObjectExplorer"
+            ]
+          },
+          {
+            "id": "createNewTable",
+            "title": "%mssql.walkthroughs.getStarted.createNewTable.title%",
+            "description": "%mssql.walkthroughs.getStarted.createNewTable.description%",
+            "media": {
+              "image": "images/walkthroughs/createNewTable.png",
+              "altText": "%mssql.walkthroughs.getStarted.createNewTable.altText%"
+            },
+            "completionEvents": [
+              "onCommand:mssql.newTable",
+              "onCommand:mssql.editTable"
+            ]
+          },
+          {
+            "id": "runQueries",
+            "title": "%mssql.walkthroughs.getStarted.runQueries.title%",
+            "description": "%mssql.walkthroughs.getStarted.runQueries.description%",
+            "media": {
+              "image": "images/walkthroughs/runQueries.png",
+              "altText": "%mssql.walkthroughs.getStarted.runQueries.altText%"
+            },
+            "completionEvents": [
+              "onCommand:mssql.runQuery"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mssql.nextSteps",
+        "title": "%mssql.walkthroughs.nextSteps.title%",
+        "description": "%mssql.walkthroughs.nextSteps.description%",
+        "steps": [
+          {
+            "id": "sortAndFilterQueryResults",
+            "title": "%mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title%",
+            "description": "%mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description%",
+            "media": {
+              "image": "images/walkthroughs/sortAndFilterQueryResults.png",
+              "altText": "%mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText%"
+            },
+            "completionEvents": []
+          },
+          {
+            "id": "viewQueryPlan",
+            "title": "%mssql.walkthroughs.nextSteps.viewQueryPlan.title%",
+            "description": "%mssql.walkthroughs.nextSteps.viewQueryPlan.description%",
+            "media": {
+              "image": "images/walkthroughs/viewQueryPlan.png",
+              "altText": "%mssql.walkthroughs.nextSteps.viewQueryPlan.altText%"
+            },
+            "completionEvents": [
+              "onCommand:mssql.showExecutionPlanInResults",
+              "onCommand:mssql.enableActualPlan",
+              "onCommand:mssql.disableActualPlan"
+            ]
+          },
+          {
+            "id": "objectExplorerFilters",
+            "title": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.title%",
+            "description": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.description%",
+            "media": {
+              "image": "images/walkthroughs/objectExplorerFilters.png",
+              "altText": "%mssql.walkthroughs.nextSteps.objectExplorerFilters.altText%"
+            },
+            "completionEvents": [
+              "onCommand:mssql.filterNodeWithExistingFilters",
+              "onCommand:mssql.filterNode"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

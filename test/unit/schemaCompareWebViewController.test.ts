@@ -169,6 +169,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             hostNameInCertificate: undefined,
             persistSecurityInfo: undefined,
             columnEncryptionSetting: undefined,
+            secureEnclaves: undefined,
             attestationProtocol: undefined,
             enclaveAttestationUrl: undefined,
             commandTimeout: undefined,

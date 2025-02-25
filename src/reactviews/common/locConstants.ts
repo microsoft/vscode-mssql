@@ -30,6 +30,7 @@ export class LocConstants {
                     comment: ["{0} is the action being confirmed"],
                 }),
             close: l10n.t("Close"),
+            apply: l10n.t("Apply"),
         };
     }
 
@@ -266,6 +267,10 @@ export class LocConstants {
             expandAll: l10n.t("Expand All"),
             collapseAll: l10n.t("Collapse All"),
             filterAnyField: l10n.t("Filter for any field..."),
+            next: l10n.t("Next"),
+            previous: l10n.t("Previous"),
+            expand: l10n.t("Expand"),
+            collapse: l10n.t("Collapse"),
         };
     }
 

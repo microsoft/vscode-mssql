@@ -10,28 +10,26 @@ import {
 } from "../../../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../../../common/locConstants";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { QueryResultContextProps } from "../../queryResultStateProvider";
+import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
-import { tryCombineSelectionsForResults } from "../utils";
+import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import "./contextMenu.css";
 
 export class ContextMenu<T extends Slick.SlickData> {
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
-    private uri: string;
-    private resultSetSummary: ResultSetSummary;
-    private webViewState: VscodeWebviewContext<
-        QueryResultWebviewState,
-        QueryResultReducers
-    >;
     private activeContextMenu: JQuery<HTMLElement> | null = null;
 
     constructor(
-        uri: string,
-        resultSetSummary: ResultSetSummary,
-        webViewState: VscodeWebviewContext<
+        private uri: string,
+        private resultSetSummary: ResultSetSummary,
+        private queryResultContext: QueryResultContextProps,
+        private webViewState: VscodeWebviewContext<
             QueryResultWebviewState,
             QueryResultReducers
         >,
+        private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
@@ -103,7 +101,7 @@ export class ContextMenu<T extends Slick.SlickData> {
         let selection = tryCombineSelectionsForResults(selectedRanges);
         switch (action) {
             case "select-all":
-                console.log("Select All action triggered");
+                this.queryResultContext.log("Select All action triggered");
                 const data = this.grid.getData() as HybridDataProvider<T>;
                 let selectionModel = this.grid.getSelectionModel();
                 selectionModel.setSelectedRanges([
@@ -116,33 +114,110 @@ export class ContextMenu<T extends Slick.SlickData> {
                 ]);
                 break;
             case "copy":
-                await this.webViewState.extensionRpc.call("copySelection", {
-                    uri: this.uri,
-                    batchId: this.resultSetSummary.batchId,
-                    resultId: this.resultSetSummary.id,
-                    selection: selection,
-                });
+                this.queryResultContext.log("Copy action triggered");
+                if (this.dataProvider.isDataInMemory) {
+                    this.queryResultContext.log(
+                        "Sorted/filtered grid detected, fetching data from data provider",
+                    );
+                    let range = selectionToRange(selection[0]);
+                    let data = await this.dataProvider.getRangeAsync(
+                        range.start,
+                        range.length,
+                    );
+                    const dataArray = data.map((map) => {
+                        const maxKey = Math.max(
+                            ...Array.from(Object.keys(map)).map(Number),
+                        ); // Get the maximum key
+                        return Array.from(
+                            { length: maxKey + 1 },
+                            (_, index) => ({
+                                rowId: index,
+                                displayValue: map[index].displayValue || null,
+                            }),
+                        );
+                    });
 
-                console.log("Copy action triggered");
+                    await this.webViewState.extensionRpc.call(
+                        "sendToClipboard",
+                        {
+                            uri: this.uri,
+                            data: dataArray,
+                            batchId: this.resultSetSummary.batchId,
+                            resultId: this.resultSetSummary.id,
+                            selection: selection,
+                            headersFlag: false,
+                        },
+                    );
+                } else {
+                    await this.webViewState.extensionRpc.call("copySelection", {
+                        uri: this.uri,
+                        batchId: this.resultSetSummary.batchId,
+                        resultId: this.resultSetSummary.id,
+                        selection: selection,
+                    });
+                }
+
                 break;
             case "copy-with-headers":
-                await this.webViewState.extensionRpc.call("copyWithHeaders", {
-                    uri: this.uri,
-                    batchId: this.resultSetSummary.batchId,
-                    resultId: this.resultSetSummary.id,
-                    selection: selection,
-                });
+                this.queryResultContext.log(
+                    "Copy with headers action triggered",
+                );
 
-                console.log("Copy with Headers action triggered");
+                if (this.dataProvider.isDataInMemory) {
+                    this.queryResultContext.log(
+                        "Sorted/filtered grid detected, fetching data from data provider",
+                    );
+
+                    let range = selectionToRange(selection[0]);
+                    let data = await this.dataProvider.getRangeAsync(
+                        range.start,
+                        range.length,
+                    );
+                    const dataArray = data.map((map) => {
+                        const maxKey = Math.max(
+                            ...Array.from(Object.keys(map)).map(Number),
+                        ); // Get the maximum key
+                        return Array.from(
+                            { length: maxKey + 1 },
+                            (_, index) => ({
+                                rowId: index,
+                                displayValue: map[index].displayValue || null,
+                            }),
+                        );
+                    });
+
+                    await this.webViewState.extensionRpc.call(
+                        "sendToClipboard",
+                        {
+                            uri: this.uri,
+                            data: dataArray,
+                            batchId: this.resultSetSummary.batchId,
+                            resultId: this.resultSetSummary.id,
+                            selection: selection,
+                            headersFlag: true,
+                        },
+                    );
+                } else {
+                    await this.webViewState.extensionRpc.call(
+                        "copyWithHeaders",
+                        {
+                            uri: this.uri,
+                            batchId: this.resultSetSummary.batchId,
+                            resultId: this.resultSetSummary.id,
+                            selection: selection,
+                        },
+                    );
+                }
+
                 break;
             case "copy-headers":
+                this.queryResultContext.log("Copy Headers action triggered");
                 await this.webViewState.extensionRpc.call("copyHeaders", {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
                     selection: selection,
                 });
-                console.log("Copy Headers action triggered");
                 break;
             default:
                 console.warn("Unknown action:", action);
