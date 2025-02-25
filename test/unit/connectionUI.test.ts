@@ -121,6 +121,7 @@ suite("Connection UI tests", () => {
         quickPickMock
             .setup((q) => q.onDidChangeSelection)
             .returns(() => onDidChangeSelectionEventEmitter.event);
+
         // createProfile prompter stub
         prompter
             .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
@@ -324,7 +325,7 @@ suite("Connection UI tests", () => {
         );
     });
 
-    test("promptForRetryCreateProfile should show an error message and create profile", () => {
+    test("promptForRetryCreateProfile should show an error message and create profile", async () => {
         let profile = new ConnectionProfile();
         let mockConnection = { connectionString: "test" };
         vscodeWrapper
@@ -335,13 +336,13 @@ suite("Connection UI tests", () => {
         prompter
             .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
             .returns(() => Promise.resolve(mockConnection));
-        return connectionUI.promptForRetryCreateProfile(profile).then(() => {
-            vscodeWrapper.verify(
-                (v) =>
-                    v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-        });
+
+        await connectionUI.promptForRetryCreateProfile(profile);
+
+        vscodeWrapper.verify(
+            (v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            TypeMoq.Times.once(),
+        );
     });
 
     test("createProfileWithDifferentCredentials should prompt to recreate connection", () => {

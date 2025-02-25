@@ -1035,12 +1035,49 @@
           "description": "%mssql.maxRecentConnections%",
           "scope": "window"
         },
+        "mssql.connectionGroups": {
+          "type": "array",
+          "description": "%mssql.connectionGroups%",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "%mssql.connectionGroup.name%"
+              },
+              "id": {
+                "type": "string",
+                "description": "%mssql.connectionGroup.id%"
+              },
+              "color": {
+                "type": ["string", null],
+                "description": "%mssql.connectionGroup.color%"
+              },
+              "description": {
+                "type": ["string", null],
+                "description": "%mssql.connectionGroup.description%"
+              },
+              "parentId": {
+                "type": ["string", null],
+                "description": "%mssql.connectionGroup.parentId%"
+              }
+            }
+          }
+        },
         "mssql.connections": {
           "type": "array",
           "description": "%mssql.connections%",
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string",
+                "description": "%mssql.connection.id%"
+              },
+              "groupId": {
+                "type": "string",
+                "description": "%mssql.connection.groupId%"
+              },
               "server": {
                 "type": "string",
                 "default": "{{put-server-name-here}}",

@@ -63,8 +63,8 @@ import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
-    IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
+    IConnectionProfileWithSource,
 } from "../models/interfaces";
 import { IAccount } from "../models/contracts/azure";
 import {
@@ -561,24 +561,18 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         savedConnections: IConnectionDialogProfile[];
         recentConnections: IConnectionDialogProfile[];
     }> {
-        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
-            this._mainController.connectionManager.connectionStore.loadAllConnections(
-                true /* addRecentConnections */,
+        const unsortedConnections: IConnectionProfileWithSource[] =
+            this._mainController.connectionManager.connectionStore.readAllConnections(
+                true /* includeRecentConnections */,
             );
 
-        const savedConnections = unsortedConnections
-            .filter(
-                (c) =>
-                    c.quickPickItemType ===
-                    CredentialsQuickPickItemType.Profile,
-            )
-            .map((c) => c.connectionCreds);
+        const savedConnections = unsortedConnections.filter(
+            (c) => c.profileSource === CredentialsQuickPickItemType.Profile,
+        );
 
-        const recentConnections = unsortedConnections
-            .filter(
-                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
-            )
-            .map((c) => c.connectionCreds);
+        const recentConnections = unsortedConnections.filter(
+            (c) => c.profileSource === CredentialsQuickPickItemType.Mru,
+        );
 
         sendActionEvent(
             TelemetryViews.ConnectionDialog,
@@ -1002,10 +996,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         account,
                         undefined,
                     );
-                const isTokenExpired = AzureController.isTokenInValid(
+                const isTokenExpired = !AzureController.isTokenValid(
                     session.token,
                     session.expiresOn,
                 );
+
                 if (isTokenExpired) {
                     actionButtons.push({
                         label: refreshTokenLabel,

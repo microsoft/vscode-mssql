@@ -6,14 +6,20 @@
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { IConnectionProfile } from "../models/interfaces";
+import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { Deferred } from "../protocol";
+import { ConnectionProfile } from "../models/connectionProfile";
 
 /**
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
+    initialized: Deferred<void> = new Deferred<void>();
+
+    RootGroupName: string = "ROOT";
+
     /**
      * Constructor.
      */
@@ -21,6 +27,7 @@ export class ConnectionConfig implements IConnectionConfig {
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
+        void this.assignMissingIds();
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -29,6 +36,49 @@ export class ConnectionConfig implements IConnectionConfig {
 
     private set vscodeWrapper(value: VscodeWrapper) {
         this._vscodeWrapper = value;
+    }
+
+    private async assignMissingIds(): Promise<void> {
+        // Connection groups
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
+
+        // ensure each group has an id
+        groups.forEach((group) => {
+            if (!group.id) {
+                group.id = Utils.generateGuid();
+            }
+        });
+
+        // ensure ROOT group exists
+        let rootGroup = groups.find(
+            (group) => group.name === this.RootGroupName,
+        );
+        if (!rootGroup) {
+            rootGroup = {
+                name: this.RootGroupName,
+                id: Utils.generateGuid(),
+            };
+            groups.push(rootGroup);
+        }
+
+        // Clean up connection profiles
+        const profiles: IConnectionProfile[] = this.getProfilesFromSettings();
+
+        profiles.forEach((profile) => {
+            // ensure each profile has an id
+            ConnectionProfile.addIdIfMissing(profile);
+
+            // ensure each profile is in a group
+            if (!profile.groupId) {
+                profile.groupId = rootGroup.id;
+            }
+        });
+
+        // Save the changes to settings
+        await this.writeConnectionGroupsToSettings(groups);
+        await this.writeProfilesToSettings(profiles);
+
+        this.initialized.resolve();
     }
 
     /**
@@ -55,31 +105,17 @@ export class ConnectionConfig implements IConnectionConfig {
         getWorkspaceConnections: boolean,
     ): IConnectionProfile[] {
         let profiles: IConnectionProfile[] = [];
-        let compareProfileFunc = (a, b) => {
-            // Sort by profile name if available, otherwise fall back to server name or connection string
-            let nameA = a.profileName
-                ? a.profileName
-                : a.server
-                  ? a.server
-                  : a.connectionString;
-            let nameB = b.profileName
-                ? b.profileName
-                : b.server
-                  ? b.server
-                  : b.connectionString;
-            return nameA.localeCompare(nameB);
-        };
 
         // Read from user settings
         let userProfiles = this.getProfilesFromSettings();
 
-        userProfiles.sort(compareProfileFunc);
+        userProfiles.sort(this.compareConnectionProfile);
         profiles = profiles.concat(userProfiles);
 
         if (getWorkspaceConnections) {
             // Read from workspace settings
             let workspaceProfiles = this.getProfilesFromSettings(false);
-            workspaceProfiles.sort(compareProfileFunc);
+            workspaceProfiles.sort(this.compareConnectionProfile);
             profiles = profiles.concat(workspaceProfiles);
         }
 
@@ -124,39 +160,44 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Get all profiles from the settings.
      * This is public for testing only.
-     * @param global When `true` profiles come from user settings, otherwise from workspace settings
+     * @param global When `true` profiles come from user settings, otherwise from workspace settings.  Default is `true`.
      * @returns the set of connection profiles found in the settings.
      */
     public getProfilesFromSettings(
         global: boolean = true,
     ): IConnectionProfile[] {
+        return this.getArrayFromSettings<IConnectionProfile>(
+            Constants.connectionsArrayName,
+            global,
+        );
+    }
+
+    public getGroupsFromSettings(global: boolean = true): IConnectionGroup[] {
+        return this.getArrayFromSettings<IConnectionGroup>(
+            Constants.connectionGroupsArrayName,
+            global,
+        );
+    }
+
+    private getArrayFromSettings<T>(
+        configSection: string,
+        global: boolean = true,
+    ): T[] {
         let configuration = this._vscodeWrapper.getConfiguration(
             Constants.extensionName,
             this._vscodeWrapper.activeTextEditorUri,
         );
-        let profiles: IConnectionProfile[] = [];
 
-        let configValue = configuration.inspect<IConnectionProfile[]>(
-            Constants.connectionsArrayName,
-        );
+        let configValue = configuration.inspect<T[]>(configSection);
         if (global) {
-            profiles = configValue.globalValue;
+            // only return the global values if that's what's requested
+            return configValue.globalValue || [];
         } else {
-            profiles = configValue.workspaceValue;
-            if (profiles !== undefined) {
-                profiles = profiles.concat(
-                    configValue.workspaceFolderValue || [],
-                );
-            } else {
-                profiles = configValue.workspaceFolderValue;
-            }
+            // otherwise, return the combination of the workspace and workspace folder values
+            return (configValue.workspaceValue || []).concat(
+                configValue.workspaceFolderValue || [],
+            );
         }
-
-        if (profiles === undefined) {
-            profiles = [];
-        }
-
-        return profiles;
     }
 
     /**
@@ -172,5 +213,39 @@ export class ConnectionConfig implements IConnectionConfig {
             Constants.connectionsArrayName,
             profiles,
         );
+    }
+
+    /**
+     * Replace existing connection groups in the user settings with a new set of connection groups.
+     * @param connGroups the set of connection groups to insert into the settings file.
+     */
+    private async writeConnectionGroupsToSettings(
+        connGroups: IConnectionGroup[],
+    ): Promise<void> {
+        // Save the file
+        await this._vscodeWrapper.setConfiguration(
+            Constants.extensionName,
+            Constants.connectionGroupsArrayName,
+            connGroups,
+        );
+    }
+
+    /** Compare function for sorting by profile name if available, otherwise fall back to server name or connection string */
+    private compareConnectionProfile(
+        connA: IConnectionProfile,
+        connB: IConnectionProfile,
+    ): number {
+        const nameA = connA.profileName
+            ? connA.profileName
+            : connA.server
+              ? connA.server
+              : connA.connectionString;
+        const nameB = connB.profileName
+            ? connB.profileName
+            : connB.server
+              ? connB.server
+              : connB.connectionString;
+
+        return nameA.localeCompare(nameB);
     }
 }
