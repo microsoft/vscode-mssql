@@ -1,0 +1,18 @@
+/*---------------------------------------------------------------------------------------------
+*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Licensed under the MIT License. See License.txt in the project root for license information.
+*--------------------------------------------------------------------------------------------*/
+
+.monaco-diff-editor.side-by-side {
+    display: flex !important;
+}
+
+.monaco-diff-editor.side-by-side > .editor.original {
+    position: unset !important;
+    order: 1 !important; /* Move original to the right */
+}
+
+.monaco-diff-editor.side-by-side > .editor.modified {
+    position: unset !important;
+    order: 0 !important; /* Move modified to the left */
+}
