@@ -1,5 +1,17 @@
 # Change Log
 
+## Version 1.29.0
+* Release date: February 26, 2025
+* Release status: GA
+### What's new in 1.29.0
+* Fixed support for Always Encrypted - Secure Enclaves in the Connection Dialog
+* Removed SQL editor actions from Git diff editor to improve usability
+* Fixed Query Result pane issues related to copying data while sorting and filtering
+* Fixed an issue with Query Result pane column filters in multiple result set scenarios where filter settings might get shared between result sets
+* Fixed accessibility issues in Query Plan Visualizer
+* Fixed indefinite hangs when connecting to paused Azure SQL Database Serverless databases
+* Fixed issue where HTTPS-over-HTTP proxies were not getting handled correctly
+
 ## Version 1.28.0
 * Release date: January 29, 2025
 * Release status: GA
