@@ -338,12 +338,19 @@ export class ObjectExplorerService {
         return undefined;
     }
 
-    // TODO: call/handle refactor?
-
-    private handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
+    /**
+     * Handler for async response from SQL Tools Service.
+     * Public only for testing
+     */
+    public handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
         const self = this;
         const handler = (result: ExpandResponse) => {
-            if (result && result.nodes) {
+            if (!result) {
+                return undefined;
+            }
+
+            if (result.nodes && !result.errorMessage) {
+                // successfully received children from SQL Tools Service
                 const credentials = self._sessionIdToConnectionProfileMap.get(
                     result.sessionId,
                 );

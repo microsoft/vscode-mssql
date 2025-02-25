@@ -406,7 +406,7 @@ suite("Object Explorer Provider Tests", function () {
             mockParentTreeNode,
         );
 
-        testOeService["_sessionIdToConnectionCredentialsMap"].set(
+        testOeService["_sessionIdToConnectionProfileMap"].set(
             mockExpandResponse.sessionId,
             undefined,
         );
@@ -462,7 +462,7 @@ suite("Object Explorer Provider Tests", function () {
             mockParentTreeNode,
         );
 
-        testOeService["_sessionIdToConnectionCredentialsMap"].set(
+        testOeService["_sessionIdToConnectionProfileMap"].set(
             mockExpandResponse.sessionId,
             undefined,
         );
