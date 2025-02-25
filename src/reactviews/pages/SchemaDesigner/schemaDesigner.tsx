@@ -10,10 +10,18 @@ import "azdataGraph/dist/index.css";
 import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
-import { config } from "./schemaDesignerConfig";
+import { config, getSchemaDesignerColors } from "./schemaDesignerConfig";
 import { mxCell } from "mxgraph";
 import { SchemaDesignerTableEditor } from "./schemaDesignerEntityEditor";
 import { ITable } from "../../../sharedInterfaces/schemaDesigner";
+import {
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    PositioningImperativeRef,
+} from "@fluentui/react-components";
+import * as htmlToImage from "html-to-image";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
@@ -36,6 +44,21 @@ export const SchemaDesigner = () => {
     const [schemaDesigner, setSchemaDesigner] = useState<
         azdataGraph.SchemaDesigner | undefined
     >(undefined);
+
+    const [exportAsMenuOpen, setExportAsMenuOpen] = useState(false);
+    const exportPositioningRef = useRef<PositioningImperativeRef>(null);
+
+    useEffect(() => {
+        context.extensionRpc.subscribe(
+            "schemaDesigner",
+            "onDidChangeTheme",
+            (_params) => {
+                if (schemaDesigner) {
+                    schemaDesigner.applyColors(getSchemaDesignerColors());
+                }
+            },
+        );
+    }, [schemaDesigner]);
 
     useEffect(() => {
         const editorDiv = editorDivRef.current;
@@ -115,6 +138,10 @@ export const SchemaDesigner = () => {
                 );
             };
 
+            schemaDesignerConfig.publish = (_schema) => {
+                setExportAsMenuOpen(true);
+            };
+
             const graph = new azdataGraph.SchemaDesigner(
                 div,
                 schemaDesignerConfig,
@@ -129,9 +156,159 @@ export const SchemaDesigner = () => {
             });
             graph.renderSchema(context!.schema, true);
             setSchemaDesigner(graph);
+
+            const exportAsButton = document.querySelector(
+                ".sd-toolbar-button[title='Export']",
+            );
+            if (exportAsButton) {
+                if (exportPositioningRef.current) {
+                    exportPositioningRef.current.setTarget(exportAsButton);
+                }
+            }
         }
         createGraph();
     }, [context.schema]);
+
+    function exportAs(format: "svg" | "png" | "jpg") {
+        // transperant background
+        var background = "none";
+        var scale = 1;
+        var border = 1;
+
+        if (!schemaDesigner) {
+            return;
+        }
+
+        const mxGraphFactory = azdataGraph.mxGraphFactory;
+        const graph = schemaDesigner.mxGraph;
+
+        var imgExport = new mxGraphFactory.mxImageExport();
+        var bounds = graph.getGraphBounds();
+        var vs = graph.view.scale;
+
+        // Prepares SVG document that holds the output
+        var svgDoc = mxGraphFactory.mxUtils.createXmlDocument();
+        var root =
+            svgDoc.createElementNS !== null
+                ? svgDoc.createElementNS(
+                      mxGraphFactory.mxConstants.NS_SVG,
+                      "svg",
+                  )
+                : svgDoc.createElement("svg");
+
+        if (background !== null) {
+            if (root.style !== null) {
+                root.style.backgroundColor = background;
+            } else {
+                root.setAttribute("style", "background-color:" + background);
+            }
+        }
+
+        if (svgDoc.createElementNS == null) {
+            root.setAttribute("xmlns", mxGraphFactory.mxConstants.NS_SVG);
+            root.setAttribute(
+                "xmlns:xlink",
+                mxGraphFactory.mxConstants.NS_XLINK,
+            );
+        } else {
+            // KNOWN: Ignored in IE9-11, adds namespace for each image element instead. No workaround.
+            root.setAttributeNS(
+                "http://www.w3.org/2000/xmlns/",
+                "xmlns:xlink",
+                mxGraphFactory.mxConstants.NS_XLINK,
+            );
+        }
+
+        root.setAttribute(
+            "width",
+            Math.ceil((bounds.width * scale) / vs) + 2 * border + "px",
+        );
+        root.setAttribute(
+            "height",
+            Math.ceil((bounds.height * scale) / vs) + 2 * border + "px",
+        );
+        root.setAttribute("version", "1.1");
+
+        // Adds group for anti-aliasing via transform
+        var group =
+            svgDoc.createElementNS !== null
+                ? svgDoc.createElementNS(mxGraphFactory.mxConstants.NS_SVG, "g")
+                : svgDoc.createElement("g");
+        group.setAttribute("transform", "translate(0.5,0.5)");
+        root.appendChild(group);
+        svgDoc.appendChild(root);
+
+        // Renders graph. Offset will be multiplied with state's scale when painting state.
+        var svgCanvas = new mxGraphFactory.mxSvgCanvas2D(group);
+        svgCanvas.translate(
+            Math.floor((border / scale - bounds.x) / vs),
+            Math.floor((border / scale - bounds.y) / vs),
+        );
+        svgCanvas.scale(scale / vs);
+
+        // Displayed if a viewer does not support foreignObjects (which is needed to HTML output)
+        //svgCanvas.foAltText = "[Not supported by viewer]";
+        imgExport.drawState(
+            graph.getView().getState(graph.model.root),
+            svgCanvas,
+        );
+        const outlineDiv = document.getElementsByClassName(
+            "sd-outline",
+        )[0] as HTMLElement;
+        if (outlineDiv) {
+            outlineDiv.style.display = "none";
+        }
+        if (!context) {
+            return;
+        }
+        schemaDesigner.mxGraph.setSelectionCell(null as unknown as mxCell);
+        schemaDesigner.mxGraph.connectionHandler.destroyIcons();
+        if (format === "png") {
+            htmlToImage
+                .toPng(
+                    document.getElementById("graphContainer") as HTMLElement,
+                    {
+                        width: bounds.width + 200,
+                        height: bounds.height + 200,
+                    },
+                )
+                .then((dataUrl) => {
+                    context.saveAs("png", dataUrl, bounds.width, bounds.height);
+                    if (outlineDiv) {
+                        outlineDiv.style.display = "";
+                    }
+                })
+                .catch((err) => {
+                    console.error("oops, something went wrong!", err);
+                });
+        } else if (format === "jpg") {
+            htmlToImage
+                .toJpeg(
+                    document.getElementById("graphContainer") as HTMLElement,
+                    {
+                        quality: 1,
+                        width: bounds.width + 200,
+                        height: bounds.height + 200,
+                    },
+                )
+                .then((dataUrl) => {
+                    context.saveAs("jpg", dataUrl, bounds.width, bounds.height);
+                    if (outlineDiv) {
+                        outlineDiv.style.display = "";
+                    }
+                })
+                .catch((err) => {
+                    console.error("oops, something went wrong!", err);
+                });
+        } else if (format === "svg") {
+            const colors = getSchemaDesignerColors();
+            root.style.backgroundColor = colors.graphBackground;
+            context.saveAs("svg", root.outerHTML, bounds.width, bounds.height);
+            if (outlineDiv) {
+                outlineDiv.style.display = "";
+            }
+        }
+    }
 
     return (
         <div
@@ -161,6 +338,45 @@ export const SchemaDesigner = () => {
                     }}
                 />
             </div>
+            <Menu
+                open={exportAsMenuOpen}
+                onOpenChange={(_e, data) => {
+                    setExportAsMenuOpen(data.open);
+                }}
+                positioning={{ positioningRef: exportPositioningRef }}
+            >
+                <MenuPopover>
+                    <MenuList>
+                        <MenuItem
+                            onClick={async (_e) => {
+                                setTimeout(() => {
+                                    exportAs("svg");
+                                }, 0);
+                            }}
+                        >
+                            SVG
+                        </MenuItem>
+                        <MenuItem
+                            onClick={(_e) => {
+                                setTimeout(() => {
+                                    exportAs("png");
+                                }, 0);
+                            }}
+                        >
+                            PNG
+                        </MenuItem>
+                        <MenuItem
+                            onClick={(_e) => {
+                                setTimeout(() => {
+                                    exportAs("jpg");
+                                }, 0);
+                            }}
+                        >
+                            JPG
+                        </MenuItem>
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
         </div>
     );
 };

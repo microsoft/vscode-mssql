@@ -146,6 +146,7 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-typescript": "^5.0.1",
     "gulp-uglify": "^2.0.0",
+    "html-to-image": "^1.11.13",
     "husky": "^9.0.11",
     "istanbul": "^0.4.5",
     "lint-staged": "^15.2.10",
@@ -926,9 +927,9 @@
         }
       },
       {
-          "command": "mssql.enableRichExperiences",
-          "title": "%mssql.enableRichExperiences%",
-          "category": "MS SQL"
+        "command": "mssql.enableRichExperiences",
+        "title": "%mssql.enableRichExperiences%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -1253,20 +1254,20 @@
           "scope": "resource"
         },
         "mssql.resultsFontFamily": {
-            "type": "string",
-            "description": "%mssql.resultsFontFamily%",
-            "default": null,
-            "scope": "resource"
+          "type": "string",
+          "description": "%mssql.resultsFontFamily%",
+          "default": null,
+          "scope": "resource"
         },
         "mssql.resultsFontSize": {
-            "type": [
-                "number",
-                "null"
-            ],
-            "maximum": 24,
-            "description": "%mssql.resultsFontSize%",
-            "default": null,
-            "scope": "resource"
+          "type": [
+            "number",
+            "null"
+          ],
+          "maximum": 24,
+          "description": "%mssql.resultsFontSize%",
+          "default": null,
+          "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
@@ -1461,9 +1462,9 @@
           "description": "%mssql.logFilesRemovalLimit%"
         },
         "mssql.resultsGrid.autoSizeColumns": {
-            "type": "boolean",
-            "default": true,
-            "description": "%mssql.resultsGrid.autoSizeColumns%"
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.resultsGrid.autoSizeColumns%"
         },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",

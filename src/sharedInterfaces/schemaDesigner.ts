@@ -117,5 +117,13 @@ export interface SchemaDesignerWebviewState {
 }
 
 export interface SchemaDesignerReducers {
-    publishSchema: (modifiedSchema: ISchema) => void;
+    publishSchema: {
+        modifiedSchema: ISchema;
+    };
+    saveAs: {
+        format: "svg" | "png" | "jpg";
+        svgFileContents: string;
+        width: number;
+        height: number;
+    };
 }

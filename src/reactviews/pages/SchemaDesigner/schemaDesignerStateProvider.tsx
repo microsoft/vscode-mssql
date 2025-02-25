@@ -6,6 +6,7 @@
 import { createContext } from "react";
 import {
     ISchema,
+    SchemaDesignerReducers,
     SchemaDesignerWebviewState,
 } from "../../../sharedInterfaces/schemaDesigner";
 import {
@@ -18,7 +19,13 @@ import { WebviewRpc } from "../../common/rpc";
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesignerWebviewState> {
     schema: ISchema; // TODO: is this redundant with state.schema?
-    extensionRpc: WebviewRpc<any>;
+    extensionRpc: WebviewRpc<SchemaDesignerReducers>;
+    saveAs: (
+        format: string,
+        fileContents: string,
+        width: number,
+        height: number,
+    ) => void;
 }
 
 const SchemaDesignerContext = createContext<
@@ -32,7 +39,25 @@ interface SchemaDesignerProviderProps {
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     children,
 }) => {
-    const webviewState = useVscodeWebview<SchemaDesignerWebviewState, any>();
+    const webviewState = useVscodeWebview<
+        SchemaDesignerWebviewState,
+        SchemaDesignerReducers
+    >();
+
+    const saveAs = (
+        format: "svg" | "png" | "jpg",
+        svgFileContents: string,
+        width: number,
+        height: number,
+    ) => {
+        void webviewState.extensionRpc.action("saveAs", {
+            format,
+            svgFileContents,
+            width,
+            height,
+        });
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -41,6 +66,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 schema: webviewState.state.schema,
                 state: webviewState.state,
                 themeKind: webviewState.themeKind,
+                saveAs,
             }}
         >
             {children}

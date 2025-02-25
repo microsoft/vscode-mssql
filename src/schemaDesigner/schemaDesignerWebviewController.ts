@@ -57,9 +57,29 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             );
         });
 
-        this.registerReducer("publishSchema", async () => {
-            console.log("Publishing schema");
-            return this.state;
+        this.registerReducer("saveAs", async (state, payload) => {
+            const outputPath = await vscode.window.showSaveDialog({
+                filters: {
+                    [payload.format]: [payload.format],
+                },
+                defaultUri: vscode.Uri.file(`newFile.${payload.format}`),
+                saveLabel: "Save",
+                title: "Save As",
+            });
+            if (payload.format === "svg") {
+                vscode.workspace.fs.writeFile(
+                    outputPath,
+                    Buffer.from(payload.svgFileContents),
+                );
+            } else {
+                //const outputPath = `/Users/aasimkhan/src/newFile.${payload.format}`;
+                const fileContents = Buffer.from(
+                    payload.svgFileContents.split(",")[1],
+                    "base64",
+                );
+                vscode.workspace.fs.writeFile(outputPath, fileContents);
+            }
+            return state;
         });
     }
 }
