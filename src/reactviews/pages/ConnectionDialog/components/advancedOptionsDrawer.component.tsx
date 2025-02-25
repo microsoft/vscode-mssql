@@ -20,8 +20,9 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { FormField } from "../../../common/forms/form.component";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
-import { FormItemSpec } from "../../../common/forms/form";
 import {
+    ConnectionDialogContextProps,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../../sharedInterfaces/connectionDialog";
@@ -66,16 +67,18 @@ export const AdvancedOptionsDrawer = ({
                     {context.state.connectionComponents.topAdvancedOptions.map(
                         (optionName, idx) => {
                             return (
-                                <FormField
+                                <FormField<
+                                    IConnectionDialogProfile,
+                                    ConnectionDialogWebviewState,
+                                    ConnectionDialogFormItemSpec,
+                                    ConnectionDialogContextProps
+                                >
                                     key={idx}
                                     context={context}
                                     component={
                                         context.state.formComponents[
                                             optionName
-                                        ] as FormItemSpec<
-                                            ConnectionDialogWebviewState,
-                                            IConnectionDialogProfile
-                                        >
+                                        ]!
                                     }
                                     idx={idx}
                                 />
@@ -106,17 +109,19 @@ export const AdvancedOptionsDrawer = ({
                                                     return undefined;
                                                 }
                                                 return (
-                                                    <FormField
+                                                    <FormField<
+                                                        IConnectionDialogProfile,
+                                                        ConnectionDialogWebviewState,
+                                                        ConnectionDialogFormItemSpec,
+                                                        ConnectionDialogContextProps
+                                                    >
                                                         key={idx}
                                                         context={context}
                                                         component={
                                                             context.state
                                                                 .formComponents[
                                                                 optionName
-                                                            ] as FormItemSpec<
-                                                                ConnectionDialogWebviewState,
-                                                                IConnectionDialogProfile
-                                                            >
+                                                            ]!
                                                         }
                                                         idx={idx}
                                                     />

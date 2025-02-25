@@ -13,7 +13,12 @@ import {
 import { ApiStatus } from "./webview";
 
 export class ConnectionDialogWebviewState
-    implements FormState<IConnectionDialogProfile>
+    implements
+        FormState<
+            IConnectionDialogProfile,
+            ConnectionDialogWebviewState,
+            ConnectionDialogFormItemSpec
+        >
 {
     /** the underlying connection profile for the form target; same as `connectionProfile` */
     formState: IConnectionDialogProfile = {} as IConnectionDialogProfile;
@@ -25,18 +30,8 @@ export class ConnectionDialogWebviewState
         this.formState = value;
     }
 
-    // formComponents: Partial<
-    //     Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-    // > = {};
-
     formComponents: Partial<
-        Record<
-            keyof IConnectionDialogProfile,
-            FormItemSpec<
-                FormState<IConnectionDialogProfile>,
-                IConnectionDialogProfile
-            >
-        >
+        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
     > = {};
 
     public selectedInputMode: ConnectionInputMode =
@@ -110,8 +105,9 @@ export interface ConnectionComponentGroup {
 
 export interface ConnectionDialogFormItemSpec
     extends FormItemSpec<
+        IConnectionDialogProfile,
         ConnectionDialogWebviewState,
-        IConnectionDialogProfile
+        ConnectionDialogFormItemSpec
     > {
     isAdvancedOption: boolean;
     optionCategory?: string;
@@ -137,8 +133,9 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 
 export interface ConnectionDialogContextProps
     extends FormContextProps<
+        IConnectionDialogProfile,
         ConnectionDialogWebviewState,
-        IConnectionDialogProfile
+        ConnectionDialogFormItemSpec
     > {
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;

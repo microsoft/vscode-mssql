@@ -13,7 +13,8 @@ import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 
 export abstract class FormWebviewController<
     TForm,
-    TState extends FormState<TForm>,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
     TReducers extends FormReducers<TForm>,
 > extends ReactWebviewPanelController<TState, TReducers> {
     constructor(
@@ -138,7 +139,7 @@ export abstract class FormWebviewController<
     protected getFormComponent(
         state: TState,
         propertyName: keyof TForm,
-    ): FormItemSpec<TState, TForm> {
+    ): FormItemSpec<TForm, TState, TFormItemSpec> {
         return this.getActiveFormComponents(state).includes(propertyName)
             ? state.formComponents[propertyName]
             : undefined;

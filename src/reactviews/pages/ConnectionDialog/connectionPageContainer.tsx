@@ -8,6 +8,7 @@ import "./sqlServerRotation.css";
 import {
     AddFirewallRuleDialogProps,
     ConnectionDialogContextProps,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     IConnectionDialogProfile,
@@ -30,7 +31,6 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionHeader } from "./components/connectionHeader.component";
 import { ConnectionStringPage } from "./connectionStringPage";
-import { FormItemSpec } from "../../common/forms/form";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
@@ -96,15 +96,17 @@ export const ConnectionInfoFormContainer = () => {
                     />
                 )}
 
-                <FormField
+                <FormField<
+                    IConnectionDialogProfile,
+                    ConnectionDialogWebviewState,
+                    ConnectionDialogFormItemSpec,
+                    ConnectionDialogContextProps
+                >
                     context={context}
                     component={
                         context.state.formComponents[
                             "profileName"
-                        ] as FormItemSpec<
-                            ConnectionDialogWebviewState,
-                            IConnectionDialogProfile
-                        >
+                        ] as ConnectionDialogFormItemSpec
                     }
                     idx={0}
                     props={{ orientation: "horizontal" }}

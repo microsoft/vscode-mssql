@@ -20,7 +20,7 @@ import {
     AddFirewallRuleDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
-    ConnectionComponentsInfo,
+    ConnectionDialogFormItemSpec,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import {
@@ -77,6 +77,7 @@ import { FormWebviewController } from "../forms/formWebviewController";
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
     ConnectionDialogWebviewState,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogReducers
 > {
     //#region Properties
@@ -198,7 +199,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.state.connectionComponents.groupedAdvancedOptions =
             groupAdvancedOptions(
-                this.state.formComponents,
+                this.state.formComponents as any,
                 this.state.connectionComponents,
             );
 

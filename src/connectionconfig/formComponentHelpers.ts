@@ -145,7 +145,11 @@ export function groupAdvancedOptions(
 
 export function convertToFormComponent(
     connOption: ConnectionOption,
-): FormItemSpec<ConnectionDialogWebviewState, IConnectionDialogProfile> {
+): FormItemSpec<
+    IConnectionDialogProfile,
+    ConnectionDialogWebviewState,
+    ConnectionDialogFormItemSpec
+> {
     switch (connOption.valueType) {
         case "boolean":
             return {
