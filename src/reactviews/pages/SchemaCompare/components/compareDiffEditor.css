@@ -4,15 +4,29 @@
 *--------------------------------------------------------------------------------------------*/
 
 .monaco-diff-editor.side-by-side {
-    display: flex !important;
+    display: flex;
 }
 
 .monaco-diff-editor.side-by-side > .editor.original {
     position: unset !important;
-    order: 1 !important; /* Move original to the right */
+    order: 1; /* Move original to the right */
 }
 
 .monaco-diff-editor.side-by-side > .editor.modified {
     position: unset !important;
-    order: 0 !important; /* Move modified to the left */
+    order: 0; /* Move modified to the left */
+}
+
+.diffOverview {
+    display: flex;
+}
+
+.diffOverview > .original.diffOverviewRuler {
+    position: unset !important;
+    order: 1; /* Move original to the right */
+}
+
+.diffOverview > .modified.diffOverviewRuler {
+    position: unset !important;
+    order: 0; /* Move modified to the left */
 }
