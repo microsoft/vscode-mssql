@@ -26,6 +26,16 @@ export class ContainerDeploymentWebviewState
     public dockerEngineStatus: DockerStep = {
         loadState: ApiStatus.Loading,
     };
+    public dockerContainerCreationStatus: DockerStep = {
+        loadState: ApiStatus.Loading,
+    };
+    public dockerContainerStatus: DockerStep = {
+        loadState: ApiStatus.Loading,
+    };
+    public dockerConnectionStatus: DockerStep = {
+        loadState: ApiStatus.Loading,
+    };
+    // @ts-ignore
     formState: DockerConnectionProfile = undefined;
     formComponents: Record<
         string,
@@ -77,7 +87,19 @@ export interface ContainerDeploymentContextProps
     /**
      * Gets the execution plan graph from the provider
      */
-    validateContainerName(name: string): void;
+    startContainer(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    checkContainer(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    connectToContainer(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    dispose(): void;
 }
 
 export interface ContainerDeploymentReducers {
@@ -96,21 +118,26 @@ export interface ContainerDeploymentReducers {
      */
     checkLinuxEngine: {};
 
-    setFormComponents: {
-        components: FormItemSpec<
-            ContainerDeploymentWebviewState,
-            DockerConnectionProfile
-        >[];
+    formAction: {
+        event: FormEvent<DockerConnectionProfile>;
     };
 
     /**
      * Gets the execution plan graph from the provider
      */
-    validateContainerName: { name: string };
-
-    formAction: {
-        event: FormEvent<DockerConnectionProfile>;
-    };
+    startContainer: {};
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    checkContainer: {};
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    connectToContainer: {};
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    dispose: {};
 }
 
 export const COMMANDS = {
@@ -141,11 +168,13 @@ export const COMMANDS = {
         `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:1433 --name ${name} -d mcr.microsoft.com/mssql/server:${version}-latest`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
         `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
-    VALIDATE_CONTAINER_NAME: 'docker ps --format "{{.Names}}"',
+    VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
     START_CONTAINER: (name: string) => `docker start ${name}`,
     CHECK_LOGS: (name: string, platform: string) =>
         `docker logs --tail 15 ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
+    DELETE_CONTAINER: (name: string) =>
+        `docker stop ${name} && docker rm ${name}`,
 };
 
 export type DockerCommandParams = {

@@ -46,10 +46,17 @@ const ContainerDeploymentStateProvider: React.FC<
                 checkLinuxEngine: function (): void {
                     webviewState?.extensionRpc.action("checkLinuxEngine", {});
                 },
-                validateContainerName: function (name: string): void {
-                    webviewState?.extensionRpc.action("validateContainerName", {
-                        name: name,
-                    });
+                startContainer: function (): void {
+                    webviewState?.extensionRpc.action("startContainer", {});
+                },
+                checkContainer: function (): void {
+                    webviewState?.extensionRpc.action("checkContainer", {});
+                },
+                connectToContainer: function (): void {
+                    webviewState?.extensionRpc.action("connectToContainer", {});
+                },
+                dispose: function (): void {
+                    webviewState?.extensionRpc.action("dispose", {});
                 },
             }}
         >

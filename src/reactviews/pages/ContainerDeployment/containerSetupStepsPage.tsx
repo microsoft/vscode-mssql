@@ -8,7 +8,6 @@ import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { ContainerInputForm } from "./containerInputForm";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -53,56 +52,59 @@ const useStyles = makeStyles({
 export const ContainerSetupStepsPage: React.FC = () => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
-    const [showNext, setShowNext] = useState(false);
-    const [stepsLoaded, setStepsLoaded] = useState(false);
     const containerDeploymentState = state?.state;
+    const [stepsLoaded, setStepsLoaded] = useState(false);
+
+    // If this passes, container deployment state is guaranteed
+    // to be defined, so we can reference it as non-null
+    if (!containerDeploymentState) {
+        return undefined;
+    }
 
     useEffect(() => {
-        const checkAndStartDocker = async () => {
+        const setupContainer = async () => {
             if (
-                containerDeploymentState?.dockerInstallStatus.loadState ===
-                ApiStatus.Loading
+                containerDeploymentState!.dockerContainerCreationStatus
+                    .loadState === ApiStatus.Loading
             ) {
-                await state.checkDockerInstallation();
+                await state.startContainer();
             }
 
             if (
-                containerDeploymentState?.dockerInstallStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState?.dockerStatus.loadState ===
+                containerDeploymentState!.dockerContainerCreationStatus
+                    .loadState === ApiStatus.Loaded &&
+                containerDeploymentState!.dockerContainerStatus.loadState ===
                     ApiStatus.Loading
             ) {
-                await state.startDocker();
+                await state.checkContainer();
             }
 
             if (
-                containerDeploymentState?.dockerInstallStatus.loadState ===
+                containerDeploymentState!.dockerContainerCreationStatus
+                    .loadState === ApiStatus.Loaded &&
+                containerDeploymentState!.dockerContainerStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState?.dockerStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState?.dockerEngineStatus.loadState ===
+                containerDeploymentState!.dockerConnectionStatus.loadState ===
                     ApiStatus.Loading
             ) {
-                await state?.checkLinuxEngine();
+                await state?.connectToContainer();
             }
         };
-        void checkAndStartDocker();
+        void setupContainer();
     }, [containerDeploymentState]);
 
     useEffect(() => {
         setStepsLoaded(
-            containerDeploymentState?.dockerInstallStatus?.loadState ===
-                ApiStatus.Loaded &&
-                containerDeploymentState?.dockerStatus?.loadState ===
+            containerDeploymentState!.dockerContainerCreationStatus
+                .loadState === ApiStatus.Loaded &&
+                containerDeploymentState!.dockerContainerStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState?.dockerEngineStatus?.loadState ===
+                containerDeploymentState!.dockerConnectionStatus.loadState ===
                     ApiStatus.Loaded,
         );
     }, [containerDeploymentState]);
 
-    return showNext ? (
-        <ContainerInputForm />
-    ) : (
+    return (
         <div className={classes.outerDiv}>
             <div className={classes.stepsDiv}>
                 <div className={classes.stepsHeader}>
@@ -111,20 +113,16 @@ export const ContainerSetupStepsPage: React.FC = () => {
                 <div className={classes.stepsSubheader}>
                     Getting container ready for connections
                 </div>
-                Heloo?????????????/
-                {stepsLoaded ? (
-                    <Button
-                        className={classes.button}
-                        onClick={() => setShowNext(true)}
-                        appearance="primary"
-                    >
-                        Next
-                    </Button>
-                ) : (
-                    <Button className={classes.button} onClick={() => {}}>
-                        Cancel
-                    </Button>
-                )}
+                <StepCard stepName="dockerContainerCreationStatus" />
+                <StepCard stepName="dockerContainerStatus" />
+                <StepCard stepName="dockerConnectionStatus" />
+                <Button
+                    className={classes.button}
+                    onClick={() => (stepsLoaded ? state.dispose() : undefined)}
+                    appearance={stepsLoaded ? "primary" : "secondary"}
+                >
+                    Finish
+                </Button>
             </div>
         </div>
     );

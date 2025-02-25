@@ -3,19 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
-import {
-    FormItemOptions,
-    FormItemSpec,
-    FormItemType,
-} from "../../common/forms/form";
-import {
-    ContainerDeploymentWebviewState,
-    DockerConnectionProfile,
-} from "./containerDeploymentInterfaces";
 import { ContainerSetupStepsPage } from "./containerSetupStepsPage";
 
 const useStyles = makeStyles({
@@ -64,6 +55,12 @@ export const ContainerInputForm: React.FC = () => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
     const formStyles = useFormStyles();
+
+    // If this passes, state is guaranteed
+    // to be defined, so we can reference it as non-null
+    if (!state) {
+        return undefined;
+    }
 
     const [showNext, setShowNext] = useState(false);
 

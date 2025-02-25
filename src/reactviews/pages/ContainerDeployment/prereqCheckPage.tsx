@@ -57,19 +57,25 @@ export const PrereqCheckPage: React.FC = () => {
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const containerDeploymentState = state?.state;
 
+    // If this passes, container deployment state is guaranteed
+    // to be defined, so we can reference it as non-null
+    if (!state || !containerDeploymentState) {
+        return undefined;
+    }
+
     useEffect(() => {
         const checkAndStartDocker = async () => {
             if (
-                containerDeploymentState?.dockerInstallStatus.loadState ===
+                containerDeploymentState!.dockerInstallStatus.loadState ===
                 ApiStatus.Loading
             ) {
                 await state.checkDockerInstallation();
             }
 
             if (
-                containerDeploymentState?.dockerInstallStatus.loadState ===
+                containerDeploymentState!.dockerInstallStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState?.dockerStatus.loadState ===
+                containerDeploymentState!.dockerStatus.loadState ===
                     ApiStatus.Loading
             ) {
                 await state.startDocker();
@@ -91,11 +97,11 @@ export const PrereqCheckPage: React.FC = () => {
 
     useEffect(() => {
         setStepsLoaded(
-            containerDeploymentState?.dockerInstallStatus?.loadState ===
+            containerDeploymentState!.dockerInstallStatus.loadState ===
                 ApiStatus.Loaded &&
-                containerDeploymentState?.dockerStatus?.loadState ===
+                containerDeploymentState!.dockerStatus.loadState ===
                     ApiStatus.Loaded &&
-                containerDeploymentState?.dockerEngineStatus?.loadState ===
+                containerDeploymentState!.dockerEngineStatus.loadState ===
                     ApiStatus.Loaded,
         );
     }, [containerDeploymentState]);
@@ -125,7 +131,12 @@ export const PrereqCheckPage: React.FC = () => {
                         Next
                     </Button>
                 ) : (
-                    <Button className={classes.button} onClick={() => {}}>
+                    <Button
+                        className={classes.button}
+                        onClick={() => {
+                            state.dispose();
+                        }}
+                    >
                         Cancel
                     </Button>
                 )}

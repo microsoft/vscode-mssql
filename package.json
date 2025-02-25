@@ -916,6 +916,7 @@
       {
         "command": "mssql.deployLocalDockerContainer",
         "title": "%mssql.deployLocalDockerContainer%",
+        "when": "mssql.enableRichExperiences",
         "category": "MS SQL"
       }
     ],

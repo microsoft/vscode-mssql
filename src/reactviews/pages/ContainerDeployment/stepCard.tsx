@@ -12,8 +12,8 @@ import {
 } from "@fluentui/react-components";
 import {
     Checkmark20Regular,
+    ChevronDown20Regular,
     ChevronUp20Regular,
-    ChevronLeft20Regular,
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
@@ -65,14 +65,29 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
     const containerDeploymentState = state?.state;
     const [expanded, setExpanded] = useState(false);
 
+    // If this passes, container deployment state is guaranteed
+    // to be defined, so we can reference it as non-null
+    if (!containerDeploymentState) {
+        return undefined;
+    }
+
     const getLoadStatus = (stepName: string): ApiStatus => {
         switch (stepName) {
             case "dockerInstallStatus":
-                return containerDeploymentState?.dockerInstallStatus.loadState;
+                return containerDeploymentState!.dockerInstallStatus.loadState;
             case "dockerStatus":
-                return containerDeploymentState?.dockerStatus.loadState;
+                return containerDeploymentState!.dockerStatus.loadState;
             case "dockerEngineStatus":
-                return containerDeploymentState?.dockerEngineStatus.loadState;
+                return containerDeploymentState!.dockerEngineStatus.loadState;
+            case "dockerContainerCreationStatus":
+                return containerDeploymentState!.dockerContainerCreationStatus
+                    .loadState;
+            case "dockerContainerStatus":
+                return containerDeploymentState!.dockerContainerStatus
+                    .loadState;
+            case "dockerConnectionStatus":
+                return containerDeploymentState!.dockerConnectionStatus
+                    .loadState;
             default:
                 return ApiStatus.Error;
         }
@@ -86,6 +101,12 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                 return "Starting Docker";
             case "dockerEngineStatus":
                 return "Starting Docker Engine";
+            case "dockerContainerCreationStatus":
+                return "Creating container";
+            case "dockerContainerStatus":
+                return "Starting container";
+            case "dockerConnectionStatus":
+                return "Connecting to container";
             default:
                 return "Unknown Step";
         }
@@ -99,6 +120,12 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                 return "Status Text TBD";
             case "dockerEngineStatus":
                 return "Engine Text TBD";
+            case "dockerContainerCreationStatus":
+                return "Creating container TBD";
+            case "dockerContainerStatus":
+                return "Starting container TBD";
+            case "dockerConnectionStatus":
+                return "Connecting to container TBD";
             default:
                 return "Unknown Step";
         }
@@ -127,7 +154,7 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                 <Button
                     icon={
                         expanded ? (
-                            <ChevronLeft20Regular />
+                            <ChevronDown20Regular />
                         ) : (
                             <ChevronUp20Regular />
                         )

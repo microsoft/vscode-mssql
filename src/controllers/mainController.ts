@@ -1451,86 +1451,9 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onDeployContainer(): Promise<boolean> {
-        /*
-        vscode.window.showInformationMessage("Starting Docker...");
-        const startDockerResult = await startDocker();
-        if (!startDockerResult.success) {
-            vscode.window.showInformationMessage(
-                "Failed to start Docker. Please manually start it, and then try again.",
-            );
-            return false;
-        }
-
-        const acceptEula = await vscode.window.showQuickPick(["Yes", "No"], {
-            placeHolder: "Accept EULA? (Yes/No)",
-        });
-        if (acceptEula !== "Yes") {
-            vscode.window.showErrorMessage(
-                "You must accept the EULA to continue.",
-            );
-            return false;
-        }
-
-        const password = await vscode.window.showInputBox({
-            prompt: "Enter SA password for SQL Server",
-            password: true,
-            ignoreFocusOut: true,
-            validateInput: (value: string) => {
-                if (value.length < 8) {
-                    return "Password must be at least 8 characters long";
-                }
-
-                if (!validateSqlServerPassword(value)) {
-                    return "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character";
-                }
-                return null;
-            },
-        });
-        if (!password) return false;
-
-        const name = await vscode.window.showInputBox({
-            prompt: "Enter container name",
-            ignoreFocusOut: true,
-            validateInput: async (value: string) => {
-                const isValid = await validateContainerName(value);
-                if (isValid) {
-                    return null;
-                }
-                return "Please choose a unique name for the container";
-            },
-        });
-        if (!name) return false;
-
-        const version = await vscode.window.showQuickPick(
-            ["2022", "2019", "2017"],
-            {
-                placeHolder: "Select SQL Server version",
-            },
-        );
-        if (!version) return false;
-
-        const containerResult = await startSqlServerDockerContainer(
-            name,
-            password,
-            version,
-        );
-
-        if (!containerResult.port) return false;
-
-        // Add container connection to connection profiles
-        const connectionProfile = await addContainerConnection(
-            name,
-            password,
-            containerResult.port,
-            this.connectionManager,
-        );
-
-        // const containerUri = `Server=localhost, ${containerResult.port};User Id=SA; Encrypt=true; Trust Server Certificate=true;`;
-        // const connectionPromise = new Deferred<boolean>();
-        return this.createObjectExplorerSession(connectionProfile);
-        */
         const reactPanel = new ContainerDeploymentWebviewController(
             this._context,
+            this,
             this._connectionMgr,
         );
         reactPanel.revealToForeground();

@@ -17,6 +17,7 @@ import {
     FormItemOptions,
     FormItemSpec,
 } from "../reactviews/common/forms/form";
+import MainController from "./mainController";
 
 export class ContainerDeploymentWebviewController extends ReactWebviewPanelController<
     cd.ContainerDeploymentWebviewState,
@@ -24,6 +25,8 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
 > {
     constructor(
         context: vscode.ExtensionContext,
+        // Main controller is used to connect to the container after creation
+        public mainController: MainController,
         public connectionManager: ConnectionManager,
     ) {
         super(
@@ -32,17 +35,17 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             new cd.ContainerDeploymentWebviewState(),
             {
                 title: `Deploy a local SQL Server Docker container`,
-                viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
+                viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "executionPlan_dark.svg",
+                        "connectionDialogEditor_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "executionPlan_light.svg",
+                        "connectionDialogEditor_light.svg",
                     ),
                 },
             },
@@ -98,7 +101,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             },
         );
         this.registerReducer("startDocker", async (state, payload) => {
-            const startDockerResult = await this.startDocker();
+            const startDockerResult = await startDocker();
             let newState = state;
             if (!startDockerResult.success) {
                 newState.dockerStatus.errorMessage =
@@ -127,50 +130,78 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
             newState.dockerStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
+        this.registerReducer("startContainer", async (state, payload) => {
+            if (this.state.formState.containerName.trim() == "") {
+                this.state.formState.containerName =
+                    await this.validateContainerName(
+                        this.state.formState.containerName,
+                    );
+            }
+            const startContainerResult =
+                await this.startSqlServerDockerContainer(
+                    this.state.formState.containerName,
+                    this.state.formState.password,
+                    this.state.formState.version,
+                );
+            let newState = state;
+            if (!startContainerResult.success) {
+                newState.dockerContainerCreationStatus.errorMessage =
+                    "Failed to start container.";
+                newState.dockerContainerCreationStatus.loadState =
+                    ApiStatus.Error;
+                newState.dockerContainerStatus.loadState = ApiStatus.Error;
+                newState.dockerConnectionStatus.loadState = ApiStatus.Error;
+                return newState;
+            }
+            newState.formState.port = startContainerResult.port;
+            newState.formState.server = `localhost, ${startContainerResult.port}`;
+            newState.dockerContainerCreationStatus.loadState = ApiStatus.Loaded;
+            return newState;
+        });
+        this.registerReducer("checkContainer", async (state, payload) => {
+            const containerStatusResult =
+                await checkIfContainerIsReadyForConnections(
+                    this.state.formState.containerName,
+                );
+            let newState = state;
+            if (!containerStatusResult) {
+                newState.dockerContainerStatus.errorMessage =
+                    "Failed to ready container for connections.";
+                newState.dockerContainerStatus.loadState = ApiStatus.Error;
+                newState.dockerConnectionStatus.loadState = ApiStatus.Error;
+                return newState;
+            }
+            newState.dockerContainerStatus.loadState = ApiStatus.Loaded;
+            return newState;
+        });
+        this.registerReducer("connectToContainer", async (state, payload) => {
+            const connectionProfile = await this.addContainerConnection(
+                state.formState,
+            );
+            const connectionResult =
+                await this.mainController.createObjectExplorerSession(
+                    connectionProfile,
+                );
+            let newState = state;
+            if (!connectionResult) {
+                newState.dockerConnectionStatus.errorMessage =
+                    "Failed to connect to container.";
+                return newState;
+            }
+            newState.dockerConnectionStatus.loadState = ApiStatus.Loaded;
+            return newState;
+        });
+        this.registerReducer("dispose", async (state, payload) => {
+            this.panel.dispose();
+            this.dispose();
+            return state;
+        });
     }
 
     public async checkDockerInstallation(): Promise<boolean> {
         return new Promise((resolve) => {
             exec(cd.COMMANDS.CHECK_DOCKER, (error) => {
                 resolve(!error);
-            });
-        });
-    }
-
-    public async startDocker(): Promise<cd.DockerCommandParams> {
-        return new Promise((resolve) => {
-            const startCommand = cd.COMMANDS.START_DOCKER[platform()];
-
-            if (!startCommand) {
-                return resolve({
-                    success: false,
-                    error: `Unsupported platform for Docker: ${platform()}`,
-                });
-            }
-
-            exec(startCommand, (err) => {
-                if (err) return resolve({ success: false, error: err.message });
-                console.log("Docker started. Waiting for initialization...");
-
-                let attempts = 0;
-                const maxAttempts = 30;
-                const interval = 2000;
-
-                const checkDocker = setInterval(() => {
-                    exec(cd.COMMANDS.CHECK_DOCKER, (err) => {
-                        if (!err) {
-                            clearInterval(checkDocker);
-                            return resolve({ success: true });
-                        }
-                        if (++attempts >= maxAttempts) {
-                            clearInterval(checkDocker);
-                            return resolve({
-                                success: false,
-                                error: "Docker failed to start within the timeout period.",
-                            });
-                        }
-                    });
-                }, interval);
             });
         });
     }
@@ -194,20 +225,17 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     let counter = 1;
 
                     while (existingContainers.includes(newContainerName)) {
-                        newContainerName = `sql_server_container${++counter}`;
+                        newContainerName = `sql_server_container_${++counter}`;
                     }
-                } else if (!existingContainers.includes(containerName)) {
+                } else if (
+                    !existingContainers.includes(containerName) &&
+                    /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(newContainerName)
+                ) {
                     newContainerName = containerName;
                 }
                 resolve(newContainerName);
             });
         });
-    }
-
-    public validateSqlServerPassword(password: string): boolean {
-        return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
-            password,
-        );
     }
 
     public async validateDockerConnectionProfile(
@@ -278,7 +306,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
     }
 
     public async startSqlServerDockerContainer(
-        name: string,
+        containerName: string,
         password: string,
         version: string,
     ): Promise<cd.DockerCommandParams> {
@@ -286,32 +314,27 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
         return new Promise((resolve) => {
             exec(
                 cd.COMMANDS.START_SQL_SERVER(
-                    name,
+                    containerName,
                     password,
                     port,
                     Number(version),
                 ),
                 async (error) => {
-                    if (error)
+                    if (error) {
+                        console.log(error);
                         return resolve({
                             success: false,
                             error: error.message,
                             port: undefined,
                         });
+                    }
                     console.log(
                         `SQL Server container started on port ${port}.`,
                     );
-                    const isReady =
-                        await this.checkIfContainerIsReadyForConnections(name);
-                    return resolve(
-                        isReady
-                            ? { success: true, port: port }
-                            : {
-                                  success: false,
-                                  error: "Could not set up container",
-                                  port: undefined,
-                              },
-                    );
+                    return resolve({
+                        success: true,
+                        port: port,
+                    });
                 },
             );
         });
@@ -325,33 +348,12 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
         });
     }
 
-    public async checkIfContainerIsReadyForConnections(
-        name: string,
-    ): Promise<boolean> {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                exec(
-                    cd.COMMANDS.CHECK_LOGS(name, platform()),
-                    (error, stdout) => {
-                        if (
-                            !error &&
-                            stdout.includes(cd.COMMANDS.CHECK_CONTAINER_READY)
-                        ) {
-                            clearInterval(interval);
-                            resolve(true);
-                        }
-                    },
-                );
-            }, 1000);
-        });
-    }
-
     public async addContainerConnection(
         dockerProfile: cd.DockerConnectionProfile,
     ): Promise<IConnectionProfile> {
         let connection: any = {
             ...dockerProfile,
-            profileName: dockerProfile.user,
+            profileName: dockerProfile.containerName,
             savePassword: true,
             emptyPasswordInput: false,
             azureAuthType: undefined,
@@ -396,7 +398,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                 required: true,
                 tooltip: "SQL Server Container Password",
                 validate(_, value) {
-                    if (this.validateSqlServerPassword(value)) {
+                    if (validateSqlServerPassword(value.toString())) {
                         return { isValid: true, validationMessage: "" };
                     }
                     return {
@@ -472,4 +474,98 @@ export function getDefaultConnectionProfile(): cd.DockerConnectionProfile {
     };
 
     return connection;
+}
+
+export function validateSqlServerPassword(password: string): boolean {
+    return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
+        password,
+    );
+}
+
+export async function startDocker(): Promise<cd.DockerCommandParams> {
+    return new Promise((resolve) => {
+        const startCommand = cd.COMMANDS.START_DOCKER[platform()];
+
+        if (!startCommand) {
+            return resolve({
+                success: false,
+                error: `Unsupported platform for Docker: ${platform()}`,
+            });
+        }
+
+        exec(startCommand, (err) => {
+            if (err) return resolve({ success: false, error: err.message });
+            console.log("Docker started. Waiting for initialization...");
+
+            let attempts = 0;
+            const maxAttempts = 30;
+            const interval = 2000;
+
+            const checkDocker = setInterval(() => {
+                exec(cd.COMMANDS.CHECK_DOCKER, (err) => {
+                    if (!err) {
+                        clearInterval(checkDocker);
+                        return resolve({ success: true });
+                    }
+                    if (++attempts >= maxAttempts) {
+                        clearInterval(checkDocker);
+                        return resolve({
+                            success: false,
+                            error: "Docker failed to start within the timeout period.",
+                        });
+                    }
+                });
+            }, interval);
+        });
+    });
+}
+
+export async function restartContainer(
+    containerName: string,
+): Promise<boolean> {
+    const isDockerStarted = await startDocker();
+    if (!isDockerStarted) return false;
+    return new Promise((resolve) => {
+        exec(cd.COMMANDS.START_CONTAINER(containerName), async (error) => {
+            resolve(
+                !error &&
+                    (await checkIfContainerIsReadyForConnections(
+                        containerName,
+                    )),
+            );
+        });
+    });
+}
+
+export async function checkIfContainerIsReadyForConnections(
+    containerName: string,
+): Promise<boolean> {
+    return new Promise((resolve) => {
+        const interval = setInterval(() => {
+            exec(
+                cd.COMMANDS.CHECK_LOGS(containerName, platform()),
+                (error, stdout) => {
+                    if (
+                        !error &&
+                        stdout.includes(cd.COMMANDS.CHECK_CONTAINER_READY)
+                    ) {
+                        clearInterval(interval);
+                        resolve(true);
+                    }
+                },
+            );
+        }, 1000);
+    });
+}
+
+export async function deleteContainer(containerName: string): Promise<boolean> {
+    return new Promise((resolve) => {
+        exec(cd.COMMANDS.DELETE_CONTAINER(containerName), (error) => {
+            if (error) {
+                resolve(false);
+                return;
+            }
+            resolve(true);
+        });
+    });
 }

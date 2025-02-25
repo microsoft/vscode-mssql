@@ -52,7 +52,10 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { startContainer } from "../utils/containerUtils";
+import {
+    deleteContainer,
+    restartContainer,
+} from "../controllers/containerDeploymentWebviewController";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -684,7 +687,7 @@ export class ObjectExplorerService {
             // Local container, ensure it is started
             if (connectionCredentials.containerName) {
                 // start docker and docker container
-                await startContainer(connectionCredentials.containerName);
+                await restartContainer(connectionCredentials.containerName);
             }
             // connection string based credential
             if (connectionCredentials.connectionString) {
@@ -880,6 +883,9 @@ export class ObjectExplorerService {
         await this.closeSession(node);
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         await this._connectionManager.disconnect(nodeUri);
+        if (node.connectionInfo.containerName) {
+            void deleteContainer(node.connectionInfo.containerName);
+        }
         if (!isDisconnect) {
             const index = this._rootTreeNodeArray.indexOf(node, 0);
             if (index > -1) {
