@@ -20,9 +20,10 @@ const CompareDiffEditor = () => {
                 original={modified}
                 modified={original}
                 options={{
-                    renderSideBySide: true,
+                    renderSideBySide: false,
                     renderOverviewRuler: true,
                     OverviewRulerLane: 0,
+                    readOnly: true,
                 }}
             />
         </div>
