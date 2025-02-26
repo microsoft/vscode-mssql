@@ -36,6 +36,8 @@ export class ConnectionProfile
     implements IConnectionProfile
 {
     public profileName: string;
+    public id: string;
+    public groupId: string;
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
@@ -73,7 +75,7 @@ export class ConnectionProfile
         azureController: AzureController,
         accountStore?: AccountStore,
         defaultProfileValues?: IConnectionProfile,
-    ): Promise<IConnectionProfile> {
+    ): Promise<IConnectionProfile | undefined> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core properties are entered
         let authOptions: INameValueChoice[] =
@@ -196,21 +198,31 @@ export class ConnectionProfile
             },
         );
 
-        return prompter.prompt(questions, true).then(async (answers) => {
-            if (answers && profile.isValidProfile()) {
-                sendActionEvent(
-                    TelemetryViews.ConnectionPrompt,
-                    TelemetryActions.CreateConnectionResult,
-                    {
-                        authenticationType: profile.authenticationType,
-                        passwordSaved: profile.savePassword ? "true" : "false",
-                    },
-                );
-                return profile;
-            }
-            // returning undefined to indicate failure to create the profile
-            return undefined;
-        });
+        const answers = await prompter.prompt(questions, true);
+
+        if (answers && profile.isValidProfile()) {
+            sendActionEvent(
+                TelemetryViews.ConnectionPrompt,
+                TelemetryActions.CreateConnectionResult,
+                {
+                    authenticationType: profile.authenticationType,
+                    passwordSaved: profile.savePassword ? "true" : "false",
+                },
+            );
+
+            ConnectionProfile.addIdIfMissing(profile);
+
+            return profile;
+        }
+
+        // returning undefined to indicate failure to create the profile
+        return undefined;
+    }
+
+    public static addIdIfMissing(profile: IConnectionProfile): void {
+        if (profile && profile.id === undefined) {
+            profile.id = utils.generateGuid();
+        }
     }
 
     // Assumption: having connection string or server + profile name indicates all requirements were met
