@@ -6,7 +6,10 @@
 import { RequestType } from "vscode-languageclient";
 import { ConnectionDetails } from "vscode-mssql";
 
-// Create session request message callback declaration
+/**
+ * A unique session ID used for all Object Explorer connection subtree mappings.
+ * Guaranteed to be unique if any property of the connection details differs (except password).
+ */
 export namespace GetSessionIdRequest {
     export const type = new RequestType<
         ConnectionDetails,
