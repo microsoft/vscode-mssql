@@ -6,57 +6,85 @@
 import * as mssql from "vscode-mssql";
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
+export type ExtractTarget = mssql.ExtractTarget;
+export type TaskExecutionMode = mssql.TaskExecutionMode;
+export type ISchemaCompareService = mssql.ISchemaCompareService;
+export type SchemaCompareEndpointType = mssql.SchemaCompareEndpointType;
+export type SchemaCompareConnectionInfo = mssql.SchemaCompareConnectionInfo;
+export type SchemaCompareEndpointInfo = mssql.SchemaCompareEndpointInfo;
+export type SchemaUpdateAction = mssql.SchemaUpdateAction;
+export type SchemaDifferenceType = mssql.SchemaDifferenceType;
+export type DiffEntry = mssql.DiffEntry;
+export type SchemaCompareParams = mssql.SchemaCompareParams;
+export type DeploymentOptions = mssql.DeploymentOptions;
+export type ResultStatus = mssql.ResultStatus;
+export type SchemaCompareResult = mssql.SchemaCompareResult;
+export type SchemaCompareGenerateScriptParams =
+    mssql.SchemaCompareGenerateScriptParams;
+export type SchemaComparePublishProjectResult =
+    mssql.SchemaComparePublishProjectResult;
+export type SchemaCompareGetOptionsParams = mssql.SchemaCompareGetOptionsParams;
+export type SchemaCompareOptionsResult = mssql.SchemaCompareOptionsResult;
+export type SchemaCompareNodeParams = mssql.SchemaCompareNodeParams;
+export type SchemaCompareIncludeExcludeResult =
+    mssql.SchemaCompareIncludeExcludeResult;
+export type SchemaCompareObjectId = mssql.SchemaCompareObjectId;
+export type SchemaCompareOpenScmpParams = mssql.SchemaCompareOpenScmpParams;
+export type SchemaCompareOpenScmpResult = mssql.SchemaCompareOpenScmpResult;
+export type SchemaCompareSaveScmpParams = mssql.SchemaCompareSaveScmpParams;
+export type SchemaCompareCancelParams = mssql.SchemaCompareCancelParams;
+
 export interface SchemaCompareWebViewState {
-    defaultDeploymentOptionsResult: mssql.SchemaCompareOptionsResult;
-    sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
-    targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-    schemaCompareResult: mssql.SchemaCompareResult;
-    generateScriptResultStatus: mssql.ResultStatus;
-    publishDatabaseChangesResultStatus: mssql.ResultStatus;
-    schemaComparePublishProjectResult: mssql.SchemaComparePublishProjectResult;
-    schemaCompareIncludeExcludeResult: mssql.SchemaCompareIncludeExcludeResult;
-    schemaCompareOpenScmpResult: mssql.SchemaCompareOpenScmpResult;
-    saveScmpResultStatus: mssql.ResultStatus;
-    cancelResultStatus: mssql.ResultStatus;
+    defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
+    sourceEndpointInfo: SchemaCompareEndpointInfo;
+    targetEndpointInfo: SchemaCompareEndpointInfo;
+    schemaCompareResult: SchemaCompareResult;
+    generateScriptResultStatus: ResultStatus;
+    publishDatabaseChangesResultStatus: ResultStatus;
+    schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
+    schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
+    schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
+    saveScmpResultStatus: ResultStatus;
+    cancelResultStatus: ResultStatus;
 }
 
 export interface SchemaCompareReducers {
     selectFile: {
-        endpoint: mssql.SchemaCompareEndpointInfo;
+        endpoint: SchemaCompareEndpointInfo;
         endpointType: "source" | "target";
-        fileType: "dacpac";
+        fileType: "dacpac" | "sqlproj";
     };
 
     compare: {
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        deploymentOptions: mssql.DeploymentOptions;
+        sourceEndpointInfo: SchemaCompareEndpointInfo;
+        targetEndpointInfo: SchemaCompareEndpointInfo;
+        deploymentOptions: DeploymentOptions;
     };
 
     generateScript: {
         targetServerName: string;
         targetDatabaseName: string;
-        taskExecutionMode: mssql.TaskExecutionMode;
+        taskExecutionMode: TaskExecutionMode;
     };
 
     publishDatabaseChanges: {
         targetServerName: string;
         targetDatabaseName: string;
-        taskExecutionMode: mssql.TaskExecutionMode;
+        taskExecutionMode: TaskExecutionMode;
     };
 
     publishProjectChanges: {
         targetProjectPath: string;
-        targetFolderStructure: mssql.ExtractTarget;
-        taskExecutionMode: mssql.TaskExecutionMode;
+        targetFolderStructure: ExtractTarget;
+        taskExecutionMode: TaskExecutionMode;
     };
 
     getDefaultOptions: {};
 
     includeExcludeNode: {
-        diffEntry: mssql.DiffEntry;
+        diffEntry: DiffEntry;
         includeRequest: boolean;
-        taskExecutionMode: mssql.TaskExecutionMode;
+        taskExecutionMode: TaskExecutionMode;
     };
 
     openScmp: {
@@ -64,13 +92,13 @@ export interface SchemaCompareReducers {
     };
 
     saveScmp: {
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        taskExecutionMode: mssql.TaskExecutionMode;
-        deploymentOptions: mssql.DeploymentOptions;
+        sourceEndpointInfo: SchemaCompareEndpointInfo;
+        targetEndpointInfo: SchemaCompareEndpointInfo;
+        taskExecutionMode: TaskExecutionMode;
+        deploymentOptions: DeploymentOptions;
         scmpFilePath: string;
-        excludedSourceObjects: mssql.SchemaCompareObjectId[];
-        excludedTargetObjects: mssql.SchemaCompareObjectId[];
+        excludedSourceObjects: SchemaCompareObjectId[];
+        excludedTargetObjects: SchemaCompareObjectId[];
     };
 
     cancel: {};
@@ -81,53 +109,53 @@ export interface SchemaCompareContextProps {
     themeKind: ColorThemeKind;
 
     selectFile: (
-        endpoint: mssql.SchemaCompareEndpointInfo,
+        endpoint: SchemaCompareEndpointInfo,
         endpointType: "source" | "target",
-        fileType: "dacpac",
+        fileType: "dacpac" | "sqlproj",
     ) => void;
 
     compare: (
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        deploymentOptions: mssql.DeploymentOptions,
+        sourceEndpointInfo: SchemaCompareEndpointInfo,
+        targetEndpointInfo: SchemaCompareEndpointInfo,
+        deploymentOptions: DeploymentOptions,
     ) => void;
 
     generateScript: (
         targetServerName: string,
         targetDatabaseName: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     publishDatabaseChanges: (
         targetServerName: string,
         targetDatabaseName: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     publishProjectChanges: (
         targetProjectPath: string,
-        targetFolderStructure: mssql.ExtractTarget,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        targetFolderStructure: ExtractTarget,
+        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     getDefaultOptions: () => void;
 
     includeExcludeNode: (
-        diffEntry: mssql.DiffEntry,
+        diffEntry: DiffEntry,
         includeRequest: boolean,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     openScmp: (filePath: string) => void;
 
     saveScmp: (
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        taskExecutionMode: mssql.TaskExecutionMode,
-        deploymentOptions: mssql.DeploymentOptions,
+        sourceEndpointInfo: SchemaCompareEndpointInfo,
+        targetEndpointInfo: SchemaCompareEndpointInfo,
+        taskExecutionMode: TaskExecutionMode,
+        deploymentOptions: DeploymentOptions,
         scmpFilePath: string,
-        excludedSourceObjects: mssql.SchemaCompareObjectId[],
-        excludedTargetObjects: mssql.SchemaCompareObjectId[],
+        excludedSourceObjects: SchemaCompareObjectId[],
+        excludedTargetObjects: SchemaCompareObjectId[],
     ) => void;
 
     cancel: () => void;
