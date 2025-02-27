@@ -3,36 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from "vscode-mssql";
+import {
+    ExtractTarget,
+    TaskExecutionMode,
+    ISchemaCompareService,
+    SchemaCompareEndpointType,
+    SchemaCompareConnectionInfo,
+    SchemaCompareEndpointInfo,
+    SchemaUpdateAction,
+    SchemaDifferenceType,
+    DiffEntry,
+    SchemaCompareParams,
+    DeploymentOptions,
+    ResultStatus,
+    SchemaCompareResult,
+    SchemaCompareGenerateScriptParams,
+    SchemaComparePublishProjectResult,
+    SchemaCompareGetOptionsParams,
+    SchemaCompareOptionsResult,
+    SchemaCompareNodeParams,
+    SchemaCompareIncludeExcludeResult,
+    SchemaCompareObjectId,
+    SchemaCompareOpenScmpParams,
+    SchemaCompareOpenScmpResult,
+    SchemaCompareSaveScmpParams,
+    SchemaCompareCancelParams,
+} from "vscode-mssql";
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
-
-export type ExtractTarget = mssql.ExtractTarget;
-export type TaskExecutionMode = mssql.TaskExecutionMode;
-export type ISchemaCompareService = mssql.ISchemaCompareService;
-export type SchemaCompareEndpointType = mssql.SchemaCompareEndpointType;
-export type SchemaCompareConnectionInfo = mssql.SchemaCompareConnectionInfo;
-export type SchemaCompareEndpointInfo = mssql.SchemaCompareEndpointInfo;
-export type SchemaUpdateAction = mssql.SchemaUpdateAction;
-export type SchemaDifferenceType = mssql.SchemaDifferenceType;
-export type DiffEntry = mssql.DiffEntry;
-export type SchemaCompareParams = mssql.SchemaCompareParams;
-export type DeploymentOptions = mssql.DeploymentOptions;
-export type ResultStatus = mssql.ResultStatus;
-export type SchemaCompareResult = mssql.SchemaCompareResult;
-export type SchemaCompareGenerateScriptParams =
-    mssql.SchemaCompareGenerateScriptParams;
-export type SchemaComparePublishProjectResult =
-    mssql.SchemaComparePublishProjectResult;
-export type SchemaCompareGetOptionsParams = mssql.SchemaCompareGetOptionsParams;
-export type SchemaCompareOptionsResult = mssql.SchemaCompareOptionsResult;
-export type SchemaCompareNodeParams = mssql.SchemaCompareNodeParams;
-export type SchemaCompareIncludeExcludeResult =
-    mssql.SchemaCompareIncludeExcludeResult;
-export type SchemaCompareObjectId = mssql.SchemaCompareObjectId;
-export type SchemaCompareOpenScmpParams = mssql.SchemaCompareOpenScmpParams;
-export type SchemaCompareOpenScmpResult = mssql.SchemaCompareOpenScmpResult;
-export type SchemaCompareSaveScmpParams = mssql.SchemaCompareSaveScmpParams;
-export type SchemaCompareCancelParams = mssql.SchemaCompareCancelParams;
 
 export interface SchemaCompareWebViewState {
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
@@ -160,3 +157,30 @@ export interface SchemaCompareContextProps {
 
     cancel: () => void;
 }
+
+export {
+    ExtractTarget,
+    TaskExecutionMode,
+    ISchemaCompareService,
+    SchemaCompareEndpointType,
+    SchemaCompareConnectionInfo,
+    SchemaCompareEndpointInfo,
+    SchemaUpdateAction,
+    SchemaDifferenceType,
+    DiffEntry,
+    SchemaCompareParams,
+    DeploymentOptions,
+    ResultStatus,
+    SchemaCompareResult,
+    SchemaCompareGenerateScriptParams,
+    SchemaComparePublishProjectResult,
+    SchemaCompareGetOptionsParams,
+    SchemaCompareOptionsResult,
+    SchemaCompareNodeParams,
+    SchemaCompareIncludeExcludeResult,
+    SchemaCompareObjectId,
+    SchemaCompareOpenScmpParams,
+    SchemaCompareOpenScmpResult,
+    SchemaCompareSaveScmpParams,
+    SchemaCompareCancelParams,
+};
