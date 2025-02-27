@@ -35,7 +35,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 selectFile: function (
                     endpoint: mssql.SchemaCompareEndpointInfo,
                     endpointType: "source" | "target",
-                    fileType: "dacpac",
+                    fileType: "dacpac" | "sqlproj",
                 ): void {
                     webViewState?.extensionRpc.action("selectFile", {
                         endpoint: endpoint,

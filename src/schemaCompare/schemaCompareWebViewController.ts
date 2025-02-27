@@ -209,11 +209,15 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     ): mssql.SchemaCompareEndpointInfo {
         const source = {
             endpointType: mssql.SchemaCompareEndpointType.Project,
-            packageFilePath: "",
+            projectFilePath: sourceProject,
+            extractTarget: mssql.ExtractTarget.schemaObjectType,
+            targetScripts: [],
+            dataSchemaProvider: "",
             serverDisplayName: "",
             serverName: "",
             databaseName: "",
             ownerUri: "",
+            packageFilePath: "",
             connectionDetails: undefined,
             projectFilePath: sourceProject,
             targetScripts: [],
@@ -240,7 +244,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("selectFile", async (state, payload) => {
             const filePath = await openFileDialog(payload);
             const updatedEndpointInfo =
-                this.getEndpointInfoFromDacpac(filePath);
+                payload.fileType === "dacpac"
+                    ? this.getEndpointInfoFromDacpac(filePath)
+                    : this.getEndpointInfoFromProject(filePath);
 
             if (filePath) {
                 if (payload.fileType === "dacpac") {
@@ -248,6 +254,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         state.sourceEndpointInfo = updatedEndpointInfo;
                     } else {
                         state.targetEndpointInfo = updatedEndpointInfo;
+                    }
+                } else if (payload.fileType === "sqlproj") {
+                    if (payload.endpointType === "source") {
+                        state.sourceEndpointInfo = updatedEndpointInfo;
+                        // state.sourceEndpointInfo.dataSchemaProvider = "160";
+                        state.sourceEndpointInfo.targetScripts = [
+                            "c:\\DatabaseProjects\\SimpleProj\\Address.sql",
+                        ];
+                    } else {
+                        state.targetEndpointInfo = updatedEndpointInfo;
+                        // state.targetEndpointInfo.dataSchemaProvider = "160";
+                        state.targetEndpointInfo.targetScripts = [
+                            "c:\\DatabaseProjects\\SimpleProj2\\Address.sql",
+                            "c:\\DatabaseProjects\\SimpleProj2\\Person.sql",
+                        ];
                     }
                 }
 

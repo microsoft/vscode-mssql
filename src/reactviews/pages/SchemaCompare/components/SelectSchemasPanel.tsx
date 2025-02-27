@@ -56,7 +56,7 @@ const SelectSchemasPanel = () => {
             endpointType === "source"
                 ? context.state.sourceEndpointInfo
                 : context.state.targetEndpointInfo;
-        context.selectFile(endpoint, endpointType, "dacpac");
+        context.selectFile(endpoint, endpointType, "sqlproj");
     };
 
     const handleCompare = () => {
@@ -79,14 +79,14 @@ const SelectSchemasPanel = () => {
             <SelectSchemaInput
                 id={sourceId}
                 label="Source"
-                value={context.state.sourceEndpointInfo?.packageFilePath || ""}
+                value={context.state.sourceEndpointInfo?.projectFilePath || ""}
                 selectFile={() => handleSelectFile("source")}
             />
 
             <SelectSchemaInput
                 id={targetId}
                 label="Target"
-                value={context.state.targetEndpointInfo?.packageFilePath || ""}
+                value={context.state.targetEndpointInfo?.projectFilePath || ""}
                 selectFile={() => handleSelectFile("target")}
             />
 
