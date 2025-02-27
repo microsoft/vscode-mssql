@@ -79,6 +79,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             return undefined;
         }
         const gridContainerRef = useRef<HTMLDivElement>(null);
+        if (!props.gridParentRef) {
+            return undefined;
+        }
         const refreshGrid = () => {
             if (gridContainerRef.current) {
                 while (gridContainerRef.current.firstChild) {
