@@ -23,6 +23,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         public _schemaDesignerService: ISchemaDesignerService,
         _database: string,
         intialSchema: ISchema,
+        sessionId: string,
     ) {
         super(
             context,
@@ -51,10 +52,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             },
         );
 
-        this._schemaDesignerService.onModelReady(() => {
-            vscodeWrapper.showInformationMessage(
-                "Schema Designer model is ready.",
-            );
+        this._schemaDesignerService.onModelReady((model) => {
+            if (model.sessionId === sessionId) {
+                console.log("Model ready", model.code);
+            }
         });
 
         this.registerReducer("saveAs", async (state, payload) => {

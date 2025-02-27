@@ -100,6 +100,18 @@ export interface GetSchemaModelRequestParams {
     databaseName: string;
 }
 
+export interface GetSchemaModelResponse {
+    schemaModel: ISchema;
+    sessionId: string;
+}
+
+export interface ModelReadyNotificationParams {
+    model: ISchema;
+    originalModel: ISchema;
+    sessionId: string;
+    code: string;
+}
+
 export interface PublishSchemaRequestParams {
     connectionUri: string;
     databaseName: string;
@@ -107,8 +119,10 @@ export interface PublishSchemaRequestParams {
 }
 
 export interface ISchemaDesignerService {
-    getSchemaModel(request: GetSchemaModelRequestParams): Thenable<ISchema>;
-    onModelReady(listener: () => void): void;
+    getSchemaModel(
+        request: GetSchemaModelRequestParams,
+    ): Thenable<GetSchemaModelResponse>;
+    onModelReady(listener: (model: ModelReadyNotificationParams) => void): void;
     publishSchema(request: PublishSchemaRequestParams): Thenable<void>;
 }
 

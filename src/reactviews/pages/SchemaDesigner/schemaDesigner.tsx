@@ -21,7 +21,6 @@ import {
     MenuPopover,
     PositioningImperativeRef,
 } from "@fluentui/react-components";
-import * as htmlToImage from "html-to-image";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
@@ -183,144 +182,6 @@ export const SchemaDesigner = () => {
             );
             return;
         }
-        // transperant background
-        var background = "none";
-        var scale = 1;
-        var border = 1;
-
-        if (!schemaDesigner) {
-            return;
-        }
-
-        const mxGraphFactory = azdataGraph.mxGraphFactory;
-        const graph = schemaDesigner.mxGraph;
-
-        var imgExport = new mxGraphFactory.mxImageExport();
-        var bounds = graph.getGraphBounds();
-        var vs = graph.view.scale;
-
-        // Prepares SVG document that holds the output
-        var svgDoc = mxGraphFactory.mxUtils.createXmlDocument();
-        var root =
-            svgDoc.createElementNS !== null
-                ? svgDoc.createElementNS(
-                      mxGraphFactory.mxConstants.NS_SVG,
-                      "svg",
-                  )
-                : svgDoc.createElement("svg");
-
-        if (background !== null) {
-            if (root.style !== null) {
-                root.style.backgroundColor = background;
-            } else {
-                root.setAttribute("style", "background-color:" + background);
-            }
-        }
-
-        if (svgDoc.createElementNS == null) {
-            root.setAttribute("xmlns", mxGraphFactory.mxConstants.NS_SVG);
-            root.setAttribute(
-                "xmlns:xlink",
-                mxGraphFactory.mxConstants.NS_XLINK,
-            );
-        } else {
-            // KNOWN: Ignored in IE9-11, adds namespace for each image element instead. No workaround.
-            root.setAttributeNS(
-                "http://www.w3.org/2000/xmlns/",
-                "xmlns:xlink",
-                mxGraphFactory.mxConstants.NS_XLINK,
-            );
-        }
-
-        root.setAttribute(
-            "width",
-            Math.ceil((bounds.width * scale) / vs) + 2 * border + "px",
-        );
-        root.setAttribute(
-            "height",
-            Math.ceil((bounds.height * scale) / vs) + 2 * border + "px",
-        );
-        root.setAttribute("version", "1.1");
-
-        // Adds group for anti-aliasing via transform
-        var group =
-            svgDoc.createElementNS !== null
-                ? svgDoc.createElementNS(mxGraphFactory.mxConstants.NS_SVG, "g")
-                : svgDoc.createElement("g");
-        group.setAttribute("transform", "translate(0.5,0.5)");
-        root.appendChild(group);
-        svgDoc.appendChild(root);
-
-        // Renders graph. Offset will be multiplied with state's scale when painting state.
-        var svgCanvas = new mxGraphFactory.mxSvgCanvas2D(group);
-        svgCanvas.translate(
-            Math.floor((border / scale - bounds.x) / vs),
-            Math.floor((border / scale - bounds.y) / vs),
-        );
-        svgCanvas.scale(scale / vs);
-
-        // Displayed if a viewer does not support foreignObjects (which is needed to HTML output)
-        //svgCanvas.foAltText = "[Not supported by viewer]";
-        imgExport.drawState(
-            graph.getView().getState(graph.model.root),
-            svgCanvas,
-        );
-        const outlineDiv = document.getElementsByClassName(
-            "sd-outline",
-        )[0] as HTMLElement;
-        if (outlineDiv) {
-            outlineDiv.style.display = "none";
-        }
-        if (!context) {
-            return;
-        }
-        schemaDesigner.mxGraph.setSelectionCell(null as unknown as mxCell);
-        schemaDesigner.mxGraph.connectionHandler.destroyIcons();
-        if (format === "png") {
-            htmlToImage
-                .toPng(
-                    document.getElementById("graphContainer") as HTMLElement,
-                    {
-                        width: bounds.width + 200,
-                        height: bounds.height + 200,
-                    },
-                )
-                .then((dataUrl) => {
-                    context.saveAs("png", dataUrl, bounds.width, bounds.height);
-                    if (outlineDiv) {
-                        outlineDiv.style.display = "";
-                    }
-                })
-                .catch((err) => {
-                    console.error("oops, something went wrong!", err);
-                });
-        } else if (format === "jpg") {
-            htmlToImage
-                .toJpeg(
-                    document.getElementById("graphContainer") as HTMLElement,
-                    {
-                        quality: 1,
-                        width: bounds.width + 200,
-                        height: bounds.height + 200,
-                    },
-                )
-                .then((dataUrl) => {
-                    context.saveAs("jpg", dataUrl, bounds.width, bounds.height);
-                    if (outlineDiv) {
-                        outlineDiv.style.display = "";
-                    }
-                })
-                .catch((err) => {
-                    console.error("oops, something went wrong!", err);
-                });
-        } else if (format === "svg") {
-            const colors = getSchemaDesignerColors();
-            root.style.backgroundColor = colors.graphBackground;
-            context.saveAs("svg", root.outerHTML, bounds.width, bounds.height);
-            if (outlineDiv) {
-                outlineDiv.style.display = "";
-            }
-        }
     }
 
     return (
@@ -328,9 +189,152 @@ export const SchemaDesigner = () => {
             style={{
                 height: "100%",
                 width: "100%",
-                position: "relative",
+                display: "flex",
+                flexDirection: "column",
             }}
         >
+            {/* <Toolbar
+                size="small"
+                style={{
+                    gap: "10px",
+                }}
+            >
+                <Button size="small" icon={<ArrowCounterclockwiseFilled />}>
+                    Refresh
+                </Button>
+                <Dialog>
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button size="small" icon={<CodeFilled />}>
+                            View Code
+                        </Button>
+                    </DialogTrigger>
+                    <DialogSurface>
+                        <DialogBody>
+                            <DialogTitle>Code for the table</DialogTitle>
+                            <DialogContent>
+                                Lorem ipsum dolor sit amet consectetur
+                                adipisicing elit. Quisquam exercitationem cumque
+                                repellendus eaque est dolor eius expedita nulla
+                                ullam? Tenetur reprehenderit aut voluptatum
+                                impedit voluptates in natus iure cumque eaque?
+                            </DialogContent>
+                            <DialogActions>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Button appearance="primary">Close</Button>
+                                </DialogTrigger>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+                <Menu>
+                    <MenuTrigger disableButtonEnhancement>
+                        <MenuButton size="small">Export</MenuButton>
+                    </MenuTrigger>
+
+                    <MenuPopover>
+                        <MenuList>
+                            <MenuItem>SVG</MenuItem>
+                            <MenuItem>PNG</MenuItem>
+                            <MenuItem>JPG</MenuItem>
+                        </MenuList>
+                    </MenuPopover>
+                </Menu>
+                <Button icon={<AddFilled />} size="small">
+                    Add Table
+                </Button>
+                <Menu>
+                    <MenuTrigger disableButtonEnhancement>
+                        <MenuButton icon={<FilterFilled />} size="small">
+                            Filter
+                        </MenuButton>
+                    </MenuTrigger>
+
+                    <MenuPopover>
+                        <SearchBox
+                            size="small"
+                            placeholder="Search"
+                            style={{
+                                marginBottom: "10px",
+                            }}
+                        ></SearchBox>
+                        <List
+                            selectionMode="multiselect"
+                            style={{
+                                maxHeight: "150px",
+                                overflowY: "auto",
+                            }}
+                        >
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                            <ListItem>
+                                <Text
+                                    style={{
+                                        lineHeight: "30px",
+                                    }}
+                                >
+                                    Table 1
+                                </Text>
+                            </ListItem>
+                        </List>
+                    </MenuPopover>
+                </Menu>
+                <SearchBox
+                    size="small"
+                    placeholder="Search by keyword"
+                ></SearchBox>
+            </Toolbar> */}
             <div id="graphContainer" ref={graphContainerRef}></div>
             <div
                 className="sd-editor"

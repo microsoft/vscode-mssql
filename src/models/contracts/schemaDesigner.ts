@@ -6,13 +6,15 @@
 import { NotificationType, RequestType } from "vscode-languageclient";
 import {
     GetSchemaModelRequestParams,
+    GetSchemaModelResponse,
     ISchema,
+    ModelReadyNotificationParams,
 } from "../../sharedInterfaces/schemaDesigner";
 
 export namespace GetSchemaModelRequest {
     export const type = new RequestType<
         GetSchemaModelRequestParams,
-        ISchema,
+        GetSchemaModelResponse,
         void,
         void
     >("schemaDesigner/getSchemaModel");
@@ -31,10 +33,7 @@ export namespace PublishSchemaRequest {
 
 export namespace ModelReadyNotification {
     export const type = new NotificationType<
-        {
-            model: ISchema;
-            originalModel: ISchema;
-        },
+        ModelReadyNotificationParams,
         void
     >("schemaDesigner/modelReady");
 }

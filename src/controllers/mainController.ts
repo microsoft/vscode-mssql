@@ -962,7 +962,8 @@ export default class MainController implements vscode.Disposable {
                                 this._vscodeWrapper,
                                 this.schemaDesignerService,
                                 node.metadata.name,
-                                schema,
+                                schema.schemaModel,
+                                schema.sessionId,
                             );
 
                         schemaDesignerWebvie.revealToForeground();
