@@ -75,6 +75,7 @@ suite("Object Explorer Provider Tests", function () {
         objectExplorerService = TypeMoq.Mock.ofType(
             ObjectExplorerService,
             TypeMoq.MockBehavior.Loose,
+            vscodeWrapper.object,
             connectionManager.object,
         );
         objectExplorerService
