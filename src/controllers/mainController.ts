@@ -738,6 +738,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider = new ObjectExplorerProvider(
+            this._vscodeWrapper,
             this._connectionMgr,
         );
         this.objectExplorerTree = vscode.window.createTreeView(
