@@ -29,13 +29,18 @@ import {
     openFileDialog,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { TaskExecutionMode } from "vscode-mssql";
+import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
     SchemaCompareReducers
 > {
     private operationId: string;
+    // private sourceTargetSwitched: boolean = false;
+    // private originalSourceExcludes = new Map<string, mssql.DiffEntry>();
+    // private originalTargetExcludes = new Map<string, mssql.DiffEntry>();
+    // private scmpSourceExcludes: mssql.SchemaCompareObjectId[];
+    // private scmpTargetExcludes: mssql.SchemaCompareObjectId[];
 
     constructor(
         context: vscode.ExtensionContext,
@@ -219,10 +224,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             ownerUri: "",
             packageFilePath: "",
             connectionDetails: undefined,
-            projectFilePath: sourceProject,
-            targetScripts: [],
-            dataSchemaProvider: undefined,
-            extractTarget: mssql.ExtractTarget.schemaObjectType,
         };
 
         return source;
@@ -279,6 +280,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("compare", async (state, payload) => {
+            // telemetry - schema comparison started
+
             const result = await compare(
                 this.operationId,
                 TaskExecutionMode.execute,
@@ -286,6 +289,15 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.schemaCompareService,
             );
 
+            if (!result || !result.success) {
+                // telemetry - schema comparison failed
+                // log errors and show error message
+            }
+
+            // telemetry - schema comparison finished
+
+            const finalDifferences = this.getAllObjectTypeDifferences(result);
+            result.differences = finalDifferences;
             state.schemaCompareResult = result;
             this.updateState(state);
 
@@ -373,4 +385,90 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
     }
+
+    private getAllObjectTypeDifferences(
+        result: mssql.SchemaCompareResult,
+    ): DiffEntry[] {
+        // let data = [];
+        let finalDifferences: DiffEntry[] = [];
+        let differences = result.differences;
+        if (differences) {
+            differences.forEach((difference) => {
+                if (
+                    difference.differenceType ===
+                    mssql.SchemaDifferenceType.Object
+                ) {
+                    if (
+                        (difference.sourceValue !== null &&
+                            difference.sourceValue.length > 0) ||
+                        (difference.targetValue !== null &&
+                            difference.targetValue.length > 0)
+                    ) {
+                        finalDifferences.push(difference); // Add only non-null changes to ensure index does not mismatch between dictionay and UI - #6234
+                        // let include: boolean = true;
+                        // data.push([
+                        //     difference.name,
+                        //     this.createName(difference.sourceValue),
+                        //     include,
+                        //     updateAction,
+                        //     this.createName(difference.targetValue),
+                        // ]);
+                    }
+                }
+            });
+        }
+
+        return finalDifferences;
+
+        // result.differences = finalDifferences;
+        // return data;
+    }
+
+    // private shouldDiffBeIncluded(diff: mssql.DiffEntry): boolean {
+    //     let key =
+    //         diff.sourceValue && diff.sourceValue.length > 0
+    //             ? this.createName(diff.sourceValue)
+    //             : this.createName(diff.targetValue);
+    //     if (key) {
+    //         if (
+    //             this.sourceTargetSwitched === true &&
+    //             (this.originalTargetExcludes.has(key) ||
+    //                 this.hasExcludeEntry(this.scmpTargetExcludes, key))
+    //         ) {
+    //             this.originalTargetExcludes.set(key, diff);
+    //             return false;
+    //         }
+    //         if (
+    //             this.sourceTargetSwitched === false &&
+    //             (this.originalSourceExcludes.has(key) ||
+    //                 this.hasExcludeEntry(this.scmpSourceExcludes, key))
+    //         ) {
+    //             this.originalSourceExcludes.set(key, diff);
+    //             return false;
+    //         }
+    //         return true;
+    //     }
+    //     return true;
+    // }
+
+    private createName(nameParts: string[]): string {
+        if (!nameParts || nameParts.length === 0) {
+            return "";
+        }
+        return nameParts.join(".");
+    }
+
+    // private hasExcludeEntry(
+    //     collection: mssql.SchemaCompareObjectId[],
+    //     entryName: string,
+    // ): boolean {
+    //     let found = false;
+    //     if (collection) {
+    //         const index = collection.findIndex(
+    //             (e) => this.createName(e.nameParts) === entryName,
+    //         );
+    //         found = index !== -1;
+    //     }
+    //     return found;
+    // }
 }
