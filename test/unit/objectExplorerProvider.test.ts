@@ -64,6 +64,7 @@ suite("Object Explorer Provider Tests", function () {
         connectionManager.object.vscodeWrapper = vscodeWrapper.object;
 
         objectExplorerProvider = new ObjectExplorerProvider(
+            vscodeWrapper.object,
             connectionManager.object,
         );
         expect(
@@ -389,6 +390,7 @@ suite("Object Explorer Provider Tests", function () {
         };
 
         const testOeService = new ObjectExplorerService(
+            vscodeWrapper.object,
             connectionManager.object,
             objectExplorerProvider,
         );
@@ -445,6 +447,7 @@ suite("Object Explorer Provider Tests", function () {
         };
 
         const testOeService = new ObjectExplorerService(
+            vscodeWrapper.object,
             connectionManager.object,
             objectExplorerProvider,
         );
