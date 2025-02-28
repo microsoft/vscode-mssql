@@ -6,22 +6,67 @@
 import { useContext } from "react";
 import {
     Checkbox,
-    Table,
-    TableBody,
-    TableCell,
-    TableHeader,
-    TableHeaderCell,
-    TableRow,
+    createTableColumn,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
+    TableCellLayout,
+    TableColumnDefinition,
 } from "@fluentui/react-components";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 
-const columns = [
-    { columnKey: "type", label: "Type" },
-    { columnKey: "sourceName", label: "Source Name" },
-    { columnKey: "include", label: "Include" },
-    { columnKey: "action", label: "Action" },
-    { columnKey: "targetName", label: "Target Name" },
+type DiffItem = {
+    type: string;
+    sourceValue: string;
+    included: boolean;
+    updateAction: string;
+    targetValue: string;
+};
+
+const columns: TableColumnDefinition<DiffItem>[] = [
+    createTableColumn<DiffItem>({
+        columnId: "type",
+        renderHeaderCell: () => "Type",
+        renderCell: (item) => {
+            return <TableCellLayout>{item.type}</TableCellLayout>;
+        },
+    }),
+    createTableColumn<DiffItem>({
+        columnId: "sourceName",
+        renderHeaderCell: () => "Source Name",
+        renderCell: (item) => {
+            return <TableCellLayout>{item.sourceValue}</TableCellLayout>;
+        },
+    }),
+    createTableColumn<DiffItem>({
+        columnId: "include",
+        renderHeaderCell: () => "Include",
+        renderCell: (item) => {
+            return (
+                <TableCellLayout>
+                    <Checkbox checked={item.included} />
+                </TableCellLayout>
+            );
+        },
+    }),
+    createTableColumn<DiffItem>({
+        columnId: "action",
+        renderHeaderCell: () => "Action",
+        renderCell: (item) => {
+            return <TableCellLayout>{item.updateAction}</TableCellLayout>;
+        },
+    }),
+    createTableColumn<DiffItem>({
+        columnId: "targetName",
+        renderHeaderCell: () => "Target Name",
+        renderCell: (item) => {
+            return <TableCellLayout>{item.targetValue}</TableCellLayout>;
+        },
+    }),
 ];
 
 const SchemaDifferences = () => {
@@ -53,42 +98,52 @@ const SchemaDifferences = () => {
         return actionLabel;
     };
 
-    debugger;
+    const items: DiffItem[] =
+        compareResult?.success &&
+        compareResult.differences.map(
+            (item) =>
+                ({
+                    type: item.name,
+                    sourceValue: formatName(item.sourceValue),
+                    included: true,
+                    updateAction: getLabelForAction(
+                        item.updateAction as number,
+                    ),
+                    targetValue: formatName(item.targetValue),
+                }) as DiffItem,
+        );
+
     return (
         <>
-            {compareResult && compareResult.differences && (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {columns.map((column) => (
-                                <TableHeaderCell key={column.columnKey}>
-                                    {column.label}
-                                </TableHeaderCell>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {compareResult.differences.map((diff, index) => (
-                            <TableRow key={index}>
-                                <TableCell>{diff.name}</TableCell>
-                                <TableCell>
-                                    {formatName(diff.sourceValue)}
-                                </TableCell>
-                                <TableCell>
-                                    <Checkbox checked />
-                                </TableCell>
-                                <TableCell>
-                                    {getLabelForAction(
-                                        diff.updateAction as number,
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {formatName(diff.targetValue)}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+            {compareResult?.success && (
+                <DataGrid
+                    items={items}
+                    columns={columns}
+                    getRowId={(item) => item.sourceValue || item.targetValue}
+                    focusMode="composite"
+                    style={{ minWidth: "550px" }}
+                >
+                    <DataGridHeader>
+                        <DataGridRow>
+                            {({ renderHeaderCell }) => (
+                                <DataGridHeaderCell>
+                                    {renderHeaderCell()}
+                                </DataGridHeaderCell>
+                            )}
+                        </DataGridRow>
+                    </DataGridHeader>
+                    <DataGridBody<DiffItem>>
+                        {({ item, rowId }) => (
+                            <DataGridRow<DiffItem> key={rowId}>
+                                {({ renderCell }) => (
+                                    <DataGridCell>
+                                        {renderCell(item)}
+                                    </DataGridCell>
+                                )}
+                            </DataGridRow>
+                        )}
+                    </DataGridBody>
+                </DataGrid>
             )}
         </>
     );
