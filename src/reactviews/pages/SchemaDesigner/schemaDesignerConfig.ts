@@ -87,4 +87,5 @@ export const config: SchemaDesignerConfig = {
     publish(_schema: ISchema): void {
         throw new Error("Function not implemented.");
     },
+    showToolbar: false,
 };
