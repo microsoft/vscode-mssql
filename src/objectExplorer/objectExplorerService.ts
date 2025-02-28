@@ -625,6 +625,10 @@ export class ObjectExplorerService {
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
+            this._logger.logDebug(
+                `Getting children for node '${element.nodePath}'`,
+            );
+
             // set current node for very first expansion of disconnected node
             if (this._currentNode !== element) {
                 this._currentNode = element;
@@ -682,30 +686,34 @@ export class ObjectExplorerService {
                 }
             }
         } else {
-            // retrieve saved connections first when opening object explorer
-            // for the first time
+            this._logger.logDebug("Getting root OE nodes");
+
+            // retrieve saved connections first when opening object explorer for the first time
             let savedConnections =
                 this._connectionManager.connectionStore.readAllConnections();
-            // if there are no saved connections
-            // show the add connection node
+
+            // if there are no saved connections, show the add connection node
             if (savedConnections.length === 0) {
                 this._logger.logDebug(
                     "No saved connections found; displaying 'Add Connection' node",
                 );
                 return this.getAddConnectionNode();
             }
-            // if OE doesn't exist the first time
-            // then build the nodes off of saved connections
+
+            // if OE doesn't exist the first time, then build the nodes off of saved connections
             if (!this._objectExplorerProvider.objectExplorerExists) {
                 // if there are actually saved connections
                 this._rootTreeNodeArray = [];
                 await this.addSavedNodesConnectionsToRoot();
                 this._logger.logDebug(
-                    `Added ${this._rootTreeNodeArray.length} nodes to OE root`,
+                    `No current OE; added ${this._rootTreeNodeArray.length} nodes to OE root`,
                 );
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
             } else {
+                this._logger.logDebug(
+                    `Returning cached OE root nodes (${this._rootTreeNodeArray.length})`,
+                );
                 // otherwise returned the cached nodes
                 return this.sortByServerName(this._rootTreeNodeArray);
             }
@@ -1105,7 +1113,8 @@ export class ObjectExplorerService {
         }
     }
 
-    /** Getters */
+    //#region Getters and Setters
+
     public get currentNode(): TreeNodeInfo {
         return this._currentNode;
     }
@@ -1121,10 +1130,9 @@ export class ObjectExplorerService {
         return connections;
     }
 
-    /**
-     * Setters
-     */
     public set currentNode(node: TreeNodeInfo) {
         this._currentNode = node;
     }
+
+    //#endregion
 }
