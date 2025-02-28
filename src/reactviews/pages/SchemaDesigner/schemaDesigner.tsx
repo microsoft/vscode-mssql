@@ -59,7 +59,7 @@ export const SchemaDesigner = () => {
     const graphContainerRef = useRef<HTMLDivElement | null>(null);
     const editorDivRef = useRef<HTMLDivElement | null>(null);
 
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
 
     const [schemaDesigner, setSchemaDesigner] = useState<
         azdataGraph.SchemaDesigner | undefined
@@ -246,19 +246,26 @@ export const SchemaDesigner = () => {
                     style={{
                         gap: "10px",
                         paddingTop: "5px",
+                        paddingBottom: "5px",
                     }}
                 >
                     <Button
                         size="small"
-                        icon={<FluentIcons.ArrowCounterclockwiseFilled />}
+                        icon={<FluentIcons.ArrowCounterclockwise16Filled />}
                     >
                         Refresh
+                    </Button>
+                    <Button
+                        size="small"
+                        icon={<FluentIcons.DatabaseArrowUp16Filled />}
+                    >
+                        Publish
                     </Button>
                     <Dialog>
                         <DialogTrigger disableButtonEnhancement>
                             <Button
                                 size="small"
-                                icon={<FluentIcons.CodeFilled />}
+                                icon={<FluentIcons.Code16Filled />}
                             >
                                 View Code
                             </Button>
@@ -286,7 +293,12 @@ export const SchemaDesigner = () => {
                     </Dialog>
                     <Menu>
                         <MenuTrigger disableButtonEnhancement>
-                            <MenuButton size="small">Export</MenuButton>
+                            <MenuButton
+                                icon={<FluentIcons.ArrowExportUp16Filled />}
+                                size="small"
+                            >
+                                Export
+                            </MenuButton>
                         </MenuTrigger>
 
                         <MenuPopover>
@@ -297,13 +309,19 @@ export const SchemaDesigner = () => {
                             </MenuList>
                         </MenuPopover>
                     </Menu>
-                    <Button icon={<FluentIcons.AddFilled />} size="small">
+                    <Button icon={<FluentIcons.Add16Filled />} size="small">
                         Add Table
+                    </Button>
+                    <Button
+                        icon={<FluentIcons.Flowchart16Filled />}
+                        size="small"
+                    >
+                        Auto Arrange
                     </Button>
                     <Menu>
                         <MenuTrigger disableButtonEnhancement>
                             <MenuButton
-                                icon={<FluentIcons.FilterFilled />}
+                                icon={<FluentIcons.Filter16Filled />}
                                 size="small"
                             >
                                 Filter
@@ -397,6 +415,21 @@ export const SchemaDesigner = () => {
                     ></SearchBox>
                 </Toolbar>
                 <div id="graphContainer" ref={graphContainerRef}></div>
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: "10px",
+                        left: "10px",
+                        zIndex: 1000,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                    }}
+                >
+                    <Button icon={<FluentIcons.ZoomIn20Regular />}></Button>
+                    <Button icon={<FluentIcons.ZoomOut20Regular />}></Button>
+                    <Button icon={<FluentIcons.ZoomFitRegular />}></Button>
+                </div>
                 <div
                     className="sd-editor"
                     ref={editorDivRef}
