@@ -73,7 +73,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
 export interface IConnectionGroup {
     id: string;
     name: string;
-    parentId?: string;
+    groupId?: string;
     color?: string;
     description?: string;
 }

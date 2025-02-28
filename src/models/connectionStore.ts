@@ -643,6 +643,10 @@ export class ConnectionStore {
 
         // TODO re-add deduplication logic from old method
 
+        this._logger.logDebug(
+            `Read ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"})`,
+        );
+
         return connResults;
     }
 

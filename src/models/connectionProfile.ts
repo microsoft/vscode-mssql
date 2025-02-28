@@ -62,6 +62,7 @@ export class ConnectionProfile
             this.server = connectionCredentials.server;
         }
     }
+
     /**
      * Creates a new profile by prompting the user for information.
      * @param prompter that asks user the questions needed to complete a profile
@@ -219,10 +220,13 @@ export class ConnectionProfile
         return undefined;
     }
 
-    public static addIdIfMissing(profile: IConnectionProfile): void {
+    public static addIdIfMissing(profile: IConnectionProfile): boolean {
         if (profile && profile.id === undefined) {
             profile.id = utils.generateGuid();
+            return true;
         }
+
+        return false;
     }
 
     // Assumption: having connection string or server + profile name indicates all requirements were met

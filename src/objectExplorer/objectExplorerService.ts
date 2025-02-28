@@ -56,6 +56,8 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
+import { Logger } from "../models/logger";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -68,6 +70,7 @@ function getParentNode(node: TreeNodeType): TreeNodeInfo {
 
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
+    private _logger: Logger;
     private _currentNode: TreeNodeInfo;
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
     private _sessionIdToNodeLabelMap: Map<string, string>;
@@ -83,10 +86,21 @@ export class ObjectExplorerService {
     >;
 
     constructor(
+        private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _objectExplorerProvider: ObjectExplorerProvider,
     ) {
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
+
         this._client = this._connectionManager.client;
+
+        this._logger = Logger.create(
+            this._vscodeWrapper.outputChannel,
+            "ObjectExplorerService",
+        );
+
         this._treeNodeToChildrenMap = new Map<
             vscode.TreeItem,
             vscode.TreeItem[]
@@ -581,7 +595,7 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Helper to show the Add Connection node
+     * Helper to show the Add Connection node; only displayed when there are no saved connections
      */
     private getAddConnectionNode(): AddConnectionTreeNode[] {
         this._rootTreeNodeArray = [];
@@ -675,6 +689,9 @@ export class ObjectExplorerService {
             // if there are no saved connections
             // show the add connection node
             if (savedConnections.length === 0) {
+                this._logger.logDebug(
+                    "No saved connections found; displaying 'Add Connection' node",
+                );
                 return this.getAddConnectionNode();
             }
             // if OE doesn't exist the first time
@@ -683,6 +700,9 @@ export class ObjectExplorerService {
                 // if there are actually saved connections
                 this._rootTreeNodeArray = [];
                 await this.addSavedNodesConnectionsToRoot();
+                this._logger.logDebug(
+                    `Added ${this._rootTreeNodeArray.length} nodes to OE root`,
+                );
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
             } else {
