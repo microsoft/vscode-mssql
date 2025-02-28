@@ -5,14 +5,16 @@
 
 import { useContext } from "react";
 import {
-    Checkbox,
-    createTableColumn,
     DataGrid,
     DataGridBody,
     DataGridCell,
     DataGridHeader,
     DataGridHeaderCell,
     DataGridRow,
+} from "@fluentui-contrib/react-data-grid-react-window";
+import {
+    Checkbox,
+    createTableColumn,
     TableCellLayout,
     TableColumnDefinition,
 } from "@fluentui/react-components";
@@ -132,7 +134,7 @@ const SchemaDifferences = () => {
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<DiffItem>>
+                    <DataGridBody<DiffItem> itemSize={5} height={200}>
                         {({ item, rowId }) => (
                             <DataGridRow<DiffItem> key={rowId}>
                                 {({ renderCell }) => (
