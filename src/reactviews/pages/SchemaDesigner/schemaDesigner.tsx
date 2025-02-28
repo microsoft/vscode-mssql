@@ -15,12 +15,31 @@ import { mxCell } from "mxgraph";
 import { SchemaDesignerTableEditor } from "./schemaDesignerEntityEditor";
 import { ITable } from "../../../sharedInterfaces/schemaDesigner";
 import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
+    DrawerBody,
+    DrawerHeader,
+    DrawerHeaderTitle,
     Menu,
+    MenuButton,
     MenuItem,
     MenuList,
     MenuPopover,
+    MenuTrigger,
+    OverlayDrawer,
     PositioningImperativeRef,
+    SearchBox,
+    Text,
+    Toolbar,
 } from "@fluentui/react-components";
+import { List, ListItem } from "@fluentui/react-list-preview";
+import * as FluentIcons from "@fluentui/react-icons";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
@@ -39,6 +58,8 @@ export const SchemaDesigner = () => {
 
     const graphContainerRef = useRef<HTMLDivElement | null>(null);
     const editorDivRef = useRef<HTMLDivElement | null>(null);
+
+    const [isOpen, setIsOpen] = useState(true);
 
     const [schemaDesigner, setSchemaDesigner] = useState<
         azdataGraph.SchemaDesigner | undefined
@@ -91,6 +112,7 @@ export const SchemaDesigner = () => {
                 scale,
                 model,
             ) => {
+                setIsOpen(true);
                 const cellPosition = calculateEditorPosition(
                     x,
                     y,
@@ -185,216 +207,256 @@ export const SchemaDesigner = () => {
     }
 
     return (
-        <div
-            style={{
-                height: "100%",
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-            }}
-        >
-            {/* <Toolbar
-                size="small"
+        <>
+            <OverlayDrawer
+                position={"end"}
+                open={isOpen}
+                onOpenChange={(_, { open }) => setIsOpen(open)}
+                style={{ width: `600px` }}
+            >
+                <DrawerHeader>
+                    <DrawerHeaderTitle
+                        action={
+                            <Button
+                                appearance="subtle"
+                                aria-label="Close"
+                                icon={<FluentIcons.Dismiss24Regular />}
+                                onClick={() => setIsOpen(false)}
+                            />
+                        }
+                    >
+                        Drawer
+                    </DrawerHeaderTitle>
+                </DrawerHeader>
+
+                <DrawerBody>
+                    <p>Drawer content</p>
+                </DrawerBody>
+            </OverlayDrawer>
+            <div
                 style={{
-                    gap: "10px",
+                    height: "100%",
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
                 }}
             >
-                <Button size="small" icon={<ArrowCounterclockwiseFilled />}>
-                    Refresh
-                </Button>
-                <Dialog>
-                    <DialogTrigger disableButtonEnhancement>
-                        <Button size="small" icon={<CodeFilled />}>
-                            View Code
-                        </Button>
-                    </DialogTrigger>
-                    <DialogSurface>
-                        <DialogBody>
-                            <DialogTitle>Code for the table</DialogTitle>
-                            <DialogContent>
-                                Lorem ipsum dolor sit amet consectetur
-                                adipisicing elit. Quisquam exercitationem cumque
-                                repellendus eaque est dolor eius expedita nulla
-                                ullam? Tenetur reprehenderit aut voluptatum
-                                impedit voluptates in natus iure cumque eaque?
-                            </DialogContent>
-                            <DialogActions>
-                                <DialogTrigger disableButtonEnhancement>
-                                    <Button appearance="primary">Close</Button>
-                                </DialogTrigger>
-                            </DialogActions>
-                        </DialogBody>
-                    </DialogSurface>
-                </Dialog>
-                <Menu>
-                    <MenuTrigger disableButtonEnhancement>
-                        <MenuButton size="small">Export</MenuButton>
-                    </MenuTrigger>
+                <Toolbar
+                    size="small"
+                    style={{
+                        gap: "10px",
+                        paddingTop: "5px",
+                    }}
+                >
+                    <Button
+                        size="small"
+                        icon={<FluentIcons.ArrowCounterclockwiseFilled />}
+                    >
+                        Refresh
+                    </Button>
+                    <Dialog>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button
+                                size="small"
+                                icon={<FluentIcons.CodeFilled />}
+                            >
+                                View Code
+                            </Button>
+                        </DialogTrigger>
+                        <DialogSurface>
+                            <DialogBody>
+                                <DialogTitle>Code for the table</DialogTitle>
+                                <DialogContent>
+                                    Lorem ipsum dolor sit amet consectetur
+                                    adipisicing elit. Quisquam exercitationem
+                                    cumque repellendus eaque est dolor eius
+                                    expedita nulla ullam? Tenetur reprehenderit
+                                    aut voluptatum impedit voluptates in natus
+                                    iure cumque eaque?
+                                </DialogContent>
+                                <DialogActions>
+                                    <DialogTrigger disableButtonEnhancement>
+                                        <Button appearance="primary">
+                                            Close
+                                        </Button>
+                                    </DialogTrigger>
+                                </DialogActions>
+                            </DialogBody>
+                        </DialogSurface>
+                    </Dialog>
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <MenuButton size="small">Export</MenuButton>
+                        </MenuTrigger>
 
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem>SVG</MenuItem>
+                                <MenuItem>PNG</MenuItem>
+                                <MenuItem>JPG</MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
+                    <Button icon={<FluentIcons.AddFilled />} size="small">
+                        Add Table
+                    </Button>
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <MenuButton
+                                icon={<FluentIcons.FilterFilled />}
+                                size="small"
+                            >
+                                Filter
+                            </MenuButton>
+                        </MenuTrigger>
+
+                        <MenuPopover>
+                            <SearchBox
+                                size="small"
+                                placeholder="Search"
+                                style={{
+                                    marginBottom: "10px",
+                                }}
+                            ></SearchBox>
+                            <List
+                                selectionMode="multiselect"
+                                style={{
+                                    maxHeight: "150px",
+                                    overflowY: "auto",
+                                }}
+                            >
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                                <ListItem>
+                                    <Text
+                                        style={{
+                                            lineHeight: "30px",
+                                        }}
+                                    >
+                                        Table 1
+                                    </Text>
+                                </ListItem>
+                            </List>
+                        </MenuPopover>
+                    </Menu>
+                    <SearchBox
+                        size="small"
+                        placeholder="Search by keyword"
+                    ></SearchBox>
+                </Toolbar>
+                <div id="graphContainer" ref={graphContainerRef}></div>
+                <div
+                    className="sd-editor"
+                    ref={editorDivRef}
+                    style={{
+                        display: displayEditor ? "block" : "none",
+                    }}
+                >
+                    <SchemaDesignerTableEditor
+                        table={table!}
+                        schema={schema}
+                        schemaDesigner={schemaDesigner}
+                        onClose={() => {
+                            setDisplayEditor(false);
+                            if (schemaDesigner) {
+                                setSchema(schemaDesigner.schema);
+                            }
+                        }}
+                    />
+                </div>
+                <Menu
+                    open={exportAsMenuOpen}
+                    onOpenChange={(_e, data) => {
+                        setExportAsMenuOpen(data.open);
+                    }}
+                    positioning={{ positioningRef: exportPositioningRef }}
+                >
                     <MenuPopover>
                         <MenuList>
-                            <MenuItem>SVG</MenuItem>
-                            <MenuItem>PNG</MenuItem>
-                            <MenuItem>JPG</MenuItem>
+                            <MenuItem
+                                onClick={async (_e) => {
+                                    setTimeout(() => {
+                                        void exportAs("svg");
+                                    }, 0);
+                                }}
+                            >
+                                SVG
+                            </MenuItem>
+                            <MenuItem
+                                onClick={(_e) => {
+                                    setTimeout(() => {
+                                        void exportAs("png");
+                                    }, 0);
+                                }}
+                            >
+                                PNG
+                            </MenuItem>
+                            <MenuItem
+                                onClick={(_e) => {
+                                    setTimeout(() => {
+                                        void exportAs("jpg");
+                                    }, 0);
+                                }}
+                            >
+                                JPG
+                            </MenuItem>
                         </MenuList>
                     </MenuPopover>
                 </Menu>
-                <Button icon={<AddFilled />} size="small">
-                    Add Table
-                </Button>
-                <Menu>
-                    <MenuTrigger disableButtonEnhancement>
-                        <MenuButton icon={<FilterFilled />} size="small">
-                            Filter
-                        </MenuButton>
-                    </MenuTrigger>
-
-                    <MenuPopover>
-                        <SearchBox
-                            size="small"
-                            placeholder="Search"
-                            style={{
-                                marginBottom: "10px",
-                            }}
-                        ></SearchBox>
-                        <List
-                            selectionMode="multiselect"
-                            style={{
-                                maxHeight: "150px",
-                                overflowY: "auto",
-                            }}
-                        >
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                            <ListItem>
-                                <Text
-                                    style={{
-                                        lineHeight: "30px",
-                                    }}
-                                >
-                                    Table 1
-                                </Text>
-                            </ListItem>
-                        </List>
-                    </MenuPopover>
-                </Menu>
-                <SearchBox
-                    size="small"
-                    placeholder="Search by keyword"
-                ></SearchBox>
-            </Toolbar> */}
-            <div id="graphContainer" ref={graphContainerRef}></div>
-            <div
-                className="sd-editor"
-                ref={editorDivRef}
-                style={{
-                    display: displayEditor ? "block" : "none",
-                }}
-            >
-                <SchemaDesignerTableEditor
-                    table={table!}
-                    schema={schema}
-                    schemaDesigner={schemaDesigner}
-                    onClose={() => {
-                        setDisplayEditor(false);
-                        if (schemaDesigner) {
-                            setSchema(schemaDesigner.schema);
-                        }
-                    }}
-                />
             </div>
-            <Menu
-                open={exportAsMenuOpen}
-                onOpenChange={(_e, data) => {
-                    setExportAsMenuOpen(data.open);
-                }}
-                positioning={{ positioningRef: exportPositioningRef }}
-            >
-                <MenuPopover>
-                    <MenuList>
-                        <MenuItem
-                            onClick={async (_e) => {
-                                setTimeout(() => {
-                                    void exportAs("svg");
-                                }, 0);
-                            }}
-                        >
-                            SVG
-                        </MenuItem>
-                        <MenuItem
-                            onClick={(_e) => {
-                                setTimeout(() => {
-                                    void exportAs("png");
-                                }, 0);
-                            }}
-                        >
-                            PNG
-                        </MenuItem>
-                        <MenuItem
-                            onClick={(_e) => {
-                                setTimeout(() => {
-                                    void exportAs("jpg");
-                                }, 0);
-                            }}
-                        >
-                            JPG
-                        </MenuItem>
-                    </MenuList>
-                </MenuPopover>
-            </Menu>
-        </div>
+        </>
     );
 };
 
