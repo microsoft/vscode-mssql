@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ElectronApplication, Page, test, expect } from "@playwright/test";
-import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { launchVsCodeWithMssqlExtension } from "../utils/launchVscodeWithMsSqlExt";
+import { screenshotOnFailure } from "../utils/screenshotOnError";
 import {
     getServerName,
     getDatabaseName,
@@ -14,12 +14,12 @@ import {
     getPassword,
     getProfileName,
     getSavePassword,
-} from "./utils/envConfigReader";
+} from "../utils/envConfigReader";
 import {
     addDatabaseConnection,
     disconnect,
     openNewQueryEditor,
-} from "./utils/testHelpers";
+} from "../utils/testHelpers";
 
 test.describe("MSSQL Extension - Database Connection", async () => {
     let vsCodeApp: ElectronApplication;

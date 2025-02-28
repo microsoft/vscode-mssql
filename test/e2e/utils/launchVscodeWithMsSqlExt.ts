@@ -21,7 +21,7 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{
     const electronApp = await electron.launch({
         executablePath: vsCodeExecutablePath,
         args: [
-            "--disable-extensions",
+            // "--disable-extensions",
             "--extensionDevelopmentPath=" + mssqlExtensionPath,
             "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
             "--disable-updates", // https://github.com/microsoft/vscode-test/issues/120

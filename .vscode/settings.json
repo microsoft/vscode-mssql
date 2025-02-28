@@ -14,7 +14,6 @@
         "**/.git/objects/**": true,
         "**/out/*" : true
     },
-
 	"lcov.path": [
 		"coverage/lcov.info"
 	],
