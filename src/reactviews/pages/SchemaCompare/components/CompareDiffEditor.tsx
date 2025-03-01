@@ -3,14 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useContext } from "react";
 import { DiffEditor } from "@monaco-editor/react";
 import "./compareDiffEditor.css";
+import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
-const CompareDiffEditor = () => {
-    const original =
-        "CREATE TABLE [dbo].[Address] (\r\n [AddressID] INT NOT NULL PRIMARY KEY CLUSTERED ([AddressID] ASC),\r\n [PersonID] INT NULL,\r\n [Street] VARCHAR (255) NULL,\r\n [Street2] VARCHAR (255) NULL,\r\n [City] VARCHAR (255) NULL,\r\n [State] VARCHAR (255) NULL,\r\n [ZipCode] VARCHAR (10) NULL,\r\n [Country] VARCHAR (20) NULL\r\n);\r\nGO";
-    const modified =
-        "CREATE TABLE [dbo].[Address] (\r\n [AddressID] INT NOT NULL PRIMARY KEY CLUSTERED ([AddressID] ASC),\r\n [PersonID] INT NULL,\r\n [Street] VARCHAR (255) NULL,\r\n [City] VARCHAR (255) NULL,\r\n [State] VARCHAR (255) NULL,\r\n [ZipCode] VARCHAR (10) NULL,\r\n FOREIGN KEY ([PersonID]) REFERENCES [dbo].[Person] ([PersonID])\r\n);\r\nGO";
+const formatScript = (script: string): string => {
+    if (!script) {
+        return "";
+    }
+
+    return script;
+};
+
+interface Props {
+    selectedDiffId: number;
+    renderSideBySide?: boolean;
+}
+
+const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
+    const context = useContext(schemaCompareContext);
+    const compareResult = context.state.schemaCompareResult;
+    const diff = compareResult?.differences[selectedDiffId];
+
+    const original = formatScript(diff?.sourceScript);
+    const modified = formatScript(diff?.targetScript);
 
     return (
         <div style={{ height: "60vh" }}>
@@ -20,7 +37,7 @@ const CompareDiffEditor = () => {
                 original={modified}
                 modified={original}
                 options={{
-                    renderSideBySide: false,
+                    renderSideBySide: renderSideBySide ?? true,
                     renderOverviewRuler: true,
                     OverviewRulerLane: 0,
                     readOnly: true,

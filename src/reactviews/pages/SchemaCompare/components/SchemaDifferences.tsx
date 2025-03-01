@@ -22,6 +22,7 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 
 type DiffItem = {
+    id: number;
     type: string;
     sourceValue: string;
     included: boolean;
@@ -71,7 +72,11 @@ const columns: TableColumnDefinition<DiffItem>[] = [
     }),
 ];
 
-const SchemaDifferences = () => {
+interface Props {
+    onDiffSelected: (id: number) => void;
+}
+
+const SchemaDifferences = ({ onDiffSelected }: Props) => {
     const context = useContext(schemaCompareContext);
     const compareResult = context.state.schemaCompareResult;
 
@@ -100,11 +105,12 @@ const SchemaDifferences = () => {
         return actionLabel;
     };
 
-    const items: DiffItem[] =
-        compareResult?.success &&
-        compareResult.differences.map(
-            (item) =>
+    let items: DiffItem[] = [];
+    if (compareResult?.success)
+        items = compareResult.differences.map(
+            (item, index) =>
                 ({
+                    id: index,
                     type: item.name,
                     sourceValue: formatName(item.sourceValue),
                     included: true,
@@ -121,7 +127,7 @@ const SchemaDifferences = () => {
                 <DataGrid
                     items={items}
                     columns={columns}
-                    getRowId={(item) => item.sourceValue || item.targetValue}
+                    getRowId={(item: DiffItem) => item.id}
                     focusMode="composite"
                     style={{ minWidth: "550px" }}
                 >
@@ -136,7 +142,10 @@ const SchemaDifferences = () => {
                     </DataGridHeader>
                     <DataGridBody<DiffItem> itemSize={5} height={200}>
                         {({ item, rowId }) => (
-                            <DataGridRow<DiffItem> key={rowId}>
+                            <DataGridRow<DiffItem>
+                                key={rowId}
+                                onClick={() => onDiffSelected(item.id)}
+                            >
                                 {({ renderCell }) => (
                                     <DataGridCell>
                                         {renderCell(item)}
