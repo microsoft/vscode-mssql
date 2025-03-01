@@ -16,30 +16,19 @@ import { SchemaDesignerTableEditor } from "./schemaDesignerEntityEditor";
 import { ITable } from "../../../sharedInterfaces/schemaDesigner";
 import {
     Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    DialogTrigger,
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
     Menu,
-    MenuButton,
     MenuItem,
     MenuList,
     MenuPopover,
-    MenuTrigger,
     OverlayDrawer,
     PositioningImperativeRef,
-    SearchBox,
-    Text,
-    Toolbar,
 } from "@fluentui/react-components";
-import { List, ListItem } from "@fluentui/react-list-preview";
 import * as FluentIcons from "@fluentui/react-icons";
+import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
+import { SchemaDiagramZoomControls } from "./schemaDiagramZoomControls";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
@@ -230,7 +219,17 @@ export const SchemaDesigner = () => {
                 </DrawerHeader>
 
                 <DrawerBody>
-                    <p>Drawer content</p>
+                    <SchemaDesignerTableEditor
+                        table={table!}
+                        schema={schema}
+                        schemaDesigner={schemaDesigner}
+                        onClose={() => {
+                            setDisplayEditor(false);
+                            if (schemaDesigner) {
+                                setSchema(schemaDesigner.schema);
+                            }
+                        }}
+                    />
                 </DrawerBody>
             </OverlayDrawer>
             <div
@@ -241,195 +240,9 @@ export const SchemaDesigner = () => {
                     flexDirection: "column",
                 }}
             >
-                <Toolbar
-                    size="small"
-                    style={{
-                        gap: "10px",
-                        paddingTop: "5px",
-                        paddingBottom: "5px",
-                    }}
-                >
-                    <Button
-                        size="small"
-                        icon={<FluentIcons.ArrowCounterclockwise16Filled />}
-                    >
-                        Refresh
-                    </Button>
-                    <Button
-                        size="small"
-                        icon={<FluentIcons.DatabaseArrowUp16Filled />}
-                    >
-                        Publish
-                    </Button>
-                    <Dialog>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button
-                                size="small"
-                                icon={<FluentIcons.Code16Filled />}
-                            >
-                                View Code
-                            </Button>
-                        </DialogTrigger>
-                        <DialogSurface>
-                            <DialogBody>
-                                <DialogTitle>Code for the table</DialogTitle>
-                                <DialogContent>
-                                    Lorem ipsum dolor sit amet consectetur
-                                    adipisicing elit. Quisquam exercitationem
-                                    cumque repellendus eaque est dolor eius
-                                    expedita nulla ullam? Tenetur reprehenderit
-                                    aut voluptatum impedit voluptates in natus
-                                    iure cumque eaque?
-                                </DialogContent>
-                                <DialogActions>
-                                    <DialogTrigger disableButtonEnhancement>
-                                        <Button appearance="primary">
-                                            Close
-                                        </Button>
-                                    </DialogTrigger>
-                                </DialogActions>
-                            </DialogBody>
-                        </DialogSurface>
-                    </Dialog>
-                    <Menu>
-                        <MenuTrigger disableButtonEnhancement>
-                            <MenuButton
-                                icon={<FluentIcons.ArrowExportUp16Filled />}
-                                size="small"
-                            >
-                                Export
-                            </MenuButton>
-                        </MenuTrigger>
-
-                        <MenuPopover>
-                            <MenuList>
-                                <MenuItem>SVG</MenuItem>
-                                <MenuItem>PNG</MenuItem>
-                                <MenuItem>JPG</MenuItem>
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
-                    <Button icon={<FluentIcons.Add16Filled />} size="small">
-                        Add Table
-                    </Button>
-                    <Button
-                        icon={<FluentIcons.Flowchart16Filled />}
-                        size="small"
-                    >
-                        Auto Arrange
-                    </Button>
-                    <Menu>
-                        <MenuTrigger disableButtonEnhancement>
-                            <MenuButton
-                                icon={<FluentIcons.Filter16Filled />}
-                                size="small"
-                            >
-                                Filter
-                            </MenuButton>
-                        </MenuTrigger>
-
-                        <MenuPopover>
-                            <SearchBox
-                                size="small"
-                                placeholder="Search"
-                                style={{
-                                    marginBottom: "10px",
-                                }}
-                            ></SearchBox>
-                            <List
-                                selectionMode="multiselect"
-                                style={{
-                                    maxHeight: "150px",
-                                    overflowY: "auto",
-                                }}
-                            >
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                                <ListItem>
-                                    <Text
-                                        style={{
-                                            lineHeight: "30px",
-                                        }}
-                                    >
-                                        Table 1
-                                    </Text>
-                                </ListItem>
-                            </List>
-                        </MenuPopover>
-                    </Menu>
-                    <SearchBox
-                        size="small"
-                        placeholder="Search by keyword"
-                    ></SearchBox>
-                </Toolbar>
+                <SchemaDesignerToolbar />
                 <div id="graphContainer" ref={graphContainerRef}></div>
-                <div
-                    style={{
-                        position: "absolute",
-                        bottom: "10px",
-                        left: "10px",
-                        zIndex: 1000,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                    }}
-                >
-                    <Button icon={<FluentIcons.ZoomIn20Regular />}></Button>
-                    <Button icon={<FluentIcons.ZoomOut20Regular />}></Button>
-                    <Button icon={<FluentIcons.ZoomFitRegular />}></Button>
-                </div>
+                <SchemaDiagramZoomControls />
                 <div
                     className="sd-editor"
                     ref={editorDivRef}
@@ -493,6 +306,15 @@ export const SchemaDesigner = () => {
     );
 };
 
+/**
+ *
+ * @param cellX
+ * @param cellY
+ * @param cellHeight
+ * @param mxGraphScale
+ * @param mxGraphDivScrollHeight
+ * @returns
+ */
 function calculateEditorPosition(
     cellX: number,
     cellY: number,
