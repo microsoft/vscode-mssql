@@ -27,9 +27,10 @@ import {
 import { useEffect, useState } from "react";
 
 export const FormInput = <
-    TContext extends FormContextProps<TState, TForm>,
-    TState extends FormState<TForm>,
     TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
 >({
     context,
     value,
@@ -111,9 +112,10 @@ export const FormInput = <
 };
 
 export const FormField = <
-    TContext extends FormContextProps<TState, TForm>,
-    TState extends FormState<TForm>,
     TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
 >({
     context,
     component,
@@ -122,7 +124,7 @@ export const FormField = <
     componentProps,
 }: {
     context: TContext;
-    component: FormItemSpec<TState, TForm>;
+    component: TFormItemSpec;
     idx: number;
     props?: FieldProps;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -172,7 +174,11 @@ export const FormField = <
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}
             >
-                {generateFormComponent(context, component, componentProps)}
+                {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
+                    context,
+                    component,
+                    componentProps,
+                )}
             </Field>
             {component?.actionButtons?.length! > 0 && (
                 <div className={formStyles.formComponentActionDiv}>
@@ -203,16 +209,17 @@ export const FormField = <
 };
 
 export function generateFormComponent<
-    TContext extends FormContextProps<TState, TForm>,
-    TState extends FormState<TForm>,
     TForm,
->(context: TContext, component: FormItemSpec<TState, TForm>, props?: any) {
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
+>(context: TContext, component: TFormItemSpec, props?: any) {
     const formState = context.state.formState;
 
     switch (component.type) {
         case FormItemType.Input:
             return (
-                <FormInput<TContext, TState, TForm>
+                <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
@@ -222,7 +229,7 @@ export function generateFormComponent<
             );
         case FormItemType.TextArea:
             return (
-                <FormInput<TContext, TState, TForm>
+                <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
@@ -232,7 +239,7 @@ export function generateFormComponent<
             );
         case FormItemType.Password:
             return (
-                <FormInput<TContext, TState, TForm>
+                <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
