@@ -194,6 +194,9 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
+            modernFeaturesEnabled: vscode.workspace
+                .getConfiguration()
+                .get(constants.configEnableRichExperiences),
             ...stringAnswers,
         },
         numericalAnswers,

@@ -607,8 +607,8 @@ export default class MainController implements vscode.Disposable {
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
-            isExperimental: this.isExperimentalEnabled.toString(),
-            isRichExperiences: this.isRichExperiencesEnabled.toString(),
+            experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
+            modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
         });
 
         this._initialized = true;
