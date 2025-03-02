@@ -19,12 +19,7 @@ import {
     DrawerBody,
     DrawerHeader,
     DrawerHeaderTitle,
-    Menu,
-    MenuItem,
-    MenuList,
-    MenuPopover,
     OverlayDrawer,
-    PositioningImperativeRef,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
@@ -53,9 +48,6 @@ export const SchemaDesigner = () => {
     const [schemaDesigner, setSchemaDesigner] = useState<
         azdataGraph.SchemaDesigner | undefined
     >(undefined);
-
-    const [exportAsMenuOpen, setExportAsMenuOpen] = useState(false);
-    const exportPositioningRef = useRef<PositioningImperativeRef>(null);
 
     useEffect(() => {
         context.extensionRpc.subscribe(
@@ -148,14 +140,12 @@ export const SchemaDesigner = () => {
                 );
             };
 
-            schemaDesignerConfig.publish = (_schema) => {
-                setExportAsMenuOpen(true);
-            };
-
             const graph = new azdataGraph.SchemaDesigner(
                 div,
                 schemaDesignerConfig,
             );
+
+            context?.setSchemaDesigner(graph);
 
             div.addEventListener("scroll", (_evt) => {
                 updateEditorPosition(
@@ -166,34 +156,9 @@ export const SchemaDesigner = () => {
             });
             graph.renderSchema(context!.schema, true);
             setSchemaDesigner(graph);
-
-            const exportAsButton = document.querySelector(
-                ".sd-toolbar-button[title='Export']",
-            );
-            if (exportAsButton) {
-                if (exportPositioningRef.current) {
-                    exportPositioningRef.current.setTarget(exportAsButton);
-                }
-            }
         }
         createGraph();
     }, [context.schema]);
-
-    async function exportAs(format: "svg" | "png" | "jpg") {
-        if (!schemaDesigner) {
-            return;
-        }
-        const imageContent = await schemaDesigner.exportImage(format);
-        if (imageContent && context) {
-            context.saveAs(
-                imageContent.fileContent,
-                imageContent.format,
-                imageContent.width,
-                imageContent.height,
-            );
-            return;
-        }
-    }
 
     return (
         <>
@@ -262,45 +227,6 @@ export const SchemaDesigner = () => {
                         }}
                     />
                 </div>
-                <Menu
-                    open={exportAsMenuOpen}
-                    onOpenChange={(_e, data) => {
-                        setExportAsMenuOpen(data.open);
-                    }}
-                    positioning={{ positioningRef: exportPositioningRef }}
-                >
-                    <MenuPopover>
-                        <MenuList>
-                            <MenuItem
-                                onClick={async (_e) => {
-                                    setTimeout(() => {
-                                        void exportAs("svg");
-                                    }, 0);
-                                }}
-                            >
-                                SVG
-                            </MenuItem>
-                            <MenuItem
-                                onClick={(_e) => {
-                                    setTimeout(() => {
-                                        void exportAs("png");
-                                    }, 0);
-                                }}
-                            >
-                                PNG
-                            </MenuItem>
-                            <MenuItem
-                                onClick={(_e) => {
-                                    setTimeout(() => {
-                                        void exportAs("jpg");
-                                    }, 0);
-                                }}
-                            >
-                                JPG
-                            </MenuItem>
-                        </MenuList>
-                    </MenuPopover>
-                </Menu>
             </div>
         </>
     );

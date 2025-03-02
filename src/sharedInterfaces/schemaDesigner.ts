@@ -130,14 +130,16 @@ export interface SchemaDesignerWebviewState {
     schema: ISchema;
 }
 
+export interface SaveAsFileProps {
+    format: string;
+    fileContents: string;
+    width: number;
+    height: number;
+}
+
 export interface SchemaDesignerReducers {
     publishSchema: {
         modifiedSchema: ISchema;
     };
-    saveAs: {
-        format: "svg" | "png" | "jpg";
-        svgFileContents: string;
-        width: number;
-        height: number;
-    };
+    saveAsFile: SaveAsFileProps;
 }

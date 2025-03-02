@@ -5,8 +5,34 @@
 
 import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
+import { useContext } from "react";
+import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
+import { locConstants } from "../../common/locConstants";
 
 export function SchemaDiagramZoomControls() {
+    const context = useContext(SchemaDesignerContext);
+    if (!context) {
+        return undefined;
+    }
+
+    function zoomIn() {
+        if (context?.schemaDesigner) {
+            context.schemaDesigner.zoomIn();
+        }
+    }
+
+    function zoomOut() {
+        if (context?.schemaDesigner) {
+            context.schemaDesigner.zoomOut();
+        }
+    }
+
+    function zoomFit() {
+        if (context?.schemaDesigner) {
+            context.schemaDesigner.zoomToFit();
+        }
+    }
+
     return (
         <div
             style={{
@@ -19,9 +45,21 @@ export function SchemaDiagramZoomControls() {
                 gap: "10px",
             }}
         >
-            <Button icon={<FluentIcons.ZoomIn20Regular />}></Button>
-            <Button icon={<FluentIcons.ZoomOut20Regular />}></Button>
-            <Button icon={<FluentIcons.ZoomFitRegular />}></Button>
+            <Button
+                onClick={() => zoomIn()}
+                icon={<FluentIcons.ZoomIn20Regular />}
+                title={locConstants.schemaDesigner.zoomIn}
+            />
+            <Button
+                onClick={() => zoomOut()}
+                icon={<FluentIcons.ZoomOut20Regular />}
+                title={locConstants.schemaDesigner.zoomOut}
+            />
+            <Button
+                onClick={() => zoomFit()}
+                icon={<FluentIcons.ZoomFitRegular />}
+                title={locConstants.schemaDesigner.zoomToFit}
+            />
         </div>
     );
 }

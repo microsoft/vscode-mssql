@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import {
     ISchema,
+    SaveAsFileProps,
     SchemaDesignerReducers,
     SchemaDesignerWebviewState,
 } from "../../../sharedInterfaces/schemaDesigner";
@@ -15,17 +16,16 @@ import {
 } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
+import * as azdataGraph from "azdataGraph";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesignerWebviewState> {
-    schema: ISchema; // TODO: is this redundant with state.schema?
     extensionRpc: WebviewRpc<SchemaDesignerReducers>;
-    saveAs: (
-        format: string,
-        fileContents: string,
-        width: number,
-        height: number,
-    ) => void;
+    saveAsFile: (fileProps: SaveAsFileProps) => void;
+    schemaDesigner: azdataGraph.SchemaDesigner | undefined;
+    setSchemaDesigner: (schemaDesigner: azdataGraph.SchemaDesigner) => void;
+    schema: ISchema;
+    setSchema: (schema: ISchema) => void;
 }
 
 const SchemaDesignerContext = createContext<
@@ -39,34 +39,36 @@ interface SchemaDesignerProviderProps {
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     children,
 }) => {
-    const webviewState = useVscodeWebview<
+    const webviewContext = useVscodeWebview<
         SchemaDesignerWebviewState,
         SchemaDesignerReducers
     >();
+    const { state, extensionRpc, themeKind } = webviewContext;
 
-    const saveAs = (
-        format: "svg" | "png" | "jpg",
-        svgFileContents: string,
-        width: number,
-        height: number,
-    ) => {
-        void webviewState.extensionRpc.action("saveAs", {
-            format,
-            svgFileContents,
-            width,
-            height,
+    const [schemaDesigner, setSchemaDesigner] = useState<
+        azdataGraph.SchemaDesigner | undefined
+    >(undefined);
+    const [schema, setSchema] = useState<ISchema>(state.schema);
+
+    // Reducer methods
+    const saveAsFile = (fileProps: SaveAsFileProps) => {
+        void extensionRpc.action("saveAsFile", {
+            ...fileProps,
         });
     };
 
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewState),
-                extensionRpc: webviewState.extensionRpc,
-                schema: webviewState.state.schema,
-                state: webviewState.state,
-                themeKind: webviewState.themeKind,
-                saveAs,
+                ...getCoreRPCs(webviewContext),
+                extensionRpc: extensionRpc,
+                state: state,
+                themeKind: themeKind,
+                saveAsFile,
+                schemaDesigner,
+                setSchemaDesigner,
+                schema,
+                setSchema,
             }}
         >
             {children}

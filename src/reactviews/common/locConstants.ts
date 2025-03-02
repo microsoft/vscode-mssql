@@ -359,6 +359,10 @@ export class LocConstants {
             targetTable: l10n.t("Target Table"),
             targetColumn: l10n.t("Target Column"),
             foreignColumn: l10n.t("Foreign Column"),
+            zoomIn: l10n.t("Zoom In"),
+            zoomOut: l10n.t("Zoom Out"),
+            zoomToFit: l10n.t("Zoom to Fit"),
+            export: l10n.t("Export"),
         };
     }
 }

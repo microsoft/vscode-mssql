@@ -12,6 +12,7 @@ import {
     SchemaDesignerWebviewState,
 } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import * as LocConstants from "../constants/locConstants";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesignerWebviewState,
@@ -58,28 +59,31 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             }
         });
 
-        this.registerReducer("saveAs", async (state, payload) => {
+        this.registerReducer("saveAsFile", async (state, payload) => {
             const outputPath = await vscode.window.showSaveDialog({
                 filters: {
                     [payload.format]: [payload.format],
                 },
                 defaultUri: vscode.Uri.file(`newFile.${payload.format}`),
-                saveLabel: "Save",
-                title: "Save As",
+                saveLabel: LocConstants.SchemaDesigner.Save,
+                title: LocConstants.SchemaDesigner.SaveAs,
             });
             if (payload.format === "svg") {
-                vscode.workspace.fs.writeFile(
+                let fileContents = decodeURIComponent(
+                    payload.fileContents.split(",")[1],
+                );
+                await vscode.workspace.fs.writeFile(
                     outputPath,
-                    Buffer.from(payload.svgFileContents),
+                    Buffer.from(fileContents, "utf8"),
                 );
             } else {
-                //const outputPath = `/Users/aasimkhan/src/newFile.${payload.format}`;
-                const fileContents = Buffer.from(
-                    payload.svgFileContents.split(",")[1],
+                let fileContents = Buffer.from(
+                    payload.fileContents.split(",")[1],
                     "base64",
                 );
                 vscode.workspace.fs.writeFile(outputPath, fileContents);
             }
+
             return state;
         });
     }
