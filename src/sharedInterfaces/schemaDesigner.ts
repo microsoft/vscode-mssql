@@ -4,26 +4,37 @@
  *--------------------------------------------------------------------------------------------*/
 
 export interface ISchema {
-    entities: IEntity[];
-    relationships: IRelationship[];
+    tables: ITable[];
 }
 
-export interface IEntity {
+export interface ITable {
     /**
-     * Name of the entity
+     * Id of the table
+     */
+    id: string;
+    /**
+     * Name of the table
      */
     name: string;
     /**
-     * Schema of the entity
+     * Schema of the table
      */
     schema: string;
     /**
-     * Columns of the entity
+     * Columns of the table
      */
     columns: IColumn[];
+    /**
+     * Foreign keys of the table
+     */
+    foreignKeys: IForeignKey[];
 }
 
 export interface IColumn {
+    /**
+     * Id of the column
+     */
+    id: string;
     /**
      * Name of the column
      */
@@ -42,35 +53,31 @@ export interface IColumn {
     isIdentity: boolean;
 }
 
-export interface IRelationship {
+export interface IForeignKey {
     /**
-     * Name of the relationship
+     * Id of the foreign key
      */
-    foreignKeyName: string;
+    id: string;
     /**
-     * Schema of the relationship
+     * Name of the foreign key
      */
-    schemaName: string;
+    name: string;
     /**
-     * Parent entity of the relationship
+     * Parent columns of the relationship
      */
-    entity: string;
-    /**
-     * Parent column of the relationship
-     */
-    column: string;
+    columns: string[];
     /**
      * Referenced schema of the relationship
      */
-    referencedSchema: string;
+    referencedSchemaName: string;
     /**
-     * Referenced entity of the relationship
+     * Referenced table of the relationship
      */
-    referencedEntity: string;
+    referencedTableName: string;
     /**
-     * Referenced column of the relationship
+     * Referenced columns of the relationship
      */
-    referencedColumn: string;
+    referencedColumns: string[];
     /**
      * On delete action of the relationship
      */
@@ -93,10 +100,46 @@ export interface GetSchemaModelRequestParams {
     databaseName: string;
 }
 
+export interface GetSchemaModelResponse {
+    schemaModel: ISchema;
+    sessionId: string;
+}
+
+export interface ModelReadyNotificationParams {
+    model: ISchema;
+    originalModel: ISchema;
+    sessionId: string;
+    code: string;
+}
+
+export interface PublishSchemaRequestParams {
+    connectionUri: string;
+    databaseName: string;
+    modifiedSchema: ISchema;
+}
+
 export interface ISchemaDesignerService {
-    getSchemaModel(request: GetSchemaModelRequestParams): Thenable<ISchema>;
+    getSchemaModel(
+        request: GetSchemaModelRequestParams,
+    ): Thenable<GetSchemaModelResponse>;
+    onModelReady(listener: (model: ModelReadyNotificationParams) => void): void;
+    publishSchema(request: PublishSchemaRequestParams): Thenable<void>;
 }
 
 export interface SchemaDesignerWebviewState {
     schema: ISchema;
+}
+
+export interface SaveAsFileProps {
+    format: string;
+    fileContents: string;
+    width: number;
+    height: number;
+}
+
+export interface SchemaDesignerReducers {
+    publishSchema: {
+        modifiedSchema: ISchema;
+    };
+    saveAsFile: SaveAsFileProps;
 }

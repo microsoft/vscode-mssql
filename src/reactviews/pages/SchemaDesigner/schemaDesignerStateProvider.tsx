@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import {
     ISchema,
+    SaveAsFileProps,
+    SchemaDesignerReducers,
     SchemaDesignerWebviewState,
 } from "../../../sharedInterfaces/schemaDesigner";
 import {
@@ -13,10 +15,17 @@ import {
     WebviewContextProps,
 } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
+import { WebviewRpc } from "../../common/rpc";
+import * as azdataGraph from "azdataGraph";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesignerWebviewState> {
-    schema: ISchema; // TODO: is this redundant with state.schema?
+    extensionRpc: WebviewRpc<SchemaDesignerReducers>;
+    saveAsFile: (fileProps: SaveAsFileProps) => void;
+    schemaDesigner: azdataGraph.SchemaDesigner | undefined;
+    setSchemaDesigner: (schemaDesigner: azdataGraph.SchemaDesigner) => void;
+    schema: ISchema;
+    setSchema: (schema: ISchema) => void;
 }
 
 const SchemaDesignerContext = createContext<
@@ -30,14 +39,36 @@ interface SchemaDesignerProviderProps {
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     children,
 }) => {
-    const webviewState = useVscodeWebview<SchemaDesignerWebviewState, any>();
+    const webviewContext = useVscodeWebview<
+        SchemaDesignerWebviewState,
+        SchemaDesignerReducers
+    >();
+    const { state, extensionRpc, themeKind } = webviewContext;
+
+    const [schemaDesigner, setSchemaDesigner] = useState<
+        azdataGraph.SchemaDesigner | undefined
+    >(undefined);
+    const [schema, setSchema] = useState<ISchema>(state.schema);
+
+    // Reducer methods
+    const saveAsFile = (fileProps: SaveAsFileProps) => {
+        void extensionRpc.action("saveAsFile", {
+            ...fileProps,
+        });
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewState),
-                schema: webviewState.state.schema,
-                state: webviewState.state,
-                themeKind: webviewState.themeKind,
+                ...getCoreRPCs(webviewContext),
+                extensionRpc: extensionRpc,
+                state: state,
+                themeKind: themeKind,
+                saveAsFile,
+                schemaDesigner,
+                setSchemaDesigner,
+                schema,
+                setSchema,
             }}
         >
             {children}

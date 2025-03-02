@@ -332,6 +332,39 @@ export class LocConstants {
             restore: l10n.t("Restore"),
         };
     }
+
+    public get schemaDesigner() {
+        return {
+            schema: l10n.t("Schema"),
+            columns: l10n.t("Columns"),
+            newColumn: l10n.t("New Column"),
+            name: l10n.t("Name"),
+            table: l10n.t("Table"),
+            foreignKeys: l10n.t("Foreign Keys"),
+            save: l10n.t("Save"),
+            cancel: l10n.t("Cancel"),
+            dataType: l10n.t("Type"),
+            primaryKey: l10n.t("PK"),
+            delete: l10n.t("Delete"),
+            tableExists: l10n.t("Table already exists"),
+            newForeignKey: l10n.t("New Foreign Key"),
+            foreignKeyIndex: (index: number) =>
+                l10n.t({
+                    message: "Foreign Key {0}",
+                    args: [index],
+                    comment: ["{0} is the index of the foreign key"],
+                }),
+            columnMapping: l10n.t("Column Mapping"),
+            sourceColumn: l10n.t("Source Column"),
+            targetTable: l10n.t("Target Table"),
+            targetColumn: l10n.t("Target Column"),
+            foreignColumn: l10n.t("Foreign Column"),
+            zoomIn: l10n.t("Zoom In"),
+            zoomOut: l10n.t("Zoom Out"),
+            zoomToFit: l10n.t("Zoom to Fit"),
+            export: l10n.t("Export"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

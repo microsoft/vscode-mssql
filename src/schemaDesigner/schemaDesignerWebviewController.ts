@@ -8,13 +8,15 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import {
     ISchema,
     ISchemaDesignerService,
+    SchemaDesignerReducers,
     SchemaDesignerWebviewState,
 } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import * as LocConstants from "../constants/locConstants";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesignerWebviewState,
-    any
+    SchemaDesignerReducers
 > {
     constructor(
         context: vscode.ExtensionContext,
@@ -22,6 +24,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         public _schemaDesignerService: ISchemaDesignerService,
         _database: string,
         intialSchema: ISchema,
+        sessionId: string,
     ) {
         super(
             context,
@@ -49,5 +52,39 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 showRestorePromptAfterClose: false,
             },
         );
+
+        this._schemaDesignerService.onModelReady((model) => {
+            if (model.sessionId === sessionId) {
+                console.log("Model ready", model.code);
+            }
+        });
+
+        this.registerReducer("saveAsFile", async (state, payload) => {
+            const outputPath = await vscode.window.showSaveDialog({
+                filters: {
+                    [payload.format]: [payload.format],
+                },
+                defaultUri: vscode.Uri.file(`newFile.${payload.format}`),
+                saveLabel: LocConstants.SchemaDesigner.Save,
+                title: LocConstants.SchemaDesigner.SaveAs,
+            });
+            if (payload.format === "svg") {
+                let fileContents = decodeURIComponent(
+                    payload.fileContents.split(",")[1],
+                );
+                await vscode.workspace.fs.writeFile(
+                    outputPath,
+                    Buffer.from(fileContents, "utf8"),
+                );
+            } else {
+                let fileContents = Buffer.from(
+                    payload.fileContents.split(",")[1],
+                    "base64",
+                );
+                vscode.workspace.fs.writeFile(outputPath, fileContents);
+            }
+
+            return state;
+        });
     }
 }
