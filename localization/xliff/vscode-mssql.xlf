@@ -549,6 +549,9 @@
     <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
       <source xml:lang="en">Expand All</source>
     </trans-unit>
+    <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
+      <source xml:lang="en">Export</source>
+    </trans-unit>
     <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
       <source xml:lang="en">Expression</source>
     </trans-unit>
@@ -1097,6 +1100,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
       <source xml:lang="en">Save</source>
+    </trans-unit>
+    <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
+      <source xml:lang="en">Save As</source>
     </trans-unit>
     <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
       <source xml:lang="en">Save Password</source>

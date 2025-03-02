@@ -319,6 +319,7 @@
   "Source Column": "Source Column",
   "Target Table": "Target Table",
   "Target Column": "Target Column",
+  "Export": "Export",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -828,6 +829,7 @@
   },
   "General": "General",
   "Schema Compare": "Schema Compare",
+  "Save As": "Save As",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
