@@ -597,6 +597,7 @@ export class SqlOutputContentProvider {
                                     ),
                                 isError: false, // Elapsed time messages are never displayed as errors
                             });
+                        // test
                         // if there is an error, show the error message and set the tab to the messages tab
                         let tabState: QueryResultPaneTabs;
                         if (hasError) {
