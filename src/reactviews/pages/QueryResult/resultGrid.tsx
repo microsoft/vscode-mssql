@@ -92,6 +92,12 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             }
         };
         const resizeGrid = (width: number, height: number) => {
+            console.log("resizeGrid");
+            console.log("table: " + table);
+            if (!table) {
+                context.log("resizeGrid - table is not initialized");
+                return;
+            }
             let gridParent: HTMLElement | null;
             if (!props.resultSetSummary) {
                 return;
@@ -133,6 +139,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
         };
 
         useEffect(() => {
+            console.log("useEffect create table");
             const filter = async () => {
                 let hasNewFilters = await table.setupFilterState();
                 if (hasNewFilters) {
