@@ -92,7 +92,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     );
                 }
             }
-            setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
             if (!table) {
