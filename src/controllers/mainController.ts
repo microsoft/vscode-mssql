@@ -738,6 +738,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider = new ObjectExplorerProvider(
+            this._vscodeWrapper,
             this._connectionMgr,
         );
         this.objectExplorerTree = vscode.window.createTreeView(
@@ -1144,7 +1145,8 @@ export default class MainController implements vscode.Disposable {
                         return;
                     } else if (
                         node.context.type === Constants.serverLabel ||
-                        node.context.type === Constants.disconnectedServerLabel
+                        node.context.type ===
+                            Constants.disconnectedServerNodeType
                     ) {
                         const label =
                             typeof node.label === "string"
@@ -2219,7 +2221,7 @@ export default class MainController implements vscode.Disposable {
             let staleConnections = objectExplorerConnections.filter(
                 (oeConn) => {
                     return !userConnections.some((userConn) =>
-                        Utils.isSameConnection(oeConn, userConn),
+                        Utils.isSameConnectionInfo(oeConn, userConn),
                     );
                 },
             );
@@ -2253,7 +2255,7 @@ export default class MainController implements vscode.Disposable {
             // if a connection(s) was/were manually added
             let newConnections = userConnections.filter((userConn) => {
                 return !objectExplorerConnections.some((oeConn) =>
-                    Utils.isSameConnection(userConn, oeConn),
+                    Utils.isSameConnectionInfo(userConn, oeConn),
                 );
             });
             for (let conn of newConnections) {
