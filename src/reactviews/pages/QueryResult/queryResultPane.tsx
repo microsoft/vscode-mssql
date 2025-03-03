@@ -183,7 +183,6 @@ export const QueryResultPane = () => {
             return;
         }
         const observer = new ResizeObserver(() => {
-            console.log("ResizeObserver called");
             if (!gridRefs.current || !ribbonRef.current) {
                 return;
             }
@@ -274,7 +273,6 @@ export const QueryResultPane = () => {
         resultId: number,
         gridCount: number,
     ) => {
-        console.log("renderGrid");
         const divId = `grid-parent-${batchId}-${resultId}`;
         const gridId = `resultGrid-${batchId}-${resultId}`;
         return (
