@@ -126,6 +126,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockInitialState = {
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
+            auxiliaryEndpointInfo: undefined,
             sourceEndpointInfo: sourceEndpointInfo,
             targetEndpointInfo: undefined,
             schemaCompareResult: undefined,

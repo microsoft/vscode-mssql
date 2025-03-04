@@ -39,6 +39,7 @@ import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
 export interface SchemaCompareWebViewState {
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
+    auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
     sourceEndpointInfo: SchemaCompareEndpointInfo;
     targetEndpointInfo: SchemaCompareEndpointInfo;
     schemaCompareResult: SchemaCompareResult;
@@ -56,6 +57,11 @@ export interface SchemaCompareReducers {
         endpoint: SchemaCompareEndpointInfo;
         endpointType: "source" | "target";
         fileType: "dacpac" | "sqlproj";
+    };
+
+    confirmSelectedSchema: {
+        endpointType: "source" | "target";
+        endpoint: SchemaCompareEndpointInfo;
     };
 
     compare: {
@@ -115,6 +121,11 @@ export interface SchemaCompareContextProps {
         endpoint: SchemaCompareEndpointInfo,
         endpointType: "source" | "target",
         fileType: "dacpac" | "sqlproj",
+    ) => void;
+
+    confirmSelectedSchema: (
+        endpointType: "source" | "target",
+        endpoint: SchemaCompareEndpointInfo,
     ) => void;
 
     compare: (

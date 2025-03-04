@@ -45,19 +45,23 @@ const useStyles = makeStyles({
 	*/
 });
 
-const SelectSchemasPanel = () => {
+interface Props {
+    onSelectSchemaClicked: (endpointType: "source" | "target") => void;
+}
+
+const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const sourceId = useId("source");
     const targetId = useId("target");
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
 
-    const handleSelectFile = (endpointType: "source" | "target") => {
-        const endpoint =
-            endpointType === "source"
-                ? context.state.sourceEndpointInfo
-                : context.state.targetEndpointInfo;
-        context.selectFile(endpoint, endpointType, "sqlproj");
-    };
+    // const handleSelectFile = (endpointType: "source" | "target") => {
+    //     const endpoint =
+    //         endpointType === "source"
+    //             ? context.state.sourceEndpointInfo
+    //             : context.state.targetEndpointInfo;
+    //     context.selectFile(endpoint, endpointType, "sqlproj");
+    // };
 
     const handleCompare = () => {
         context.compare(
@@ -80,14 +84,14 @@ const SelectSchemasPanel = () => {
                 id={sourceId}
                 label="Source"
                 value={context.state.sourceEndpointInfo?.projectFilePath || ""}
-                selectFile={() => handleSelectFile("source")}
+                selectFile={() => onSelectSchemaClicked("source")}
             />
 
             <SelectSchemaInput
                 id={targetId}
                 label="Target"
                 value={context.state.targetEndpointInfo?.projectFilePath || ""}
-                selectFile={() => handleSelectFile("target")}
+                selectFile={() => onSelectSchemaClicked("target")}
             />
 
             <Button

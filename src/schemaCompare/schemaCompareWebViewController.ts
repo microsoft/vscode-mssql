@@ -58,6 +58,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             "schemaCompare",
             {
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
+                auxiliaryEndpointInfo: undefined,
                 sourceEndpointInfo: undefined,
                 targetEndpointInfo: undefined,
                 schemaCompareResult: undefined,
@@ -250,23 +251,27 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     : this.getEndpointInfoFromProject(filePath);
 
             if (filePath) {
-                if (payload.fileType === "dacpac") {
+                state.auxiliaryEndpointInfo = updatedEndpointInfo;
+
+                // if (payload.fileType === "dacpac") {
+                //     if (payload.endpointType === "source") {
+                //         state.sourceEndpointInfo = updatedEndpointInfo;
+                //     } else {
+                //         state.targetEndpointInfo = updatedEndpointInfo;
+                //     }
+                // }
+                // else
+                if (payload.fileType === "sqlproj") {
                     if (payload.endpointType === "source") {
-                        state.sourceEndpointInfo = updatedEndpointInfo;
-                    } else {
-                        state.targetEndpointInfo = updatedEndpointInfo;
-                    }
-                } else if (payload.fileType === "sqlproj") {
-                    if (payload.endpointType === "source") {
-                        state.sourceEndpointInfo = updatedEndpointInfo;
+                        // state.sourceEndpointInfo = updatedEndpointInfo;
                         // state.sourceEndpointInfo.dataSchemaProvider = "160";
-                        state.sourceEndpointInfo.targetScripts = [
+                        state.auxiliaryEndpointInfo.targetScripts = [
                             "c:\\DatabaseProjects\\SimpleProj\\Address.sql",
                         ];
                     } else {
-                        state.targetEndpointInfo = updatedEndpointInfo;
+                        // state.targetEndpointInfo = updatedEndpointInfo;
                         // state.targetEndpointInfo.dataSchemaProvider = "160";
-                        state.targetEndpointInfo.targetScripts = [
+                        state.auxiliaryEndpointInfo.targetScripts = [
                             "c:\\DatabaseProjects\\SimpleProj2\\Address.sql",
                             "c:\\DatabaseProjects\\SimpleProj2\\Person.sql",
                         ];
@@ -278,6 +283,22 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             return state;
         });
+
+        this.registerReducer(
+            "confirmSelectedSchema",
+            async (state, payload) => {
+                if (payload.endpointType === "source") {
+                    state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
+                } else {
+                    state.targetEndpointInfo = state.auxiliaryEndpointInfo;
+                }
+                state.auxiliaryEndpointInfo = undefined;
+
+                this.updateState(state);
+
+                return state;
+            },
+        );
 
         this.registerReducer("compare", async (state, payload) => {
             // telemetry - schema comparison started
@@ -451,12 +472,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     //     return true;
     // }
 
-    private createName(nameParts: string[]): string {
-        if (!nameParts || nameParts.length === 0) {
-            return "";
-        }
-        return nameParts.join(".");
-    }
+    // private createName(nameParts: string[]): string {
+    //     if (!nameParts || nameParts.length === 0) {
+    //         return "";
+    //     }
+    //     return nameParts.join(".");
+    // }
 
     // private hasExcludeEntry(
     //     collection: mssql.SchemaCompareObjectId[],
