@@ -27,7 +27,7 @@ import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
 
-import { QueryResultState } from "../../queryResultStateProvider";
+import { QueryResultContextProps } from "../../queryResultStateProvider";
 import {
     QueryResultReducers,
     QueryResultWebviewState,
@@ -76,7 +76,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     constructor(
         public theme: ColorThemeKind,
-        private queryResultState: QueryResultState,
+        private queryResultContext: QueryResultContextProps,
         private webviewState: VscodeWebviewContext<
             QueryResultWebviewState,
             QueryResultReducers
@@ -523,9 +523,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 const checkboxElement = itemDiv.querySelector(
                     "input[type='checkbox']",
                 ) as HTMLInputElement;
-                console.log(checkboxElement);
                 checkboxElement.checked = !checkboxElement.checked;
-                console.log(checkboxElement.checked);
                 this._listData[item.index].checked = checkboxElement.checked;
                 item.checked = checkboxElement.checked;
             },
@@ -585,11 +583,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 filterValues: [],
                 sorted: SortProperties.NONE,
             };
-            if (this.queryResultState.state.uri) {
+            if (this.queryResultContext.state.uri) {
                 // Get the current filters from the query result singleton store
                 let gridColumnMapArray =
                     (await this.webviewState.extensionRpc.call("getFilters", {
-                        uri: this.queryResultState.state.uri,
+                        uri: this.queryResultContext.state.uri,
                     })) as GridColumnMap[];
                 if (!gridColumnMapArray) {
                     gridColumnMapArray = [];
@@ -600,7 +598,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     columnDef.id!,
                 );
                 await this.webviewState.extensionRpc.call("setFilters", {
-                    uri: this.queryResultState.state.uri,
+                    uri: this.queryResultContext.state.uri,
                     filters: gridColumnMapArray,
                 });
             }
@@ -627,14 +625,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
     ): Promise<void> {
         let newStateArray: GridColumnMap[];
         // Check if there is any existing filter state
-        if (!this.queryResultState.state.uri) {
-            this.queryResultState.log("no uri set for query result state");
+        if (!this.queryResultContext.state.uri) {
+            this.queryResultContext.log("no uri set for query result state");
             return;
         }
         let currentFiltersArray = (await this.webviewState.extensionRpc.call(
             "getFilters",
             {
-                uri: this.queryResultState.state.uri,
+                uri: this.queryResultContext.state.uri,
             },
         )) as GridColumnMap[];
         if (!currentFiltersArray) {
@@ -646,7 +644,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             columnId,
         );
         await this.webviewState.extensionRpc.call("setFilters", {
-            uri: this.queryResultState.state.uri,
+            uri: this.queryResultContext.state.uri,
             filters: newStateArray,
         });
     }

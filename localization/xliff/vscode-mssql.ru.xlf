@@ -320,6 +320,10 @@
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">Закрыть текущее подключение</target>
       </trans-unit>
+      <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
+        <source xml:lang="en">Collapse</source>
+        <target state="translated">Свернуть</target>
+      </trans-unit>
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
         <target state="translated">Свернуть все</target>
@@ -577,7 +581,7 @@
       </trans-unit>
       <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
         <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
-        <target state="new">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</target>
+        <target state="translated">Возникла проблема?  Поделитесь сведениями с нами, открыв проблему GitHub, чтобы мы могли улучшить ее!</target>
       </trans-unit>
       <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
         <source xml:lang="en">Encrypt</source>
@@ -662,6 +666,10 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">Ошибка при загрузке предварительного просмотра</target>
       </trans-unit>
+      <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+        <source xml:lang="en">Error loading; refresh to try again</source>
+        <target state="new">Error loading; refresh to try again</target>
+      </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">При открытии документа в редакторе произошла ошибка.</target>
@@ -705,6 +713,10 @@
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">План выполнения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
+        <source xml:lang="en">Expand</source>
+        <target state="translated">Развернуть</target>
       </trans-unit>
       <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
         <source xml:lang="en">Expand All</source>
@@ -1024,11 +1036,11 @@
       </trans-unit>
       <trans-unit id="++CODE++1f5c209a4ee7cb85322b1d1fbde63de014d0871930fa88895405ebaea926535d">
         <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.</source>
-        <target state="new">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.</target>
+        <target state="translated">Корпорация Майкрософт будет обрабатывать отправляемые вами отзывы в соответствии с инструкциями вашей организации, чтобы улучшить взаимодействие с продуктом для вас и вашей организации. Если у вас возникли вопросы об использовании данных отзывов, обратитесь к администратору клиента. Обработка данных отзывов регулируется приложением о защите данных продуктов и служб Майкрософт между вашей организацией и корпорацией Майкрософт, а отправленные вами отзывы считаются персональными данными в рамках этого приложения.</target>
       </trans-unit>
       <trans-unit id="++CODE++87a43e5185b677199f2369f90cd8518b8b1d7702edff307ed9e79883f43aaaaa">
         <source xml:lang="en">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...</source>
-        <target state="new">Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...</target>
+        <target state="translated">Корпорация Майкрософт будет обрабатывать отправляемые вами отзывы в соответствии с инструкциями вашей организации, чтобы улучшить взаимодействие с продуктом для вас и вашей организации. Если у вас есть вопросы...</target>
       </trans-unit>
       <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
         <source xml:lang="en">Microsoft would like your feedback</source>
@@ -1078,6 +1090,10 @@
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
         <target state="translated">Не удалось добавить новую учетную запись Microsoft Entra.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
+        <source xml:lang="en">Next</source>
+        <target state="translated">Далее</target>
+      </trans-unit>
       <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
         <source xml:lang="en">No</source>
         <target state="translated">Нет</target>
@@ -1114,7 +1130,7 @@
       </trans-unit>
       <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
         <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
-        <target state="new">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</target>
+        <target state="translated">Обнаружен SQL Server SQL. Отключить IntelliSense для таких файлов?</target>
       </trans-unit>
       <trans-unit id="++CODE++dc937b59892604f5a86ac96936cd7ff09e25f18ae6b758e8014a24c7fa039e91">
         <source xml:lang="en">None</source>
@@ -1249,6 +1265,10 @@
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
         <target state="translated">Предварительный просмотр обновлений базы данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
+        <source xml:lang="en">Previous</source>
+        <target state="translated">Назад</target>
       </trans-unit>
       <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
         <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
@@ -1453,6 +1473,10 @@
         <source xml:lang="en">Schema</source>
         <target state="translated">Схема</target>
       </trans-unit>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="translated">Сравнение схем</target>
+      </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
         <target state="translated">Создать скрипт как CREATE</target>
@@ -1602,7 +1626,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c4ed896e6258b54727811f7a2d17bf4e0a998497b6946da3718a0f5ca0c78ebd">
         <source xml:lang="en">Submit an issue</source>
-        <target state="new">Submit an issue</target>
+        <target state="translated">Сообщить о проблеме</target>
       </trans-unit>
       <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
         <source xml:lang="en">Subscription</source>
@@ -1786,6 +1810,10 @@
       <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
         <target state="translated">Не удалось развернуть. Подробнее см. в журналах.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
+        <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
+        <target state="translated">Не удалось прочитать параметры прокси-агента для получения клиентов.</target>
       </trans-unit>
       <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
         <source xml:lang="en">Update Database</source>
@@ -2087,6 +2115,14 @@
         <source xml:lang="en">Connect</source>
         <target state="translated">Подключить</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
+        <source xml:lang="en">Connect to a SQL Database</source>
+        <target state="translated">Подключение к базе данных SQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
+        <source xml:lang="en">Connection Dialog</source>
+        <target state="translated">Диалоговое окно подключения</target>
+      </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
         <target state="translated">Профили подключения, заданные в разделе "Параметры пользователей", показаны в разделе команды "MS SQL: Connect" палитры команд.</target>
@@ -2106,6 +2142,16 @@
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Создание Функций Azure с привязкой SQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
+        <source xml:lang="en">Create a Table with Table Designer</source>
+        <target state="translated">Создание таблицы с помощью конструктора таблиц</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
+        <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.
+Once you're done making your changes, click the 'Publish' button to send the changes to your database.</source>
+        <target state="translated">Создать новую таблицу в вашей базе данных и изменить существующие таблицы поможет конструктор таблиц.
+Внеся изменения, нажмите кнопку "Опубликовать", чтобы отправить изменения в базу данных.</target>
       </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
@@ -2146,6 +2192,14 @@
       <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
         <source xml:lang="en">Enable Group By Schema</source>
         <target state="translated">Включить группирование по схеме</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
+        <source xml:lang="en">Enable Modern Features</source>
+        <target state="translated">Включить современные функции</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableRichExperiences">
+        <source xml:lang="en">Enable Modern Features</source>
+        <target state="translated">Включить современные функции</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -2231,6 +2285,16 @@
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">Установить параметр SET XACT_ABORT ON</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
+        <source xml:lang="en">Enable modern features in MSSQL</source>
+        <target state="translated">Включить современные функции в MSSQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
+        <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
+[Enable New Experiences](command:mssql.enableRichExperiences)</source>
+        <target state="translated">Включите новый набор функций разработки данных, предоставляющих современный способ работы с базой данных SQL в VS Code.
+[Включить новые возможности](command:mssql.enableRichExperiences)</target>
+      </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">Включает функции на основе пользовательского интерфейса в расширении MSSQL для более полнофункциональных и мощных функций. Перезапустите Visual Studio Code после изменения этого параметра.</target>
@@ -2263,9 +2327,21 @@
         <source xml:lang="en">Execute Query</source>
         <target state="translated">Выполнить запрос</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.description">
+        <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
+        <target state="translated">Изучите другие функции расширения MSSQL, которые помогут вам работать более производительно.</target>
+      </trans-unit>
       <trans-unit id="mssql.filterNode">
         <source xml:lang="en">Filter (Preview)</source>
         <target state="translated">Фильтр (предварительная версия)</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
+        <source xml:lang="en">Filter your Object Explorer Tree</source>
+        <target state="translated">Фильтрация дерева обозревателя объектов</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.title">
+        <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
+        <target state="translated">Начать работу с MSSQL для Visual Studio Code</target>
       </trans-unit>
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
@@ -2278,6 +2354,14 @@
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
         <target state="translated">Конфигурация MSSQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
+        <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.
+You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.
+[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
+        <target state="translated">Создайте новое подключение к базе данных SQL или измените существующие подключения в диалоговом окне подключения.
+Подключиться к базе данных можно, введя информацию для подключения, используя строку подключения или просматривая подписки Azure.
+[Открыть диалоговое окно подключения](command:mssql.addObjectExplorer)</target>
       </trans-unit>
       <trans-unit id="mssql.manageProfiles">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -2315,6 +2399,10 @@
         <source xml:lang="en">New Table</source>
         <target state="translated">Создать таблицу</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.title">
+        <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
+        <target state="translated">Дальнейшие действия с MSSQL для Visual Studio Code</target>
+      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">Срок хранения файлов журналов (в минутах) для серверных служб. По умолчанию задана 1 неделя.</target>
@@ -2322,6 +2410,16 @@
       <trans-unit id="mssql.queryHistoryLimit">
         <source xml:lang="en">Number of query history entries to show in the Query History view</source>
         <target state="translated">Число записей журнала запросов, показываемых в представлении "Журнал запросов"</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
+        <source xml:lang="en">Object Explorer filters</source>
+        <target state="translated">Фильтр обозревателя объектов</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
+        <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.
+Start by clicking the filter button next to most folders in the Connections view.</source>
+        <target state="translated">Чтобы видеть только самые важные объекты базы данных, примените фильтры к дереву обозревателя объектов.
+Для начала нажмите кнопку фильтра, которая располагается рядом с большинством папок в представлении "Подключения".</target>
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
@@ -2351,6 +2449,14 @@
         <source xml:lang="en">Query Results (Preview)</source>
         <target state="translated">Результаты запроса (предварительная версия)</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
+        <source xml:lang="en">Query editor and query results pane</source>
+        <target state="translated">Редактор запросов и панель результатов запроса</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
+        <source xml:lang="en">Query plan visualization</source>
+        <target state="translated">Визуализация плана запроса</target>
+      </trans-unit>
       <trans-unit id="mssql.refreshObjectExplorerNode">
         <source xml:lang="en">Refresh</source>
         <target state="translated">Обновить</target>
@@ -2374,6 +2480,14 @@
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
         <target state="translated">Запустить запрос</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
+        <source xml:lang="en">Run a SQL Query</source>
+        <target state="translated">Выполнить SQL-запрос</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaCompare">
+        <source xml:lang="en">Schema Compare (Preview)</source>
+        <target state="translated">Сравнение схем (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -2457,7 +2571,7 @@
       </trans-unit>
       <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
         <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
-        <target state="new">Should language service be auto-disabled when extension detects Non-MSSQL files</target>
+        <target state="translated">Следует ли автоматически отключить языковую службу, если расширение обнаруживает файлы, отличные от MSSQL</target>
       </trans-unit>
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
@@ -2467,9 +2581,25 @@
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">Следует ли разбивать на отдельные строки ссылки на объекты в инструкции SELECT? Например, для "SELECT C1, C2 FROM T1" C1 и C2 будут расположены в отдельных строках.</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
+        <source xml:lang="en">Sort and Filter Query Results</source>
+        <target state="translated">Сортировка и фильтрация результатов запроса</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText">
+        <source xml:lang="en">Sort and filter options for query results</source>
+        <target state="translated">Варианты сортировки и фильтрации результатов запроса</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
+        <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
+        <target state="translated">Сортируйте и фильтруйте результаты запроса, чтобы быстро находить нужные данные.</target>
+      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">Начать ведение журнала запросов</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
+        <source xml:lang="en">Table Designer</source>
+        <target state="translated">Конструктор таблиц</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
@@ -2487,17 +2617,37 @@
         <source xml:lang="en">True for the messages pane to be open by default; false for closed</source>
         <target state="translated">Если указать значение TRUE, панель сообщения по умолчанию будет открыта, если указать значение FALSE — закрыта.</target>
       </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.description">
+        <source xml:lang="en">Understand what your query is doing by viewing the query plan.
+See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</source>
+        <target state="translated">Просмотрите план запроса, чтобы понять, что делает этот запрос.
+Чтобы увидеть предполагаемый план без выполнения запроса или фактический план запроса после его выполнения, переключите кнопки в верхней части окна редактора запросов.</target>
+      </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Использовать базу данных</target>
       </trans-unit>
       <trans-unit id="mssql.visualizeSchema">
         <source xml:lang="en">Visualize Schema</source>
-        <target state="new">Visualize Schema</target>
+        <target state="translated">Визуализация схемы</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
+        <source xml:lang="en">Visualize a Query Plan</source>
+        <target state="translated">Визуализировать план запроса</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">Если этот параметр включен, объекты базы данных в обозревателе объектов будут классифицированы по схеме.</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
+        <source xml:lang="en">Write a SQL query, and run it against your database.
+You can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.</source>
+        <target state="translated">Напишите SQL-запрос и выполните его в своей базе данных.
+Можно также нажать кнопку "Открыть в новой вкладке", чтобы просмотреть результаты запроса на отдельной вкладке и, при необходимости, задать это как поведение по умолчанию.</target>
+      </trans-unit>
+      <trans-unit id="mssql.walkthroughs.getStarted.description">
+        <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
+        <target state="translated">Первые шаги по подключению к базе данных SQL и ее использованию в разработке</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.textIdentifier">
         <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
@@ -2584,8 +2734,8 @@
         <target state="translated">[Необязательно] Укажите длительность (в секундах) ожидания выполнения команды, после чего попытка прекращается и выводится ошибка. Значение по умолчанию — 30 секунд.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
-        <target state="translated">[Необязательно] Укажите время ожидания подключения к серверу в секундах до завершения попытки подключения и создания ошибки. Значение по умолчанию — 15 секунд для локальных подключений и 30 секунд для баз данных SQL Azure.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="translated">[Необязательно] Укажите, сколько времени следует ждать подключения к серверу (в секундах), прежде чем попытки подключения прекратятся и будет выдана ошибка. Значение по умолчанию — 30 секунд.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>

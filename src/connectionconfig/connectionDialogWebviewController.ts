@@ -20,6 +20,7 @@ import {
     AddFirewallRuleDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
+    ConnectionDialogFormItemSpec,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import {
@@ -51,7 +52,6 @@ import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
-import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
@@ -63,19 +63,20 @@ import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
-    IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
+    IConnectionProfileWithSource,
 } from "../models/interfaces";
 import { IAccount } from "../models/contracts/azure";
 import {
     generateConnectionComponents,
-    getActiveFormComponents,
-    getFormComponent,
     groupAdvancedOptions,
 } from "./formComponentHelpers";
+import { FormWebviewController } from "../forms/formWebviewController";
 
-export class ConnectionDialogWebviewController extends ReactWebviewPanelController<
+export class ConnectionDialogWebviewController extends FormWebviewController<
+    IConnectionDialogProfile,
     ConnectionDialogWebviewState,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogReducers
 > {
     //#region Properties
@@ -176,12 +177,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             );
         }
 
+        this.state.formComponents = await generateConnectionComponents(
+            this._mainController.connectionManager,
+            getAccounts(this._mainController.azureAccountService),
+            this.getAzureActionButtons(),
+        );
+
         this.state.connectionComponents = {
-            components: await generateConnectionComponents(
-                this._mainController.connectionManager,
-                getAccounts(this._mainController.azureAccountService),
-                this.getAzureActionButtons(),
-            ),
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
             topAdvancedOptions: [
                 "port",
@@ -195,7 +197,10 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         };
 
         this.state.connectionComponents.groupedAdvancedOptions =
-            groupAdvancedOptions(this.state.connectionComponents);
+            groupAdvancedOptions(
+                this.state.formComponents as any,
+                this.state.connectionComponents,
+            );
 
         await this.updateItemVisibility();
         this.updateState();
@@ -219,36 +224,6 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                 return state;
             },
         );
-
-        this.registerReducer("formAction", async (state, payload) => {
-            if (payload.event.isAction) {
-                const component = getFormComponent(
-                    this.state,
-                    payload.event.propertyName,
-                );
-                if (component && component.actionButtons) {
-                    const actionButton = component.actionButtons.find(
-                        (b) => b.id === payload.event.value,
-                    );
-                    if (actionButton?.callback) {
-                        await actionButton.callback();
-                    }
-                }
-            } else {
-                (this.state.connectionProfile[
-                    payload.event.propertyName
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ] as any) = payload.event.value;
-                await this.validateConnectionProfile(
-                    this.state.connectionProfile,
-                    payload.event.propertyName,
-                );
-                await this.handleAzureMFAEdits(payload.event.propertyName);
-            }
-            await this.updateItemVisibility();
-
-            return state;
-        });
 
         this.registerReducer("loadConnection", async (state, payload) => {
             sendActionEvent(
@@ -432,7 +407,13 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     //#region Connection helpers
 
-    private async updateItemVisibility() {
+    override async afterSetFormProperty(
+        propertyName: keyof IConnectionDialogProfile,
+    ): Promise<void> {
+        return await this.handleAzureMFAEdits(propertyName);
+    }
+
+    async updateItemVisibility() {
         let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
 
         if (
@@ -466,56 +447,23 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             }
         }
 
-        for (const component of Object.values(
-            this.state.connectionComponents.components,
-        )) {
+        for (const component of Object.values(this.state.formComponents)) {
             component.hidden = hiddenProperties.includes(
                 component.propertyName,
             );
         }
     }
 
-    private async validateConnectionProfile(
-        connectionProfile: IConnectionDialogProfile,
-        propertyName?: keyof IConnectionDialogProfile,
-    ): Promise<string[]> {
-        const erroredInputs = [];
-        if (propertyName) {
-            const component = getFormComponent(this.state, propertyName);
-            if (component && component.validate) {
-                component.validation = component.validate(
-                    this.state,
-                    connectionProfile[propertyName],
-                );
-                if (!component.validation.isValid) {
-                    erroredInputs.push(component.propertyName);
-                }
-            }
-        } else {
-            getActiveFormComponents(this.state)
-                .map((x) => this.state.connectionComponents.components[x])
-                .forEach((c) => {
-                    if (c.hidden) {
-                        c.validation = {
-                            isValid: true,
-                            validationMessage: "",
-                        };
-                        return;
-                    } else {
-                        if (c.validate) {
-                            c.validation = c.validate(
-                                this.state,
-                                connectionProfile[c.propertyName],
-                            );
-                            if (!c.validation.isValid) {
-                                erroredInputs.push(c.propertyName);
-                            }
-                        }
-                    }
-                });
+    protected getActiveFormComponents(
+        state: ConnectionDialogWebviewState,
+    ): (keyof IConnectionDialogProfile)[] {
+        if (
+            state.selectedInputMode === ConnectionInputMode.Parameters ||
+            state.selectedInputMode === ConnectionInputMode.AzureBrowse
+        ) {
+            return state.connectionComponents.mainOptions;
         }
-
-        return erroredInputs;
+        return ["connectionString", "profileName"];
     }
 
     /** Returns a copy of `connection` that's been cleaned up by clearing the properties that aren't being used
@@ -526,9 +474,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         const cleanedConnection = structuredClone(connection);
 
         // Clear values for inputs that are hidden due to form selections
-        for (const option of Object.values(
-            this.state.connectionComponents.components,
-        )) {
+        for (const option of Object.values(this.state.formComponents)) {
             if (option.hidden) {
                 (cleanedConnection[
                     option.propertyName as keyof IConnectionDialogProfile
@@ -561,24 +507,18 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         savedConnections: IConnectionDialogProfile[];
         recentConnections: IConnectionDialogProfile[];
     }> {
-        const unsortedConnections: IConnectionCredentialsQuickPickItem[] =
-            this._mainController.connectionManager.connectionStore.loadAllConnections(
-                true /* addRecentConnections */,
+        const unsortedConnections: IConnectionProfileWithSource[] =
+            this._mainController.connectionManager.connectionStore.readAllConnections(
+                true /* includeRecentConnections */,
             );
 
-        const savedConnections = unsortedConnections
-            .filter(
-                (c) =>
-                    c.quickPickItemType ===
-                    CredentialsQuickPickItemType.Profile,
-            )
-            .map((c) => c.connectionCreds);
+        const savedConnections = unsortedConnections.filter(
+            (c) => c.profileSource === CredentialsQuickPickItemType.Profile,
+        );
 
-        const recentConnections = unsortedConnections
-            .filter(
-                (c) => c.quickPickItemType === CredentialsQuickPickItemType.Mru,
-            )
-            .map((c) => c.connectionCreds);
+        const recentConnections = unsortedConnections.filter(
+            (c) => c.profileSource === CredentialsQuickPickItemType.Mru,
+        );
 
         sendActionEvent(
             TelemetryViews.ConnectionDialog,
@@ -669,7 +609,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
         // clean the connection by clearing the options that aren't being used
         const cleanedConnection = this.cleanConnection(connectionProfile);
 
-        return await this.validateConnectionProfile(cleanedConnection);
+        return await this.validateForm(cleanedConnection);
     }
 
     private async connectHelper(
@@ -891,7 +831,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
     private async loadEmptyConnection() {
         const emptyConnection = {
             authenticationType: AuthenticationType.SqlLogin,
-            connectTimeout: 15, // seconds
+            connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
         } as IConnectionDialogProfile;
         this.state.connectionProfile = emptyConnection;
@@ -969,7 +909,7 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             callback: async () => {
                 const account =
                     await this._mainController.azureAccountService.addAccount();
-                const accountsComponent = getFormComponent(
+                const accountsComponent = this.getFormComponent(
                     this.state,
                     "accountId",
                 );
@@ -1002,10 +942,11 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
                         account,
                         undefined,
                     );
-                const isTokenExpired = AzureController.isTokenInValid(
+                const isTokenExpired = !AzureController.isTokenValid(
                     session.token,
                     session.expiresOn,
                 );
+
                 if (isTokenExpired) {
                     actionButtons.push({
                         label: refreshTokenLabel,
@@ -1052,8 +993,14 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
             ) {
                 return;
             }
-            const accountComponent = getFormComponent(this.state, "accountId");
-            const tenantComponent = getFormComponent(this.state, "tenantId");
+            const accountComponent = this.getFormComponent(
+                this.state,
+                "accountId",
+            );
+            const tenantComponent = this.getFormComponent(
+                this.state,
+                "tenantId",
+            );
             let tenants: FormItemOptions[] = [];
             switch (propertyName) {
                 case "accountId":
@@ -1326,8 +1273,8 @@ export class ConnectionDialogWebviewController extends ReactWebviewPanelControll
 
     private clearFormError() {
         this.state.formError = "";
-        for (const component of getActiveFormComponents(this.state).map(
-            (x) => this.state.connectionComponents.components[x],
+        for (const component of this.getActiveFormComponents(this.state).map(
+            (x) => this.state.formComponents[x],
         )) {
             component.validation = undefined;
         }

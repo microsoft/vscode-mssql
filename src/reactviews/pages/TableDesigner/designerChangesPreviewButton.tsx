@@ -53,8 +53,9 @@ const useStyles = makeStyles({
     errorIcon: {
         fontSize: "100px",
         opacity: 0.5,
+        color: "var(--vscode-errorForeground)",
     },
-    retryButton: {
+    dialogFooterButtons: {
         marginTop: "10px",
     },
     markdownContainer: {
@@ -79,10 +80,10 @@ export const DesignerChangesPreviewButton = () => {
 
     const [isConfirmationChecked, setIsConfirmationChecked] = useState(false);
 
-    const metadata = designerContext.state;
+    const state = designerContext.state;
 
     const generateScriptIcon = () => {
-        switch (metadata?.apiState?.generateScriptState) {
+        switch (state?.apiState?.generateScriptState) {
             case LoadState.Loading:
                 return <Spinner size="extra-small" />;
             case LoadState.Error:
@@ -96,7 +97,6 @@ export const DesignerChangesPreviewButton = () => {
         return (
             <DialogTrigger disableButtonEnhancement>
                 <Button
-                    size="medium"
                     appearance="secondary"
                     onClick={() => setIsConfirmationChecked(false)}
                 >
@@ -126,12 +126,12 @@ export const DesignerChangesPreviewButton = () => {
                             textAlign: "justify",
                         }}
                     >
-                        {metadata?.publishingError ?? ""}
+                        {state?.publishingError ?? ""}
                     </MessageBarBody>
                     <MessageBarActions>
                         <Button
                             onClick={() =>
-                                designerContext.provider.copyPublishErrorToClipboard()
+                                designerContext.copyPublishErrorToClipboard()
                             }
                             icon={<CopyRegular />}
                         >
@@ -144,7 +144,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     appearance="primary"
                     onClick={() => {
-                        designerContext.provider.publishChanges();
+                        designerContext.publishChanges();
                     }}
                 >
                     {locConstants.tableDesigner.retry}
@@ -152,7 +152,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     onClick={() => {
                         setIsConfirmationChecked(false);
-                        designerContext.provider.generatePreviewReport();
+                        designerContext.generatePreviewReport();
                     }}
                     style={{
                         width: "150px",
@@ -176,7 +176,7 @@ export const DesignerChangesPreviewButton = () => {
                 <Button
                     size="medium"
                     appearance="primary"
-                    onClick={designerContext.provider.closeDesigner}
+                    onClick={designerContext.closeDesigner}
                 >
                     {locConstants.tableDesigner.closeDesigner}
                 </Button>
@@ -186,7 +186,7 @@ export const DesignerChangesPreviewButton = () => {
                         appearance="secondary"
                         onClick={() => {
                             setIsConfirmationChecked(false);
-                            designerContext.provider.continueEditing;
+                            designerContext.continueEditing;
                         }}
                     >
                         {locConstants.tableDesigner.continueEditing}
@@ -211,13 +211,22 @@ export const DesignerChangesPreviewButton = () => {
         <>
             <DialogContent className={classes.dialogContent}>
                 <ErrorCircleRegular className={classes.errorIcon} />
-                <div>{locConstants.tableDesigner.errorLoadingPreview}</div>
+                <div>
+                    {designerContext.state.generatePreviewReportResult
+                        ?.schemaValidationError ??
+                        locConstants.tableDesigner.errorLoadingPreview}
+                </div>
             </DialogContent>
             <DialogActions>
+                <DialogTrigger action="close">
+                    <Button className={classes.dialogFooterButtons}>
+                        {locConstants.common.close}
+                    </Button>
+                </DialogTrigger>
                 <Button
-                    className={classes.retryButton}
+                    className={classes.dialogFooterButtons}
                     onClick={() => {
-                        designerContext.provider.generatePreviewReport();
+                        designerContext.generatePreviewReport();
                     }}
                 >
                     {locConstants.tableDesigner.retry}
@@ -232,7 +241,7 @@ export const DesignerChangesPreviewButton = () => {
                 <DialogContent>
                     <div className={classes.markdownContainer}>
                         <ReactMarkdown>
-                            {metadata?.generatePreviewReportResult?.report}
+                            {state?.generatePreviewReportResult?.report}
                         </ReactMarkdown>
                     </div>
                     <Checkbox
@@ -278,11 +287,11 @@ export const DesignerChangesPreviewButton = () => {
                             iconPosition="after"
                             className={classes.openScript}
                             disabled={
-                                metadata.apiState?.previewState !==
+                                state.apiState?.previewState !==
                                 LoadState.Loaded
                             }
                             appearance="secondary"
-                            onClick={designerContext.provider.generateScript}
+                            onClick={designerContext.generateScript}
                         >
                             {locConstants.tableDesigner.generateScript}
                         </Button>
@@ -298,7 +307,7 @@ export const DesignerChangesPreviewButton = () => {
                         }
                         appearance="primary"
                         onClick={() => {
-                            designerContext.provider.publishChanges();
+                            designerContext.publishChanges();
                         }}
                     >
                         {locConstants.tableDesigner.updateDatabase}
@@ -309,22 +318,22 @@ export const DesignerChangesPreviewButton = () => {
     };
 
     const getDialogContent = () => {
-        if (metadata?.apiState?.publishState === LoadState.Loading) {
+        if (state?.apiState?.publishState === LoadState.Loading) {
             return publishingLoadingDialogContents();
         }
-        if (metadata?.apiState?.publishState === LoadState.Loaded) {
+        if (state?.apiState?.publishState === LoadState.Loaded) {
             return publishingSuccessDialogContents();
         }
-        if (metadata?.apiState?.publishState === LoadState.Error) {
+        if (state?.apiState?.publishState === LoadState.Error) {
             return publishingErrorDialogContents();
         }
-        if (metadata?.apiState?.previewState === LoadState.Loading) {
+        if (state?.apiState?.previewState === LoadState.Loading) {
             return previewLoadingDialogContents();
         }
-        if (metadata?.apiState?.previewState === LoadState.Error) {
+        if (state?.apiState?.previewState === LoadState.Error) {
             return previewLoadingErrorDialogContents();
         }
-        if (metadata?.apiState?.previewState === LoadState.Loaded) {
+        if (state?.apiState?.previewState === LoadState.Loaded) {
             return previewLoadedSuccessDialogContents();
         }
     };
@@ -337,9 +346,9 @@ export const DesignerChangesPreviewButton = () => {
                     title={locConstants.tableDesigner.publish}
                     icon={<DatabaseArrowDownRegular />}
                     onClick={() => {
-                        designerContext.provider.generatePreviewReport();
+                        designerContext.generatePreviewReport();
                     }}
-                    disabled={(metadata?.issues?.length ?? 0) > 0}
+                    disabled={(state?.issues?.length ?? 0) > 0}
                 >
                     {locConstants.tableDesigner.publish}
                 </ToolbarButton>

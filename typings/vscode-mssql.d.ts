@@ -233,7 +233,7 @@ declare module 'vscode-mssql' {
 	}
 
 	/**
-	 * Information about a database connection
+	 * Information about a database connection necessary for connecting to a database.
 	 */
 	export interface IConnectionInfo {
 		/**
@@ -312,6 +312,11 @@ declare module 'vscode-mssql' {
 		 * if the connection is open or has ever been in an open state.
 		 */
 		persistSecurityInfo: boolean | undefined;
+
+		/**
+         * Gets or sets a value that specifies that Always Encrypted with Secure Enclaves is enabled in a connection.
+		 */
+		secureEnclaves: string | undefined;
 
 		/**
 		 * Gets or sets a string value that specifies whether Always Encrypted is enabled or disabled for the connection.

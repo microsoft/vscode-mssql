@@ -1,4 +1,4 @@
-﻿/*---------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -63,6 +63,8 @@ import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExp
 import { SchemaDesignerService } from "../services/schemaDesignerService";
 import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import store from "../queryResult/singletonStore";
+import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
+import { SchemaCompare } from "../constants/locConstants";
 
 /**
  * The main controller class that initializes the extension
@@ -327,6 +329,25 @@ export default class MainController implements vscode.Disposable {
                             false,
                             true,
                         );
+                },
+            );
+
+            this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
+            this._event.on(
+                Constants.cmdEnableRichExperiencesCommand,
+                async () => {
+                    await this._vscodeWrapper
+                        .getConfiguration()
+                        .update(
+                            Constants.configEnableRichExperiences,
+                            true,
+                            vscode.ConfigurationTarget.Global,
+                        );
+
+                    // reload immediately so that the changes take effect
+                    await vscode.commands.executeCommand(
+                        "workbench.action.reloadWindow",
+                    );
                 },
             );
 
@@ -717,6 +738,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider = new ObjectExplorerProvider(
+            this._vscodeWrapper,
             this._connectionMgr,
         );
         this.objectExplorerTree = vscode.window.createTreeView(
@@ -896,6 +918,13 @@ export default class MainController implements vscode.Disposable {
         );
 
         if (this.isRichExperiencesEnabled) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompare,
+                    async (node: any) => this.onSchemaCompare(node),
+                ),
+            );
+
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
@@ -1116,7 +1145,8 @@ export default class MainController implements vscode.Disposable {
                         return;
                     } else if (
                         node.context.type === Constants.serverLabel ||
-                        node.context.type === Constants.disconnectedServerLabel
+                        node.context.type ===
+                            Constants.disconnectedServerNodeType
                     ) {
                         const label =
                             typeof node.label === "string"
@@ -1844,17 +1874,8 @@ export default class MainController implements vscode.Disposable {
         this.doesExtensionLaunchedFileExist(); // create the "extensionLaunched" file since this takes the place of the release notes prompt
 
         if (response === LocalizedConstants.enableRichExperiences) {
-            await this._vscodeWrapper
-                .getConfiguration()
-                .update(
-                    Constants.configEnableRichExperiences,
-                    true,
-                    vscode.ConfigurationTarget.Global,
-                );
-
-            // reload immediately
             await vscode.commands.executeCommand(
-                "workbench.action.reloadWindow",
+                Constants.cmdEnableRichExperiencesCommand,
             );
         } else if (response === LocalizedConstants.Common.dontShowAgain) {
             await this._vscodeWrapper
@@ -1981,6 +2002,21 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onSchemaCompare(node: any): Promise<void> {
+        const result = await this.schemaCompareService.getDefaultOptions();
+        const schemaCompareWebView = new SchemaCompareWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            node,
+            this.schemaCompareService,
+            this._connectionMgr,
+            result,
+            SchemaCompare.Title,
+        );
+
+        schemaCompareWebView.revealToForeground();
     }
 
     /**
@@ -2185,7 +2221,7 @@ export default class MainController implements vscode.Disposable {
             let staleConnections = objectExplorerConnections.filter(
                 (oeConn) => {
                     return !userConnections.some((userConn) =>
-                        Utils.isSameConnection(oeConn, userConn),
+                        Utils.isSameConnectionInfo(oeConn, userConn),
                     );
                 },
             );
@@ -2219,7 +2255,7 @@ export default class MainController implements vscode.Disposable {
             // if a connection(s) was/were manually added
             let newConnections = userConnections.filter((userConn) => {
                 return !objectExplorerConnections.some((oeConn) =>
-                    Utils.isSameConnection(userConn, oeConn),
+                    Utils.isSameConnectionInfo(userConn, oeConn),
                 );
             });
             for (let conn of newConnections) {

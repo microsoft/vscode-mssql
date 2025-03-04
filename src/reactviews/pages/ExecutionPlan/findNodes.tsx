@@ -215,18 +215,24 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 onClick={() => handleFoundNode(-1)}
                 size="small"
                 appearance="subtle"
+                title={locConstants.executionPlan.previous}
+                aria-label={locConstants.executionPlan.previous}
                 icon={<ArrowUp20Regular />}
             />
             <Button
                 onClick={() => handleFoundNode(1)}
                 size="small"
                 appearance="subtle"
+                title={locConstants.executionPlan.next}
+                aria-label={locConstants.executionPlan.next}
                 icon={<ArrowDown20Regular />}
             />
             <Button
                 onClick={() => setFindNodeClicked(false)}
                 size="small"
                 appearance="subtle"
+                title={locConstants.common.close}
+                aria-label={locConstants.common.close}
                 icon={<Dismiss20Regular />}
             />
         </div>

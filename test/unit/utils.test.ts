@@ -68,29 +68,33 @@ suite("Utility Tests - isSameConnection", () => {
     });
 
     test("should return true for matching non-connectionstring connections", () => {
-        expect(Utils.isSameConnection(connection1, connection2)).to.equal(true);
+        expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(
+            true,
+        );
     });
 
     test("should return false for non-matching non-connectionstring connections", () => {
         connection2.server = "some-other-server";
-        expect(Utils.isSameConnection(connection1, connection2)).to.equal(
+        expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(
             false,
         );
     });
 
     test("should return true for matching connectionstring connections", () => {
-        expect(Utils.isSameConnection(connection3, connection4)).to.equal(true);
+        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(
+            true,
+        );
     });
 
     test("should return false for non-matching connectionstring connections", () => {
         connection4.connectionString = "Server=some-other-server";
-        expect(Utils.isSameConnection(connection3, connection4)).to.equal(
+        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(
             false,
         );
     });
 
     test("should return false for connectionstring and non-connectionstring connections", () => {
-        expect(Utils.isSameConnection(connection1, connection3)).to.equal(
+        expect(Utils.isSameConnectionInfo(connection1, connection3)).to.equal(
             false,
         );
     });
