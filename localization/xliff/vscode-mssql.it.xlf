@@ -2123,6 +2123,10 @@
         <source xml:lang="en">Connection Dialog</source>
         <target state="translated">Finestra di dialogo Connessione</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroups">
+        <source xml:lang="en">Connection groups</source>
+        <target state="new">Connection groups</target>
+      </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
         <target state="translated">I profili di connessione definiti in 'Impostazioni utente' sono visualizzati sotto il comando 'MS SQL: Connetti' nel riquadro comandi.</target>
@@ -2601,13 +2605,41 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Table Designer</source>
         <target state="translated">Progettazione tabelle</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.color">
+        <source xml:lang="en">The color of the connection group.</source>
+        <target state="new">The color of the connection group.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.description">
+        <source xml:lang="en">The description of the connection group.</source>
+        <target state="new">The description of the connection group.</target>
+      </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">Numero massimo di connessioni usate di recente da archiviare nell'elenco delle connessioni.</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.name">
+        <source xml:lang="en">The name of the connection group.</source>
+        <target state="new">The name of the connection group.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         <target state="translated">Timeout in secondi per l'espansione di un nodo in Esplora oggetti. Il valore predefinito è 45 secondi.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.groupId">
+        <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+        <target state="new">The unique identifier for the connection group this connection profile belongs to.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.id">
+        <source xml:lang="en">The unique identifier for the connection group.</source>
+        <target state="new">The unique identifier for the connection group.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.parentId">
+        <source xml:lang="en">The unique identifier for the parent connection group.</source>
+        <target state="new">The unique identifier for the parent connection group.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.id">
+        <source xml:lang="en">The unique identifier for this connection profile.</source>
+        <target state="new">The unique identifier for this connection profile.</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
