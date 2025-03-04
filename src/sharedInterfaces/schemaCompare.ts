@@ -61,7 +61,6 @@ export interface SchemaCompareReducers {
 
     confirmSelectedSchema: {
         endpointType: "source" | "target";
-        endpoint: SchemaCompareEndpointInfo;
     };
 
     compare: {
@@ -123,10 +122,7 @@ export interface SchemaCompareContextProps {
         fileType: "dacpac" | "sqlproj",
     ) => void;
 
-    confirmSelectedSchema: (
-        endpointType: "source" | "target",
-        endpoint: SchemaCompareEndpointInfo,
-    ) => void;
+    confirmSelectedSchema: (endpointType: "source" | "target") => void;
 
     compare: (
         sourceEndpointInfo: SchemaCompareEndpointInfo,

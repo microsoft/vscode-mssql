@@ -105,10 +105,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     };
 
     const confirmSelectedEndpoint = () => {
-        context.confirmSelectedSchema(
-            props.endpointType,
-            context.state.auxiliaryEndpointInfo,
-        );
+        context.confirmSelectedSchema(props.endpointType);
 
         props.showDrawer(false);
     };

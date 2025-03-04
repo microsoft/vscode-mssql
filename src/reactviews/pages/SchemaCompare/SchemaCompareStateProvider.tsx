@@ -45,11 +45,9 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 },
                 confirmSelectedSchema: function (
                     endpointType: "source" | "target",
-                    endpoint: mssql.SchemaCompareEndpointInfo,
                 ): void {
                     webViewState?.extensionRpc.action("confirmSelectedSchema", {
                         endpointType: endpointType,
-                        endpoint: endpoint,
                     });
                 },
                 compare: function (
