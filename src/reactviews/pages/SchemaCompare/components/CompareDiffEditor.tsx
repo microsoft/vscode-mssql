@@ -7,6 +7,7 @@ import { useContext } from "react";
 import { DiffEditor } from "@monaco-editor/react";
 import "./compareDiffEditor.css";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { resolveVscodeThemeType } from "../../../common/utils";
 
 const formatScript = (script: string): string => {
     if (!script) {
@@ -36,6 +37,7 @@ const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
                 language="sql"
                 original={modified}
                 modified={original}
+                theme={resolveVscodeThemeType(context.themeKind)}
                 options={{
                     renderSideBySide: renderSideBySide ?? true,
                     renderOverviewRuler: true,
