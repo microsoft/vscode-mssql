@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
-import { apply } from "../../../out/src/views/htmlcontent/src/js/lib/zone.js/lib/browser/websocket";
 
 export class LocConstants {
     private static _instance = new LocConstants();
