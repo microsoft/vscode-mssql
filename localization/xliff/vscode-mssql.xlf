@@ -45,6 +45,9 @@
     <trans-unit id="++CODE++079cd7244ce7f3c0fe474c025b5ff8e58c3678fba1ed67f0120416ac0071df85">
       <source xml:lang="en">Add Firewall Rule</source>
     </trans-unit>
+    <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
+      <source xml:lang="en">Add Table</source>
+    </trans-unit>
     <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
       <source xml:lang="en">Add a Microsoft Entra account...</source>
     </trans-unit>
@@ -103,6 +106,9 @@
     </trans-unit>
     <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
       <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
+      <source xml:lang="en">Auto Arrange</source>
     </trans-unit>
     <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
       <source xml:lang="en">Azure Account</source>
@@ -251,9 +257,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
-    </trans-unit>
-    <trans-unit id="++CODE++975a5ec9ab0cd92f808a1441af3826d71cf27ba6adbf817753c937bb97c1935b">
-      <source xml:lang="en">Column Mapping</source>
     </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
@@ -584,6 +587,9 @@
     <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
       <source xml:lang="en">Failed to save results. </source>
     </trans-unit>
+    <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
+      <source xml:lang="en">Filter</source>
+    </trans-unit>
     <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
       <source xml:lang="en">Filter Azure subscriptions</source>
     </trans-unit>
@@ -737,6 +743,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
       <source xml:lang="en">Loading Report</source>
+    </trans-unit>
+    <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
+      <source xml:lang="en">Loading Schema Designer Model...</source>
     </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
@@ -1137,6 +1146,9 @@
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
+      <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
       <source xml:lang="en">Script As Create</source>
     </trans-unit>
@@ -1281,17 +1293,11 @@
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
-    <trans-unit id="++CODE++1321ffd5e7ff1148409bea3dc1a971624be5c8220ed68c65abc2af059c38492e">
-      <source xml:lang="en">Table already exists</source>
-    </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
-    </trans-unit>
-    <trans-unit id="++CODE++95605dfe23756acffa506a239678845b1479c435202b52fd40b3b74638a472cd">
-      <source xml:lang="en">Target Column</source>
     </trans-unit>
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
@@ -1669,6 +1675,9 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="mssql.designSchema">
+      <source xml:lang="en">Design Schema (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
     </trans-unit>
@@ -2013,9 +2022,6 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
-    </trans-unit>
-    <trans-unit id="mssql.visualizeSchema">
-      <source xml:lang="en">Visualize Schema</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
