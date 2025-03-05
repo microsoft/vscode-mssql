@@ -214,13 +214,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 );
                             }
                             $sortButton.removeClass("slick-header-sort-button");
-                            $sortButton.addClass("slick-header-sortasc-button");
-                            await this.handleMenuItemClick("sort-asc", column);
-                            this.columnSortButtonMapping.set(
-                                column.id!,
-                                SortProperties.ASC,
+                            columnFilterState = await this.setSortAscending(
+                                $sortButton,
+                                column,
+                                columnFilterState,
                             );
-                            columnFilterState.sorted = SortProperties.ASC;
                             this.currentSortColumn = column.id!;
                             this.currentSortButton = $sortButton;
                             break;
@@ -242,18 +240,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             $sortButton.removeClass(
                                 "slick-header-sortdesc-button",
                             );
-                            $sortButton.addClass("slick-header-sort-button");
-                            this.columnSortButtonMapping.set(
-                                column.id!,
-                                SortProperties.NONE,
-                            );
-                            await this.resetData(this.columnDef);
-                            columnFilterState.sorted = SortProperties.NONE;
-                            await this.updateState(
+                            columnFilterState = await this.setSortAscending(
+                                $sortButton,
+                                column,
                                 columnFilterState,
-                                this.columnDef.id!,
                             );
-                            this.currentSortColumn = "";
                             break;
                     }
                     this.grid.onHeaderClick.notify();
@@ -271,6 +262,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         this.columnFilterButtonMapping.set(column.id!, filterButton);
         this.columnSortButtonMapping.set(column.id!, SortProperties.NONE);
+    }
+
+    private async setSortAscending(
+        $sortButton: JQuery<HTMLElement>,
+        column: FilterableColumn<T>,
+        columnFilterState: ColumnFilterState,
+    ): Promise<ColumnFilterState> {
+        $sortButton.addClass("slick-header-sortasc-button");
+        await this.handleMenuItemClick("sort-asc", column);
+        this.columnSortButtonMapping.set(column.id!, SortProperties.ASC);
+        columnFilterState.sorted = SortProperties.ASC;
+        return columnFilterState;
     }
 
     private async showFilter(filterButton: HTMLElement) {
