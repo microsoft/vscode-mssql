@@ -7,12 +7,12 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
-import { SchemaDesigner } from "./schemaDesigner";
+import { SchemaDesignerPage } from "./schemaDesignerContainer";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <SchemaDesignerStateProvider>
-            <SchemaDesigner />
+            <SchemaDesignerPage />
         </SchemaDesignerStateProvider>
     </VscodeWebviewProvider>,
 );

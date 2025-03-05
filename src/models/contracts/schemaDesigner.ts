@@ -4,36 +4,40 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
-import {
-    GetSchemaModelRequestParams,
-    GetSchemaModelResponse,
-    ISchema,
-    ModelReadyNotificationParams,
-} from "../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 
-export namespace GetSchemaModelRequest {
-    export const type = new RequestType<
-        GetSchemaModelRequestParams,
-        GetSchemaModelResponse,
-        void,
-        void
-    >("schemaDesigner/getSchemaModel");
-}
+export namespace SchemaDesignerRequests {
+    export namespace CreateSession {
+        export const type = new RequestType<
+            SchemaDesigner.CreateSessionRequest,
+            SchemaDesigner.CreateSessionResponse,
+            void,
+            void
+        >("schemaDesigner/createSession");
+    }
 
-export namespace PublishSchemaRequest {
-    export const type = new RequestType<
-        {
-            modifiedSchema: ISchema;
-        },
-        void,
-        void,
-        void
-    >("schemaDesigner/publishSchema");
-}
+    export namespace DisposeSession {
+        export const type = new RequestType<
+            SchemaDesigner.DisposeSessionRequest,
+            void,
+            void,
+            void
+        >("schemaDesigner/disposeSession");
+    }
 
-export namespace ModelReadyNotification {
-    export const type = new NotificationType<
-        ModelReadyNotificationParams,
-        void
-    >("schemaDesigner/modelReady");
+    export namespace GenerateScript {
+        export const type = new RequestType<
+            SchemaDesigner.GenerateScriptRequest,
+            SchemaDesigner.GenerateScriptResponse,
+            void,
+            void
+        >("schemaDesigner/generateScript");
+    }
+
+    export namespace SchemaReady {
+        export const type = new NotificationType<
+            SchemaDesigner.SchemaDesignerSession,
+            void
+        >("schemaDesigner/schemaReady");
+    }
 }

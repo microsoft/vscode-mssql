@@ -5,26 +5,22 @@
 
 import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import {
-    ISchema,
-    ISchemaDesignerService,
-    SchemaDesignerReducers,
-    SchemaDesignerWebviewState,
-} from "../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
-    SchemaDesignerWebviewState,
-    SchemaDesignerReducers
+    SchemaDesigner.SchemaDesignerWebviewState,
+    SchemaDesigner.SchemaDesignerReducers
 > {
+    private sessionId: string = "";
+
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        public _schemaDesignerService: ISchemaDesignerService,
-        _database: string,
-        intialSchema: ISchema,
-        sessionId: string,
+        private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
+        private connectionUri: string,
+        private databaseName: string,
     ) {
         super(
             context,
@@ -32,34 +28,64 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             "schemaDesigner",
             "schemaDesigner",
             {
-                schema: intialSchema,
+                schema: {
+                    tables: [],
+                },
             },
             {
-                title: _database,
+                title: databaseName,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "visualizeSchema_light.svg",
+                        "designSchema_light.svg",
                     ),
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "visualizeSchema_dark.svg",
+                        "designSchema_dark.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false,
             },
         );
 
-        this._schemaDesignerService.onModelReady((model) => {
-            if (model.sessionId === sessionId) {
-                console.log("Model ready", model.code);
+        this.registerServiceEvents();
+        this.registerReducers();
+        void this.createNewSession();
+    }
+
+    private registerServiceEvents() {
+        let resolveModelReadyProgress: (
+            value: void | PromiseLike<void>,
+        ) => void;
+        vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: LocConstants.SchemaDesigner.LoadingSchemaDesginerModel,
+                cancellable: false,
+            },
+            (_progress, _token) => {
+                const p = new Promise<void>((resolve) => {
+                    resolveModelReadyProgress = resolve;
+                });
+                return p;
+            },
+        );
+        this.schemaDesignerService.onSchemaReady((model) => {
+            if (model.sessionId === this.sessionId) {
+                resolveModelReadyProgress();
+                vscode.window.showInformationMessage(
+                    LocConstants.SchemaDesigner.SchemaReady,
+                );
+                console.log("Model ready");
             }
         });
+    }
 
-        this.registerReducer("saveAsFile", async (state, payload) => {
+    private registerReducers() {
+        this.registerReducer("exportToFile", async (state, payload) => {
             const outputPath = await vscode.window.showSaveDialog({
                 filters: {
                     [payload.format]: [payload.format],
@@ -83,8 +109,34 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 );
                 vscode.workspace.fs.writeFile(outputPath, fileContents);
             }
-
             return state;
+        });
+    }
+
+    private async createNewSession() {
+        const sessionResponse = await this.schemaDesignerService.createSession({
+            connectionUri: this.connectionUri,
+            databaseName: this.databaseName,
+        });
+        this.sessionId = sessionResponse.sessionId;
+        this.updateState({
+            schema: sessionResponse.schema,
+        });
+        await this.getScript();
+    }
+
+    private async getScript() {
+        const script = await this.schemaDesignerService.generateScript({
+            updatedSchema: this.state.schema,
+            sessionId: this.sessionId,
+        });
+        console.log("Script generated", script);
+    }
+
+    override dispose(): void {
+        super.dispose();
+        this.schemaDesignerService.disposeSession({
+            sessionId: this.sessionId,
         });
     }
 }

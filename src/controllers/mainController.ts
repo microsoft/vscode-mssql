@@ -943,30 +943,21 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
-                    Constants.cmdVisualizeSchema,
+                    Constants.cmdDesignSchema,
                     async (node: TreeNodeInfo) => {
-                        const uri = this.connectionManager.getUriForConnection(
-                            node.connectionInfo,
-                        );
-                        const schema =
-                            await this.schemaDesignerService.getSchemaModel({
-                                connectionUri: uri,
-                                databaseName: node.metadata.name,
-                            });
-
-                        console.log(schema);
-
-                        const schemaDesignerWebvie =
+                        const connectionUri =
+                            this.connectionManager.getUriForConnection(
+                                node.connectionInfo,
+                            );
+                        const schemaDesigner =
                             new SchemaDesignerWebviewController(
                                 this._context,
                                 this._vscodeWrapper,
                                 this.schemaDesignerService,
+                                connectionUri,
                                 node.metadata.name,
-                                schema.schemaModel,
-                                schema.sessionId,
                             );
-
-                        schemaDesignerWebvie.revealToForeground();
+                        schemaDesigner.revealToForeground();
                     },
                 ),
             );

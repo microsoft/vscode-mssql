@@ -26,7 +26,6 @@ export function ExportDiagramButton() {
             return;
         }
         const imageContent = await context.schemaDesigner.exportImage(format);
-        console.log(imageContent);
         if (imageContent && context) {
             context.saveAsFile({
                 format,

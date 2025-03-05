@@ -11,6 +11,7 @@ import { FilterTablesButton } from "./filterTablesButton";
 import { SearchTablesButton } from "./searchTablesButton";
 import { AddTableButton } from "./addTableButton";
 import { PublishChangesDialogButton } from "./publishChangesDialogButton";
+import { AutoArrangeButton } from "./autoArrangeButton";
 
 export function SchemaDesignerToolbar() {
     return (
@@ -38,15 +39,7 @@ export function SchemaDesignerToolbar() {
             <ViewCodeDialogButton />
             <ExportDiagramButton />
             <AddTableButton />
-            <Button
-                style={{
-                    minWidth: "120px",
-                }}
-                icon={<FluentIcons.Flowchart16Filled />}
-                size="small"
-            >
-                Auto Arrange
-            </Button>
+            <AutoArrangeButton />
             <FilterTablesButton />
             <SearchTablesButton />
         </Toolbar>

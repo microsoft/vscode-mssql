@@ -7,7 +7,6 @@ import { SchemaDesignerConfig } from "azdataGraph/dist/src/ts/schemaDesigner/sch
 import * as schemaDesignerIcons from "./schemaDesignerIcons";
 const connectorIcon = require("./icons/connector.svg");
 import * as azdataGraph from "azdataGraph";
-import { ISchema, ITable } from "../../../sharedInterfaces/schemaDesigner";
 
 export function getSchemaDesignerColors(): azdataGraph.SchemaDesignerColors {
     const body = document.body;
@@ -68,13 +67,13 @@ export const config: SchemaDesignerConfig = {
     graphFontFamily: "",
     isEditable: true,
     editTable: function (
-        _table: ITable,
+        _table: azdataGraph.Table,
         _cell: azdataGraph.mxCell,
         _x: number,
         _y: number,
         _scale: number,
-        _model: ISchema,
-    ): Promise<ITable> {
+        _model: azdataGraph.Schema,
+    ): Promise<azdataGraph.Table> {
         throw new Error("Function not implemented.");
     },
     updateEditorPosition: function (
@@ -84,7 +83,7 @@ export const config: SchemaDesignerConfig = {
     ): void {
         throw new Error("Function not implemented.");
     },
-    publish(_schema: ISchema): void {
+    publish(_schema: azdataGraph.Schema): void {
         throw new Error("Function not implemented.");
     },
     showToolbar: false,

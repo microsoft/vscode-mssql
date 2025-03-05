@@ -3,28 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    GetSchemaModelRequestParams,
-    GetSchemaModelResponse,
-    ISchemaDesignerService,
-    ModelReadyNotificationParams,
-    PublishSchemaRequestParams,
-} from "../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import {
-    GetSchemaModelRequest,
-    ModelReadyNotification,
-    PublishSchemaRequest,
-} from "../models/contracts/schemaDesigner";
+import { SchemaDesignerRequests } from "../models/contracts/schemaDesigner";
 
-export class SchemaDesignerService implements ISchemaDesignerService {
+export class SchemaDesignerService
+    implements SchemaDesigner.ISchemaDesignerService
+{
     private _modelReadyListeners: ((
-        modelReady: ModelReadyNotificationParams,
+        modelReady: SchemaDesigner.SchemaDesignerSession,
     ) => void)[] = [];
 
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {
+        this.setUpEventListeners();
+    }
+
+    private setUpEventListeners(): void {
         this._sqlToolsClient.onNotification(
-            ModelReadyNotification.type,
+            SchemaDesignerRequests.SchemaReady.type,
             (result) => {
                 this._modelReadyListeners.forEach((listener) =>
                     listener(result),
@@ -33,12 +29,12 @@ export class SchemaDesignerService implements ISchemaDesignerService {
         );
     }
 
-    async getSchemaModel(
-        request: GetSchemaModelRequestParams,
-    ): Promise<GetSchemaModelResponse> {
+    async createSession(
+        request: SchemaDesigner.CreateSessionRequest,
+    ): Promise<SchemaDesigner.CreateSessionResponse> {
         try {
             return await this._sqlToolsClient.sendRequest(
-                GetSchemaModelRequest.type,
+                SchemaDesignerRequests.CreateSession.type,
                 request,
             );
         } catch (e) {
@@ -47,10 +43,12 @@ export class SchemaDesignerService implements ISchemaDesignerService {
         }
     }
 
-    async publishSchema(request: PublishSchemaRequestParams): Promise<void> {
+    async disposeSession(
+        request: SchemaDesigner.DisposeSessionRequest,
+    ): Promise<void> {
         try {
-            return await this._sqlToolsClient.sendRequest(
-                PublishSchemaRequest.type,
+            await this._sqlToolsClient.sendRequest(
+                SchemaDesignerRequests.DisposeSession.type,
                 request,
             );
         } catch (e) {
@@ -59,8 +57,22 @@ export class SchemaDesignerService implements ISchemaDesignerService {
         }
     }
 
-    onModelReady(
-        listener: (model: ModelReadyNotificationParams) => void,
+    async generateScript(
+        request: SchemaDesigner.GenerateScriptRequest,
+    ): Promise<SchemaDesigner.GenerateScriptResponse> {
+        try {
+            return await this._sqlToolsClient.sendRequest(
+                SchemaDesignerRequests.GenerateScript.type,
+                request,
+            );
+        } catch (e) {
+            this._sqlToolsClient.logger.error(e);
+            throw e;
+        }
+    }
+
+    onSchemaReady(
+        listener: (model: SchemaDesigner.SchemaDesignerSession) => void,
     ): void {
         this._modelReadyListeners.push(listener);
     }

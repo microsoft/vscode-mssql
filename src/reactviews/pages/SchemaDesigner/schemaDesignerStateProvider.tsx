@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext, useState } from "react";
-import {
-    ISchema,
-    SaveAsFileProps,
-    SchemaDesignerReducers,
-    SchemaDesignerWebviewState,
-} from "../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import {
     useVscodeWebview,
     WebviewContextProps,
@@ -19,13 +14,13 @@ import { WebviewRpc } from "../../common/rpc";
 import * as azdataGraph from "azdataGraph";
 
 export interface SchemaDesignerContextProps
-    extends WebviewContextProps<SchemaDesignerWebviewState> {
-    extensionRpc: WebviewRpc<SchemaDesignerReducers>;
-    saveAsFile: (fileProps: SaveAsFileProps) => void;
+    extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
+    extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
+    saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
     schemaDesigner: azdataGraph.SchemaDesigner | undefined;
     setSchemaDesigner: (schemaDesigner: azdataGraph.SchemaDesigner) => void;
-    schema: ISchema;
-    setSchema: (schema: ISchema) => void;
+    schema: SchemaDesigner.Schema;
+    setSchema: (schema: SchemaDesigner.Schema) => void;
 }
 
 const SchemaDesignerContext = createContext<
@@ -40,19 +35,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     children,
 }) => {
     const webviewContext = useVscodeWebview<
-        SchemaDesignerWebviewState,
-        SchemaDesignerReducers
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
     >();
     const { state, extensionRpc, themeKind } = webviewContext;
 
     const [schemaDesigner, setSchemaDesigner] = useState<
         azdataGraph.SchemaDesigner | undefined
     >(undefined);
-    const [schema, setSchema] = useState<ISchema>(state.schema);
+    const [schema, setSchema] = useState<SchemaDesigner.Schema>(state.schema);
 
     // Reducer methods
-    const saveAsFile = (fileProps: SaveAsFileProps) => {
-        void extensionRpc.action("saveAsFile", {
+    const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
+        void extensionRpc.action("exportToFile", {
             ...fileProps,
         });
     };

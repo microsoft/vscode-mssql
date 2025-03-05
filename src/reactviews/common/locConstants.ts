@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
+import { apply } from "../../../out/src/views/htmlcontent/src/js/lib/zone.js/lib/browser/websocket";
 
 export class LocConstants {
     private static _instance = new LocConstants();
@@ -346,7 +347,6 @@ export class LocConstants {
             dataType: l10n.t("Type"),
             primaryKey: l10n.t("PK"),
             delete: l10n.t("Delete"),
-            tableExists: l10n.t("Table already exists"),
             newForeignKey: l10n.t("New Foreign Key"),
             foreignKeyIndex: (index: number) =>
                 l10n.t({
@@ -354,15 +354,18 @@ export class LocConstants {
                     args: [index],
                     comment: ["{0} is the index of the foreign key"],
                 }),
-            columnMapping: l10n.t("Column Mapping"),
             sourceColumn: l10n.t("Source Column"),
             targetTable: l10n.t("Target Table"),
-            targetColumn: l10n.t("Target Column"),
             foreignColumn: l10n.t("Foreign Column"),
             zoomIn: l10n.t("Zoom In"),
             zoomOut: l10n.t("Zoom Out"),
             zoomToFit: l10n.t("Zoom to Fit"),
             export: l10n.t("Export"),
+            addTable: l10n.t("Add Table"),
+            autoArrange: l10n.t("Auto Arrange"),
+            filter: l10n.t("Filter"),
+            clearFilter: l10n.t("Clear"),
+            applyFilter: l10n.t("Apply"),
         };
     }
 }

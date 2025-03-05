@@ -31,13 +31,7 @@ import {
     useTableColumnSizing_unstable,
     useTableFeatures,
 } from "@fluentui/react-components";
-import {
-    IColumn,
-    ITable,
-    IForeignKey,
-    ISchema,
-    OnAction,
-} from "../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
@@ -95,8 +89,8 @@ const useStyles = makeStyles({
 });
 
 export const SchemaDesignerTableEditor = (props: {
-    table: ITable;
-    schema: ISchema;
+    table: SchemaDesigner.Table;
+    schema: SchemaDesigner.Schema;
     schemaDesigner: azdataGraph.SchemaDesigner | undefined;
     onClose: () => void;
 }) => {
@@ -108,8 +102,12 @@ export const SchemaDesignerTableEditor = (props: {
     const [schemaName, setSchemaName] = useState<string>("");
     const [tableName, setTableName] = useState<string>("");
     const [nameValidation, _setNameValidation] = useState<string>("");
-    const [tableColumns, setTableColumns] = useState<IColumn[]>([]);
-    const [tableForeignKeys, setTableForeignKeys] = useState<IForeignKey[]>([]);
+    const [tableColumns, setTableColumns] = useState<SchemaDesigner.Column[]>(
+        [],
+    );
+    const [tableForeignKeys, setTableForeignKeys] = useState<
+        SchemaDesigner.ForeignKey[]
+    >([]);
     const datatypes = useMemo(
         () => getUniqueDatatypes(props.schema),
         [props.schema],
@@ -126,34 +124,37 @@ export const SchemaDesignerTableEditor = (props: {
     const [lastForeignKeyNameInputIndex, setLastForeignKeyNameInputIndex] =
         useState<number>(-1);
 
-    const columnsTableColumnDefinitions: TableColumnDefinition<IColumn>[] = [
-        createTableColumn({
-            columnId: "name",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.name}</Text>
-            ),
-        }),
-        createTableColumn({
-            columnId: "type",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.dataType}</Text>
-            ),
-        }),
-        createTableColumn({
-            columnId: "primaryKey",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.primaryKey}</Text>
-            ),
-        }),
-        createTableColumn({
-            columnId: "delete",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.delete}</Text>
-            ),
-        }),
-    ];
+    const columnsTableColumnDefinitions: TableColumnDefinition<SchemaDesigner.Column>[] =
+        [
+            createTableColumn({
+                columnId: "name",
+                renderHeaderCell: () => (
+                    <Text>{locConstants.schemaDesigner.name}</Text>
+                ),
+            }),
+            createTableColumn({
+                columnId: "type",
+                renderHeaderCell: () => (
+                    <Text>{locConstants.schemaDesigner.dataType}</Text>
+                ),
+            }),
+            createTableColumn({
+                columnId: "primaryKey",
+                renderHeaderCell: () => (
+                    <Text>{locConstants.schemaDesigner.primaryKey}</Text>
+                ),
+            }),
+            createTableColumn({
+                columnId: "delete",
+                renderHeaderCell: () => (
+                    <Text>{locConstants.schemaDesigner.delete}</Text>
+                ),
+            }),
+        ];
 
-    function getColumnDeleteButtonState(column: IColumn): boolean {
+    function getColumnDeleteButtonState(
+        column: SchemaDesigner.Column,
+    ): boolean {
         // If there is an incoming or outgoing foreign key with this column, disable delete
         const doesColumnHaveForeignKey =
             tableForeignKeys.filter((fk) => fk.columns.includes(column.name))
@@ -193,11 +194,11 @@ export const SchemaDesignerTableEditor = (props: {
             },
         });
 
-    const columnsTableItems: IColumn[] = tableColumns;
+    const columnsTableItems: SchemaDesigner.Column[] = tableColumns;
 
-    const [columnsTableColumns] = useState<TableColumnDefinition<IColumn>[]>(
-        columnsTableColumnDefinitions,
-    );
+    const [columnsTableColumns] = useState<
+        TableColumnDefinition<SchemaDesigner.Column>[]
+    >(columnsTableColumnDefinitions);
 
     const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
         {
@@ -244,7 +245,7 @@ export const SchemaDesignerTableEditor = (props: {
     }, [lastForeignKeyNameInputIndex]);
 
     function renderColumnTableCell(
-        column: IColumn,
+        column: SchemaDesigner.Column,
         columnId: string,
         index: number,
     ) {
@@ -395,6 +396,8 @@ export const SchemaDesignerTableEditor = (props: {
                                 dataType: datatypes[0],
                                 isPrimaryKey: false,
                                 isIdentity: false,
+                                isNullable: true,
+                                isUnique: false,
                             });
                             setTableColumns(newColumns);
                             setLastColumnNameInputIndex(newColumns.length - 1);
@@ -476,15 +479,15 @@ export const SchemaDesignerTableEditor = (props: {
                             props.schema,
                             props.table,
                         )[0];
-                        const newForeignKey: IForeignKey = {
+                        const newForeignKey: SchemaDesigner.ForeignKey = {
                             id: uuidv4(),
                             name: getNextForeignKeyName(tableForeignKeys),
                             columns: [tableColumns[0].name],
                             referencedSchemaName: firstTable.schema,
                             referencedTableName: firstTable.name,
                             referencedColumns: [firstTable.columns[0].name],
-                            onDeleteAction: OnAction.CASCADE,
-                            onUpdateAction: OnAction.CASCADE,
+                            onDeleteAction: SchemaDesigner.OnAction.CASCADE,
+                            onUpdateAction: SchemaDesigner.OnAction.CASCADE,
                         };
                         const newForeignKeys = [
                             ...tableForeignKeys,
@@ -805,7 +808,7 @@ export const SchemaDesignerTableEditor = (props: {
     );
 };
 
-function getUniqueSchemaNames(schema: ISchema): string[] {
+function getUniqueSchemaNames(schema: SchemaDesigner.Schema): string[] {
     const schemaNames: Set<string> = new Set<string>();
     schema.tables.forEach((entity) => {
         schemaNames.add(entity.schema);
@@ -815,7 +818,7 @@ function getUniqueSchemaNames(schema: ISchema): string[] {
     );
 }
 
-function getUniqueDatatypes(schema: ISchema): string[] {
+function getUniqueDatatypes(schema: SchemaDesigner.Schema): string[] {
     const datatypes: Set<string> = new Set<string>();
     schema.tables.forEach((table) => {
         table.columns.forEach((column) => {
@@ -825,7 +828,7 @@ function getUniqueDatatypes(schema: ISchema): string[] {
     return Array.from(datatypes).sort();
 }
 
-function getNextColumnName(existingColumns: IColumn[]): string {
+function getNextColumnName(existingColumns: SchemaDesigner.Column[]): string {
     let index = 1;
     let columnName = `column_${index}`;
     while (existingColumns.some((column) => column.name === columnName)) {
@@ -835,7 +838,9 @@ function getNextColumnName(existingColumns: IColumn[]): string {
     return columnName;
 }
 
-function getNextForeignKeyName(existingEdges: IForeignKey[]): string {
+function getNextForeignKeyName(
+    existingEdges: SchemaDesigner.ForeignKey[],
+): string {
     let index = 1;
     let foreignKeyName = `FK_${index}`;
     while (existingEdges.some((edge) => edge.name === foreignKeyName)) {
@@ -845,7 +850,10 @@ function getNextForeignKeyName(existingEdges: IForeignKey[]): string {
     return foreignKeyName;
 }
 
-function getAllEntities(schema: ISchema, currentEntity: ITable): ITable[] {
+function getAllEntities(
+    schema: SchemaDesigner.Schema,
+    currentEntity: SchemaDesigner.Table,
+): SchemaDesigner.Table[] {
     return schema.tables
         .filter(
             (entity) =>
@@ -856,9 +864,9 @@ function getAllEntities(schema: ISchema, currentEntity: ITable): ITable[] {
 }
 
 function getEntityFromDisplayName(
-    schema: ISchema,
+    schema: SchemaDesigner.Schema,
     displayName: string,
-): ITable {
+): SchemaDesigner.Table {
     return schema.tables.find(
         (entity) => `${entity.schema}.${entity.name}` === displayName,
     )!;
