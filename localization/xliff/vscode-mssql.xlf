@@ -512,6 +512,9 @@
     <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
       <source xml:lang="en">Error loading preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+      <source xml:lang="en">Error loading; refresh to try again</source>
+    </trans-unit>
     <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
       <source xml:lang="en">Error occurred opening content in editor.</source>
     </trans-unit>
@@ -1651,6 +1654,9 @@
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
       <source xml:lang="en">Connection Dialog</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups">
+      <source xml:lang="en">Connection groups</source>
+    </trans-unit>
     <trans-unit id="mssql.connections">
       <source xml:lang="en">Connection profiles defined in &apos;User Settings&apos; are shown under &apos;MS SQL: Connect&apos; command in the command palette.</source>
     </trans-unit>
@@ -2005,11 +2011,32 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroup.color">
+      <source xml:lang="en">The color of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.description">
+      <source xml:lang="en">The description of the connection group.</source>
+    </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroup.name">
+      <source xml:lang="en">The name of the connection group.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.expandTimeout">
       <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.groupId">
+      <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.id">
+      <source xml:lang="en">The unique identifier for the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.parentId">
+      <source xml:lang="en">The unique identifier for the parent connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.id">
+      <source xml:lang="en">The unique identifier for this connection profile.</source>
     </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>

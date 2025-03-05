@@ -10,6 +10,7 @@ import {
     useEffect,
     useImperativeHandle,
     useRef,
+    useState,
 } from "react";
 import "../../media/slickgrid.css";
 import { ACTIONBAR_WIDTH_PX, range, Table } from "./table/table";
@@ -79,6 +80,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             return undefined;
         }
         const gridContainerRef = useRef<HTMLDivElement>(null);
+        const [refreshKey, setRefreshKey] = useState(0);
+        if (!props.gridParentRef) {
+            return undefined;
+        }
         const refreshGrid = () => {
             if (gridContainerRef.current) {
                 while (gridContainerRef.current.firstChild) {
@@ -89,6 +94,11 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             }
         };
         const resizeGrid = (width: number, height: number) => {
+            if (!table) {
+                context.log("resizeGrid - table is not initialized");
+                refreshGrid();
+                setRefreshKey(refreshKey + 1);
+            }
             let gridParent: HTMLElement | null;
             if (!props.resultSetSummary) {
                 return;
@@ -129,7 +139,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             }
         };
 
-        useEffect(() => {
+        const createTable = () => {
             const filter = async () => {
                 let hasNewFilters = await table.setupFilterState();
                 if (hasNewFilters) {
@@ -308,7 +318,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     ),
                 );
             }
-        }, []);
+        };
 
         useImperativeHandle(ref, () => ({
             refreshGrid,
@@ -316,6 +326,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             hideGrid,
             showGrid,
         }));
+
+        useEffect(() => {
+            createTable();
+        }, [refreshKey]);
 
         return <div id="gridContainter" ref={gridContainerRef}></div>;
     },

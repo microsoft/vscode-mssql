@@ -680,6 +680,12 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 }
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
+export class ObjectExplorer {
+    public static ErrorLoadingRefreshToTryAgain = l10n.t(
+        "Error loading; refresh to try again",
+    );
+}
+
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog (Preview)");
     public static azureAccount = l10n.t("Azure Account");

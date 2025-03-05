@@ -7,13 +7,18 @@ import * as vscodeMssql from "vscode-mssql";
 import {
     FormItemSpec,
     FormContextProps,
-    FormEvent,
     FormState,
+    FormReducers,
 } from "../reactviews/common/forms/form";
 import { ApiStatus } from "./webview";
 
 export class ConnectionDialogWebviewState
-    implements FormState<IConnectionDialogProfile>
+    implements
+        FormState<
+            IConnectionDialogProfile,
+            ConnectionDialogWebviewState,
+            ConnectionDialogFormItemSpec
+        >
 {
     /** the underlying connection profile for the form target; same as `connectionProfile` */
     formState: IConnectionDialogProfile = {} as IConnectionDialogProfile;
@@ -24,11 +29,14 @@ export class ConnectionDialogWebviewState
     set connectionProfile(value: IConnectionDialogProfile) {
         this.formState = value;
     }
+
+    formComponents: Partial<
+        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
+    > = {};
+
     public selectedInputMode: ConnectionInputMode =
         ConnectionInputMode.Parameters;
     public connectionComponents: ConnectionComponentsInfo = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        components: {} as any, // force empty record for intial blank state
         mainOptions: [],
         topAdvancedOptions: [],
         groupedAdvancedOptions: [],
@@ -85,9 +93,6 @@ export interface AzureSqlServerInfo {
 }
 
 export interface ConnectionComponentsInfo {
-    components: Partial<
-        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-    >;
     mainOptions: (keyof IConnectionDialogProfile)[];
     topAdvancedOptions: (keyof IConnectionDialogProfile)[];
     groupedAdvancedOptions: ConnectionComponentGroup[];
@@ -100,8 +105,9 @@ export interface ConnectionComponentGroup {
 
 export interface ConnectionDialogFormItemSpec
     extends FormItemSpec<
+        IConnectionDialogProfile,
         ConnectionDialogWebviewState,
-        IConnectionDialogProfile
+        ConnectionDialogFormItemSpec
     > {
     isAdvancedOption: boolean;
     optionCategory?: string;
@@ -127,8 +133,9 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
 
 export interface ConnectionDialogContextProps
     extends FormContextProps<
+        IConnectionDialogProfile,
         ConnectionDialogWebviewState,
-        IConnectionDialogProfile
+        ConnectionDialogFormItemSpec
     > {
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
@@ -152,12 +159,10 @@ export enum AuthenticationType {
     AzureMFA = "AzureMFA",
 }
 
-export interface ConnectionDialogReducers {
+export interface ConnectionDialogReducers
+    extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
-    };
-    formAction: {
-        event: FormEvent<IConnectionDialogProfile>;
     };
     loadConnection: {
         connection: IConnectionDialogProfile;
