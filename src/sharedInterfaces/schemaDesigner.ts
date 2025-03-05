@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { GeneratePreviewReportResult } from "./tableDesigner";
+
 export namespace SchemaDesigner {
     /**
      * Represents a schema model
@@ -163,7 +165,7 @@ export namespace SchemaDesigner {
          * List of datatypes
          * This is the list of datatypes that are used to create the schema designer
          */
-        datatypes: string[];
+        dataTypes: string[];
         /**
          * List of schemas
          * This is the list of schemas that are used to create the schema designer
@@ -206,6 +208,31 @@ export namespace SchemaDesigner {
         combinedScript: string;
     }
 
+    export interface GetReportRequest {
+        /**
+         * Session id for the schema designer session
+         */
+        sessionId: string;
+        /**
+         * Updated schema model
+         * This is the updated schema model that is used to create the schema designer
+         */
+        updatedSchema: Schema;
+    }
+
+    export interface GetReportResponse {
+        /**
+         * List of reports
+         * This is the list of reports that indicates the changes made to the schema
+         */
+        reports: SchemaDesignerReport[];
+    }
+
+    export interface SchemaDesignerReport {
+        tableId: string;
+        report: GeneratePreviewReportResult;
+    }
+
     export interface ISchemaDesignerService {
         /**
          * Creates a schema designer session
@@ -232,6 +259,12 @@ export namespace SchemaDesigner {
         ): Thenable<GenerateScriptResponse>;
 
         /**
+         * Gets the report for the schema designer session
+         * @param request - Request parameters for getting the report
+         */
+        getReport(request: GetReportRequest): Thenable<GetReportResponse>;
+
+        /**
          * Callback for when the schema designer model is ready
          * @param listener - Callback function that is called when the schema designer model is ready
          */
@@ -240,6 +273,13 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         schema: Schema;
+        isModelReady: boolean;
+        schemas: string[];
+        datatypes: string[];
+        script: {
+            scripts: TableScript[];
+            combinedScript: string;
+        };
     }
 
     export interface ExportFileOptions {
@@ -249,7 +289,17 @@ export namespace SchemaDesigner {
         height: number;
     }
 
+    export interface GetScriptOptions {
+        updatedSchema: Schema;
+    }
+
+    export interface GetReportOptions {
+        updatedSchema: Schema;
+    }
+
     export interface SchemaDesignerReducers {
         exportToFile: ExportFileOptions;
+        getScript: GetScriptOptions;
+        getReport: GetReportOptions;
     }
 }

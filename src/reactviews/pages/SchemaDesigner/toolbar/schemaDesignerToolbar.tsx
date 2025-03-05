@@ -3,12 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Toolbar } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
+import { Toolbar, ToolbarDivider } from "@fluentui/react-components";
 import { ViewCodeDialogButton } from "./viewCodeDialogButton";
 import { ExportDiagramButton } from "./exportDiagramButton";
 import { FilterTablesButton } from "./filterTablesButton";
-import { SearchTablesButton } from "./searchTablesButton";
 import { AddTableButton } from "./addTableButton";
 import { PublishChangesDialogButton } from "./publishChangesDialogButton";
 import { AutoArrangeButton } from "./autoArrangeButton";
@@ -18,7 +16,6 @@ export function SchemaDesignerToolbar() {
         <Toolbar
             size="small"
             style={{
-                gap: "10px",
                 paddingTop: "5px",
                 paddingBottom: "5px",
                 width: "100%",
@@ -26,22 +23,15 @@ export function SchemaDesignerToolbar() {
                 overflowX: "auto",
             }}
         >
-            <Button
-                style={{
-                    minWidth: "86px",
-                }}
-                size="small"
-                icon={<FluentIcons.ArrowCounterclockwise16Filled />}
-            >
-                Refresh
-            </Button>
             <PublishChangesDialogButton />
             <ViewCodeDialogButton />
             <ExportDiagramButton />
+            <ToolbarDivider />
             <AddTableButton />
             <AutoArrangeButton />
+            <ToolbarDivider />
             <FilterTablesButton />
-            <SearchTablesButton />
+            {/* <SearchTablesButton /> */}
         </Toolbar>
     );
 }

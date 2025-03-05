@@ -42,9 +42,8 @@ export function ExportDiagramButton() {
                 <MenuButton
                     icon={<FluentIcons.ArrowExportUp16Filled />}
                     size="small"
-                    style={{
-                        minWidth: "95px",
-                    }}
+                    title={locConstants.schemaDesigner.export}
+                    appearance="subtle"
                 >
                     {locConstants.schemaDesigner.export}
                 </MenuButton>

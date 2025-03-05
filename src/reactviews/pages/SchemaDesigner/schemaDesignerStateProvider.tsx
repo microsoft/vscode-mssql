@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import {
     useVscodeWebview,
@@ -21,11 +21,21 @@ export interface SchemaDesignerContextProps
     setSchemaDesigner: (schemaDesigner: azdataGraph.SchemaDesigner) => void;
     schema: SchemaDesigner.Schema;
     setSchema: (schema: SchemaDesigner.Schema) => void;
+    selectedTable: SchemaDesigner.Table;
+    setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
+    isEditDrawerOpen: boolean;
+    setIsEditDrawerOpen: (isEditDrawerOpen: boolean) => void;
+    isPublishChangesEnabled: boolean;
+    setIsPublishChangesEnabled: (isPublishChangesEnabled: boolean) => void;
+    setIsCodeDrawerOpen: (isCodeDrawerOpen: boolean) => void;
+    isCodeDrawerOpen: boolean;
+    getScript: () => void;
+    getReport: () => void;
 }
 
-const SchemaDesignerContext = createContext<
-    SchemaDesignerContextProps | undefined
->(undefined);
+const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
+    undefined as unknown as SchemaDesignerContextProps,
+);
 
 interface SchemaDesignerProviderProps {
     children: React.ReactNode;
@@ -45,11 +55,39 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     >(undefined);
     const [schema, setSchema] = useState<SchemaDesigner.Schema>(state.schema);
 
-    // Reducer methods
+    const [selectedTable, setSelectedTable] = useState<
+        SchemaDesigner.Table | undefined
+    >(undefined);
+
+    const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+    const [isCodeDrawerOpen, setIsCodeDrawerOpen] = useState(false);
+
+    const [isPublishChangesEnabled, setIsPublishChangesEnabled] =
+        useState(false);
+
+    useEffect(() => {
+        setIsPublishChangesEnabled(webviewContext.state.isModelReady);
+    }, [webviewContext.state.isModelReady]);
+
+    // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
         void extensionRpc.action("exportToFile", {
             ...fileProps,
         });
+    };
+    const getScript = () => {
+        if (schemaDesigner) {
+            void extensionRpc.action("getScript", {
+                updatedSchema: schemaDesigner.schema,
+            });
+        }
+    };
+    const getReport = () => {
+        if (schemaDesigner) {
+            void extensionRpc.action("getReport", {
+                updatedSchema: schemaDesigner.schema,
+            });
+        }
     };
 
     return (
@@ -64,6 +102,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 setSchemaDesigner,
                 schema,
                 setSchema,
+                selectedTable,
+                setSelectedTable,
+                isEditDrawerOpen,
+                setIsEditDrawerOpen,
+                isPublishChangesEnabled,
+                setIsPublishChangesEnabled,
+                isCodeDrawerOpen,
+                setIsCodeDrawerOpen,
+                getScript,
+                getReport,
             }}
         >
             {children}

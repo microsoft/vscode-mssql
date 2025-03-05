@@ -27,10 +27,7 @@ export function AddTableButton() {
 
     return (
         <Button
-            style={{
-                minWidth: "100px",
-            }}
-            icon={<FluentIcons.Add16Filled />}
+            icon={<FluentIcons.TableAdd16Regular />}
             size="small"
             ref={addTableButtonRef}
             onClick={() => {
@@ -38,6 +35,8 @@ export function AddTableButton() {
                     context.schemaDesigner.addNewTable();
                 }
             }}
+            title={locConstants.schemaDesigner.addTable}
+            appearance="subtle"
         >
             {locConstants.schemaDesigner.addTable}
         </Button>

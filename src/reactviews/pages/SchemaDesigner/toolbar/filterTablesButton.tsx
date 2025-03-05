@@ -57,7 +57,11 @@ export function FilterTablesButton() {
     useEffect(() => {}, []);
 
     return (
-        <Menu>
+        <Menu
+            onOpenChange={(_e, data) => {
+                console.log(data);
+            }}
+        >
             <MenuTrigger disableButtonEnhancement>
                 <MenuButton
                     icon={<FluentIcons.Filter16Filled />}
@@ -66,6 +70,7 @@ export function FilterTablesButton() {
                         minWidth: "85px",
                     }}
                     onClick={() => loadTables()}
+                    appearance="subtle"
                 >
                     {locConstants.schemaDesigner.filter}
                 </MenuButton>
@@ -131,6 +136,21 @@ export function FilterTablesButton() {
                         size="small"
                         style={{
                             flex: "1",
+                        }}
+                        onClick={() => {
+                            if (context.schemaDesigner) {
+                                const selectedTableIds = context.schema.tables
+                                    .filter((table) => {
+                                        const tableName = `${table.schema}.${table.name}`;
+                                        return selectedTables.includes(
+                                            tableName,
+                                        );
+                                    })
+                                    .map((table) => table.id);
+                                context.schemaDesigner.filterCells(
+                                    selectedTableIds,
+                                );
+                            }
                         }}
                     >
                         {locConstants.schemaDesigner.applyFilter}

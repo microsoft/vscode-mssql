@@ -14,19 +14,26 @@ import {
     DialogTrigger,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
+import { locConstants } from "../../../common/locConstants";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useContext } from "react";
 
 export function PublishChangesDialogButton() {
+    const context = useContext(SchemaDesignerContext);
     return (
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
                 <Button
-                    style={{
-                        minWidth: "86px",
-                    }}
                     size="small"
                     icon={<FluentIcons.DatabaseArrowUp16Filled />}
+                    title={locConstants.schemaDesigner.publishChanges}
+                    appearance="subtle"
+                    disabled={context.isPublishChangesEnabled === false}
+                    onClick={() => {
+                        context.getReport();
+                    }}
                 >
-                    Publish
+                    {locConstants.schemaDesigner.publishChanges}
                 </Button>
             </DialogTrigger>
             <DialogSurface>

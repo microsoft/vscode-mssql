@@ -3,49 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Dialog,
-    DialogTrigger,
-    Button,
-    DialogSurface,
-    DialogBody,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-} from "@fluentui/react-components";
+import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
+import { locConstants } from "../../../common/locConstants";
+import { useContext } from "react";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 export function ViewCodeDialogButton() {
+    const context = useContext(SchemaDesignerContext);
     return (
-        <Dialog>
-            <DialogTrigger disableButtonEnhancement>
-                <Button
-                    style={{
-                        minWidth: "103px",
-                    }}
-                    size="small"
-                    icon={<FluentIcons.Code16Filled />}
-                >
-                    View Code
-                </Button>
-            </DialogTrigger>
-            <DialogSurface>
-                <DialogBody>
-                    <DialogTitle>Code for the table</DialogTitle>
-                    <DialogContent>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                        Quisquam exercitationem cumque repellendus eaque est
-                        dolor eius expedita nulla ullam? Tenetur reprehenderit
-                        aut voluptatum impedit voluptates in natus iure cumque
-                        eaque?
-                    </DialogContent>
-                    <DialogActions>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="primary">Close</Button>
-                        </DialogTrigger>
-                    </DialogActions>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
+        <Button
+            size="small"
+            icon={<FluentIcons.Code16Filled />}
+            title={locConstants.schemaDesigner.viewCode}
+            appearance="subtle"
+            onClick={() => {
+                context.setIsCodeDrawerOpen(true);
+                context.getScript();
+            }}
+        >
+            {locConstants.schemaDesigner.viewCode}
+        </Button>
     );
 }

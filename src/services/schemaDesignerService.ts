@@ -71,6 +71,20 @@ export class SchemaDesignerService
         }
     }
 
+    async getReport(
+        request: SchemaDesigner.GetReportRequest,
+    ): Promise<SchemaDesigner.GetReportResponse> {
+        try {
+            return await this._sqlToolsClient.sendRequest(
+                SchemaDesignerRequests.GetReport.type,
+                request,
+            );
+        } catch (e) {
+            this._sqlToolsClient.logger.error(e);
+            throw e;
+        }
+    }
+
     onSchemaReady(
         listener: (model: SchemaDesigner.SchemaDesignerSession) => void,
     ): void {

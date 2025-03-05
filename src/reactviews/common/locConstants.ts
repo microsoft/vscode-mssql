@@ -337,16 +337,16 @@ export class LocConstants {
         return {
             schema: l10n.t("Schema"),
             columns: l10n.t("Columns"),
-            newColumn: l10n.t("New Column"),
+            newColumn: l10n.t("Add new column"),
             name: l10n.t("Name"),
             table: l10n.t("Table"),
             foreignKeys: l10n.t("Foreign Keys"),
             save: l10n.t("Save"),
             cancel: l10n.t("Cancel"),
             dataType: l10n.t("Type"),
-            primaryKey: l10n.t("PK"),
+            primaryKey: l10n.t("Primary Key"),
             delete: l10n.t("Delete"),
-            newForeignKey: l10n.t("New Foreign Key"),
+            newForeignKey: l10n.t("Add new foreign key"),
             foreignKeyIndex: (index: number) =>
                 l10n.t({
                     message: "Foreign Key {0}",
@@ -365,6 +365,10 @@ export class LocConstants {
             filter: l10n.t("Filter"),
             clearFilter: l10n.t("Clear"),
             applyFilter: l10n.t("Apply"),
+            refresh: l10n.t("Refresh"),
+            publishChanges: l10n.t("Publish Changes"),
+            viewCode: l10n.t("View Code"),
+            editTable: l10n.t("Edit Table"),
         };
     }
 }

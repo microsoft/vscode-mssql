@@ -40,4 +40,13 @@ export namespace SchemaDesignerRequests {
             void
         >("schemaDesigner/schemaReady");
     }
+
+    export namespace GetReport {
+        export const type = new RequestType<
+            SchemaDesigner.GetReportRequest,
+            SchemaDesigner.GetReportResponse,
+            void,
+            void
+        >("schemaDesigner/getReport");
+    }
 }

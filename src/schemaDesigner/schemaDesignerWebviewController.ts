@@ -31,6 +31,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 schema: {
                     tables: [],
                 },
+                isModelReady: false,
+                schemas: [],
+                datatypes: [],
+                script: {
+                    combinedScript: "",
+                    scripts: [],
+                },
             },
             {
                 title: databaseName,
@@ -79,7 +86,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 vscode.window.showInformationMessage(
                     LocConstants.SchemaDesigner.SchemaReady,
                 );
-                console.log("Model ready");
+                this.updateState({
+                    ...this.state,
+                    isModelReady: true,
+                });
             }
         });
     }
@@ -111,6 +121,35 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             }
             return state;
         });
+        this.registerReducer("getScript", async (state, payload) => {
+            console.log("getScript", payload);
+            const script = await this.schemaDesignerService.generateScript({
+                updatedSchema: payload.updatedSchema,
+                sessionId: this.sessionId,
+            });
+            state = {
+                ...this.state,
+                schema: payload.updatedSchema,
+                script: {
+                    combinedScript: script.combinedScript,
+                    scripts: script.scripts,
+                },
+            };
+            return state;
+        });
+
+        this.registerReducer("getReport", async (state, payload) => {
+            const report = await this.schemaDesignerService.getReport({
+                updatedSchema: payload.updatedSchema,
+                sessionId: this.sessionId,
+            });
+            console.log("getReport", report);
+            state = {
+                ...this.state,
+                schema: payload.updatedSchema,
+            };
+            return state;
+        });
     }
 
     private async createNewSession() {
@@ -120,17 +159,15 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
         this.sessionId = sessionResponse.sessionId;
         this.updateState({
+            ...this.state,
             schema: sessionResponse.schema,
+            schemas: Array.from(sessionResponse.schemaNames).sort((a, b) =>
+                a.toLowerCase().localeCompare(b.toLowerCase()),
+            ),
+            datatypes: Array.from(sessionResponse.dataTypes).sort((a, b) =>
+                a.toLowerCase().localeCompare(b.toLowerCase()),
+            ),
         });
-        await this.getScript();
-    }
-
-    private async getScript() {
-        const script = await this.schemaDesignerService.generateScript({
-            updatedSchema: this.state.schema,
-            sessionId: this.sessionId,
-        });
-        console.log("Script generated", script);
     }
 
     override dispose(): void {

@@ -16,9 +16,6 @@ export function AutoArrangeButton() {
     }
     return (
         <Button
-            style={{
-                minWidth: "120px",
-            }}
             icon={<FluentIcons.Flowchart16Filled />}
             size="small"
             onClick={() => {
@@ -26,6 +23,8 @@ export function AutoArrangeButton() {
                     context.schemaDesigner.autoLayout();
                 }
             }}
+            title={locConstants.schemaDesigner.autoArrange}
+            appearance="subtle"
         >
             {locConstants.schemaDesigner.autoArrange}
         </Button>
