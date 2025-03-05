@@ -13,6 +13,7 @@ import {
 } from "@fluentui/react-components";
 import SelectSchemaInput from "./SelectSchemaInput";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { locConstants as loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
     topMargin: {
@@ -82,14 +83,14 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
         >
             <SelectSchemaInput
                 id={sourceId}
-                label="Source"
+                label={loc.schemaCompare.source}
                 value={context.state.sourceEndpointInfo?.projectFilePath || ""}
                 selectFile={() => onSelectSchemaClicked("source")}
             />
 
             <SelectSchemaInput
                 id={targetId}
-                label="Target"
+                label={loc.schemaCompare.target}
                 value={context.state.targetEndpointInfo?.projectFilePath || ""}
                 selectFile={() => onSelectSchemaClicked("target")}
             />
@@ -102,7 +103,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 size="medium"
                 onClick={handleCompare}
             >
-                Compare
+                {loc.schemaCompare.compare}
             </Button>
         </div>
     );

@@ -332,6 +332,33 @@ export class LocConstants {
             restore: l10n.t("Restore"),
         };
     }
+
+    public get schemaCompare() {
+        return {
+            type: l10n.t("Type"),
+            sourceName: l10n.t("Source Name"),
+            include: l10n.t("Include"),
+            action: l10n.t("Action"),
+            targetName: l10n.t("Target Name"),
+            add: l10n.t("Add"),
+            change: l10n.t("Change"),
+            delete: l10n.t("Delete"),
+            selectSource: l10n.t("Select Source"),
+            selectTarget: l10n.t("Select Target"),
+            close: l10n.t("Close"),
+            database: l10n.t("Database"),
+            dataTierApplicationFile: l10n.t(
+                "Data-tier Application File (.dacpac)",
+            ),
+            databaseProject: l10n.t("Database Project"),
+            file: l10n.t("File"),
+            ok: l10n.t("OK"),
+            cancel: l10n.t("Cancel"),
+            source: l10n.t("Source"),
+            target: l10n.t("Target"),
+            compare: l10n.t("Compare"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

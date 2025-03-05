@@ -22,6 +22,7 @@ import {
 } from "@fluentui/react-components";
 import { Dismiss24Regular, FolderFilled } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { locConstants as loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -67,7 +68,10 @@ const SchemaSelectorDrawer = (props: Props) => {
     }, [context.state.auxiliaryEndpointInfo]);
 
     const drawerTitle =
-        props.endpointType === "source" ? "Select Source" : "Select Target";
+        props.endpointType === "source"
+            ? loc.schemaCompare.selectSource
+            : loc.schemaCompare.selectTarget;
+
     const currentEndpoint =
         props.endpointType === "source"
             ? context.state.sourceEndpointInfo
@@ -123,7 +127,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                     action={
                         <Button
                             appearance="subtle"
-                            aria-label="Close"
+                            aria-label={loc.schemaCompare.close}
                             icon={<Dismiss24Regular />}
                             onClick={() => props.showDrawer(false)}
                         />
@@ -133,24 +137,32 @@ const SchemaSelectorDrawer = (props: Props) => {
                 </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody>
-                <Field label="Type">
+                <Field label={loc.schemaCompare.type}>
                     <RadioGroup
                         value={schemaType}
                         onChange={(_, data) =>
                             handleSchemaTypeChange(data.value)
                         }
                     >
-                        <Radio value="database" label="Database" />
+                        <Radio
+                            value="database"
+                            label={loc.schemaCompare.database}
+                        />
                         <Radio
                             value="dacpac"
-                            label="Data-tier Application File (.dacpac)"
+                            label={loc.schemaCompare.dataTierApplicationFile}
                         />
-                        <Radio value="sqlproj" label="Database Project" />
+                        <Radio
+                            value="sqlproj"
+                            label={loc.schemaCompare.databaseProject}
+                        />
                     </RadioGroup>
 
                     {(schemaType === "dacpac" || schemaType === "sqlproj") && (
                         <>
-                            <Label htmlFor={fileId}>File</Label>
+                            <Label htmlFor={fileId}>
+                                {loc.schemaCompare.file}
+                            </Label>
                             <div className={classes.positionItemsHorizontally}>
                                 <Input
                                     id={fileId}
@@ -183,13 +195,13 @@ const SchemaSelectorDrawer = (props: Props) => {
                     appearance="primary"
                     onClick={() => confirmSelectedEndpoint()}
                 >
-                    OK
+                    {loc.schemaCompare.ok}
                 </Button>
                 <Button
                     appearance="secondary"
                     onClick={() => props.showDrawer(false)}
                 >
-                    Cancel
+                    {loc.schemaCompare.cancel}
                 </Button>
             </DrawerFooter>
         </Drawer>

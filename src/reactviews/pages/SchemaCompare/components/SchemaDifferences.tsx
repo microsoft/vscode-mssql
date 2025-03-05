@@ -20,6 +20,7 @@ import {
 } from "@fluentui/react-components";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
+import { locConstants as loc } from "../../../common/locConstants";
 
 type DiffItem = {
     id: number;
@@ -33,21 +34,21 @@ type DiffItem = {
 const columns: TableColumnDefinition<DiffItem>[] = [
     createTableColumn<DiffItem>({
         columnId: "type",
-        renderHeaderCell: () => "Type",
+        renderHeaderCell: () => loc.schemaCompare.type,
         renderCell: (item) => {
             return <TableCellLayout>{item.type}</TableCellLayout>;
         },
     }),
     createTableColumn<DiffItem>({
         columnId: "sourceName",
-        renderHeaderCell: () => "Source Name",
+        renderHeaderCell: () => loc.schemaCompare.sourceName,
         renderCell: (item) => {
             return <TableCellLayout>{item.sourceValue}</TableCellLayout>;
         },
     }),
     createTableColumn<DiffItem>({
         columnId: "include",
-        renderHeaderCell: () => "Include",
+        renderHeaderCell: () => loc.schemaCompare.include,
         renderCell: (item) => {
             return (
                 <TableCellLayout>
@@ -58,14 +59,14 @@ const columns: TableColumnDefinition<DiffItem>[] = [
     }),
     createTableColumn<DiffItem>({
         columnId: "action",
-        renderHeaderCell: () => "Action",
+        renderHeaderCell: () => loc.schemaCompare.action,
         renderCell: (item) => {
             return <TableCellLayout>{item.updateAction}</TableCellLayout>;
         },
     }),
     createTableColumn<DiffItem>({
         columnId: "targetName",
-        renderHeaderCell: () => "Target Name",
+        renderHeaderCell: () => loc.schemaCompare.targetName,
         renderCell: (item) => {
             return <TableCellLayout>{item.targetValue}</TableCellLayout>;
         },
@@ -92,13 +93,13 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
         let actionLabel = "";
         switch (action) {
             case SchemaUpdateAction.Add:
-                actionLabel = "Add";
+                actionLabel = loc.schemaCompare.add;
                 break;
             case SchemaUpdateAction.Change:
-                actionLabel = "Change";
+                actionLabel = loc.schemaCompare.change;
                 break;
             case SchemaUpdateAction.Delete:
-                actionLabel = "Delete";
+                actionLabel = loc.schemaCompare.delete;
                 break;
         }
 
