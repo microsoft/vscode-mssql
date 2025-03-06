@@ -27,6 +27,7 @@ export function FilterTablesButton() {
     const [tableNames, setTableNames] = useState<string[]>([]);
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [filteredTableNames, setFilteredTableNames] = useState<string[]>([]);
+    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     function loadTables() {
         const schemaDesigner = context?.schemaDesigner;
@@ -57,11 +58,7 @@ export function FilterTablesButton() {
     useEffect(() => {}, []);
 
     return (
-        <Menu
-            onOpenChange={(_e, data) => {
-                console.log(data);
-            }}
-        >
+        <Menu open={isFilterMenuOpen}>
             <MenuTrigger disableButtonEnhancement>
                 <MenuButton
                     icon={<FluentIcons.Filter16Filled />}
@@ -69,7 +66,10 @@ export function FilterTablesButton() {
                     style={{
                         minWidth: "85px",
                     }}
-                    onClick={() => loadTables()}
+                    onClick={() => {
+                        loadTables();
+                        setIsFilterMenuOpen(!isFilterMenuOpen);
+                    }}
                     appearance="subtle"
                 >
                     {locConstants.schemaDesigner.filter}
@@ -137,6 +137,7 @@ export function FilterTablesButton() {
                         style={{
                             flex: "1",
                         }}
+                        appearance="primary"
                         onClick={() => {
                             if (context.schemaDesigner) {
                                 const selectedTableIds = context.schema.tables
@@ -151,6 +152,7 @@ export function FilterTablesButton() {
                                     selectedTableIds,
                                 );
                             }
+                            setIsFilterMenuOpen(false);
                         }}
                     >
                         {locConstants.schemaDesigner.applyFilter}
@@ -160,7 +162,12 @@ export function FilterTablesButton() {
                         style={{
                             flex: "1",
                         }}
-                        onClick={() => setSelectedTables([])}
+                        onClick={() => {
+                            setSelectedTables([]);
+                            if (context.schemaDesigner) {
+                                context.schemaDesigner.filterCells([]);
+                            }
+                        }}
                     >
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>

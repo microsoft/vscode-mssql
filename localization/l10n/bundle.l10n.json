@@ -305,9 +305,10 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",
-  "PK": "PK",
+  "Add new foreign key": "Add new foreign key",
   "Foreign Key {0}/{0} is the index of the foreign key": {
     "message": "Foreign Key {0}",
     "comment": [
@@ -320,6 +321,10 @@
   "Add Table": "Add Table",
   "Auto Arrange": "Auto Arrange",
   "Filter": "Filter",
+  "Refresh": "Refresh",
+  "Publish Changes": "Publish Changes",
+  "View Code": "View Code",
+  "Edit Table": "Edit Table",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [

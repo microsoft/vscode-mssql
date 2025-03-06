@@ -61,7 +61,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
 
     const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
     const [isCodeDrawerOpen, setIsCodeDrawerOpen] = useState(false);
-
     const [isPublishChangesEnabled, setIsPublishChangesEnabled] =
         useState(false);
 
