@@ -1439,6 +1439,7 @@ declare namespace Slick {
 
 		// Single column returned
 		sortCol?: Column<T>;
+		//TODO: change this to 3 states?
 		sortAsc: boolean;
 
 		// Multiple columns returned

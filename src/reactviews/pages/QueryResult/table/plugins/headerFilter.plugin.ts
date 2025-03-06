@@ -33,7 +33,7 @@ import {
     QueryResultWebviewState,
 } from "../../../../../sharedInterfaces/queryResult";
 
-export type HeaderFilterCommands = "sort-asc" | "sort-desc";
+export type HeaderFilterCommands = "sort-asc" | "sort-desc" | "reset";
 
 export interface CommandEventArgs<T extends Slick.SlickData> {
     grid: Slick.Grid<T>;
@@ -247,7 +247,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 column.id!,
                                 SortProperties.NONE,
                             );
-                            await this.resetData(this.columnDef);
+                            await this.handleMenuItemClick("reset", column);
                             columnFilterState.sorted = SortProperties.NONE;
                             await this.updateState(
                                 columnFilterState,
@@ -744,16 +744,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 command === "sort-asc",
             );
         }
-        if (
-            instanceOfIDisposableDataProvider<T>(dataView) &&
-            (command === "sort-asc" || command === "sort-desc")
-        ) {
-            await dataView.sort({
-                grid: this.grid,
-                multiColumnSort: false,
-                sortCol: this.columnDef,
-                sortAsc: command === "sort-asc",
-            });
+        if (instanceOfIDisposableDataProvider<T>(dataView)) {
+            if (command === "sort-asc" || command === "sort-desc") {
+                await dataView.sort({
+                    grid: this.grid,
+                    multiColumnSort: false,
+                    sortCol: this.columnDef,
+                    sortAsc: command === "sort-asc",
+                });
+            } else {
+                dataView.resetSort();
+                this.grid.setSortColumn("", false);
+            }
             this.grid.invalidateAllRows();
             this.grid.updateRowCount();
             this.grid.render();

@@ -88,6 +88,8 @@ export class TableDataView<T extends Slick.SlickData>
     private _data: Array<T>;
     //Used when filtering is enabled, _allData holds the complete set of data.
     private _allData!: Array<T>;
+    //Used to reset the data when a sort is cleared.
+    private _resetData: Array<T>;
     private _findArray?: Array<IFindPosition>;
     private _findIndex?: number;
     private _filterEnabled: boolean;
@@ -106,6 +108,7 @@ export class TableDataView<T extends Slick.SlickData>
         private _filterFn?: TableFilterFunc<T>,
         private _cellValueGetter: CellValueGetter = defaultCellValueGetter,
     ) {
+        this._resetData = [];
         if (data) {
             this._data = data;
         } else {
@@ -179,9 +182,17 @@ export class TableDataView<T extends Slick.SlickData>
     }
 
     async sort(args: Slick.OnSortEventArgs<T>): Promise<void> {
+        if (this._resetData.length === 0) {
+            this._resetData.push(...this._data);
+        }
         this._data = this._sortFn!(args, this._data);
         console.log(args);
         // this._onSortComplete.fire(args);
+    }
+
+    async resetSort(): Promise<void> {
+        this._data = this._resetData;
+        this._resetData = [];
     }
 
     getLength(): number {

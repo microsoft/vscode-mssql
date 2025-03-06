@@ -234,6 +234,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 showRowNumber: true,
                 forceFitColumns: false,
                 defaultColumnWidth: COLUMN_WIDTH,
+                // multiColumnSort: true,
             };
             let rowNumberColumn = new RowNumberColumn<Slick.SlickData>({
                 autoCellSelection: false,

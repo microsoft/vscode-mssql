@@ -116,6 +116,11 @@ export class HybridDataProvider<T extends Slick.SlickData>
         void this.provider.sort(options);
     }
 
+    public async resetSort() {
+        // const data = await this._loadDataFn(0, this.length);
+        void this.provider.resetSort();
+    }
+
     private get thresholdReached(): boolean {
         return (
             this._options.inMemoryDataCountThreshold !== undefined &&
