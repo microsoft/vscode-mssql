@@ -2215,10 +2215,10 @@
   dependencies:
     "@vscode/extension-telemetry" "0.6.1"
 
-"@microsoft/vscode-azext-azureauth@^2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-azureauth/-/vscode-azext-azureauth-2.5.0.tgz#b881ea5c633a08c675d0a02741b256faf6d9cd28"
-  integrity sha512-5XZhKg5JJv74sVRurvtCbtBPqTnXcJ3H0+GyTYwFcrW4v5kedYiXHyZqvaRQ4p33/U4J1uwr9xQkaBVB+TjhPQ==
+"@microsoft/vscode-azext-azureauth@^4.1.1":
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-azureauth/-/vscode-azext-azureauth-4.1.1.tgz#7c61cc6d4012ea3a0f8758c6a005eadc16a42660"
+  integrity sha512-ZHRoNBBwZBg8sqZ7/C+VMQOp7zusJxIpXzLlRpWGjrDI8PSFQk2bZloVdW877YeSLMe2464mjTlWMhEEa07Kaw==
   dependencies:
     "@azure/arm-resources-subscriptions" "^2.1.0"
     "@azure/core-client" "^1.9.2"
@@ -7115,6 +7115,11 @@ inline-style-parser@0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/inline-style-parser/-/inline-style-parser-0.2.3.tgz#e35c5fb45f3a83ed7849fe487336eb7efa25971c"
   integrity sha512-qlD8YNDqyTKTyuITrDOffsl6Tdhv+UC4hcdAVuQsK4IMQ99nSgd1MIA/Q+jQYoh9r3hVUXhYh7urSRmXPkW04g==
+
+install@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/install/-/install-0.13.0.tgz#6af6e9da9dd0987de2ab420f78e60d9c17260776"
+  integrity sha512-zDml/jzr2PKU9I8J/xyZBQn8rPCAY//UOYNmR01XwNwyfhEWObo2SWfSl1+0tm1u6PhxLwDnfsT/6jB7OUxqFA==
 
 internal-slot@^1.0.4, internal-slot@^1.0.7:
   version "1.0.7"
