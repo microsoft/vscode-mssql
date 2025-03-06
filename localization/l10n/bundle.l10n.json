@@ -305,6 +305,26 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Add new column": "Add new column",
+  "Table": "Table",
+  "Save": "Save",
+  "Add new foreign key": "Add new foreign key",
+  "Foreign Key {0}/{0} is the index of the foreign key": {
+    "message": "Foreign Key {0}",
+    "comment": [
+      "{0} is the index of the foreign key"
+    ]
+  },
+  "Source Column": "Source Column",
+  "Target Table": "Target Table",
+  "Export": "Export",
+  "Add Table": "Add Table",
+  "Auto Arrange": "Auto Arrange",
+  "Filter": "Filter",
+  "Refresh": "Refresh",
+  "Publish Changes": "Publish Changes",
+  "View Code": "View Code",
+  "Edit Table": "Edit Table",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -815,6 +835,9 @@
   },
   "General": "General",
   "Schema Compare": "Schema Compare",
+  "Loading Schema Designer Model...": "Loading Schema Designer Model...",
+  "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
+  "Save As": "Save As",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
