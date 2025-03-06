@@ -21,57 +21,11 @@ import {
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
+import { DiffEntry } from "vscode-mssql";
 
-type DiffItem = {
+type DiffItem = DiffEntry & {
     id: number;
-    type: string;
-    sourceValue: string;
-    included: boolean;
-    updateAction: string;
-    targetValue: string;
 };
-
-const columns: TableColumnDefinition<DiffItem>[] = [
-    createTableColumn<DiffItem>({
-        columnId: "type",
-        renderHeaderCell: () => loc.schemaCompare.type,
-        renderCell: (item) => {
-            return <TableCellLayout>{item.type}</TableCellLayout>;
-        },
-    }),
-    createTableColumn<DiffItem>({
-        columnId: "sourceName",
-        renderHeaderCell: () => loc.schemaCompare.sourceName,
-        renderCell: (item) => {
-            return <TableCellLayout>{item.sourceValue}</TableCellLayout>;
-        },
-    }),
-    createTableColumn<DiffItem>({
-        columnId: "include",
-        renderHeaderCell: () => loc.schemaCompare.include,
-        renderCell: (item) => {
-            return (
-                <TableCellLayout>
-                    <Checkbox checked={item.included} />
-                </TableCellLayout>
-            );
-        },
-    }),
-    createTableColumn<DiffItem>({
-        columnId: "action",
-        renderHeaderCell: () => loc.schemaCompare.action,
-        renderCell: (item) => {
-            return <TableCellLayout>{item.updateAction}</TableCellLayout>;
-        },
-    }),
-    createTableColumn<DiffItem>({
-        columnId: "targetName",
-        renderHeaderCell: () => loc.schemaCompare.targetName,
-        renderCell: (item) => {
-            return <TableCellLayout>{item.targetValue}</TableCellLayout>;
-        },
-    }),
-];
 
 interface Props {
     onDiffSelected: (id: number) => void;
@@ -106,21 +60,81 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
         return actionLabel;
     };
 
-    let items: DiffItem[] = [];
+    const handleIncludeExcludeNode = (
+        diffEntry: DiffItem,
+        include: boolean,
+    ) => {
+        context.includeExcludeNode(diffEntry.id, diffEntry, include);
+    };
+
+    let items: DiffEntry[] = [];
     if (compareResult?.success)
         items = compareResult.differences.map(
             (item, index) =>
                 ({
                     id: index,
-                    type: item.name,
-                    sourceValue: formatName(item.sourceValue),
-                    included: true,
-                    updateAction: getLabelForAction(
-                        item.updateAction as number,
-                    ),
-                    targetValue: formatName(item.targetValue),
+                    ...item,
                 }) as DiffItem,
         );
+
+    const columns: TableColumnDefinition<DiffItem>[] = [
+        createTableColumn<DiffItem>({
+            columnId: "type",
+            renderHeaderCell: () => loc.schemaCompare.type,
+            renderCell: (item) => {
+                return <TableCellLayout>{item.name}</TableCellLayout>;
+            },
+        }),
+        createTableColumn<DiffItem>({
+            columnId: "sourceName",
+            renderHeaderCell: () => loc.schemaCompare.sourceName,
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {formatName(item.sourceValue)}
+                    </TableCellLayout>
+                );
+            },
+        }),
+        createTableColumn<DiffItem>({
+            columnId: "include",
+            renderHeaderCell: () => loc.schemaCompare.include,
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        <Checkbox
+                            checked={item.included}
+                            onClick={() =>
+                                handleIncludeExcludeNode(item, !item.included)
+                            }
+                        />
+                    </TableCellLayout>
+                );
+            },
+        }),
+        createTableColumn<DiffItem>({
+            columnId: "action",
+            renderHeaderCell: () => loc.schemaCompare.action,
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {getLabelForAction(item.updateAction as number)}
+                    </TableCellLayout>
+                );
+            },
+        }),
+        createTableColumn<DiffItem>({
+            columnId: "targetName",
+            renderHeaderCell: () => loc.schemaCompare.targetName,
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {formatName(item.targetValue)}
+                    </TableCellLayout>
+                );
+            },
+        }),
+    ];
 
     return (
         <>

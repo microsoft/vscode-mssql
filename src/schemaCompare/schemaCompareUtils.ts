@@ -74,6 +74,7 @@ async function fileExists(path: string): Promise<boolean> {
  * Compares the schema between the source and target endpoints.
  *
  * @param operationId - The ID of the schema comparison operation.
+ * @param taskExecutionMode - The mode of task execution.
  * @param payload - The payload containing the comparison parameters.
  * @param schemaCompareService - The service used to perform the schema comparison.
  * @returns A promise that resolves to the result of the schema comparison.
@@ -182,12 +183,14 @@ export async function getDefaultOptions(
  * Includes or excludes a node in the schema comparison.
  *
  * @param operationId - The ID of the schema comparison operation.
+ * @param taskExecutionMode - The mode of task execution.
  * @param payload - The payload containing the details for including or excluding the node.
  * @param schemaCompareService - The service used to perform the include/exclude operation.
  * @returns A promise that resolves to the result of the include/exclude operation.
  */
 export async function includeExcludeNode(
     operationId: string,
+    taskExecutionMode: mssql.TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeNode"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
@@ -195,7 +198,7 @@ export async function includeExcludeNode(
         operationId,
         payload.diffEntry,
         payload.includeRequest,
-        payload.taskExecutionMode,
+        taskExecutionMode,
     );
 
     return result;

@@ -101,14 +101,14 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     webViewState?.extensionRpc.action("getDefaultOptions", {});
                 },
                 includeExcludeNode: function (
+                    id: number,
                     diffEntry: mssql.DiffEntry,
                     includeRequest: boolean,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("includeExcludeNode", {
+                        id: id,
                         diffEntry: diffEntry,
                         includeRequest: includeRequest,
-                        taskExecutionMode: taskExecutionMode,
                     });
                 },
                 openScmp: function (filePath: string): void {

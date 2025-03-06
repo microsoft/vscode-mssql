@@ -90,9 +90,9 @@ export interface SchemaCompareReducers {
     getDefaultOptions: {};
 
     includeExcludeNode: {
+        id: number;
         diffEntry: DiffEntry;
         includeRequest: boolean;
-        taskExecutionMode: TaskExecutionMode;
     };
 
     openScmp: {
@@ -151,9 +151,9 @@ export interface SchemaCompareContextProps {
     getDefaultOptions: () => void;
 
     includeExcludeNode: (
+        id: number,
         diffEntry: DiffEntry,
         includeRequest: boolean,
-        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     openScmp: (filePath: string) => void;

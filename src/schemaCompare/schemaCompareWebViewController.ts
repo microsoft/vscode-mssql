@@ -374,11 +374,36 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("includeExcludeNode", async (state, payload) => {
             const result = await includeExcludeNode(
                 this.operationId,
+                TaskExecutionMode.execute,
                 payload,
                 this.schemaCompareService,
             );
 
-            state.schemaCompareIncludeExcludeResult = result;
+            if (result.success) {
+                state.schemaCompareIncludeExcludeResult = result;
+
+                state.schemaCompareResult.differences[payload.id].included =
+                    payload.includeRequest;
+
+                result.affectedDependencies.forEach((difference) => {
+                    const index =
+                        state.schemaCompareResult.differences.findIndex(
+                            (d) =>
+                                d.sourceValue === difference.sourceValue &&
+                                d.targetValue === difference.targetValue &&
+                                d.updateAction === difference.updateAction &&
+                                d.name === difference.name,
+                        );
+
+                    if (index !== -1) {
+                        state.schemaCompareResult.differences[index].included =
+                            payload.includeRequest;
+                    }
+                });
+
+                this.updateState(state);
+            }
+
             return state;
         });
 
