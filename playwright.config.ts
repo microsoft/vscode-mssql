@@ -5,7 +5,6 @@
 
 import dotenv from "dotenv";
 import { defineConfig } from "@playwright/test";
-import path from "path";
 
 dotenv.config({ path: "./test/e2e/.env" });
 
