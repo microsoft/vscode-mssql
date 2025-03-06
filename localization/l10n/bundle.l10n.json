@@ -325,6 +325,8 @@
   "Publish Changes": "Publish Changes",
   "View Code": "View Code",
   "Edit Table": "Edit Table",
+  "Open in Editor": "Open in Editor",
+  "Changed Tables": "Changed Tables",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [

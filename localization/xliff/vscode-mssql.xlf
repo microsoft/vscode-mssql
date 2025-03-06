@@ -187,6 +187,9 @@
     <trans-unit id="++CODE++78caadaa3d12c39131d70d9b85b2aa5b4fdc874138c7fa884349a843312e02c7">
       <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
+      <source xml:lang="en">Changed Tables</source>
+    </trans-unit>
     <trans-unit id="++CODE++6ba2dfc2755e1d829986d3bf36cdea9fc88fa8c16d079b7d0f6a6309e8e67a6a">
       <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
       <note>{0} is the database name
@@ -944,6 +947,9 @@
     </trans-unit>
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
+      <source xml:lang="en">Open in Editor</source>
     </trans-unit>
     <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
       <source xml:lang="en">Open in New Tab</source>
