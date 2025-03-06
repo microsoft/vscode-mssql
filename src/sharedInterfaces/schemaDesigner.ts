@@ -280,6 +280,9 @@ export namespace SchemaDesigner {
             scripts: TableScript[];
             combinedScript: string;
         };
+        report: {
+            reports: SchemaDesignerReport[];
+        };
     }
 
     export interface ExportFileOptions {
@@ -297,9 +300,19 @@ export namespace SchemaDesigner {
         updatedSchema: Schema;
     }
 
+    export interface CopyToClipboardOptions {
+        text: string;
+    }
+
+    export interface OpenInEditorOptions {
+        text: string;
+    }
+
     export interface SchemaDesignerReducers {
         exportToFile: ExportFileOptions;
         getScript: GetScriptOptions;
         getReport: GetReportOptions;
+        copyToClipboard: CopyToClipboardOptions;
+        openInEditor: OpenInEditorOptions;
     }
 }

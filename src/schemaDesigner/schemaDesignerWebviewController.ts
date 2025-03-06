@@ -38,6 +38,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     combinedScript: "",
                     scripts: [],
                 },
+                report: {
+                    reports: [],
+                },
             },
             {
                 title: databaseName,
@@ -147,7 +150,27 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             state = {
                 ...this.state,
                 schema: payload.updatedSchema,
+                report: {
+                    reports: report.reports,
+                },
             };
+            return state;
+        });
+
+        this.registerReducer("copyToClipboard", async (state, payload) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            return state;
+        });
+
+        this.registerReducer("openInEditor", async (state, payload) => {
+            const document = await this.vscodeWrapper.openMsSqlTextDocument(
+                payload.text,
+            );
+            // Open the document in the editor
+            await this.vscodeWrapper.showTextDocument(document, {
+                viewColumn: vscode.ViewColumn.Active,
+                preserveFocus: true,
+            });
             return state;
         });
     }

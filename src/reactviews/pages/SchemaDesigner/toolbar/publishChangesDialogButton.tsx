@@ -12,14 +12,41 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Tree,
+    TreeItem,
+    TreeItemLayout,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
+import Markdown from "react-markdown";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
+
+    const [selectedReport, setSelectedReport] = useState<number>(-1);
+    function getTableDisplayNameForReport(
+        report: SchemaDesigner.SchemaDesignerReport,
+    ) {
+        const table = context.state.schema.tables.find(
+            (table) => table.id === report.tableId,
+        );
+        if (table) {
+            return `${table.schema}.${table.name}`;
+        }
+        return "";
+    }
+
+    useEffect(() => {
+        if (context?.state?.report?.reports?.length > 0) {
+            setSelectedReport(0);
+        } else {
+            setSelectedReport(-1);
+        }
+    }, [context.state.report]);
+
     return (
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
@@ -40,15 +67,86 @@ export function PublishChangesDialogButton() {
                 <DialogBody>
                     <DialogTitle>Publish changes</DialogTitle>
                     <DialogContent>
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                        Quisquam exercitationem cumque repellendus eaque est
-                        dolor eius expedita nulla ullam? Tenetur reprehenderit
-                        aut voluptatum impedit voluptates in natus iure cumque
-                        eaque?
+                        <div
+                            style={{
+                                width: "100%",
+                                display: "flex",
+                                flexDirection: "row",
+                                minHeight: "500px",
+                                maxHeight: "500px",
+                                overflow: "hidden",
+                            }}
+                        >
+                            <Tree
+                                size="small"
+                                aria-label="Small Size Tree"
+                                defaultOpenItems={["root"]}
+                                style={{
+                                    minWidth: "180px",
+                                    overflow: "hidden",
+                                    overflowY: "auto",
+                                }}
+                            >
+                                <TreeItem itemType="branch" value={"root"}>
+                                    <TreeItemLayout>
+                                        {
+                                            locConstants.schemaDesigner
+                                                .changedTables
+                                        }
+                                    </TreeItemLayout>
+                                    <Tree>
+                                        {context.state?.report?.reports?.map(
+                                            (report, index) => {
+                                                return (
+                                                    <TreeItem
+                                                        key={getTableDisplayNameForReport(
+                                                            report,
+                                                        )}
+                                                        itemType="leaf"
+                                                        onClick={() => {
+                                                            setSelectedReport(
+                                                                index,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <TreeItemLayout>
+                                                            {getTableDisplayNameForReport(
+                                                                report,
+                                                            )}
+                                                        </TreeItemLayout>
+                                                    </TreeItem>
+                                                );
+                                            },
+                                        )}
+                                    </Tree>
+                                </TreeItem>
+                            </Tree>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    flexGrow: 1,
+                                    height: "100%",
+                                    overflow: "auto",
+                                }}
+                            >
+                                <Markdown>
+                                    {selectedReport !== -1
+                                        ? (context.state.report.reports[
+                                              selectedReport
+                                          ].report.report ??
+                                          context.state.report.reports[
+                                              selectedReport
+                                          ].report.schemaValidationError)
+                                        : ""}
+                                </Markdown>
+                            </div>
+                        </div>
                     </DialogContent>
                     <DialogActions>
+                        <Button appearance="primary">Publish</Button>
+                        <Button appearance="secondary">Script</Button>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="primary">Close</Button>
+                            <Button appearance="secondary">Close</Button>
                         </DialogTrigger>
                     </DialogActions>
                 </DialogBody>

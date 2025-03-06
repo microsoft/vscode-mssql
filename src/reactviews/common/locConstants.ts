@@ -369,6 +369,8 @@ export class LocConstants {
             publishChanges: l10n.t("Publish Changes"),
             viewCode: l10n.t("View Code"),
             editTable: l10n.t("Edit Table"),
+            openInEditor: l10n.t("Open in Editor"),
+            changedTables: l10n.t("Changed Tables"),
         };
     }
 }

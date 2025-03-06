@@ -31,6 +31,8 @@ export interface SchemaDesignerContextProps
     isCodeDrawerOpen: boolean;
     getScript: () => void;
     getReport: () => void;
+    copyToClipboard: (text: string) => void;
+    openInEditor: (text: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -88,6 +90,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
             });
         }
     };
+    const copyToClipboard = (text: string) => {
+        void extensionRpc.action("copyToClipboard", {
+            text: text,
+        });
+    };
+    const openInEditor = (text: string) => {
+        void extensionRpc.action("openInEditor", {
+            text: text,
+        });
+    };
 
     return (
         <SchemaDesignerContext.Provider
@@ -111,6 +123,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 setIsCodeDrawerOpen,
                 getScript,
                 getReport,
+                copyToClipboard,
+                openInEditor,
             }}
         >
             {children}

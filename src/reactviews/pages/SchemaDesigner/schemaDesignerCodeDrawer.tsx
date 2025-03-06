@@ -9,6 +9,7 @@ import {
     DrawerHeader,
     DrawerHeaderTitle,
     InlineDrawer,
+    Toolbar,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
@@ -20,16 +21,48 @@ import { resolveVscodeThemeType } from "../../common/utils";
 export const SchemaDesignerCodeDrawer = () => {
     const context = useContext(SchemaDesignerContext);
     return (
-        <InlineDrawer open={context.isCodeDrawerOpen} position="bottom">
+        <InlineDrawer
+            separator
+            open={context.isCodeDrawerOpen}
+            position="bottom"
+        >
             <DrawerHeader>
                 <DrawerHeaderTitle
                     action={
-                        <Button
-                            appearance="subtle"
-                            aria-label="Close"
-                            icon={<FluentIcons.Dismiss24Regular />}
-                            onClick={() => context.setIsCodeDrawerOpen(false)}
-                        />
+                        <Toolbar>
+                            <Button
+                                appearance="subtle"
+                                aria-label={
+                                    locConstants.schemaDesigner.openInEditor
+                                }
+                                icon={<FluentIcons.OpenRegular />}
+                                onClick={() =>
+                                    context.openInEditor(
+                                        context.state?.script?.combinedScript,
+                                    )
+                                }
+                            >
+                                {locConstants.schemaDesigner.openInEditor}
+                            </Button>
+                            <Button
+                                appearance="subtle"
+                                aria-label="Copy"
+                                icon={<FluentIcons.CopyRegular />}
+                                onClick={() =>
+                                    context.copyToClipboard(
+                                        context.state?.script?.combinedScript,
+                                    )
+                                }
+                            />
+                            <Button
+                                appearance="subtle"
+                                aria-label="Close"
+                                icon={<FluentIcons.Dismiss24Regular />}
+                                onClick={() =>
+                                    context.setIsCodeDrawerOpen(false)
+                                }
+                            />
+                        </Toolbar>
                     }
                 >
                     {locConstants.schemaDesigner.viewCode}
