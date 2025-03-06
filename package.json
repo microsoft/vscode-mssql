@@ -110,6 +110,7 @@
     "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "@vscode/l10n": "^0.0.18",
     "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-cli": "^0.0.10",
@@ -171,6 +172,8 @@
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
+    "vite": "^6.2.0",
+    "vite-plugin-istanbul": "^7.0.0",
     "vscode-nls-dev": "2.0.1",
     "xliff": "^6.2.1",
     "yargs": "^17.7.2"
@@ -925,9 +928,9 @@
         }
       },
       {
-          "command": "mssql.enableRichExperiences",
-          "title": "%mssql.enableRichExperiences%",
-          "category": "MS SQL"
+        "command": "mssql.enableRichExperiences",
+        "title": "%mssql.enableRichExperiences%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -1050,15 +1053,24 @@
                 "description": "%mssql.connectionGroup.id%"
               },
               "color": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.color%"
               },
               "description": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.description%"
               },
               "parentId": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.parentId%"
               }
             }
@@ -1289,20 +1301,20 @@
           "scope": "resource"
         },
         "mssql.resultsFontFamily": {
-            "type": "string",
-            "description": "%mssql.resultsFontFamily%",
-            "default": null,
-            "scope": "resource"
+          "type": "string",
+          "description": "%mssql.resultsFontFamily%",
+          "default": null,
+          "scope": "resource"
         },
         "mssql.resultsFontSize": {
-            "type": [
-                "number",
-                "null"
-            ],
-            "maximum": 24,
-            "description": "%mssql.resultsFontSize%",
-            "default": null,
-            "scope": "resource"
+          "type": [
+            "number",
+            "null"
+          ],
+          "maximum": 24,
+          "description": "%mssql.resultsFontSize%",
+          "default": null,
+          "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
@@ -1497,9 +1509,9 @@
           "description": "%mssql.logFilesRemovalLimit%"
         },
         "mssql.resultsGrid.autoSizeColumns": {
-            "type": "boolean",
-            "default": true,
-            "description": "%mssql.resultsGrid.autoSizeColumns%"
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.resultsGrid.autoSizeColumns%"
         },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",

@@ -215,7 +215,7 @@ async function generateReactWebviewsBundle() {
 		minifyWhitespace: prod,
 		minifyIdentifiers: prod,
 		format: 'esm',
-		splitting: true,
+		splitting: false,
 	});
 
 	const result = await ctx.rebuild();
@@ -405,7 +405,7 @@ gulp.task('ext:test', async () => {
 	});
 });
 
-gulp.task('ext:smoke', run('npx playwright test'));
+gulp.task('ext:smoke', run('npx nyc --reporter=html --reporter=text-summary --exclude=playwright.config.ts npx playwright test'));
 
 gulp.task('test', gulp.series('ext:test'));
 
