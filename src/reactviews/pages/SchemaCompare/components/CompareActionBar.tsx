@@ -38,6 +38,13 @@ const CompareActionBar = () => {
         );
     };
 
+    const handlePublishChanges = () => {
+        context.publishChanges(
+            context.state.targetEndpointInfo.serverName,
+            context.state.targetEndpointInfo.databaseName,
+        );
+    };
+
     return (
         <Toolbar>
             <ToolbarButton
@@ -67,6 +74,7 @@ const CompareActionBar = () => {
                 aria-label={loc.schemaCompare.apply}
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
+                onClick={handlePublishChanges}
             >
                 {loc.schemaCompare.apply}
             </ToolbarButton>

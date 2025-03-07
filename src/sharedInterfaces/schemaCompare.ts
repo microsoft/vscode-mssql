@@ -74,10 +74,14 @@ export interface SchemaCompareReducers {
         targetDatabaseName: string;
     };
 
+    publishChanges: {
+        targetServerName: string;
+        targetDatabaseName: string;
+    };
+
     publishDatabaseChanges: {
         targetServerName: string;
         targetDatabaseName: string;
-        taskExecutionMode: TaskExecutionMode;
     };
 
     publishProjectChanges: {
@@ -134,10 +138,14 @@ export interface SchemaCompareContextProps {
         targetDatabaseName: string,
     ) => void;
 
+    publishChanges: (
+        targetServerName: string,
+        targetDatabaseName: string,
+    ) => void;
+
     publishDatabaseChanges: (
         targetServerName: string,
         targetDatabaseName: string,
-        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     publishProjectChanges: (

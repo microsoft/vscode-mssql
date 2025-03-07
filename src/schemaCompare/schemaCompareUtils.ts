@@ -11,6 +11,16 @@ import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
 
 /**
+ * A constant string representing the command to publish schema compare changes
+ * for SQL database projects.
+ *
+ * This command is used to trigger the publishing of project changes in the
+ * schema compare feature of the SQL Database Projects extension.
+ */
+export const sqlDatabaseProjectsPublishChanges: string =
+    "sqlDatabaseProjects.schemaComparePublishProjectChanges";
+
+/**
  * Generates a unique operation ID.
  *
  * @returns {string} A new GUID representing the operation ID.
@@ -130,14 +140,15 @@ export async function generateScript(
  */
 export async function publishDatabaseChanges(
     operationId: string,
-    payload: SchemaCompareReducers["publishDatabaseChanges"],
+    taskExecutionMode: mssql.TaskExecutionMode,
+    payload: SchemaCompareReducers["publishChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.publishDatabaseChanges(
         operationId,
         payload.targetServerName,
         payload.targetDatabaseName,
-        payload.taskExecutionMode,
+        taskExecutionMode,
     );
 
     return result;
@@ -259,4 +270,26 @@ export async function cancel(
     const result = await schemaCompareService.cancel(operationId);
 
     return result;
+}
+
+/**
+ * Returns a string representation of the given SchemaCompareEndpointType.
+ *
+ * @param endpointType - The type of the schema compare endpoint.
+ * @returns A string representing the schema compare endpoint type.
+ *          Possible values are "Database", "Dacpac", "Project", or "Unknown: {endpointType}".
+ */
+export function getSchemaCompareEndpointTypeString(
+    endpointType: mssql.SchemaCompareEndpointType,
+): string {
+    switch (endpointType) {
+        case mssql.SchemaCompareEndpointType.Database:
+            return "Database";
+        case mssql.SchemaCompareEndpointType.Dacpac:
+            return "Dacpac";
+        case mssql.SchemaCompareEndpointType.Project:
+            return "Project";
+        default:
+            return `Unknown: ${endpointType}`;
+    }
 }

@@ -27,6 +27,8 @@ import {
     publishProjectChanges,
     saveScmp,
     openFileDialog,
+    getSchemaCompareEndpointTypeString,
+    sqlDatabaseProjectsPublishChanges,
 } from "./schemaCompareUtils";
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -385,11 +387,93 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("publishChanges", async (state, payload) => {
+            const yes = loc.schemaCompare.yes;
+            const result = await vscode.window.showWarningMessage(
+                loc.schemaCompare.areYouSureYouWantToUpdateTheTarget,
+                { modal: true },
+                yes,
+            );
+
+            if (result !== yes) {
+                return state;
+            }
+
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.Publish,
+                this.operationId,
+                {
+                    startTime: Date.now().toString(),
+                    operationId: this.operationId,
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                },
+            );
+
+            let publishResult: mssql.ResultStatus | undefined = undefined;
+
+            switch (state.targetEndpointInfo.endpointType) {
+                case mssql.SchemaCompareEndpointType.Database:
+                    publishResult = await publishDatabaseChanges(
+                        this.operationId,
+                        TaskExecutionMode.execute,
+                        payload,
+                        this.schemaCompareService,
+                    );
+                    break;
+
+                case mssql.SchemaCompareEndpointType.Project:
+                    publishResult = await this.publishChangesToProject(state);
+                    break;
+
+                case mssql.SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
+                default:
+                    throw new Error(
+                        `Unsupported SchemaCompareEndpointType: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`,
+                    );
+            }
+
+            if (
+                !publishResult ||
+                !publishResult.success ||
+                publishResult.errorMessage
+            ) {
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: publishResult.errorMessage,
+                    operationId: this.operationId,
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                });
+
+                vscode.window.showErrorMessage(
+                    loc.schemaCompare.schemaCompareApplyFailed(
+                        publishResult.errorMessage,
+                    ),
+                );
+
+                return state;
+            }
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                endTime: Date.now().toString(),
+                operationId: this.operationId,
+                targetType: getSchemaCompareEndpointTypeString(
+                    state.targetEndpointInfo.endpointType,
+                ),
+            });
+
+            return state;
+        });
+
         this.registerReducer(
             "publishDatabaseChanges",
             async (state, payload) => {
                 const result = await publishDatabaseChanges(
                     this.operationId,
+                    TaskExecutionMode.execute,
                     payload,
                     this.schemaCompareService,
                 );
@@ -539,6 +623,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         // result.differences = finalDifferences;
         // return data;
+    }
+
+    private async publishChangesToProject(
+        state: SchemaCompareWebViewState,
+    ): Promise<mssql.ResultStatus> {
+        const result: mssql.ResultStatus = await vscode.commands.executeCommand(
+            sqlDatabaseProjectsPublishChanges,
+            this.operationId,
+            state.targetEndpointInfo.projectFilePath,
+            state.targetEndpointInfo.extractTarget,
+        );
+
+        if (!result.success) {
+            vscode.window.showErrorMessage(
+                loc.schemaCompare.thereWasAnErrorUpdatingTheProject,
+            );
+        }
+
+        return result;
     }
 
     // private shouldDiffBeIncluded(diff: mssql.DiffEntry): boolean {
