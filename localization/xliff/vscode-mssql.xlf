@@ -1170,6 +1170,10 @@
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++8bd05764f179b5c53231ee8df7d8f52d5906689eb660f1bd0ff33d1e0817290c">
+      <source xml:lang="en">Schema Compare failed: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the compare operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
       <source xml:lang="en">Script As Create</source>
     </trans-unit>

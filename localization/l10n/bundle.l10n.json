@@ -329,6 +329,12 @@
   "File": "File",
   "Source": "Source",
   "Target": "Target",
+  "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
+    "message": "Schema Compare failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the compare operation"
+    ]
+  },
   "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {
     "message": "Cancel schema compare failed: '{0}'",
     "comment": [
