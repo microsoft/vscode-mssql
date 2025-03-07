@@ -375,6 +375,14 @@ export class LocConstants {
             cancel: l10n.t("Cancel"),
             source: l10n.t("Source"),
             target: l10n.t("Target"),
+            cancelErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Cancel schema compare failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the cancel operation",
+                    ],
+                }),
         };
     }
 }

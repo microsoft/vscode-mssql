@@ -14,6 +14,7 @@ export enum TelemetryViews {
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
     TableDesigner = "TableDesigner",
+    SchemaCompare = "SchemaCompare",
     UserSurvey = "UserSurvey",
     General = "General",
     ConnectionDialog = "ConnectionDialog",

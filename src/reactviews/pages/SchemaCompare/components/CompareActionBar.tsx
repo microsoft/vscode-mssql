@@ -21,8 +21,16 @@ import {
 } from "@fluentui/react-icons";
 
 import { locConstants as loc } from "../../../common/locConstants";
+import { useContext } from "react";
+import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
 const CompareActionBar = () => {
+    const context = useContext(schemaCompareContext);
+
+    const handleStop = () => {
+        context.cancel();
+    };
+
     return (
         <Toolbar>
             <ToolbarButton
@@ -36,6 +44,7 @@ const CompareActionBar = () => {
                 area-label={loc.schemaCompare.stop}
                 title={loc.schemaCompare.stop}
                 icon={<StopFilled />}
+                onClick={handleStop}
             >
                 {loc.schemaCompare.stop}
             </ToolbarButton>

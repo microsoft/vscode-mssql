@@ -28,8 +28,15 @@ import {
     saveScmp,
     openFileDialog,
 } from "./schemaCompareUtils";
+import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import {
+    ActivityStatus,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -422,10 +429,32 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("cancel", async (state) => {
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.Cancel,
+                this.operationId,
+                {
+                    startTime: Date.now().toString(),
+                },
+            );
+
             const result = await cancel(
                 this.operationId,
                 this.schemaCompareService,
             );
+
+            if (!result || !result.success) {
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: result.errorMessage,
+                    correlationId: this.operationId,
+                });
+
+                vscode.window.showErrorMessage(
+                    loc.schemaCompare.cancelErrorMessage(result.errorMessage),
+                );
+            }
+
+            endActivity.end(ActivityStatus.Succeeded);
 
             state.cancelResultStatus = result;
             return state;
