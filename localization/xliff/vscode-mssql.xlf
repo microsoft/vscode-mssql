@@ -669,6 +669,10 @@
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++3d3813ca1c7608ef69cb91a5f621e6c1507ffca56b18275740366df04e5cff6e">
+      <source xml:lang="en">Generate script failed: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the generate script operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
     </trans-unit>
