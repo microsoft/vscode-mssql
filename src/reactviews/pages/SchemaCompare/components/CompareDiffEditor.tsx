@@ -5,7 +5,6 @@
 
 import { useContext } from "react";
 import { DiffEditor } from "@monaco-editor/react";
-import "./compareDiffEditor.css";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { resolveVscodeThemeType } from "../../../common/utils";
 
