@@ -8,6 +8,7 @@ import SchemaDifferences from "./components/SchemaDifferences";
 import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
 import SchemaSelectorDrawer from "./components/SchemaSelectorDrawer";
+import CompareActionBar from "./components/CompareActionBar";
 
 export const SchemaComparePage = () => {
     const [selectedDiffId, setSelectedDiffId] = useState(-1);
@@ -33,6 +34,7 @@ export const SchemaComparePage = () => {
 
     return (
         <div>
+            <CompareActionBar />
             <SelectSchemasPanel
                 onSelectSchemaClicked={handleSelectSchemaClicked}
             />

@@ -335,6 +335,25 @@ export class LocConstants {
 
     public get schemaCompare() {
         return {
+            compare: l10n.t("Compare"),
+            stop: l10n.t("Stop"),
+            generateScript: l10n.t("Generate Script"),
+            generateScriptToDeployChangesToTarget: l10n.t(
+                "Generate script to deploy changes to target",
+            ),
+            apply: l10n.t("Apply"),
+            applyChangesToTarget: l10n.t("Apply changes to target"),
+            options: l10n.t("Options"),
+            switchDirection: l10n.t("Switch Direction"),
+            switchSourceAndTarget: l10n.t("Switch Source and Target"),
+            openScmpFile: l10n.t("Open .scmp file"),
+            loadSourceTargetAndOptionsSavedInAnScmpFile: l10n.t(
+                "Load source, target, and options saved in an .scmp file",
+            ),
+            saveScmpFile: l10n.t("Save .scmp file"),
+            saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
+                "Save source and target, options, and excluded elements",
+            ),
             type: l10n.t("Type"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
@@ -356,7 +375,6 @@ export class LocConstants {
             cancel: l10n.t("Cancel"),
             source: l10n.t("Source"),
             target: l10n.t("Target"),
-            compare: l10n.t("Compare"),
         };
     }
 }
