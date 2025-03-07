@@ -88,6 +88,9 @@
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
     </trans-unit>
+    <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
+      <source xml:lang="en">Apply changes to target</source>
+    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
@@ -662,6 +665,9 @@
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
+      <source xml:lang="en">Generate script to deploy changes to target</source>
+    </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
@@ -748,6 +754,9 @@
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
+      <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
     </trans-unit>
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
@@ -932,6 +941,9 @@
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
     </trans-unit>
+    <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
+      <source xml:lang="en">Open .scmp file</source>
+    </trans-unit>
     <trans-unit id="++CODE++27d46ec89f6c8889936e3d885b71d612efdbf08d8514f16157875104d01fd5f5">
       <source xml:lang="en">Open Query</source>
     </trans-unit>
@@ -955,6 +967,9 @@
     </trans-unit>
     <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
       <source xml:lang="en">Optional (False)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d0db8b5e364b6989e4b8f38a2b3846b87d99a51c1592ebf35d21cc66405a8e39">
+      <source xml:lang="en">Options</source>
     </trans-unit>
     <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
       <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
@@ -1112,6 +1127,9 @@
     <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
       <source xml:lang="en">Satisfied</source>
     </trans-unit>
+    <trans-unit id="++CODE++dee3e3871faf828499426928ded1c3d2762c767a5c9f07e954d25a63aca26da2">
+      <source xml:lang="en">Save .scmp file</source>
+    </trans-unit>
     <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
       <source xml:lang="en">Save Password</source>
     </trans-unit>
@@ -1132,6 +1150,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
+      <source xml:lang="en">Save source and target, options, and excluded elements</source>
     </trans-unit>
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
@@ -1265,6 +1286,9 @@
     <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
       <source xml:lang="en">Starts With</source>
     </trans-unit>
+    <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
+      <source xml:lang="en">Stop</source>
+    </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
@@ -1291,6 +1315,12 @@
     </trans-unit>
     <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
       <source xml:lang="en">Successfully saved results to </source>
+    </trans-unit>
+    <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
+      <source xml:lang="en">Switch Direction</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d7a3cd6cbe28889d5ba18259f276a78a6023030468a7b4013b74a45a2923b9d9">
+      <source xml:lang="en">Switch Source and Target</source>
     </trans-unit>
     <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
       <source xml:lang="en">Switch to MSAL</source>
