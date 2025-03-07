@@ -72,7 +72,6 @@ export interface SchemaCompareReducers {
     generateScript: {
         targetServerName: string;
         targetDatabaseName: string;
-        taskExecutionMode: TaskExecutionMode;
     };
 
     publishDatabaseChanges: {
@@ -133,7 +132,6 @@ export interface SchemaCompareContextProps {
     generateScript: (
         targetServerName: string,
         targetDatabaseName: string,
-        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
     publishDatabaseChanges: (

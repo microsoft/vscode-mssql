@@ -327,7 +327,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (!result || !result.success) {
                 endActivity.endFailed(undefined, false, undefined, undefined, {
                     errorMessage: result.errorMessage,
-                    correlationId: this.operationId,
+                    operationId: this.operationId,
                 });
 
                 vscode.window.showErrorMessage(
@@ -346,11 +346,40 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.GenerateScript,
+                this.operationId,
+                {
+                    startTime: Date.now().toString(),
+                    operationId: this.operationId,
+                },
+            );
+
             const result = await generateScript(
                 this.operationId,
+                TaskExecutionMode.script,
                 payload,
                 this.schemaCompareService,
             );
+
+            if (!result || !result.success) {
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: result.errorMessage,
+                    operationId: this.operationId,
+                });
+
+                vscode.window.showErrorMessage(
+                    loc.schemaCompare.generateScriptErrorMessage(
+                        result.errorMessage,
+                    ),
+                );
+            }
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                endTime: Date.now().toString(),
+                operationId: this.operationId,
+            });
 
             state.generateScriptResultStatus = result;
             return state;
@@ -459,7 +488,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (!result || !result.success) {
                 endActivity.endFailed(undefined, false, undefined, undefined, {
                     errorMessage: result.errorMessage,
-                    correlationId: this.operationId,
+                    operationId: this.operationId,
                 });
 
                 vscode.window.showErrorMessage(

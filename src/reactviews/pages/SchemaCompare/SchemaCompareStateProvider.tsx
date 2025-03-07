@@ -64,12 +64,10 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 generateScript: function (
                     targetServerName: string,
                     targetDatabaseName: string,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("generateScript", {
                         targetServerName: targetServerName,
                         targetDatabaseName: targetDatabaseName,
-                        taskExecutionMode: taskExecutionMode,
                     });
                 },
                 publishDatabaseChanges: function (

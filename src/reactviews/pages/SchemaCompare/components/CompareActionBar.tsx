@@ -31,6 +31,13 @@ const CompareActionBar = () => {
         context.cancel();
     };
 
+    const handleGenerateScript = () => {
+        context.generateScript(
+            context.state.targetEndpointInfo.serverName,
+            context.state.targetEndpointInfo.databaseName,
+        );
+    };
+
     return (
         <Toolbar>
             <ToolbarButton
@@ -52,6 +59,7 @@ const CompareActionBar = () => {
                 aria-label={loc.schemaCompare.generateScript}
                 title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
                 icon={<DocumentChevronDoubleRegular />}
+                onClick={handleGenerateScript}
             >
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>

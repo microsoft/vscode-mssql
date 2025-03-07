@@ -106,6 +106,7 @@ export async function compare(
  */
 export async function generateScript(
     operationId: string,
+    taskExecutionMode: mssql.TaskExecutionMode,
     payload: SchemaCompareReducers["generateScript"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
@@ -113,7 +114,7 @@ export async function generateScript(
         operationId,
         payload.targetServerName,
         payload.targetDatabaseName,
-        payload.taskExecutionMode,
+        taskExecutionMode,
     );
 
     return result;

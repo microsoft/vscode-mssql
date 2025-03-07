@@ -391,6 +391,14 @@ export class LocConstants {
                         "{0} is the error message returned from the cancel operation",
                     ],
                 }),
+            generateScriptErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Generate script failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the generate script operation",
+                    ],
+                }),
         };
     }
 }
