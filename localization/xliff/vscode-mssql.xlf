@@ -165,6 +165,10 @@
     <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
       <source xml:lang="en">Cancel</source>
     </trans-unit>
+    <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
+      <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the cancel operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++13ca2ee2499310d97a5515fb5fd80b75da66f4cf2775273658eb2b3fdcd3bd3d">
       <source xml:lang="en">Canceled</source>
     </trans-unit>
