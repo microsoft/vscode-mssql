@@ -329,6 +329,8 @@
   "File": "File",
   "Source": "Source",
   "Target": "Target",
+  "Are you sure you want to update the target?": "Are you sure you want to update the target?",
+  "Yes": "Yes",
   "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
     "message": "Schema Compare failed: '{0}'",
     "comment": [
@@ -345,6 +347,13 @@
     "message": "Generate script failed: '{0}'",
     "comment": [
       "{0} is the error message returned from the generate script operation"
+    ]
+  },
+  "There was an error updating the project": "There was an error updating the project",
+  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
+    "message": "Schema Compare Apply failed '{0}'",
+    "comment": [
+      "{0} is the error message returned from the publish changes operation"
     ]
   },
   "{0} (Preview)/{0} is the editor title": {
@@ -520,7 +529,6 @@
   "Recent connections list cleared": "Recent connections list cleared",
   " is required.": " is required.",
   "Error: ": "Error: ",
-  "Yes": "Yes",
   "No": "No",
   "<default>": "<default>",
   "Disconnected": "Disconnected",
