@@ -308,7 +308,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         );
 
         this.registerReducer("compare", async (state, payload) => {
-            // telemetry - schema comparison started
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.Compare,
+                this.operationId,
+                {
+                    startTime: Date.now().toString(),
+                },
+            );
 
             const result = await compare(
                 this.operationId,
@@ -318,11 +325,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             if (!result || !result.success) {
-                // telemetry - schema comparison failed
-                // log errors and show error message
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: result.errorMessage,
+                    correlationId: this.operationId,
+                });
+
+                vscode.window.showErrorMessage(
+                    loc.schemaCompare.compareErrorMessage(result.errorMessage),
+                );
             }
 
-            // telemetry - schema comparison finished
+            endActivity.end(ActivityStatus.Succeeded);
 
             const finalDifferences = this.getAllObjectTypeDifferences(result);
             result.differences = finalDifferences;
