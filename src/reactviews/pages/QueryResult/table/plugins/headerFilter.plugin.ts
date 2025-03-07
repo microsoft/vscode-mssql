@@ -33,12 +33,12 @@ import {
     QueryResultWebviewState,
 } from "../../../../../sharedInterfaces/queryResult";
 
-export type HeaderFilterCommands = "sort-asc" | "sort-desc" | "reset";
+export type SortDirection = "sort-asc" | "sort-desc" | "reset";
 
 export interface CommandEventArgs<T extends Slick.SlickData> {
     grid: Slick.Grid<T>;
     column: Slick.Column<T>;
-    command: HeaderFilterCommands;
+    command: SortDirection;
 }
 
 const ShowFilterText = locConstants.queryResult.showFilter;
@@ -734,7 +734,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async handleMenuItemClick(
-        command: HeaderFilterCommands,
+        command: SortDirection,
         columnDef: Slick.Column<T>,
     ) {
         const dataView = this.grid.getData();
