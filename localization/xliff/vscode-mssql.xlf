@@ -396,6 +396,9 @@
     <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="++CODE++5d3c908d3befeb8193089fef795e75b4470658a1bcc5c952ce539143b9246041">
+      <source xml:lang="en">Delete Node</source>
+    </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
