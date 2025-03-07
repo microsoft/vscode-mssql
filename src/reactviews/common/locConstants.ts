@@ -371,6 +371,7 @@ export class LocConstants {
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
+            deleteNodes: l10n.t("Delete Node"),
         };
     }
 }
