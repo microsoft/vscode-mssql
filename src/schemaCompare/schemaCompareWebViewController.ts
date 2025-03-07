@@ -31,7 +31,7 @@ import {
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { startActivity } from "../telemetry/telemetry";
 import {
     ActivityStatus,
     TelemetryActions,
