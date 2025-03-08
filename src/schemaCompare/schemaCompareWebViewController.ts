@@ -67,6 +67,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             "schemaCompare",
             {
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
+                endpointsSwitched: false,
                 auxiliaryEndpointInfo: undefined,
                 sourceEndpointInfo: undefined,
                 targetEndpointInfo: undefined,
@@ -309,6 +310,26 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        this.registerReducer("switchEndpoints", async (state, payload) => {
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.Switch,
+                this.operationId,
+            );
+
+            state.sourceEndpointInfo = payload.newSourceEndpointInfo;
+            state.targetEndpointInfo = payload.newTargetEndpointInfo;
+            state.endpointsSwitched = true;
+
+            this.updateState(state);
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this.operationId,
+            });
+
+            return state;
+        });
+
         this.registerReducer("compare", async (state, payload) => {
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
@@ -342,6 +363,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const finalDifferences = this.getAllObjectTypeDifferences(result);
             result.differences = finalDifferences;
             state.schemaCompareResult = result;
+            state.endpointsSwitched = false;
             this.updateState(state);
 
             return state;

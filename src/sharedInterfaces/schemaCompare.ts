@@ -40,6 +40,7 @@ import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 export interface SchemaCompareWebViewState {
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
+    endpointsSwitched: boolean;
     sourceEndpointInfo: SchemaCompareEndpointInfo;
     targetEndpointInfo: SchemaCompareEndpointInfo;
     schemaCompareResult: SchemaCompareResult;
@@ -61,6 +62,11 @@ export interface SchemaCompareReducers {
 
     confirmSelectedSchema: {
         endpointType: "source" | "target";
+    };
+
+    switchEndpoints: {
+        newSourceEndpointInfo: SchemaCompareEndpointInfo;
+        newTargetEndpointInfo: SchemaCompareEndpointInfo;
     };
 
     compare: {
@@ -126,6 +132,11 @@ export interface SchemaCompareContextProps {
     ) => void;
 
     confirmSelectedSchema: (endpointType: "source" | "target") => void;
+
+    switchEndpoints: (
+        newSourceEndpointInfo: SchemaCompareEndpointInfo,
+        newTargetEndpointInfo: SchemaCompareEndpointInfo,
+    ) => void;
 
     compare: (
         sourceEndpointInfo: SchemaCompareEndpointInfo,

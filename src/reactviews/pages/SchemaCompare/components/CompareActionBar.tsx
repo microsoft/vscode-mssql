@@ -21,11 +21,21 @@ import {
 } from "@fluentui/react-icons";
 
 import { locConstants as loc } from "../../../common/locConstants";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
 const CompareActionBar = () => {
     const context = useContext(schemaCompareContext);
+
+    useEffect(() => {
+        if (
+            context.state.endpointsSwitched &&
+            context.state.sourceEndpointInfo &&
+            context.state.targetEndpointInfo
+        ) {
+            handleCompare();
+        }
+    }, [context.state.endpointsSwitched]);
 
     const handleCompare = () => {
         context.compare(
@@ -51,6 +61,13 @@ const CompareActionBar = () => {
         context.publishChanges(
             context.state.targetEndpointInfo.serverName,
             context.state.targetEndpointInfo.databaseName,
+        );
+    };
+
+    const handleSwitchEndpoints = () => {
+        context.switchEndpoints(
+            context.state.targetEndpointInfo,
+            context.state.sourceEndpointInfo,
         );
     };
 
@@ -100,6 +117,7 @@ const CompareActionBar = () => {
                 aria-label={loc.schemaCompare.switchDirection}
                 title={loc.schemaCompare.switchSourceAndTarget}
                 icon={<ArrowSwapFilled />}
+                onClick={handleSwitchEndpoints}
             >
                 {loc.schemaCompare.switchDirection}
             </ToolbarButton>

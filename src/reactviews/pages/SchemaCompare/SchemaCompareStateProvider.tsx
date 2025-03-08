@@ -50,6 +50,15 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         endpointType: endpointType,
                     });
                 },
+                switchEndpoints: function (
+                    newSourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+                    newTargetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+                ): void {
+                    webViewState?.extensionRpc.action("switchEndpoints", {
+                        newSourceEndpointInfo: newSourceEndpointInfo,
+                        newTargetEndpointInfo: newTargetEndpointInfo,
+                    });
+                },
                 compare: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
