@@ -27,6 +27,15 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 const CompareActionBar = () => {
     const context = useContext(schemaCompareContext);
 
+    const handleCompare = () => {
+        context.compare(
+            context.state.sourceEndpointInfo,
+            context.state.targetEndpointInfo,
+            context.state.defaultDeploymentOptionsResult
+                .defaultDeploymentOptions,
+        );
+    };
+
     const handleStop = () => {
         context.cancel();
     };
@@ -51,6 +60,7 @@ const CompareActionBar = () => {
                 aria-label={loc.schemaCompare.compare}
                 title={loc.schemaCompare.compare}
                 icon={<ColumnDoubleCompareRegular />}
+                onClick={handleCompare}
             >
                 {loc.schemaCompare.compare}
             </ToolbarButton>
