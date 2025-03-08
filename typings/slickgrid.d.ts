@@ -1281,7 +1281,7 @@ declare namespace Slick {
 	}
 
 	export interface GridEventArgs<T extends SlickData> {
-		grid: Grid<T>;
+		grid?: Grid<T>;
 	}
 
 	export interface OnCellCssStylesChangedEventArgs<T extends SlickData> extends GridEventArgs<T> {

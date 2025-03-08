@@ -192,13 +192,13 @@ export class TableDataView<T extends Slick.SlickData>
             this._filterEnabled = false;
             if (this._currentColumnSort) {
                 // this._resetDataUnfiltered = new Array(...this._data);
-                this._data = this._sortFn(
+                this._data = this._sortFn!(
                     {
                         sortCol: this._currentColumnSort.column,
                         sortAsc:
                             this._currentColumnSort.sortDirection ===
                             "sort-asc",
-                        grid: null,
+                        grid: undefined,
                         multiColumnSort: false,
                     },
                     this._data,
