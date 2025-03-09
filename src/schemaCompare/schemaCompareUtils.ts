@@ -40,7 +40,7 @@ export function generateOperationId(): string {
  * @param filePath - The file path to check.
  * @returns A promise that resolves to the starting file path.
  */
-export async function getStartingFilePathForOpenDialog(
+export async function getStartingPathForOpenDialog(
     filePath?: string,
 ): Promise<string> {
     const rootPath = getRootPath();
@@ -57,15 +57,15 @@ export async function getStartingFilePathForOpenDialog(
  * @param payload - The payload containing the endpoint and file type information.
  * @returns A promise that resolves to the selected file path or undefined if no file was selected.
  */
-export async function openFileDialog(
-    filePath: string,
+export async function showOpenDialog(
+    startingFilePath: string,
     filters: { [name: string]: string[] },
-): Promise<string> {
+): Promise<string | undefined> {
     const fileUris = await vscode.window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: vscode.Uri.file(filePath),
+        defaultUri: vscode.Uri.file(startingFilePath),
         openLabel: loc.schemaCompare.open,
         filters: filters,
     });
@@ -76,6 +76,24 @@ export async function openFileDialog(
 
     const fileUri = fileUris[0];
     return fileUri.fsPath;
+}
+
+export async function showSaveDialog(
+    startingFilePath: string,
+): Promise<string | undefined> {
+    const filePath = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file(startingFilePath),
+        saveLabel: loc.schemaCompare.save,
+        filters: {
+            "scmp Files": ["scmp"],
+        },
+    });
+
+    if (!filePath) {
+        return undefined;
+    }
+
+    return filePath.fsPath;
 }
 
 function getRootPath(): string {
@@ -253,17 +271,23 @@ export async function openScmp(
  * @returns A promise that resolves to the result status of the save operation.
  */
 export async function saveScmp(
-    payload: SchemaCompareReducers["saveScmp"],
+    sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+    targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+    taskExecutionMode: mssql.TaskExecutionMode,
+    deploymentOptions: mssql.DeploymentOptions,
+    scmpFilePath: string,
+    excludedSourceObjects: mssql.SchemaCompareObjectId[],
+    excludedTargetObjects: mssql.SchemaCompareObjectId[],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
     const result = await schemaCompareService.saveScmp(
-        payload.sourceEndpointInfo,
-        payload.targetEndpointInfo,
-        payload.taskExecutionMode,
-        payload.deploymentOptions,
-        payload.scmpFilePath,
-        payload.excludedSourceObjects,
-        payload.excludedTargetObjects,
+        sourceEndpointInfo,
+        targetEndpointInfo,
+        taskExecutionMode,
+        deploymentOptions,
+        scmpFilePath,
+        excludedSourceObjects,
+        excludedTargetObjects,
     );
 
     return result;

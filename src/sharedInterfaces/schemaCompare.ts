@@ -111,15 +111,7 @@ export interface SchemaCompareReducers {
 
     openScmp: {};
 
-    saveScmp: {
-        sourceEndpointInfo: SchemaCompareEndpointInfo;
-        targetEndpointInfo: SchemaCompareEndpointInfo;
-        taskExecutionMode: TaskExecutionMode;
-        deploymentOptions: DeploymentOptions;
-        scmpFilePath: string;
-        excludedSourceObjects: SchemaCompareObjectId[];
-        excludedTargetObjects: SchemaCompareObjectId[];
-    };
+    saveScmp: {};
 
     cancel: {};
 }
@@ -178,15 +170,7 @@ export interface SchemaCompareContextProps {
 
     openScmp: () => void;
 
-    saveScmp: (
-        sourceEndpointInfo: SchemaCompareEndpointInfo,
-        targetEndpointInfo: SchemaCompareEndpointInfo,
-        taskExecutionMode: TaskExecutionMode,
-        deploymentOptions: DeploymentOptions,
-        scmpFilePath: string,
-        excludedSourceObjects: SchemaCompareObjectId[],
-        excludedTargetObjects: SchemaCompareObjectId[],
-    ) => void;
+    saveScmp: () => void;
 
     cancel: () => void;
 }

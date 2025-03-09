@@ -25,6 +25,7 @@ export enum TelemetryActions {
     Compare = "Compare",
     Switch = "Switch",
     OpenScmp = "OpenScmp",
+    SaveScmp = "SaveScmp",
     GenerateScript = "GenerateScript",
     Refresh = "Refresh",
     CreateProject = "CreateProject",

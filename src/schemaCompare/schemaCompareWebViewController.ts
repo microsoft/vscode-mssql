@@ -26,10 +26,11 @@ import {
     publishDatabaseChanges,
     publishProjectChanges,
     saveScmp,
-    openFileDialog,
+    showOpenDialog,
     getSchemaCompareEndpointTypeString,
     sqlDatabaseProjectsPublishChanges,
-    getStartingFilePathForOpenDialog,
+    getStartingPathForOpenDialog,
+    showSaveDialog,
 } from "./schemaCompareUtils";
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -266,17 +267,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 Files: [payload.fileType],
             };
 
-            const filePath = await this.openFileDialog(
+            const filePath = await this.showOpenDialog(
                 payloadFilePath,
                 filters,
             );
 
-            const updatedEndpointInfo =
-                payload.fileType === "dacpac"
-                    ? this.getEndpointInfoFromDacpac(filePath)
-                    : this.getEndpointInfoFromProject(filePath);
-
             if (filePath) {
+                const updatedEndpointInfo =
+                    payload.fileType === "dacpac"
+                        ? this.getEndpointInfoFromDacpac(filePath)
+                        : this.getEndpointInfoFromProject(filePath);
+
                 state.auxiliaryEndpointInfo = updatedEndpointInfo;
 
                 // if (payload.fileType === "dacpac") {
@@ -579,13 +580,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openScmp", async (state) => {
-            const startingFilePath = await getStartingFilePathForOpenDialog();
+            const startingFilePath = await getStartingPathForOpenDialog();
 
             const fileDialogFilters = {
                 "scmp Files": ["scmp"],
             };
 
-            const selectedFilePath = await openFileDialog(
+            const selectedFilePath = await this.showOpenDialog(
                 startingFilePath,
                 fileDialogFilters,
             );
@@ -653,10 +654,59 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("saveScmp", async (state, payload) => {
-            const result = await saveScmp(payload, this.schemaCompareService);
+        this.registerReducer("saveScmp", async (state) => {
+            const saveFilePath = await this.showSaveDialog();
+
+            if (!saveFilePath) {
+                return state;
+            }
+
+            const sourceExcludes: mssql.SchemaCompareObjectId[] =
+                this.convertExcludesToObjectIds(state.originalSourceExcludes);
+            const targetExcludes: mssql.SchemaCompareObjectId[] =
+                this.convertExcludesToObjectIds(state.originalTargetExcludes);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.SaveScmp,
+                this.operationId,
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            const result = await saveScmp(
+                state.sourceEndpointInfo,
+                state.targetEndpointInfo,
+                TaskExecutionMode.execute,
+                state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
+                saveFilePath,
+                sourceExcludes,
+                targetExcludes,
+                this.schemaCompareService,
+            );
+
+            if (!result || !result.success) {
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: result.errorMessage,
+                    operationId: this.operationId,
+                });
+
+                vscode.window.showErrorMessage(
+                    loc.schemaCompare.saveScmpErrorMessage(result.errorMessage),
+                );
+            }
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this.operationId,
+                elapsedTime: (Date.now() - startTime).toString(),
+            });
 
             state.saveScmpResultStatus = result;
+            this.updateState(state);
+
             return state;
         });
 
@@ -693,17 +743,24 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
     }
 
-    private async openFileDialog(
+    private async showOpenDialog(
         filePath: string,
         filters: { [name: string]: string[] },
-    ): Promise<string> {
-        const startingFilePath =
-            await getStartingFilePathForOpenDialog(filePath);
+    ): Promise<string | undefined> {
+        const startingFilePath = await getStartingPathForOpenDialog(filePath);
 
-        const selectedFilePath = await openFileDialog(
+        const selectedFilePath = await showOpenDialog(
             startingFilePath,
             filters,
         );
+
+        return selectedFilePath;
+    }
+
+    private async showSaveDialog(): Promise<string | undefined> {
+        const startingFilePath = await getStartingPathForOpenDialog();
+
+        const selectedFilePath = await showSaveDialog(startingFilePath);
 
         return selectedFilePath;
     }
@@ -815,6 +872,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 loc.schemaCompare.thereWasAnErrorUpdatingTheProject,
             );
         }
+
+        return result;
+    }
+
+    /**
+     * Converts excluded diff entries into object ids which are needed to save them in an scmp
+     */
+    private convertExcludesToObjectIds(
+        excludedDiffEntries: Map<string, mssql.DiffEntry>,
+    ): mssql.SchemaCompareObjectId[] {
+        let result = [];
+        excludedDiffEntries.forEach((value: mssql.DiffEntry) => {
+            result.push({
+                nameParts: value.sourceValue
+                    ? value.sourceValue
+                    : value.targetValue,
+                sqlObjectType: `Microsoft.Data.Tools.Schema.Sql.SchemaModel.${value.name}`,
+            });
+        });
 
         return result;
     }

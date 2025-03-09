@@ -128,24 +128,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 openScmp: function (): void {
                     webViewState?.extensionRpc.action("openScmp", {});
                 },
-                saveScmp: function (
-                    sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-                    targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-                    taskExecutionMode: mssql.TaskExecutionMode,
-                    deploymentOptions: mssql.DeploymentOptions,
-                    scmpFilePath: string,
-                    excludedSourceObjects: mssql.SchemaCompareObjectId[],
-                    excludedTargetObjects: mssql.SchemaCompareObjectId[],
-                ): void {
-                    webViewState?.extensionRpc.action("saveScmp", {
-                        sourceEndpointInfo: sourceEndpointInfo,
-                        targetEndpointInfo: targetEndpointInfo,
-                        taskExecutionMode: taskExecutionMode,
-                        deploymentOptions: deploymentOptions,
-                        scmpFilePath: scmpFilePath,
-                        excludedSourceObjects: excludedSourceObjects,
-                        excludedTargetObjects: excludedTargetObjects,
-                    });
+                saveScmp: function (): void {
+                    webViewState?.extensionRpc.action("saveScmp", {});
                 },
                 cancel: function (): void {
                     webViewState?.extensionRpc.action("cancel", {});
