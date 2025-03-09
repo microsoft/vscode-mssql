@@ -314,6 +314,7 @@
   "Switch Source and Target": "Switch Source and Target",
   "Open .scmp file": "Open .scmp file",
   "Open": "Open",
+  "Save": "Save",
   "Load source, target, and options saved in an .scmp file": "Load source, target, and options saved in an .scmp file",
   "Save .scmp file": "Save .scmp file",
   "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
@@ -361,6 +362,12 @@
     "message": "Open scmp failed '{0}'",
     "comment": [
       "{0} is the error message returned from the open scmp operation"
+    ]
+  },
+  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
+    "message": "Save scmp failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the save scmp operation"
     ]
   },
   "{0} (Preview)/{0} is the editor title": {

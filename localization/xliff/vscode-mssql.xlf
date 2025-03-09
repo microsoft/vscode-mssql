@@ -1142,6 +1142,9 @@
     <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
       <source xml:lang="en">Satisfied</source>
     </trans-unit>
+    <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
+      <source xml:lang="en">Save</source>
+    </trans-unit>
     <trans-unit id="++CODE++dee3e3871faf828499426928ded1c3d2762c767a5c9f07e954d25a63aca26da2">
       <source xml:lang="en">Save .scmp file</source>
     </trans-unit>
@@ -1165,6 +1168,10 @@
     </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b9aac16eb8e26c69eda61b82e7f9833c80becf442d1664142ab784c7e5eb15f0">
+      <source xml:lang="en">Save scmp failed: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the save scmp operation</note>
     </trans-unit>
     <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
       <source xml:lang="en">Save source and target, options, and excluded elements</source>
