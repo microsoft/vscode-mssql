@@ -43,6 +43,11 @@ export interface SchemaCompareWebViewState {
     endpointsSwitched: boolean;
     sourceEndpointInfo: SchemaCompareEndpointInfo;
     targetEndpointInfo: SchemaCompareEndpointInfo;
+    scmpSourceExcludes: SchemaCompareObjectId[];
+    scmpTargetExcludes: SchemaCompareObjectId[];
+    originalSourceExcludes: Map<string, DiffEntry>;
+    originalTargetExcludes: Map<string, DiffEntry>;
+    sourceTargetSwitched: boolean;
     schemaCompareResult: SchemaCompareResult;
     generateScriptResultStatus: ResultStatus;
     publishDatabaseChangesResultStatus: ResultStatus;
@@ -104,9 +109,7 @@ export interface SchemaCompareReducers {
         includeRequest: boolean;
     };
 
-    openScmp: {
-        filePath: string;
-    };
+    openScmp: {};
 
     saveScmp: {
         sourceEndpointInfo: SchemaCompareEndpointInfo;
@@ -173,7 +176,7 @@ export interface SchemaCompareContextProps {
         includeRequest: boolean,
     ) => void;
 
-    openScmp: (filePath: string) => void;
+    openScmp: () => void;
 
     saveScmp: (
         sourceEndpointInfo: SchemaCompareEndpointInfo,

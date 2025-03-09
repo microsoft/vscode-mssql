@@ -125,10 +125,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         includeRequest: includeRequest,
                     });
                 },
-                openScmp: function (filePath: string): void {
-                    webViewState?.extensionRpc.action("openScmp", {
-                        filePath: filePath,
-                    });
+                openScmp: function (): void {
+                    webViewState?.extensionRpc.action("openScmp", {});
                 },
                 saveScmp: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,

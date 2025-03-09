@@ -24,6 +24,7 @@ export enum TelemetryViews {
 export enum TelemetryActions {
     Compare = "Compare",
     Switch = "Switch",
+    OpenScmp = "OpenScmp",
     GenerateScript = "GenerateScript",
     Refresh = "Refresh",
     CreateProject = "CreateProject",

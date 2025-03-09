@@ -71,6 +71,10 @@ const CompareActionBar = () => {
         );
     };
 
+    const handleOpenScmp = () => {
+        context.openScmp();
+    };
+
     return (
         <Toolbar>
             <ToolbarButton
@@ -129,6 +133,7 @@ const CompareActionBar = () => {
                         .loadSourceTargetAndOptionsSavedInAnScmpFile
                 }
                 icon={<DocumentArrowUpRegular />}
+                onClick={handleOpenScmp}
             >
                 {loc.schemaCompare.openScmpFile}
             </ToolbarButton>

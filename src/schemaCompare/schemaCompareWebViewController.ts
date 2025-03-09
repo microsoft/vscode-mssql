@@ -29,6 +29,7 @@ import {
     openFileDialog,
     getSchemaCompareEndpointTypeString,
     sqlDatabaseProjectsPublishChanges,
+    getStartingFilePathForOpenDialog,
 } from "./schemaCompareUtils";
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -45,11 +46,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareReducers
 > {
     private operationId: string;
-    // private sourceTargetSwitched: boolean = false;
-    // private originalSourceExcludes = new Map<string, mssql.DiffEntry>();
-    // private originalTargetExcludes = new Map<string, mssql.DiffEntry>();
-    // private scmpSourceExcludes: mssql.SchemaCompareObjectId[];
-    // private scmpTargetExcludes: mssql.SchemaCompareObjectId[];
 
     constructor(
         context: vscode.ExtensionContext,
@@ -71,6 +67,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 auxiliaryEndpointInfo: undefined,
                 sourceEndpointInfo: undefined,
                 targetEndpointInfo: undefined,
+                scmpSourceExcludes: [],
+                scmpTargetExcludes: [],
+                originalSourceExcludes: new Map<string, DiffEntry>(),
+                originalTargetExcludes: new Map<string, DiffEntry>(),
+                sourceTargetSwitched: false,
                 schemaCompareResult: undefined,
                 generateScriptResultStatus: undefined,
                 publishDatabaseChangesResultStatus: undefined,
@@ -254,7 +255,22 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("selectFile", async (state, payload) => {
-            const filePath = await openFileDialog(payload);
+            let payloadFilePath = "";
+            if (payload.endpoint) {
+                payloadFilePath =
+                    payload.endpoint.packageFilePath ||
+                    payload.endpoint.projectFilePath;
+            }
+
+            const filters = {
+                Files: [payload.fileType],
+            };
+
+            const filePath = await this.openFileDialog(
+                payloadFilePath,
+                filters,
+            );
+
             const updatedEndpointInfo =
                 payload.fileType === "dacpac"
                     ? this.getEndpointInfoFromDacpac(filePath)
@@ -562,10 +578,78 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("openScmp", async (state, payload) => {
-            const result = await openScmp(payload, this.schemaCompareService);
+        this.registerReducer("openScmp", async (state) => {
+            const startingFilePath = await getStartingFilePathForOpenDialog();
+
+            const fileDialogFilters = {
+                "scmp Files": ["scmp"],
+            };
+
+            const selectedFilePath = await openFileDialog(
+                startingFilePath,
+                fileDialogFilters,
+            );
+
+            if (!selectedFilePath) {
+                return state;
+            }
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.OpenScmp,
+                this.operationId,
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
+            const result = await openScmp(
+                selectedFilePath,
+                this.schemaCompareService,
+            );
+
+            if (!result || !result.success) {
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: result.errorMessage,
+                    operationId: this.operationId,
+                });
+
+                vscode.window.showErrorMessage(
+                    loc.schemaCompare.openScmpErrorMessage(result.errorMessage),
+                );
+                return state;
+            }
+
+            // construct source endpoint info
+            state.sourceEndpointInfo = await this.constructEndpointInfo(
+                result.sourceEndpointInfo,
+                "source",
+            );
+
+            // construct target endpoint info
+            state.targetEndpointInfo = await this.constructEndpointInfo(
+                result.targetEndpointInfo,
+                "target",
+            );
+
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
+                result.deploymentOptions;
+            state.scmpSourceExcludes = result.excludedSourceElements;
+            state.scmpTargetExcludes = result.excludedTargetElements;
+            state.sourceTargetSwitched =
+                result.originalTargetName !==
+                state.targetEndpointInfo.databaseName;
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this.operationId,
+                elapsedTime: (Date.now() - startTime).toString(),
+            });
 
             state.schemaCompareOpenScmpResult = result;
+            this.updateState(state);
+
             return state;
         });
 
@@ -607,6 +691,75 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.cancelResultStatus = result;
             return state;
         });
+    }
+
+    private async openFileDialog(
+        filePath: string,
+        filters: { [name: string]: string[] },
+    ): Promise<string> {
+        const startingFilePath =
+            await getStartingFilePathForOpenDialog(filePath);
+
+        const selectedFilePath = await openFileDialog(
+            startingFilePath,
+            filters,
+        );
+
+        return selectedFilePath;
+    }
+
+    private async constructEndpointInfo(
+        endpoint: mssql.SchemaCompareEndpointInfo,
+        caller: string,
+    ): Promise<mssql.SchemaCompareEndpointInfo> {
+        let ownerUri;
+        let endpointInfo;
+        if (
+            endpoint &&
+            endpoint.endpointType === mssql.SchemaCompareEndpointType.Database
+        ) {
+            // ownerUri = await this.verifyConnectionAndGetOwnerUri(
+            //     endpoint,
+            //     caller,
+            // );
+        }
+
+        if (ownerUri) {
+            endpointInfo = endpoint;
+            endpointInfo.ownerUri = ownerUri;
+        } else if (
+            endpoint.endpointType === mssql.SchemaCompareEndpointType.Project
+        ) {
+            endpointInfo = {
+                endpointType: endpoint.endpointType,
+                packageFilePath: "",
+                serverDisplayName: "",
+                serverName: "",
+                databaseName: "",
+                ownerUri: "",
+                connectionDetails: undefined,
+                projectFilePath: endpoint.projectFilePath,
+                targetScripts: [],
+                dataSchemaProvider: endpoint.dataSchemaProvider,
+                extractTarget: endpoint.extractTarget,
+            };
+        } else {
+            endpointInfo = {
+                endpointType:
+                    endpoint.endpointType ===
+                    mssql.SchemaCompareEndpointType.Database
+                        ? mssql.SchemaCompareEndpointType.Database
+                        : mssql.SchemaCompareEndpointType.Dacpac,
+                serverDisplayName: "",
+                serverName: "",
+                databaseName: "",
+                ownerUri: "",
+                packageFilePath: endpoint.packageFilePath,
+                connectionDetails: undefined,
+            };
+        }
+
+        return endpointInfo;
     }
 
     private getAllObjectTypeDifferences(
@@ -665,6 +818,102 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         return result;
     }
+
+    // private async verifyConnectionAndGetOwnerUri(
+    //     endpoint: mssql.SchemaCompareEndpointInfo,
+    //     caller: string,
+    // ): Promise<string | undefined> {
+    //     let ownerUri = undefined;
+
+    //     if (
+    //         endpoint.endpointType ===
+    //             mssql.SchemaCompareEndpointType.Database &&
+    //         endpoint.connectionDetails
+    //     ) {
+    //         let connectionProfile = this.connectionInfoToConnectionProfile(
+    //             endpoint.connectionDetails,
+    //         );
+    //         let connection = await azdata.connection.connect(
+    //             connectionProfile,
+    //             false,
+    //             false,
+    //         );
+
+    //         if (connection) {
+    //             ownerUri = await azdata.connection.getUriForConnection(
+    //                 connection.connectionId,
+    //             );
+
+    //             if (!ownerUri) {
+    //                 let connectionList =
+    //                     await azdata.connection.getConnections(true);
+
+    //                 let userConnection;
+    //                 userConnection = connectionList.find(
+    //                     (connection) =>
+    //                         endpoint.connectionDetails["authenticationType"] ===
+    //                             azdata.connection.AuthenticationType.SqlLogin &&
+    //                         endpoint.connectionDetails["serverName"] ===
+    //                             connection.options.server &&
+    //                         endpoint.connectionDetails["userName"] ===
+    //                             connection.options.user &&
+    //                         (endpoint.connectionDetails[
+    //                             "databaseName"
+    //                         ].toLowerCase() ===
+    //                             connection.options.database.toLowerCase() ||
+    //                             connection.options.database.toLowerCase() ===
+    //                                 "master"),
+    //                 );
+
+    //                 if (userConnection === undefined) {
+    //                     const getConnectionString =
+    //                         loc.getConnectionString(caller);
+    //                     // need only yes button - since the modal dialog has a default cancel
+    //                     let result = await vscode.window.showWarningMessage(
+    //                         getConnectionString,
+    //                         { modal: true },
+    //                         loc.YesButtonText,
+    //                     );
+    //                     if (result === loc.YesButtonText) {
+    //                         userConnection =
+    //                             await azdata.connection.openConnectionDialog(
+    //                                 undefined,
+    //                                 connectionProfile,
+    //                             );
+    //                     }
+    //                 }
+
+    //                 if (userConnection !== undefined) {
+    //                     ownerUri = await azdata.connection.getUriForConnection(
+    //                         userConnection.connectionId,
+    //                     );
+    //                 }
+    //             }
+    //             if (!ownerUri && connection.errorMessage) {
+    //                 vscode.window.showErrorMessage(connection.errorMessage);
+    //             }
+    //         }
+    //     }
+    //     return ownerUri;
+    // }
+
+    // private connectionInfoToConnectionProfile(details: mssql.IConnectionInfo): IConnectionProfile {
+    //     return {
+    //         serverName: details['serverName'],
+    //         databaseName: details['databaseName'],
+    //         authenticationType: details['authenticationType'],
+    //         providerName: 'MSSQL',
+    //         connectionName: '',
+    //         userName: details['userName'],
+    //         password: details['password'],
+    //         savePassword: false,
+    //         groupFullName: undefined,
+    //         saveProfile: true,
+    //         id: undefined,
+    //         groupId: undefined,
+    //         options: details['options']
+    //     };
+    // }
 
     // private shouldDiffBeIncluded(diff: mssql.DiffEntry): boolean {
     //     let key =

@@ -9,6 +9,7 @@ import * as os from "os";
 import { promises as fs } from "fs";
 import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
+import { locConstants as loc } from "../reactviews/common/locConstants";
 
 /**
  * A constant string representing the command to publish schema compare changes
@@ -30,31 +31,43 @@ export function generateOperationId(): string {
 }
 
 /**
+ * Gets the starting file path for an open dialog.
+ *
+ * This function determines the initial file path to be used when opening a file dialog.
+ * If the provided file path exists, it will be used as the starting path. Otherwise,
+ * the root path will be used.
+ *
+ * @param filePath - The file path to check.
+ * @returns A promise that resolves to the starting file path.
+ */
+export async function getStartingFilePathForOpenDialog(
+    filePath?: string,
+): Promise<string> {
+    const rootPath = getRootPath();
+
+    const startingFilePath =
+        filePath && (await fileExists(filePath)) ? filePath : rootPath;
+
+    return startingFilePath;
+}
+
+/**
  * Retrieves a file path from the user using a file dialog.
  *
  * @param payload - The payload containing the endpoint and file type information.
  * @returns A promise that resolves to the selected file path or undefined if no file was selected.
  */
 export async function openFileDialog(
-    payload: SchemaCompareReducers["selectFile"],
+    filePath: string,
+    filters: { [name: string]: string[] },
 ): Promise<string> {
-    const rootPath = getRootPath();
-    const defaultUri =
-        payload.endpoint &&
-        payload.endpoint.packageFilePath &&
-        (await fileExists(payload.endpoint.packageFilePath))
-            ? payload.endpoint.packageFilePath
-            : rootPath;
-
     const fileUris = await vscode.window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: vscode.Uri.file(defaultUri),
-        openLabel: "Open",
-        filters: {
-            Files: [payload.fileType],
-        },
+        defaultUri: vscode.Uri.file(filePath),
+        openLabel: loc.schemaCompare.open,
+        filters: filters,
     });
 
     if (!fileUris || fileUris.length === 0) {
@@ -219,15 +232,15 @@ export async function includeExcludeNode(
 /**
  * Opens a schema compare (.scmp) file and returns the result.
  *
- * @param payload - The payload containing the file path of the .scmp file to open.
+ * @param filePath - The path to the .scmp file to be opened.
  * @param schemaCompareService - The service used to open the .scmp file.
  * @returns A promise that resolves to the result of opening the .scmp file.
  */
 export async function openScmp(
-    payload: SchemaCompareReducers["openScmp"],
+    filePath: string,
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
-    const result = await schemaCompareService.openScmp(payload.filePath);
+    const result = await schemaCompareService.openScmp(filePath);
 
     return result;
 }

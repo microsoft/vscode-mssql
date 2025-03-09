@@ -347,6 +347,7 @@ export class LocConstants {
             switchDirection: l10n.t("Switch Direction"),
             switchSourceAndTarget: l10n.t("Switch Source and Target"),
             openScmpFile: l10n.t("Open .scmp file"),
+            open: l10n.t("Open"),
             loadSourceTargetAndOptionsSavedInAnScmpFile: l10n.t(
                 "Load source, target, and options saved in an .scmp file",
             ),
@@ -412,6 +413,14 @@ export class LocConstants {
                     args: [errorMessage ? errorMessage : "Unknown"],
                     comment: [
                         "{0} is the error message returned from the publish changes operation",
+                    ],
+                }),
+            openScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Open scmp failed '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the open scmp operation",
                     ],
                 }),
         };
