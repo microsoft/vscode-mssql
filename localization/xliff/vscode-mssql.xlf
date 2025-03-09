@@ -970,6 +970,10 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa609eef6a71158c74ec8b70843376b31d961185cb835dc3d9de4aba1877a667">
+      <source xml:lang="en">Open scmp failed &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the open scmp operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
     </trans-unit>
