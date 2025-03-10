@@ -225,14 +225,14 @@ export class TableDataView<T extends Slick.SlickData>
     // 2. filter is not enabled, sort, then enable filter & unsort
     // 3. filter is enabled then sort, and then disabled
     async resetSort(): Promise<void> {
-        // an old sort might have been cleared
+        // Check if the current data set is larger than the original data set.
+        // If it is, we need to use the full data set and re-apply the current filters.
         if (this._data.length > this._resetSortData.length) {
-            // this._data = this._resetDataUnfiltered;
             this._data = this._allData;
         } else {
             this._data = this._resetSortData;
         }
-        // TODO: if there are filters applied, we need to reapply them to the reset data
+        // if there are filters applied, we need to reapply them to the reset data
         if (this._currentColumnFilters.length > 0) {
             this._data = this._filterFn!(
                 this._data,
