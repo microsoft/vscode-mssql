@@ -117,7 +117,6 @@ export class HybridDataProvider<T extends Slick.SlickData>
     }
 
     public async resetSort() {
-        // const data = await this._loadDataFn(0, this.length);
         void this.provider.resetSort();
     }
 

@@ -168,7 +168,6 @@ export class TableDataView<T extends Slick.SlickData>
         this._currentColumnFilters = columns!;
         this._data = this._filterFn!(this._allData, columns!);
         if (this._resetSortData.length > 0) {
-            // this._resetDataUnfiltered = new Array(...this._resetSortData);
             this._resetSortData = this._filterFn!(
                 this._resetSortData,
                 columns!,
@@ -191,7 +190,6 @@ export class TableDataView<T extends Slick.SlickData>
             this._allData = [];
             this._filterEnabled = false;
             if (this._currentColumnSort) {
-                // this._resetDataUnfiltered = new Array(...this._data);
                 this._data = this._sortFn!(
                     {
                         sortCol: this._currentColumnSort.column,
