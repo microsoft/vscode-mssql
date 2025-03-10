@@ -220,10 +220,10 @@ export class TableDataView<T extends Slick.SlickData>
         // this._onSortComplete.fire(args);
     }
 
-    // TODO: need to consider multiple scenarios:
+    // Need to consider multiple scenarios:
     // 1. filter is enabled then sort & unsort,
     // 2. filter is not enabled, sort, then enable filter & unsort
-    // 3. filter is enabled then sort, and then disabled <--TODO:  doesn't work right nwo
+    // 3. filter is enabled then sort, and then disabled
     async resetSort(): Promise<void> {
         // an old sort might have been cleared
         if (this._data.length > this._resetSortData.length) {
