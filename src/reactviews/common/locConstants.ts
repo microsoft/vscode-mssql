@@ -336,6 +336,7 @@ export class LocConstants {
     public get schemaCompare() {
         return {
             description: l10n.t("Description"),
+            settings: l10n.t("Settings"),
             compare: l10n.t("Compare"),
             schemaCompareOptions: l10n.t("Schema Compare Options"),
             generalOptions: l10n.t("General Options"),
