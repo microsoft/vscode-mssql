@@ -335,6 +335,12 @@ export class LocConstants {
 
     public get schemaCompare() {
         return {
+            folderStructure: l10n.t("Folder Structure"),
+            file: l10n.t("File"),
+            flat: l10n.t("Flat"),
+            objectType: l10n.t("Object Type"),
+            schema: l10n.t("Schema"),
+            schemaObjectType: l10n.t("Schema/Object Type"),
             description: l10n.t("Description"),
             settings: l10n.t("Settings"),
             compare: l10n.t("Compare"),
@@ -379,7 +385,6 @@ export class LocConstants {
                 "Data-tier Application File (.dacpac)",
             ),
             databaseProject: l10n.t("Database Project"),
-            file: l10n.t("File"),
             ok: l10n.t("OK"),
             cancel: l10n.t("Cancel"),
             source: l10n.t("Source"),
