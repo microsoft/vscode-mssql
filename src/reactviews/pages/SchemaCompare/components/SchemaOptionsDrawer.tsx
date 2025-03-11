@@ -28,6 +28,7 @@ import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
 import { List, ListItem } from "@fluentui/react-list-preview";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
     generalOptionsContainer: {
@@ -57,13 +58,26 @@ const SchemaOptionsDrawer = (props: Props) => {
 
     const deploymentOptions =
         context.state.intermediaryOptionsResult?.defaultDeploymentOptions;
+
     const optionsToValueNameLookup =
         deploymentOptions?.booleanOptionsDictionary;
-    const includeObjectTypesLookup = deploymentOptions?.objectTypesDictionary;
+    let generalOptionEntries: Array<[string, DacDeployOptionPropertyBoolean]> =
+        [];
+    if (optionsToValueNameLookup) {
+        generalOptionEntries = Object.entries(optionsToValueNameLookup);
 
+        generalOptionEntries.sort(([_, value1], [__, value2]) =>
+            value1.displayName
+                .toLowerCase()
+                .localeCompare(value2.displayName.toLowerCase()),
+        );
+    }
+
+    const includeObjectTypesLookup = deploymentOptions?.objectTypesDictionary;
     let includeObjectTypesEntries: Array<[string, string]> = [];
     if (includeObjectTypesLookup) {
         includeObjectTypesEntries = Object.entries(includeObjectTypesLookup);
+
         includeObjectTypesEntries.sort(([key1, _], [key2, __]) =>
             key1.toLowerCase().localeCompare(key2.toLowerCase()),
         );
@@ -147,40 +161,42 @@ const SchemaOptionsDrawer = (props: Props) => {
                             >
                                 <List>
                                     {optionsToValueNameLookup &&
-                                        Object.entries(
-                                            optionsToValueNameLookup,
-                                        ).map(([key, value]) => {
-                                            return (
-                                                <ListItem
-                                                    key={key}
-                                                    value={key}
-                                                    aria-label={
-                                                        value.displayName
-                                                    }
-                                                >
-                                                    <Checkbox
-                                                        checked={value.value}
-                                                        onChange={() =>
-                                                            handleSettingChanged(
-                                                                key,
-                                                            )
-                                                        }
-                                                    />
-                                                    <Label
+                                        generalOptionEntries.map(
+                                            ([key, value]) => {
+                                                return (
+                                                    <ListItem
+                                                        key={key}
+                                                        value={key}
                                                         aria-label={
                                                             value.displayName
                                                         }
-                                                        onClick={() =>
-                                                            setDescription(
-                                                                value.description,
-                                                            )
-                                                        }
                                                     >
-                                                        {value.displayName}
-                                                    </Label>
-                                                </ListItem>
-                                            );
-                                        })}
+                                                        <Checkbox
+                                                            checked={
+                                                                value.value
+                                                            }
+                                                            onChange={() =>
+                                                                handleSettingChanged(
+                                                                    key,
+                                                                )
+                                                            }
+                                                        />
+                                                        <Label
+                                                            aria-label={
+                                                                value.displayName
+                                                            }
+                                                            onClick={() =>
+                                                                setDescription(
+                                                                    value.description,
+                                                                )
+                                                            }
+                                                        >
+                                                            {value.displayName}
+                                                        </Label>
+                                                    </ListItem>
+                                                );
+                                            },
+                                        )}
                                 </List>
                             </AccordionPanel>
                         </AccordionItem>
