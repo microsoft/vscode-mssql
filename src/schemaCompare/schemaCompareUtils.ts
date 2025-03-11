@@ -264,10 +264,16 @@ export async function openScmp(
 }
 
 /**
- * Saves the schema compare (.scmp) file using the provided state and payload.
+ * Saves the schema compare (.scmp) file with the provided parameters.
  *
- * @param payload - The payload containing the necessary information to save the .scmp file.
- * @param schemaCompareService - The service used to perform schema compare operations.
+ * @param sourceEndpointInfo - Information about the source endpoint.
+ * @param targetEndpointInfo - Information about the target endpoint.
+ * @param taskExecutionMode - The mode in which the task is executed.
+ * @param deploymentOptions - Options for the deployment.
+ * @param scmpFilePath - The file path where the .scmp file will be saved.
+ * @param excludedSourceObjects - List of source objects to be excluded.
+ * @param excludedTargetObjects - List of target objects to be excluded.
+ * @param schemaCompareService - The schema compare service used to save the .scmp file.
  * @returns A promise that resolves to the result status of the save operation.
  */
 export async function saveScmp(
