@@ -30,8 +30,13 @@ import { List, ListItem } from "@fluentui/react-list-preview";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
 const useStyles = makeStyles({
-    listContainer: {
+    generalOptionsContainer: {
         height: "55vh",
+        overflowY: "auto",
+    },
+
+    objectTypesContainer: {
+        height: "80vh",
         overflowY: "auto",
     },
 });
@@ -54,8 +59,15 @@ const SchemaOptionsDrawer = (props: Props) => {
         context.state.intermediaryOptionsResult?.defaultDeploymentOptions;
     const optionsToValueNameLookup =
         deploymentOptions?.booleanOptionsDictionary;
+    const includeObjectTypesLookup = deploymentOptions?.objectTypesDictionary;
 
-    // const includeObjectTypes = deploymentOptions.objectTypesDictionary;
+    let includeObjectTypesEntries: Array<[string, string]> = [];
+    if (includeObjectTypesLookup) {
+        includeObjectTypesEntries = Object.entries(includeObjectTypesLookup);
+        includeObjectTypesEntries.sort(([key1, _], [key2, __]) =>
+            key1.toLowerCase().localeCompare(key2.toLowerCase()),
+        );
+    }
 
     const [optionsChanged, setOptionsChanged] = useState(false);
     const [selectedValue, setSelectedValue] =
@@ -70,6 +82,14 @@ const SchemaOptionsDrawer = (props: Props) => {
         context.intermediaryGeneralOptionsChanged(key);
 
         setOptionsChanged(true);
+    };
+
+    const handleSetObjectTypesCheckedState = (optionName: string): boolean => {
+        const isFound = deploymentOptions.excludeObjectTypes.value?.find(
+            (o) => o.toLowerCase() === optionName.toLowerCase(),
+        );
+
+        return isFound === undefined ? true : false;
     };
 
     return (
@@ -116,7 +136,9 @@ const SchemaOptionsDrawer = (props: Props) => {
                             <AccordionHeader>
                                 {loc.schemaCompare.settings}
                             </AccordionHeader>
-                            <AccordionPanel className={classes.listContainer}>
+                            <AccordionPanel
+                                className={classes.generalOptionsContainer}
+                            >
                                 <List>
                                     {optionsToValueNameLookup &&
                                         Object.entries(
@@ -167,7 +189,28 @@ const SchemaOptionsDrawer = (props: Props) => {
                     </Accordion>
                 )}
                 {selectedValue === "includeObjectTypes" && (
-                    <div>{loc.schemaCompare.includeObjectTypes}</div>
+                    <List className={classes.objectTypesContainer}>
+                        {includeObjectTypesLookup &&
+                            includeObjectTypesEntries.map(([key, value]) => {
+                                return (
+                                    <ListItem
+                                        key={key}
+                                        value={key}
+                                        aria-label={value}
+                                    >
+                                        <Checkbox
+                                            checked={handleSetObjectTypesCheckedState(
+                                                key,
+                                            )}
+                                            onChange={() => {}}
+                                        />
+                                        <Label aria-label={value}>
+                                            {value}
+                                        </Label>
+                                    </ListItem>
+                                );
+                            })}
+                    </List>
                 )}
             </DrawerBody>
             <DrawerFooter>
