@@ -57,11 +57,15 @@ const SelectSchemaInput = (props: Props) => {
             >
                 {props.label}
             </Label>
-            <div className={classes.layoutHorizontally}>
+            <div
+                className={mergeClasses(
+                    classes.layoutHorizontally,
+                    props.className ?? "",
+                )}
+            >
                 <Input
                     id={props.id}
                     className={classes.inputWidth}
-                    {...props}
                     value={props.value}
                     readOnly
                 />

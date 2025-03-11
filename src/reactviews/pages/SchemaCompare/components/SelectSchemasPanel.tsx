@@ -20,6 +20,10 @@ const useStyles = makeStyles({
         ...shorthands.margin("32px", "32px", "0"),
     },
 
+    marginRight: {
+        marginRight: "32px",
+    },
+
     layoutHorizontally: {
         display: "flex",
         flexDirection: "row",
@@ -86,6 +90,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 label={loc.schemaCompare.source}
                 value={context.state.sourceEndpointInfo?.projectFilePath || ""}
                 selectFile={() => onSelectSchemaClicked("source")}
+                className={classes.marginRight}
             />
 
             <SelectSchemaInput
