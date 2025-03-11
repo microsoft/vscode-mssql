@@ -84,6 +84,12 @@ const SchemaOptionsDrawer = (props: Props) => {
         setOptionsChanged(true);
     };
 
+    const handleObjectTypesOptionChanged = (key: string) => {
+        context.intermediaryIncludeObjectTypesOptionsChanged(key);
+
+        setOptionsChanged(true);
+    };
+
     const handleSetObjectTypesCheckedState = (optionName: string): boolean => {
         const isFound = deploymentOptions.excludeObjectTypes.value?.find(
             (o) => o.toLowerCase() === optionName.toLowerCase(),
@@ -202,7 +208,11 @@ const SchemaOptionsDrawer = (props: Props) => {
                                             checked={handleSetObjectTypesCheckedState(
                                                 key,
                                             )}
-                                            onChange={() => {}}
+                                            onChange={() =>
+                                                handleObjectTypesOptionChanged(
+                                                    key,
+                                                )
+                                            }
                                         />
                                         <Label aria-label={value}>
                                             {value}

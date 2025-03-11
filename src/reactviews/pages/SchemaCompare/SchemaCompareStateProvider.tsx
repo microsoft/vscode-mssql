@@ -62,6 +62,14 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         { key: key },
                     );
                 },
+                intermediaryIncludeObjectTypesOptionsChanged(
+                    key: string,
+                ): void {
+                    webViewState?.extensionRpc.action(
+                        "intermediaryIncludeObjectTypesOptionsChanged",
+                        { key: key },
+                    );
+                },
                 confirmSchemaOptions: function (optionsChanged: boolean): void {
                     webViewState?.extensionRpc.action("confirmSchemaOptions", {
                         optionsChanged: optionsChanged,

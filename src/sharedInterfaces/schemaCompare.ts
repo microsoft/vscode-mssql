@@ -74,6 +74,8 @@ export interface SchemaCompareReducers {
 
     intermediaryGeneralOptionsChanged: { key: string };
 
+    intermediaryIncludeObjectTypesOptionsChanged: { key: string };
+
     resetSchemaOptions: {};
 
     confirmSchemaOptions: { optionsChanged: boolean };
@@ -140,6 +142,8 @@ export interface SchemaCompareContextProps {
     setIntermediarySchemaOptions: () => void;
 
     intermediaryGeneralOptionsChanged: (key: string) => void;
+
+    intermediaryIncludeObjectTypesOptionsChanged: (key: string) => void;
 
     confirmSchemaOptions: (optionsChanged: boolean) => void;
 

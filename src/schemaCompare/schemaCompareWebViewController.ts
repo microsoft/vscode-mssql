@@ -339,6 +339,31 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer(
+            "intermediaryIncludeObjectTypesOptionsChanged",
+            (state, payload) => {
+                const deploymentOptions =
+                    state.intermediaryOptionsResult.defaultDeploymentOptions;
+                const excludeObjectTypeOptions =
+                    deploymentOptions.excludeObjectTypes.value;
+
+                const optionIndex = excludeObjectTypeOptions.findIndex(
+                    (o) => o.toLowerCase() === payload.key.toLowerCase(),
+                );
+
+                const isFound = optionIndex !== -1;
+                if (isFound) {
+                    excludeObjectTypeOptions.splice(optionIndex, 1);
+                } else {
+                    excludeObjectTypeOptions.push(payload.key);
+                }
+
+                this.updateState(state);
+
+                return state;
+            },
+        );
+
         this.registerReducer("confirmSchemaOptions", async (state, payload) => {
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
                 deepClone(
@@ -583,7 +608,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("resetOptions", async (state) => {
             const result = await getDefaultOptions(this.schemaCompareService);
 
-            state.defaultDeploymentOptionsResult = result;
+            // May not always want to reset options back to default until OK is clicked.
+            // state.defaultDeploymentOptionsResult = result;
             state.intermediaryOptionsResult = deepClone(result);
             this.updateState(state);
 
