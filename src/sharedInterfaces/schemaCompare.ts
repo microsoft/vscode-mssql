@@ -40,6 +40,7 @@ import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 export interface SchemaCompareWebViewState {
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
+    intermediaryOptionsResult: SchemaCompareOptionsResult;
     endpointsSwitched: boolean;
     sourceEndpointInfo: SchemaCompareEndpointInfo;
     targetEndpointInfo: SchemaCompareEndpointInfo;
@@ -68,6 +69,14 @@ export interface SchemaCompareReducers {
     confirmSelectedSchema: {
         endpointType: "source" | "target";
     };
+
+    setIntermediarySchemaOptions: {};
+
+    intermediaryGeneralOptionsChanged: { key: string };
+
+    resetSchemaOptions: {};
+
+    confirmSchemaOptions: { optionsChanged: boolean };
 
     switchEndpoints: {
         newSourceEndpointInfo: SchemaCompareEndpointInfo;
@@ -101,7 +110,7 @@ export interface SchemaCompareReducers {
         taskExecutionMode: TaskExecutionMode;
     };
 
-    getDefaultOptions: {};
+    resetOptions: {};
 
     includeExcludeNode: {
         id: number;
@@ -127,6 +136,12 @@ export interface SchemaCompareContextProps {
     ) => void;
 
     confirmSelectedSchema: (endpointType: "source" | "target") => void;
+
+    setIntermediarySchemaOptions: () => void;
+
+    intermediaryGeneralOptionsChanged: (key: string) => void;
+
+    confirmSchemaOptions: (optionsChanged: boolean) => void;
 
     switchEndpoints: (
         newSourceEndpointInfo: SchemaCompareEndpointInfo,
@@ -160,7 +175,7 @@ export interface SchemaCompareContextProps {
         taskExecutionMode: TaskExecutionMode,
     ) => void;
 
-    getDefaultOptions: () => void;
+    resetOptions: () => void;
 
     includeExcludeNode: (
         id: number,

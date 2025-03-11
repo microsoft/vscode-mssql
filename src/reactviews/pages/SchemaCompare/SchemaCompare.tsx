@@ -9,10 +9,12 @@ import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
 import SchemaSelectorDrawer from "./components/SchemaSelectorDrawer";
 import CompareActionBar from "./components/CompareActionBar";
+import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
 
 export const SchemaComparePage = () => {
     const [selectedDiffId, setSelectedDiffId] = useState(-1);
     const [showDrawer, setShowDrawer] = useState(false);
+    const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">(
         "source",
     );
@@ -32,9 +34,17 @@ export const SchemaComparePage = () => {
         setShowDrawer(show);
     };
 
+    const openOptionsDialog = (): void => {
+        setShowOptionsDrawer(true);
+    };
+
+    const handleShowOptionsDrawer = (show: boolean): void => {
+        setShowOptionsDrawer(show);
+    };
+
     return (
         <div>
-            <CompareActionBar />
+            <CompareActionBar onOptionsClicked={openOptionsDialog} />
             <SelectSchemasPanel
                 onSelectSchemaClicked={handleSelectSchemaClicked}
             />
@@ -42,11 +52,19 @@ export const SchemaComparePage = () => {
             {selectedDiffId !== -1 && (
                 <CompareDiffEditor selectedDiffId={selectedDiffId} />
             )}
-            <SchemaSelectorDrawer
-                show={showDrawer}
-                endpointType={endpointType}
-                showDrawer={handleShowDrawer}
-            />
+            {showDrawer && (
+                <SchemaSelectorDrawer
+                    show={showDrawer}
+                    endpointType={endpointType}
+                    showDrawer={handleShowDrawer}
+                />
+            )}
+            {showOptionsDrawer && (
+                <SchemaOptionsDrawer
+                    show={showOptionsDrawer}
+                    showDrawer={handleShowOptionsDrawer}
+                />
+            )}
         </div>
     );
 };

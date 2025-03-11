@@ -50,6 +50,23 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         endpointType: endpointType,
                     });
                 },
+                setIntermediarySchemaOptions: function (): void {
+                    webViewState?.extensionRpc.action(
+                        "setIntermediarySchemaOptions",
+                        {},
+                    );
+                },
+                intermediaryGeneralOptionsChanged(key: string): void {
+                    webViewState?.extensionRpc.action(
+                        "intermediaryGeneralOptionsChanged",
+                        { key: key },
+                    );
+                },
+                confirmSchemaOptions: function (optionsChanged: boolean): void {
+                    webViewState?.extensionRpc.action("confirmSchemaOptions", {
+                        optionsChanged: optionsChanged,
+                    });
+                },
                 switchEndpoints: function (
                     newSourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     newTargetEndpointInfo: mssql.SchemaCompareEndpointInfo,
@@ -111,8 +128,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         taskExecutionMode: taskExecutionMode,
                     });
                 },
-                getDefaultOptions: function (): void {
-                    webViewState?.extensionRpc.action("getDefaultOptions", {});
+                resetOptions: function (): void {
+                    webViewState?.extensionRpc.action("resetOptions", {});
                 },
                 includeExcludeNode: function (
                     id: number,

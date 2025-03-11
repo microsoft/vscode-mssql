@@ -335,7 +335,13 @@ export class LocConstants {
 
     public get schemaCompare() {
         return {
+            description: l10n.t("Description"),
             compare: l10n.t("Compare"),
+            schemaCompareOptions: l10n.t("Schema Compare Options"),
+            generalOptions: l10n.t("General Options"),
+            includeObjectTypes: l10n.t("Include Object Types"),
+            optionDescription: l10n.t("Option Description"),
+            reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),
             generateScript: l10n.t("Generate Script"),
             generateScriptToDeployChangesToTarget: l10n.t(
@@ -381,6 +387,10 @@ export class LocConstants {
                 "Are you sure you want to update the target?",
             ),
             yes: l10n.t("Yes"),
+            no: l10n.t("No"),
+            optionsChangedMessage: l10n.t(
+                "Options have changed. Recompare to see the comparison?",
+            ),
             compareErrorMessage: (errorMessage: string) =>
                 l10n.t({
                     message: "Schema Compare failed: '{0}'",

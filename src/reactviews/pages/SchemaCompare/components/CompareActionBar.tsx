@@ -24,7 +24,11 @@ import { locConstants as loc } from "../../../common/locConstants";
 import { useContext, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
-const CompareActionBar = () => {
+interface Props {
+    onOptionsClicked: () => void;
+}
+
+const CompareActionBar = (props: Props) => {
     const context = useContext(schemaCompareContext);
 
     useEffect(() => {
@@ -62,6 +66,10 @@ const CompareActionBar = () => {
             context.state.targetEndpointInfo.serverName,
             context.state.targetEndpointInfo.databaseName,
         );
+    };
+
+    const handleOptionsClicked = () => {
+        props.onOptionsClicked();
     };
 
     const handleSwitchEndpoints = () => {
@@ -117,6 +125,7 @@ const CompareActionBar = () => {
                 aria-lable={loc.schemaCompare.options}
                 title={loc.schemaCompare.options}
                 icon={<SettingsRegular />}
+                onClick={handleOptionsClicked}
             >
                 {loc.schemaCompare.options}
             </ToolbarButton>

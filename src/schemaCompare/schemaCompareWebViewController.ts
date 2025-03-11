@@ -35,12 +35,13 @@ import {
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
-import { startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import {
     ActivityStatus,
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { deepClone } from "../models/utils";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -64,6 +65,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             "schemaCompare",
             {
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
+                intermediaryOptionsResult: undefined,
                 endpointsSwitched: false,
                 auxiliaryEndpointInfo: undefined,
                 sourceEndpointInfo: undefined,
@@ -327,6 +329,83 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        this.registerReducer("setIntermediarySchemaOptions", async (state) => {
+            state.intermediaryOptionsResult = deepClone(
+                state.defaultDeploymentOptionsResult,
+            );
+
+            this.updateState(state);
+
+            return state;
+        });
+
+        this.registerReducer("confirmSchemaOptions", async (state, payload) => {
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
+                deepClone(
+                    state.intermediaryOptionsResult.defaultDeploymentOptions,
+                );
+            state.intermediaryOptionsResult = undefined;
+
+            this.updateState(state);
+
+            const yesItem: vscode.MessageItem = {
+                title: loc.schemaCompare.yes,
+            };
+
+            const noItem: vscode.MessageItem = {
+                title: loc.schemaCompare.no,
+                isCloseAffordance: true,
+            };
+
+            sendActionEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.OptionsChanged,
+            );
+
+            if (payload.optionsChanged) {
+                vscode.window
+                    .showInformationMessage(
+                        loc.schemaCompare.optionsChangedMessage,
+                        { modal: true },
+                        yesItem,
+                        noItem,
+                    )
+                    .then(async (result) => {
+                        if (result.title === loc.schemaCompare.yes) {
+                            const payload = {
+                                sourceEndpointInfo: state.sourceEndpointInfo,
+                                targetEndpointInfo: state.targetEndpointInfo,
+                                deploymentOptions:
+                                    state.defaultDeploymentOptionsResult
+                                        .defaultDeploymentOptions,
+                            };
+                            await this.schemaCompare(payload, state);
+
+                            sendActionEvent(
+                                TelemetryViews.SchemaCompare,
+                                TelemetryActions.OptionsChanged,
+                            );
+                        }
+                    });
+            }
+
+            return state;
+        });
+
+        this.registerReducer(
+            "intermediaryGeneralOptionsChanged",
+            (state, payload) => {
+                const generalOptionsDictionary =
+                    state.intermediaryOptionsResult.defaultDeploymentOptions
+                        .booleanOptionsDictionary;
+                generalOptionsDictionary[payload.key].value =
+                    !generalOptionsDictionary[payload.key].value;
+
+                this.updateState(state);
+                return state;
+            },
+        );
+
         this.registerReducer("switchEndpoints", async (state, payload) => {
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
@@ -348,42 +427,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("compare", async (state, payload) => {
-            const endActivity = startActivity(
-                TelemetryViews.SchemaCompare,
-                TelemetryActions.Compare,
-                this.operationId,
-                {
-                    startTime: Date.now().toString(),
-                },
-            );
-
-            const result = await compare(
-                this.operationId,
-                TaskExecutionMode.execute,
-                payload,
-                this.schemaCompareService,
-            );
-
-            if (!result || !result.success) {
-                endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result.errorMessage,
-                    operationId: this.operationId,
-                });
-
-                vscode.window.showErrorMessage(
-                    loc.schemaCompare.compareErrorMessage(result.errorMessage),
-                );
-            }
-
-            endActivity.end(ActivityStatus.Succeeded);
-
-            const finalDifferences = this.getAllObjectTypeDifferences(result);
-            result.differences = finalDifferences;
-            state.schemaCompareResult = result;
-            state.endpointsSwitched = false;
-            this.updateState(state);
-
-            return state;
+            return await this.schemaCompare(payload, state);
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
@@ -536,10 +580,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        this.registerReducer("getDefaultOptions", async (state) => {
+        this.registerReducer("resetOptions", async (state) => {
             const result = await getDefaultOptions(this.schemaCompareService);
 
             state.defaultDeploymentOptionsResult = result;
+            state.intermediaryOptionsResult = deepClone(result);
+            this.updateState(state);
+
+            sendActionEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.ResetOptions,
+            );
+
             return state;
         });
 
@@ -741,6 +793,54 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.cancelResultStatus = result;
             return state;
         });
+    }
+
+    private async schemaCompare(
+        payload: {
+            sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
+            targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
+            deploymentOptions: mssql.DeploymentOptions;
+        },
+        state: SchemaCompareWebViewState,
+    ) {
+        const endActivity = startActivity(
+            TelemetryViews.SchemaCompare,
+            TelemetryActions.Compare,
+            this.operationId,
+            {
+                startTime: Date.now().toString(),
+            },
+        );
+
+        const result = await compare(
+            this.operationId,
+            TaskExecutionMode.execute,
+            payload,
+            this.schemaCompareService,
+        );
+
+        if (!result || !result.success) {
+            endActivity.endFailed(undefined, false, undefined, undefined, {
+                errorMessage: result.errorMessage,
+                operationId: this.operationId,
+            });
+
+            vscode.window.showErrorMessage(
+                loc.schemaCompare.compareErrorMessage(result.errorMessage),
+            );
+
+            return state;
+        }
+
+        endActivity.end(ActivityStatus.Succeeded);
+
+        const finalDifferences = this.getAllObjectTypeDifferences(result);
+        result.differences = finalDifferences;
+        state.schemaCompareResult = result;
+        state.endpointsSwitched = false;
+        this.updateState(state);
+
+        return state;
     }
 
     private async showOpenDialog(
