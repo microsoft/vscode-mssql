@@ -1276,6 +1276,9 @@
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
     </trans-unit>
+    <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
+      <source xml:lang="en">Settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
     </trans-unit>
