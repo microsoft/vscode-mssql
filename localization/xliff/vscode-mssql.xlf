@@ -669,6 +669,9 @@
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
     </trans-unit>
+    <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
+      <source xml:lang="en">General Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
@@ -718,6 +721,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
       <source xml:lang="en">Include</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
+      <source xml:lang="en">Include Object Types</source>
     </trans-unit>
     <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
       <source xml:lang="en">Index</source>
@@ -980,11 +986,17 @@
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
     </trans-unit>
+    <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
+      <source xml:lang="en">Option Description</source>
+    </trans-unit>
     <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
       <source xml:lang="en">Optional (False)</source>
     </trans-unit>
     <trans-unit id="++CODE++d0db8b5e364b6989e4b8f38a2b3846b87d99a51c1592ebf35d21cc66405a8e39">
       <source xml:lang="en">Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175">
+      <source xml:lang="en">Options have changed. Recompare to see the comparison?</source>
     </trans-unit>
     <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
       <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
@@ -1109,6 +1121,9 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
+    <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
+      <source xml:lang="en">Reset</source>
+    </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
     </trans-unit>
@@ -1191,6 +1206,9 @@
     <trans-unit id="++CODE++e43490715378a6a8dd51a85cfd3710df78a7e895658739053758638820a0b93b">
       <source xml:lang="en">Schema Compare Apply failed &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the publish changes operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
+      <source xml:lang="en">Schema Compare Options</source>
     </trans-unit>
     <trans-unit id="++CODE++8bd05764f179b5c53231ee8df7d8f52d5906689eb660f1bd0ff33d1e0817290c">
       <source xml:lang="en">Schema Compare failed: &apos;{0}&apos;</source>

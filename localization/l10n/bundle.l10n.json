@@ -306,6 +306,11 @@
   "Maximize": "Maximize",
   "Restore": "Restore",
   "Compare": "Compare",
+  "Schema Compare Options": "Schema Compare Options",
+  "General Options": "General Options",
+  "Include Object Types": "Include Object Types",
+  "Option Description": "Option Description",
+  "Reset": "Reset",
   "Stop": "Stop",
   "Generate script to deploy changes to target": "Generate script to deploy changes to target",
   "Apply changes to target": "Apply changes to target",
@@ -333,6 +338,8 @@
   "Target": "Target",
   "Are you sure you want to update the target?": "Are you sure you want to update the target?",
   "Yes": "Yes",
+  "No": "No",
+  "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
   "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
     "message": "Schema Compare failed: '{0}'",
     "comment": [
@@ -542,7 +549,6 @@
   "Recent connections list cleared": "Recent connections list cleared",
   " is required.": " is required.",
   "Error: ": "Error: ",
-  "No": "No",
   "<default>": "<default>",
   "Disconnected": "Disconnected",
   "Click to connect to a database": "Click to connect to a database",
