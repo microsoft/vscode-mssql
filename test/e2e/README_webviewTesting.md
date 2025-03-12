@@ -50,3 +50,5 @@ For now, there's no way to access VSCode elements that run outside the playwrigh
 Focus on getting the screenshots of the expected state of the webview. This may require you experimenting with how to access different webview elements through keyboard functionality.
 
 After writing all your tests, it’s important to rerun the test suite. This ensures that each test is correctly validating against the expected screenshots, rather than just generating new screenshots for your tests.
+
+**Note: When you run the tests, close out of VSCode**

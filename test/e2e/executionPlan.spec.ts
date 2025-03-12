@@ -43,11 +43,15 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     test(epTestUtils.QueryPlanTestNames.LoadPlan, async () => {
         // Wait for plan to load
         await new Promise((resolve) => setTimeout(resolve, 20 * 1000));
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.LoadPlan,
-        );
+        try {
+            await checkScreenshot(
+                vsCodePage,
+                epTestUtils.queryPlanScreenshotPath,
+                epTestUtils.QueryPlanTestNames.LoadPlan,
+            );
+        } catch (error) {
+            throw new Error("Query plan took longer than 20 seconds to load.");
+        }
     });
 
     test(epTestUtils.QueryPlanTestNames.SavePlan, async () => {
