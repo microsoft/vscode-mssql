@@ -38,5 +38,8 @@ We can't use playwright's builtin locator functions, because VSCode webviews are
 
 However, we can still interact with the Webview content by using Playwright's keyboard/input functionality to tab to/type in content. It's slightly more tedious, but as of now our only option.
 
+#### Limitations
+For now, there's no way to access VSCode elements that run outside the playwright context; For example, things like the VSCode save dialog, or alert popups.
+
 #### Starting tests
 Focus on getting the screenshots of the expected state of the webview. This may require you experimenting with how to get different webview elements through keyboard functionality.
