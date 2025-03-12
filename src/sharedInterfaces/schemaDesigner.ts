@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { GeneratePreviewReportResult } from "./tableDesigner";
-
 export namespace SchemaDesigner {
     /**
      * Represents a schema model
@@ -246,7 +244,15 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerReport {
         tableId: string;
-        report: GeneratePreviewReportResult;
+        updateScript: string;
+        actionsPerformed: string[];
+        tableState: SchemaDesignerReportTableState;
+    }
+
+    export enum SchemaDesignerReportTableState {
+        Created = 0,
+        Updated = 1,
+        Dropped = 2,
     }
 
     export interface ISchemaDesignerService {

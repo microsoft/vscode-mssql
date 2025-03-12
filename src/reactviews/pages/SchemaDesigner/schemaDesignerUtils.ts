@@ -241,18 +241,18 @@ export function isForeignKeyValid(
     }
 
     // // Referenced column must be a primary key or unique
-    // if (!referencedColumn.isPrimaryKey && !referencedColumn.isUnique) {
-    //     console.log(
-    //         `Referenced column ${referencedColumnName} is not a primary key or unique`,
-    //     );
-    //     return {
-    //         errorMessage:
-    //             locConstants.schemaDesigner.referencedColumnNotUnique(
-    //                 referencedColumnName,
-    //             ),
-    //         isValid: false,
-    //     };
-    // }
+    if (!referencedColumn.isPrimaryKey && !referencedColumn.isUnique) {
+        console.log(
+            `Referenced column ${referencedColumnName} is not a primary key or unique`,
+        );
+        return {
+            errorMessage:
+                locConstants.schemaDesigner.referencedColumnNotUnique(
+                    referencedColumnName,
+                ),
+            isValid: false,
+        };
+    }
 
     // Check for cyclic foreign key references
     if (isCyclicForeignKey(tables, referencedTable, table)) {

@@ -145,6 +145,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: payload.updatedSchema,
                 sessionId: this.sessionId,
             });
+            console.log("Report", report);
             return report;
         });
 

@@ -130,12 +130,11 @@ export function PublishChangesDialogButton() {
                                 }}
                             >
                                 <Markdown>
+                                    {}
                                     {selectedReport !== -1
-                                        ? (context.report.reports[
+                                        ? context.report.reports[
                                               selectedReport
-                                          ].report.report ??
-                                          context.report.reports[selectedReport]
-                                              .report.schemaValidationError)
+                                          ]?.actionsPerformed.join(" \n")
                                         : ""}
                                 </Markdown>
                             </div>
