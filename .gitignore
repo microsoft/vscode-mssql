@@ -31,3 +31,4 @@ webviews-metafile.json
 /localization/l10n/bundle.l10n.*.json
 .eslintcache
 .nyc_output
+/test/resources/screenshots

@@ -22,7 +22,6 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{
         executablePath: vsCodeExecutablePath,
         args: [
             "--disable-extensions",
-            "--remote-debugging-port=9222",
             "--extensionDevelopmentPath=" + mssqlExtensionPath,
             "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
             "--disable-updates", // https://github.com/microsoft/vscode-test/issues/120
