@@ -273,8 +273,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             };
             await this._data.sort(sortArgs);
         }
-        //TODO: need to set sort button image to indicate sort is applied
-
         return true;
     }
 

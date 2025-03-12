@@ -150,7 +150,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 column.filterValues?.length > 0,
             );
         }
-        //TODO: need to set reset data too
         if (column.sorted) {
             this.setSortButtonImage($sortButton, column);
         }
