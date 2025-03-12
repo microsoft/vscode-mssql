@@ -54,10 +54,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
         useState<number>(-1);
-    const datatypes = useMemo(
-        () => context.state.datatypes,
-        [context.state.datatypes],
-    );
+    const datatypes = useMemo(() => context.datatypes, [context.datatypes]);
     const allTables = useMemo(
         () => getAllTables(context.schema, context.selectedTable),
         [context.selectedTable],
@@ -285,7 +282,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                         minWidth: "auto",
                     }}
                 >
-                    {context.state.schemas.map((schema) => (
+                    {context.schemaNames.map((schema) => (
                         <Option key={schema} value={schema}>
                             {schema}
                         </Option>
@@ -318,6 +315,10 @@ export const SchemaDesignerEditorTablePanel = () => {
                         isIdentity: false,
                         isNullable: true,
                         isUnique: false,
+                        maxLength: 0,
+                        precision: 0,
+                        scale: 0,
+                        collation: "",
                     });
                     context.setSelectedTable({
                         ...context.selectedTable,

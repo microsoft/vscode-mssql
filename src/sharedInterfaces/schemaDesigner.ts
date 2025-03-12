@@ -54,6 +54,18 @@ export namespace SchemaDesigner {
          */
         dataType: string;
         /**
+         * Max length of the column
+         */
+        maxLength: number;
+        /**
+         * Precision of the column
+         */
+        precision: number;
+        /**
+         * Scale of the column
+         */
+        scale: number;
+        /**
          * Is the column primary key
          */
         isPrimaryKey: boolean;
@@ -69,6 +81,10 @@ export namespace SchemaDesigner {
          * Unique constraint of the column
          */
         isUnique: boolean;
+        /**
+         * Collation of the column
+         */
+        collation: string;
     }
 
     export interface ForeignKey {
@@ -271,19 +287,7 @@ export namespace SchemaDesigner {
         onSchemaReady(listener: (model: SchemaDesignerSession) => void): void;
     }
 
-    export interface SchemaDesignerWebviewState {
-        schema: Schema;
-        isModelReady: boolean;
-        schemas: string[];
-        datatypes: string[];
-        script: {
-            scripts: TableScript[];
-            combinedScript: string;
-        };
-        report: {
-            reports: SchemaDesignerReport[];
-        };
-    }
+    export interface SchemaDesignerWebviewState {}
 
     export interface ExportFileOptions {
         format: string;

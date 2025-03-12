@@ -8,6 +8,7 @@ import * as schemaDesignerIcons from "./schemaDesignerIcons";
 const connectorIcon = require("./icons/connector.svg");
 import * as azdataGraph from "azdataGraph";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { locConstants } from "../../common/locConstants";
 
 /**
  * Get the schema designer colors from the current theme
@@ -92,6 +93,18 @@ export const config: SchemaDesignerConfig = {
         throw new Error("Function not implemented.");
     },
     showToolbar: false,
+    isForeignKeyValid: function (
+        _source: azdataGraph.mxCell,
+        _target: azdataGraph.mxCell,
+        _sourceColumn: number,
+        _targetColumn: number,
+    ): boolean {
+        console.log(
+            `isForeignKeyValid: ${_source.id} -> ${_target.id}, sourceColumn: ${_sourceColumn}, targetColumn: ${_targetColumn}`,
+        );
+        return true;
+        // throw new Error("Function not implemented.");
+    },
 };
 
 /**
@@ -160,4 +173,197 @@ export function getTableFromDisplayName(
     return schema.tables.find(
         (entity) => `${entity.schema}.${entity.name}` === displayName,
     )!;
+}
+
+export function isForeignKeyValid(
+    tables: SchemaDesigner.Table[],
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    referencedSchemaName: string,
+    referencedTableName: string,
+    referencedColumnName: string,
+): ForeignKeyValidationResult {
+    const table = tables.find(
+        (t) => t.name === tableName && t.schema === schemaName,
+    );
+    if (!table) {
+        return {
+            errorMessage: locConstants.schemaDesigner.tableNotFound(tableName),
+            isValid: false,
+        };
+    }
+    const referencedTable = tables.find(
+        (t) =>
+            t.name === referencedTableName && t.schema === referencedSchemaName,
+    );
+
+    if (!referencedTable) {
+        return {
+            errorMessage:
+                locConstants.schemaDesigner.referencedTableNotFound(
+                    referencedTableName,
+                ),
+            isValid: false,
+        };
+    }
+
+    const column = table.columns.find((c) => c.name === columnName);
+    if (!column) {
+        return {
+            errorMessage:
+                locConstants.schemaDesigner.columnNotFound(columnName),
+            isValid: false,
+        };
+    }
+    const referencedColumn = referencedTable.columns.find(
+        (c) => c.name === referencedColumnName,
+    );
+    if (!referencedColumn) {
+        return {
+            errorMessage:
+                locConstants.schemaDesigner.referencedColumnNotFound(
+                    referencedColumnName,
+                ),
+            isValid: false,
+        };
+    }
+
+    const datatypeCompatibility = areDataTypesCompatible(
+        column,
+        referencedColumn,
+    );
+    if (!datatypeCompatibility.isValid) {
+        return {
+            errorMessage: datatypeCompatibility.errorMessage,
+            isValid: false,
+        };
+    }
+
+    // // Referenced column must be a primary key or unique
+    // if (!referencedColumn.isPrimaryKey && !referencedColumn.isUnique) {
+    //     console.log(
+    //         `Referenced column ${referencedColumnName} is not a primary key or unique`,
+    //     );
+    //     return {
+    //         errorMessage:
+    //             locConstants.schemaDesigner.referencedColumnNotUnique(
+    //                 referencedColumnName,
+    //             ),
+    //         isValid: false,
+    //     };
+    // }
+
+    // Check for cyclic foreign key references
+    if (isCyclicForeignKey(tables, referencedTable, table)) {
+        return {
+            errorMessage: locConstants.schemaDesigner.cyclicForeignKeyDetected(
+                tableName,
+                referencedTableName,
+            ),
+            isValid: false,
+        };
+    }
+    return {
+        isValid: true,
+    };
+}
+
+export function areDataTypesCompatible(
+    column: SchemaDesigner.Column,
+    referencedColumn: SchemaDesigner.Column,
+): ForeignKeyValidationResult {
+    if (column.dataType !== referencedColumn.dataType) {
+        return {
+            errorMessage: locConstants.schemaDesigner.incompatibleDataTypes(
+                column.dataType,
+                column.name,
+                referencedColumn.dataType,
+                referencedColumn.name,
+            ),
+            isValid: false,
+        };
+    }
+
+    if (
+        column.maxLength !== referencedColumn.maxLength &&
+        referencedColumn.maxLength !== -1
+    ) {
+        return {
+            errorMessage: locConstants.schemaDesigner.incompatibleLegnth(
+                column.name,
+                referencedColumn.name,
+                column.maxLength,
+                referencedColumn.maxLength,
+            ),
+            isValid: false,
+        };
+    }
+
+    if (
+        column.precision !== referencedColumn.precision ||
+        column.scale !== referencedColumn.scale
+    ) {
+        return {
+            errorMessage:
+                locConstants.schemaDesigner.incompatiblePrecisionOrScale(
+                    column.name,
+                    referencedColumn.name,
+                ),
+            isValid: false,
+        };
+    }
+
+    return {
+        isValid: true,
+    };
+}
+
+export function isCyclicForeignKey(
+    tables: SchemaDesigner.Table[],
+    currentTable: SchemaDesigner.Table | undefined,
+    referencedTable: SchemaDesigner.Table | undefined,
+    visited: Set<string> = new Set(),
+): boolean {
+    if (!currentTable || !referencedTable) {
+        return false;
+    }
+
+    if (visited.has(currentTable.id)) {
+        return true; // Cycle detected
+    }
+
+    visited.add(currentTable.id);
+
+    for (const foreignKey of currentTable.foreignKeys) {
+        if (
+            foreignKey.referencedTableName === referencedTable.name &&
+            foreignKey.referencedSchemaName === referencedTable.schema
+        ) {
+            return true; // Cycle detected
+        }
+        const currentReferencedTable = tables.find(
+            (t) =>
+                t.name === foreignKey.referencedTableName &&
+                t.schema === foreignKey.referencedSchemaName,
+        );
+        if (referencedTable) {
+            if (
+                isCyclicForeignKey(
+                    tables,
+                    currentReferencedTable,
+                    referencedTable,
+                    visited,
+                )
+            ) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+export interface ForeignKeyValidationResult {
+    isValid: boolean;
+    errorMessage?: string;
 }

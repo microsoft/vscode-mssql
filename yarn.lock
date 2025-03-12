@@ -3438,9 +3438,9 @@ axobject-query@^4.1.0:
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-4.1.0.tgz#28768c76d0e3cff21bc62a9e2d0b6ac30042a1ee"
   integrity sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==
 
-"azdataGraph@github:Microsoft/azdataGraph#0.0.124":
-  version "0.0.124"
-  resolved "https://codeload.github.com/Microsoft/azdataGraph/tar.gz/8d767100a767392944925d769053c5f1193273ad"
+"azdataGraph@github:Microsoft/azdataGraph#0.0.131":
+  version "0.0.131"
+  resolved "https://codeload.github.com/Microsoft/azdataGraph/tar.gz/b0bc0dbd2e896637f0b0afbdb58f5f947006b9e4"
   dependencies:
     "@dagrejs/dagre" "^1.1.4"
     create-color "^2.0.6"

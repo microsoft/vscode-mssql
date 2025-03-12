@@ -38,7 +38,7 @@ export const SchemaDesignerCodeDrawer = () => {
                                 icon={<FluentIcons.OpenRegular />}
                                 onClick={() =>
                                     context.openInEditor(
-                                        context.state?.script?.combinedScript,
+                                        context.script.combinedScript,
                                     )
                                 }
                             >
@@ -50,7 +50,7 @@ export const SchemaDesignerCodeDrawer = () => {
                                 icon={<FluentIcons.CopyRegular />}
                                 onClick={() =>
                                     context.copyToClipboard(
-                                        context.state?.script?.combinedScript,
+                                        context.script.combinedScript,
                                     )
                                 }
                             />
@@ -75,7 +75,7 @@ export const SchemaDesignerCodeDrawer = () => {
                     width={"100%"}
                     language="sql"
                     theme={resolveVscodeThemeType(context?.themeKind)}
-                    value={context.state?.script?.combinedScript ?? ""}
+                    value={context.script.combinedScript ?? ""}
                     options={{
                         readOnly: true,
                     }}

@@ -372,6 +372,108 @@ export class LocConstants {
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
             deleteNodes: l10n.t("Delete Node"),
+            createAsScript: l10n.t("Create As Script"),
+            tableNotFound: (tableName: string) =>
+                l10n.t({
+                    message: "Table {0} not found",
+                    args: [tableName],
+                    comment: ["{0} is the name of the table"],
+                }),
+            referencedTableNotFound: (tableName: string) =>
+                l10n.t({
+                    message: "Referenced table {0} not found",
+                    args: [tableName],
+                    comment: ["{0} is the name of the table"],
+                }),
+            columnNotFound: (columnName: string) =>
+                l10n.t({
+                    message: "Column {0} not found",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column"],
+                }),
+            referencedColumnNotFound: (columnName: string) =>
+                l10n.t({
+                    message: "Referenced column {0} not found",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column"],
+                }),
+            incompatibleDataTypes: (
+                dataType: string,
+                sourceColumn: string,
+                targetDataType: string,
+                targetColumn: string,
+            ) =>
+                l10n.t({
+                    message:
+                        "Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}",
+                    args: [
+                        dataType,
+                        sourceColumn,
+                        targetDataType,
+                        targetColumn,
+                    ],
+                    comment: [
+                        "{0} is the source data type",
+                        "{1} is the source column",
+                        "{2} is the target data type",
+                        "{3} is the target column",
+                    ],
+                }),
+            incompatibleLegnth: (
+                sourceColumn: string,
+                targetColumn: string,
+                sourceLength: number,
+                targetLength: number,
+            ) =>
+                l10n.t({
+                    message:
+                        "Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}",
+                    args: [
+                        sourceLength,
+                        sourceColumn,
+                        targetLength,
+                        targetColumn,
+                    ],
+                    comment: [
+                        "{0} is the source length",
+                        "{1} is the source column",
+                        "{2} is the target length",
+                        "{3} is the target column",
+                    ],
+                }),
+            incompatiblePrecisionOrScale: (
+                sourceColumn: string,
+                targetColumn: string,
+            ) =>
+                l10n.t({
+                    message:
+                        "Incompatible precision or scale: {0} is the source column, and {1} is the target column",
+                    args: [sourceColumn, targetColumn],
+                    comment: [
+                        "{0} is the source column",
+                        "{1} is the target column",
+                    ],
+                }),
+            referencedColumnNotUnique: (targetColumn: string) =>
+                l10n.t({
+                    message:
+                        "Referenced column {0} is not a primary key or unique",
+                    args: [targetColumn],
+                    comment: ["{0} is the source column"],
+                }),
+            cyclicForeignKeyDetected: (
+                tableName: string,
+                targetTable: string,
+            ) =>
+                l10n.t({
+                    message:
+                        "Cyclic foreign key detected: {0} is the source table, and {1} is the target table",
+                    args: [tableName, targetTable],
+                    comment: [
+                        "{0} is the source table",
+                        "{1} is the target table",
+                    ],
+                }),
         };
     }
 }

@@ -33,6 +33,12 @@ export interface SchemaDesignerContextProps
     getReport: () => void;
     copyToClipboard: (text: string) => void;
     openInEditor: (text: string) => void;
+    script: SchemaDesigner.GenerateScriptResponse;
+    schemaNames: string[];
+    datatypes: string[];
+    initializeSchemaDesigner: () => void;
+    report: SchemaDesigner.GetReportResponse;
+    showError: (message: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -55,7 +61,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     const [schemaDesigner, setSchemaDesigner] = useState<
         azdataGraph.SchemaDesigner | undefined
     >(undefined);
-    const [schema, setSchema] = useState<SchemaDesigner.Schema>(state.schema);
+    const [datatypes, setDatatypes] = useState<string[]>([]);
+    const [schemaNames, setSchemaNames] = useState<string[]>([]);
+    const [schema, setSchema] = useState<SchemaDesigner.Schema>({
+        tables: [],
+    });
 
     const [selectedTable, setSelectedTable] = useState<
         SchemaDesigner.Table | undefined
@@ -66,38 +76,83 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     const [isPublishChangesEnabled, setIsPublishChangesEnabled] =
         useState(false);
 
-    useEffect(() => {
-        setIsPublishChangesEnabled(webviewContext.state.isModelReady);
-    }, [webviewContext.state.isModelReady]);
-
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
-        void extensionRpc.action("exportToFile", {
+        void extensionRpc.call("exportToFile", {
             ...fileProps,
         });
     };
-    const getScript = () => {
+
+    const [script, setScript] = useState<SchemaDesigner.GenerateScriptResponse>(
+        {
+            combinedScript: "",
+            scripts: [],
+        },
+    );
+
+    const [report, setReport] = useState<SchemaDesigner.GetReportResponse>({
+        reports: [],
+    });
+
+    const getScript = async () => {
         if (schemaDesigner) {
-            void extensionRpc.action("getScript", {
+            const script = (await extensionRpc.call("getScript", {
                 updatedSchema: schemaDesigner.schema,
-            });
+            })) as SchemaDesigner.GenerateScriptResponse;
+            setScript(script);
         }
     };
-    const getReport = () => {
+
+    useEffect(() => {
         if (schemaDesigner) {
-            void extensionRpc.action("getReport", {
+            void initializeSchemaDesigner();
+        }
+    }, [schemaDesigner]);
+
+    const initializeSchemaDesigner = async () => {
+        if (schemaDesigner) {
+            const model = (await extensionRpc.call(
+                "initializeSchemaDesigner",
+            )) as SchemaDesigner.CreateSessionResponse;
+            setSchema(model.schema);
+            setDatatypes(model.dataTypes);
+            setSchemaNames(model.schemaNames);
+        }
+    };
+
+    extensionRpc.subscribe(
+        "schemaDesignerStateProvider",
+        "isModelReady",
+        (payload: unknown) => {
+            const typedPayload = payload as {
+                isModelReady: boolean;
+            };
+            setIsPublishChangesEnabled(typedPayload.isModelReady);
+        },
+    );
+
+    const getReport = async () => {
+        if (schemaDesigner) {
+            const report = (await extensionRpc.call("getReport", {
                 updatedSchema: schemaDesigner.schema,
-            });
+            })) as SchemaDesigner.GetReportResponse;
+            setReport(report);
         }
     };
     const copyToClipboard = (text: string) => {
-        void extensionRpc.action("copyToClipboard", {
+        void extensionRpc.call("copyToClipboard", {
             text: text,
         });
     };
     const openInEditor = (text: string) => {
-        void extensionRpc.action("openInEditor", {
+        void extensionRpc.call("openInEditor", {
             text: text,
+        });
+    };
+
+    const showError = (message: string) => {
+        void extensionRpc.call("showError", {
+            message: message,
         });
     };
 
@@ -125,6 +180,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 getReport,
                 copyToClipboard,
                 openInEditor,
+                script,
+                schemaNames,
+                datatypes,
+                initializeSchemaDesigner,
+                report,
+                showError,
             }}
         >
             {children}

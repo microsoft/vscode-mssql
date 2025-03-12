@@ -10,6 +10,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesignerEditorFooter } from "./schemaDesignerEditorFooter";
 import { SchemaDesignerEditorTablePanel } from "./schemaDesignerEditorTablePanel";
 import { SchemaDesignerEditorForeignKeyPanel } from "./schemaDesignerEditorForeignKeyPanel";
+import { SchemaDesignerEditorCodePanel } from "./schemaDesignerEditorCodePanel";
 
 const useStyles = makeStyles({
     editor: {
@@ -81,6 +82,9 @@ export const SchemaDesignerEditor = () => {
                 <Tab value="foreignKeys">
                     {locConstants.schemaDesigner.foreignKeys}
                 </Tab>
+                {/* <Tab value="code">
+                    {locConstants.schemaDesigner.createAsScript}
+                </Tab> */}
             </TabList>
             <div className={classes.editorPanel}>
                 {selectedTabValue === "table" && (
@@ -88,6 +92,9 @@ export const SchemaDesignerEditor = () => {
                 )}
                 {selectedTabValue === "foreignKeys" && (
                     <SchemaDesignerEditorForeignKeyPanel />
+                )}
+                {selectedTabValue === "code" && (
+                    <SchemaDesignerEditorCodePanel />
                 )}
             </div>
             <SchemaDesignerEditorFooter />

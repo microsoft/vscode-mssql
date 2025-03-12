@@ -63,7 +63,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.registerServiceEvents();
         this.registerReducers();
-        void this.createNewSession();
     }
 
     private registerServiceEvents() {
@@ -89,8 +88,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 vscode.window.showInformationMessage(
                     LocConstants.SchemaDesigner.SchemaReady,
                 );
-                this.updateState({
-                    ...this.state,
+                this.postNotification("isModelReady", {
                     isModelReady: true,
                 });
             }
@@ -98,7 +96,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     private registerReducers() {
-        this.registerReducer("exportToFile", async (state, payload) => {
+        this.registerRequestHandler("exportToFile", async (payload) => {
             const outputPath = await vscode.window.showSaveDialog({
                 filters: {
                     [payload.format]: [payload.format],
@@ -122,47 +120,39 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 );
                 vscode.workspace.fs.writeFile(outputPath, fileContents);
             }
-            return state;
         });
-        this.registerReducer("getScript", async (state, payload) => {
-            console.log("getScript", payload);
+
+        this.registerRequestHandler("initializeSchemaDesigner", async () => {
+            const sessionResponse =
+                await this.schemaDesignerService.createSession({
+                    connectionUri: this.connectionUri,
+                    databaseName: this.databaseName,
+                });
+            this.sessionId = sessionResponse.sessionId;
+            return sessionResponse;
+        });
+
+        this.registerRequestHandler("getScript", async (payload) => {
             const script = await this.schemaDesignerService.generateScript({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this.sessionId,
             });
-            state = {
-                ...this.state,
-                schema: payload.updatedSchema,
-                script: {
-                    combinedScript: script.combinedScript,
-                    scripts: script.scripts,
-                },
-            };
-            return state;
+            return script;
         });
 
-        this.registerReducer("getReport", async (state, payload) => {
+        this.registerRequestHandler("getReport", async (payload) => {
             const report = await this.schemaDesignerService.getReport({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this.sessionId,
             });
-            console.log("getReport", report);
-            state = {
-                ...this.state,
-                schema: payload.updatedSchema,
-                report: {
-                    reports: report.reports,
-                },
-            };
-            return state;
+            return report;
         });
 
-        this.registerReducer("copyToClipboard", async (state, payload) => {
+        this.registerRequestHandler("copyToClipboard", async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
-            return state;
         });
 
-        this.registerReducer("openInEditor", async (state, payload) => {
+        this.registerRequestHandler("openInEditor", async (payload) => {
             const document = await this.vscodeWrapper.openMsSqlTextDocument(
                 payload.text,
             );
@@ -171,25 +161,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 viewColumn: vscode.ViewColumn.Active,
                 preserveFocus: true,
             });
-            return state;
         });
-    }
-
-    private async createNewSession() {
-        const sessionResponse = await this.schemaDesignerService.createSession({
-            connectionUri: this.connectionUri,
-            databaseName: this.databaseName,
-        });
-        this.sessionId = sessionResponse.sessionId;
-        this.updateState({
-            ...this.state,
-            schema: sessionResponse.schema,
-            schemas: Array.from(sessionResponse.schemaNames).sort((a, b) =>
-                a.toLowerCase().localeCompare(b.toLowerCase()),
-            ),
-            datatypes: Array.from(sessionResponse.dataTypes).sort((a, b) =>
-                a.toLowerCase().localeCompare(b.toLowerCase()),
-            ),
+        this.registerRequestHandler("showError", async (payload) => {
+            await this.vscodeWrapper.showErrorMessage(payload.message);
         });
     }
 

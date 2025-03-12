@@ -10,7 +10,11 @@ import "azdataGraph/dist/index.css";
 import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
-import { config, getSchemaDesignerColors } from "./schemaDesignerUtils";
+import {
+    config,
+    getSchemaDesignerColors,
+    isForeignKeyValid,
+} from "./schemaDesignerUtils";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDiagramZoomControls } from "./schemaDiagramZoomControls";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
@@ -59,18 +63,77 @@ export const SchemaDesignerPage = () => {
                 context.setIsEditDrawerOpen(true);
                 context.setSelectedTable(table);
                 context.setSchema(model);
+                context.getScript();
             };
             const graph = new azdataGraph.SchemaDesigner(
                 div,
                 schemaDesignerConfig,
             );
-
             context?.setSchemaDesigner(graph);
-            graph.renderSchema(context!.state!.schema, true);
-            context.setSchemaDesigner(graph);
         }
         createGraph();
-    }, [context.state.schema]);
+    }, []);
+
+    useEffect(() => {
+        if (context.schemaDesigner) {
+            context.schemaDesigner.isForeignKeyValid = (
+                _source: azdataGraph.mxCell,
+                _target: azdataGraph.mxCell,
+                _sourceColumn: number,
+                _targetColumn: number,
+            ): boolean => {
+                return true;
+            };
+
+            context.schemaDesigner.renderSchema(context.schema, true);
+            context.schemaDesigner.mxGraph.addListener(
+                azdataGraph.mxGraphFactory.mxEvent.CELLS_ADDED,
+                (_event, _target) => {
+                    const target = _target.properties
+                        .cells[0] as azdataGraph.mxCell;
+                    if (target.isEdge()) {
+                        const schema = context.schema;
+                        const sourceTable = schema?.tables.find(
+                            (table) => table.id === target.source.value.id,
+                        );
+                        const targetTable = schema?.tables.find(
+                            (table) => table.id === target.target.value.id,
+                        );
+                        if (!sourceTable || !targetTable) {
+                            console.log("Invalid source or target table");
+                            return;
+                        }
+                        const sourceColumnName =
+                            sourceTable?.columns[target.value.sourceRow - 1]
+                                ?.name;
+                        const targetColumnName =
+                            targetTable?.columns[target.value.targetRow - 1]
+                                ?.name;
+                        if (!sourceColumnName || !targetColumnName) {
+                            console.log(
+                                "Invalid source or target table or column",
+                            );
+                        }
+                        const isValid = isForeignKeyValid(
+                            context.schema.tables,
+                            sourceTable.schema,
+                            sourceTable.name,
+                            sourceColumnName,
+                            targetTable.schema,
+                            targetTable.name,
+                            targetColumnName,
+                        );
+                        if (!isValid.isValid) {
+                            context.schemaDesigner?.mxGraph.removeCells([
+                                target,
+                            ]);
+                            context.showError(isValid.errorMessage || "");
+                        }
+                    }
+                },
+            );
+        }
+    }, [context.schema]);
 
     return (
         <>

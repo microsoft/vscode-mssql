@@ -30,7 +30,7 @@ export function PublishChangesDialogButton() {
     function getTableDisplayNameForReport(
         report: SchemaDesigner.SchemaDesignerReport,
     ) {
-        const table = context.state.schema.tables.find(
+        const table = context.schema.tables.find(
             (table) => table.id === report.tableId,
         );
         if (table) {
@@ -40,12 +40,12 @@ export function PublishChangesDialogButton() {
     }
 
     useEffect(() => {
-        if (context?.state?.report?.reports?.length > 0) {
+        if (context?.report?.reports?.length > 0) {
             setSelectedReport(0);
         } else {
             setSelectedReport(-1);
         }
-    }, [context.state.report]);
+    }, [context.report]);
 
     return (
         <Dialog>
@@ -95,7 +95,7 @@ export function PublishChangesDialogButton() {
                                         }
                                     </TreeItemLayout>
                                     <Tree>
-                                        {context.state?.report?.reports?.map(
+                                        {context.report.reports?.map(
                                             (report, index) => {
                                                 return (
                                                     <TreeItem
@@ -131,12 +131,11 @@ export function PublishChangesDialogButton() {
                             >
                                 <Markdown>
                                     {selectedReport !== -1
-                                        ? (context.state.report.reports[
+                                        ? (context.report.reports[
                                               selectedReport
                                           ].report.report ??
-                                          context.state.report.reports[
-                                              selectedReport
-                                          ].report.schemaValidationError)
+                                          context.report.reports[selectedReport]
+                                              .report.schemaValidationError)
                                         : ""}
                                 </Markdown>
                             </div>
