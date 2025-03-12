@@ -9,7 +9,6 @@ import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt
 import { screenshotOnFailure } from "./utils/screenshotOnError";
 import {
     checkScreenshot,
-    getScreenshotNameFromTestName,
     waitForCommandPaletteToBeVisible,
 } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
@@ -47,9 +46,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.LoadPlan,
-            ),
+            epTestUtils.QueryPlanTestNames.LoadPlan,
         );
     });
 
@@ -63,9 +60,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.ShowXML,
-            ),
+            epTestUtils.QueryPlanTestNames.ShowXML,
         );
     });
 
@@ -75,9 +70,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.OpenQuery,
-            ),
+            epTestUtils.QueryPlanTestNames.OpenQuery,
         );
     });
 
@@ -87,9 +80,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.ZoomIn,
-            ),
+            epTestUtils.QueryPlanTestNames.ZoomIn,
         );
     });
 
@@ -99,9 +90,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.ZoomOut,
-            ),
+            epTestUtils.QueryPlanTestNames.ZoomOut,
         );
     });
 
@@ -111,9 +100,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.ZoomToFit,
-            ),
+            epTestUtils.QueryPlanTestNames.ZoomToFit,
         );
     });
 
@@ -124,19 +111,14 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.CustomZoom,
-            ),
+            epTestUtils.QueryPlanTestNames.CustomZoom,
         );
         await epTestUtils.reclickButton(vsCodePage);
         await epTestUtils.testCustomZoom(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.CustomZoom,
-                2,
-            ),
+            epTestUtils.QueryPlanTestNames.CustomZoom,
         );
     });
 
@@ -147,29 +129,21 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.FindNode,
-            ),
+            epTestUtils.QueryPlanTestNames.FindNode,
         );
         await epTestUtils.reclickButton(vsCodePage);
         await epTestUtils.testFindNodeUp(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.FindNode,
-                2,
-            ),
+            epTestUtils.QueryPlanTestNames.FindNode,
         );
         await epTestUtils.testFindNodeDown(vsCodePage);
         await epTestUtils.testFindNodeDown(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.FindNode,
-                3,
-            ),
+            epTestUtils.QueryPlanTestNames.FindNode,
         );
     });
 
@@ -179,77 +153,54 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         // Test closing properties pane
         await vsCodePage.keyboard.press("Enter");
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                2,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         await epTestUtils.reclickButton(vsCodePage);
         await epTestUtils.testPropertiesSortAlphabetical(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                3,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         // Sort Reverse Alphabetical
         await epTestUtils.testNextPropertiesButton(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                4,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         // Expand All
         await epTestUtils.testNextPropertiesButton(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                5,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         // Collapse All
         await epTestUtils.testNextPropertiesButton(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                6,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         await epTestUtils.testPropertiesSearch(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                7,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
         await epTestUtils.testPropertiesSortByImportance(vsCodePage);
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.Properties,
-                8,
-            ),
+            epTestUtils.QueryPlanTestNames.Properties,
         );
     });
 
@@ -260,9 +211,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await epTestUtils.testHighlightOpsMetric(
             vsCodePage,
@@ -271,28 +220,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                2,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await epTestUtils.testHighlightOpsMetric(vsCodePage, "Cost");
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                3,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await epTestUtils.testHighlightOpsMetric(vsCodePage, "Subtree Cost");
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                4,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await epTestUtils.testHighlightOpsMetric(
             vsCodePage,
@@ -301,10 +241,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                5,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await epTestUtils.testHighlightOpsMetric(
             vsCodePage,
@@ -313,29 +250,20 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                6,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await epTestUtils.testHighlightOpsMetric(vsCodePage, "Off");
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                7,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
         await vsCodePage.keyboard.press("Tab");
         await vsCodePage.keyboard.press("Enter");
         await checkScreenshot(
             vsCodePage,
             epTestUtils.queryPlanScreenshotPath,
-            getScreenshotNameFromTestName(
-                epTestUtils.QueryPlanTestNames.HighlightOps,
-                8,
-            ),
+            epTestUtils.QueryPlanTestNames.HighlightOps,
         );
     });
 
