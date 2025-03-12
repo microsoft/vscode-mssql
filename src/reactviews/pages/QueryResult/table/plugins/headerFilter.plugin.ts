@@ -145,7 +145,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
             .addClass("slick-header-sort-button")
             .data("column", column);
         if (column.filterValues?.length) {
-            this.setButtonImage($filterButton, column.filterValues?.length > 0);
+            this.setFilterButtonImage(
+                $filterButton,
+                column.filterValues?.length > 0,
+            );
+        }
+        //TODO: need to set reset data too
+        if (column.sorted) {
+            this.setSortButtonImage($sortButton, column);
         }
 
         const filterButton = $filterButton.get(0);
@@ -256,12 +263,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             this.currentSortColumn = "";
                             break;
                     }
-                    this.grid.onHeaderClick.notify();
-
                     await this.updateState(
                         columnFilterState,
                         this.columnDef.id!,
                     );
+                    this.grid.onHeaderClick.notify();
                 },
             );
         }
@@ -270,7 +276,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $filterButton.appendTo(args.node);
 
         this.columnFilterButtonMapping.set(column.id!, filterButton);
-        this.columnSortButtonMapping.set(column.id!, SortProperties.NONE);
+        if (this.columnSortButtonMapping.get(column.id!) === undefined) {
+            this.columnSortButtonMapping.set(column.id!, SortProperties.NONE);
+        }
     }
 
     private async showFilter(filterButton: HTMLElement) {
@@ -441,7 +449,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     return;
                 }
                 if (this.columnDef.filterValues) {
-                    this.setButtonImage(
+                    this.setFilterButtonImage(
                         $menuButton,
                         this.columnDef.filterValues.length > 0,
                     );
@@ -461,7 +469,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 if (!$menuButton) {
                     return;
                 }
-                this.setButtonImage($menuButton, false);
+                this.setFilterButtonImage($menuButton, false);
                 await this.handleApply(this.columnDef, true);
             },
         );
@@ -867,7 +875,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
     }
 
-    private setButtonImage($el: JQuery<HTMLElement>, filtered: boolean) {
+    private setFilterButtonImage($el: JQuery<HTMLElement>, filtered: boolean) {
         const element: HTMLElement | undefined = $el.get(0);
         if (element) {
             if (filtered) {
@@ -878,6 +886,29 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     classList.remove("filtered");
                 }
             }
+        }
+    }
+
+    private setSortButtonImage(
+        $sortButton: JQuery<HTMLElement>,
+        column: FilterableColumn<T>,
+    ) {
+        if (
+            $sortButton &&
+            column.sorted &&
+            column.sorted !== SortProperties.NONE
+        ) {
+            switch (column.sorted) {
+                case SortProperties.ASC:
+                    $sortButton.removeClass("slick-header-sort-button");
+                    $sortButton.addClass("slick-header-sortasc-button");
+                    break;
+                case SortProperties.DESC:
+                    $sortButton.removeClass("slick-header-sort-button");
+                    $sortButton.addClass("slick-header-sortdesc-button");
+                    break;
+            }
+            this.columnSortButtonMapping.set(column.id!, column.sorted);
         }
     }
 }

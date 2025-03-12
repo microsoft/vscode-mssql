@@ -219,6 +219,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
      * @returns true if filters were successfully loaded and applied, false if no filters were found
      */
     public async setupFilterState(): Promise<boolean> {
+        let sortColumn: Slick.Column<T> | undefined = undefined;
+        let sortDirection: boolean | undefined = undefined;
         const filterMapArray = (await this.webViewState.extensionRpc.call(
             "getFilters",
             {
@@ -245,10 +247,34 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                             }
                         },
                     );
+                    let columnSortDirection =
+                        columnFilterMap[column.id!][0].sorted;
+                    if (
+                        (columnSortDirection === "ASC" ||
+                            columnSortDirection === "DESC") &&
+                        !sortDirection
+                    ) {
+                        sortColumn = column;
+                        (column as FilterableColumn<T>).sorted =
+                            columnSortDirection;
+                        sortDirection =
+                            columnSortDirection === "ASC" ? true : false;
+                    }
                 }
             }
         }
         await this._data.filter(this.columns);
+        if (sortDirection !== undefined && sortColumn) {
+            let sortArgs = {
+                grid: this._grid,
+                multiColumnSort: false,
+                sortCol: sortColumn,
+                sortAsc: sortDirection,
+            };
+            await this._data.sort(sortArgs);
+        }
+        //TODO: need to set sort button image to indicate sort is applied
+
         return true;
     }
 
