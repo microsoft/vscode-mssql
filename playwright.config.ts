@@ -22,6 +22,14 @@ export default defineConfig({
     testDir: "./test/e2e",
     testIgnore: ["oldUiTests/**"], // tests are old and do not work
     testMatch: ["**/*.spec.ts"],
+    // Single template for all assertions
+    snapshotPathTemplate: './test/resources/screenshots/{testFilePath}/{arg}{ext}',
+        // Assertion-specific templates
+    expect: {
+        toHaveScreenshot: {
+            maxDiffPixelRatio: 0.02
+        }
+    },
     /* Run tests in files in parallel */
     fullyParallel: false,
     /* Fail the build on CI if you accidentally left test.only in the source code. */

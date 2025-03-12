@@ -9,13 +9,27 @@ import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt
 import { screenshotOnFailure } from "./utils/screenshotOnError";
 import { waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
+import {
+    goToNextButton,
+    openHighlightOpsFromProperties,
+    openPropertiesAfterFindNode,
+    reclickButton,
+    refocusQueryPlanTab,
+    testCustomZoom,
+    testCustomZoomClose,
+    testFindNodeClose,
+    testFindNodeDown,
+    testFindNodeUp,
+    testHighlightOps,
+    testProperties,
+} from "./utils/executionPlanHelpers";
 
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
     let iframe: FrameLocator;
 
-    test.beforeAll(async () => {
+    test.beforeAll("Setting up for Query Plan Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();
         vsCodeApp = electronApp;
         vsCodePage = page;
@@ -32,24 +46,117 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await vsCodePage.keyboard.press("Enter");
 
         iframe = vsCodePage.frameLocator("iframe.webview.ready");
-        await expect(iframe).toBeDefined();
+        await iframe.owner().waitFor({ state: "visible" });
+        await expect(iframe).toBeTruthy();
+
+        // wait for plan to load
+        await new Promise((resolve) => setTimeout(resolve, 20 * 1000));
+        await expect(vsCodePage).toHaveScreenshot();
     });
 
-    test("Open a query plan", async () => {
-        // To Do, make more comprehensive tests
-        const queryCostElement = await iframe.locator("#queryCostContainer");
-        await expect(queryCostElement).toBeDefined();
+    test("Save Plan should work as expected", async () => {
+        // Click Show XML Button
+        await goToNextButton(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\ShowXml.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
 
-        const savePlanElement = iframe.locator("[aria-label=Save Plan]");
-        await expect(savePlanElement).toBeDefined();
+        // Click Open Query Button
+        await goToNextButton(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\OpenQuery.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click Zoom In Button
+        await goToNextButton(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\ZoomIn.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click Zoom Out Button
+        await goToNextButton(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\ZoomOut.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click Zoom To Fit Button
+        await goToNextButton(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\ZoomToFit.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click Custom Zoom Button
+        await goToNextButton(vsCodePage);
+        await testCustomZoomClose(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\CustomZoomClose.png",
+        });
+        await reclickButton(vsCodePage);
+        await testCustomZoom(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\CustomZoom.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click Find Node Button
+        await goToNextButton(vsCodePage);
+        await testFindNodeClose(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\FindNodeClose.png",
+        });
+        await reclickButton(vsCodePage);
+        await testFindNodeUp(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\FindNodeUp.png",
+        });
+        await testFindNodeDown(vsCodePage);
+        await testFindNodeDown(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\FindNodeDown.png",
+        });
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click Properties Button
+        await openPropertiesAfterFindNode(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\OpenProperties.png",
+        });
+        // Test closing properties pane
+        await vsCodePage.keyboard.press("Enter");
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\CloseProperties.png",
+        });
+        await reclickButton(vsCodePage);
+        await testProperties(vsCodePage);
+        await refocusQueryPlanTab(vsCodePage);
+
+        // Click HighlightOpsButton
+        await openHighlightOpsFromProperties(vsCodePage);
+        await testHighlightOps(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\HighlightOps.png",
+        });
+        await vsCodePage.keyboard.press("Tab");
+        await vsCodePage.keyboard.press("Enter");
+        await testHighlightOps(vsCodePage);
+        await vsCodePage.screenshot({
+            path: process.cwd() + "\\test\\resources\\HighlightClose.png",
+        });
     });
 
     test.afterEach(async ({}, testInfo) => {
         await screenshotOnFailure(vsCodePage, testInfo);
+        await refocusQueryPlanTab(vsCodePage);
     });
 
     test.afterAll(async () => {
-        await writeCoverage(iframe);
+        await refocusQueryPlanTab(vsCodePage);
+        await writeCoverage(iframe, "executionPlan");
 
         // Close query plan webview
         await vsCodePage.keyboard.press("Control+F4");

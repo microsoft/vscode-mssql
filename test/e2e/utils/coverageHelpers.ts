@@ -9,19 +9,18 @@ import { FrameLocator } from "@playwright/test";
 
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
-export async function writeCoverage(iframe: FrameLocator) {
+export async function writeCoverage(iframe: FrameLocator, testname: string) {
     await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
-
     const iframeWindow = iframe.locator("#active-frame");
 
     // Get the HTML evaluate of the iframe
-    const iframeEvaluateHandle = await iframeWindow.evaluate(
+    const iframeContentWindow = await iframeWindow.evaluate(
         (el) => (el as HTMLIFrameElement).contentWindow,
     );
 
-    if (iframeEvaluateHandle) {
+    if (iframeContentWindow) {
         // If you want to retrieve a specific property, use evaluate on the handle
-        const coverage = (iframeEvaluateHandle as any).__coverage__;
+        const coverage = (iframeContentWindow as any).__coverage__;
 
         // Ensure coverage data exists before writing
         if (coverage) {
@@ -30,7 +29,7 @@ export async function writeCoverage(iframe: FrameLocator) {
             // Define the file path
             const coverageFilePath = path.join(
                 istanbulCLIOutput,
-                "playwright_coverage_executionPlan.json",
+                `playwright_coverage_${testname}.json`,
             );
 
             // Write the JSON string to the file
