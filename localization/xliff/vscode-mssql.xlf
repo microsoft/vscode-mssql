@@ -267,6 +267,10 @@
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
     </trans-unit>
+    <trans-unit id="++CODE++567bfd33b6af0c44c2532f579092949f8abfe00b09b74b58b52a06c98d3bcf97">
+      <source xml:lang="en">Column {0} not found</source>
+      <note>{0} is the name of the column</note>
+    </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
     </trans-unit>
@@ -357,6 +361,9 @@
     <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
       <source xml:lang="en">Create</source>
     </trans-unit>
+    <trans-unit id="++CODE++7aa0a3ede22306a6fe14f159fb12acfbb63bad17edf71486aa552c2cd757e5cd">
+      <source xml:lang="en">Create As Script</source>
+    </trans-unit>
     <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
       <source xml:lang="en">Create Connection Profile</source>
     </trans-unit>
@@ -371,6 +378,11 @@
     </trans-unit>
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3003f7b98f33e65eb8ba638117f48ecbe1262a77bc8998f0cdeab8d3a2bea3da">
+      <source xml:lang="en">Cyclic foreign key detected: {0} is the source table, and {1} is the target table</source>
+      <note>{0} is the source table
+{1} is the target table</note>
     </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
@@ -708,6 +720,25 @@
     </trans-unit>
     <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
       <source xml:lang="en">In progress</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9047f886b0f9c99b8cc3bdde7fbcbd7efdc15a04b812fb683392ea963dd377a">
+      <source xml:lang="en">Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}</source>
+      <note>{0} is the source data type
+{1} is the source column
+{2} is the target data type
+{3} is the target column</note>
+    </trans-unit>
+    <trans-unit id="++CODE++10dd22f3109292a249d649581e3bc45671ea92b71e6d8cdaf19e9ce5c4ea4ea4">
+      <source xml:lang="en">Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}</source>
+      <note>{0} is the source length
+{1} is the source column
+{2} is the target length
+{3} is the target column</note>
+    </trans-unit>
+    <trans-unit id="++CODE++614e7e9e165a659921381377fa52ad97696a12b29b46326d1a6f0c6a5a2f9a15">
+      <source xml:lang="en">Incompatible precision or scale: {0} is the source column, and {1} is the target column</source>
+      <note>{0} is the source column
+{1} is the target column</note>
     </trans-unit>
     <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
       <source xml:lang="en">Index</source>
@@ -1076,6 +1107,18 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++a6ceac54cfeaf56f68ba700c603fa399f63ab1f2bd85cb1eb743d42fddb49f17">
+      <source xml:lang="en">Referenced column {0} is not a primary key or unique</source>
+      <note>{0} is the source column</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c59829c6dca74f75af7a160a404eb206fb5af6d84a493382415ce6843bbad27e">
+      <source xml:lang="en">Referenced column {0} not found</source>
+      <note>{0} is the name of the column</note>
+    </trans-unit>
+    <trans-unit id="++CODE++01eff6144c084d4ac99f74bf5903e108021919028e917b8663185525b2308e04">
+      <source xml:lang="en">Referenced table {0} not found</source>
+      <note>{0} is the name of the table</note>
+    </trans-unit>
     <trans-unit id="++CODE++0e91610117029a62a478b7fa7df0b8598bebe3ab1e192d4b1882e310719c9671">
       <source xml:lang="en">Refresh</source>
     </trans-unit>
@@ -1319,6 +1362,10 @@
     </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e9fbe173769a3964ed10fc4a085cae953b5f6b8c644494e3b4994e1f2c8487df">
+      <source xml:lang="en">Table {0} not found</source>
+      <note>{0} is the name of the table</note>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>

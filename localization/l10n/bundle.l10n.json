@@ -328,6 +328,69 @@
   "Open in Editor": "Open in Editor",
   "Changed Tables": "Changed Tables",
   "Delete Node": "Delete Node",
+  "Create As Script": "Create As Script",
+  "Table {0} not found/{0} is the name of the table": {
+    "message": "Table {0} not found",
+    "comment": [
+      "{0} is the name of the table"
+    ]
+  },
+  "Referenced table {0} not found/{0} is the name of the table": {
+    "message": "Referenced table {0} not found",
+    "comment": [
+      "{0} is the name of the table"
+    ]
+  },
+  "Column {0} not found/{0} is the name of the column": {
+    "message": "Column {0} not found",
+    "comment": [
+      "{0} is the name of the column"
+    ]
+  },
+  "Referenced column {0} not found/{0} is the name of the column": {
+    "message": "Referenced column {0} not found",
+    "comment": [
+      "{0} is the name of the column"
+    ]
+  },
+  "Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}/{0} is the source data type{1} is the source column{2} is the target data type{3} is the target column": {
+    "message": "Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}",
+    "comment": [
+      "{0} is the source data type",
+      "{1} is the source column",
+      "{2} is the target data type",
+      "{3} is the target column"
+    ]
+  },
+  "Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}/{0} is the source length{1} is the source column{2} is the target length{3} is the target column": {
+    "message": "Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}",
+    "comment": [
+      "{0} is the source length",
+      "{1} is the source column",
+      "{2} is the target length",
+      "{3} is the target column"
+    ]
+  },
+  "Incompatible precision or scale: {0} is the source column, and {1} is the target column/{0} is the source column{1} is the target column": {
+    "message": "Incompatible precision or scale: {0} is the source column, and {1} is the target column",
+    "comment": [
+      "{0} is the source column",
+      "{1} is the target column"
+    ]
+  },
+  "Referenced column {0} is not a primary key or unique/{0} is the source column": {
+    "message": "Referenced column {0} is not a primary key or unique",
+    "comment": [
+      "{0} is the source column"
+    ]
+  },
+  "Cyclic foreign key detected: {0} is the source table, and {1} is the target table/{0} is the source table{1} is the target table": {
+    "message": "Cyclic foreign key detected: {0} is the source table, and {1} is the target table",
+    "comment": [
+      "{0} is the source table",
+      "{1} is the target table"
+    ]
+  },
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
