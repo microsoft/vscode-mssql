@@ -883,7 +883,7 @@ export class ObjectExplorerService {
         await this.closeSession(node);
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         await this._connectionManager.disconnect(nodeUri);
-        if (node.connectionInfo.containerName) {
+        if (!isDisconnect && node.connectionInfo.containerName) {
             void deleteContainer(node.connectionInfo.containerName);
         }
         if (!isDisconnect) {
