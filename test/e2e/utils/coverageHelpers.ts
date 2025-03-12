@@ -10,7 +10,6 @@ import { FrameLocator } from "@playwright/test";
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
 export async function writeCoverage(iframe: FrameLocator, testname: string) {
-    await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
     const iframeWindow = iframe.locator("#active-frame");
 
     // Get the HTML evaluate of the iframe

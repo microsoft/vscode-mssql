@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect, Page } from "@playwright/test";
+import { existsSync } from "fs";
 
 export async function addDatabaseConnection(
     vsCodePage: Page,
@@ -118,4 +119,31 @@ export async function waitForCommandPaletteToBeVisible(
 ): Promise<void> {
     const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
     await expect(commandPaletteInput).toBeVisible();
+}
+
+export function getScreenshotNameFromTestName(
+    testname: string,
+    screenshotTestNumber: number = 1,
+): string {
+    return testname.replace(/\s+/g, "-") + `-${screenshotTestNumber}` + ".png";
+}
+
+export async function checkScreenshot(
+    page: Page,
+    path: string,
+    testname: string,
+): Promise<boolean> {
+    const screenshotFilePath = `${path}${testname}`;
+
+    // Check if file exists
+    if (!existsSync(screenshotFilePath)) {
+        // If file does not exist, take a new screenshot
+        await page.screenshot({ path: screenshotFilePath });
+        return false;
+    } else {
+        // If file exists, compare with expected screenshot
+        // console.log("Checking against existing screenshot: ", testname);
+        await expect(page).toHaveScreenshot();
+        return true;
+    }
 }

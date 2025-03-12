@@ -71,3 +71,16 @@ To run tests, the following options can be used:
 The tests will automatically appear in the **Test Explorer** view after running them once, and green run icons will appear to the left of line numbers in the editor, like this:
 
 ![Run buttons to the left of line numbers in editor](../../images/editor-view-with-tests.png)
+
+### Coverage Commands
+First time
+```shell
+gulp build
+nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**
+npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+```
+
+If you don't want to rebuild+ reinstrument the entire project every time, or you've only changed the tests:
+```shell
+gulp ext:compile-tests; npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+```

@@ -5,18 +5,23 @@
 
 import { Page } from "@playwright/test";
 
-export enum QueryPlanToolbarButton {
-    SavePlan = 0,
-    ShowXML = 1,
-    OpenQuery = 2,
-    ZoomIn = 3,
-    ZoomOut = 4,
-    ZoomToFit = 5,
-    CustomZoom = 6,
-    FindNode = 7,
-    Properties = 8,
-    HighlightExpensiveOperation = 9,
-    ToggleTooltips = 10,
+export const queryPlanScreenshotPath =
+    process.cwd() +
+    `\\test\\resources\\screenshots\\executionPlan.spec.ts\\MSSQL-Extension---Query-Plan-`;
+
+export enum QueryPlanTestNames {
+    LoadPlan = "Test Plan Loaded",
+    SavePlan = "Test Save Plan",
+    ShowXML = "Test Show XML",
+    OpenQuery = "Test Open Query",
+    ZoomIn = "Test Zoom In",
+    ZoomOut = "Test Zoom Out",
+    ZoomToFit = "Test Zoom To Fit",
+    CustomZoom = "Test Custom Zoom",
+    FindNode = "Test Find Node",
+    Properties = "Test Properties",
+    HighlightOps = "Test Highlight Expensive Operations",
+    ToggleTooltips = "Test Toggle Tooltips",
 }
 
 export async function tabToQueryPlanToolbar(vsCodePage: Page): Promise<void> {
@@ -108,45 +113,28 @@ export async function openPropertiesAfterFindNode(page: Page) {
     await page.keyboard.press("Enter");
 }
 
-export async function testProperties(page: Page) {
+export async function testPropertiesSortAlphabetical(page: Page) {
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Enter");
-    await page.screenshot({
-        path:
-            process.cwd() + "\\test\\resources\\PropertiesSortAlphabetical.png",
-    });
+}
+
+export async function testNextPropertiesButton(page: Page) {
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Enter");
-    await page.screenshot({
-        path:
-            process.cwd() +
-            "\\test\\resources\\PropertiesSortReverseAlphabetical.png",
-    });
-    await page.keyboard.press("ArrowRight");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\PropertiesExpandAll.png",
-    });
-    await page.keyboard.press("ArrowRight");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\PropertiesCollapseAll.png",
-    });
+}
+
+export async function testPropertiesSearch(page: Page) {
     await page.keyboard.press("ArrowRight");
     await page.keyboard.type("S");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\PropertiesSearch.png",
-    });
+}
+
+export async function testPropertiesSortByImportance(page: Page) {
     for (let i = 0; i < 6; i++) {
         await page.keyboard.press("ArrowLeft");
     }
     await page.keyboard.press("Enter");
-    await page.screenshot({
-        path:
-            process.cwd() + "\\test\\resources\\PropertiesSortByImportance.png",
-    });
 }
 
 export async function openHighlightOpsFromProperties(page: Page) {
@@ -158,72 +146,19 @@ export async function openHighlightOpsFromProperties(page: Page) {
     await page.keyboard.press("Enter");
 }
 
-export async function testHighlightOps(page: Page) {
+export async function testHighlightOpsActualElapsedTime(page: Page) {
     await page.keyboard.type("Actual Elapsed Time");
     await page.keyboard.press("Tab");
     await page.keyboard.press("Enter");
-    await page.screenshot({
-        path:
-            process.cwd() +
-            "\\test\\resources\\HighlightOpsActualElapsedTime.png",
-    });
+}
+
+export async function testHighlightOpsMetric(page: Page, metric: string) {
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("Control+A");
     await page.keyboard.press("Backspace");
-    await page.keyboard.type("Actual Elapsed CPU Time");
+    await page.keyboard.type(metric);
     await page.keyboard.press("Tab");
     await page.keyboard.press("Enter");
-    await page.screenshot({
-        path:
-            process.cwd() +
-            "\\test\\resources\\HighlightOpsActualElapsedCPUTime.png",
-    });
-    await page.keyboard.press("ArrowLeft");
-    await page.keyboard.press("Control+A");
-    await page.keyboard.press("Backspace");
-    await page.keyboard.type("Cost");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\HighlightOpsCost.png",
-    });
-    await page.keyboard.press("ArrowLeft");
-    await page.keyboard.press("Control+A");
-    await page.keyboard.press("Backspace");
-    await page.keyboard.type("Subtree Cost");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\HighlightOpsSubtreeCost.png",
-    });
-    await page.keyboard.press("ArrowLeft");
-    await page.keyboard.press("Control+A");
-    await page.keyboard.press("Backspace");
-    await page.keyboard.type("Actual Number of Rows For All Executions");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path:
-            process.cwd() + "\\test\\resources\\HighlightOpsExecutionRows.png",
-    });
-    await page.keyboard.press("ArrowLeft");
-    await page.keyboard.press("Control+A");
-    await page.keyboard.press("Backspace");
-    await page.keyboard.type("Number of Rows Read");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\HighlightOpsRowsRead.png",
-    });
-    await page.keyboard.press("ArrowLeft");
-    await page.keyboard.press("Control+A");
-    await page.keyboard.press("Backspace");
-    await page.keyboard.type("Off");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-    await page.screenshot({
-        path: process.cwd() + "\\test\\resources\\HighlightOpsOff.png",
-    });
 }
 
 export async function selectNodeAfterTooltipsButton(page: Page) {
