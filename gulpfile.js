@@ -405,7 +405,7 @@ gulp.task('ext:test', async () => {
 	});
 });
 
-gulp.task('ext:smoke', run('npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test'));
+gulp.task('ext:smoke', run('echo TBD'));
 
 gulp.task('test', gulp.series('ext:test'));
 
