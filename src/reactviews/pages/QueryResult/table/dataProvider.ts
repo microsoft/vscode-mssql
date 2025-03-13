@@ -34,6 +34,11 @@ export interface IDisposableDataProvider<T extends Slick.SlickData>
     sort(args: Slick.OnSortEventArgs<T>): Promise<void>;
 
     /**
+     * Resets the sort
+     */
+    resetSort(): void;
+
+    /**
      * Event fired when the filters changed
      */
     // readonly onFilterStateChange: vscode.Event<void>;
