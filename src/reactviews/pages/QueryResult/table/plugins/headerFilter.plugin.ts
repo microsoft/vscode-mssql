@@ -63,7 +63,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         string,
         HTMLElement
     >();
-    private columnSortButtonMapping: Map<string, SortProperties> = new Map<
+    private columnSortStateMapping: Map<string, SortProperties> = new Map<
         string,
         SortProperties
     >();
@@ -145,7 +145,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
             .addClass("slick-header-sort-button")
             .data("column", column);
         if (column.filterValues?.length) {
-            this.setButtonImage($filterButton, column.filterValues?.length > 0);
+            this.setFilterButtonImage(
+                $filterButton,
+                column.filterValues?.length > 0,
+            );
+        }
+        if (column.sorted) {
+            this.setSortButtonImage($sortButton, column);
+            this.columnSortStateMapping.set(column.id!, column.sorted);
         }
 
         const filterButton = $filterButton.get(0);
@@ -176,9 +183,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         filterValues: this.columnDef.filterValues!,
                         sorted: this.columnDef.sorted ?? SortProperties.NONE,
                     };
-                    let sortState = this.columnSortButtonMapping.get(
-                        column.id!,
-                    );
+                    let sortState = this.columnSortStateMapping.get(column.id!);
 
                     switch (sortState) {
                         case SortProperties.NONE:
@@ -198,7 +203,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 $prevSortButton.addClass(
                                     "slick-header-sort-button",
                                 );
-                                this.columnSortButtonMapping.set(
+                                this.columnSortStateMapping.set(
                                     this.currentSortColumn,
                                     SortProperties.NONE,
                                 );
@@ -216,7 +221,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             $sortButton.removeClass("slick-header-sort-button");
                             $sortButton.addClass("slick-header-sortasc-button");
                             await this.handleMenuItemClick("sort-asc", column);
-                            this.columnSortButtonMapping.set(
+                            this.columnSortStateMapping.set(
                                 column.id!,
                                 SortProperties.ASC,
                             );
@@ -232,7 +237,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 "slick-header-sortdesc-button",
                             );
                             await this.handleMenuItemClick("sort-desc", column);
-                            this.columnSortButtonMapping.set(
+                            this.columnSortStateMapping.set(
                                 column.id!,
                                 SortProperties.DESC,
                             );
@@ -243,7 +248,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 "slick-header-sortdesc-button",
                             );
                             $sortButton.addClass("slick-header-sort-button");
-                            this.columnSortButtonMapping.set(
+                            this.columnSortStateMapping.set(
                                 column.id!,
                                 SortProperties.NONE,
                             );
@@ -256,12 +261,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             this.currentSortColumn = "";
                             break;
                     }
-                    this.grid.onHeaderClick.notify();
-
                     await this.updateState(
                         columnFilterState,
                         this.columnDef.id!,
                     );
+                    this.grid.onHeaderClick.notify();
                 },
             );
         }
@@ -270,7 +274,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $filterButton.appendTo(args.node);
 
         this.columnFilterButtonMapping.set(column.id!, filterButton);
-        this.columnSortButtonMapping.set(column.id!, SortProperties.NONE);
+        if (this.columnSortStateMapping.get(column.id!) === undefined) {
+            this.columnSortStateMapping.set(column.id!, SortProperties.NONE);
+        }
     }
 
     private async showFilter(filterButton: HTMLElement) {
@@ -441,7 +447,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     return;
                 }
                 if (this.columnDef.filterValues) {
-                    this.setButtonImage(
+                    this.setFilterButtonImage(
                         $menuButton,
                         this.columnDef.filterValues.length > 0,
                     );
@@ -461,7 +467,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 if (!$menuButton) {
                     return;
                 }
-                this.setButtonImage($menuButton, false);
+                this.setFilterButtonImage($menuButton, false);
                 await this.handleApply(this.columnDef, true);
             },
         );
@@ -867,7 +873,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
     }
 
-    private setButtonImage($el: JQuery<HTMLElement>, filtered: boolean) {
+    private setFilterButtonImage($el: JQuery<HTMLElement>, filtered: boolean) {
         const element: HTMLElement | undefined = $el.get(0);
         if (element) {
             if (filtered) {
@@ -877,6 +883,28 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 if (classList.contains("filtered")) {
                     classList.remove("filtered");
                 }
+            }
+        }
+    }
+
+    private setSortButtonImage(
+        $sortButton: JQuery<HTMLElement>,
+        column: FilterableColumn<T>,
+    ) {
+        if (
+            $sortButton &&
+            column.sorted &&
+            column.sorted !== SortProperties.NONE
+        ) {
+            switch (column.sorted) {
+                case SortProperties.ASC:
+                    $sortButton.removeClass("slick-header-sort-button");
+                    $sortButton.addClass("slick-header-sortasc-button");
+                    break;
+                case SortProperties.DESC:
+                    $sortButton.removeClass("slick-header-sort-button");
+                    $sortButton.addClass("slick-header-sortdesc-button");
+                    break;
             }
         }
     }
