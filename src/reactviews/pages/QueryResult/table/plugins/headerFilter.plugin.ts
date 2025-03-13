@@ -63,7 +63,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         string,
         HTMLElement
     >();
-    private columnSortButtonMapping: Map<string, SortProperties> = new Map<
+    private columnSortStateMapping: Map<string, SortProperties> = new Map<
         string,
         SortProperties
     >();
@@ -152,6 +152,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
         if (column.sorted) {
             this.setSortButtonImage($sortButton, column);
+            this.columnSortStateMapping.set(column.id!, column.sorted);
         }
 
         const filterButton = $filterButton.get(0);
@@ -182,9 +183,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         filterValues: this.columnDef.filterValues!,
                         sorted: this.columnDef.sorted ?? SortProperties.NONE,
                     };
-                    let sortState = this.columnSortButtonMapping.get(
-                        column.id!,
-                    );
+                    let sortState = this.columnSortStateMapping.get(column.id!);
 
                     switch (sortState) {
                         case SortProperties.NONE:
@@ -204,7 +203,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 $prevSortButton.addClass(
                                     "slick-header-sort-button",
                                 );
-                                this.columnSortButtonMapping.set(
+                                this.columnSortStateMapping.set(
                                     this.currentSortColumn,
                                     SortProperties.NONE,
                                 );
@@ -222,7 +221,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                             $sortButton.removeClass("slick-header-sort-button");
                             $sortButton.addClass("slick-header-sortasc-button");
                             await this.handleMenuItemClick("sort-asc", column);
-                            this.columnSortButtonMapping.set(
+                            this.columnSortStateMapping.set(
                                 column.id!,
                                 SortProperties.ASC,
                             );
@@ -238,7 +237,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 "slick-header-sortdesc-button",
                             );
                             await this.handleMenuItemClick("sort-desc", column);
-                            this.columnSortButtonMapping.set(
+                            this.columnSortStateMapping.set(
                                 column.id!,
                                 SortProperties.DESC,
                             );
@@ -249,7 +248,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                                 "slick-header-sortdesc-button",
                             );
                             $sortButton.addClass("slick-header-sort-button");
-                            this.columnSortButtonMapping.set(
+                            this.columnSortStateMapping.set(
                                 column.id!,
                                 SortProperties.NONE,
                             );
@@ -275,8 +274,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
         $filterButton.appendTo(args.node);
 
         this.columnFilterButtonMapping.set(column.id!, filterButton);
-        if (this.columnSortButtonMapping.get(column.id!) === undefined) {
-            this.columnSortButtonMapping.set(column.id!, SortProperties.NONE);
+        if (this.columnSortStateMapping.get(column.id!) === undefined) {
+            this.columnSortStateMapping.set(column.id!, SortProperties.NONE);
         }
     }
 
@@ -907,7 +906,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     $sortButton.addClass("slick-header-sortdesc-button");
                     break;
             }
-            this.columnSortButtonMapping.set(column.id!, column.sorted);
         }
     }
 }
