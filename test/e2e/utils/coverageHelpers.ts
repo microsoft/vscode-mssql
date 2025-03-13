@@ -18,20 +18,17 @@ export async function writeCoverage(iframe: FrameLocator, testname: string) {
     );
 
     if (iframeContentWindow) {
-        // If you want to retrieve a specific property, use evaluate on the handle
+        // Get coverage from window
         const coverage = (iframeContentWindow as any).__coverage__;
 
         // Ensure coverage data exists before writing
         if (coverage) {
-            const coverageJSON = JSON.stringify(coverage, null, 2); // Convert object to formatted JSON string
-
-            // Define the file path
+            const coverageJSON = JSON.stringify(coverage, null, 2);
             const coverageFilePath = path.join(
                 istanbulCLIOutput,
                 `playwright_coverage_${testname}.json`,
             );
 
-            // Write the JSON string to the file
             fs.writeFileSync(coverageFilePath, coverageJSON, "utf-8");
 
             console.log(
