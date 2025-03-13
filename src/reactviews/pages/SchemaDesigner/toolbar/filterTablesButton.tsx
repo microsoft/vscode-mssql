@@ -140,14 +140,15 @@ export function FilterTablesButton() {
                         appearance="primary"
                         onClick={() => {
                             if (context.schemaDesigner) {
-                                const selectedTableIds = context.schema.tables
-                                    .filter((table) => {
-                                        const tableName = `${table.schema}.${table.name}`;
-                                        return selectedTables.includes(
-                                            tableName,
-                                        );
-                                    })
-                                    .map((table) => table.id);
+                                const selectedTableIds =
+                                    context.schemaDesigner.schema.tables
+                                        .filter((table) => {
+                                            const tableName = `${table.schema}.${table.name}`;
+                                            return selectedTables.includes(
+                                                tableName,
+                                            );
+                                        })
+                                        .map((table) => table.id);
                                 context.schemaDesigner.filterCells(
                                     selectedTableIds,
                                 );

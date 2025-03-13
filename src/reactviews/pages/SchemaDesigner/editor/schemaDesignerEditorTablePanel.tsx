@@ -55,10 +55,15 @@ export const SchemaDesignerEditorTablePanel = () => {
     const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
         useState<number>(-1);
     const datatypes = useMemo(() => context.datatypes, [context.datatypes]);
-    const allTables = useMemo(
-        () => getAllTables(context.schema, context.selectedTable),
-        [context.selectedTable],
-    );
+    const allTables = useMemo(() => {
+        if (!context.schemaDesigner?.schema) {
+            return [];
+        }
+        return getAllTables(
+            context.schemaDesigner.schema,
+            context.selectedTable,
+        );
+    }, [context.selectedTable]);
     const columnsTableColumnDefinitions: TableColumnDefinition<SchemaDesigner.Column>[] =
         [
             createTableColumn({

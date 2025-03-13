@@ -66,9 +66,9 @@ export const SchemaDesignerEditor = () => {
 
     useEffect(() => {
         setSelectedTabValue("table");
-    }, [context.selectedTable, context.schemaDesigner]);
+    }, [context.isEditDrawerOpen]);
 
-    if (!context.selectedTable || !context.schema) {
+    if (!context.selectedTable || !context.schemaDesigner?.schema) {
         return undefined;
     }
 

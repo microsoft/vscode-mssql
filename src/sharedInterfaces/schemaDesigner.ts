@@ -244,6 +244,7 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerReport {
         tableId: string;
+        tableName: string;
         updateScript: string;
         actionsPerformed: string[];
         tableState: SchemaDesignerReportTableState;

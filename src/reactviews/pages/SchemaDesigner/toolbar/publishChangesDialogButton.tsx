@@ -27,16 +27,16 @@ export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
 
     const [selectedReport, setSelectedReport] = useState<number>(-1);
-    function getTableDisplayNameForReport(
-        report: SchemaDesigner.SchemaDesignerReport,
-    ) {
-        const table = context.schema.tables.find(
-            (table) => table.id === report.tableId,
-        );
-        if (table) {
-            return `${table.schema}.${table.name}`;
+
+    function getReportIcon(report: SchemaDesigner.SchemaDesignerReport) {
+        switch (report.tableState) {
+            case SchemaDesigner.SchemaDesignerReportTableState.Created:
+                return <FluentIcons.AddFilled />;
+            case SchemaDesigner.SchemaDesignerReportTableState.Dropped:
+                return <FluentIcons.SubtractRegular />;
+            case SchemaDesigner.SchemaDesignerReportTableState.Updated:
+                return <FluentIcons.EditRegular />;
         }
-        return "";
     }
 
     useEffect(() => {
@@ -99,20 +99,28 @@ export function PublishChangesDialogButton() {
                                             (report, index) => {
                                                 return (
                                                     <TreeItem
-                                                        key={getTableDisplayNameForReport(
-                                                            report,
-                                                        )}
+                                                        key={report.tableId}
+                                                        value={report.tableId}
                                                         itemType="leaf"
                                                         onClick={() => {
                                                             setSelectedReport(
                                                                 index,
                                                             );
                                                         }}
+                                                        style={{
+                                                            backgroundColor:
+                                                                index ===
+                                                                selectedReport
+                                                                    ? "var(--vscode-list-activeSelectionBackground)"
+                                                                    : "",
+                                                        }}
                                                     >
-                                                        <TreeItemLayout>
-                                                            {getTableDisplayNameForReport(
+                                                        <TreeItemLayout
+                                                            iconBefore={getReportIcon(
                                                                 report,
                                                             )}
+                                                        >
+                                                            {report.tableName}
                                                         </TreeItemLayout>
                                                     </TreeItem>
                                                 );
@@ -134,7 +142,9 @@ export function PublishChangesDialogButton() {
                                     {selectedReport !== -1
                                         ? context.report.reports[
                                               selectedReport
-                                          ]?.actionsPerformed.join(" \n")
+                                          ]?.actionsPerformed
+                                              .map((item) => `- ${item}`)
+                                              .join("\n")
                                         : ""}
                                 </Markdown>
                             </div>

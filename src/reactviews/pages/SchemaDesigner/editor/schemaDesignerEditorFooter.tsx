@@ -32,7 +32,6 @@ export function SchemaDesignerEditorFooter() {
                         context.schemaDesigner.updateActiveCellStateTable(
                             context.selectedTable,
                         );
-                        context.setSchema(context.schemaDesigner.schema);
                     }
                     context.setIsEditDrawerOpen(false);
                 }}

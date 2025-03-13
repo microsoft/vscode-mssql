@@ -58,11 +58,10 @@ export const SchemaDesignerPage = () => {
                 _x,
                 _y,
                 _scale,
-                model,
+                _model,
             ) => {
                 context.setIsEditDrawerOpen(true);
                 context.setSelectedTable(table);
-                context.setSchema(model);
                 context.getScript();
             };
             const graph = new azdataGraph.SchemaDesigner(
@@ -92,7 +91,7 @@ export const SchemaDesignerPage = () => {
                     const target = _target.properties
                         .cells[0] as azdataGraph.mxCell;
                     if (target.isEdge()) {
-                        const schema = context.schema;
+                        const schema = context.schemaDesigner?.schema;
                         const sourceTable = schema?.tables.find(
                             (table) => table.id === target.source.value.id,
                         );
@@ -114,8 +113,9 @@ export const SchemaDesignerPage = () => {
                                 "Invalid source or target table or column",
                             );
                         }
+                        const model = context.schemaDesigner?.schema!;
                         const isValid = isForeignKeyValid(
-                            context.schema.tables,
+                            model.tables,
                             sourceTable.schema,
                             sourceTable.name,
                             sourceColumnName,

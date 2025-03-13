@@ -49,10 +49,16 @@ const useStyles = makeStyles({
 export const SchemaDesignerEditorForeignKeyPanel = () => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const allTables = useMemo(
-        () => getAllTables(context.schema, context.selectedTable),
-        [context.selectedTable],
-    );
+
+    const allTables = useMemo(() => {
+        if (!context.schemaDesigner) {
+            return [];
+        }
+        return getAllTables(
+            context.schemaDesigner.schema,
+            context.selectedTable,
+        );
+    }, [context.selectedTable]);
     const foreignKeyNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [lastForeignKeyNameInputIndex, setLastForeignKeyNameInputIndex] =
         useState<number>(-1);
@@ -70,6 +76,10 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
             ]?.focus();
         }
     }, [lastForeignKeyNameInputIndex]);
+
+    if (!context.schemaDesigner) {
+        return undefined;
+    }
 
     return (
         <div className={classes.tablePanel}>
@@ -203,7 +213,8 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
                                             ];
                                             const entity =
                                                 getTableFromDisplayName(
-                                                    context.schema,
+                                                    context.schemaDesigner
+                                                        ?.schema!,
                                                     data.optionText,
                                                 );
                                             newForeignKeys[
@@ -341,7 +352,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
                                         }}
                                     >
                                         {getTableFromDisplayName(
-                                            context.schema,
+                                            context.schemaDesigner?.schema!,
                                             `${fk.referencedSchemaName}.${fk.referencedTableName}`,
                                         )
                                             .columns.slice()
