@@ -67,6 +67,20 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         endpointType: endpointType,
                     });
                 },
+                confirmSelectedDatabase: function (
+                    endpointType: "source" | "target",
+                    serverConnectionUri: string,
+                    databaseName: string,
+                ): void {
+                    webViewState?.extensionRpc.action(
+                        "confirmSelectedDatabase",
+                        {
+                            endpointType: endpointType,
+                            serverConnectionUri: serverConnectionUri,
+                            databaseName: databaseName,
+                        },
+                    );
+                },
                 setIntermediarySchemaOptions: function (): void {
                     webViewState?.extensionRpc.action(
                         "setIntermediarySchemaOptions",

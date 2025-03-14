@@ -78,6 +78,12 @@ export interface SchemaCompareReducers {
         endpointType: "source" | "target";
     };
 
+    confirmSelectedDatabase: {
+        endpointType: "source" | "target";
+        serverConnectionUri: string;
+        databaseName: string;
+    };
+
     setIntermediarySchemaOptions: {};
 
     intermediaryGeneralOptionsChanged: { key: string };
@@ -152,6 +158,12 @@ export interface SchemaCompareContextProps {
     ) => void;
 
     confirmSelectedSchema: (endpointType: "source" | "target") => void;
+
+    confirmSelectedDatabase: (
+        endpointType: "source" | "target",
+        serverConnectionUri: string,
+        databaseName: string,
+    ) => void;
 
     setIntermediarySchemaOptions: () => void;
 

@@ -335,6 +335,7 @@ export class LocConstants {
 
     public get schemaCompare() {
         return {
+            defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),
             file: l10n.t("File"),
             flat: l10n.t("Flat"),

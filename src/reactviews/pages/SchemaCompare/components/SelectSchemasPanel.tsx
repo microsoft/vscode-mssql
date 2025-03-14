@@ -60,6 +60,24 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
 
+    const sourceEndpointInfo = context.state.sourceEndpointInfo;
+    let sourceEndpointDisplay =
+        (sourceEndpointInfo?.serverName && sourceEndpointInfo?.databaseName
+            ? `${sourceEndpointInfo?.serverName}.${sourceEndpointInfo?.databaseName}`
+            : "") ||
+        sourceEndpointInfo?.packageFilePath ||
+        sourceEndpointInfo?.projectFilePath ||
+        "";
+
+    const targetEndpointInfo = context.state.targetEndpointInfo;
+    let targetEndpointDisplay =
+        (targetEndpointInfo?.serverName && targetEndpointInfo?.databaseName
+            ? `${targetEndpointInfo?.serverName}.${targetEndpointInfo?.databaseName}`
+            : "") ||
+        targetEndpointInfo?.packageFilePath ||
+        targetEndpointInfo?.projectFilePath ||
+        "";
+
     // const handleSelectFile = (endpointType: "source" | "target") => {
     //     const endpoint =
     //         endpointType === "source"
@@ -88,7 +106,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
             <SelectSchemaInput
                 id={sourceId}
                 label={loc.schemaCompare.source}
-                value={context.state.sourceEndpointInfo?.projectFilePath || ""}
+                value={sourceEndpointDisplay}
                 selectFile={() => onSelectSchemaClicked("source")}
                 className={classes.marginRight}
             />
@@ -96,7 +114,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
             <SelectSchemaInput
                 id={targetId}
                 label={loc.schemaCompare.target}
-                value={context.state.targetEndpointInfo?.projectFilePath || ""}
+                value={targetEndpointDisplay}
                 selectFile={() => onSelectSchemaClicked("target")}
             />
 

@@ -68,6 +68,8 @@ const SchemaSelectorDrawer = (props: Props) => {
     const context = useContext(schemaCompareContext);
     const [schemaType, setSchemaType] = useState("database");
     const [disableOkButton, setDisableOkButton] = useState(true);
+    const [serverConnectionUri, setServerConnectionUri] = useState("");
+    const [databaseName, setDatabaseName] = useState("");
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
@@ -89,7 +91,11 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     useEffect(() => {
         updateOkButtonState(schemaType);
-    }, [context.state.auxiliaryEndpointInfo]);
+    }, [
+        context.state.auxiliaryEndpointInfo,
+        serverConnectionUri,
+        databaseName,
+    ]);
 
     const drawerTitle =
         props.endpointType === "source"
@@ -102,7 +108,9 @@ const SchemaSelectorDrawer = (props: Props) => {
             : context.state.targetEndpointInfo;
 
     const updateOkButtonState = (type: string) => {
-        if (
+        if (type === "database" && serverConnectionUri && databaseName) {
+            setDisableOkButton(false);
+        } else if (
             type === "dacpac" &&
             context.state.auxiliaryEndpointInfo?.packageFilePath
         ) {
@@ -128,7 +136,17 @@ const SchemaSelectorDrawer = (props: Props) => {
         data: OptionOnSelectData,
     ) => {
         if (data.optionValue) {
+            setServerConnectionUri(data.optionValue);
             context.listDatabasesForActiveServer(data.optionValue);
+        }
+    };
+
+    const handleDatabaseSelected = (
+        _: SelectionEvents,
+        data: OptionOnSelectData,
+    ) => {
+        if (data.optionValue) {
+            setDatabaseName(data.optionValue);
         }
     };
 
@@ -142,7 +160,15 @@ const SchemaSelectorDrawer = (props: Props) => {
     };
 
     const confirmSelectedEndpoint = () => {
-        context.confirmSelectedSchema(props.endpointType);
+        if (schemaType === "database") {
+            context.confirmSelectedDatabase(
+                props.endpointType,
+                serverConnectionUri,
+                databaseName,
+            );
+        } else {
+            context.confirmSelectedSchema(props.endpointType);
+        }
 
         props.showDrawer(false);
     };
@@ -230,7 +256,12 @@ const SchemaSelectorDrawer = (props: Props) => {
                         </div>
                         <Label>Database</Label>
                         <div>
-                            <Dropdown className={classes.fileInputWidth}>
+                            <Dropdown
+                                className={classes.fileInputWidth}
+                                onOptionSelect={(event, data) =>
+                                    handleDatabaseSelected(event, data)
+                                }
+                            >
                                 {context.state.databases.map((db) => {
                                     return (
                                         <Option key={db} value={db}>

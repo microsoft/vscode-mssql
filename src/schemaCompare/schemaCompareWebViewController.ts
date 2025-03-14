@@ -58,6 +58,115 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         schemaCompareOptionsResult: mssql.SchemaCompareOptionsResult,
         title: string,
     ) {
+        /*
+        const keys = Object.keys(activeConnections);
+
+        connectionMgr
+            .listDatabases(keys[0])
+            .then(async (databases) => {
+                console.log(databases);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+            */
+
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        //
+        // const connectionDetails = connectionMgr.createConnectionDetails(
+        //     activeConnections[0].credentials,
+        // );
+
+        // connectionMgr
+        //     .getConnectionString(connectionDetails, true, true)
+        //     .then(async (connectionString) => {
+        // if (!connectionString || connectionString === "") {
+        //     vscode.window.showErrorMessage(
+        //         "Unabled to find connection string for the connection",
+        //     );
+        // } else {
+        //     try {
+        //         const databases = await connectionMgr.listDatabases(
+        //             activeConnections[0],
+        //         );
+
+        //         console.log(databases);
+        //     } catch (error) {
+        //         console.error("Error listing databases:", error);
+        //     }
+        // });
+
+        // const connections = connectionMgr.connectionStore.loadAllConnections(
+        //     /* get recent connections: */ true,
+        // );
+
+        // const PROFILE = 0;
+        // const savedConnections = connections.filter(
+        //     (c) => Number(c.quickPickItemType) === PROFILE,
+        // );
+
+        // const NEW_CONNECTION = 2;
+        // const newConnections = connections.filter(
+        //     (c) => Number(c.quickPickItemType) === NEW_CONNECTION,
+        // );
+
+        // const allConnections = [...newConnections, ...savedConnections];
+        // const serverNames = allConnections.map((c) => c.connectionCreds.server);
+
+        // const connectionInfo = allConnections[0].connectionCreds;
+        // connectionMgr.connectionStore
+        //     .lookupPassword(connectionInfo, false)
+        //     .then(async (password) => {
+        //         connectionInfo.password = password;
+
+        //         const connectionDetails =
+        //             connectionMgr.createConnectionDetails(connectionInfo);
+
+        //         const connectionString =
+        //             await connectionMgr.getConnectionString(
+        //                 connectionDetails,
+        //                 true,
+        //                 true,
+        //             );
+
+        //         if (!connectionString || connectionString === "") {
+        //             vscode.window.showErrorMessage(
+        //                 "Unabled to find connection string for the connection",
+        //             );
+        //         } else {
+        //             const databases =
+        //                 await connectionMgr.listDatabases(connectionString);
+
+        //             console.log(databases);
+        //         }
+        //     });
+
+        // const uniqueConnectionLabels = Array.from(new Set(connectionLabels));
+
         super(
             context,
             vscodeWrapper,
@@ -190,7 +299,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             await this.connectionMgr.getUriForConnection(connectionProfile);
         let user = connectionProfile.user;
         if (!user) {
-            user = "default";
+            user = loc.schemaCompare.defaultUserName;
         }
 
         const source = {
@@ -371,6 +480,48 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 return state;
             },
         );
+
+        this.registerReducer("confirmSelectedDatabase", (state, payload) => {
+            const connection =
+                this.connectionMgr.activeConnections[
+                    payload.serverConnectionUri
+                ];
+
+            const connectionProfile =
+                connection.credentials as IConnectionProfile;
+
+            let user = connectionProfile.user;
+            if (!user) {
+                user = loc.schemaCompare.defaultUserName;
+            }
+
+            const endpointInfo = {
+                endpointType: mssql.SchemaCompareEndpointType.Database,
+                serverDisplayName: `${connectionProfile.server} (${user})`,
+                serverName: connectionProfile.server,
+                databaseName: payload.databaseName,
+                ownerUri: payload.serverConnectionUri,
+                packageFilePath: "",
+                connectionDetails: undefined,
+                connectionName: connectionProfile.profileName
+                    ? connectionProfile.profileName
+                    : "",
+                projectFilePath: "",
+                targetScripts: [],
+                dataSchemaProvider: "",
+                extractTarget: mssql.ExtractTarget.schemaObjectType,
+            };
+
+            if (payload.endpointType === "source") {
+                state.sourceEndpointInfo = endpointInfo;
+            } else {
+                state.targetEndpointInfo = endpointInfo;
+            }
+
+            this.updateState(state);
+
+            return state;
+        });
 
         this.registerReducer("setIntermediarySchemaOptions", async (state) => {
             state.intermediaryOptionsResult = deepClone(
