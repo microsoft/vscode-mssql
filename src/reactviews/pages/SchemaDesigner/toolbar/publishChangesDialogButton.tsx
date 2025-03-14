@@ -203,7 +203,9 @@ export function PublishChangesDialogButton() {
                             appearance="secondary"
                             onClick={() => {
                                 context.openInEditorWithConnection(
-                                    context.report.updateScript,
+                                    addWarningToSQLScript(
+                                        context.report.updateScript,
+                                    ),
                                 );
                             }}
                             disabled={context.report.updateScript === ""}
