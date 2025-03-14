@@ -291,7 +291,7 @@ export function areDataTypesCompatible(
         referencedColumn.maxLength !== -1
     ) {
         return {
-            errorMessage: locConstants.schemaDesigner.incompatibleLegnth(
+            errorMessage: locConstants.schemaDesigner.incompatibleLength(
                 column.name,
                 referencedColumn.name,
                 column.maxLength,

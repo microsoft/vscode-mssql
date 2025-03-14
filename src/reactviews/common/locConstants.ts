@@ -375,27 +375,27 @@ export class LocConstants {
             createAsScript: l10n.t("Create As Script"),
             tableNotFound: (tableName: string) =>
                 l10n.t({
-                    message: "Table {0} not found",
+                    message: "Table '{0}' not found",
                     args: [tableName],
-                    comment: ["{0} is the name of the table"],
+                    comment: ["{0} is the table name"],
                 }),
             referencedTableNotFound: (tableName: string) =>
                 l10n.t({
-                    message: "Referenced table {0} not found",
+                    message: "Referenced table '{0}' not found",
                     args: [tableName],
-                    comment: ["{0} is the name of the table"],
+                    comment: ["{0} is the table name"],
                 }),
             columnNotFound: (columnName: string) =>
                 l10n.t({
-                    message: "Column {0} not found",
+                    message: "Column '{0}' not found",
                     args: [columnName],
-                    comment: ["{0} is the name of the column"],
+                    comment: ["{0} is the column name"],
                 }),
             referencedColumnNotFound: (columnName: string) =>
                 l10n.t({
-                    message: "Referenced column {0} not found",
+                    message: "Referenced column '{0}' not found",
                     args: [columnName],
-                    comment: ["{0} is the name of the column"],
+                    comment: ["{0} is the column name"],
                 }),
             incompatibleDataTypes: (
                 dataType: string,
@@ -405,7 +405,7 @@ export class LocConstants {
             ) =>
                 l10n.t({
                     message:
-                        "Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}",
+                        "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'",
                     args: [
                         dataType,
                         sourceColumn,
@@ -413,13 +413,13 @@ export class LocConstants {
                         targetColumn,
                     ],
                     comment: [
-                        "{0} is the source data type",
-                        "{1} is the source column",
-                        "{2} is the target data type",
-                        "{3} is the target column",
+                        "{0} is source data type",
+                        "{1} is source column",
+                        "{2} is target data type",
+                        "{3} is target column",
                     ],
                 }),
-            incompatibleLegnth: (
+            incompatibleLength: (
                 sourceColumn: string,
                 targetColumn: string,
                 sourceLength: number,
@@ -427,18 +427,18 @@ export class LocConstants {
             ) =>
                 l10n.t({
                     message:
-                        "Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}",
+                        "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
                     args: [
-                        sourceLength,
                         sourceColumn,
-                        targetLength,
+                        sourceLength,
                         targetColumn,
+                        targetLength,
                     ],
                     comment: [
-                        "{0} is the source length",
-                        "{1} is the source column",
-                        "{2} is the target length",
-                        "{3} is the target column",
+                        "{0} is source column",
+                        "{1} is source length",
+                        "{2} is target column",
+                        "{3} is target length",
                     ],
                 }),
             incompatiblePrecisionOrScale: (
@@ -446,20 +446,16 @@ export class LocConstants {
                 targetColumn: string,
             ) =>
                 l10n.t({
-                    message:
-                        "Incompatible precision or scale: {0} is the source column, and {1} is the target column",
+                    message: "Precision/scale mismatch between '{0}' and '{1}'",
                     args: [sourceColumn, targetColumn],
-                    comment: [
-                        "{0} is the source column",
-                        "{1} is the target column",
-                    ],
+                    comment: ["{0} is source column", "{1} is target column"],
                 }),
             referencedColumnNotUnique: (targetColumn: string) =>
                 l10n.t({
                     message:
-                        "Referenced column {0} is not a primary key or unique",
+                        "Column '{0}' must be a primary key or have a unique constraint",
                     args: [targetColumn],
-                    comment: ["{0} is the source column"],
+                    comment: ["{0} is the referenced column"],
                 }),
             cyclicForeignKeyDetected: (
                 tableName: string,
@@ -467,13 +463,11 @@ export class LocConstants {
             ) =>
                 l10n.t({
                     message:
-                        "Cyclic foreign key detected: {0} is the source table, and {1} is the target table",
+                        "Circular reference detected: '{0}' → '{1}' creates a cycle",
                     args: [tableName, targetTable],
-                    comment: [
-                        "{0} is the source table",
-                        "{1} is the target table",
-                    ],
+                    comment: ["{0} is source table", "{1} is target table"],
                 }),
+            foreignKeyError: l10n.t("Cannot create foreign key"),
         };
     }
 }

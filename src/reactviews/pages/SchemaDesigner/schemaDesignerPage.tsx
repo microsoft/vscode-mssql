@@ -19,12 +19,44 @@ import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDiagramZoomControls } from "./schemaDiagramZoomControls";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
 import { SchemaDesignerCodeDrawer } from "./schemaDesignerCodeDrawer";
+import {
+    Link,
+    Toast,
+    ToastBody,
+    Toaster,
+    ToastTitle,
+    ToastTrigger,
+    useId,
+    useToastController,
+} from "@fluentui/react-components";
+import { locConstants } from "../../common/locConstants";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
 
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
+    const toasterId = useId("toaster");
+    const { dispatchToast } = useToastController(toasterId);
+    const foreignKeyNotification = (errorMessage: string | undefined) => {
+        console.log("Foreign key error: ", errorMessage);
+        dispatchToast(
+            <Toast>
+                <ToastTitle
+                    action={
+                        <ToastTrigger>
+                            <Link>Dismiss</Link>
+                        </ToastTrigger>
+                    }
+                >
+                    {locConstants.schemaDesigner.foreignKeyError}
+                </ToastTitle>
+                <ToastBody subtitle={errorMessage}></ToastBody>
+            </Toast>,
+            { intent: "error", timeout: 999999 },
+        );
+    };
+
     if (!context) {
         return undefined;
     }
@@ -127,7 +159,8 @@ export const SchemaDesignerPage = () => {
                             context.schemaDesigner?.mxGraph.removeCells([
                                 target,
                             ]);
-                            context.showError(isValid.errorMessage || "");
+                            foreignKeyNotification(isValid.errorMessage);
+                            //context.showError(isValid.errorMessage || "");
                         }
                     }
                 },
@@ -137,6 +170,7 @@ export const SchemaDesignerPage = () => {
 
     return (
         <>
+            <Toaster toasterId={toasterId} />
             <SchemaDesignerEditorDrawer />
             <div
                 style={{

@@ -85,9 +85,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.schemaDesignerService.onSchemaReady((model) => {
             if (model.sessionId === this.sessionId) {
                 resolveModelReadyProgress();
-                vscode.window.showInformationMessage(
-                    LocConstants.SchemaDesigner.SchemaReady,
-                );
+                // vscode.window.showInformationMessage(
+                //     LocConstants.SchemaDesigner.SchemaReady,
+                // );
                 this.postNotification("isModelReady", {
                     isModelReady: true,
                 });
@@ -145,7 +145,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: payload.updatedSchema,
                 sessionId: this.sessionId,
             });
-            console.log("Report", report);
             return report;
         });
 
