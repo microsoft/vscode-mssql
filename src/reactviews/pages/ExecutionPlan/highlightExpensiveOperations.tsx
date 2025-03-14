@@ -46,11 +46,17 @@ interface HighlightExpensiveOperationsProps {
     executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
+    inputRef: any;
 }
 
 export const HighlightExpensiveOperations: React.FC<
     HighlightExpensiveOperationsProps
-> = ({ executionPlanView, setExecutionPlanView, setHighlightOpsClicked }) => {
+> = ({
+    executionPlanView,
+    setExecutionPlanView,
+    setHighlightOpsClicked,
+    inputRef,
+}) => {
     const classes = useStyles();
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
 
@@ -104,6 +110,14 @@ export const HighlightExpensiveOperations: React.FC<
         setHighlightOpsClicked(false);
     };
 
+    const handleKeyDownOnAccept = (
+        event: React.KeyboardEvent<HTMLButtonElement>,
+    ) => {
+        if (event.key === "ArrowLeft") {
+            inputRef.current?.focus(); // Move focus to the combobox
+        }
+    };
+
     return (
         <div
             id="highlightExpensiveOpsContainer"
@@ -122,6 +136,7 @@ export const HighlightExpensiveOperations: React.FC<
                 onOptionSelect={(_, data) =>
                     setHighlightMetricSelected(data.optionText ?? "")
                 }
+                ref={inputRef}
             >
                 {highlightMetricOptions.map((option) => (
                     <Option key={option}>{option}</Option>
@@ -135,6 +150,7 @@ export const HighlightExpensiveOperations: React.FC<
                 title={locConstants.common.apply}
                 aria-label={locConstants.common.apply}
                 icon={<Checkmark20Regular />}
+                onKeyDown={handleKeyDownOnAccept}
             />
             <Button
                 icon={<Dismiss20Regular />}

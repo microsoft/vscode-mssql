@@ -78,11 +78,12 @@ jobs:
           PROFILE_NAME=test-server
           DISPLAY=:10 yarn smoketest
 
-      - name: Smoke Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-            name: 'Smoke Test Report'
-            path: ./test-reports/**/smoke-results.xml
-            reporter: jest-junit
-            badge-title: 'smoke-tests'
+      # Comment out smoke test report until new smoke tests are integrated
+      # - name: Smoke Test Report
+      #   uses: dorny/test-reporter@v1
+      #   if: success() || failure()
+      #   with:
+      #       name: 'Smoke Test Report'
+      #       path: ./test-reports/**/smoke-results.xml
+      #       reporter: jest-junit
+      #       badge-title: 'smoke-tests'

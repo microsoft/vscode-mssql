@@ -61,6 +61,7 @@ interface FindNodeProps {
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;
+    inputRef: any;
 }
 
 export const FindNode: React.FC<FindNodeProps> = ({
@@ -68,6 +69,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setExecutionPlanView,
     findNodeOptions,
     setFindNodeClicked,
+    inputRef,
 }) => {
     const classes = useStyles();
     const findNodeComparisonOptions: string[] = [
@@ -165,6 +167,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
+                ref={inputRef}
             >
                 {findNodeOptions.map((option) => (
                     <Option key={option} className={classes.option}>

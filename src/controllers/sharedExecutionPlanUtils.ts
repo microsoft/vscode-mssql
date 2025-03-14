@@ -33,7 +33,7 @@ export async function saveExecutionPlan(
     const saveUri = await vscode.window.showSaveDialog({
         defaultUri: await getUniqueFilePath(folder, `plan`, sqlPlanLanguageId),
         filters: {
-            [executionPlanFileFilter]: [`.${sqlPlanLanguageId}`],
+            [executionPlanFileFilter]: [`${sqlPlanLanguageId}`],
         },
     });
 

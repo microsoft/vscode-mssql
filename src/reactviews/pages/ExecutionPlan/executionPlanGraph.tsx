@@ -116,6 +116,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<any | null>(null);
 
     useEffect(() => {
         if (!executionPlanState || isExecutionPlanLoaded) return;
@@ -201,6 +202,17 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         }
         loadExecutionPlan();
     }, [executionPlanState]);
+
+    useEffect(() => {
+        if (inputRef && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [
+        customZoomClicked,
+        findNodeClicked,
+        highlightOpsClicked,
+        propertiesClicked,
+    ]);
 
     const handleCustomZoomInput = async () => {
         if (executionPlanView) {
@@ -290,6 +302,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         tabIndex={0}
                     >
                         <Input
+                            ref={inputRef}
                             id="customZoomInputBox"
                             type="number"
                             size="small"
@@ -341,6 +354,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                             setExecutionPlanView={setExecutionPlanView}
                             findNodeOptions={findNodeOptions}
                             setFindNodeClicked={setFindNodeClicked}
+                            inputRef={inputRef}
                         />
                     </div>
                 </Popover>
@@ -351,6 +365,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                             executionPlanView={executionPlanView!}
                             setExecutionPlanView={setExecutionPlanView}
                             setHighlightOpsClicked={setHighlightOpsClicked}
+                            inputRef={inputRef}
                         />
                     </div>
                 </Popover>
@@ -370,6 +385,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                                     // guaranteed to be non-null
                                     executionPlanView={executionPlanView!}
                                     setPropertiesClicked={setPropertiesClicked}
+                                    inputRef={inputRef}
                                 />
                             </div>
                         </Popover>
