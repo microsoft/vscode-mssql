@@ -85,9 +85,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.schemaDesignerService.onSchemaReady((model) => {
             if (model.sessionId === this.sessionId) {
                 resolveModelReadyProgress();
-                // vscode.window.showInformationMessage(
-                //     LocConstants.SchemaDesigner.SchemaReady,
-                // );
                 this.postNotification("isModelReady", {
                     isModelReady: true,
                 });

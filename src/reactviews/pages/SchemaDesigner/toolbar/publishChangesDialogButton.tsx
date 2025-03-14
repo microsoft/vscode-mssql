@@ -26,6 +26,7 @@ import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Editor } from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../../common/utils";
+import { addWarningToSQLScript } from "../schemaDesignerUtils";
 
 export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
@@ -180,9 +181,9 @@ export function PublishChangesDialogButton() {
                                     <Editor
                                         height="500px"
                                         defaultLanguage="sql"
-                                        defaultValue={
-                                            context.report.updateScript
-                                        }
+                                        defaultValue={addWarningToSQLScript(
+                                            context.report.updateScript,
+                                        )}
                                         theme={resolveVscodeThemeType(
                                             context?.themeKind,
                                         )}
