@@ -383,7 +383,6 @@ export class LocConstants {
             selectSource: l10n.t("Select Source"),
             selectTarget: l10n.t("Select Target"),
             close: l10n.t("Close"),
-            database: l10n.t("Database"),
             dataTierApplicationFile: l10n.t(
                 "Data-tier Application File (.dacpac)",
             ),
