@@ -955,9 +955,11 @@ export default class MainController implements vscode.Disposable {
                             SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                                 this._context,
                                 this._vscodeWrapper,
+                                this,
                                 this.schemaDesignerService,
                                 connectionUri,
                                 node.metadata.name,
+                                node,
                             );
 
                         schemaDesigner.revealToForeground();

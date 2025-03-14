@@ -202,7 +202,7 @@ export function PublishChangesDialogButton() {
                         <Button
                             appearance="secondary"
                             onClick={() => {
-                                context.openInEditor(
+                                context.openInEditorWithConnection(
                                     context.report.updateScript,
                                 );
                             }}

@@ -7,6 +7,8 @@ import * as vscode from "vscode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "./schemaDesignerWebviewController";
+import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import MainController from "../controllers/mainController";
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
@@ -24,38 +26,29 @@ export class SchemaDesignerWebviewManager {
         // Private constructor to prevent instantiation
     }
 
-    private createSchemaDesigner(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
-        connectionUri: string,
-        databaseName: string,
-    ): SchemaDesignerWebviewController {
-        return new SchemaDesignerWebviewController(
-            context,
-            vscodeWrapper,
-            schemaDesignerService,
-            connectionUri,
-            databaseName,
-        );
-    }
-
     public getSchemaDesigner(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
+        mainController: MainController,
         schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         connectionUri: string,
         databaseName: string,
+        treeNode: TreeNodeInfo,
     ): SchemaDesignerWebviewController {
         const key = `${connectionUri}-${databaseName}`;
         if (!this.schemaDesigners.has(key)) {
-            const schemaDesigner = this.createSchemaDesigner(
+            const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
                 vscodeWrapper,
+                mainController,
                 schemaDesignerService,
                 connectionUri,
                 databaseName,
+                treeNode,
             );
+            schemaDesigner.onDisposed(() => {
+                this.schemaDesigners.delete(key);
+            });
             this.schemaDesigners.set(key, schemaDesigner);
         }
         return this.schemaDesigners.get(key)!;

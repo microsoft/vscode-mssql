@@ -8,7 +8,9 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
-
+import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import MainController from "../controllers/mainController";
+import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
@@ -18,9 +20,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
+        private mainController: MainController,
         private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         private connectionUri: string,
         private databaseName: string,
+        private treeNode: TreeNodeInfo,
     ) {
         super(
             context,
@@ -159,6 +163,33 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 preserveFocus: true,
             });
         });
+
+        this.registerRequestHandler(
+            "openInEditorWithConnection",
+            async (payload) => {
+                const connectionCredentials = Object.assign(
+                    {},
+                    this.treeNode.connectionInfo,
+                );
+                const databaseName = ObjectExplorerUtils.getDatabaseName(
+                    this.treeNode,
+                );
+                if (
+                    databaseName !== connectionCredentials.database &&
+                    databaseName !== LocConstants.defaultDatabaseLabel
+                ) {
+                    connectionCredentials.database = databaseName;
+                } else if (databaseName === LocConstants.defaultDatabaseLabel) {
+                    connectionCredentials.database = "";
+                }
+                this.treeNode.connectionInfo = connectionCredentials;
+                void this.mainController.onNewQuery(
+                    this.treeNode,
+                    payload.text,
+                );
+            },
+        );
+
         this.registerRequestHandler("showError", async (payload) => {
             await this.vscodeWrapper.showErrorMessage(payload.message);
         });
