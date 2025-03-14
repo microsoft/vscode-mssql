@@ -324,6 +324,8 @@ export const SchemaDesignerEditorTablePanel = () => {
                         precision: 0,
                         scale: 0,
                         collation: "",
+                        identitySeed: 1,
+                        identityIncrement: 1,
                     });
                     context.setSelectedTable({
                         ...context.selectedTable,

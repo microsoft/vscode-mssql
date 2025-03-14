@@ -39,6 +39,8 @@ export interface SchemaDesignerContextProps
     initializeSchemaDesigner: () => void;
     report: SchemaDesigner.GetReportResponse;
     showError: (message: string) => void;
+    selectedReportTab: string;
+    setSelectedReportTab: (selectedReportTab: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -76,6 +78,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     const [isPublishChangesEnabled, setIsPublishChangesEnabled] =
         useState(false);
 
+    const [selectedReportTab, setSelectedReportTab] =
+        useState<string>("report");
+
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
         void extensionRpc.call("exportToFile", {
@@ -92,6 +97,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
 
     const [report, setReport] = useState<SchemaDesigner.GetReportResponse>({
         reports: [],
+        updateScript: "",
     });
 
     const getScript = async () => {
@@ -186,6 +192,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 initializeSchemaDesigner,
                 report,
                 showError,
+                selectedReportTab,
+                setSelectedReportTab,
             }}
         >
             {children}

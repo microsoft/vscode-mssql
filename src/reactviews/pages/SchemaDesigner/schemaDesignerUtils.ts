@@ -286,6 +286,7 @@ export function areDataTypesCompatible(
     }
 
     if (
+        isLengthBasedType(column.dataType) &&
         column.maxLength !== referencedColumn.maxLength &&
         referencedColumn.maxLength !== -1
     ) {
@@ -301,7 +302,8 @@ export function areDataTypesCompatible(
     }
 
     if (
-        column.precision !== referencedColumn.precision ||
+        (isPrecisionBasedType(column.dataType) &&
+            column.precision !== referencedColumn.precision) ||
         column.scale !== referencedColumn.scale
     ) {
         return {
@@ -317,6 +319,26 @@ export function areDataTypesCompatible(
     return {
         isValid: true,
     };
+}
+
+export function isLengthBasedType(dataType: string): boolean {
+    return (
+        dataType === "char" ||
+        dataType === "varchar" ||
+        dataType === "nchar" ||
+        dataType === "nvarchar" ||
+        dataType === "binary" ||
+        dataType === "varbinary"
+    );
+}
+
+export function isPrecisionBasedType(dataType: string): boolean {
+    return (
+        dataType === "decimal" ||
+        dataType === "numeric" ||
+        dataType === "float" ||
+        dataType === "real"
+    );
 }
 
 export function isCyclicForeignKey(

@@ -72,6 +72,14 @@ export namespace SchemaDesigner {
          */
         isIdentity: boolean;
         /**
+         * Seed of the column
+         */
+        identitySeed: number;
+        /**
+         * Increment of the column
+         */
+        identityIncrement: number;
+        /**
          * Is the column nullable
          */
         isNullable: boolean;
@@ -240,6 +248,10 @@ export namespace SchemaDesigner {
          * This is the list of reports that indicates the changes made to the schema
          */
         reports: SchemaDesignerReport[];
+        /**
+         * Script to update the schema
+         */
+        updateScript: string;
     }
 
     export interface SchemaDesignerReport {
