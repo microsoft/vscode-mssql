@@ -32,6 +32,23 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
 
+                listActiveServers: function (): void {
+                    webViewState?.extensionRpc.action("listActiveServers", {});
+                },
+                listDatabasesForActiveServer: function (
+                    connectionUri: string,
+                ): void {
+                    webViewState?.extensionRpc.action(
+                        "listDatabasesForActiveServer",
+                        { connectionUri: connectionUri },
+                    );
+                },
+                openAddNewConnectionDialog: function (): void {
+                    webViewState?.extensionRpc.action(
+                        "openAddNewConnectionDialog",
+                        {},
+                    );
+                },
                 selectFile: function (
                     endpoint: mssql.SchemaCompareEndpointInfo,
                     endpointType: "source" | "target",

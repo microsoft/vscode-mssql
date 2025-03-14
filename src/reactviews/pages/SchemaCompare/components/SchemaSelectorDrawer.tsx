@@ -21,6 +21,8 @@ import {
     RadioGroup,
     useId,
     Option,
+    SelectionEvents,
+    OptionOnSelectData,
 } from "@fluentui/react-components";
 import {
     Dismiss24Regular,
@@ -82,6 +84,10 @@ const SchemaSelectorDrawer = (props: Props) => {
     ];
 
     useEffect(() => {
+        context.listActiveServers();
+    }, []);
+
+    useEffect(() => {
         updateOkButtonState(schemaType);
     }, [context.state.auxiliaryEndpointInfo]);
 
@@ -115,6 +121,15 @@ const SchemaSelectorDrawer = (props: Props) => {
         setSchemaType(type);
 
         updateOkButtonState(type);
+    };
+
+    const handleDatabaseServerSelected = (
+        _: SelectionEvents,
+        data: OptionOnSelectData,
+    ) => {
+        if (data.optionValue) {
+            context.listDatabasesForActiveServer(data.optionValue);
+        }
     };
 
     const handleSelectFile = (fileType: "dacpac" | "sqlproj") => {
@@ -181,16 +196,49 @@ const SchemaSelectorDrawer = (props: Props) => {
                     <>
                         <Label>Server</Label>
                         <div className={classes.positionItemsHorizontally}>
-                            <Dropdown className={classes.fileInputWidth} />
+                            <Dropdown
+                                className={classes.fileInputWidth}
+                                onOptionSelect={(event, data) =>
+                                    handleDatabaseServerSelected(event, data)
+                                }
+                            >
+                                {Object.keys(context.state.activeServers).map(
+                                    (connUri) => {
+                                        return (
+                                            <Option
+                                                key={connUri}
+                                                value={connUri}
+                                            >
+                                                {
+                                                    context.state.activeServers[
+                                                        connUri
+                                                    ]
+                                                }
+                                            </Option>
+                                        );
+                                    },
+                                )}
+                            </Dropdown>
                             <Button
                                 className={classes.buttonLeftMargin}
                                 size="large"
                                 icon={<PlugDisconnectedRegular />}
+                                onClick={() => {
+                                    context.openAddNewConnectionDialog();
+                                }}
                             />
                         </div>
                         <Label>Database</Label>
                         <div>
-                            <Dropdown className={classes.fileInputWidth} />
+                            <Dropdown className={classes.fileInputWidth}>
+                                {context.state.databases.map((db) => {
+                                    return (
+                                        <Option key={db} value={db}>
+                                            {db}
+                                        </Option>
+                                    );
+                                })}
+                            </Dropdown>
                         </div>
                     </>
                 )}

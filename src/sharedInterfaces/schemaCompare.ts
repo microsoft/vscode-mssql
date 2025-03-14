@@ -38,6 +38,8 @@ import {
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
 export interface SchemaCompareWebViewState {
+    activeServers: { [connectionUri: string]: string };
+    databases: string[];
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
     intermediaryOptionsResult: SchemaCompareOptionsResult;
@@ -60,6 +62,12 @@ export interface SchemaCompareWebViewState {
 }
 
 export interface SchemaCompareReducers {
+    listActiveServers: {};
+
+    listDatabasesForActiveServer: { connectionUri: string };
+
+    openAddNewConnectionDialog: {};
+
     selectFile: {
         endpoint: SchemaCompareEndpointInfo;
         endpointType: "source" | "target";
@@ -130,6 +138,12 @@ export interface SchemaCompareReducers {
 export interface SchemaCompareContextProps {
     state: SchemaCompareWebViewState;
     themeKind: ColorThemeKind;
+
+    listActiveServers: () => void;
+
+    listDatabasesForActiveServer: (connectionUri: string) => void;
+
+    openAddNewConnectionDialog: () => void;
 
     selectFile: (
         endpoint: SchemaCompareEndpointInfo,

@@ -64,6 +64,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             "schemaCompare",
             "schemaCompare",
             {
+                activeServers: {},
+                databases: [],
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
                 intermediaryOptionsResult: undefined,
                 endpointsSwitched: false,
@@ -110,6 +112,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         void this.start(node);
         this.registerRpcHandlers();
+
+        this.connectionMgr.onActiveConnectionsChanged(() => {
+            const activeServers = this.getActiveServersList();
+            this.state.activeServers = activeServers;
+
+            this.updateState();
+        });
     }
 
     /**
@@ -257,6 +266,40 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.registerReducer("listActiveServers", (state) => {
+            const activeServers = this.getActiveServersList();
+
+            state.activeServers = activeServers;
+            this.updateState(state);
+
+            return state;
+        });
+
+        this.registerReducer(
+            "listDatabasesForActiveServer",
+            async (state, payload) => {
+                let databases: string[] = [];
+                try {
+                    databases = await this.connectionMgr.listDatabases(
+                        payload.connectionUri,
+                    );
+                } catch (error) {
+                    console.error("Error listing databases:", error);
+                }
+
+                state.databases = databases;
+                this.updateState(state);
+
+                return state;
+            },
+        );
+
+        this.registerReducer("openAddNewConnectionDialog", (state) => {
+            vscode.commands.executeCommand("mssql.addObjectExplorerPreview");
+
+            return state;
+        });
+
         this.registerReducer("selectFile", async (state, payload) => {
             let payloadFilePath = "";
             if (payload.endpoint) {
@@ -819,6 +862,24 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.cancelResultStatus = result;
             return state;
         });
+    }
+
+    private getActiveServersList(): { [connectionUri: string]: string } {
+        const activeServers: { [connectionUri: string]: string } = {};
+        let seenServerNames = new Set<string>();
+
+        const activeConnections = this.connectionMgr.activeConnections;
+        Object.keys(activeConnections).forEach((connectionUri) => {
+            let serverName =
+                activeConnections[connectionUri].credentials.server;
+
+            if (!seenServerNames.has(serverName)) {
+                activeServers[connectionUri] = serverName;
+                seenServerNames.add(serverName);
+            }
+        });
+
+        return activeServers;
     }
 
     private async schemaCompare(
