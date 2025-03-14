@@ -220,7 +220,7 @@ const SchemaSelectorDrawer = (props: Props) => {
 
                 {schemaType === "database" && (
                     <>
-                        <Label>Server</Label>
+                        <Label>{loc.schemaCompare.server}</Label>
                         <div className={classes.positionItemsHorizontally}>
                             <Dropdown
                                 className={classes.fileInputWidth}
@@ -254,7 +254,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 }}
                             />
                         </div>
-                        <Label>Database</Label>
+                        <Label>{loc.schemaCompare.database}</Label>
                         <div>
                             <Dropdown
                                 className={classes.fileInputWidth}
