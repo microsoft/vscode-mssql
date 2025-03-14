@@ -597,14 +597,21 @@ export class SqlOutputContentProvider {
                                     ),
                                 isError: false, // Elapsed time messages are never displayed as errors
                             });
-                        const tabState =
-                            Object.keys(
-                                this._queryResultWebviewController.getQueryResultState(
-                                    uri,
-                                ).resultSetSummaries,
-                            ).length > 0
-                                ? QueryResultPaneTabs.Results
-                                : QueryResultPaneTabs.Messages;
+                        // if there is an error, show the error message and set the tab to the messages tab
+                        let tabState: QueryResultPaneTabs;
+                        if (hasError) {
+                            tabState = QueryResultPaneTabs.Messages;
+                        } else {
+                            tabState =
+                                Object.keys(
+                                    this._queryResultWebviewController.getQueryResultState(
+                                        uri,
+                                    ).resultSetSummaries,
+                                ).length > 0
+                                    ? QueryResultPaneTabs.Results
+                                    : QueryResultPaneTabs.Messages;
+                        }
+
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
                         ).tabStates.resultPaneTab = tabState;
