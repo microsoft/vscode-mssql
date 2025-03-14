@@ -1603,6 +1603,9 @@
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>
     </trans-unit>
+    <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
+      <source xml:lang="en">default</source>
+    </trans-unit>
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
       <note>{0} is the connection name</note>
