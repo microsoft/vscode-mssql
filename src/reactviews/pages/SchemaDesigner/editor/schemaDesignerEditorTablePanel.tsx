@@ -7,12 +7,10 @@ import {
     Button,
     Checkbox,
     createTableColumn,
-    Dropdown,
     Field,
     Input,
     Label,
     makeStyles,
-    Option,
     Table,
     TableBody,
     TableCell,
@@ -33,6 +31,7 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { getAllTables, getNextColumnName } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SearchableDropdown } from "../../../common/searchableDropdown";
 
 const useStyles = makeStyles({
     tablePanel: {
@@ -194,35 +193,26 @@ export const SchemaDesignerEditorTablePanel = () => {
                 );
             case "type":
                 return (
-                    <Dropdown
-                        size="small"
-                        value={column.dataType}
-                        selectedOptions={[column.dataType]}
-                        multiselect={false}
-                        style={{
-                            minWidth: "150px",
-                            maxWidth: "150px",
-                        }}
-                        onOptionSelect={(_e, data) => {
-                            if (!data.optionText) {
-                                return;
-                            }
+                    <SearchableDropdown
+                        searchPlaceholder="Search Schema"
+                        options={datatypes}
+                        selectedOption={column.dataType}
+                        onSelect={(selected) => {
                             const newColumns = [
                                 ...context.selectedTable.columns,
                             ];
-                            newColumns[index].dataType = data.optionText;
+                            newColumns[index].dataType = selected;
                             context.setSelectedTable({
                                 ...context.selectedTable,
                                 columns: newColumns,
                             });
                         }}
-                    >
-                        {datatypes.map((type) => (
-                            <Option key={type} value={type}>
-                                {type}
-                            </Option>
-                        ))}
-                    </Dropdown>
+                        style={{
+                            minWidth: "150px",
+                            maxWidth: "150px",
+                        }}
+                        size="small"
+                    ></SearchableDropdown>
                 );
             case "primaryKey":
                 return (
@@ -270,29 +260,17 @@ export const SchemaDesignerEditorTablePanel = () => {
         <div className={classes.tablePanel}>
             <Field>
                 <Label>{locConstants.schemaDesigner.schema}</Label>
-                <Dropdown
-                    value={context.selectedTable.schema}
-                    selectedOptions={[context.selectedTable.schema]}
-                    multiselect={false}
-                    onOptionSelect={(_e, data) => {
-                        if (!data.optionText) {
-                            return;
-                        }
+                <SearchableDropdown
+                    searchPlaceholder="Search Schema"
+                    options={context.schemaNames}
+                    selectedOption={context.selectedTable.schema}
+                    onSelect={(selected) => {
                         context.setSelectedTable({
                             ...context.selectedTable,
-                            schema: data.optionText,
+                            schema: selected,
                         });
                     }}
-                    style={{
-                        minWidth: "auto",
-                    }}
-                >
-                    {context.schemaNames.map((schema) => (
-                        <Option key={schema} value={schema}>
-                            {schema}
-                        </Option>
-                    ))}
-                </Dropdown>
+                ></SearchableDropdown>
             </Field>
             <Field>
                 <Label>{locConstants.schemaDesigner.name}</Label>
