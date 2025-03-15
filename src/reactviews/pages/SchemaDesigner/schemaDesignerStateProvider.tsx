@@ -33,6 +33,7 @@ export interface SchemaDesignerContextProps
     getReport: () => void;
     copyToClipboard: (text: string) => void;
     openInEditor: (text: string) => void;
+    openInEditorWithConnection: (text: string) => void;
     script: SchemaDesigner.GenerateScriptResponse;
     schemaNames: string[];
     datatypes: string[];
@@ -156,6 +157,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         });
     };
 
+    const openInEditorWithConnection = (text: string) => {
+        void extensionRpc.call("openInEditorWithConnection", {
+            text: text,
+        });
+    };
+
     const showError = (message: string) => {
         void extensionRpc.call("showError", {
             message: message,
@@ -186,6 +193,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 getReport,
                 copyToClipboard,
                 openInEditor,
+                openInEditorWithConnection,
                 script,
                 schemaNames,
                 datatypes,

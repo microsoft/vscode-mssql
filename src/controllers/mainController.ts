@@ -61,10 +61,10 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
+import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 
 /**
  * The main controller class that initializes the extension
@@ -950,14 +950,18 @@ export default class MainController implements vscode.Disposable {
                             this.connectionManager.getUriForConnection(
                                 node.connectionInfo,
                             );
+
                         const schemaDesigner =
-                            new SchemaDesignerWebviewController(
+                            SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                                 this._context,
                                 this._vscodeWrapper,
+                                this,
                                 this.schemaDesignerService,
                                 connectionUri,
                                 node.metadata.name,
+                                node,
                             );
+
                         schemaDesigner.revealToForeground();
                     },
                 ),

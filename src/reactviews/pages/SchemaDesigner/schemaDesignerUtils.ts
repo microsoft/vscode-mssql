@@ -291,7 +291,7 @@ export function areDataTypesCompatible(
         referencedColumn.maxLength !== -1
     ) {
         return {
-            errorMessage: locConstants.schemaDesigner.incompatibleLegnth(
+            errorMessage: locConstants.schemaDesigner.incompatibleLength(
                 column.name,
                 referencedColumn.name,
                 column.maxLength,
@@ -358,34 +358,60 @@ export function isCyclicForeignKey(
     visited.add(currentTable.id);
 
     for (const foreignKey of currentTable.foreignKeys) {
-        if (
-            foreignKey.referencedTableName === referencedTable.name &&
-            foreignKey.referencedSchemaName === referencedTable.schema
-        ) {
-            return true; // Cycle detected
-        }
         const currentReferencedTable = tables.find(
             (t) =>
                 t.name === foreignKey.referencedTableName &&
                 t.schema === foreignKey.referencedSchemaName,
         );
-        if (referencedTable) {
-            if (
-                isCyclicForeignKey(
-                    tables,
-                    currentReferencedTable,
-                    referencedTable,
-                    visited,
-                )
-            ) {
-                return true;
-            }
+
+        if (!currentReferencedTable) {
+            continue; // Skip if the referenced table is not found
+        }
+
+        if (currentReferencedTable.id === referencedTable.id) {
+            return true; // Cycle detected
+        }
+
+        if (
+            isCyclicForeignKey(
+                tables,
+                currentReferencedTable,
+                referencedTable,
+                new Set(visited),
+            )
+        ) {
+            return true;
         }
     }
+
     return false;
 }
 
 export interface ForeignKeyValidationResult {
     isValid: boolean;
     errorMessage?: string;
+}
+
+// TODO: Remove when publish script is implemented with DacFx
+export function addWarningToSQLScript(script: string): string {
+    const warning =
+        `-- **************************************************\n` +
+        `-- WARNING: REVIEW BEFORE APPLYING CHANGES\n` +
+        `-- **************************************************\n` +
+        `-- You are about to modify the database schema.\n` +
+        `-- Please carefully review the script before execution, as changes can:\n` +
+        `--\n` +
+        `-- - Impact existing data integrity and relationships\n` +
+        `-- - Cause unintended data loss or corruption\n` +
+        `-- - Affect system performance and application stability\n` +
+        `--\n` +
+        `-- RECOMMENDED ACTIONS:\n` +
+        `-- - Backup your database before proceeding\n` +
+        `-- - Test the script in a development environment\n` +
+        `-- - Ensure all dependencies and constraints are considered\n` +
+        `--\n` +
+        `-- Proceed with caution. Once applied, changes may not be reversible.\n` +
+        `-- **************************************************\n\n`;
+
+    return warning + script;
 }

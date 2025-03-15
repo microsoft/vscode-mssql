@@ -329,68 +329,69 @@
   "Changed Tables": "Changed Tables",
   "Delete Node": "Delete Node",
   "Create As Script": "Create As Script",
-  "Table {0} not found/{0} is the name of the table": {
-    "message": "Table {0} not found",
+  "Table '{0}' not found/{0} is the table name": {
+    "message": "Table '{0}' not found",
     "comment": [
-      "{0} is the name of the table"
+      "{0} is the table name"
     ]
   },
-  "Referenced table {0} not found/{0} is the name of the table": {
-    "message": "Referenced table {0} not found",
+  "Referenced table '{0}' not found/{0} is the table name": {
+    "message": "Referenced table '{0}' not found",
     "comment": [
-      "{0} is the name of the table"
+      "{0} is the table name"
     ]
   },
-  "Column {0} not found/{0} is the name of the column": {
-    "message": "Column {0} not found",
+  "Column '{0}' not found/{0} is the column name": {
+    "message": "Column '{0}' not found",
     "comment": [
-      "{0} is the name of the column"
+      "{0} is the column name"
     ]
   },
-  "Referenced column {0} not found/{0} is the name of the column": {
-    "message": "Referenced column {0} not found",
+  "Referenced column '{0}' not found/{0} is the column name": {
+    "message": "Referenced column '{0}' not found",
     "comment": [
-      "{0} is the name of the column"
+      "{0} is the column name"
     ]
   },
-  "Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}/{0} is the source data type{1} is the source column{2} is the target data type{3} is the target column": {
-    "message": "Incompatible data types: {0} is the source data type for {1}, and {2} is the target data type for {3}",
+  "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'/{0} is source data type{1} is source column{2} is target data type{3} is target column": {
+    "message": "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'",
     "comment": [
-      "{0} is the source data type",
-      "{1} is the source column",
-      "{2} is the target data type",
-      "{3} is the target column"
+      "{0} is source data type",
+      "{1} is source column",
+      "{2} is target data type",
+      "{3} is target column"
     ]
   },
-  "Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}/{0} is the source length{1} is the source column{2} is the target length{3} is the target column": {
-    "message": "Incompatible length: {0} is the source length for {1}, and {2} is the target length for {3}",
+  "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})/{0} is source column{1} is source length{2} is target column{3} is target length": {
+    "message": "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
     "comment": [
-      "{0} is the source length",
-      "{1} is the source column",
-      "{2} is the target length",
-      "{3} is the target column"
+      "{0} is source column",
+      "{1} is source length",
+      "{2} is target column",
+      "{3} is target length"
     ]
   },
-  "Incompatible precision or scale: {0} is the source column, and {1} is the target column/{0} is the source column{1} is the target column": {
-    "message": "Incompatible precision or scale: {0} is the source column, and {1} is the target column",
+  "Precision/scale mismatch between '{0}' and '{1}'/{0} is source column{1} is target column": {
+    "message": "Precision/scale mismatch between '{0}' and '{1}'",
     "comment": [
-      "{0} is the source column",
-      "{1} is the target column"
+      "{0} is source column",
+      "{1} is target column"
     ]
   },
-  "Referenced column {0} is not a primary key or unique/{0} is the source column": {
-    "message": "Referenced column {0} is not a primary key or unique",
+  "Column '{0}' must be a primary key or have a unique constraint/{0} is the referenced column": {
+    "message": "Column '{0}' must be a primary key or have a unique constraint",
     "comment": [
-      "{0} is the source column"
+      "{0} is the referenced column"
     ]
   },
-  "Cyclic foreign key detected: {0} is the source table, and {1} is the target table/{0} is the source table{1} is the target table": {
-    "message": "Cyclic foreign key detected: {0} is the source table, and {1} is the target table",
+  "Circular reference detected: '{0}' → '{1}' creates a cycle/{0} is source table{1} is target table": {
+    "message": "Circular reference detected: '{0}' → '{1}' creates a cycle",
     "comment": [
-      "{0} is the source table",
-      "{1} is the target table"
+      "{0} is source table",
+      "{1} is target table"
     ]
   },
+  "Cannot create foreign key": "Cannot create foreign key",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
