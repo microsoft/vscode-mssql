@@ -133,7 +133,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             sessionResponse.schema.tables.forEach((table) => {
                 schemaSet.add(table.schema);
             });
-            sessionResponse.schemaNames = Array.from(schemaSet);
+            sessionResponse.schemaNames = Array.from(schemaSet).sort((a, b) => {
+                return a
+                    .toLocaleLowerCase()
+                    .localeCompare(b.toLocaleLowerCase());
+            });
             this.sessionId = sessionResponse.sessionId;
             return sessionResponse;
         });
