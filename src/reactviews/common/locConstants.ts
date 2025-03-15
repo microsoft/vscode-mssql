@@ -332,6 +332,144 @@ export class LocConstants {
             restore: l10n.t("Restore"),
         };
     }
+
+    public get schemaDesigner() {
+        return {
+            schema: l10n.t("Schema"),
+            columns: l10n.t("Columns"),
+            newColumn: l10n.t("Add new column"),
+            name: l10n.t("Name"),
+            table: l10n.t("Table"),
+            foreignKeys: l10n.t("Foreign Keys"),
+            save: l10n.t("Save"),
+            cancel: l10n.t("Cancel"),
+            dataType: l10n.t("Type"),
+            primaryKey: l10n.t("Primary Key"),
+            delete: l10n.t("Delete"),
+            newForeignKey: l10n.t("Add new foreign key"),
+            foreignKeyIndex: (index: number) =>
+                l10n.t({
+                    message: "Foreign Key {0}",
+                    args: [index],
+                    comment: ["{0} is the index of the foreign key"],
+                }),
+            sourceColumn: l10n.t("Source Column"),
+            targetTable: l10n.t("Target Table"),
+            foreignColumn: l10n.t("Foreign Column"),
+            zoomIn: l10n.t("Zoom In"),
+            zoomOut: l10n.t("Zoom Out"),
+            zoomToFit: l10n.t("Zoom to Fit"),
+            export: l10n.t("Export"),
+            addTable: l10n.t("Add Table"),
+            autoArrange: l10n.t("Auto Arrange"),
+            filter: l10n.t("Filter"),
+            clearFilter: l10n.t("Clear"),
+            applyFilter: l10n.t("Apply"),
+            refresh: l10n.t("Refresh"),
+            publishChanges: l10n.t("Publish Changes"),
+            viewCode: l10n.t("View Code"),
+            editTable: l10n.t("Edit Table"),
+            openInEditor: l10n.t("Open in Editor"),
+            changedTables: l10n.t("Changed Tables"),
+            deleteNodes: l10n.t("Delete Node"),
+            createAsScript: l10n.t("Create As Script"),
+            tableNotFound: (tableName: string) =>
+                l10n.t({
+                    message: "Table '{0}' not found",
+                    args: [tableName],
+                    comment: ["{0} is the table name"],
+                }),
+            referencedTableNotFound: (tableName: string) =>
+                l10n.t({
+                    message: "Referenced table '{0}' not found",
+                    args: [tableName],
+                    comment: ["{0} is the table name"],
+                }),
+            columnNotFound: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' not found",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            referencedColumnNotFound: (columnName: string) =>
+                l10n.t({
+                    message: "Referenced column '{0}' not found",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            incompatibleDataTypes: (
+                dataType: string,
+                sourceColumn: string,
+                targetDataType: string,
+                targetColumn: string,
+            ) =>
+                l10n.t({
+                    message:
+                        "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'",
+                    args: [
+                        dataType,
+                        sourceColumn,
+                        targetDataType,
+                        targetColumn,
+                    ],
+                    comment: [
+                        "{0} is source data type",
+                        "{1} is source column",
+                        "{2} is target data type",
+                        "{3} is target column",
+                    ],
+                }),
+            incompatibleLength: (
+                sourceColumn: string,
+                targetColumn: string,
+                sourceLength: number,
+                targetLength: number,
+            ) =>
+                l10n.t({
+                    message:
+                        "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
+                    args: [
+                        sourceColumn,
+                        sourceLength,
+                        targetColumn,
+                        targetLength,
+                    ],
+                    comment: [
+                        "{0} is source column",
+                        "{1} is source length",
+                        "{2} is target column",
+                        "{3} is target length",
+                    ],
+                }),
+            incompatiblePrecisionOrScale: (
+                sourceColumn: string,
+                targetColumn: string,
+            ) =>
+                l10n.t({
+                    message: "Precision/scale mismatch between '{0}' and '{1}'",
+                    args: [sourceColumn, targetColumn],
+                    comment: ["{0} is source column", "{1} is target column"],
+                }),
+            referencedColumnNotUnique: (targetColumn: string) =>
+                l10n.t({
+                    message:
+                        "Column '{0}' must be a primary key or have a unique constraint",
+                    args: [targetColumn],
+                    comment: ["{0} is the referenced column"],
+                }),
+            cyclicForeignKeyDetected: (
+                tableName: string,
+                targetTable: string,
+            ) =>
+                l10n.t({
+                    message:
+                        "Circular reference detected: '{0}' → '{1}' creates a cycle",
+                    args: [tableName, targetTable],
+                    comment: ["{0} is source table", "{1} is target table"],
+                }),
+            foreignKeyError: l10n.t("Cannot create foreign key"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();
