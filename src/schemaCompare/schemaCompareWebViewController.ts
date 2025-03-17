@@ -261,7 +261,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         ) {
             source = this.getEndpointInfoFromDacpac(sourceContext as string);
         } else if (sourceContext) {
-            source = this.getEndpointInfoFromProject(sourceContext as string);
+            source = await this.getEndpointInfoFromProject(
+                sourceContext as string,
+            );
         }
 
         await this.launch(source, undefined, false, comparisonResult);
@@ -342,15 +344,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return source;
     }
 
-    private getEndpointInfoFromProject(
-        sourceProject: string,
-    ): mssql.SchemaCompareEndpointInfo {
+    private async getEndpointInfoFromProject(
+        projectFilePath: string,
+    ): Promise<mssql.SchemaCompareEndpointInfo> {
         const source = {
             endpointType: mssql.SchemaCompareEndpointType.Project,
-            projectFilePath: sourceProject,
+            projectFilePath: projectFilePath,
             extractTarget: mssql.ExtractTarget.schemaObjectType,
-            targetScripts: [],
-            dataSchemaProvider: "",
+            targetScripts: await this.getProjectScriptFiles(projectFilePath),
+            dataSchemaProvider:
+                await this.getDatabaseSchemaProvider(projectFilePath),
             serverDisplayName: "",
             serverName: "",
             databaseName: "",
@@ -360,6 +363,41 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         };
 
         return source;
+    }
+
+    private async getProjectScriptFiles(
+        projectFilePath: string,
+    ): Promise<string[]> {
+        let scriptFiles: string[] = [];
+
+        const databaseProjectsExtension = vscode.extensions.getExtension(
+            "ms-mssql.sql-database-projects-vscode",
+        );
+        if (databaseProjectsExtension) {
+            scriptFiles = await (
+                await databaseProjectsExtension.activate()
+            ).getProjectScriptFiles(projectFilePath);
+        }
+
+        return scriptFiles;
+    }
+
+    private async getDatabaseSchemaProvider(
+        projectFilePath: string,
+    ): Promise<string> {
+        let provider = "";
+
+        const databaseProjectsExtension = vscode.extensions.getExtension(
+            "ms-mssql.sql-database-projects-vscode",
+        );
+
+        if (databaseProjectsExtension) {
+            provider = await (
+                await databaseProjectsExtension.activate()
+            ).getProjectDatabaseSchemaProvider(projectFilePath);
+        }
+
+        return provider;
     }
 
     private isTreeNodeInfoType(node: any): boolean {
@@ -430,7 +468,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 const updatedEndpointInfo =
                     payload.fileType === "dacpac"
                         ? this.getEndpointInfoFromDacpac(filePath)
-                        : this.getEndpointInfoFromProject(filePath);
+                        : await this.getEndpointInfoFromProject(filePath);
 
                 state.auxiliaryEndpointInfo = updatedEndpointInfo;
 
@@ -446,16 +484,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     if (payload.endpointType === "source") {
                         // state.sourceEndpointInfo = updatedEndpointInfo;
                         // state.sourceEndpointInfo.dataSchemaProvider = "160";
+                        /*
                         state.auxiliaryEndpointInfo.targetScripts = [
                             "c:\\DatabaseProjects\\SimpleProj\\Address.sql",
                         ];
+                        */
                     } else {
                         // state.targetEndpointInfo = updatedEndpointInfo;
                         // state.targetEndpointInfo.dataSchemaProvider = "160";
+                        /*
                         state.auxiliaryEndpointInfo.targetScripts = [
                             "c:\\DatabaseProjects\\SimpleProj2\\Address.sql",
                             "c:\\DatabaseProjects\\SimpleProj2\\Person.sql",
                         ];
+                        */
+                        state.auxiliaryEndpointInfo.extractTarget = 5;
                     }
                 }
 
