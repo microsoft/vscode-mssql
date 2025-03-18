@@ -62,9 +62,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 },
                 confirmSelectedSchema: function (
                     endpointType: "source" | "target",
+                    folderStructure: string,
                 ): void {
                     webViewState?.extensionRpc.action("confirmSelectedSchema", {
                         endpointType: endpointType,
+                        folderStructure: folderStructure,
                     });
                 },
                 confirmSelectedDatabase: function (

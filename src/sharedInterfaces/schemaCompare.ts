@@ -76,6 +76,7 @@ export interface SchemaCompareReducers {
 
     confirmSelectedSchema: {
         endpointType: "source" | "target";
+        folderStructure: string;
     };
 
     confirmSelectedDatabase: {
@@ -157,7 +158,10 @@ export interface SchemaCompareContextProps {
         fileType: "dacpac" | "sqlproj",
     ) => void;
 
-    confirmSelectedSchema: (endpointType: "source" | "target") => void;
+    confirmSelectedSchema: (
+        endpointType: "source" | "target",
+        folderStructure: string,
+    ) => void;
 
     confirmSelectedDatabase: (
         endpointType: "source" | "target",

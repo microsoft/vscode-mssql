@@ -70,17 +70,19 @@ const SchemaSelectorDrawer = (props: Props) => {
     const [disableOkButton, setDisableOkButton] = useState(true);
     const [serverConnectionUri, setServerConnectionUri] = useState("");
     const [databaseName, setDatabaseName] = useState("");
+    const [folderStructure, setFolderStructure] =
+        useState("Schema/Object Type");
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
 
     const options = [
-        { value: "file", display: loc.schemaCompare.file },
-        { value: "flat", display: loc.schemaCompare.flat },
-        { value: "objectType", display: loc.schemaCompare.objectType },
-        { value: "schema", display: loc.schemaCompare.schema },
+        { value: "File", display: loc.schemaCompare.file },
+        { value: "Flat", display: loc.schemaCompare.flat },
+        { value: "Object Type", display: loc.schemaCompare.objectType },
+        { value: "Schema", display: loc.schemaCompare.schema },
         {
-            value: "schemaObjectType",
+            value: "Schema/Object Type",
             display: loc.schemaCompare.schemaObjectType,
         },
     ];
@@ -159,6 +161,15 @@ const SchemaSelectorDrawer = (props: Props) => {
         context.selectFile(endpoint, props.endpointType, fileType);
     };
 
+    const handleFolderStructureSelected = (
+        _: SelectionEvents,
+        data: OptionOnSelectData,
+    ) => {
+        if (data.optionValue) {
+            setFolderStructure(data.optionValue);
+        }
+    };
+
     const confirmSelectedEndpoint = () => {
         if (schemaType === "database") {
             context.confirmSelectedDatabase(
@@ -167,7 +178,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                 databaseName,
             );
         } else {
-            context.confirmSelectedSchema(props.endpointType);
+            context.confirmSelectedSchema(props.endpointType, folderStructure);
         }
 
         props.showDrawer(false);
@@ -311,6 +322,12 @@ const SchemaSelectorDrawer = (props: Props) => {
                                             id={folderStructureId}
                                             className={classes.fileInputWidth}
                                             defaultValue={options[4].display}
+                                            onOptionSelect={(event, data) =>
+                                                handleFolderStructureSelected(
+                                                    event,
+                                                    data,
+                                                )
+                                            }
                                         >
                                             {options.map((option) => {
                                                 return (

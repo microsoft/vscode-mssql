@@ -514,6 +514,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 if (payload.endpointType === "source") {
                     state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
                 } else {
+                    if (
+                        state.auxiliaryEndpointInfo.endpointType ===
+                        mssql.SchemaCompareEndpointType.Project
+                    ) {
+                        state.auxiliaryEndpointInfo.extractTarget =
+                            this.mapExtractTargetEnum(payload.folderStructure);
+                    }
                     state.targetEndpointInfo = state.auxiliaryEndpointInfo;
                 }
                 state.auxiliaryEndpointInfo = undefined;
@@ -1056,6 +1063,22 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.cancelResultStatus = result;
             return state;
         });
+    }
+
+    private mapExtractTargetEnum(folderStructure: string): mssql.ExtractTarget {
+        switch (folderStructure) {
+            case "File":
+                return mssql.ExtractTarget.file;
+            case "Flat":
+                return mssql.ExtractTarget.flat;
+            case "Object Type":
+                return mssql.ExtractTarget.objectType;
+            case "Schema":
+                return mssql.ExtractTarget.schema;
+            case "Schema/Object Type":
+            default:
+                return mssql.ExtractTarget.schemaObjectType;
+        }
     }
 
     private getActiveServersList(): { [connectionUri: string]: string } {
