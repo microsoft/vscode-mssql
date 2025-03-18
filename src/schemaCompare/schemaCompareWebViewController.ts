@@ -876,24 +876,28 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (result.success) {
                 state.schemaCompareIncludeExcludeResult = result;
 
-                state.schemaCompareResult.differences[payload.id].included =
-                    payload.includeRequest;
+                if (state.schemaCompareResult) {
+                    state.schemaCompareResult.differences[payload.id].included =
+                        payload.includeRequest;
 
-                result.affectedDependencies.forEach((difference) => {
-                    const index =
-                        state.schemaCompareResult.differences.findIndex(
-                            (d) =>
-                                d.sourceValue === difference.sourceValue &&
-                                d.targetValue === difference.targetValue &&
-                                d.updateAction === difference.updateAction &&
-                                d.name === difference.name,
-                        );
+                    result.affectedDependencies.forEach((difference) => {
+                        const index =
+                            state.schemaCompareResult.differences.findIndex(
+                                (d) =>
+                                    d.sourceValue === difference.sourceValue &&
+                                    d.targetValue === difference.targetValue &&
+                                    d.updateAction ===
+                                        difference.updateAction &&
+                                    d.name === difference.name,
+                            );
 
-                    if (index !== -1) {
-                        state.schemaCompareResult.differences[index].included =
-                            payload.includeRequest;
-                    }
-                });
+                        if (index !== -1) {
+                            state.schemaCompareResult.differences[
+                                index
+                            ].included = payload.includeRequest;
+                        }
+                    });
+                }
 
                 this.updateState(state);
             }
