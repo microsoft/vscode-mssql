@@ -114,16 +114,34 @@ const SchemaSelectorDrawer = (props: Props) => {
             setDisableOkButton(false);
         } else if (
             type === "dacpac" &&
-            context.state.auxiliaryEndpointInfo?.packageFilePath
+            (context.state.auxiliaryEndpointInfo?.packageFilePath ||
+                currentEndpoint?.packageFilePath)
         ) {
             setDisableOkButton(false);
         } else if (
             type === "sqlproj" &&
-            context.state.auxiliaryEndpointInfo?.projectFilePath
+            (context.state.auxiliaryEndpointInfo?.projectFilePath ||
+                currentEndpoint?.projectFilePath)
         ) {
             setDisableOkButton(false);
         } else {
             setDisableOkButton(true);
+        }
+    };
+
+    const getFilePathForProjectOrDacpac = () => {
+        if (schemaType === "dacpac") {
+            return (
+                context.state.auxiliaryEndpointInfo?.packageFilePath ||
+                currentEndpoint?.packageFilePath ||
+                ""
+            );
+        } else if (schemaType === "sqlproj") {
+            return (
+                context.state.auxiliaryEndpointInfo?.projectFilePath ||
+                currentEndpoint?.projectFilePath ||
+                ""
+            );
         }
     };
 
@@ -294,12 +312,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 size={props.size}
                                 disabled={props.disabled}
                                 className={classes.fileInputWidth}
-                                value={
-                                    context.state.auxiliaryEndpointInfo
-                                        ?.projectFilePath ||
-                                    currentEndpoint?.projectFilePath ||
-                                    ""
-                                }
+                                value={getFilePathForProjectOrDacpac()}
                                 readOnly
                             />
 
