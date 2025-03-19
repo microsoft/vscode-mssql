@@ -37,7 +37,7 @@ jobs:
 
       - name: Run tests
         run: |
-          DISPLAY=:10 yarn test
+          DISPLAY=:10 yarn smoketest
 
       - name: Unit Test Report
         uses: dorny/test-reporter@v1
