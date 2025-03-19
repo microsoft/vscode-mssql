@@ -19,6 +19,12 @@ import {
 } from "vscode-mssql";
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
+export const enum SchemaUpdateAction {
+    Delete = 0,
+    Change = 1,
+    Add = 2,
+}
+
 export interface SchemaCompareWebViewState {
     activeServers: { [connectionUri: string]: string };
     databases: string[];
