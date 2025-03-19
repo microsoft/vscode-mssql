@@ -3,37 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const enum SchemaUpdateAction {
-    Delete = 0,
-    Change = 1,
-    Add = 2,
-}
-
 import {
     ExtractTarget,
     TaskExecutionMode,
-    // ISchemaCompareService,
-    // SchemaCompareEndpointType,
-    // SchemaCompareConnectionInfo,
     SchemaCompareEndpointInfo,
-    // SchemaUpdateAction,
-    // SchemaDifferenceType,
     DiffEntry,
-    // SchemaCompareParams,
     DeploymentOptions,
     ResultStatus,
     SchemaCompareResult,
-    // SchemaCompareGenerateScriptParams,
     SchemaComparePublishProjectResult,
-    // SchemaCompareGetOptionsParams,
     SchemaCompareOptionsResult,
-    // SchemaCompareNodeParams,
     SchemaCompareIncludeExcludeResult,
     SchemaCompareObjectId,
-    // SchemaCompareOpenScmpParams,
     SchemaCompareOpenScmpResult,
-    // SchemaCompareSaveScmpParams,
-    // SchemaCompareCancelParams,
 } from "vscode-mssql";
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 

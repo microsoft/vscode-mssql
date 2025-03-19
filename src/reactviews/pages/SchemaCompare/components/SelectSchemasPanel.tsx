@@ -42,12 +42,6 @@ const useStyles = makeStyles({
     buttonLeftMargin: {
         marginLeft: "32px",
     },
-
-    /*
-    buttonHorizontalMargin: {
-        ...shorthands.margin("0", "32px"),
-    },
-	*/
 });
 
 interface Props {
@@ -77,14 +71,6 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
         targetEndpointInfo?.packageFilePath ||
         targetEndpointInfo?.projectFilePath ||
         "";
-
-    // const handleSelectFile = (endpointType: "source" | "target") => {
-    //     const endpoint =
-    //         endpointType === "source"
-    //             ? context.state.sourceEndpointInfo
-    //             : context.state.targetEndpointInfo;
-    //     context.selectFile(endpoint, endpointType, "sqlproj");
-    // };
 
     const handleCompare = () => {
         context.compare(
