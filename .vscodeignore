@@ -2,6 +2,7 @@
 .vscode
 build
 coverage
+coverage-e2e
 coverage-remapped
 lib
 localization

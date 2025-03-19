@@ -15,6 +15,7 @@ tools
 examples
 sqltoolsservice
 coverage
+coverage-e2e
 coverage-remapped
 test-reports
 .vscode-test
