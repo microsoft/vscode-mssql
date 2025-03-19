@@ -6,9 +6,10 @@
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext, useEffect } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
-// import { ResizableBox } from "react-resizable";
 import { QueryResultPane } from "./queryResultPane";
 import { Keys } from "./keys";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import * as qr from "../../../sharedInterfaces/queryResult";
 
 const useStyles = makeStyles({
     root: {
@@ -93,14 +94,27 @@ const useStyles = makeStyles({
 export const QueryResult = () => {
     const classes = useStyles();
     const context = useContext(QueryResultContext);
+    const webViewState = useVscodeWebview<
+        qr.QueryResultWebviewState,
+        qr.QueryResultReducers
+    >();
     const state = context?.state;
 
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent): void => {
-            if (e.ctrlKey && e.key === Keys.a) {
-                e.preventDefault();
-                e.stopPropagation();
+        const handleKeyDown = async (e: KeyboardEvent): Promise<void> => {
+            let platform = await webViewState.extensionRpc.call("getPlatform");
+            if (platform === "darwin") {
+                // Cmd + A
+                if (e.metaKey && e.key === Keys.a) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            } else {
+                if (e.ctrlKey && e.key === Keys.a) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
             }
         };
         document.addEventListener("keydown", handleKeyDown);
