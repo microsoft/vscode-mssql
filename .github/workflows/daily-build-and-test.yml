@@ -76,14 +76,13 @@ jobs:
           PASSWORD=${{ env.PASSWORD }}
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
-          DISPLAY=:10 yarn smoketest
+          DISPLAY=:10 yarn test
 
-      # Comment out smoke test report until new smoke tests are integrated
-      # - name: Smoke Test Report
-      #   uses: dorny/test-reporter@v1
-      #   if: success() || failure()
-      #   with:
-      #       name: 'Smoke Test Report'
-      #       path: ./test-reports/**/smoke-results.xml
-      #       reporter: jest-junit
-      #       badge-title: 'smoke-tests'
+      - name: Smoke Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+            name: 'Smoke Test Report'
+            path: ./test-reports/**/smoke-results.xml
+            reporter: jest-junit
+            badge-title: 'smoke-tests'
