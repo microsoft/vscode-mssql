@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 // import { ResizableBox } from "react-resizable";
 import { QueryResultPane } from "./queryResultPane";
+import { Keys } from "./keys";
 
 const useStyles = makeStyles({
     root: {
@@ -93,6 +94,18 @@ export const QueryResult = () => {
     const classes = useStyles();
     const context = useContext(QueryResultContext);
     const state = context?.state;
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
+            if (e.ctrlKey && e.key === Keys.a) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return function cleanup() {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
     if (!state) {
         return null;
     }

@@ -489,7 +489,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         let handled = false;
         let platform = await this.webViewState.extensionRpc.call("getPlatform");
         if (platform === "darwin") {
-            // Cmd + C
+            // Cmd + A
             if (e.metaKey && e.key === Keys.a) {
                 handled = true;
                 await this.handleSelectAll();
