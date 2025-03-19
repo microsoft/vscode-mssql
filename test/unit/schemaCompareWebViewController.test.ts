@@ -11,7 +11,9 @@ import * as mssql from "vscode-mssql";
 
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    ConnectionInfo,
+} from "../../src/controllers/connectionManager";
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -23,6 +25,8 @@ suite("SchemaCompareWebViewController Tests", () => {
     let treeNode: TreeNodeInfo;
     let mockSchemaCompareService: TypeMoq.IMock<mssql.ISchemaCompareService>;
     let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
+    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
+    let mockServerConnInfo: TypeMoq.IMock<mssql.IConnectionInfo>;
     let mockInitialState: SchemaCompareWebViewState;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     const schemaCompareWebViewTitle: string = "Schema Compare";
@@ -225,6 +229,26 @@ suite("SchemaCompareWebViewController Tests", () => {
         mockConnectionManager
             .setup((mgr) => mgr.getUriForConnection(TypeMoq.It.isAny()))
             .returns(() => "localhost,1433_undefined_sa_undefined");
+
+        mockServerConnInfo = TypeMoq.Mock.ofType<mssql.IConnectionInfo>();
+        mockServerConnInfo
+            .setup((info) => info.server)
+            .returns(() => "server1");
+
+        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
+        mockConnectionInfo
+            .setup((info) => info.credentials)
+            .returns(() => mockServerConnInfo.object);
+
+        mockConnectionManager
+            .setup((mgr) => mgr.activeConnections)
+            .returns(() => ({
+                conn_uri: mockConnectionInfo.object,
+            }));
+
+        mockConnectionManager
+            .setup((mgr) => mgr.listDatabases(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(["db1", "db2"]));
 
         generateOperationIdStub = sandbox
             .stub(scUtils, "generateOperationId")
@@ -715,5 +739,108 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         publishProjectChangesStub.restore();
+    });
+
+    test("listActiveServers reducer - when called - returns: {conn_uri: 'server1'}", async () => {
+        const payload = {};
+
+        const actualResult = await controller["_reducers"]["listActiveServers"](
+            mockInitialState,
+            payload,
+        );
+
+        const expectedResult = { conn_uri: "server1" };
+
+        assert.deepEqual(
+            actualResult.activeServers,
+            expectedResult,
+            "listActiveServers should return: {conn_uri: 'server1'}",
+        );
+    });
+
+    test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
+        const payload = { connectionUri: "conn_uri" };
+
+        const actualResult = await controller["_reducers"][
+            "listDatabasesForActiveServer"
+        ](mockInitialState, payload);
+
+        const expectedResult = ["db1", "db2"];
+
+        assert.deepEqual(
+            actualResult.databases,
+            expectedResult,
+            "listActiveServers should return ['db1', 'db2']",
+        );
+    });
+
+    test("selectFile reducer - when called - returns correct auxiliary endpoint info", async () => {
+        const payload = {
+            endpoint: { packageFilePath: "c:\\test.dacpac" },
+            endpointType: "source",
+            fileType: "dacpac",
+        };
+
+        sandbox
+            .stub(scUtils, "showOpenDialogForDacpacOrSqlProj")
+            .resolves("c:\\test.dacpac");
+
+        const actualResult = await controller["_reducers"]["selectFile"](
+            mockInitialState,
+            payload,
+        );
+
+        const expectedResult = {
+            connectionDetails: undefined,
+            databaseName: "",
+            dataSchemaProvider: "",
+            endpointType: 1,
+            extractTarget: 5,
+            ownerUri: "",
+            packageFilePath: "c:\\test.dacpac",
+            projectFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            targetScripts: [],
+        };
+
+        assert.deepEqual(
+            actualResult.auxiliaryEndpointInfo,
+            expectedResult,
+            "selectFile should return the expected auxiliary endpoint info",
+        );
+    });
+
+    test("confirmSelectedFile reducer - when called - auxiliary endpoint info becomes target endpoint info", async () => {
+        const payload = {
+            endpointType: "target",
+            folderStructure: "",
+        };
+
+        const expectedResult = {
+            connectionDetails: undefined,
+            databaseName: "",
+            dataSchemaProvider: "",
+            endpointType: 1,
+            extractTarget: 5,
+            ownerUri: "",
+            packageFilePath: "c:\\test.dacpac",
+            projectFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            targetScripts: [],
+        };
+
+        mockInitialState.auxiliaryEndpointInfo = expectedResult;
+
+        const actualResult = await controller["_reducers"][
+            "confirmSelectedSchema"
+        ](mockInitialState, payload);
+
+        assert.deepEqual(
+            actualResult.targetEndpointInfo,
+            expectedResult,
+            "confirmSelectedSchema should make auxiliary endpoint info the target endpoint info",
+        );
     });
 });

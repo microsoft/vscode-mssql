@@ -26,13 +26,11 @@ import {
     publishDatabaseChanges,
     publishProjectChanges,
     saveScmp,
-    showOpenDialog,
     getSchemaCompareEndpointTypeString,
     sqlDatabaseProjectsPublishChanges,
-    getStartingPathForOpenDialog,
-    showSaveDialog,
     showOpenDialogForScmp,
     showSaveDialogForScmp,
+    showOpenDialogForDacpacOrSqlProj,
 } from "./schemaCompareUtils";
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -450,9 +448,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("selectFile", async (state, payload) => {
-            let payloadFilePath = "";
+            let endpointFilePath = "";
             if (payload.endpoint) {
-                payloadFilePath =
+                endpointFilePath =
                     payload.endpoint.packageFilePath ||
                     payload.endpoint.projectFilePath;
             }
@@ -461,8 +459,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 Files: [payload.fileType],
             };
 
-            const filePath = await this.showOpenDialog(
-                payloadFilePath,
+            const filePath = await showOpenDialogForDacpacOrSqlProj(
+                endpointFilePath,
                 filters,
             );
 
@@ -1142,28 +1140,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.updateState(state);
 
         return state;
-    }
-
-    private async showOpenDialog(
-        filePath: string,
-        filters: { [name: string]: string[] },
-    ): Promise<string | undefined> {
-        const startingFilePath = await getStartingPathForOpenDialog(filePath);
-
-        const selectedFilePath = await showOpenDialog(
-            startingFilePath,
-            filters,
-        );
-
-        return selectedFilePath;
-    }
-
-    private async showSaveDialog(): Promise<string | undefined> {
-        const startingFilePath = await getStartingPathForOpenDialog();
-
-        const selectedFilePath = await showSaveDialog(startingFilePath);
-
-        return selectedFilePath;
     }
 
     private async constructEndpointInfo(

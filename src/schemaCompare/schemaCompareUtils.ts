@@ -78,6 +78,17 @@ export async function showOpenDialog(
     return fileUri.fsPath;
 }
 
+export async function showOpenDialogForDacpacOrSqlProj(
+    filePath: string,
+    filters: { [name: string]: string[] },
+): Promise<string | undefined> {
+    const startingFilePath = await getStartingPathForOpenDialog(filePath);
+
+    const selectedFilePath = await showOpenDialog(startingFilePath, filters);
+
+    return selectedFilePath;
+}
+
 export async function showOpenDialogForScmp(): Promise<string | undefined> {
     const startingFilePath = await getStartingPathForOpenDialog();
 
