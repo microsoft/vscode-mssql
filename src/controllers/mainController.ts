@@ -1093,7 +1093,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
-                    await UserSurvey.getInstance().promptUserForNPSFeedback();
+                    UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
             ),
         );
