@@ -67,22 +67,24 @@ jobs:
         run: |
           sudo service mssql-server start
 
-      - name: Run smoke tests
-        run: |
-          VS_CODE_VERSION=stable
-          SERVER_NAME=localhost
-          AUTHENTICATION_TYPE="SQL Login"
-          USER_NAME=sa
-          PASSWORD=${{ env.PASSWORD }}
-          SAVE_PASSWORD=No
-          PROFILE_NAME=test-server
-          DISPLAY=:10 yarn smoketest
+      # Comment smoke testing out until it's integrated into the pipelines
+      # - name: Run smoke tests
+      #   run: |
+      #     VS_CODE_VERSION=stable
+      #     SERVER_NAME=localhost
+      #     AUTHENTICATION_TYPE="SQL Login"
+      #     USER_NAME=sa
+      #     PASSWORD=${{ env.PASSWORD }}
+      #     SAVE_PASSWORD=No
+      #     PROFILE_NAME=test-server
+      #     DISPLAY=:10 yarn smoketest
 
-      - name: Smoke Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-            name: 'Smoke Test Report'
-            path: ./test-reports/**/smoke-results.xml
-            reporter: jest-junit
-            badge-title: 'smoke-tests'
+
+      # - name: Smoke Test Report
+      #   uses: dorny/test-reporter@v1
+      #   if: success() || failure()
+      #   with:
+      #       name: 'Smoke Test Report'
+      #       path: ./test-reports/**/smoke-results.xml
+      #       reporter: jest-junit
+      #       badge-title: 'smoke-tests'
