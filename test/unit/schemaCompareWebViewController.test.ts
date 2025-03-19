@@ -74,6 +74,21 @@ suite("SchemaCompareWebViewController Tests", () => {
         defaultDeploymentOptions: deploymentOptions,
     };
 
+    const databaseSourceEndpointInfo: mssql.SchemaCompareEndpointInfo = {
+        endpointType: 0,
+        serverDisplayName: "localhost,1433 (sa)",
+        serverName: "localhost,1433",
+        ownerUri: "localhost,1433_undefined_sa_undefined",
+        packageFilePath: "",
+        connectionName: "",
+        projectFilePath: "",
+        targetScripts: [],
+        dataSchemaProvider: "",
+        extractTarget: 5,
+        databaseName: "",
+        connectionDetails: undefined,
+    };
+
     const sourceEndpointInfo = {
         endpointType: 2,
         packageFilePath: "",
@@ -85,7 +100,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         projectFilePath: "/TestSqlProject/TestProject/TestProject.sqlproj",
         targetScripts: ["/TestSqlProject/TestProject/Address.sql"],
         extractTarget: 5,
-        dataSchemaProvider: "160",
+        dataSchemaProvider: "",
     };
 
     const targetEndpointInfo = {
@@ -104,25 +119,8 @@ suite("SchemaCompareWebViewController Tests", () => {
         dataSchemaProvider: "",
     };
 
-    const taskExecutionMode = mssql.TaskExecutionMode.execute;
-
     setup(() => {
         sandbox = sinon.createSandbox();
-
-        let sourceEndpointInfo: mssql.SchemaCompareEndpointInfo = {
-            endpointType: 0,
-            serverDisplayName: "localhost,1433 (sa)",
-            serverName: "localhost,1433",
-            ownerUri: "localhost,1433_undefined_sa_undefined",
-            packageFilePath: "",
-            connectionName: "",
-            projectFilePath: "",
-            targetScripts: [],
-            dataSchemaProvider: "",
-            extractTarget: 5,
-            databaseName: "",
-            connectionDetails: undefined,
-        };
 
         mockInitialState = {
             activeServers: {},
@@ -131,7 +129,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             intermediaryOptionsResult: undefined,
             endpointsSwitched: false,
             auxiliaryEndpointInfo: undefined,
-            sourceEndpointInfo: sourceEndpointInfo,
+            sourceEndpointInfo: databaseSourceEndpointInfo,
             targetEndpointInfo: undefined,
             scmpSourceExcludes: [],
             scmpTargetExcludes: [],
@@ -257,6 +255,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
+    // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint
     test.skip("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
         const mockSqlProjectNode = {
             treeDataProvider: {
@@ -585,13 +584,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             excludedTargetElements: [],
         };
 
-        const publishProjectChangesStub = sandbox
+        const filePath = "c:\\test.scmp";
+
+        const showOpenDialogForScmpStub = sandbox
+            .stub(scUtils, "showOpenDialogForScmp")
+            .resolves(filePath);
+
+        const openScmpStub = sandbox
             .stub(scUtils, "openScmp")
             .resolves(expectedResultMock);
 
-        const payload = {
-            filePath: "/comparison/comparison.scmp",
-        };
+        const payload = {};
 
         const actualResult = await controller["_reducers"]["openScmp"](
             mockInitialState,
@@ -599,13 +602,15 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "openScmp should be called once",
+            showOpenDialogForScmpStub.calledOnce,
+            "showOpenDialogForScmp should be called once",
         );
 
+        assert.ok(openScmpStub.calledOnce, "openScmp should be called once");
+
         assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [payload, mockSchemaCompareService.object],
+            openScmpStub.firstCall.args,
+            [filePath, mockSchemaCompareService.object],
             "openScmp should be called with correct arguments",
         );
 
@@ -615,7 +620,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             "openScmp should return expected result",
         );
 
-        publishProjectChangesStub.restore();
+        openScmpStub.restore();
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {
@@ -624,23 +629,26 @@ suite("SchemaCompareWebViewController Tests", () => {
             errorMessage: "",
         };
 
+        const savePath = "c:\\saved_scmp\\";
+
+        const showSaveDialogForScmpStub = sandbox
+            .stub(scUtils, "showSaveDialogForScmp")
+            .resolves(savePath);
+
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "saveScmp")
             .resolves(expectedResultMock);
 
-        const payload = {
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            taskExecutionMode: mssql.TaskExecutionMode.execute,
-            deploymentOptions,
-            scmpFilePath: "/TestSqlProject/TestProject/",
-            excludedSourceObjects: [],
-            excludedTargetObjects: [],
-        };
+        const payload = {};
 
         const actualResult = await controller["_reducers"]["saveScmp"](
             mockInitialState,
             payload,
+        );
+
+        assert.ok(
+            showSaveDialogForScmpStub.calledOnce,
+            "showSaveDialogForScmp should be called once",
         );
 
         assert.ok(
@@ -650,7 +658,16 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [payload, mockSchemaCompareService.object],
+            [
+                databaseSourceEndpointInfo,
+                undefined,
+                mssql.TaskExecutionMode.execute,
+                deploymentOptions,
+                savePath,
+                [],
+                [],
+                mockSchemaCompareService.object,
+            ],
             "saveScmp should be called with correct arguments",
         );
 

@@ -31,6 +31,8 @@ import {
     sqlDatabaseProjectsPublishChanges,
     getStartingPathForOpenDialog,
     showSaveDialog,
+    showOpenDialogForScmp,
+    showSaveDialogForScmp,
 } from "./schemaCompareUtils";
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -290,7 +292,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
-        this.updateState();
+        this.updateState(this.state);
     }
 
     private async getEndpointInfoFromConnectionProfile(
@@ -906,16 +908,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openScmp", async (state) => {
-            const startingFilePath = await getStartingPathForOpenDialog();
-
-            const fileDialogFilters = {
-                "scmp Files": ["scmp"],
-            };
-
-            const selectedFilePath = await this.showOpenDialog(
-                startingFilePath,
-                fileDialogFilters,
-            );
+            const selectedFilePath = await showOpenDialogForScmp();
 
             if (!selectedFilePath) {
                 return state;
@@ -981,7 +974,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("saveScmp", async (state) => {
-            const saveFilePath = await this.showSaveDialog();
+            const saveFilePath = await showSaveDialogForScmp();
 
             if (!saveFilePath) {
                 return state;

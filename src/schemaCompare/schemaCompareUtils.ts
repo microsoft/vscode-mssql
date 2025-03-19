@@ -78,6 +78,29 @@ export async function showOpenDialog(
     return fileUri.fsPath;
 }
 
+export async function showOpenDialogForScmp(): Promise<string | undefined> {
+    const startingFilePath = await getStartingPathForOpenDialog();
+
+    const fileDialogFilters = {
+        "scmp Files": ["scmp"],
+    };
+
+    const selectedFilePath = await showOpenDialog(
+        startingFilePath,
+        fileDialogFilters,
+    );
+
+    return selectedFilePath;
+}
+
+export async function showSaveDialogForScmp(): Promise<string | undefined> {
+    const startingFilePath = await getStartingPathForOpenDialog();
+
+    const selectedSavePath = await showSaveDialog(startingFilePath);
+
+    return selectedSavePath;
+}
+
 export async function showSaveDialog(
     startingFilePath: string,
 ): Promise<string | undefined> {
