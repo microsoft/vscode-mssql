@@ -37,7 +37,7 @@ jobs:
 
       - name: Run tests
         run: |
-          DISPLAY=:10 yarn smoketest
+          DISPLAY=:10 yarn test
 
       - name: Unit Test Report
         uses: dorny/test-reporter@v1
@@ -76,7 +76,7 @@ jobs:
           PASSWORD=${{ env.PASSWORD }}
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
-          DISPLAY=:10 yarn test
+          DISPLAY=:10 yarn smoketest
 
       - name: Smoke Test Report
         uses: dorny/test-reporter@v1
