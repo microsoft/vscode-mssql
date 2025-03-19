@@ -668,7 +668,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
-        <target state="new">Error loading; refresh to try again</target>
+        <target state="translated">加载时出错；请刷新以重试</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -2123,6 +2123,10 @@
         <source xml:lang="en">Connection Dialog</source>
         <target state="translated">“连接”对话框</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroups">
+        <source xml:lang="en">Connection groups</source>
+        <target state="translated">连接组</target>
+      </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
         <target state="translated">“用户设置”中定义的连接配置文件显示在命令面板的“MS SQL: 连接”命令下。</target>
@@ -2601,13 +2605,41 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Table Designer</source>
         <target state="translated">表设计器</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.color">
+        <source xml:lang="en">The color of the connection group.</source>
+        <target state="translated">连接组的颜色。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.description">
+        <source xml:lang="en">The description of the connection group.</source>
+        <target state="translated">连接组的说明。</target>
+      </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">连接列表中可保存的最近使用的最大连接数。</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.name">
+        <source xml:lang="en">The name of the connection group.</source>
+        <target state="translated">连接组的名称。</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         <target state="translated">在对象资源管理器中展开节点的超时(以秒为单位)。默认值为 45 秒。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.groupId">
+        <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+        <target state="translated">此连接配置文件所属的连接组的唯一标识符。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.id">
+        <source xml:lang="en">The unique identifier for the connection group.</source>
+        <target state="translated">此连接配置文件的唯一标识符。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.parentId">
+        <source xml:lang="en">The unique identifier for the parent connection group.</source>
+        <target state="translated">父连接组的唯一标识符。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.id">
+        <source xml:lang="en">The unique identifier for this connection profile.</source>
+        <target state="translated">此连接配置文件的唯一标识符。</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>

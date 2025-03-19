@@ -668,7 +668,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
-        <target state="new">Error loading; refresh to try again</target>
+        <target state="translated">Errore durante il caricamento; aggiornare per riprovare</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -2123,6 +2123,10 @@
         <source xml:lang="en">Connection Dialog</source>
         <target state="translated">Finestra di dialogo Connessione</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroups">
+        <source xml:lang="en">Connection groups</source>
+        <target state="translated">Gruppi di connessione</target>
+      </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
         <target state="translated">I profili di connessione definiti in 'Impostazioni utente' sono visualizzati sotto il comando 'MS SQL: Connetti' nel riquadro comandi.</target>
@@ -2601,13 +2605,41 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Table Designer</source>
         <target state="translated">Progettazione tabelle</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.color">
+        <source xml:lang="en">The color of the connection group.</source>
+        <target state="translated">Colore del gruppo di connessione.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.description">
+        <source xml:lang="en">The description of the connection group.</source>
+        <target state="translated">Descrizione del gruppo di connessione.</target>
+      </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">Numero massimo di connessioni usate di recente da archiviare nell'elenco delle connessioni.</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.name">
+        <source xml:lang="en">The name of the connection group.</source>
+        <target state="translated">Nome del gruppo di connessione.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         <target state="translated">Timeout in secondi per l'espansione di un nodo in Esplora oggetti. Il valore predefinito è 45 secondi.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.groupId">
+        <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+        <target state="translated">Identificatore univoco per il gruppo di connessione a cui appartiene questo profilo di connessione.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.id">
+        <source xml:lang="en">The unique identifier for the connection group.</source>
+        <target state="translated">Identificatore univoco per il gruppo di connessione.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.parentId">
+        <source xml:lang="en">The unique identifier for the parent connection group.</source>
+        <target state="translated">Identificatore univoco per il gruppo di connessione padre.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.id">
+        <source xml:lang="en">The unique identifier for this connection profile.</source>
+        <target state="translated">Identificatore univoco per questo profilo di connessione.</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
