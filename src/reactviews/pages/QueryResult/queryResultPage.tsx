@@ -94,6 +94,8 @@ export const QueryResult = () => {
     const classes = useStyles();
     const context = useContext(QueryResultContext);
     const state = context?.state;
+
+    // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent): void => {
             if (e.ctrlKey && e.key === Keys.a) {
