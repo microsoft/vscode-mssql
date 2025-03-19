@@ -449,7 +449,7 @@ declare module 'vscode-mssql' {
 		generateScript(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
 		publishDatabaseChanges(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
 		publishProjectChanges(operationId: string, targetProjectPath: string, targetFolderStructure: ExtractTarget, taskExecutionMode: TaskExecutionMode): Thenable<SchemaComparePublishProjectResult>;
-		getDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
+		schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
 		includeExcludeNode(operationId: string, diffEntry: DiffEntry, includeRequest: boolean, taskExecutionMode: TaskExecutionMode): Thenable<SchemaCompareIncludeExcludeResult>;
 		openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
 		saveScmp(sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions, scmpFilePath: string, excludedSourceObjects: SchemaCompareObjectId[], excludedTargetObjects: SchemaCompareObjectId[]): Thenable<ResultStatus>;
