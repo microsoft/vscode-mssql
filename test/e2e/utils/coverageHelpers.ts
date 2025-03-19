@@ -10,12 +10,10 @@ import { FrameLocator } from "@playwright/test";
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
 export async function writeCoverage(iframe: FrameLocator, testname: string) {
-    const iframeWindow = iframe.locator("#active-frame");
-
     // Get the HTML evaluate of the iframe
-    const iframeContentWindow = await iframeWindow.evaluate(
-        (el) => (el as HTMLIFrameElement).contentWindow,
-    );
+    const iframeContentWindow = await iframe
+        .owner()
+        .evaluate((el) => (el as HTMLIFrameElement).contentWindow);
 
     if (iframeContentWindow) {
         // Get coverage from window
@@ -23,11 +21,28 @@ export async function writeCoverage(iframe: FrameLocator, testname: string) {
 
         // Ensure coverage data exists before writing
         if (coverage) {
-            const coverageJSON = JSON.stringify(coverage, null, 2);
             const coverageFilePath = path.join(
                 istanbulCLIOutput,
                 `playwright_coverage_${testname}.json`,
             );
+
+            let mergedCoverage = coverage;
+
+            // If the file already exists, merge the coverage data
+            if (fs.existsSync(coverageFilePath)) {
+                try {
+                    const existingCoverage = JSON.parse(
+                        fs.readFileSync(coverageFilePath, "utf-8"),
+                    );
+                    mergedCoverage = { ...existingCoverage, ...coverage };
+                } catch (error) {
+                    console.error(
+                        "Error reading existing coverage file:",
+                        error,
+                    );
+                }
+            }
+            const coverageJSON = JSON.stringify(mergedCoverage, null, 2);
 
             fs.writeFileSync(coverageFilePath, coverageJSON, "utf-8");
 

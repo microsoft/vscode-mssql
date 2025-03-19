@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect, Page } from "@playwright/test";
-import { existsSync, mkdirSync, readdirSync } from "fs";
 
 export async function addDatabaseConnection(
     vsCodePage: Page,
@@ -122,57 +121,3 @@ export async function waitForCommandPaletteToBeVisible(
 }
 
 export let numScreenshotsForTest = new Map<string, number>();
-
-export function getScreenshotNameFromTestName(
-    testname: string,
-    path: string,
-): string {
-    const cleanedTestName = testname.replace(/\s+/g, "-");
-
-    let screenshotTestNumber;
-    if (numScreenshotsForTest.has(cleanedTestName)) {
-        // Increment existing count
-        screenshotTestNumber = numScreenshotsForTest.get(cleanedTestName) + 1;
-    } else {
-        if (!existsSync(path)) {
-            mkdirSync(path, { recursive: true });
-            screenshotTestNumber = 1;
-        } else {
-            // Check existing files in the directory
-            const files = readdirSync(path);
-            const matchingFiles = files.filter((file) =>
-                file.startsWith(cleanedTestName),
-            );
-
-            // Initialize count based on existing screenshots
-            screenshotTestNumber = matchingFiles.length + 1;
-        }
-    }
-
-    // Update the map with the new count
-    numScreenshotsForTest.set(cleanedTestName, screenshotTestNumber);
-
-    return `${cleanedTestName}-${screenshotTestNumber}.png`;
-}
-
-export async function checkScreenshot(
-    page: Page,
-    path: string,
-    testname: string,
-): Promise<void> {
-    const screenshotTestname = getScreenshotNameFromTestName(
-        testname,
-        path.substring(0, path.lastIndexOf("\\") + 1),
-    );
-    const screenshotFilePath = `${path}${screenshotTestname}`;
-
-    // Check if file exists
-    if (!existsSync(screenshotFilePath)) {
-        // If file does not exist, take a new screenshot
-        await page.screenshot({ path: screenshotFilePath });
-    } else {
-        // If file exists, compare with expected screenshot
-        // console.log("Checking against existing screenshot: ", testname);
-        await expect(page).toHaveScreenshot();
-    }
-}

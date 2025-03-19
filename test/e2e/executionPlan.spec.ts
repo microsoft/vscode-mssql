@@ -3,21 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, FrameLocator, Page } from "@playwright/test";
+import {
+    ElectronApplication,
+    FrameLocator,
+    Locator,
+    Page,
+} from "@playwright/test";
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
-import {
-    checkScreenshot,
-    waitForCommandPaletteToBeVisible,
-} from "./utils/testHelpers";
+import { waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
-import * as epTestUtils from "./utils/executionPlanHelpers";
+
+export const queryPlanScreenshotPath =
+    process.cwd() +
+    `\\test\\resources\\screenshots\\executionPlan.spec.ts\\MSSQL-Extension---Query-Plan-`;
 
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
     let iframe: FrameLocator;
+    let queryPlanMXGraph: Locator;
 
     test.beforeAll("Setting up for Query Plan Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();
@@ -35,254 +41,310 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         // Press Enter in the VS Code page
         await vsCodePage.keyboard.press("Enter");
 
-        iframe = vsCodePage.frameLocator("iframe.webview.ready");
-        await iframe.owner().waitFor({ state: "visible" });
-        await expect(iframe).toBeTruthy();
-    });
+        iframe = vsCodePage
+            .frameLocator(".webview")
+            .frameLocator("[title='plan.sqlplan (Preview)']");
 
-    test(epTestUtils.QueryPlanTestNames.LoadPlan, async () => {
         // Wait for plan to load
-        await new Promise((resolve) => setTimeout(resolve, 20 * 1000));
-        try {
-            await checkScreenshot(
-                vsCodePage,
-                epTestUtils.queryPlanScreenshotPath,
-                epTestUtils.QueryPlanTestNames.LoadPlan,
-            );
-        } catch (error) {
-            throw new Error("Query plan took longer than 20 seconds to load.");
-        }
+        const queryCostElementLocator = iframe.getByText(
+            "Query 1: Query cost (relative to the script): 100.00%",
+        );
+        await queryCostElementLocator.waitFor({
+            state: "visible",
+            timeout: 30 * 1000,
+        });
+        queryPlanMXGraph = iframe.locator("#queryPlanParent1");
+        await expect(queryPlanMXGraph).toBeVisible();
     });
 
-    test(epTestUtils.QueryPlanTestNames.SavePlan, async () => {
+    test.beforeEach("Set up before each test", async () => {
+        // Click zoom to fit button
+        await iframe
+            .locator(
+                '[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]',
+            )
+            .click();
+    });
+
+    test("Test Saving a Query Plan", async () => {
         // TBD
     });
 
-    test(epTestUtils.QueryPlanTestNames.ShowXML, async () => {
+    test("Test Showing the XML file of a Query Plan", async () => {
         // Click Show XML Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.ShowXML,
+        const showXmlButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Open XML"][class*="fui-Button"]',
         );
+        await showXmlButtonLocator.click();
+        const showPlanXMLFile = vsCodePage.getByText("<ShowPlanXML").last();
+        await expect(showPlanXMLFile).toBeVisible();
     });
 
-    test(epTestUtils.QueryPlanTestNames.OpenQuery, async () => {
+    test("Test Opening the Query file of a Query Plan", async () => {
         // Click Open Query Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.OpenQuery,
+        const openQueryButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Open Query"][class*="fui-Button"]',
         );
+        await openQueryButtonLocator.click();
+        const queryText = vsCodePage
+            .getByText("select * from sys.all_views")
+            .last();
+        await expect(queryText).toBeVisible();
+        const ensureSqlFileOpened = vsCodePage.locator(
+            '[aria-label="Execute Query (Ctrl+Shift+E)"]',
+        );
+        await expect(ensureSqlFileOpened).toBeVisible();
     });
 
-    test(epTestUtils.QueryPlanTestNames.ZoomIn, async () => {
+    test("Test Zooming In to the Query Plan Graph", async () => {
         // Click Zoom In Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.ZoomIn,
+        const zoomInButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Zoom In"][class*="fui-Button"]',
         );
+        await zoomInButtonLocator.click();
+        await expect(vsCodePage).toHaveScreenshot();
     });
 
-    test(epTestUtils.QueryPlanTestNames.ZoomOut, async () => {
+    test("Test Zooming Out from the Query Plan Graph", async () => {
         // Click Zoom Out Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.ZoomOut,
+        const zoomOutButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Zoom Out"][class*="fui-Button"]',
         );
+        await zoomOutButtonLocator.click();
+        await expect(vsCodePage).toHaveScreenshot();
     });
 
-    test(epTestUtils.QueryPlanTestNames.ZoomToFit, async () => {
+    test("Test Zooming to Fit for Query Plan Graph", async () => {
         // Click Zoom to Fit Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.ZoomToFit,
+        const zoomToFitButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]',
         );
+        await zoomToFitButtonLocator.click();
+        await expect(vsCodePage).toHaveScreenshot();
     });
 
-    test(epTestUtils.QueryPlanTestNames.CustomZoom, async () => {
-        // Click Zoom to Fit Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await epTestUtils.testCustomZoomClose(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.CustomZoom,
+    test("Test Custom Zooming for the Query Plan Graph", async () => {
+        // Click Custom Zoom Button
+        const customZoomButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Custom Zoom"][class*="fui-Button"]',
         );
-        await epTestUtils.reclickButton(vsCodePage);
-        await epTestUtils.testCustomZoom(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.CustomZoom,
+        await customZoomButtonLocator.click();
+
+        const customZoomInput = iframe.locator("#customZoomInputBox");
+        await expect(customZoomInput).toBeVisible();
+
+        await customZoomInput.fill("80");
+        const customZoomApplyButton = iframe.locator(
+            '[type="button"][aria-label="Apply"][class*="fui-Button"]',
         );
+        await customZoomApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await customZoomButtonLocator.click();
+        await expect(customZoomInput).toBeVisible();
+        const customZoomCloseButton = iframe.locator(
+            '[type="button"][aria-label="Close"][class*="fui-Button"]',
+        );
+        await customZoomCloseButton.click();
+        await expect(customZoomInput).toBeHidden();
     });
 
-    test(epTestUtils.QueryPlanTestNames.FindNode, async () => {
+    test("Test Find Node", async () => {
         // Click Find Node Button
-        await epTestUtils.goToNextButton(vsCodePage);
-        await epTestUtils.testFindNodeClose(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.FindNode,
+        const findNodeButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Find Node"][class*="fui-Button"]',
         );
-        await epTestUtils.reclickButton(vsCodePage);
-        await epTestUtils.testFindNodeUp(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.FindNode,
-        );
-        await epTestUtils.testFindNodeDown(vsCodePage);
-        await epTestUtils.testFindNodeDown(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.FindNode,
-        );
-    });
+        await findNodeButtonLocator.click();
 
-    test(epTestUtils.QueryPlanTestNames.Properties, async () => {
-        // Click Properties Button
-        await epTestUtils.openPropertiesAfterFindNode(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
+        const findNodeComboBox = iframe.locator("#findNodeDropdown");
+        await findNodeComboBox.fill("Node ID");
+
+        const findNodeComparisonDropdown = iframe.locator(
+            "#findNodeComparisonDropdown",
         );
-        // Test closing properties pane
+        await findNodeComparisonDropdown.click();
+        for (let i = 0; i < 3; i++)
+            await vsCodePage.keyboard.press("ArrowDown");
         await vsCodePage.keyboard.press("Enter");
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
+
+        const findNodeInputBox = iframe.locator("#findNodeInputBox");
+        await findNodeInputBox.fill("5");
+
+        const findNodeDownButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Next"][class*="fui-Button"]',
         );
-        await epTestUtils.reclickButton(vsCodePage);
-        await epTestUtils.testPropertiesSortAlphabetical(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
+        await findNodeDownButtonLocator.click();
+        await findNodeDownButtonLocator.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        const findNodeUpButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Previous"][class*="fui-Button"]',
         );
-        // Sort Reverse Alphabetical
-        await epTestUtils.testNextPropertiesButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
+        await findNodeUpButtonLocator.click();
+        await findNodeUpButtonLocator.click();
+        await findNodeUpButtonLocator.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        const findNodeCloseButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Close"][class*="fui-Button"]',
         );
-        // Expand All
-        await epTestUtils.testNextPropertiesButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
-        );
-        // Collapse All
-        await epTestUtils.testNextPropertiesButton(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
-        );
-        await epTestUtils.testPropertiesSearch(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
-        );
-        await epTestUtils.testPropertiesSortByImportance(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.Properties,
-        );
+        await findNodeCloseButtonLocator.click();
+
+        await expect(findNodeInputBox).toBeHidden();
     });
 
-    test(epTestUtils.QueryPlanTestNames.HighlightOps, async () => {
+    test("Test the Query Plan Properties Panel", async () => {
+        // Click Properties Button
+        const propertiesButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Properties"][class*="fui-Button"]',
+        );
+        await propertiesButtonLocator.click();
+
+        // Sort Alphabetical
+        const alphabeticalButton = iframe.locator(
+            '[type="button"][aria-label="Alphabetical"][class*="fui-Button"]',
+        );
+        await alphabeticalButton.click();
+        let firstCellLocator = iframe.locator('[role="gridcell"]').first();
+        let firstCellOuterHTML = await firstCellLocator.evaluate(
+            (el) => el.outerHTML,
+        );
+        await expect(
+            firstCellOuterHTML.includes("Defined Values"),
+        ).toBeTruthy();
+
+        // Sort Reverse Alphabetical
+        const reverseAlphabeticalButton = iframe.locator(
+            '[type="button"][aria-label="Reverse Alphabetical"][class*="fui-Button"]',
+        );
+        await reverseAlphabeticalButton.click();
+        firstCellLocator = iframe.locator('[role="gridcell"]').first();
+        firstCellOuterHTML = await firstCellLocator.evaluate(
+            (el) => el.outerHTML,
+        );
+        await expect(
+            firstCellOuterHTML.includes("TableCardinality"),
+        ).toBeTruthy();
+
+        // Expand All
+        const expandAllButton = iframe.locator(
+            '[type="button"][aria-label="Expand All"][class*="fui-Button"]',
+        );
+        await expandAllButton.click();
+        const expandedCellLocator = iframe.getByText("Database").first();
+        await expect(expandedCellLocator).toBeVisible();
+
+        // Collapse All
+        const collapseAllButton = iframe.locator(
+            '[type="button"][aria-label="Collapse All"][class*="fui-Button"]',
+        );
+        await collapseAllButton.click();
+        await expect(expandedCellLocator).toBeHidden();
+
+        // Sort By Importance
+        const importanceButton = iframe.locator(
+            '[type="button"][aria-label="Importance"][class*="fui-Button"]',
+        );
+        await importanceButton.click();
+        firstCellLocator = iframe.locator('[role="gridcell"]').first();
+        firstCellOuterHTML = await firstCellLocator.evaluate(
+            (el) => el.outerHTML,
+        );
+        await expect(
+            firstCellOuterHTML.includes("Physical Operation"),
+        ).toBeTruthy();
+
+        const searchProperties = iframe.locator(
+            '[placeholder="Filter for any field..."][class*="fui-Input__input"]',
+        );
+        await searchProperties.fill("S");
+        firstCellLocator = iframe.locator('[role="gridcell"]').first();
+        firstCellOuterHTML = await firstCellLocator.evaluate(
+            (el) => el.outerHTML,
+        );
+        await expect(
+            firstCellOuterHTML.includes("Physical Operation"),
+        ).toBeTruthy();
+
+        const propertiesCloseButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Close"][class*="fui-Button"]',
+        );
+        await propertiesCloseButtonLocator.click();
+
+        await expect(alphabeticalButton).toBeHidden();
+    });
+
+    test("Test Query Plan Highlight Expensive Metric", async () => {
         // Click HighlightOps Button
-        await epTestUtils.openHighlightOpsFromProperties(vsCodePage);
-        await epTestUtils.testHighlightOpsActualElapsedTime(vsCodePage);
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
+        const highlightOpsButtonLocator = iframe.locator(
+            '[type="button"][aria-label="Highlight Expensive Operation"][class*="fui-Button"]',
         );
-        await epTestUtils.testHighlightOpsMetric(
-            vsCodePage,
-            "Actual Elapsed CPU Time",
+        await highlightOpsButtonLocator.click();
+
+        const highlightOpsInputBox = iframe.locator(
+            "#highlightExpensiveOpsDropdown",
         );
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
+        const highlightOpsApplyButton = iframe.locator(
+            '[type="button"][aria-label="Apply"][class*="fui-Button"]',
         );
-        await epTestUtils.testHighlightOpsMetric(vsCodePage, "Cost");
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
-        );
-        await epTestUtils.testHighlightOpsMetric(vsCodePage, "Subtree Cost");
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
-        );
-        await epTestUtils.testHighlightOpsMetric(
-            vsCodePage,
+
+        await highlightOpsInputBox.fill("Actual Elapsed Time");
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await highlightOpsInputBox.fill("Actual Elapsed CPU Time");
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await highlightOpsInputBox.fill("Cost");
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await highlightOpsInputBox.fill("Subtree Cost");
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await highlightOpsInputBox.fill(
             "Actual Number of Rows For All Executions",
         );
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await highlightOpsInputBox.fill("Number of Rows Read");
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        await highlightOpsInputBox.fill("Off");
+        await highlightOpsApplyButton.click();
+        await expect(vsCodePage).toHaveScreenshot();
+
+        const highlightOpsCloseButton = iframe.locator(
+            '[type="button"][aria-label="Close"][class*="fui-Button"]',
         );
-        await epTestUtils.testHighlightOpsMetric(
-            vsCodePage,
-            "Number of Rows Read",
-        );
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
-        );
-        await epTestUtils.testHighlightOpsMetric(vsCodePage, "Off");
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
-        );
-        await vsCodePage.keyboard.press("Tab");
-        await vsCodePage.keyboard.press("Enter");
-        await checkScreenshot(
-            vsCodePage,
-            epTestUtils.queryPlanScreenshotPath,
-            epTestUtils.QueryPlanTestNames.HighlightOps,
-        );
+        await highlightOpsCloseButton.click();
+
+        await expect(highlightOpsInputBox).toBeHidden();
     });
 
     test.afterEach(async ({}, testInfo) => {
         await screenshotOnFailure(vsCodePage, testInfo);
-        await epTestUtils.refocusQueryPlanTab(vsCodePage);
+        await refocusQueryPlanTab(vsCodePage);
     });
 
     test.afterAll(async () => {
-        await epTestUtils.refocusQueryPlanTab(vsCodePage);
+        await refocusQueryPlanTab(vsCodePage);
         await writeCoverage(iframe, "executionPlan");
 
         // Close query plan webview
         await vsCodePage.keyboard.press("Control+F4");
-
         await vsCodeApp.close();
     });
 });
+
+export async function refocusQueryPlanTab(page: Page) {
+    const queryPlanTab = page.locator(
+        'div[role="tab"][aria-label="plan.sqlplan (Preview)"]',
+    );
+    await queryPlanTab.focus();
+    await page.keyboard.press("Enter");
+}
