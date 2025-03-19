@@ -195,13 +195,19 @@ export const SchemaDesignerEditorTablePanel = () => {
                 return (
                     <SearchableDropdown
                         searchPlaceholder="Search Schema"
-                        options={datatypes}
-                        selectedOption={column.dataType}
+                        options={datatypes.map((datatype) => ({
+                            displayName: datatype,
+                            value: datatype,
+                        }))}
+                        selectedOption={{
+                            displayName: column.dataType,
+                            value: column.dataType,
+                        }}
                         onSelect={(selected) => {
                             const newColumns = [
                                 ...context.selectedTable.columns,
                             ];
-                            newColumns[index].dataType = selected;
+                            newColumns[index].dataType = selected.displayName;
                             context.setSelectedTable({
                                 ...context.selectedTable,
                                 columns: newColumns,
@@ -262,12 +268,18 @@ export const SchemaDesignerEditorTablePanel = () => {
                 <Label>{locConstants.schemaDesigner.schema}</Label>
                 <SearchableDropdown
                     searchPlaceholder="Search Schema"
-                    options={context.schemaNames}
-                    selectedOption={context.selectedTable.schema}
+                    options={context.schemaNames.map((schema) => ({
+                        displayName: schema,
+                        value: schema,
+                    }))}
+                    selectedOption={{
+                        displayName: context.selectedTable.schema,
+                        value: context.selectedTable.schema,
+                    }}
                     onSelect={(selected) => {
                         context.setSelectedTable({
                             ...context.selectedTable,
-                            schema: selected,
+                            schema: selected.displayName,
                         });
                     }}
                 ></SearchableDropdown>
