@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
-// import { ResizableBox } from "react-resizable";
 import { QueryResultPane } from "./queryResultPane";
+import { Keys } from "./keys";
 
 const useStyles = makeStyles({
     root: {
@@ -93,6 +93,31 @@ export const QueryResult = () => {
     const classes = useStyles();
     const context = useContext(QueryResultContext);
     const state = context?.state;
+
+    // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
+    useEffect(() => {
+        const handleKeyDown = async (e: KeyboardEvent): Promise<void> => {
+            const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+            if (isMac) {
+                // Cmd + A
+                if (e.metaKey && e.key === Keys.a) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            } else {
+                if (e.ctrlKey && e.key === Keys.a) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        };
+        document.addEventListener("keydown", async (e) => {
+            await handleKeyDown(e);
+        });
+        return function cleanup() {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
     if (!state) {
         return null;
     }
