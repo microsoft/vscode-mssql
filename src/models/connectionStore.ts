@@ -207,10 +207,10 @@ export class ConnectionStore {
      *
      * @returns
      */
-    public getProfilePickListItems(
+    public async getProfilePickListItems(
         getWorkspaceProfiles: boolean,
     ): Promise<IConnectionCredentialsQuickPickItem[]> {
-        return this.loadProfiles(getWorkspaceProfiles);
+        return await this.loadProfiles(getWorkspaceProfiles);
     }
 
     public async addSavedPassword(

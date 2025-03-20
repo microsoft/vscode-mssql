@@ -25,6 +25,7 @@ import * as Utils from "../../src/models/utils";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
 import { TestExtensionContext, TestPrompter } from "./stubs";
+import { Type } from "@angular/core";
 
 function createTestConnectionResult(
     ownerUri?: string,
@@ -163,7 +164,7 @@ suite("Per File Connection Tests", () => {
             .setup((x) => x.promptToChangeLanguageMode())
             .returns((x) => Promise.resolve(true));
         connectionUIMock
-            .setup((x) => x.promptForConnection())
+            .setup((x) => x.promptForConnection(TypeMoq.It.isAny()))
             .returns((x) => Promise.resolve(connectionCreds));
 
         // Return undefined to simulate the scenario that user doesn't want to enter new credentials
@@ -241,7 +242,7 @@ suite("Per File Connection Tests", () => {
             .setup((x) => x.promptToChangeLanguageMode())
             .returns((x) => Promise.resolve(true));
         connectionUIMock
-            .setup((x) => x.promptForConnection())
+            .setup((x) => x.promptForConnection(TypeMoq.It.isAny()))
             .returns((x) => Promise.resolve(connectionCreds));
 
         connectionUIMock
