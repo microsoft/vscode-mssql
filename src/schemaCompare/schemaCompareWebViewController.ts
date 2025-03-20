@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
+import * as utils from "../models/utils";
+
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
@@ -1018,15 +1020,44 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             endpoint &&
             endpoint.endpointType === mssql.SchemaCompareEndpointType.Database
         ) {
-            // lewissanchez todo: complete this for opening scmp files targetting databases to allow them to establish connections
-            // ownerUri = await this.verifyConnectionAndGetOwnerUri(
-            //     endpoint,
-            //     caller,
-            // );
+            const connInfo = endpoint.connectionDetails
+                .options as mssql.IConnectionInfo;
+            ownerUri = this.connectionMgr.getUriForConnection(connInfo);
+
+            if (!ownerUri) {
+                ownerUri = utils.generateQueryUri().toString();
+                const isConnected = await this.connectionMgr.connect(
+                    ownerUri,
+                    connInfo,
+                );
+
+                const connection =
+                    this.connectionMgr.activeConnections[ownerUri];
+                const connectionProfile =
+                    connection.credentials as IConnectionProfile;
+
+                if (isConnected) {
+                    endpointInfo = {
+                        endpointType: mssql.SchemaCompareEndpointType.Database,
+                        serverDisplayName: `${connInfo.server} (${connectionProfile.user || loc.schemaCompare.defaultUserName})`,
+                        serverName: connInfo.server,
+                        databaseName: connInfo.database,
+                        ownerUri: ownerUri,
+                        packageFilePath: "",
+                        connectionDetails: undefined,
+                        connectionName: connectionProfile.profileName
+                            ? connectionProfile.profileName
+                            : "",
+                        projectFilePath: "",
+                        targetScripts: [],
+                        dataSchemaProvider: "",
+                        extractTarget: mssql.ExtractTarget.schemaObjectType,
+                    };
+                }
+            }
         }
 
         if (ownerUri) {
-            endpointInfo = endpoint;
             endpointInfo.ownerUri = ownerUri;
         } else if (
             endpoint.endpointType === mssql.SchemaCompareEndpointType.Project
