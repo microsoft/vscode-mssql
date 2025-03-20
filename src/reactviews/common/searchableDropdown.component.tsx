@@ -14,7 +14,6 @@ import {
     InputOnChangeData,
     SearchBoxChangeEvent,
     Text,
-    makeStyles,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useId, useRef, useState } from "react";
