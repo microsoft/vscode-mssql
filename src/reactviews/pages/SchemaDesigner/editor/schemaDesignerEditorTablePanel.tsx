@@ -194,20 +194,20 @@ export const SchemaDesignerEditorTablePanel = () => {
             case "type":
                 return (
                     <SearchableDropdown
-                        searchPlaceholder="Search Schema"
+                        placeholder="Search Schema"
                         options={datatypes.map((datatype) => ({
                             displayName: datatype,
                             value: datatype,
                         }))}
                         selectedOption={{
-                            displayName: column.dataType,
+                            text: column.dataType,
                             value: column.dataType,
                         }}
                         onSelect={(selected) => {
                             const newColumns = [
                                 ...context.selectedTable.columns,
                             ];
-                            newColumns[index].dataType = selected.displayName;
+                            newColumns[index].dataType = selected.value;
                             context.setSelectedTable({
                                 ...context.selectedTable,
                                 columns: newColumns,
@@ -267,19 +267,19 @@ export const SchemaDesignerEditorTablePanel = () => {
             <Field>
                 <Label>{locConstants.schemaDesigner.schema}</Label>
                 <SearchableDropdown
-                    searchPlaceholder="Search Schema"
+                    placeholder="Search Schema"
                     options={context.schemaNames.map((schema) => ({
                         displayName: schema,
                         value: schema,
                     }))}
                     selectedOption={{
-                        displayName: context.selectedTable.schema,
+                        text: context.selectedTable.schema,
                         value: context.selectedTable.schema,
                     }}
                     onSelect={(selected) => {
                         context.setSelectedTable({
                             ...context.selectedTable,
-                            schema: selected.displayName,
+                            schema: selected.value,
                         });
                     }}
                 ></SearchableDropdown>
