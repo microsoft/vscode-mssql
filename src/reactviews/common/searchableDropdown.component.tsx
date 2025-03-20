@@ -17,6 +17,7 @@ import {
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useId, useRef, useState } from "react";
+import { locConstants } from "./locConstants";
 
 export interface SearchableDropdownOptions {
     /**
@@ -39,9 +40,13 @@ export interface SearchableDropdownProps {
      */
     options: SearchableDropdownOptions[];
     /**
-     * Placeholder text for the search box.
+     * The text to display when no option is selected.
      */
     placeholder?: string;
+    /**
+     * Placeholder text for the search box.
+     */
+    searchBoxPlaceholder?: string;
     /**
      * The currently selected option. This should be one of the options provided.
      * If not provided, the dropdown will select the first option by default.
@@ -69,11 +74,22 @@ export interface SearchableDropdownProps {
      * @param option The selected option.
      * @returns void
      */
-    onSelect: (option: SearchableDropdownOptions) => void;
+    onSelect: (option: SearchableDropdownOptions, index: number) => void;
+    /**
+     * Sets the dropdown to be clearable. If true, a clear button will be shown to clear the selected option.
+     */
+    clearable?: boolean;
 }
 
-const getOptionDisplayText = (option: SearchableDropdownOptions): string => {
-    return option.text || option.value;
+const getOptionDisplayText = (
+    option: SearchableDropdownOptions,
+    placeholder?: string,
+): string => {
+    const optionText = option.text || option.value;
+    if (optionText === "" && placeholder) {
+        return placeholder;
+    }
+    return optionText;
 };
 
 const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
@@ -105,7 +121,9 @@ const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
 export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [searchText, setSearchText] = useState("");
     const [selectedOption, setSelectedOption] = useState(
-        props.selectedOption ?? props.options[0],
+        props.selectedOption ?? {
+            value: "",
+        },
     );
 
     const id = props.id ?? useId();
@@ -115,10 +133,26 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
     const searchBoxRef = useRef<HTMLInputElement>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isEnterKeyPressed, setIsEnterKeyPressed] = useState(false);
     const menuContainerRef = useRef<HTMLDivElement>(null);
     const menuItemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+    // Using this to track if the Enter key is pressed. If it is, we don't want to reopen the menu.
+    const [isEnterKeyPressed, setIsEnterKeyPressed] = useState(false);
+
+    // Using this to track if the list has been scrolled. After the first scroll, we don't want to scroll to the selected item again.
     const [listScrolled, setIsListScrolled] = useState(false);
+    const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
+
+    const updateOption = (option: SearchableDropdownOptions) => {
+        const index = props.options.findIndex(
+            (opt) => opt.value === option.value,
+        );
+        setSelectedOption(option);
+        setSelectedOptionIndex(index);
+        props.onSelect(option, index);
+        setIsMenuOpen(false);
+        setIsListScrolled(false);
+    };
 
     /**
      * Handles the key down event for the search box.
@@ -128,16 +162,11 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
      */
     const handleSearchBoxKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
-            const filteredOptions = props.options.filter((option) =>
-                getOptionDisplayText(option)
-                    .toLowerCase()
-                    .includes(searchText.toLowerCase()),
-            );
+            // If the search text is empty, we don't want to do anything
+            const filteredOptions = searchOptions(searchText, props.options);
             if (filteredOptions.length > 0) {
-                setSelectedOption(filteredOptions[0]);
-                props.onSelect(filteredOptions[0]);
-                setIsMenuOpen(false);
                 setIsEnterKeyPressed(true);
+                updateOption(filteredOptions[0]);
             }
         } else if (e.key === "Escape") {
             setIsMenuOpen(false);
@@ -167,9 +196,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 }}
                 key={`${id}-${option.value}`}
                 onClick={() => {
-                    setSelectedOption(option);
-                    props.onSelect(option);
-                    setIsMenuOpen(false);
+                    updateOption(option);
                 }}
                 style={{
                     width: `${popoverWidth - 10}px`,
@@ -183,6 +210,43 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 {getOptionDisplayText(option)}
             </MenuItemRadio>
         ));
+    };
+
+    const getDropdownIcon = () => {
+        if (props.clearable) {
+            if (selectedOptionIndex === -1) {
+                return <FluentIcons.ChevronDownRegular />;
+            }
+            return (
+                <FluentIcons.DismissRegular
+                    style={{
+                        cursor: "pointer",
+                    }}
+                    onClick={(e) => {
+                        updateOption({
+                            value: "",
+                        });
+                        e.stopPropagation();
+                        buttonRef.current?.focus();
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            updateOption({
+                                value: "",
+                            });
+                            e.stopPropagation();
+                            buttonRef.current?.focus();
+                        }
+                    }}
+                    aria-label={locConstants.common.clearSelection}
+                    title={locConstants.common.clearSelection}
+                    role="button"
+                    tabIndex={0}
+                />
+            );
+        } else {
+            return <FluentIcons.ChevronDownRegular />;
+        }
     };
 
     useEffect(() => {
@@ -236,7 +300,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     id={id}
                     size={props.size ?? "medium"}
                     ref={buttonRef}
-                    icon={<FluentIcons.ChevronDownRegular />}
+                    icon={getDropdownIcon()}
                     iconPosition="after"
                     role="combobox"
                     aria-haspopup="listbox"
@@ -254,9 +318,15 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                         }}
-                        title={getOptionDisplayText(selectedOption)}
+                        title={getOptionDisplayText(
+                            selectedOption,
+                            props.placeholder,
+                        )}
                     >
-                        {getOptionDisplayText(selectedOption)}
+                        {getOptionDisplayText(
+                            selectedOption,
+                            props.placeholder,
+                        )}
                     </Text>
                 </Button>
             </MenuTrigger>
@@ -271,7 +341,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 >
                     <SearchBox
                         ref={searchBoxRef}
-                        placeholder={props.placeholder}
+                        placeholder={props.searchBoxPlaceholder}
                         value={searchText}
                         onChange={(_e, d) => handleSearch(_e, d)}
                         aria-controls={listboxId}
@@ -290,6 +360,20 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         }}
                         role="presentation"
                         ref={menuContainerRef}
+                        onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                                setIsMenuOpen(false);
+                            }
+                            // if a input key is pressed, we want to set the search box value to that key
+                            // and focus on the search box
+                            if (
+                                searchBoxRef.current &&
+                                (e.key.length === 1 || e.key === "Backspace")
+                            ) {
+                                searchBoxRef.current?.focus();
+                                searchBoxRef.current.value = e.key;
+                            }
+                        }}
                     >
                         {renderOptions()}
                     </div>

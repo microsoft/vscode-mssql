@@ -23,7 +23,7 @@ import {
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
 import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
-import { SearchableDropdown } from "../../common/searchableDropdown";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     root: {

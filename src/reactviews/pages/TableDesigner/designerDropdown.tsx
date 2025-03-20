@@ -12,7 +12,7 @@ import {
     DropDownProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 import { Field, InfoLabel } from "@fluentui/react-components";
-import { SearchableDropdown } from "../../common/searchableDropdown";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 export type DesignerDropdownProps = {
     component: DesignerDataPropertyInfo;
