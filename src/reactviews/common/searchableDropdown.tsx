@@ -185,7 +185,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     useEffect(() => {
         if (buttonRef.current) {
-            setPopoverWidth(buttonRef.current.offsetWidth - 10);
+            setPopoverWidth(Math.max(buttonRef.current.offsetWidth - 10, 200));
         }
     }, [buttonRef.current]);
 
@@ -202,7 +202,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 }
             }, 0);
         }
-    }, [isMenuOpen, selectedOption]);
+    }, [selectedOption]);
 
     useEffect(() => {
         setSelectedOption(props.selectedOption ?? props.options[0]);
@@ -265,7 +265,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         style={{
                             width: popoverWidth,
                             maxWidth: popoverWidth,
-                            minWidth: "234px",
                         }}
                     />
                     <div
@@ -273,7 +272,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             maxHeight: "200px",
                             overflowY: "auto",
                             width: `${popoverWidth}px`,
-                            minWidth: "234px",
                             overflowX: "hidden",
                         }}
                         role="presentation"
