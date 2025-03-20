@@ -444,6 +444,12 @@ declare module 'vscode-mssql' {
 		schemaObjectType = 5
 	}
 
+	/**
+     * WARNING: The methods in this interface may be used by the SQL Projects extension.
+     * 1. Be sure to check the current usage of these methods in the SQL Projects extension.
+     * 2. Test against the current version of the SQL Projects extension by creating a vsix of
+     * 	this extension and installing it alongside he SQL Projects extension.
+     */
 	export interface ISchemaCompareService {
 		compare(operationId: string, sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions): Thenable<SchemaCompareResult>;
 		generateScript(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
