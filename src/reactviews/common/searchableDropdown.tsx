@@ -247,9 +247,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         ...props.style,
                         justifyContent: "space-between",
                         fontWeight: 400,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
                     }}
                 >
                     <Text
