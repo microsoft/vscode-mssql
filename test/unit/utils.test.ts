@@ -6,6 +6,7 @@
 import { expect, assert } from "chai";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
+import * as SrcUtils from "../../src/utils/utils";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 
 suite("Utility Tests - parseTimeString", () => {
@@ -157,5 +158,35 @@ suite.skip("Utility tests - Timer Class", () => {
             }, 100);
         });
         void p.then(() => done());
+    });
+});
+
+suite("src/utils/utils.ts tests", () => {
+    suite("Utility tests - concatUnique()", () => {
+        test("should return the correct concatenated array with default equality", () => {
+            let a = [1, 2, 3];
+            let b = [2, 3, 4];
+            let result = SrcUtils.concatUnique(a, b);
+            assert.deepEqual(
+                result,
+                [1, 2, 3, 4],
+                "Arrays should have been concatenated with duplicate values removed",
+            );
+        });
+
+        test("should return the correct concatenated array with custom equality function", () => {
+            let a = ["ONE", "TWO", "THREE"];
+            let b = ["two", "three", "four"];
+            let result = SrcUtils.concatUnique(
+                a,
+                b,
+                (a, b) => a.toLowerCase() === b.toLowerCase(), // custom equality function
+            );
+            assert.deepEqual(
+                result,
+                ["ONE", "TWO", "THREE", "four"], // "two" and "three" from the second array are duplicates by the .toLowerCase() equality function
+                "Arrays should have been concatenated with duplicate values removed",
+            );
+        });
     });
 });

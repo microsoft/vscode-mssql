@@ -106,3 +106,29 @@ export async function listAllIterator<T>(
 
     return resources;
 }
+
+/**
+ * Helper function to concatenate two arrays, but exclude duplicates.  E.g. concatUnique([1, 2], [2, 3]) => [1, 2, 3]
+ * @param areEqual optional equality function to determine if two items are duplicates.  Uses `===` if not provided
+ * @returns Concatenatation of the two arrays, excluding duplicates
+ */
+export function concatUnique<T>(
+    a: T[],
+    b: T[],
+    areEqual?: (a: T, b: T) => boolean,
+): T[] {
+    const result = [...a];
+    for (const item of b) {
+        if (
+            !result.some((i) =>
+                areEqual
+                    ? areEqual(i, item) // use custom function if provided
+                    : i === item,
+            )
+        ) {
+            result.push(item);
+        }
+    }
+
+    return result;
+}
