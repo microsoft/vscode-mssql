@@ -55,7 +55,7 @@
     "watch": "gulp watch",
     "lint": "eslint --quiet --cache",
     "localization": "gulp ext:extract-localization-strings",
-    "test": "yarn instrument && yarn unitTest",
+    "test": "yarn unitTest",
     "smoketest": "gulp ext:smoke",
     "package": "vsce package",
     "prepare": "husky",
