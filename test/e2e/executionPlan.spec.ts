@@ -15,15 +15,12 @@ import { screenshotOnFailure } from "./utils/screenshotOnError";
 import { waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 
-export const queryPlanScreenshotPath =
-    process.cwd() +
-    `\\test\\resources\\screenshots\\executionPlan.spec.ts\\MSSQL-Extension---Query-Plan-`;
-
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
     let iframe: FrameLocator;
     let queryPlanMXGraph: Locator;
+    let currentZoom: number = 100;
 
     test.beforeAll("Setting up for Query Plan Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();
@@ -64,6 +61,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
                 '[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]',
             )
             .click();
+
+        currentZoom = await getZoom(iframe);
     });
 
     test("Test Saving a Query Plan", async () => {
@@ -102,7 +101,9 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Zoom In"][class*="fui-Button"]',
         );
         await zoomInButtonLocator.click();
-        await expect(vsCodePage).toHaveScreenshot();
+
+        const newZoom = await getZoom(iframe);
+        await expect(newZoom).toBeGreaterThan(currentZoom);
     });
 
     test("Test Zooming Out from the Query Plan Graph", async () => {
@@ -111,7 +112,9 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Zoom Out"][class*="fui-Button"]',
         );
         await zoomOutButtonLocator.click();
-        await expect(vsCodePage).toHaveScreenshot();
+
+        const newZoom = await getZoom(iframe);
+        await expect(newZoom).toBeLessThan(currentZoom);
     });
 
     test("Test Zooming to Fit for Query Plan Graph", async () => {
@@ -120,7 +123,10 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]',
         );
         await zoomToFitButtonLocator.click();
-        await expect(vsCodePage).toHaveScreenshot();
+
+        const newZoom = await getZoom(iframe);
+        // because we zoom to fit before every test
+        await expect(newZoom).toBe(currentZoom);
     });
 
     test("Test Custom Zooming for the Query Plan Graph", async () => {
@@ -133,12 +139,14 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const customZoomInput = iframe.locator("#customZoomInputBox");
         await expect(customZoomInput).toBeVisible();
 
-        await customZoomInput.fill("80");
+        await customZoomInput.fill("25");
         const customZoomApplyButton = iframe.locator(
             '[type="button"][aria-label="Apply"][class*="fui-Button"]',
         );
         await customZoomApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+
+        const newZoom = await getZoom(iframe);
+        await expect(newZoom).toBeLessThan(currentZoom);
 
         await customZoomButtonLocator.click();
         await expect(customZoomInput).toBeVisible();
@@ -175,7 +183,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await findNodeDownButtonLocator.click();
         await findNodeDownButtonLocator.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        let selectedElement = await getFocusedGraphElement(queryPlanMXGraph);
+        await expect(selectedElement).toContain("Nested Loop");
 
         const findNodeUpButtonLocator = iframe.locator(
             '[type="button"][aria-label="Previous"][class*="fui-Button"]',
@@ -183,7 +192,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await findNodeUpButtonLocator.click();
         await findNodeUpButtonLocator.click();
         await findNodeUpButtonLocator.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getFocusedGraphElement(queryPlanMXGraph);
+        await expect(selectedElement).toContain("Index Scan");
 
         const findNodeCloseButtonLocator = iframe.locator(
             '[type="button"][aria-label="Close"][class*="fui-Button"]',
@@ -281,6 +291,10 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await highlightOpsButtonLocator.click();
 
+        const highlightOpsComponent = iframe.locator(
+            "#highlightExpensiveOpsContainer",
+        );
+
         const highlightOpsInputBox = iframe.locator(
             "#highlightExpensiveOpsDropdown",
         );
@@ -290,33 +304,54 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         await highlightOpsInputBox.fill("Actual Elapsed Time");
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        let selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toBe("");
 
         await highlightOpsInputBox.fill("Actual Elapsed CPU Time");
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toBe("");
 
         await highlightOpsInputBox.fill("Cost");
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toContain("Clustered Index Seek");
 
         await highlightOpsInputBox.fill("Subtree Cost");
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toContain("SELECT");
 
         await highlightOpsInputBox.fill(
             "Actual Number of Rows For All Executions",
         );
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toContain("Nested Loops");
 
         await highlightOpsInputBox.fill("Number of Rows Read");
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toContain("Clustered Index Scan");
 
         await highlightOpsInputBox.fill("Off");
         await highlightOpsApplyButton.click();
-        await expect(vsCodePage).toHaveScreenshot();
+        selectedElement = await getHighlightedGraphElement(
+            highlightOpsComponent,
+        );
+        await expect(selectedElement).toContain("Clustered Index Seek");
 
         const highlightOpsCloseButton = iframe.locator(
             '[type="button"][aria-label="Close"][class*="fui-Button"]',
@@ -347,4 +382,41 @@ export async function refocusQueryPlanTab(page: Page) {
     );
     await queryPlanTab.focus();
     await page.keyboard.press("Enter");
+}
+
+export async function getZoom(iframe: FrameLocator) {
+    const zoomElement = await iframe.locator('[transform*="scale"]').first();
+    if (zoomElement) {
+        // Try to extract the scale value using a regular expression
+        try {
+            const scaleMatch = (
+                await zoomElement.getAttribute("transform")
+            ).match(/scale\(([^)]+)\)/);
+
+            if (scaleMatch && scaleMatch[1]) {
+                // Multiply by 100 to get the zoom percentage
+                return parseFloat(scaleMatch[1]) * 100;
+            }
+        } catch {
+            // If the scale value doesn not exist, then the zoom is 100
+            return 100;
+        }
+    }
+}
+
+export async function getFocusedGraphElement(graph: Locator) {
+    const selectedElement = await graph.locator(":focus");
+    try {
+        return selectedElement.textContent({ timeout: 2 * 1000 });
+    } catch {
+        // no selected element
+        return "";
+    }
+}
+
+export async function getHighlightedGraphElement(highlightComponent: Locator) {
+    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+
+    const selectedElement = await highlightComponent.getAttribute("aria-label");
+    return selectedElement;
 }

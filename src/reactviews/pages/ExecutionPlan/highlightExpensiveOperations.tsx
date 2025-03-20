@@ -15,7 +15,6 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
 import { useState } from "react";
@@ -59,6 +58,7 @@ export const HighlightExpensiveOperations: React.FC<
 }) => {
     const classes = useStyles();
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
+    const [highlightedElement, setHighlightedElement] = useState("");
 
     const highlightMetricOptions: string[] = [
         locConstants.executionPlan.actualElapsedTime,
@@ -94,9 +94,11 @@ export const HighlightExpensiveOperations: React.FC<
                 expensiveOperationDelegate,
             );
             if (elementId) {
-                executionPlanView.centerElement(
-                    executionPlanView.getElementById(elementId)!,
-                );
+                const element = executionPlanView.getElementById(
+                    elementId,
+                )! as ep.ExecutionPlanNode;
+                executionPlanView.centerElement(element);
+                setHighlightedElement(element.name);
             }
             setExecutionPlanView(executionPlanView);
         }
@@ -125,6 +127,7 @@ export const HighlightExpensiveOperations: React.FC<
             style={{
                 background: tokens.colorNeutralBackground1,
             }}
+            aria-label={highlightedElement}
         >
             <div>{locConstants.executionPlan.metric}</div>
             <div style={{ paddingRight: "12px" }} />
