@@ -13,6 +13,7 @@ import {
     MenuItemRadio,
     InputOnChangeData,
     SearchBoxChangeEvent,
+    Text,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useId, useRef, useState } from "react";
@@ -117,6 +118,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [isEnterKeyPressed, setIsEnterKeyPressed] = useState(false);
     const menuContainerRef = useRef<HTMLDivElement>(null);
     const menuItemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+    const [listScrolled, setIsListScrolled] = useState(false);
 
     /**
      * Handles the key down event for the search box.
@@ -190,7 +192,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, [buttonRef.current]);
 
     useEffect(() => {
-        if (isMenuOpen && menuContainerRef.current) {
+        if (isMenuOpen && menuContainerRef.current && !listScrolled) {
             // Wait for menu to fully render
             setTimeout(() => {
                 const selectedItemRef =
@@ -199,6 +201,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     // Calculate scroll position to make the selected item visible
                     // ...
                     selectedItemRef.scrollIntoView({ block: "nearest" });
+                    setIsListScrolled(true);
                 }
             }, 0);
         }
@@ -221,6 +224,9 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     searchBoxRef.current.focus();
                 }
                 setIsMenuOpen(data.open);
+                if (!data.open) {
+                    setIsListScrolled(false);
+                }
             }}
             open={isMenuOpen}
             hasCheckmarks={true}
@@ -241,9 +247,20 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         ...props.style,
                         justifyContent: "space-between",
                         fontWeight: 400,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                     }}
                 >
-                    {getOptionDisplayText(selectedOption)}
+                    <Text
+                        style={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                        }}
+                        title={getOptionDisplayText(selectedOption)}
+                    >
+                        {getOptionDisplayText(selectedOption)}
+                    </Text>
                 </Button>
             </MenuTrigger>
 
