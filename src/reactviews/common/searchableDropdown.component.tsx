@@ -119,19 +119,7 @@ const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
         .map((entry) => entry.item); // Extract the original strings
 };
 
-const useStyles = makeStyles({
-    button: {
-        ":hover": {
-            ":active": {
-                backgroundColor: "var(--colorNeutralBackground1Hover)",
-                color: "var(--colorNeutralForeground1Hover)",
-            },
-        },
-    },
-});
-
 export const SearchableDropdown = (props: SearchableDropdownProps) => {
-    const classes = useStyles();
     const [searchText, setSearchText] = useState("");
     const [selectedOption, setSelectedOption] = useState(
         props.selectedOption ?? {
@@ -339,7 +327,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         justifyContent: "space-between",
                         fontWeight: 400,
                     }}
-                    className={classes.button}
                 >
                     <Text
                         style={{
