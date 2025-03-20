@@ -118,7 +118,7 @@ export async function publishProjectChanges(
 export async function getDefaultOptions(
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareOptionsResult> {
-    const result = await schemaCompareService.getDefaultOptions();
+    const result = await schemaCompareService.schemaCompareGetDefaultOptions();
 
     return result;
 }
