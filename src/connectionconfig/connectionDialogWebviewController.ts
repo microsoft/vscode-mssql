@@ -712,7 +712,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 expand: true,
             });
             await this.panel.dispose();
-            await UserSurvey.getInstance().promptUserForNPSFeedback();
+            UserSurvey.getInstance().promptUserForNPSFeedback();
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
 
