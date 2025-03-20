@@ -248,7 +248,10 @@ const SchemaOptionsDrawer = (props: Props) => {
                 </Button>
                 <Button
                     appearance="primary"
-                    onClick={() => context.confirmSchemaOptions(optionsChanged)}
+                    onClick={() => {
+                        context.confirmSchemaOptions(optionsChanged);
+                        props.showDrawer(false);
+                    }}
                 >
                     {loc.schemaCompare.ok}
                 </Button>
