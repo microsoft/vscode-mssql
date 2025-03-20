@@ -298,21 +298,21 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     searchBoxRef.current.focus();
                 }
                 setIsMenuOpen(data.open);
-                if (!data.open) {
-                    setIsListScrolled(false);
-                }
-
                 if (selectedOptionIndex !== -1 && !listScrolled) {
-                    setTimeout(() => {
+                    requestAnimationFrame(() => {
                         const selectedItemRef =
                             menuItemRefs.current[selectedOption.value];
                         if (selectedItemRef && menuContainerRef.current) {
                             selectedItemRef.scrollIntoView({
                                 block: "nearest",
+                                behavior: "instant",
                             });
                         }
                         setIsListScrolled(true);
-                    }, 0);
+                    });
+                }
+                if (!data.open) {
+                    setIsListScrolled(false);
                 }
             }}
             open={isMenuOpen}
@@ -388,6 +388,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         onKeyDown={(e) => {
                             if (e.key === "Escape") {
                                 setIsMenuOpen(false);
+                                setIsListScrolled(false);
                             }
                             // if a input key is pressed, we want to set the search box value to that key
                             // and focus on the search box
