@@ -14,6 +14,7 @@ import {
     InputOnChangeData,
     SearchBoxChangeEvent,
     Text,
+    makeStyles,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useId, useRef, useState } from "react";
@@ -118,7 +119,19 @@ const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
         .map((entry) => entry.item); // Extract the original strings
 };
 
+const useStyles = makeStyles({
+    button: {
+        ":hover": {
+            ":active": {
+                backgroundColor: "var(--colorNeutralBackground1Hover)",
+                color: "var(--colorNeutralForeground1Hover)",
+            },
+        },
+    },
+});
+
 export const SearchableDropdown = (props: SearchableDropdownProps) => {
+    const classes = useStyles();
     const [searchText, setSearchText] = useState("");
     const [selectedOption, setSelectedOption] = useState(
         props.selectedOption ?? {
@@ -273,22 +286,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, [buttonRef.current]);
 
     useEffect(() => {
-        if (isMenuOpen && menuContainerRef.current && !listScrolled) {
-            // Wait for menu to fully render
-            setTimeout(() => {
-                const selectedItemRef =
-                    menuItemRefs.current[selectedOption.value];
-                if (selectedItemRef && menuContainerRef.current) {
-                    // Calculate scroll position to make the selected item visible
-                    // ...
-                    selectedItemRef.scrollIntoView({ block: "nearest" });
-                    setIsListScrolled(true);
-                }
-            }, 0);
-        }
-    }, [selectedOption]);
-
-    useEffect(() => {
         setSelectedOption(props.selectedOption ?? props.options[0]);
     }, [props.selectedOption]);
 
@@ -303,6 +300,19 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 setIsMenuOpen(data.open);
                 if (!data.open) {
                     setIsListScrolled(false);
+                }
+
+                if (selectedOptionIndex !== -1 && !listScrolled) {
+                    setTimeout(() => {
+                        const selectedItemRef =
+                            menuItemRefs.current[selectedOption.value];
+                        if (selectedItemRef && menuContainerRef.current) {
+                            selectedItemRef.scrollIntoView({
+                                block: "nearest",
+                            });
+                        }
+                        setIsListScrolled(true);
+                    }, 0);
                 }
             }}
             open={isMenuOpen}
@@ -329,6 +339,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         justifyContent: "space-between",
                         fontWeight: 400,
                     }}
+                    className={classes.button}
                 >
                     <Text
                         style={{
