@@ -15,9 +15,6 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    // wait for 5 seconds for the extension to load
-    await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-
     const addConnectionButton = await vsCodePage.locator(
         'div[aria-label="Add Connection"]',
     );

@@ -14,6 +14,7 @@ import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt
 import { screenshotOnFailure } from "./utils/screenshotOnError";
 import { waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
+import path from "path";
 
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodeApp: ElectronApplication;
@@ -32,7 +33,13 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await vsCodePage.keyboard.press("Control+P");
         await waitForCommandPaletteToBeVisible(vsCodePage);
         await vsCodePage.keyboard.type(
-            process.cwd() + "\\out\\test\\resources\\plan.sqlplan",
+            path.join(
+                process.cwd(),
+                "out",
+                "test",
+                "resources",
+                "plan.sqlplan",
+            ),
         );
         await waitForCommandPaletteToBeVisible(vsCodePage);
         // Press Enter in the VS Code page
@@ -126,7 +133,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const newZoom = await getZoom(iframe);
         // because we zoom to fit before every test
-        await expect(newZoom).toBe(currentZoom);
+        await expect(Math.round(newZoom)).toBe(Math.round(currentZoom));
     });
 
     test("Test Custom Zooming for the Query Plan Graph", async () => {

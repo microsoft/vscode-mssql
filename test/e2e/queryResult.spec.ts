@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /*
-import {
-    ElectronApplication,
-    FrameLocator,
-    Page,
-} from "@playwright/test";
+import { ElectronApplication, FrameLocator, Page } from "@playwright/test";
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
@@ -28,12 +24,11 @@ test.describe("MSSQL Extension - Query Result", async () => {
         vsCodeApp = electronApp;
         vsCodePage = page;
 
-        // Query plan entry point
-        await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+        // Query result entry point
         const queryResultTab = vsCodePage.locator(
             '[aria-label="Query Results (Preview)"][class="action-label"]',
         );
-		await queryResultTab.click();
+        await queryResultTab.click();
 
         iframe = vsCodePage
             .frameLocator(".webview")

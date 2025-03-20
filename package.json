@@ -56,7 +56,7 @@
     "lint": "eslint --quiet --cache",
     "localization": "gulp ext:extract-localization-strings",
     "test": "yarn unitTest",
-    "smoketest": "gulp ext:smoke",
+    "smoketest": "yarn instrument && yarn e2eTest",
     "package": "vsce package",
     "prepare": "husky",
     "lint-staged": "lint-staged --quiet",
@@ -64,7 +64,7 @@
     "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
     "testWithCoverage": "yarn test && yarn gulp cover",
     "instrument": "nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**",
-    "e2eTest": "npx nyc --reporter=html --reporter=cobertura --reporter=text-summary --include=\"src/reactviews/pages/**/*.tsx\" npx playwright test",
+    "e2eTest": " npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage-e2e\" --temp-dir=\"reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\"",
     "unitTest": "node ./out/test/unit/runTest.js"
   },
   "lint-staged": {

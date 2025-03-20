@@ -10,7 +10,7 @@ const minifier = require('gulp-uglify/minifier');
 const uglifyjs = require('uglify-js');
 const argv = require('yargs').argv;
 const min = (argv.min === undefined) ? false : true;
-const prod = (argv.prod === undefined) ? false : true;
+const prod = (argv.prod === "false" || argv.prod === undefined) ? false : true;
 const vscodeTest = require('@vscode/test-electron');
 const { exec } = require('child_process');
 const gulpESLintNew = require('gulp-eslint-new');

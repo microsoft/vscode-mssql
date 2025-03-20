@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, expect, Page, test } from "@playwright/test";
-import { launchVsCodeWithMssqlExtension } from "../utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "../utils/screenshotOnError";
+import { ElectronApplication, Page } from "@playwright/test";
+import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
+import { screenshotOnFailure } from "./utils/screenshotOnError";
 import {
     addDatabaseConnection,
     enterTextIntoQueryEditor,
     executeQuery,
     openNewQueryEditor,
-} from "../utils/testHelpers";
+} from "./utils/testHelpers";
 import {
     getAuthenticationType,
     getDatabaseName,
@@ -20,7 +20,8 @@ import {
     getSavePassword,
     getServerName,
     getUserName,
-} from "../utils/envConfigReader";
+} from "./utils/envConfigReader";
+import { test, expect } from "./baseFixtures";
 
 test.describe("MSSQL Extension - Query Execution", async () => {
     let vsCodeApp: ElectronApplication;

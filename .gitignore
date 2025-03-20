@@ -33,3 +33,4 @@ webviews-metafile.json
 .eslintcache
 .nyc_output
 /test/resources/screenshots
+reactviews-coverage

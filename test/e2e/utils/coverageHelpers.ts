@@ -7,7 +7,7 @@ import path from "path";
 import fs from "fs";
 import { FrameLocator } from "@playwright/test";
 
-const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
+const istanbulCLIOutput = path.join(process.cwd(), "reactviews-coverage");
 
 export async function writeCoverage(iframe: FrameLocator, testname: string) {
     // Get the HTML evaluate of the iframe
@@ -21,6 +21,11 @@ export async function writeCoverage(iframe: FrameLocator, testname: string) {
 
         // Ensure coverage data exists before writing
         if (coverage) {
+            if (!fs.existsSync(istanbulCLIOutput)) {
+                fs.mkdirSync(istanbulCLIOutput, { recursive: true });
+                console.log(`Created directory: ${istanbulCLIOutput}`);
+            }
+
             const coverageFilePath = path.join(
                 istanbulCLIOutput,
                 `playwright_coverage_${testname}.json`,
