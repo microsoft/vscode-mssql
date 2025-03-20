@@ -93,6 +93,7 @@ export const AzureFilterCombobox = ({
                 onBlur={onBlur}
             >
                 <SearchableDropdown
+                    size="small"
                     selectedOption={{
                         value: content.value,
                     }}

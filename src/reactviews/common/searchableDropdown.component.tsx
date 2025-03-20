@@ -136,12 +136,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const menuContainerRef = useRef<HTMLDivElement>(null);
     const menuItemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-    // Using this to track if the Enter key is pressed. If it is, we don't want to reopen the menu.
-    const [isEnterKeyPressed, setIsEnterKeyPressed] = useState(false);
-
     // Using this to track if the list has been scrolled. After the first scroll, we don't want to scroll to the selected item again.
     const [listScrolled, setIsListScrolled] = useState(false);
     const [selectedOptionIndex, setSelectedOptionIndex] = useState(-1);
+
+    // Using this to track if the search box is focused. This is used to focus the selected item when the search box is blurred.
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
 
     const updateOption = (option: SearchableDropdownOptions) => {
         const index = props.options.findIndex(
@@ -163,10 +163,14 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const handleSearchBoxKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
             // If the search text is empty, we don't want to do anything
+            if (!searchText) {
+                return;
+            }
             const filteredOptions = searchOptions(searchText, props.options);
             if (filteredOptions.length > 0) {
-                setIsEnterKeyPressed(true);
                 updateOption(filteredOptions[0]);
+                e.stopPropagation();
+                e.preventDefault();
             }
         } else if (e.key === "Escape") {
             setIsMenuOpen(false);
@@ -206,6 +210,19 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 }}
                 name={"dropdown-options"}
                 value={option.value}
+                onFocus={() => {
+                    if (isSearchFocused) {
+                        // Focus to the selected item if the search box was focused
+                        if (menuItemRefs.current[selectedOption.value]) {
+                            setTimeout(() => {
+                                menuItemRefs.current[
+                                    selectedOption.value
+                                ]?.focus();
+                            }, 0);
+                        }
+                        setIsSearchFocused(false);
+                    }
+                }}
             >
                 {getOptionDisplayText(option)}
             </MenuItemRadio>
@@ -279,10 +296,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         <Menu
             positioning={{ autoSize: true }}
             onOpenChange={async (_e, data) => {
-                if (isEnterKeyPressed) {
-                    setIsEnterKeyPressed(false);
-                    return;
-                }
                 setSearchText("");
                 if (searchBoxRef.current) {
                     searchBoxRef.current.focus();
@@ -294,6 +307,10 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             }}
             open={isMenuOpen}
             hasCheckmarks={true}
+            checkedValues={{
+                "dropdown-options": [selectedOption.value],
+            }}
+            aria-label={props.ariaLabel || "options"}
         >
             <MenuTrigger disableButtonEnhancement>
                 <Button
@@ -332,13 +349,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             </MenuTrigger>
 
             <MenuPopover style={{ width: popoverWidth }}>
-                <MenuList
-                    id={listboxId}
-                    aria-label={props.ariaLabel || "options"}
-                    checkedValues={{
-                        "dropdown-options": [selectedOption.value],
-                    }}
-                >
+                <MenuList>
                     <SearchBox
                         ref={searchBoxRef}
                         placeholder={props.searchBoxPlaceholder}
@@ -349,6 +360,9 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         style={{
                             width: popoverWidth,
                             maxWidth: popoverWidth,
+                        }}
+                        onFocus={() => {
+                            setIsSearchFocused(true);
                         }}
                     />
                     <div
