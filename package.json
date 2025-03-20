@@ -56,7 +56,7 @@
     "lint": "eslint --quiet --cache",
     "localization": "gulp ext:extract-localization-strings",
     "test": "yarn instrument && yarn unitTest",
-    "smoketest": "yarn e2eTest",
+    "smoketest": "gulp ext:smoke",
     "package": "vsce package",
     "prepare": "husky",
     "lint-staged": "lint-staged --quiet",
