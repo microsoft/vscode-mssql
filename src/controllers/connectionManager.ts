@@ -212,6 +212,10 @@ export default class ConnectionManager {
         }
     }
 
+    public get initialized(): Deferred<void> {
+        return this.connectionStore.initialized;
+    }
+
     /**
      * Exposed for testing purposes
      */

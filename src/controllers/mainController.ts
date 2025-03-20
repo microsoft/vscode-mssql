@@ -2211,7 +2211,7 @@ export default class MainController implements vscode.Disposable {
             // user connections is a super set of object explorer connections
             // read the connections from glocal settings and workspace settings.
             let userConnections: any[] =
-                this.connectionManager.connectionStore.connectionConfig.getConnections(
+                await this.connectionManager.connectionStore.connectionConfig.getConnections(
                     true,
                 );
             let objectExplorerConnections =

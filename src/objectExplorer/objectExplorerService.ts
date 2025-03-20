@@ -536,7 +536,7 @@ export class ObjectExplorerService {
      */
     private async addSavedNodesConnectionsToRoot(): Promise<void> {
         let savedConnections =
-            this._connectionManager.connectionStore.readAllConnections();
+            await this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
             let nodeLabel =
                 ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
@@ -690,7 +690,7 @@ export class ObjectExplorerService {
 
             // retrieve saved connections first when opening object explorer for the first time
             let savedConnections =
-                this._connectionManager.connectionStore.readAllConnections();
+                await this._connectionManager.connectionStore.readAllConnections();
 
             // if there are no saved connections, show the add connection node
             if (savedConnections.length === 0) {

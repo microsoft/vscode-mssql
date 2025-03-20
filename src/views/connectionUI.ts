@@ -100,9 +100,9 @@ export class ConnectionUI {
     ): Promise<IConnectionInfo | undefined> {
         // Let this design use Promise and resolve/reject pattern instead of async/await
         // because resolve/reject is done in in callback events.
-        return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
+        return await new Promise<IConnectionInfo | undefined>(async (resolve, _) => {
             let connectionProfileList =
-                this._connectionStore.getPickListItems();
+                await this._connectionStore.getPickListItems();
             // We have recent connections - show them in a prompt for connection profiles
             const connectionProfileQuickPick =
                 this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
@@ -1002,7 +1002,7 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = self._connectionStore.getProfilePickListItems(false);
+        let profiles = await self._connectionStore.getProfilePickListItems(false);
         let profile = await self.selectProfileForRemoval(profiles);
         let profileRemoved = profile
             ? await self._connectionStore.removeProfile(profile)
