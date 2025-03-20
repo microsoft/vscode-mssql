@@ -25,7 +25,6 @@ import * as Utils from "../../src/models/utils";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
 import { TestExtensionContext, TestPrompter } from "./stubs";
-import { Type } from "@angular/core";
 
 function createTestConnectionResult(
     ownerUri?: string,
