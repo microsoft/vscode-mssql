@@ -6,10 +6,8 @@
 import { Tab, TabList } from "@fluentui/react-tabs";
 import {
     CounterBadge,
-    Dropdown,
     Field,
     Input,
-    Option,
     Text,
     makeStyles,
     shorthands,
@@ -25,6 +23,7 @@ import {
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
 import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     root: {
@@ -207,7 +206,24 @@ export const DesignerMainPane = () => {
                     label={locConstants.tableDesigner.schema}
                     orientation="horizontal"
                 >
-                    <Dropdown
+                    <SearchableDropdown
+                        size="medium"
+                        options={getSortedSchemaValues().map((option) => ({
+                            value: option,
+                        }))}
+                        onSelect={(option) => {
+                            context.processTableEdit({
+                                source: "TabsView",
+                                type: DesignerEditType.Update,
+                                path: ["schema"],
+                                value: option.value,
+                            });
+                        }}
+                        selectedOption={{
+                            value: schema,
+                        }}
+                    />
+                    {/* <Dropdown
                         size="medium"
                         value={schema}
                         onOptionSelect={(_event, data) => {
@@ -229,7 +245,7 @@ export const DesignerMainPane = () => {
                                 return <Option>{option}</Option>;
                             })
                         }
-                    </Dropdown>
+                    </Dropdown> */}
                 </Field>
             </div>
             <TabList
