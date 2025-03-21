@@ -604,6 +604,13 @@ export default class MainController implements vscode.Disposable {
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
         Utils.logDebug("activated.");
+
+        // capture basic metadata
+        sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
+            experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
+            modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
+        });
+
         this._initialized = true;
         return true;
     }
