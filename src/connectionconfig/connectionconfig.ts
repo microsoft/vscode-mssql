@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as shallowEqual from "shallowequal";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
@@ -10,9 +11,8 @@ import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { Deferred } from "../protocol";
-import { ConnectionProfile } from "../models/connectionProfile";
 import { Logger } from "../models/logger";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import { concatUnique } from "../utils/utils";
 
 /**
  * Implements connection profile file storage.
@@ -86,41 +86,20 @@ export class ConnectionConfig implements IConnectionConfig {
                 group.groupId = rootGroup.id;
                 madeChanges = true;
                 this.logger.logDebug(
-                    `Adding missing parentId to connection '${group.name}'`,
+                    `Adding missing parentId to connection group '${group.name}'`,
                 );
             }
         }
 
-        // Clean up connection profiles
-        const profiles: IConnectionProfile[] = this.getProfilesFromSettings();
-
-        for (const profile of profiles) {
-            // ensure each profile has an ID
-            if (ConnectionProfile.addIdIfMissing(profile)) {
-                madeChanges = true;
-                this.logger.logDebug(
-                    `Adding missing ID to connection '${getConnectionDisplayName(profile)}'`,
-                );
-            }
-
-            // ensure each profile is in a group
-            if (!profile.groupId) {
-                profile.groupId = rootGroup.id;
-                madeChanges = true;
-                this.logger.logDebug(
-                    `Adding missing groupId to connection '${getConnectionDisplayName(profile)}'`,
-                );
-            }
-        }
+        // TODO: re-add connection ID and connection group ID assignment when we have a way to ensure connections are saved back to the correct config location
 
         // Save the changes to settings
         if (madeChanges) {
             this.logger.logDebug(
-                `Updates made to connection profiles and groups.  Writing all ${groups.length} group(s) and ${profiles.length} profile(s) to settings.`,
+                `Updates made to connection profiles and groups.  Writing all ${groups.length} group(s) to settings.`,
             );
 
             await this.writeConnectionGroupsToSettings(groups);
-            await this.writeProfilesToSettings(profiles);
         }
 
         this.initialized.resolve();
@@ -245,9 +224,13 @@ export class ConnectionConfig implements IConnectionConfig {
             // only return the global values if that's what's requested
             return configValue.globalValue || [];
         } else {
-            // otherwise, return the combination of the workspace and workspace folder values
-            return (configValue.workspaceValue || []).concat(
+            // Otherwise, return the combination of the workspace and workspace folder values.
+            // When VS code is opened to a folder instead of an explicit workspace,
+            // workspaceFolderValue may contain the same value as workspaceValue, so we need to dedupe
+            return concatUnique(
+                configValue.workspaceValue || [],
                 configValue.workspaceFolderValue || [],
+                shallowEqual,
             );
         }
     }
