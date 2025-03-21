@@ -153,9 +153,11 @@ export class ConnectionConfig implements IConnectionConfig {
      * are sorted first by whether they were found in the user/workspace settings,
      * and next alphabetically by profile/server name.
      */
-    public getConnections(
+    public async getConnections(
         getWorkspaceConnections: boolean,
-    ): IConnectionProfile[] {
+    ): Promise<IConnectionProfile[]> {
+        await this.initialized;
+
         let profiles: IConnectionProfile[] = [];
 
         // Read from user settings
