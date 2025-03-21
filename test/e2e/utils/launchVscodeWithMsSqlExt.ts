@@ -37,5 +37,8 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{
         timeout: 10 * 1000, // 10 seconds
     });
 
+    // wait for 5 seconds for the extension to load
+    await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+
     return { electronApp, page };
 }

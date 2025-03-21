@@ -15,9 +15,6 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    // wait for 5 seconds for the extension to load
-    await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-
     const addConnectionButton = await vsCodePage.locator(
         'div[aria-label="Add Connection"]',
     );
@@ -119,3 +116,5 @@ export async function waitForCommandPaletteToBeVisible(
     const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
     await expect(commandPaletteInput).toBeVisible();
 }
+
+export let numScreenshotsForTest = new Map<string, number>();
