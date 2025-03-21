@@ -508,7 +508,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         recentConnections: IConnectionDialogProfile[];
     }> {
         const unsortedConnections: IConnectionProfileWithSource[] =
-            this._mainController.connectionManager.connectionStore.readAllConnections(
+            await this._mainController.connectionManager.connectionStore.readAllConnections(
                 true /* includeRecentConnections */,
             );
 

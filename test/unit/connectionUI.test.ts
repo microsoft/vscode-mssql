@@ -127,15 +127,11 @@ suite("Connection UI tests", () => {
             .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
             .returns(() => Promise.resolve(mockConnection));
 
-        const promptPromise = connectionUI.promptForConnection();
+        const promptPromise = connectionUI.promptForConnection(undefined);
         // Trigger onDidChangeSelection event to simulate user selecting new connection option
         onDidChangeSelectionEventEmitter.fire([item]);
         await promptPromise;
 
-        connectionStore.verify(
-            (c) => c.getPickListItems(),
-            TypeMoq.Times.once(),
-        );
         quickPickMock.verify((q) => q.show(), TypeMoq.Times.once());
     });
 
@@ -155,15 +151,11 @@ suite("Connection UI tests", () => {
             .setup((q) => q.onDidChangeSelection)
             .returns(() => onDidChangeSelectionEventEmitter.event);
 
-        const promptPromise = connectionUI.promptForConnection();
+        const promptPromise = connectionUI.promptForConnection(undefined);
         // Trigger onDidChangeSelection event to simulate user selecting edit connection option
         onDidChangeSelectionEventEmitter.fire([item]);
         await promptPromise;
 
-        connectionStore.verify(
-            (c) => c.getPickListItems(),
-            TypeMoq.Times.once(),
-        );
         quickPickMock.verify((q) => q.show(), TypeMoq.Times.once());
     });
 
@@ -173,15 +165,12 @@ suite("Connection UI tests", () => {
         quickPickMock
             .setup((q) => q.onDidHide)
             .returns(() => onDidHideEventEmitter.event);
-        const promptForConnectionPromise = connectionUI.promptForConnection();
+        const promptForConnectionPromise =
+            connectionUI.promptForConnection(undefined);
         // Trigger onDidHide event to simulate user exiting the dialog without choosing anything
         onDidHideEventEmitter.fire();
         await promptForConnectionPromise;
 
-        connectionStore.verify(
-            (c) => c.getPickListItems(),
-            TypeMoq.Times.once(),
-        );
         quickPickMock.verify((q) => q.show(), TypeMoq.Times.once());
     });
 
@@ -259,13 +248,15 @@ suite("Connection UI tests", () => {
     test("removeProfile should prompt for a profile and remove it", () => {
         connectionStore
             .setup((c) => c.getProfilePickListItems(TypeMoq.It.isAny()))
-            .returns(() => [
-                {
-                    connectionCreds: undefined,
-                    quickPickItemType: undefined,
-                    label: "test",
-                },
-            ]);
+            .returns(() =>
+                Promise.resolve([
+                    {
+                        connectionCreds: undefined,
+                        quickPickItemType: undefined,
+                        label: "test",
+                    },
+                ]),
+            );
         connectionStore.setup(
             async (c) => await c.removeProfile(TypeMoq.It.isAny()),
         );

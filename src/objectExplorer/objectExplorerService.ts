@@ -534,9 +534,11 @@ export class ObjectExplorerService {
     /**
      * Get nodes from saved connections
      */
-    private async addSavedNodesConnectionsToRoot(): Promise<void> {
+    private async getSavedConnectionNodes(): Promise<TreeNodeInfo[]> {
+        const result: TreeNodeInfo[] = [];
+
         let savedConnections =
-            this._connectionManager.connectionStore.readAllConnections();
+            await this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
             let nodeLabel =
                 ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
@@ -565,8 +567,10 @@ export class ObjectExplorerService {
                 undefined,
                 undefined,
             );
-            this._rootTreeNodeArray.push(node);
+            result.push(node);
         }
+
+        return result;
     }
 
     private static get disconnectedNodeContextValue(): TreeNodeContextValue {
@@ -690,7 +694,7 @@ export class ObjectExplorerService {
 
             // retrieve saved connections first when opening object explorer for the first time
             let savedConnections =
-                this._connectionManager.connectionStore.readAllConnections();
+                await this._connectionManager.connectionStore.readAllConnections();
 
             // if there are no saved connections, show the add connection node
             if (savedConnections.length === 0) {
@@ -703,10 +707,9 @@ export class ObjectExplorerService {
             // if OE doesn't exist the first time, then build the nodes off of saved connections
             if (!this._objectExplorerProvider.objectExplorerExists) {
                 // if there are actually saved connections
-                this._rootTreeNodeArray = [];
-                await this.addSavedNodesConnectionsToRoot();
+                this._rootTreeNodeArray = await this.getSavedConnectionNodes();
                 this._logger.logDebug(
-                    `No current OE; added ${this._rootTreeNodeArray.length} nodes to OE root`,
+                    `No current OE; created OE root with ${this._rootTreeNodeArray.length}`,
                 );
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
