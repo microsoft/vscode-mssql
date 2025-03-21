@@ -64,7 +64,7 @@
     "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
     "testWithCoverage": "yarn test && yarn gulp cover",
     "instrument": "nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**",
-    "e2eTest": " npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage-e2e\" --temp-dir=\"reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\"",
+    "e2eTest": "npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage-e2e\" --temp-dir=\"reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\"",
     "unitTest": "node ./out/test/unit/runTest.js"
   },
   "lint-staged": {
