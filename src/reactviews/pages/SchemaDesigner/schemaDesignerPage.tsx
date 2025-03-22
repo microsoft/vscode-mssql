@@ -163,6 +163,7 @@ export const SchemaDesignerPage = () => {
                             //context.showError(isValid.errorMessage || "");
                         }
                     }
+                    context.getScript();
                 },
             );
         }
