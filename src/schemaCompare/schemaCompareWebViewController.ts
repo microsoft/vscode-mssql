@@ -1022,43 +1022,62 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         ) {
             const connInfo = endpoint.connectionDetails
                 .options as mssql.IConnectionInfo;
+
+            this.connectionMgr.connect;
             ownerUri = this.connectionMgr.getUriForConnection(connInfo);
 
+            let isConnected = false;
             if (!ownerUri) {
                 ownerUri = utils.generateQueryUri().toString();
-                const isConnected = await this.connectionMgr.connect(
+
+                isConnected = await this.connectionMgr.connect(
                     ownerUri,
                     connInfo,
                 );
 
-                const connection =
-                    this.connectionMgr.activeConnections[ownerUri];
-                const connectionProfile =
-                    connection.credentials as IConnectionProfile;
-
-                if (isConnected) {
-                    endpointInfo = {
-                        endpointType: mssql.SchemaCompareEndpointType.Database,
-                        serverDisplayName: `${connInfo.server} (${connectionProfile.user || loc.schemaCompare.defaultUserName})`,
-                        serverName: connInfo.server,
-                        databaseName: connInfo.database,
-                        ownerUri: ownerUri,
-                        packageFilePath: "",
-                        connectionDetails: undefined,
-                        connectionName: connectionProfile.profileName
-                            ? connectionProfile.profileName
-                            : "",
-                        projectFilePath: "",
-                        targetScripts: [],
-                        dataSchemaProvider: "",
-                        extractTarget: mssql.ExtractTarget.schemaObjectType,
-                    };
+                if (!isConnected) {
+                    // Invoking connect will add an active connection that isn't valid, hence removing it.
+                    delete this.connectionMgr.activeConnections[ownerUri];
                 }
             }
-        }
 
-        if (ownerUri) {
-            endpointInfo.ownerUri = ownerUri;
+            const connection = this.connectionMgr.activeConnections[ownerUri];
+            const connectionProfile =
+                connection?.credentials as IConnectionProfile;
+
+            if (isConnected && ownerUri && connectionProfile) {
+                endpointInfo = {
+                    endpointType: mssql.SchemaCompareEndpointType.Database,
+                    serverDisplayName: `${connInfo.server} (${connectionProfile.user || loc.schemaCompare.defaultUserName})`,
+                    serverName: connInfo.server,
+                    databaseName: connInfo.database,
+                    ownerUri: ownerUri,
+                    packageFilePath: "",
+                    connectionDetails: undefined,
+                    connectionName: connectionProfile.profileName
+                        ? connectionProfile.profileName
+                        : "",
+                    projectFilePath: "",
+                    targetScripts: [],
+                    dataSchemaProvider: "",
+                    extractTarget: mssql.ExtractTarget.schemaObjectType,
+                };
+            } else {
+                endpointInfo = {
+                    endpointType: mssql.SchemaCompareEndpointType.Database,
+                    serverDisplayName: "",
+                    serverName: "",
+                    databaseName: "",
+                    ownerUri: "",
+                    packageFilePath: "",
+                    connectionDetails: undefined,
+                    connectionName: "",
+                    projectFilePath: "",
+                    targetScripts: [],
+                    dataSchemaProvider: "",
+                    extractTarget: mssql.ExtractTarget.schemaObjectType,
+                };
+            }
         } else if (
             endpoint.endpointType === mssql.SchemaCompareEndpointType.Project
         ) {
