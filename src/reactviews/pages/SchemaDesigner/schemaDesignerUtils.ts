@@ -415,3 +415,80 @@ export function addWarningToSQLScript(script: string): string {
 
     return warning + script;
 }
+
+/**
+ * Fill in default values for the column properties based on the data type
+ * @param column The column to fill defaults for
+ * @returns The column with default values filled in
+ */
+export function fillColumnDefaults(
+    column: SchemaDesigner.Column,
+): SchemaDesigner.Column {
+    if (isLengthBasedType(column.dataType)) {
+        column.maxLength = getDefaultLength(column.dataType);
+    } else {
+        column.maxLength = 0;
+    }
+    if (isPrecisionBasedType(column.dataType)) {
+        column.precision = getDefaultPrecision(column.dataType);
+        column.scale = getDefaultScale(column.dataType);
+    } else {
+        column.precision = 0;
+        column.scale = 0;
+    }
+    return column;
+}
+
+/**
+ * Get the default length for a given data type
+ * @param dataType The data type
+ * @returns The default length
+ */
+export function getDefaultLength(dataType: string): number {
+    switch (dataType) {
+        case "char":
+        case "nchar":
+        case "binary":
+            return 1;
+        case "varchar":
+        case "nvarchar":
+        case "varbinary":
+            return 50;
+        default:
+            return 0; // Default length not applicable
+    }
+}
+
+/**
+ * Get the default precision for a given data type
+ * @param dataType The data type
+ * @returns The default precision
+ */
+export function getDefaultPrecision(dataType: string): number {
+    switch (dataType) {
+        case "decimal":
+        case "numeric":
+            return 18;
+        case "float":
+            return 53;
+        case "real":
+            return 24;
+        default:
+            return 0; // Default precision not applicable
+    }
+}
+
+/**
+ * Get the default scale for a given data type
+ * @param dataType The data type
+ * @returns The default scale
+ */
+export function getDefaultScale(dataType: string): number {
+    switch (dataType) {
+        case "decimal":
+        case "numeric":
+            return 2;
+        default:
+            return 0; // Default scale not applicable
+    }
+}

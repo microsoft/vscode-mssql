@@ -274,6 +274,11 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     useEffect(() => {
         setSelectedOption(props.selectedOption ?? props.options[0]);
+        setSelectedOptionIndex(
+            props.options.findIndex(
+                (opt) => opt.value === props.selectedOption?.value,
+            ),
+        );
     }, [props.selectedOption]);
 
     return (

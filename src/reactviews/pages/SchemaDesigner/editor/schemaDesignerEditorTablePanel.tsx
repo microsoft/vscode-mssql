@@ -8,9 +8,13 @@ import {
     Checkbox,
     createTableColumn,
     Field,
+    InfoLabel,
     Input,
     Label,
     makeStyles,
+    Popover,
+    PopoverSurface,
+    PopoverTrigger,
     Table,
     TableBody,
     TableCell,
@@ -29,9 +33,15 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
-import { getAllTables, getNextColumnName } from "../schemaDesignerUtils";
+import {
+    fillColumnDefaults,
+    getAllTables,
+    getNextColumnName,
+    isLengthBasedType,
+    isPrecisionBasedType,
+} from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { SearchableDropdown } from "../../../common/searchableDropdown";
+import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     tablePanel: {
@@ -87,6 +97,10 @@ export const SchemaDesignerEditorTablePanel = () => {
                 columnId: "delete",
                 renderHeaderCell: () => <Text></Text>,
             }),
+            createTableColumn({
+                columnId: "menu",
+                renderHeaderCell: () => <Text></Text>,
+            }),
         ];
     const [columnsTableSizingOptions, _setColumnsTableSizingOptions] =
         useState<TableColumnSizingOptions>({
@@ -106,6 +120,11 @@ export const SchemaDesignerEditorTablePanel = () => {
                 idealWidth: 70,
             },
             delete: {
+                defaultWidth: 30,
+                minWidth: 30,
+                idealWidth: 30,
+            },
+            menu: {
                 defaultWidth: 30,
                 minWidth: 30,
                 idealWidth: 30,
@@ -160,6 +179,167 @@ export const SchemaDesignerEditorTablePanel = () => {
         return doesColumnHaveForeignKey || isColumnAlsoAReferencedColumn;
     }
 
+    const getColumnAdvancedOptionsState = (
+        column: SchemaDesigner.Column,
+        index: number,
+    ) => {
+        return (
+            <>
+                <Field>
+                    <Checkbox
+                        size="medium"
+                        checked={column.isNullable}
+                        onChange={(_e, d) => {
+                            const newColumns = [
+                                ...context.selectedTable.columns,
+                            ];
+                            newColumns[index].isIdentity = d.checked as boolean;
+                            context.setSelectedTable({
+                                ...context.selectedTable,
+                                columns: newColumns,
+                            });
+                        }}
+                        label={"Allow NULL"}
+                    />
+                </Field>
+                <Field>
+                    <Checkbox
+                        size="medium"
+                        checked={column.isUnique}
+                        onChange={(_e, d) => {
+                            const newColumns = [
+                                ...context.selectedTable.columns,
+                            ];
+                            newColumns[index].isUnique = d.checked as boolean;
+                            context.setSelectedTable({
+                                ...context.selectedTable,
+                                columns: newColumns,
+                            });
+                        }}
+                        label={"Unique"}
+                    />
+                </Field>
+                <Field>
+                    <Checkbox
+                        size="medium"
+                        checked={column.isIdentity}
+                        onChange={(_e, d) => {
+                            const newColumns = [
+                                ...context.selectedTable.columns,
+                            ];
+                            newColumns[index].isIdentity = d.checked as boolean;
+                            if (d.checked) {
+                                newColumns[index].identitySeed = 1;
+                                newColumns[index].identityIncrement = 1;
+                            }
+                            context.setSelectedTable({
+                                ...context.selectedTable,
+                                columns: newColumns,
+                            });
+                        }}
+                        label={"Identity"}
+                    />
+                </Field>
+                {isLengthBasedType(column.dataType) && (
+                    <Field
+                        label={{
+                            children: (
+                                <InfoLabel
+                                    size="small"
+                                    info={"Max length of the column"}
+                                >
+                                    {"Max Length"}
+                                </InfoLabel>
+                            ),
+                        }}
+                    >
+                        <Input
+                            size="small"
+                            type="number"
+                            value={column.maxLength.toString()}
+                            onChange={(_e, d) => {
+                                const newColumns = [
+                                    ...context.selectedTable.columns,
+                                ];
+                                newColumns[index].maxLength = parseInt(
+                                    d.value,
+                                ) as number;
+                                context.setSelectedTable({
+                                    ...context.selectedTable,
+                                    columns: newColumns,
+                                });
+                            }}
+                        />
+                    </Field>
+                )}
+                {isPrecisionBasedType(column.dataType) && (
+                    <>
+                        <Field
+                            label={{
+                                children: (
+                                    <InfoLabel
+                                        size="small"
+                                        info={"Precision of the column"}
+                                    >
+                                        {"Precision"}
+                                    </InfoLabel>
+                                ),
+                            }}
+                        >
+                            <Input
+                                size="small"
+                                type="number"
+                                value={column.precision.toString()}
+                                onChange={(_e, d) => {
+                                    const newColumns = [
+                                        ...context.selectedTable.columns,
+                                    ];
+                                    newColumns[index].precision = parseInt(
+                                        d.value,
+                                    ) as number;
+                                    context.setSelectedTable({
+                                        ...context.selectedTable,
+                                        columns: newColumns,
+                                    });
+                                }}
+                            />
+                        </Field>
+                        <Field
+                            label={{
+                                children: (
+                                    <InfoLabel
+                                        size="small"
+                                        info={"Scale of the column"}
+                                    >
+                                        {"Scale"}
+                                    </InfoLabel>
+                                ),
+                            }}
+                        >
+                            <Input
+                                size="small"
+                                type="number"
+                                value={column.scale.toString()}
+                                onChange={(_e, d) => {
+                                    const newColumns = [
+                                        ...context.selectedTable.columns,
+                                    ];
+                                    newColumns[index].scale = parseInt(
+                                        d.value,
+                                    ) as number;
+                                    context.setSelectedTable({
+                                        ...context.selectedTable,
+                                        columns: newColumns,
+                                    });
+                                }}
+                            />
+                        </Field>
+                    </>
+                )}
+            </>
+        );
+    };
+
     function renderColumnTableCell(
         column: SchemaDesigner.Column,
         columnId: string,
@@ -208,6 +388,9 @@ export const SchemaDesignerEditorTablePanel = () => {
                                 ...context.selectedTable.columns,
                             ];
                             newColumns[index].dataType = selected.value;
+                            newColumns[index] = fillColumnDefaults(
+                                newColumns[index],
+                            );
                             context.setSelectedTable({
                                 ...context.selectedTable,
                                 columns: newColumns,
@@ -257,6 +440,40 @@ export const SchemaDesignerEditorTablePanel = () => {
                         }}
                     />
                 );
+            case "menu":
+                const id = "schema-designer-menu-" + column.id;
+                return (
+                    <Popover
+                        trapFocus
+                        positioning={{
+                            position: "below",
+                        }}
+                    >
+                        <PopoverTrigger disableButtonEnhancement>
+                            <Button
+                                size="small"
+                                appearance="subtle"
+                                icon={<FluentIcons.MoreHorizontalRegular />}
+                            ></Button>
+                        </PopoverTrigger>
+
+                        <PopoverSurface aria-labelledby={id}>
+                            <div>
+                                <h3 id={id}>Advanced options</h3>
+                            </div>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "5px",
+                                }}
+                            >
+                                {getColumnAdvancedOptionsState(column, index)}
+                            </div>
+                        </PopoverSurface>
+                    </Popover>
+                );
             default:
                 return <Text>{columnId}</Text>;
         }
@@ -305,8 +522,8 @@ export const SchemaDesignerEditorTablePanel = () => {
                     newColumns.push({
                         id: uuidv4(),
                         name: getNextColumnName(newColumns),
-                        dataType: datatypes[0],
-                        isPrimaryKey: false,
+                        dataType: "int",
+                        isPrimaryKey: newColumns.length === 0,
                         isIdentity: false,
                         isNullable: true,
                         isUnique: false,
