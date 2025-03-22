@@ -425,6 +425,14 @@
           "group": "inline@2"
         },
         {
+          "command": "mssql.schemaCompare",
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+        },
+        {
+          "command": "mssql.schemaCompare",
+          "when": "view == dataworkspace.views.main && config.mssql.enableRichExperiences && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/"
+        },
+        {
           "command": "mssql.filterNode",
           "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/"
         },
@@ -528,7 +536,7 @@
         },
         {
           "command": "mssql.schemaCompare",
-          "when": "config.mssql.enableRichExperiences"
+          "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
         },
         {
           "command": "mssql.removeObjectExplorerNode",

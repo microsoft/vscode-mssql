@@ -3,11 +3,68 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useState } from "react";
+import SchemaDifferences from "./components/SchemaDifferences";
+import SelectSchemasPanel from "./components/SelectSchemasPanel";
+import CompareDiffEditor from "./components/CompareDiffEditor";
+import SchemaSelectorDrawer from "./components/SchemaSelectorDrawer";
+import CompareActionBar from "./components/CompareActionBar";
+import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
+
 export const SchemaComparePage = () => {
+    const [selectedDiffId, setSelectedDiffId] = useState(-1);
+    const [showDrawer, setShowDrawer] = useState(false);
+    const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
+    const [endpointType, setEndpointType] = useState<"source" | "target">(
+        "source",
+    );
+
+    const handleSelectSchemaClicked = (
+        endpointType: "source" | "target",
+    ): void => {
+        setShowDrawer(true);
+        setEndpointType(endpointType);
+    };
+
+    const handleDiffSelected = (id: number): void => {
+        setSelectedDiffId(id);
+    };
+
+    const handleShowDrawer = (show: boolean): void => {
+        setShowDrawer(show);
+    };
+
+    const openOptionsDialog = (): void => {
+        setShowOptionsDrawer(true);
+    };
+
+    const handleShowOptionsDrawer = (show: boolean): void => {
+        setShowOptionsDrawer(show);
+    };
+
     return (
         <div>
-            {/* WIP/Initial Checkin: Page is a work in progress */}
-            <h1>Schema Compare Page</h1>
+            <CompareActionBar onOptionsClicked={openOptionsDialog} />
+            <SelectSchemasPanel
+                onSelectSchemaClicked={handleSelectSchemaClicked}
+            />
+            <SchemaDifferences onDiffSelected={handleDiffSelected} />
+            {selectedDiffId !== -1 && (
+                <CompareDiffEditor selectedDiffId={selectedDiffId} />
+            )}
+            {showDrawer && (
+                <SchemaSelectorDrawer
+                    show={showDrawer}
+                    endpointType={endpointType}
+                    showDrawer={handleShowDrawer}
+                />
+            )}
+            {showOptionsDrawer && (
+                <SchemaOptionsDrawer
+                    show={showOptionsDrawer}
+                    showDrawer={handleShowOptionsDrawer}
+                />
+            )}
         </div>
     );
 };
