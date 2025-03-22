@@ -330,6 +330,8 @@
   "Changed Tables": "Changed Tables",
   "Delete Node": "Delete Node",
   "Create As Script": "Create As Script",
+  "Details": "Details",
+  "Script": "Script",
   "Table '{0}' not found/{0} is the table name": {
     "message": "Table '{0}' not found",
     "comment": [
