@@ -374,6 +374,8 @@ export class LocConstants {
             changedTables: l10n.t("Changed Tables"),
             deleteNodes: l10n.t("Delete Node"),
             createAsScript: l10n.t("Create As Script"),
+            details: l10n.t("Details"),
+            script: l10n.t("Script"),
             tableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Table '{0}' not found",

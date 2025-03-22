@@ -12,6 +12,7 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Divider,
     Tab,
     TabList,
     Tree,
@@ -31,10 +32,12 @@ import { addWarningToSQLScript } from "../schemaDesignerUtils";
 export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
 
-    const [selectedReport, setSelectedReport] = useState<number>(-1);
+    const [selectedReportId, setSelectedReportId] = useState<string>("");
 
-    function getReportIcon(report: SchemaDesigner.SchemaDesignerReport) {
-        switch (report.tableState) {
+    function getReportIcon(
+        state: SchemaDesigner.SchemaDesignerReportTableState,
+    ) {
+        switch (state) {
             case SchemaDesigner.SchemaDesignerReportTableState.Created:
                 return <FluentIcons.AddFilled />;
             case SchemaDesigner.SchemaDesignerReportTableState.Dropped:
@@ -46,11 +49,91 @@ export function PublishChangesDialogButton() {
 
     useEffect(() => {
         if (context?.report?.reports?.length > 0) {
-            setSelectedReport(0);
+            setSelectedReportId(context.report.reports[0].tableId);
         } else {
-            setSelectedReport(-1);
+            setSelectedReportId("");
         }
     }, [context.report]);
+
+    const renderTreeNode = (
+        text: string,
+        filterTableState: SchemaDesigner.SchemaDesignerReportTableState,
+    ) => {
+        if (
+            context.report.reports?.filter(
+                (report) => report.tableState === filterTableState,
+            ).length === 0
+        ) {
+            return undefined;
+        }
+        return (
+            <TreeItem value={text} itemType="branch">
+                <TreeItemLayout>{text}</TreeItemLayout>
+                <Tree
+                    size="small"
+                    aria-label="Small Size Tree"
+                    defaultOpenItems={["root"]}
+                    style={{
+                        minWidth: "180px",
+                        overflow: "hidden",
+                        overflowY: "auto",
+                    }}
+                >
+                    {context.report.reports
+                        ?.filter(
+                            (report) => report.tableState === filterTableState,
+                        )
+                        .map((report) => {
+                            return (
+                                <TreeItem
+                                    key={report.tableId}
+                                    value={report.tableId}
+                                    itemType="leaf"
+                                    onClick={() => {
+                                        setSelectedReportId(report.tableId);
+                                    }}
+                                    style={{
+                                        backgroundColor:
+                                            report.tableId === selectedReportId
+                                                ? "var(--vscode-list-activeSelectionBackground)"
+                                                : "",
+                                    }}
+                                >
+                                    <TreeItemLayout
+                                        iconBefore={getReportIcon(
+                                            filterTableState,
+                                        )}
+                                    >
+                                        {report.tableName}
+                                    </TreeItemLayout>
+                                </TreeItem>
+                            );
+                        })}
+                </Tree>
+            </TreeItem>
+        );
+    };
+
+    const getSelectedReportMarkdown = () => {
+        const selectedReport = context.report.reports?.find(
+            (report) => report.tableId === selectedReportId,
+        );
+        if (selectedReport) {
+            const reportMarkdown = `### ${selectedReport.tableName}\n\n`;
+
+            const actions = selectedReport.actionsPerformed
+                ?.map((item) => `- ${item}`)
+                .join("\n");
+
+            return (
+                reportMarkdown +
+                "#### Actions performed\n\n" +
+                (actions ? actions : "") +
+                "\n\n"
+            );
+        }
+        return "";
+    };
 
     return (
         <Dialog>
@@ -69,7 +152,12 @@ export function PublishChangesDialogButton() {
                     {locConstants.schemaDesigner.publishChanges}
                 </Button>
             </DialogTrigger>
-            <DialogSurface>
+            <DialogSurface
+                style={{
+                    width: "100%",
+                    maxWidth: "800px",
+                }}
+            >
                 <DialogBody>
                     <DialogTitle>Publish changes</DialogTitle>
                     <DialogContent>
@@ -86,11 +174,19 @@ export function PublishChangesDialogButton() {
                                         )
                                     }
                                 >
-                                    <Tab value={"report"}>Report</Tab>
+                                    <Tab value={"report"}>
+                                        {locConstants.schemaDesigner.details}
+                                    </Tab>
                                     <Tab value={"publishScript"}>
-                                        Publish Script
+                                        {locConstants.schemaDesigner.script}
                                     </Tab>
                                 </TabList>
+                                <Divider
+                                    style={{
+                                        marginTop: "10px",
+                                        marginBottom: "10px",
+                                    }}
+                                />
                                 {context.selectedReportTab === "report" && (
                                     <>
                                         <div
@@ -106,51 +202,43 @@ export function PublishChangesDialogButton() {
                                             <Tree
                                                 size="small"
                                                 aria-label="Small Size Tree"
-                                                defaultOpenItems={["root"]}
+                                                defaultOpenItems={[
+                                                    "Added Tables",
+                                                    "Modified Tables",
+                                                    "Dropped Tables",
+                                                ]}
                                                 style={{
-                                                    minWidth: "180px",
+                                                    minWidth: "250px",
                                                     overflow: "hidden",
                                                     overflowY: "auto",
                                                 }}
                                             >
-                                                {context.report.reports?.map(
-                                                    (report, index) => {
-                                                        return (
-                                                            <TreeItem
-                                                                key={
-                                                                    report.tableId
-                                                                }
-                                                                value={
-                                                                    report.tableId
-                                                                }
-                                                                itemType="leaf"
-                                                                onClick={() => {
-                                                                    setSelectedReport(
-                                                                        index,
-                                                                    );
-                                                                }}
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        index ===
-                                                                        selectedReport
-                                                                            ? "var(--vscode-list-activeSelectionBackground)"
-                                                                            : "",
-                                                                }}
-                                                            >
-                                                                <TreeItemLayout
-                                                                    iconBefore={getReportIcon(
-                                                                        report,
-                                                                    )}
-                                                                >
-                                                                    {
-                                                                        report.tableName
-                                                                    }
-                                                                </TreeItemLayout>
-                                                            </TreeItem>
-                                                        );
-                                                    },
+                                                {renderTreeNode(
+                                                    "Added Tables",
+                                                    SchemaDesigner
+                                                        .SchemaDesignerReportTableState
+                                                        .Created,
+                                                )}
+                                                {renderTreeNode(
+                                                    "Modified Tables",
+                                                    SchemaDesigner
+                                                        .SchemaDesignerReportTableState
+                                                        .Updated,
+                                                )}
+                                                {renderTreeNode(
+                                                    "Dropped Tables",
+                                                    SchemaDesigner
+                                                        .SchemaDesignerReportTableState
+                                                        .Dropped,
                                                 )}
                                             </Tree>
+                                            <Divider
+                                                vertical
+                                                style={{
+                                                    marginLeft: "10px",
+                                                    marginRight: "10px",
+                                                }}
+                                            />
                                             <div
                                                 style={{
                                                     width: "100%",
@@ -160,17 +248,7 @@ export function PublishChangesDialogButton() {
                                                 }}
                                             >
                                                 <Markdown>
-                                                    {}
-                                                    {selectedReport !== -1
-                                                        ? context.report.reports[
-                                                              selectedReport
-                                                          ]?.actionsPerformed
-                                                              .map(
-                                                                  (item) =>
-                                                                      `- ${item}`,
-                                                              )
-                                                              .join("\n")
-                                                        : ""}
+                                                    {getSelectedReportMarkdown()}
                                                 </Markdown>
                                             </div>
                                         </div>
