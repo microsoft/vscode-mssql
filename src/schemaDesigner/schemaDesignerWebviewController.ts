@@ -102,7 +102,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 filters: {
                     [payload.format]: [payload.format],
                 },
-                defaultUri: vscode.Uri.file(`newFile.${payload.format}`),
+                defaultUri: vscode.Uri.file(
+                    `${this.databaseName}.${payload.format}`,
+                ),
                 saveLabel: LocConstants.SchemaDesigner.Save,
                 title: LocConstants.SchemaDesigner.SaveAs,
             });
