@@ -296,7 +296,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 };
                 this.panel.title = state.tableInfo.title;
                 this.showRestorePromptAfterClose = false;
-                await UserSurvey.getInstance().promptUserForNPSFeedback();
+                UserSurvey.getInstance().promptUserForNPSFeedback();
             } catch (e) {
                 state = {
                     ...state,
@@ -351,7 +351,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
             await this._untitledSqlDocumentService.newQuery(script);
-            await UserSurvey.getInstance().promptUserForNPSFeedback();
+            UserSurvey.getInstance().promptUserForNPSFeedback();
             return state;
         });
 

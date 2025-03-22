@@ -1089,7 +1089,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
-                    await UserSurvey.getInstance().promptUserForNPSFeedback();
+                    UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
             ),
         );
@@ -2001,7 +2001,8 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onSchemaCompare(node: any): Promise<void> {
-        const result = await this.schemaCompareService.getDefaultOptions();
+        const result =
+            await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2207,7 +2208,7 @@ export default class MainController implements vscode.Disposable {
             // user connections is a super set of object explorer connections
             // read the connections from glocal settings and workspace settings.
             let userConnections: any[] =
-                this.connectionManager.connectionStore.connectionConfig.getConnections(
+                await this.connectionManager.connectionStore.connectionConfig.getConnections(
                     true,
                 );
             let objectExplorerConnections =

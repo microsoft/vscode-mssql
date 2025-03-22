@@ -15,6 +15,15 @@ export const webviewTheme: fluentui.Theme = {
     colorNeutralBackground1Hover:
         "var(--vscode-button-secondaryHoverBackground)",
     colorNeutralForeground1Hover: "var(--vscode-editor-foreground)",
+    /**
+     * Background color for a pressed state of a secondary button.
+     */
+    colorNeutralBackground1Pressed:
+        "var(--vscode-button-secondaryHoverBackground)",
+    /**
+     * Foreground color for a pressed state of a secondary button.
+     */
+    colorNeutralForeground1Pressed: "var(--vscode-editor-foreground)",
     colorNeutralForeground2: "var(--vscode-editor-foreground)",
     colorNeutralForeground2Hover:
         "var(--vscode-editorHoverWidget-highlightForeground)",

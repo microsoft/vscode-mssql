@@ -508,7 +508,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         recentConnections: IConnectionDialogProfile[];
     }> {
         const unsortedConnections: IConnectionProfileWithSource[] =
-            this._mainController.connectionManager.connectionStore.readAllConnections(
+            await this._mainController.connectionManager.connectionStore.readAllConnections(
                 true /* includeRecentConnections */,
             );
 
@@ -712,7 +712,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 expand: true,
             });
             await this.panel.dispose();
-            await UserSurvey.getInstance().promptUserForNPSFeedback();
+            UserSurvey.getInstance().promptUserForNPSFeedback();
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
 

@@ -96,13 +96,12 @@ export class ConnectionUI {
      * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
      */
     public async promptForConnection(
+        connectionProfileList: IConnectionCredentialsQuickPickItem[],
         ignoreFocusOut: boolean = false,
     ): Promise<IConnectionInfo | undefined> {
         // Let this design use Promise and resolve/reject pattern instead of async/await
         // because resolve/reject is done in in callback events.
         return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
-            let connectionProfileList =
-                this._connectionStore.getPickListItems();
             // We have recent connections - show them in a prompt for connection profiles
             const connectionProfileQuickPick =
                 this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
@@ -610,23 +609,18 @@ export class ConnectionUI {
             return await this.saveProfile(profile);
         } else {
             // Check whether the error was for firewall rule or not
-            if (
-                this.connectionManager.failedUriToFirewallIpMap.has(uri)
-            ) {
+            if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
                 let success = await this.addFirewallRule(uri, profile);
                 if (success) {
                     return await this.validateAndSaveProfile(profile);
                 }
                 return undefined;
-            } else if (
-                this.connectionManager.failedUriToSSLMap.has(uri)
-            ) {
+            } else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
                 // SSL error
-                let updatedConn =
-                    await this.connectionManager.handleSSLError(
-                        uri,
-                        profile,
-                    );
+                let updatedConn = await this.connectionManager.handleSSLError(
+                    uri,
+                    profile,
+                );
                 if (updatedConn) {
                     return await this.validateAndSaveProfile(
                         updatedConn as IConnectionProfile,
@@ -1002,7 +996,8 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = self._connectionStore.getProfilePickListItems(false);
+        let profiles =
+            await self._connectionStore.getProfilePickListItems(false);
         let profile = await self.selectProfileForRemoval(profiles);
         let profileRemoved = profile
             ? await self._connectionStore.removeProfile(profile)

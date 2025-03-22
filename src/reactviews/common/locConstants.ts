@@ -31,6 +31,7 @@ export class LocConstants {
                 }),
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
+            clearSelection: l10n.t("Clear Selection"),
         };
     }
 

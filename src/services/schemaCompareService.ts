@@ -90,7 +90,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public getDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
+    public schemaCompareGetDefaultOptions(): Thenable<mssql.SchemaCompareOptionsResult> {
         const params: mssql.SchemaCompareGetOptionsParams = {};
 
         return this._client.sendRequest(

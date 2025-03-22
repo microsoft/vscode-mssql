@@ -9,4 +9,5 @@ export enum Keys {
     Enter = "Enter",
     Space = " ",
     c = "c",
+    a = "a",
 }

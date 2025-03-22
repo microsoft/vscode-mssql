@@ -231,6 +231,7 @@ export const AzureBrowsePage = () => {
                             onClick={() => {
                                 context.filterAzureSubscriptions();
                             }}
+                            size="small"
                         />
                         {context.state.loadingAzureSubscriptionsStatus ===
                         ApiStatus.Loading ? (
