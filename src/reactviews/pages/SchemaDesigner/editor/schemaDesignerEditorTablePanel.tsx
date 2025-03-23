@@ -7,6 +7,7 @@ import {
     Button,
     Checkbox,
     createTableColumn,
+    Divider,
     Field,
     InfoLabel,
     Input,
@@ -19,6 +20,7 @@ import {
     TableBody,
     TableCell,
     TableColumnDefinition,
+    TableColumnId,
     TableColumnSizingOptions,
     TableHeader,
     TableHeaderCell,
@@ -44,7 +46,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
-    tablePanel: {
+    panel: {
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -53,202 +55,127 @@ const useStyles = makeStyles({
         padding: "10px",
         gap: "10px",
     },
+    scrollContainer: {
+        flex: "1",
+        overflowY: "auto",
+        overflowX: "hidden",
+    },
+    newColumnButton: {
+        width: "fit-content",
+    },
+    advancedOptionsContainer: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "5px",
+    },
+    fullWidthDivider: {
+        width: "100vh",
+    },
+    columnInput: {
+        minWidth: "150px",
+        maxWidth: "150px",
+        textOverflow: "ellipsis",
+    },
 });
 
-export const SchemaDesignerEditorTablePanel = () => {
+// Component for handling advanced column options
+const ColumnAdvancedOptions = ({
+    column,
+    index,
+    updateColumn,
+}: {
+    column: SchemaDesigner.Column;
+    index: number;
+    updateColumn: (index: number, updatedColumn: SchemaDesigner.Column) => void;
+}) => {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
-    const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
 
-    const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-    const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
-        useState<number>(-1);
-    const datatypes = useMemo(() => context.datatypes, [context.datatypes]);
-    const allTables = useMemo(() => {
-        if (!context.schemaDesigner?.schema) {
-            return [];
-        }
-        return getAllTables(
-            context.schemaDesigner.schema,
-            context.selectedTable,
-        );
-    }, [context.selectedTable]);
-    const columnsTableColumnDefinitions: TableColumnDefinition<SchemaDesigner.Column>[] =
-        [
-            createTableColumn({
-                columnId: "name",
-                renderHeaderCell: () => (
-                    <Text>{locConstants.schemaDesigner.name}</Text>
-                ),
-            }),
-            createTableColumn({
-                columnId: "type",
-                renderHeaderCell: () => (
-                    <Text>{locConstants.schemaDesigner.dataType}</Text>
-                ),
-            }),
-            createTableColumn({
-                columnId: "primaryKey",
-                renderHeaderCell: () => (
-                    <Text>{locConstants.schemaDesigner.primaryKey}</Text>
-                ),
-            }),
-            createTableColumn({
-                columnId: "delete",
-                renderHeaderCell: () => <Text></Text>,
-            }),
-            createTableColumn({
-                columnId: "menu",
-                renderHeaderCell: () => <Text></Text>,
-            }),
-        ];
-    const [columnsTableSizingOptions, _setColumnsTableSizingOptions] =
-        useState<TableColumnSizingOptions>({
-            name: {
-                defaultWidth: 150,
-                minWidth: 150,
-                idealWidth: 150,
-            },
-            type: {
-                defaultWidth: 150,
-                minWidth: 150,
-                idealWidth: 150,
-            },
-            primaryKey: {
-                defaultWidth: 70,
-                minWidth: 70,
-                idealWidth: 70,
-            },
-            delete: {
-                defaultWidth: 30,
-                minWidth: 30,
-                idealWidth: 30,
-            },
-            menu: {
-                defaultWidth: 30,
-                minWidth: 30,
-                idealWidth: 30,
-            },
-        });
-    const columnsTableItems: SchemaDesigner.Column[] =
-        context.selectedTable.columns;
+    return (
+        <div className={classes.advancedOptionsContainer}>
+            <Field>
+                <Checkbox
+                    size="medium"
+                    checked={column.isNullable}
+                    onChange={(_e, data) => {
+                        updateColumn(index, {
+                            ...column,
+                            isNullable: data.checked as boolean,
+                        });
+                    }}
+                    label="Allow NULL"
+                />
+            </Field>
+            <Field>
+                <Checkbox
+                    size="medium"
+                    checked={column.isUnique}
+                    onChange={(_e, data) => {
+                        updateColumn(index, {
+                            ...column,
+                            isUnique: data.checked as boolean,
+                        });
+                    }}
+                    label="Unique"
+                />
+            </Field>
+            <Field>
+                <Checkbox
+                    size="medium"
+                    checked={column.isIdentity}
+                    onChange={(_e, data) => {
+                        const updatedColumn = {
+                            ...column,
+                            isIdentity: data.checked as boolean,
+                        };
 
-    const [columnsTableColumns] = useState<
-        TableColumnDefinition<SchemaDesigner.Column>[]
-    >(columnsTableColumnDefinitions);
-    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
-        {
-            columns: columnsTableColumns,
-            items: columnsTableItems,
-        },
-        [
-            useTableColumnSizing_unstable({
-                columnSizingOptions: columnsTableSizingOptions,
-                autoFitColumns: false,
-                containerWidthOffset: 20,
-            }),
-        ],
-    );
-    useEffect(() => {
-        setLastColumnNameInputIndex(-1);
-    }, [context.selectedTable]);
+                        if (data.checked) {
+                            updatedColumn.identitySeed = 1;
+                            updatedColumn.identityIncrement = 1;
+                        }
 
-    useEffect(() => {
-        if (lastColumnNameInputIndex >= 0) {
-            columnNameInputRefs.current[lastColumnNameInputIndex]?.focus();
-        }
-    }, [lastColumnNameInputIndex]);
+                        updateColumn(index, updatedColumn);
+                    }}
+                    label="Identity"
+                />
+            </Field>
 
-    function getColumnDeleteButtonState(
-        column: SchemaDesigner.Column,
-    ): boolean {
-        // If there is an incoming or outgoing foreign key with this column, disable delete
-        const doesColumnHaveForeignKey =
-            context.selectedTable.foreignKeys.filter((fk) =>
-                fk.columns.includes(column.name),
-            ).length > 0;
-
-        // If this column is a referenced column in any foreign key, disable delete
-        const isColumnAlsoAReferencedColumn =
-            allTables.filter((table) => {
-                return table.foreignKeys.some((fk) =>
-                    fk.referencedColumns.includes(column.name),
-                );
-            }).length > 0;
-
-        return doesColumnHaveForeignKey || isColumnAlsoAReferencedColumn;
-    }
-
-    const getColumnAdvancedOptionsState = (
-        column: SchemaDesigner.Column,
-        index: number,
-    ) => {
-        return (
-            <>
-                <Field>
-                    <Checkbox
-                        size="medium"
-                        checked={column.isNullable}
-                        onChange={(_e, d) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].isIdentity = d.checked as boolean;
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
+            {isLengthBasedType(column.dataType) && (
+                <Field
+                    label={{
+                        children: (
+                            <InfoLabel
+                                size="small"
+                                info="Max length of the column"
+                            >
+                                Max Length
+                            </InfoLabel>
+                        ),
+                    }}
+                >
+                    <Input
+                        size="small"
+                        type="number"
+                        value={column.maxLength.toString()}
+                        onChange={(_e, data) => {
+                            updateColumn(index, {
+                                ...column,
+                                maxLength: parseInt(data.value),
                             });
                         }}
-                        label={"Allow NULL"}
                     />
                 </Field>
-                <Field>
-                    <Checkbox
-                        size="medium"
-                        checked={column.isUnique}
-                        onChange={(_e, d) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].isUnique = d.checked as boolean;
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
-                            });
-                        }}
-                        label={"Unique"}
-                    />
-                </Field>
-                <Field>
-                    <Checkbox
-                        size="medium"
-                        checked={column.isIdentity}
-                        onChange={(_e, d) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].isIdentity = d.checked as boolean;
-                            if (d.checked) {
-                                newColumns[index].identitySeed = 1;
-                                newColumns[index].identityIncrement = 1;
-                            }
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
-                            });
-                        }}
-                        label={"Identity"}
-                    />
-                </Field>
-                {isLengthBasedType(column.dataType) && (
+            )}
+
+            {isPrecisionBasedType(column.dataType) && (
+                <>
                     <Field
                         label={{
                             children: (
                                 <InfoLabel
                                     size="small"
-                                    info={"Max length of the column"}
+                                    info="Precision of the column"
                                 >
-                                    {"Max Length"}
+                                    Precision
                                 </InfoLabel>
                             ),
                         }}
@@ -256,148 +183,169 @@ export const SchemaDesignerEditorTablePanel = () => {
                         <Input
                             size="small"
                             type="number"
-                            value={column.maxLength.toString()}
-                            onChange={(_e, d) => {
-                                const newColumns = [
-                                    ...context.selectedTable.columns,
-                                ];
-                                newColumns[index].maxLength = parseInt(
-                                    d.value,
-                                ) as number;
-                                context.setSelectedTable({
-                                    ...context.selectedTable,
-                                    columns: newColumns,
+                            value={column.precision.toString()}
+                            onChange={(_e, data) => {
+                                updateColumn(index, {
+                                    ...column,
+                                    precision: parseInt(data.value),
                                 });
                             }}
                         />
                     </Field>
-                )}
-                {isPrecisionBasedType(column.dataType) && (
-                    <>
-                        <Field
-                            label={{
-                                children: (
-                                    <InfoLabel
-                                        size="small"
-                                        info={"Precision of the column"}
-                                    >
-                                        {"Precision"}
-                                    </InfoLabel>
-                                ),
-                            }}
-                        >
-                            <Input
-                                size="small"
-                                type="number"
-                                value={column.precision.toString()}
-                                onChange={(_e, d) => {
-                                    const newColumns = [
-                                        ...context.selectedTable.columns,
-                                    ];
-                                    newColumns[index].precision = parseInt(
-                                        d.value,
-                                    ) as number;
-                                    context.setSelectedTable({
-                                        ...context.selectedTable,
-                                        columns: newColumns,
-                                    });
-                                }}
-                            />
-                        </Field>
-                        <Field
-                            label={{
-                                children: (
-                                    <InfoLabel
-                                        size="small"
-                                        info={"Scale of the column"}
-                                    >
-                                        {"Scale"}
-                                    </InfoLabel>
-                                ),
-                            }}
-                        >
-                            <Input
-                                size="small"
-                                type="number"
-                                value={column.scale.toString()}
-                                onChange={(_e, d) => {
-                                    const newColumns = [
-                                        ...context.selectedTable.columns,
-                                    ];
-                                    newColumns[index].scale = parseInt(
-                                        d.value,
-                                    ) as number;
-                                    context.setSelectedTable({
-                                        ...context.selectedTable,
-                                        columns: newColumns,
-                                    });
-                                }}
-                            />
-                        </Field>
-                    </>
-                )}
-                {/* <Field
-                    label={{
-                        children: (
-                            <InfoLabel
-                                size="small"
-                                info={"Default value of the column"}
-                            >
-                                {"Default Value"}
-                            </InfoLabel>
-                        ),
-                    }}
-                >
-                    <Input
-                        size="small"
-                        value={column.defaultValue}
-                        onChange={(_e, d) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].defaultValue = d.value;
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
-                            });
+                    <Field
+                        label={{
+                            children: (
+                                <InfoLabel
+                                    size="small"
+                                    info="Scale of the column"
+                                >
+                                    Scale
+                                </InfoLabel>
+                            ),
                         }}
-                    />
-                </Field> */}
-            </>
-        );
-    };
+                    >
+                        <Input
+                            size="small"
+                            type="number"
+                            value={column.scale.toString()}
+                            onChange={(_e, data) => {
+                                updateColumn(index, {
+                                    ...column,
+                                    scale: parseInt(data.value),
+                                });
+                            }}
+                        />
+                    </Field>
+                </>
+            )}
+        </div>
+    );
+};
 
-    function renderColumnTableCell(
+// Component for the columns table
+const ColumnsTable = ({
+    columns,
+    updateColumn,
+    deleteColumn,
+    columnNameInputRefs,
+    datatypes,
+    isColumnDeletable,
+}: {
+    columns: SchemaDesigner.Column[];
+    updateColumn: (index: number, updatedColumn: SchemaDesigner.Column) => void;
+    deleteColumn: (index: number) => void;
+    columnNameInputRefs: React.RefObject<Array<HTMLInputElement | null>>;
+    datatypes: string[];
+    isColumnDeletable: (column: SchemaDesigner.Column) => boolean;
+}) => {
+    const classes = useStyles();
+    const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
+
+    // Define table columns
+    const columnDefinitions = [
+        createTableColumn({
+            columnId: "name",
+            renderHeaderCell: () => (
+                <Text>{locConstants.schemaDesigner.name}</Text>
+            ),
+        }),
+        createTableColumn({
+            columnId: "type",
+            renderHeaderCell: () => (
+                <Text>{locConstants.schemaDesigner.dataType}</Text>
+            ),
+        }),
+        createTableColumn({
+            columnId: "primaryKey",
+            renderHeaderCell: () => (
+                <Text>{locConstants.schemaDesigner.primaryKey}</Text>
+            ),
+        }),
+        createTableColumn({
+            columnId: "delete",
+            renderHeaderCell: () => <Text></Text>,
+        }),
+        createTableColumn({
+            columnId: "menu",
+            renderHeaderCell: () => <Text></Text>,
+        }),
+    ];
+
+    // Column sizing
+    const [columnSizingOptions] = useState<TableColumnSizingOptions>({
+        name: {
+            defaultWidth: 150,
+            minWidth: 150,
+            idealWidth: 150,
+        },
+        type: {
+            defaultWidth: 150,
+            minWidth: 150,
+            idealWidth: 150,
+        },
+        primaryKey: {
+            defaultWidth: 70,
+            minWidth: 70,
+            idealWidth: 70,
+        },
+        delete: {
+            defaultWidth: 30,
+            minWidth: 30,
+            idealWidth: 30,
+        },
+        menu: {
+            defaultWidth: 30,
+            minWidth: 30,
+            idealWidth: 30,
+        },
+    });
+
+    // Configure table
+    const [tableColumns] =
+        useState<TableColumnDefinition<SchemaDesigner.Column>[]>(
+            columnDefinitions,
+        );
+    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
+        {
+            columns: tableColumns,
+            items: columns,
+        },
+        [
+            useTableColumnSizing_unstable({
+                columnSizingOptions,
+                autoFitColumns: false,
+                containerWidthOffset: 20,
+            }),
+        ],
+    );
+
+    // Render cell content based on column id
+    const renderCell = (
         column: SchemaDesigner.Column,
-        columnId: string,
+        columnId: TableColumnId,
         index: number,
-    ) {
+    ) => {
         switch (columnId) {
             case "name":
                 return (
                     <Input
                         size="small"
-                        style={{
-                            minWidth: "150px",
-                            maxWidth: "150px",
-                            textOverflow: "ellipsis",
-                        }}
+                        className={classes.columnInput}
                         ref={(ref) => {
-                            columnNameInputRefs.current[index] = ref;
+                            if (columnNameInputRefs.current) {
+                                columnNameInputRefs.current[index] = ref;
+                            }
                         }}
                         value={column.name}
-                        onChange={(_e, d) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].name = d.value;
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
+                        onChange={(_e, data) => {
+                            updateColumn(index, {
+                                ...column,
+                                name: data.value,
                             });
                         }}
                     />
                 );
+
             case "type":
                 return (
                     <SearchableDropdown
@@ -411,62 +359,48 @@ export const SchemaDesignerEditorTablePanel = () => {
                             value: column.dataType,
                         }}
                         onSelect={(selected) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].dataType = selected.value;
-                            newColumns[index] = fillColumnDefaults(
-                                newColumns[index],
+                            const updatedColumn = {
+                                ...column,
+                                dataType: selected.value,
+                            };
+                            updateColumn(
+                                index,
+                                fillColumnDefaults(updatedColumn),
                             );
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
-                            });
                         }}
                         style={{
                             minWidth: "150px",
                             maxWidth: "150px",
                         }}
                         size="small"
-                    ></SearchableDropdown>
+                    />
                 );
+
             case "primaryKey":
                 return (
                     <Checkbox
                         size="medium"
                         checked={column.isPrimaryKey}
-                        onChange={(_e, d) => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns[index].isPrimaryKey =
-                                d.checked as boolean;
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
+                        onChange={(_e, data) => {
+                            updateColumn(index, {
+                                ...column,
+                                isPrimaryKey: data.checked as boolean,
                             });
                         }}
                     />
                 );
+
             case "delete":
                 return (
                     <Button
                         size="small"
                         appearance="subtle"
-                        disabled={getColumnDeleteButtonState(column)}
+                        disabled={!isColumnDeletable(column)}
                         icon={<FluentIcons.DeleteRegular />}
-                        onClick={() => {
-                            const newColumns = [
-                                ...context.selectedTable.columns,
-                            ];
-                            newColumns.splice(index, 1);
-                            context.setSelectedTable({
-                                ...context.selectedTable,
-                                columns: newColumns,
-                            });
-                        }}
+                        onClick={() => deleteColumn(index)}
                     />
                 );
+
             case "menu":
                 const id = "schema-designer-menu-" + column.id;
                 return (
@@ -481,7 +415,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                                 size="small"
                                 appearance="subtle"
                                 icon={<FluentIcons.MoreHorizontalRegular />}
-                            ></Button>
+                            />
                         </PopoverTrigger>
 
                         <PopoverSurface aria-labelledby={id}>
@@ -489,25 +423,185 @@ export const SchemaDesignerEditorTablePanel = () => {
                                 <h3 id={id}>Advanced options</h3>
                             </div>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "5px",
-                                }}
-                            >
-                                {getColumnAdvancedOptionsState(column, index)}
-                            </div>
+                            <ColumnAdvancedOptions
+                                column={column}
+                                index={index}
+                                updateColumn={updateColumn}
+                            />
                         </PopoverSurface>
                     </Popover>
                 );
+
             default:
                 return <Text>{columnId}</Text>;
         }
+    };
+
+    return (
+        <Table
+            {...keyboardNavAttr}
+            as="table"
+            size="extra-small"
+            {...columnSizing_unstable.getTableProps()}
+            ref={tableRef}
+        >
+            <TableHeader>
+                <TableRow>
+                    {columnDefinitions.map((column) => (
+                        <TableHeaderCell
+                            {...columnSizing_unstable.getTableHeaderCellProps(
+                                column.columnId,
+                            )}
+                            key={column.columnId}
+                        >
+                            {column.renderHeaderCell()}
+                        </TableHeaderCell>
+                    ))}
+                </TableRow>
+            </TableHeader>
+            <Divider className={classes.fullWidthDivider} />
+            <TableBody>
+                {getRows().map((row, index) => (
+                    <TableRow key={index}>
+                        {tableColumns.map((column) => (
+                            <TableCell
+                                {...columnSizing_unstable.getTableCellProps(
+                                    column.columnId,
+                                )}
+                                key={column.columnId}
+                            >
+                                {renderCell(row.item, column.columnId, index)}
+                            </TableCell>
+                        ))}
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+};
+
+// Main component
+export const SchemaDesignerEditorTablePanel = () => {
+    const classes = useStyles();
+    const context = useContext(SchemaDesignerContext);
+    const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+    const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
+        useState<number>(-1);
+
+    // Memoized values
+    const datatypes = useMemo(() => context.datatypes, [context.datatypes]);
+    const allTables = useMemo(() => {
+        if (!context.schemaDesigner?.schema) return [];
+        return getAllTables(
+            context.schemaDesigner.schema,
+            context.selectedTable,
+        );
+    }, [context.schemaDesigner?.schema, context.selectedTable]);
+
+    // Reset focus when selected table changes
+    useEffect(() => {
+        setLastColumnNameInputIndex(-1);
+    }, [context.selectedTable]);
+
+    // Focus on newly added column
+    useEffect(() => {
+        if (lastColumnNameInputIndex >= 0) {
+            columnNameInputRefs.current[lastColumnNameInputIndex]?.focus();
+        }
+    }, [lastColumnNameInputIndex]);
+
+    // Check if a column can be deleted
+    const isColumnDeletable = (column: SchemaDesigner.Column) => {
+        // If there is an incoming or outgoing foreign key with this column, disable delete
+        const hasRelatedForeignKey = context.selectedTable.foreignKeys.some(
+            (fk) => fk.columns.includes(column.name),
+        );
+
+        // If this column is a referenced column in any foreign key, disable delete
+        const isReferencedInForeignKey = allTables.some((table) =>
+            table.foreignKeys.some((fk) =>
+                fk.referencedColumns.includes(column.name),
+            ),
+        );
+
+        return !hasRelatedForeignKey && !isReferencedInForeignKey;
+    };
+
+    // Add a new column
+    const addColumn = () => {
+        const newColumns = [...context.selectedTable.columns];
+        newColumns.push({
+            id: uuidv4(),
+            name: getNextColumnName(newColumns),
+            dataType: "int",
+            isPrimaryKey: newColumns.length === 0, // First column is primary key by default
+            isIdentity: false,
+            isNullable: true,
+            isUnique: false,
+            maxLength: 0,
+            precision: 0,
+            scale: 0,
+            collation: "",
+            identitySeed: 1,
+            identityIncrement: 1,
+        });
+
+        context.setSelectedTable({
+            ...context.selectedTable,
+            columns: newColumns,
+        });
+
+        setLastColumnNameInputIndex(newColumns.length - 1);
+    };
+
+    // Update column at specified index
+    const updateColumn = (
+        index: number,
+        updatedColumn: SchemaDesigner.Column,
+    ) => {
+        const newColumns = [...context.selectedTable.columns];
+        newColumns[index] = updatedColumn;
+
+        context.setSelectedTable({
+            ...context.selectedTable,
+            columns: newColumns,
+        });
+    };
+
+    // Delete column at specified index
+    const deleteColumn = (index: number) => {
+        const newColumns = [...context.selectedTable.columns];
+        newColumns.splice(index, 1);
+
+        context.setSelectedTable({
+            ...context.selectedTable,
+            columns: newColumns,
+        });
+    };
+
+    // Update table schema
+    const updateTableSchema = (schema: string) => {
+        context.setSelectedTable({
+            ...context.selectedTable,
+            schema: schema,
+        });
+    };
+
+    // Update table name
+    const updateTableName = (name: string) => {
+        context.setSelectedTable({
+            ...context.selectedTable,
+            name: name,
+        });
+    };
+
+    if (!context.selectedTable) {
+        return undefined;
     }
 
     return (
-        <div className={classes.tablePanel}>
+        <div className={classes.panel}>
+            {/* Schema Selection */}
             <Field>
                 <Label>{locConstants.schemaDesigner.schema}</Label>
                 <SearchableDropdown
@@ -520,110 +614,40 @@ export const SchemaDesignerEditorTablePanel = () => {
                         text: context.selectedTable.schema,
                         value: context.selectedTable.schema,
                     }}
-                    onSelect={(selected) => {
-                        context.setSelectedTable({
-                            ...context.selectedTable,
-                            schema: selected.value,
-                        });
-                    }}
-                ></SearchableDropdown>
+                    onSelect={(selected) => updateTableSchema(selected.value)}
+                />
             </Field>
+
+            {/* Table Name */}
             <Field>
                 <Label>{locConstants.schemaDesigner.name}</Label>
                 <Input
                     autoFocus
                     value={context.selectedTable.name}
-                    onChange={(_e, d) => {
-                        context.setSelectedTable({
-                            ...context.selectedTable,
-                            name: d.value,
-                        });
-                    }}
+                    onChange={(_e, data) => updateTableName(data.value)}
                 />
             </Field>
+
+            {/* Add Column Button */}
             <Button
                 appearance="secondary"
                 icon={<FluentIcons.AddRegular />}
-                onClick={() => {
-                    const newColumns = [...context.selectedTable.columns];
-                    newColumns.push({
-                        id: uuidv4(),
-                        name: getNextColumnName(newColumns),
-                        dataType: "int",
-                        isPrimaryKey: newColumns.length === 0,
-                        isIdentity: false,
-                        isNullable: true,
-                        isUnique: false,
-                        maxLength: 0,
-                        precision: 0,
-                        scale: 0,
-                        collation: "",
-                        identitySeed: 1,
-                        identityIncrement: 1,
-                    });
-                    context.setSelectedTable({
-                        ...context.selectedTable,
-                        columns: newColumns,
-                    });
-                    setLastColumnNameInputIndex(newColumns.length - 1);
-                }}
-                style={{
-                    width: "fit-content",
-                }}
+                className={classes.newColumnButton}
+                onClick={addColumn}
             >
                 {locConstants.schemaDesigner.newColumn}
             </Button>
-            <div
-                style={{
-                    flex: "1",
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                }}
-            >
-                <Table
-                    {...keyboardNavAttr}
-                    as="table"
-                    size="extra-small"
-                    {...columnSizing_unstable.getTableProps()}
-                    ref={tableRef}
-                >
-                    <TableHeader>
-                        <TableRow>
-                            {columnsTableColumnDefinitions.map((column) => (
-                                <TableHeaderCell
-                                    {...columnSizing_unstable.getTableHeaderCellProps(
-                                        column.columnId,
-                                    )}
-                                    key={column.columnId}
-                                >
-                                    {column.renderHeaderCell()}
-                                </TableHeaderCell>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {getRows().map((row, index) => (
-                            <TableRow key={index}>
-                                {columnsTableColumns.map((column) => {
-                                    return (
-                                        <TableCell
-                                            {...columnSizing_unstable.getTableCellProps(
-                                                column.columnId,
-                                            )}
-                                            key={column.columnId}
-                                        >
-                                            {renderColumnTableCell(
-                                                row.item,
-                                                column.columnId as string,
-                                                index,
-                                            )}
-                                        </TableCell>
-                                    );
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+
+            {/* Columns Table */}
+            <div className={classes.scrollContainer}>
+                <ColumnsTable
+                    columns={context.selectedTable.columns}
+                    updateColumn={updateColumn}
+                    deleteColumn={deleteColumn}
+                    columnNameInputRefs={columnNameInputRefs}
+                    datatypes={datatypes}
+                    isColumnDeletable={isColumnDeletable}
+                />
             </div>
         </div>
     );
