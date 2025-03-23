@@ -378,6 +378,7 @@ export class LocConstants {
             script: l10n.t("Script"),
             newColumnMapping: l10n.t("New column mapping"),
             columnName: l10n.t("Column Name"),
+            dismiss: l10n.t("Dismiss"),
             tableNameRepeatedError: (tableName: string) =>
                 l10n.t({
                     message: "Table '{0}' already exists",

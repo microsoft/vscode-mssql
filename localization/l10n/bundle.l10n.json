@@ -334,6 +334,7 @@
   "Script": "Script",
   "New column mapping": "New column mapping",
   "Column Name": "Column Name",
+  "Dismiss": "Dismiss",
   "Table '{0}' already exists/{0} is the table name": {
     "message": "Table '{0}' already exists",
     "comment": [
@@ -836,7 +837,6 @@
   "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.": "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.",
   "Reload Visual Studio Code": "Reload Visual Studio Code",
   "Switch to MSAL": "Switch to MSAL",
-  "Dismiss": "Dismiss",
   "Query succeeded": "Query succeeded",
   "Query failed": "Query failed",
   "Loading": "Loading",
