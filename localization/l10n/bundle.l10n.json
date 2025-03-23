@@ -334,6 +334,13 @@
   "Script": "Script",
   "New column mapping": "New column mapping",
   "Column Name": "Column Name",
+  "Table '{0}' already exists/{0} is the table name": {
+    "message": "Table '{0}' already exists",
+    "comment": [
+      "{0} is the table name"
+    ]
+  },
+  "Table name cannot be empty": "Table name cannot be empty",
   "Table '{0}' not found/{0} is the table name": {
     "message": "Table '{0}' not found",
     "comment": [
@@ -397,6 +404,14 @@
     ]
   },
   "Cannot create foreign key": "Cannot create foreign key",
+  "Cannot create foreign key with duplicate columns": "Cannot create foreign key with duplicate columns",
+  "Foreign key name cannot be empty": "Foreign key name cannot be empty",
+  "Foreign key '{0}' already exists/{0} is the foreign key name": {
+    "message": "Foreign key '{0}' already exists",
+    "comment": [
+      "{0} is the foreign key name"
+    ]
+  },
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [

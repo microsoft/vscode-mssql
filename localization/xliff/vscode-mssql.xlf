@@ -190,6 +190,9 @@
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++db1e549937a7102cda82a262a27f86166ea3c25f6441098efbc9c17de5eb362c">
+      <source xml:lang="en">Cannot create foreign key with duplicate columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
       <source xml:lang="en">Changed Tables</source>
     </trans-unit>
@@ -692,6 +695,13 @@
     </trans-unit>
     <trans-unit id="++CODE++343460cabeff0fb48d3eaab8a7b7cec8ab6533656b987b607002e6fae59daa8b">
       <source xml:lang="en">Foreign Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++328923e4274282cae8dc3222c0281c6454f9625843394b33364bfb4213436f1a">
+      <source xml:lang="en">Foreign key &apos;{0}&apos; already exists</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e6603b955a2b4bfe8e11ed330edfcdbfd8af1d94b683e2829ba11da61c8640c9">
+      <source xml:lang="en">Foreign key name cannot be empty</source>
     </trans-unit>
     <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
@@ -1378,12 +1388,19 @@
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++e37d0b463100c4d709173a6502222535a4960da7c2ae4c1317ba1e20ece36b3e">
+      <source xml:lang="en">Table &apos;{0}&apos; already exists</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17">
       <source xml:lang="en">Table &apos;{0}&apos; not found</source>
       <note>{0} is the table name</note>
     </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
+      <source xml:lang="en">Table name cannot be empty</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
