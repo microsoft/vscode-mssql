@@ -336,6 +336,33 @@ export const SchemaDesignerEditorTablePanel = () => {
                         </Field>
                     </>
                 )}
+                {/* <Field
+                    label={{
+                        children: (
+                            <InfoLabel
+                                size="small"
+                                info={"Default value of the column"}
+                            >
+                                {"Default Value"}
+                            </InfoLabel>
+                        ),
+                    }}
+                >
+                    <Input
+                        size="small"
+                        value={column.defaultValue}
+                        onChange={(_e, d) => {
+                            const newColumns = [
+                                ...context.selectedTable.columns,
+                            ];
+                            newColumns[index].defaultValue = d.value;
+                            context.setSelectedTable({
+                                ...context.selectedTable,
+                                columns: newColumns,
+                            });
+                        }}
+                    />
+                </Field> */}
             </>
         );
     };

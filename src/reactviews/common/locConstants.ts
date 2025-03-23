@@ -376,6 +376,8 @@ export class LocConstants {
             createAsScript: l10n.t("Create As Script"),
             details: l10n.t("Details"),
             script: l10n.t("Script"),
+            newColumnMapping: l10n.t("New column mapping"),
+            columnName: l10n.t("Column Name"),
             tableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Table '{0}' not found",

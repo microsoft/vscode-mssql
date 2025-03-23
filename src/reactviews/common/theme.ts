@@ -97,4 +97,17 @@ export const webviewTheme: fluentui.Theme = {
      * Specifies the background color for a selected div.
      */
     colorNeutralForeground2BrandSelected: "var(--vscode-button-background)",
+    /**
+     * Specified the shadow color for card components.
+     */
+    shadow4:
+        "0 0 2px var(--vscode-widget-shadow), 0 2px 4px var(--vscode-widget-shadow)",
+    /**
+     * Specifies the shadow color for popover components.
+     */
+    colorNeutralShadowAmbient: "var(--vscode-widget-shadow)",
+    /**
+     * Specifies the shadow color for popover components.
+     */
+    colorNeutralShadowKey: "var(--vscode-widget-shadow)",
 };
