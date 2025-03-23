@@ -332,6 +332,8 @@
   "Create As Script": "Create As Script",
   "Details": "Details",
   "Script": "Script",
+  "New column mapping": "New column mapping",
+  "Column Name": "Column Name",
   "Table '{0}' not found/{0} is the table name": {
     "message": "Table '{0}' not found",
     "comment": [

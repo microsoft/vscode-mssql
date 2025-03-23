@@ -286,6 +286,9 @@
       <source xml:lang="en">Column &apos;{0}&apos; not found</source>
       <note>{0} is the column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
+      <source xml:lang="en">Column Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
     </trans-unit>
@@ -900,6 +903,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
       <source xml:lang="en">New Microsoft Entra account could not be added.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
+      <source xml:lang="en">New column mapping</source>
     </trans-unit>
     <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
       <source xml:lang="en">Next</source>
