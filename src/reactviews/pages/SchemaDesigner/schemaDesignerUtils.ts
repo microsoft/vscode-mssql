@@ -188,24 +188,6 @@ export function isForeignKeyValid(
         };
     }
 
-    // // Check if the foreign key name is unqiue in the schema
-    // const foreignKeyNames = new Set(
-    //     tables
-    //         .filter((t) => t.schema === table.schema)
-    //         .flatMap((t) => t.foreignKeys)
-    //         .map((fk) => fk.name.toLowerCase()),
-    // );
-    // // check if
-    // if (foreignKeyNames.has(foreignKey.name.toLowerCase())) {
-    //     return {
-    //         errorMessage:
-    //             locConstants.schemaDesigner.foreignKeyNameRepeatedError(
-    //                 foreignKey.name,
-    //             ),
-    //         isValid: false,
-    //     };
-    // }
-
     const referencedTable = tables.find(
         (t) =>
             t.name === foreignKey.referencedTableName &&
