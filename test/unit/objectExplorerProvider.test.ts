@@ -709,7 +709,7 @@ suite("Object Explorer Node Types Test", () => {
             treeNode.parentNode,
             "Parent node should be equal to expected value",
         ).is.equal(undefined);
-        treeNode.connectionInfo = treeNode.connectionInfo;
+        treeNode.updateConnectionInfo(() => treeNode.connectionInfo);
         expect(
             treeNode.connectionInfo,
             "Connection credentials should be equal to expected value",
