@@ -53,7 +53,7 @@ export function getSchemaDesignerColors(): azdataGraph.SchemaDesignerColors {
 /**
  * Schema designer configuration
  */
-export const config: SchemaDesignerConfig = {
+export const schemaDesignerConfig: SchemaDesignerConfig = {
     icons: {
         addTableIcon: schemaDesignerIcons.addTableIcon,
         undoIcon: schemaDesignerIcons.undoIcon,
