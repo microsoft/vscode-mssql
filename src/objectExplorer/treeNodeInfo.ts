@@ -122,8 +122,19 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         return this._parentNode;
     }
 
-    public get connectionInfo(): IConnectionInfo {
+    /**
+     * Gets a read-only copy of the connection info object.
+     * If you need to modify the connectionInfoClone, use the updateConnectionInfo method.
+     */
+    public get connectionInfo(): Readonly<IConnectionInfo> {
         return this._connectionInfo;
+    }
+
+    /**
+     * Gets a clone of the connection info object.
+     */
+    public get connectionInfoClone(): IConnectionInfo {
+        return Object.assign({}, this._connectionInfo);
     }
 
     public get metadata(): ObjectMetadata {
@@ -176,8 +187,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._parentNode = value;
     }
 
-    public set connectionInfo(value: IConnectionInfo) {
-        this._connectionInfo = value;
+    public updateConnectionInfo(
+        mutator: (conn: IConnectionInfo) => void,
+    ): void {
+        mutator(this._connectionInfo);
     }
 
     public set filterableProperties(value: vscodeMssql.NodeFilterProperty[]) {

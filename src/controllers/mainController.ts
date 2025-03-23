@@ -448,7 +448,7 @@ export default class MainController implements vscode.Disposable {
         executeScript: boolean = false,
     ): Promise<void> {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = Object.assign({}, node.connectionInfo);
+        let connectionCreds = node.connectionInfoClone;
         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         // if not connected or different database
         if (
@@ -809,23 +809,25 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = Object.assign(
-                        {},
-                        treeNodeInfo.connectionInfo,
-                    );
+                    const connectionCredentials =
+                        treeNodeInfo.connectionInfoClone;
                     const databaseName =
                         ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+
+                    let updatedDatabaseName = "";
                     if (
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
-                        connectionCredentials.database = databaseName;
+                        updatedDatabaseName = databaseName;
                     } else if (
                         databaseName === LocalizedConstants.defaultDatabaseLabel
                     ) {
-                        connectionCredentials.database = "";
+                        updatedDatabaseName = "";
                     }
-                    treeNodeInfo.connectionInfo = connectionCredentials;
+                    treeNodeInfo.updateConnectionInfo((conn) => {
+                        conn.database = updatedDatabaseName;
+                    });
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -876,9 +878,7 @@ export default class MainController implements vscode.Disposable {
                             profile,
                         );
                     if (profile) {
-                        node.parentNode.connectionInfo = <IConnectionInfo>(
-                            profile
-                        );
+                        node.parentNode.updateConnectionInfo(() => profile);
                         self._objectExplorerProvider.updateNode(
                             node.parentNode,
                         );
@@ -1943,7 +1943,7 @@ export default class MainController implements vscode.Disposable {
             const uri = editor.document.uri.toString(true);
             if (node) {
                 // connect to the node if the command came from the context
-                const connectionCreds = node.connectionInfo;
+                const connectionCreds = node.connectionInfoClone;
                 // if the node isn't connected
                 if (!node.sessionId) {
                     // connect it first

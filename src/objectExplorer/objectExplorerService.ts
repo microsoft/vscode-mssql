@@ -202,7 +202,9 @@ export class ObjectExplorerService {
             } else {
                 // create session failure
                 if (self._currentNode?.connectionInfo?.password) {
-                    self._currentNode.connectionInfo.password = "";
+                    this._currentNode.updateConnectionInfo((conn) => {
+                        conn.password = "";
+                    });
                 }
                 let error = LocalizedConstants.connectErrorLabel;
                 let errorNumber: number;
@@ -290,7 +292,7 @@ export class ObjectExplorerService {
         node: TreeNodeInfo,
         profile: IConnectionInfo,
     ): Promise<void> {
-        node.connectionInfo = profile;
+        node.updateConnectionInfo(() => profile);
         this.updateNode(node);
         let fileUri = this.getNodeIdentifier(node);
         if (
@@ -955,7 +957,9 @@ export class ObjectExplorerService {
             node.context = ObjectExplorerService.disconnectedNodeContextValue;
             node.sessionId = undefined;
             if (!(node.connectionInfo as IConnectionProfile).savePassword) {
-                node.connectionInfo.password = "";
+                node.updateConnectionInfo((conn) => {
+                    conn.password = "";
+                });
             }
             const label =
                 typeof node.label === "string" ? node.label : node.label.label;
