@@ -30,6 +30,7 @@ import {
     useToastController,
 } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
 // Set the global mxLoadResources to false to prevent mxgraph from loading resources
 window["mxLoadResources"] = false;
@@ -148,12 +149,8 @@ export const SchemaDesignerPage = () => {
                         const model = context.schemaDesigner?.schema!;
                         const isValid = isForeignKeyValid(
                             model.tables,
-                            sourceTable.schema,
-                            sourceTable.name,
-                            sourceColumnName,
-                            targetTable.schema,
-                            targetTable.name,
-                            targetColumnName,
+                            sourceTable,
+                            target.value as SchemaDesigner.ForeignKey,
                         );
                         if (!isValid.isValid) {
                             context.schemaDesigner?.mxGraph.removeCells([

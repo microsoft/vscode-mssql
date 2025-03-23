@@ -41,6 +41,7 @@ import {
     getNextColumnName,
     isLengthBasedType,
     isPrecisionBasedType,
+    tableNameValidationError,
 } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -481,7 +482,11 @@ const ColumnsTable = ({
 };
 
 // Main component
-export const SchemaDesignerEditorTablePanel = () => {
+export const SchemaDesignerEditorTablePanel = ({
+    setErrorCount,
+}: {
+    setErrorCount: (errorCount: number) => void;
+}) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -501,6 +506,18 @@ export const SchemaDesignerEditorTablePanel = () => {
     // Reset focus when selected table changes
     useEffect(() => {
         setLastColumnNameInputIndex(-1);
+
+        // Validate table names
+        if (
+            tableNameValidationError(
+                context.schemaDesigner?.schema!,
+                context.selectedTable,
+            )
+        ) {
+            setErrorCount(1);
+        } else {
+            setErrorCount(0);
+        }
     }, [context.selectedTable]);
 
     // Focus on newly added column
@@ -619,7 +636,12 @@ export const SchemaDesignerEditorTablePanel = () => {
             </Field>
 
             {/* Table Name */}
-            <Field>
+            <Field
+                validationMessage={tableNameValidationError(
+                    context.schemaDesigner?.schema!,
+                    context.selectedTable,
+                )}
+            >
                 <Label>{locConstants.schemaDesigner.name}</Label>
                 <Input
                     autoFocus

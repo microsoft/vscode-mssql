@@ -378,6 +378,13 @@ export class LocConstants {
             script: l10n.t("Script"),
             newColumnMapping: l10n.t("New column mapping"),
             columnName: l10n.t("Column Name"),
+            tableNameRepeatedError: (tableName: string) =>
+                l10n.t({
+                    message: "Table '{0}' already exists",
+                    args: [tableName],
+                    comment: ["{0} is the table name"],
+                }),
+            tableNameEmptyError: l10n.t("Table name cannot be empty"),
             tableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Table '{0}' not found",
@@ -473,6 +480,18 @@ export class LocConstants {
                     comment: ["{0} is source table", "{1} is target table"],
                 }),
             foreignKeyError: l10n.t("Cannot create foreign key"),
+            duplicateForeignKeyColumns: l10n.t(
+                "Cannot create foreign key with duplicate columns",
+            ),
+            foreignKeyNameEmptyError: l10n.t(
+                "Foreign key name cannot be empty",
+            ),
+            foreignKeyNameRepeatedError: (foreignKeyName: string) =>
+                l10n.t({
+                    message: "Foreign key '{0}' already exists",
+                    args: [foreignKeyName],
+                    comment: ["{0} is the foreign key name"],
+                }),
         };
     }
 }

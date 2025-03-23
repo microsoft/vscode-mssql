@@ -177,93 +177,128 @@ export function getTableFromDisplayName(
 
 export function isForeignKeyValid(
     tables: SchemaDesigner.Table[],
-    schemaName: string,
-    tableName: string,
-    columnName: string,
-    referencedSchemaName: string,
-    referencedTableName: string,
-    referencedColumnName: string,
+    table: SchemaDesigner.Table,
+    foreignKey: SchemaDesigner.ForeignKey,
 ): ForeignKeyValidationResult {
-    const table = tables.find(
-        (t) => t.name === tableName && t.schema === schemaName,
-    );
-    if (!table) {
+    // Check if the name is not empty
+    if (foreignKey.name === "") {
         return {
-            errorMessage: locConstants.schemaDesigner.tableNotFound(tableName),
+            errorMessage: locConstants.schemaDesigner.foreignKeyNameEmptyError,
             isValid: false,
         };
     }
+
+    // // Check if the foreign key name is unqiue in the schema
+    // const foreignKeyNames = new Set(
+    //     tables
+    //         .filter((t) => t.schema === table.schema)
+    //         .flatMap((t) => t.foreignKeys)
+    //         .map((fk) => fk.name.toLowerCase()),
+    // );
+    // // check if
+    // if (foreignKeyNames.has(foreignKey.name.toLowerCase())) {
+    //     return {
+    //         errorMessage:
+    //             locConstants.schemaDesigner.foreignKeyNameRepeatedError(
+    //                 foreignKey.name,
+    //             ),
+    //         isValid: false,
+    //     };
+    // }
+
     const referencedTable = tables.find(
         (t) =>
-            t.name === referencedTableName && t.schema === referencedSchemaName,
+            t.name === foreignKey.referencedTableName &&
+            t.schema === foreignKey.referencedSchemaName,
     );
-
+    // Check if the foreign table exists
     if (!referencedTable) {
         return {
-            errorMessage:
-                locConstants.schemaDesigner.referencedTableNotFound(
-                    referencedTableName,
-                ),
-            isValid: false,
-        };
-    }
-
-    const column = table.columns.find((c) => c.name === columnName);
-    if (!column) {
-        return {
-            errorMessage:
-                locConstants.schemaDesigner.columnNotFound(columnName),
-            isValid: false,
-        };
-    }
-    const referencedColumn = referencedTable.columns.find(
-        (c) => c.name === referencedColumnName,
-    );
-    if (!referencedColumn) {
-        return {
-            errorMessage:
-                locConstants.schemaDesigner.referencedColumnNotFound(
-                    referencedColumnName,
-                ),
-            isValid: false,
-        };
-    }
-
-    const datatypeCompatibility = areDataTypesCompatible(
-        column,
-        referencedColumn,
-    );
-    if (!datatypeCompatibility.isValid) {
-        return {
-            errorMessage: datatypeCompatibility.errorMessage,
-            isValid: false,
-        };
-    }
-
-    // // Referenced column must be a primary key or unique
-    if (!referencedColumn.isPrimaryKey && !referencedColumn.isUnique) {
-        console.log(
-            `Referenced column ${referencedColumnName} is not a primary key or unique`,
-        );
-        return {
-            errorMessage:
-                locConstants.schemaDesigner.referencedColumnNotUnique(
-                    referencedColumnName,
-                ),
-            isValid: false,
-        };
-    }
-
-    // Check for cyclic foreign key references
-    if (isCyclicForeignKey(tables, referencedTable, table)) {
-        return {
-            errorMessage: locConstants.schemaDesigner.cyclicForeignKeyDetected(
-                tableName,
-                referencedTableName,
+            errorMessage: locConstants.schemaDesigner.referencedTableNotFound(
+                foreignKey.referencedTableName,
             ),
             isValid: false,
         };
     }
+
+    // Check if the foreign key columns are not repeated in the same table
+    const columnNames = foreignKey.columns;
+    const uniqueColumnNames = new Set(columnNames);
+    if (uniqueColumnNames.size !== columnNames.length) {
+        return {
+            errorMessage:
+                locConstants.schemaDesigner.duplicateForeignKeyColumns,
+            isValid: false,
+        };
+    }
+
+    for (let i = 0; i < foreignKey.columns.length; i++) {
+        const columnName = foreignKey.columns[i];
+
+        // Check if the column exists in the table
+        const column = table.columns.find((c) => c.name === columnName);
+        if (!column) {
+            return {
+                errorMessage:
+                    locConstants.schemaDesigner.columnNotFound(columnName),
+                isValid: false,
+            };
+        }
+        const referencedColumnName = foreignKey.referencedColumns[i];
+        const referencedColumn = referencedTable.columns.find(
+            (c) => c.name === referencedColumnName,
+        );
+
+        // Check if the referenced column exists
+        if (!referencedColumn) {
+            return {
+                errorMessage:
+                    locConstants.schemaDesigner.referencedColumnNotFound(
+                        referencedColumnName,
+                    ),
+                isValid: false,
+            };
+        }
+
+        // Check if the data types are compatible
+        const datatypeCompatibility = areDataTypesCompatible(
+            column,
+            referencedColumn,
+        );
+        if (!datatypeCompatibility.isValid) {
+            return {
+                errorMessage: datatypeCompatibility.errorMessage,
+                isValid: false,
+            };
+        }
+
+        // // Referenced column must be a primary key or unique
+        if (!referencedColumn.isPrimaryKey && !referencedColumn.isUnique) {
+            console.log(
+                `Referenced column ${referencedColumnName} is not a primary key or unique`,
+            );
+            return {
+                errorMessage:
+                    locConstants.schemaDesigner.referencedColumnNotUnique(
+                        referencedColumnName,
+                    ),
+                isValid: false,
+            };
+        }
+
+        // Check for cyclic foreign key references
+        if (isCyclicForeignKey(tables, referencedTable, table)) {
+            return {
+                errorMessage:
+                    locConstants.schemaDesigner.cyclicForeignKeyDetected(
+                        table.name,
+                        referencedTable.name,
+                    ),
+                isValid: false,
+            };
+        }
+    }
+
     return {
         isValid: true,
     };
@@ -491,4 +526,23 @@ export function getDefaultScale(dataType: string): number {
         default:
             return 0; // Default scale not applicable
     }
+}
+
+export function tableNameValidationError(
+    schema: SchemaDesigner.Schema,
+    table: SchemaDesigner.Table,
+): string | undefined {
+    const existingTable = schema.tables.find(
+        (t) =>
+            t.name.toLocaleLowerCase() === table.name.toLocaleLowerCase() &&
+            t.schema.toLocaleLowerCase() === table.schema.toLocaleLowerCase() &&
+            t.id !== table.id,
+    );
+    if (existingTable) {
+        return locConstants.schemaDesigner.tableNameRepeatedError(table.name);
+    }
+    if (table.name === "") {
+        return locConstants.schemaDesigner.tableNameEmptyError;
+    }
+    return undefined;
 }

@@ -13,6 +13,7 @@ import {
     Input,
     Label,
     makeStyles,
+    MessageBar,
     Option,
     Table,
     TableBody,
@@ -36,6 +37,7 @@ import {
     getAllTables,
     getNextForeignKeyName,
     getTableFromDisplayName,
+    isForeignKeyValid,
 } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
@@ -331,6 +333,7 @@ const ForeignKeyCard = ({
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     // Add a mapping between source and target columns
     const addColumnMapping = () => {
@@ -354,6 +357,21 @@ const ForeignKeyCard = ({
         onUpdate(index, updatedForeignKey);
     };
 
+    useEffect(() => {
+        const validationResult = isForeignKeyValid(
+            context.schemaDesigner?.schema?.tables ?? [],
+            context.selectedTable,
+            foreignKey,
+        );
+        if (validationResult.isValid) {
+            setErrorMessage("");
+        } else {
+            if (validationResult.errorMessage) {
+                setErrorMessage(validationResult.errorMessage);
+            }
+        }
+    }, [context.selectedTable]);
+
     return (
         <Card className={classes.cardStyle} key={`fk-card-${index}`}>
             <CardHeader
@@ -370,6 +388,11 @@ const ForeignKeyCard = ({
                     />
                 }
             />
+
+            {/* Error Message */}
+            {errorMessage && (
+                <MessageBar intent="error">{errorMessage}</MessageBar>
+            )}
 
             {/* Foreign Key Name */}
             <div className={classes.row}>
@@ -471,7 +494,11 @@ const ForeignKeyCard = ({
     );
 };
 
-export const SchemaDesignerEditorForeignKeyPanel = () => {
+export const SchemaDesignerEditorForeignKeyPanel = ({
+    setErrorCount,
+}: {
+    setErrorCount: (errorCount: number) => void;
+}) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
     const foreignKeyInputRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -492,6 +519,18 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
         if (context.selectedTable) {
             setLastAddedForeignKeyIndex(-1);
         }
+        let error = 0;
+        context.selectedTable.foreignKeys.forEach((foreignKey) => {
+            const validationResult = isForeignKeyValid(
+                context.schemaDesigner?.schema?.tables ?? [],
+                context.selectedTable,
+                foreignKey,
+            );
+            if (!validationResult.isValid) {
+                error++;
+            }
+        });
+        setErrorCount(error);
     }, [context.selectedTable]);
 
     // Focus on the newly added foreign key's name input
@@ -502,7 +541,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
     }, [lastAddedForeignKeyIndex]);
 
     if (!context.schemaDesigner || !context.selectedTable) {
-        return null;
+        return undefined;
     }
 
     const addForeignKey = () => {

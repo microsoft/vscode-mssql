@@ -3,14 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, Tab, TabList, TabValue } from "@fluentui/react-components";
+import {
+    CounterBadge,
+    makeStyles,
+    Tab,
+    TabList,
+    TabValue,
+} from "@fluentui/react-components";
 import { useContext, useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesignerEditorFooter } from "./schemaDesignerEditorFooter";
 import { SchemaDesignerEditorTablePanel } from "./schemaDesignerEditorTablePanel";
 import { SchemaDesignerEditorForeignKeyPanel } from "./schemaDesignerEditorForeignKeyPanel";
-import { SchemaDesignerEditorCodePanel } from "./schemaDesignerEditorCodePanel";
 
 const useStyles = makeStyles({
     editor: {
@@ -63,6 +68,9 @@ export const SchemaDesignerEditor = () => {
     }
 
     const [selectedTabValue, setSelectedTabValue] = useState<TabValue>("table");
+    const [tablePanelErrorCount, setTablePanelErrorCount] = useState(0);
+    const [foreignKeyPanelErrorCount, setForeignKeyPanelErrorCount] =
+        useState(0);
 
     useEffect(() => {
         setSelectedTabValue("table");
@@ -78,26 +86,38 @@ export const SchemaDesignerEditor = () => {
                 selectedValue={selectedTabValue}
                 onTabSelect={(_e, data) => setSelectedTabValue(data.value)}
             >
-                <Tab value="table">{locConstants.schemaDesigner.table}</Tab>
+                <Tab value="table">
+                    {locConstants.schemaDesigner.table}
+                    <CounterBadge
+                        size="small"
+                        count={tablePanelErrorCount}
+                        color="danger"
+                    />
+                </Tab>
                 <Tab value="foreignKeys">
                     {locConstants.schemaDesigner.foreignKeys}
+                    <CounterBadge
+                        size="small"
+                        count={foreignKeyPanelErrorCount}
+                        color="danger"
+                    />
                 </Tab>
-                {/* <Tab value="code">
-                    {locConstants.schemaDesigner.createAsScript}
-                </Tab> */}
             </TabList>
             <div className={classes.editorPanel}>
                 {selectedTabValue === "table" && (
-                    <SchemaDesignerEditorTablePanel />
+                    <SchemaDesignerEditorTablePanel
+                        setErrorCount={setTablePanelErrorCount}
+                    />
                 )}
                 {selectedTabValue === "foreignKeys" && (
-                    <SchemaDesignerEditorForeignKeyPanel />
-                )}
-                {selectedTabValue === "code" && (
-                    <SchemaDesignerEditorCodePanel />
+                    <SchemaDesignerEditorForeignKeyPanel
+                        setErrorCount={setForeignKeyPanelErrorCount}
+                    />
                 )}
             </div>
-            <SchemaDesignerEditorFooter />
+            <SchemaDesignerEditorFooter
+                errorCount={tablePanelErrorCount + foreignKeyPanelErrorCount}
+            />
         </div>
     );
 };

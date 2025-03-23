@@ -17,7 +17,11 @@ const useStyles = makeStyles({
         padding: "10px",
     },
 });
-export function SchemaDesignerEditorFooter() {
+export function SchemaDesignerEditorFooter({
+    errorCount,
+}: {
+    errorCount: number;
+}) {
     const context = useContext(SchemaDesignerContext);
     if (!context) {
         return undefined;
@@ -36,6 +40,7 @@ export function SchemaDesignerEditorFooter() {
                     }
                     context.setIsEditDrawerOpen(false);
                 }}
+                disabled={errorCount > 0}
             >
                 {locConstants.schemaDesigner.save}
             </Button>
