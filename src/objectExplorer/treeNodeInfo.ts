@@ -187,10 +187,8 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._parentNode = value;
     }
 
-    public updateConnectionInfo(
-        mutator: (conn: IConnectionInfo) => void,
-    ): void {
-        mutator(this._connectionInfo);
+    public updateConnectionInfo(value: IConnectionInfo): void {
+        this._connectionInfo = value;
     }
 
     public set filterableProperties(value: vscodeMssql.NodeFilterProperty[]) {

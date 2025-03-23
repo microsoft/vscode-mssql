@@ -814,20 +814,17 @@ export default class MainController implements vscode.Disposable {
                     const databaseName =
                         ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
 
-                    let updatedDatabaseName = "";
                     if (
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
-                        updatedDatabaseName = databaseName;
+                        connectionCredentials.database = databaseName;
                     } else if (
                         databaseName === LocalizedConstants.defaultDatabaseLabel
                     ) {
-                        updatedDatabaseName = "";
+                        connectionCredentials.database = "";
                     }
-                    treeNodeInfo.updateConnectionInfo((conn) => {
-                        conn.database = updatedDatabaseName;
-                    });
+                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -878,7 +875,7 @@ export default class MainController implements vscode.Disposable {
                             profile,
                         );
                     if (profile) {
-                        node.parentNode.updateConnectionInfo(() => profile);
+                        node.parentNode.updateConnectionInfo(profile);
                         self._objectExplorerProvider.updateNode(
                             node.parentNode,
                         );
