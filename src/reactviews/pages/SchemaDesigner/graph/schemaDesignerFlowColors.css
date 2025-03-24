@@ -96,18 +96,12 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
     background-color: var(--vscode-list-hoverBackground);
 }
 
-div.react-flow__node.react-flow__node-tableNode .column .react-flow__handle {
+.react-flow__node-tableNode .column .react-flow__handle {
     opacity: 0;
 }
 
-div.react-flow__node.react-flow__node-tableNode
-    .column
-    .react-flow__handle.connectingto.valid {
-    opacity: 1;
-}
-
-div.react-flow__node.react-flow__node-tableNode
-    .column:hover
-    .react-flow__handle {
+.react-flow__node-tableNode .column .react-flow__handle.connectingto.valid,
+.react-flow__node-tableNode .column .react-flow__handle.connectingfrom,
+.react-flow__node-tableNode .column:hover .react-flow__handle {
     opacity: 1;
 }

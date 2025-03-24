@@ -495,7 +495,7 @@ export class LocConstants {
                 }),
             tableNodeSubText: (colCount: number) =>
                 l10n.t({
-                    message: "{0} columns data",
+                    message: "{0} column data",
                     args: [colCount],
                     comment: ["{0} is the number of columns"],
                 }),
