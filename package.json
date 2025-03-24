@@ -973,7 +973,7 @@
         },
         "mssql.enableRichExperiences": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%mssql.enableRichExperiences.description%",
           "scope": "application"
         },
