@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect, Page } from "@playwright/test";
+import { expect, FrameLocator, Page } from "@playwright/test";
 
 export async function addDatabaseConnection(
     vsCodePage: Page,
@@ -117,4 +117,11 @@ export async function waitForCommandPaletteToBeVisible(
     await expect(commandPaletteInput).toBeVisible();
 }
 
-export let numScreenshotsForTest = new Map<string, number>();
+export async function getWebviewByTitle(
+    vsCodePage: Page,
+    title: string,
+): Promise<FrameLocator> {
+    return vsCodePage
+        .frameLocator(".webview")
+        .frameLocator(`[title='${title}']`);
+}

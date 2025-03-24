@@ -12,7 +12,10 @@ import {
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
-import { waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
+import {
+    getWebviewByTitle,
+    waitForCommandPaletteToBeVisible,
+} from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
 
@@ -45,9 +48,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         // Press Enter in the VS Code page
         await vsCodePage.keyboard.press("Enter");
 
-        iframe = vsCodePage
-            .frameLocator(".webview")
-            .frameLocator("[title='plan.sqlplan (Preview)']");
+        iframe = await getWebviewByTitle(vsCodePage, "plan.sqlplan (Preview)");
 
         // Wait for plan to load
         const queryCostElementLocator = iframe.getByText(

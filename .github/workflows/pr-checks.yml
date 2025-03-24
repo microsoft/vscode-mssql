@@ -14,6 +14,7 @@ on:
   pull_request:
     branches:
       - main
+      - 'release/**'
   workflow_dispatch:
 
 jobs:
@@ -197,13 +198,13 @@ jobs:
       - name: Merge Smoke and Unit Test Coverage Reports
         run: |
           if [ -f main/test/resources/mergeReports.js ]; then
-            node main/test/resources/mergeReports.js main/coverage-e2e/cobertura-coverage.xml main/coverage/cobertura-coverage.xml
+            node main/test/resources/mergeReports.js main/coverage/coverage-e2e/cobertura-coverage.xml main/coverage/cobertura-coverage.xml
           else
             echo "mergeReports.js not found in ./main, skipping..."
           fi
 
           if [ -f pr/test/resources/mergeReports.js ]; then
-            node pr/test/resources/mergeReports.js pr/coverage-e2e/cobertura-coverage.xml pr/coverage/cobertura-coverage.xml
+            node pr/test/resources/mergeReports.js pr/coverage/coverage-e2e/cobertura-coverage.xml pr/coverage/cobertura-coverage.xml
           else
             echo "mergeReports.js not found in ./pr, skipping..."
           fi

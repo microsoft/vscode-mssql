@@ -2,7 +2,6 @@
 .vscode
 build
 coverage
-coverage-e2e
 coverage-remapped
 lib
 localization
@@ -29,5 +28,3 @@ webviews-metafile.json
 images/ux
 FEATURES.md
 .nyc_output
-/test/resources/screenshots
-reactviews-coverage

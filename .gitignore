@@ -15,7 +15,6 @@ tools
 examples
 sqltoolsservice
 coverage
-coverage-e2e
 coverage-remapped
 test-reports
 .vscode-test
@@ -32,5 +31,3 @@ webviews-metafile.json
 /localization/l10n/bundle.l10n.*.json
 .eslintcache
 .nyc_output
-/test/resources/screenshots
-reactviews-coverage

@@ -1,4 +1,4 @@
-[![Daily Build and Test](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml/badge.svg?branch=main&event=schedule)](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml)
+[![PR check](https://github.com/microsoft/vscode-mssql/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/microsoft/vscode-mssql/actions/workflows/pr-checks.yml)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 # mssql for Visual Studio Code
