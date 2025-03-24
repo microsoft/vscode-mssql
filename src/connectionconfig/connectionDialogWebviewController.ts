@@ -72,6 +72,7 @@ import {
     groupAdvancedOptions,
 } from "./formComponentHelpers";
 import { FormWebviewController } from "../forms/formWebviewController";
+import { ConnectionCredentials } from "../models/connectionCredentials";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -619,8 +620,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.state.connectionStatus = ApiStatus.Loading;
         this.updateState();
 
-        const cleanedConnection: IConnectionDialogProfile =
-            this.cleanConnection(this.state.connectionProfile);
+        let cleanedConnection: IConnectionDialogProfile = this.cleanConnection(
+            this.state.connectionProfile,
+        );
 
         const erroredInputs = await this.validateProfile(cleanedConnection);
 
@@ -634,8 +636,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
+                if (
+                    this.state.selectedInputMode ===
+                    ConnectionInputMode.ConnectionString
+                ) {
+                    const connDetails =
+                        await this._mainController.connectionManager.buildConnectionDetails(
+                            this.state.connectionProfile.connectionString,
+                        );
+
+                    cleanedConnection =
+                        ConnectionCredentials.createConnectionInfo(connDetails);
+                }
+
                 const result =
-                    await this._mainController.connectionManager.connectionUI.validateAndSaveProfileFromDialog(
+                    await this._mainController.connectionManager.connectDialog(
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         cleanedConnection as any,
                     );
@@ -692,13 +707,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._objectExplorerProvider.refresh(undefined);
             }
 
-            await this._mainController.connectionManager.connectionUI.saveProfile(
+            // all properties are set when converting from a ConnectionDetails object,
+            // so we want to clean the default undefined properties before saving.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            cleanedConnection = this.removeDefaultProperties(
+                cleanedConnection as any,
+            );
+
+            await this._mainController.connectionManager.connectionStore.saveProfile(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                this.state.connectionProfile as any,
+                cleanedConnection as any,
             );
             const node =
                 await this._mainController.createObjectExplorerSessionFromDialog(
-                    this.state.connectionProfile,
+                    cleanedConnection,
                 );
 
             this._objectExplorerProvider.refresh(undefined);
@@ -732,6 +754,26 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         }
         return state;
+    }
+
+    private removeDefaultProperties(
+        connProfile: IConnectionProfile,
+    ): IConnectionProfile {
+        // TODO: ideally this compares against the default values acquired from a source of truth (e.g. STS),
+        // so that it can clean up more than just undefined properties.
+
+        const output = Object.assign({}, connProfile);
+        for (const key of Object.keys(output)) {
+            if (
+                output[key] === undefined ||
+                // eslint-disable-next-line no-restricted-syntax
+                output[key] === null
+            ) {
+                delete output[key];
+            }
+        }
+
+        return output;
     }
 
     private async handleConnectionErrorCodes(
