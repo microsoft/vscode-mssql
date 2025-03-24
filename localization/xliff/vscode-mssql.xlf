@@ -1659,6 +1659,10 @@
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
     </trans-unit>
+    <trans-unit id="++CODE++49904f33f329de2c3e6e407fb700fa89747b495aa5c14cec076c9446263aeba9">
+      <source xml:lang="en">{0} columns data</source>
+      <note>{0} is the number of columns</note>
+    </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>

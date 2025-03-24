@@ -413,6 +413,12 @@
       "{0} is the foreign key name"
     ]
   },
+  "{0} columns data/{0} is the number of columns": {
+    "message": "{0} columns data",
+    "comment": [
+      "{0} is the number of columns"
+    ]
+  },
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
