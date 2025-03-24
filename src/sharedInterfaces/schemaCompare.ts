@@ -26,6 +26,7 @@ export const enum SchemaUpdateAction {
 }
 
 export interface SchemaCompareWebViewState {
+    isComparisonInProgress: boolean;
     activeServers: { [connectionUri: string]: string };
     databases: string[];
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;

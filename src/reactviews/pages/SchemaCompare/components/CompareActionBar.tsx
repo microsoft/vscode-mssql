@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as mssql from "vscode-mssql";
 import {
     Toolbar,
     ToolbarButton,
@@ -87,6 +88,32 @@ const CompareActionBar = (props: Props) => {
         context.saveScmp();
     };
 
+    const isEndpointEmpty = (
+        endpoint: mssql.SchemaCompareEndpointInfo,
+    ): boolean => {
+        if (
+            endpoint &&
+            (endpoint.serverDisplayName ||
+                endpoint.packageFilePath ||
+                endpoint.projectFilePath)
+        ) {
+            return false;
+        }
+        return true;
+    };
+
+    const disableApplyButton = (): boolean => {
+        if (
+            context.state.schemaCompareResult &&
+            context.state.schemaCompareResult.differences &&
+            context.state.schemaCompareResult.differences.length > 0
+        ) {
+            return false;
+        }
+
+        return true;
+    };
+
     return (
         <Toolbar>
             <ToolbarButton
@@ -94,6 +121,11 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.compare}
                 icon={<ColumnDoubleCompareRegular />}
                 onClick={handleCompare}
+                disabled={
+                    isEndpointEmpty(context.state.sourceEndpointInfo) ||
+                    isEndpointEmpty(context.state.targetEndpointInfo) ||
+                    context.state.isComparisonInProgress
+                }
             >
                 {loc.schemaCompare.compare}
             </ToolbarButton>
@@ -102,6 +134,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.stop}
                 icon={<StopFilled />}
                 onClick={handleStop}
+                disabled={!context.state.isComparisonInProgress}
             >
                 {loc.schemaCompare.stop}
             </ToolbarButton>
@@ -110,6 +143,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
                 icon={<DocumentChevronDoubleRegular />}
                 onClick={handleGenerateScript}
+                disabled={true}
             >
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
@@ -118,6 +152,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
                 onClick={handlePublishChanges}
+                disabled={disableApplyButton()}
             >
                 {loc.schemaCompare.apply}
             </ToolbarButton>
@@ -126,6 +161,10 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.options}
                 icon={<SettingsRegular />}
                 onClick={handleOptionsClicked}
+                disabled={
+                    isEndpointEmpty(context.state.sourceEndpointInfo) ||
+                    isEndpointEmpty(context.state.targetEndpointInfo)
+                }
             >
                 {loc.schemaCompare.options}
             </ToolbarButton>
@@ -135,6 +174,10 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.switchSourceAndTarget}
                 icon={<ArrowSwapFilled />}
                 onClick={handleSwitchEndpoints}
+                disabled={
+                    isEndpointEmpty(context.state.sourceEndpointInfo) ||
+                    isEndpointEmpty(context.state.targetEndpointInfo)
+                }
             >
                 {loc.schemaCompare.switchDirection}
             </ToolbarButton>
@@ -158,6 +201,10 @@ const CompareActionBar = (props: Props) => {
                 }
                 icon={<SaveRegular />}
                 onClick={handleSaveScmp}
+                disabled={
+                    isEndpointEmpty(context.state.sourceEndpointInfo) ||
+                    isEndpointEmpty(context.state.targetEndpointInfo)
+                }
             >
                 {loc.schemaCompare.saveScmpFile}
             </ToolbarButton>

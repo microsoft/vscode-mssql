@@ -66,6 +66,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             "schemaCompare",
             "schemaCompare",
             {
+                isComparisonInProgress: false,
                 activeServers: {},
                 databases: [],
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
@@ -566,6 +567,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("compare", async (state, payload) => {
+            state.isComparisonInProgress = true;
+            this.updateState(state);
+
             return await this.schemaCompare(payload, state);
         });
 
@@ -919,11 +923,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 vscode.window.showErrorMessage(
                     loc.schemaCompare.cancelErrorMessage(result.errorMessage),
                 );
+
+                return state;
             }
 
             endActivity.end(ActivityStatus.Succeeded);
 
+            state.isComparisonInProgress = false;
             state.cancelResultStatus = result;
+            this.updateState(state);
+
             return state;
         });
     }
@@ -986,6 +995,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.schemaCompareService,
         );
 
+        state.isComparisonInProgress = false;
+
         if (!result || !result.success) {
             endActivity.endFailed(undefined, false, undefined, undefined, {
                 errorMessage: result.errorMessage,
@@ -1023,7 +1034,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const connInfo = endpoint.connectionDetails
                 .options as mssql.IConnectionInfo;
 
-            this.connectionMgr.connect;
             ownerUri = this.connectionMgr.getUriForConnection(connInfo);
 
             let isConnected = false;

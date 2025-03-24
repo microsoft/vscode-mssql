@@ -115,7 +115,9 @@ suite("SchemaCompareWebViewController Tests", () => {
         databaseName: "master",
         ownerUri:
             "connection:providerName:MSSQL|server:localhost,1433|trustServerCertificate:true|user:sa|groupId:C777F06B-202E-4480-B475-FA416154D458",
-        connectionDetails: undefined,
+        connectionDetails: {
+            options: {},
+        },
         connectionName: "",
         projectFilePath: "",
         targetScripts: [],
@@ -127,6 +129,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         sandbox = sinon.createSandbox();
 
         mockInitialState = {
+            isComparisonInProgress: false,
             activeServers: {},
             databases: [],
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
