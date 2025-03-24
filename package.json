@@ -79,6 +79,7 @@
     "@angular/router": "~3.1.2",
     "@angular/upgrade": "~2.1.2",
     "@azure/core-paging": "^1.6.2",
+    "@dagrejs/dagre": "^1.1.4",
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
     "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
@@ -116,6 +117,7 @@
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.1.1",
     "@xmldom/xmldom": "0.8.4",
+    "@xyflow/react": "^12.4.4",
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
     "assert": "^1.4.1",
@@ -1051,15 +1053,24 @@
                 "description": "%mssql.connectionGroup.id%"
               },
               "color": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.color%"
               },
               "description": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.description%"
               },
               "parentId": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.parentId%"
               }
             }

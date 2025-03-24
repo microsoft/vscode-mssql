@@ -116,15 +116,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         }
     }, [schemaDesigner]);
 
+    useEffect(() => {
+        void initializeSchemaDesigner();
+    }, []);
+
     const initializeSchemaDesigner = async () => {
-        if (schemaDesigner) {
-            const model = (await extensionRpc.call(
-                "initializeSchemaDesigner",
-            )) as SchemaDesigner.CreateSessionResponse;
-            setSchema(model.schema);
-            setDatatypes(model.dataTypes);
-            setSchemaNames(model.schemaNames);
-        }
+        // if (schemaDesigner) {
+        const model = (await extensionRpc.call(
+            "initializeSchemaDesigner",
+        )) as SchemaDesigner.CreateSessionResponse;
+        setSchema(model.schema);
+        setDatatypes(model.dataTypes);
+        setSchemaNames(model.schemaNames);
+        // }
     };
 
     extensionRpc.subscribe(

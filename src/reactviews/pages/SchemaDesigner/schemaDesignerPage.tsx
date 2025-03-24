@@ -10,15 +10,16 @@ import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
-import { SchemaDiagramZoomControls } from "./schemaDiagramZoomControls";
+//import { SchemaDiagramZoomControls } from "./schemaDiagramZoomControls";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
 import { SchemaDesignerCodeDrawer } from "./schemaDesignerCodeDrawer";
-import { SchemaDiagramGraph } from "./schemaDesignerGraph";
+// import { SchemaDiagramGraph } from "./schemaDesignerGraph";
+import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
     if (!context) {
-        return null;
+        return undefined;
     }
 
     return (
@@ -27,8 +28,8 @@ export const SchemaDesignerPage = () => {
             <MainLayout>
                 <GraphContainer>
                     <SchemaDesignerToolbar />
-                    <SchemaDiagramGraph />
-                    <SchemaDiagramZoomControls />
+                    <SchemaDesignerFlow />
+                    {/* <SchemaDiagramZoomControls /> */}
                 </GraphContainer>
                 <SchemaDesignerCodeDrawer />
             </MainLayout>

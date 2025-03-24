@@ -493,6 +493,12 @@ export class LocConstants {
                     args: [foreignKeyName],
                     comment: ["{0} is the foreign key name"],
                 }),
+            tableNodeSubText: (colCount: number) =>
+                l10n.t({
+                    message: "{0} columns data",
+                    args: [colCount],
+                    comment: ["{0} is the number of columns"],
+                }),
         };
     }
 }
