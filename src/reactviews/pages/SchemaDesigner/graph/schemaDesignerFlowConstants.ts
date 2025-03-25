@@ -8,7 +8,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 export const NODEWIDTH = 300;
 
 export const calculateTableWidth = () => {
-    return NODEWIDTH + 30;
+    return NODEWIDTH + 50;
 };
 export const calculateTableHeight = (table: SchemaDesigner.Table) => {
     return 70 + table.columns.length * 30;

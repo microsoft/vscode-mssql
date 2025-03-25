@@ -81,7 +81,8 @@ div.react-flow__node.react-flow__node-tableNode.selected > div {
 }
 
 div.react-flow__node.react-flow__node-tableNode .column {
-    padding: 0 5px;
+    padding-left: 5px;
+    padding-right: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
