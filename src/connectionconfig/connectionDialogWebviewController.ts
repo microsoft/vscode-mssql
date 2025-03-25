@@ -647,6 +647,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     cleanedConnection =
                         ConnectionCredentials.createConnectionInfo(connDetails);
+
+                    // re-add profileName and savePassword because they aren't part of the connection string
+                    cleanedConnection.profileName =
+                        this.state.connectionProfile.profileName;
+                    cleanedConnection.savePassword =
+                        !!cleanedConnection.password;
+
+                    // overwrite SQL Tools Service's default application name with the one the user provided (or MSSQL's default)
+                    cleanedConnection.applicationName =
+                        this.state.connectionProfile.applicationName;
                 }
 
                 const result =
