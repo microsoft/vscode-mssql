@@ -202,7 +202,7 @@ export class ObjectExplorerService {
             } else {
                 // create session failure
                 if (self._currentNode?.connectionInfo?.password) {
-                    const profile = this._currentNode.connectionInfoClone;
+                    const profile = this._currentNode.connectionInfo;
                     profile.password = "";
                     this._currentNode.updateConnectionInfo(profile);
                 }
@@ -957,7 +957,7 @@ export class ObjectExplorerService {
             node.context = ObjectExplorerService.disconnectedNodeContextValue;
             node.sessionId = undefined;
             if (!(node.connectionInfo as IConnectionProfile).savePassword) {
-                const profile = node.connectionInfoClone;
+                const profile = node.connectionInfo;
                 profile.password = "";
                 node.updateConnectionInfo(profile);
             }

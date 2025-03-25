@@ -123,17 +123,12 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     /**
-     * Gets a read-only copy of the connection info object.
-     * If you need to modify the connectionInfoClone, use the updateConnectionInfo method.
+     * Returns a **copy** of the node's connection information.
+     *
+     * ⚠️ Note: This is a **shallow copy**—modifying the returned object will NOT affect the original connection info.
+     * If you want to update the actual connection info stored in the node, use the `updateConnectionInfo` method instead.
      */
-    public get connectionInfo(): Readonly<IConnectionInfo> {
-        return this._connectionInfo;
-    }
-
-    /**
-     * Gets a clone of the connection info object.
-     */
-    public get connectionInfoClone(): IConnectionInfo {
+    public get connectionInfo(): IConnectionInfo {
         return Object.assign({}, this._connectionInfo);
     }
 
@@ -187,10 +182,6 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._parentNode = value;
     }
 
-    public updateConnectionInfo(value: IConnectionInfo): void {
-        this._connectionInfo = value;
-    }
-
     public set filterableProperties(value: vscodeMssql.NodeFilterProperty[]) {
         this._filterableProperties = value;
         this._updateContextValue();
@@ -207,6 +198,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     public set context(value: vscodeMssql.TreeNodeContextValue) {
         this.contextValue = this._convertToContextValue(value);
+    }
+
+    public updateConnectionInfo(value: IConnectionInfo): void {
+        this._connectionInfo = value;
     }
 
     private _updateContextValue() {
