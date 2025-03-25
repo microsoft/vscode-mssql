@@ -567,9 +567,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("compare", async (state, payload) => {
-            state.isComparisonInProgress = true;
-            this.updateState(state);
-
             return await this.schemaCompare(payload, state);
         });
 
@@ -979,6 +976,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         },
         state: SchemaCompareWebViewState,
     ) {
+        state.isComparisonInProgress = true;
+        this.updateState(state);
+
         const endActivity = startActivity(
             TelemetryViews.SchemaCompare,
             TelemetryActions.Compare,
