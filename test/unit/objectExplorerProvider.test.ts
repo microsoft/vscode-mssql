@@ -23,6 +23,7 @@ import {
     ExpandResponse,
 } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { IConnectionInfo } from "vscode-mssql";
 
 suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
@@ -709,7 +710,7 @@ suite("Object Explorer Node Types Test", () => {
             treeNode.parentNode,
             "Parent node should be equal to expected value",
         ).is.equal(undefined);
-        treeNode.connectionInfo = treeNode.connectionInfo;
+        treeNode.updateConnectionInfo(treeNode.connectionInfo);
         expect(
             treeNode.connectionInfo,
             "Connection credentials should be equal to expected value",
@@ -775,5 +776,51 @@ suite("Object Explorer Node Types Test", () => {
             treeNodeInfo.metadata,
             "Node metadata should be the same as nodeInfo metadata",
         ).is.equal(nodeInfo.metadata);
+    });
+
+    test("Connection Info is not accidentally modified", () => {
+        const testConnnectionInfo = {
+            server: "test_server",
+            database: "test_db",
+        } as IConnectionInfo;
+
+        const nodeInfo: NodeInfo = {
+            nodePath: "test_path",
+            nodeStatus: undefined,
+            nodeSubType: undefined,
+            nodeType: undefined,
+            label: "test_node",
+            isLeaf: false,
+            errorMessage: undefined,
+            metadata: undefined,
+        };
+
+        const treeNodeInfo = TreeNodeInfo.fromNodeInfo(
+            nodeInfo,
+            "test_session",
+            undefined,
+            testConnnectionInfo,
+            undefined,
+        );
+
+        const connectionInfo = treeNodeInfo.connectionInfo;
+        expect(
+            connectionInfo,
+            "Connection credentials should be equal to expected value",
+        ).to.deep.equal(testConnnectionInfo);
+
+        connectionInfo.server = "modified_server";
+
+        expect(
+            treeNodeInfo.connectionInfo.server,
+            "Connection credentials should not be modified",
+        ).is.equal("test_server");
+
+        treeNodeInfo.updateConnectionInfo(connectionInfo);
+
+        expect(
+            treeNodeInfo.connectionInfo.server,
+            "connectionInfo should be updated",
+        ).is.equal("modified_server");
     });
 });

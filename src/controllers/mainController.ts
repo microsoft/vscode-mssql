@@ -448,7 +448,7 @@ export default class MainController implements vscode.Disposable {
         executeScript: boolean = false,
     ): Promise<void> {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = Object.assign({}, node.connectionInfo);
+        let connectionCreds = node.connectionInfo;
         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         // if not connected or different database
         if (
@@ -809,12 +809,10 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = Object.assign(
-                        {},
-                        treeNodeInfo.connectionInfo,
-                    );
+                    const connectionCredentials = treeNodeInfo.connectionInfo;
                     const databaseName =
                         ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+
                     if (
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
@@ -825,7 +823,7 @@ export default class MainController implements vscode.Disposable {
                     ) {
                         connectionCredentials.database = "";
                     }
-                    treeNodeInfo.connectionInfo = connectionCredentials;
+                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -876,9 +874,7 @@ export default class MainController implements vscode.Disposable {
                             profile,
                         );
                     if (profile) {
-                        node.parentNode.connectionInfo = <IConnectionInfo>(
-                            profile
-                        );
+                        node.parentNode.updateConnectionInfo(profile);
                         self._objectExplorerProvider.updateNode(
                             node.parentNode,
                         );
