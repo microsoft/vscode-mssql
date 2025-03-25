@@ -160,6 +160,8 @@ suite("UserSurvey Tests", () => {
             "sendActionEvent should be called",
         );
 
+        const calls = sendActionEvent.getCalls();
+
         assert.strictEqual(
             sendActionEvent.calledWith(
                 TelemetryViews.UserSurvey,
@@ -168,6 +170,7 @@ suite("UserSurvey Tests", () => {
                     surveyId: "nps",
                     q1: "answer1",
                     q2: "answer2",
+                    modernFeaturesEnabled: true,
                 },
                 {
                     q3: 3,
