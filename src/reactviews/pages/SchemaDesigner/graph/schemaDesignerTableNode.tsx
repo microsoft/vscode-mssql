@@ -3,7 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Divider, makeStyles, Text } from "@fluentui/react-components";
+import {
+    Button,
+    Divider,
+    makeStyles,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    Text,
+} from "@fluentui/react-components";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import * as FluentIcons from "@fluentui/react-icons";
 import { NODEWIDTH } from "./schemaDesignerFlowConstants";
@@ -77,18 +88,25 @@ export const SchemaDesignerTableNode = ({
                         }}
                         size="small"
                     />
-                    <Button
-                        appearance="subtle"
-                        icon={<FluentIcons.MoreVerticalRegular />}
-                        disabled={false}
-                        onClick={() => {
-                            console.log("More options for table", data);
-                        }}
-                        style={{
-                            marginLeft: "auto",
-                        }}
-                        size="small"
-                    />
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <MenuButton
+                                icon={<FluentIcons.MoreVerticalRegular />}
+                                style={{
+                                    marginLeft: "auto",
+                                }}
+                                size="small"
+                                appearance="subtle"
+                            />
+                        </MenuTrigger>
+
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem>Item a</MenuItem>
+                                <MenuItem>Item b</MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
                 </div>
                 <div
                     style={{
@@ -111,6 +129,9 @@ export const SchemaDesignerTableNode = ({
                                 position={Position.Left}
                                 id={`column-in-${column.name}`}
                                 isConnectable={true}
+                                style={{
+                                    marginLeft: "2px",
+                                }}
                             />
                             {column.isPrimaryKey && (
                                 <FluentIcons.KeyRegular
@@ -139,6 +160,9 @@ export const SchemaDesignerTableNode = ({
                                 position={Position.Right}
                                 id={`column-out-${column.name}`}
                                 isConnectable={true}
+                                style={{
+                                    marginRight: "2px",
+                                }}
                             />
                         </div>
                     );

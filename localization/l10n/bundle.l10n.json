@@ -413,8 +413,8 @@
       "{0} is the foreign key name"
     ]
   },
-  "{0} columns data/{0} is the number of columns": {
-    "message": "{0} columns data",
+  "{0} column data/{0} is the number of columns": {
+    "message": "{0} column data",
     "comment": [
       "{0} is the number of columns"
     ]

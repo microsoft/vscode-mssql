@@ -98,6 +98,8 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
 
 .react-flow__node-tableNode .column .react-flow__handle {
     opacity: 0;
+    width: 10px;
+    height: 10px;
 }
 
 .react-flow__node-tableNode .column .react-flow__handle.connectingto.valid,

@@ -110,4 +110,9 @@ export const webviewTheme: fluentui.Theme = {
      * Specifies the shadow color for popover components.
      */
     colorNeutralShadowKey: "var(--vscode-widget-shadow)",
+    /**
+     * Color for the background of a selected item in a subtle button.
+     */
+    colorSubtleBackgroundSelected:
+        "var(--vscode-button-secondaryHoverBackground)",
 };
