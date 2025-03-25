@@ -137,6 +137,10 @@ export class ConnectionConfig implements IConnectionConfig {
             }
         }
 
+        if (profile.id === undefined) {
+            ConnectionProfile.addIdIfMissing(profile);
+        }
+
         let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set

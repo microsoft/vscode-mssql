@@ -15,11 +15,14 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IPrompter, IQuestion } from "../../src/prompts/question";
 import { TestPrompter } from "./stubs";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import {
+    AuthenticationTypes,
+    IConnectionProfile,
+} from "../../src/models/interfaces";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 import * as assert from "assert";
-import { IConnectionInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 
 suite("ConnectionCredentials Tests", () => {
     let defaultProfile: interfaces.IConnectionProfile;
@@ -176,133 +179,232 @@ suite("ConnectionCredentials Tests", () => {
         };
     }
 
-    // Connect with savePassword true and filled password and ensure password is saved and removed from plain text
-    test("ensureRequiredPropertiesSet should remove password from plain text and save password to Credential Store", (done) => {
-        // Setup Profile Information to have savePassword on and filled in password
-        let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
-            savePassword: true,
-            password: "oldPassword",
-        });
-        let emptyPassword = false;
+    suite("ensureRequiredPropertiesSet Tests", () => {
+        // Connect with savePassword true and filled password and ensure password is saved and removed from plain text
+        test("ensureRequiredPropertiesSet should remove password from plain text and save password to Credential Store", (done) => {
+            // Setup Profile Information to have savePassword on and filled in password
+            let profile = Object.assign(
+                new ConnectionProfile(),
+                defaultProfile,
+                {
+                    savePassword: true,
+                    password: "oldPassword",
+                },
+            );
+            let emptyPassword = false;
 
-        connectProfile(profile, emptyPassword)
-            .then((success) => {
-                assert.ok(success);
-                connectionStore.verify(
-                    async (x) => await x.removeProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                connectionStore.verify(
-                    async (x) => await x.saveProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                done();
-            })
-            .catch((err) => done(new Error(err)));
-    });
-
-    // Connect with savePassword true and empty password does not reset password
-    test("ensureRequiredPropertiesSet should keep Credential Store password", (done) => {
-        // Setup Profile Information to have savePassword on and blank
-        let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
-            savePassword: true,
-            password: "",
+            connectProfile(profile, emptyPassword)
+                .then((success) => {
+                    assert.ok(success);
+                    connectionStore.verify(
+                        async (x) => await x.removeProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.once(),
+                    );
+                    connectionStore.verify(
+                        async (x) => await x.saveProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.once(),
+                    );
+                    done();
+                })
+                .catch((err) => done(new Error(err)));
         });
 
-        let emptyPassword = true;
-        connectProfile(profile, emptyPassword)
-            .then((success) => {
-                assert.ok(success);
-                connectionStore.verify(
-                    async (x) => await x.removeProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                connectionStore.verify(
-                    async (x) => await x.saveProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                done();
-            })
-            .catch((err) => done(new Error(err)));
-    });
+        // Connect with savePassword true and empty password does not reset password
+        test("ensureRequiredPropertiesSet should keep Credential Store password", (done) => {
+            // Setup Profile Information to have savePassword on and blank
+            let profile = Object.assign(
+                new ConnectionProfile(),
+                defaultProfile,
+                {
+                    savePassword: true,
+                    password: "",
+                },
+            );
 
-    // Connect with savePassword false and ensure password is never saved
-    test("ensureRequiredPropertiesSet should not save password", (done) => {
-        // Setup Profile Information to have savePassword off and blank
-        let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
-            savePassword: false,
-            password: "oldPassword",
+            let emptyPassword = true;
+            connectProfile(profile, emptyPassword)
+                .then((success) => {
+                    assert.ok(success);
+                    connectionStore.verify(
+                        async (x) => await x.removeProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.never(),
+                    );
+                    connectionStore.verify(
+                        async (x) => await x.saveProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.never(),
+                    );
+                    done();
+                })
+                .catch((err) => done(new Error(err)));
         });
 
-        let emptyPassword = false;
-        connectProfile(profile, emptyPassword)
-            .then((success) => {
-                assert.ok(success);
-                connectionStore.verify(
-                    async (x) => await x.removeProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                connectionStore.verify(
-                    async (x) => await x.saveProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                done();
-            })
-            .catch((err) => done(new Error(err)));
-    });
+        // Connect with savePassword false and ensure password is never saved
+        test("ensureRequiredPropertiesSet should not save password", (done) => {
+            // Setup Profile Information to have savePassword off and blank
+            let profile = Object.assign(
+                new ConnectionProfile(),
+                defaultProfile,
+                {
+                    savePassword: false,
+                    password: "oldPassword",
+                },
+            );
 
-    // Connect with savePassword false and ensure empty password is never saved
-    test("ensureRequiredPropertiesSet should not save password, empty password case", (done) => {
-        // Setup Profile Information to have savePassword off and blank
-        let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
-            savePassword: false,
-            password: "",
+            let emptyPassword = false;
+            connectProfile(profile, emptyPassword)
+                .then((success) => {
+                    assert.ok(success);
+                    connectionStore.verify(
+                        async (x) => await x.removeProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.never(),
+                    );
+                    connectionStore.verify(
+                        async (x) => await x.saveProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.never(),
+                    );
+                    done();
+                })
+                .catch((err) => done(new Error(err)));
         });
 
-        let emptyPassword = true;
-        connectProfile(profile, emptyPassword)
-            .then((success) => {
-                assert.ok(success);
-                connectionStore.verify(
-                    async (x) => await x.removeProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                connectionStore.verify(
-                    async (x) => await x.saveProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                done();
-            })
-            .catch((err) => done(new Error(err)));
-    });
+        // Connect with savePassword false and ensure empty password is never saved
+        test("ensureRequiredPropertiesSet should not save password, empty password case", (done) => {
+            // Setup Profile Information to have savePassword off and blank
+            let profile = Object.assign(
+                new ConnectionProfile(),
+                defaultProfile,
+                {
+                    savePassword: false,
+                    password: "",
+                },
+            );
 
-    // Connect with savePassword true and blank password and
-    // confirm password is prompted for and saved for non-empty password
-    test(
-        "ensureRequiredPropertiesSet should request password and save it for non-empty passwords",
-        ensureRequestAndSavePassword(false),
-    );
+            let emptyPassword = true;
+            connectProfile(profile, emptyPassword)
+                .then((success) => {
+                    assert.ok(success);
+                    connectionStore.verify(
+                        async (x) => await x.removeProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.never(),
+                    );
+                    connectionStore.verify(
+                        async (x) => await x.saveProfile(TypeMoq.It.isAny()),
+                        TypeMoq.Times.never(),
+                    );
+                    done();
+                })
+                .catch((err) => done(new Error(err)));
+        });
 
-    // Connect with savePassword true and blank password and
-    // confirm password is prompted for and saved correctly for an empty password
-    test(
-        "ensureRequiredPropertiesSet should request password and save it correctly for empty passswords",
-        ensureRequestAndSavePassword(true),
-    );
-
-    // A connection string can be set alongside other properties for createConnectionDetails
-    test("createConnectionDetails sets properties in addition to the connection string", () => {
-        let credentials = new ConnectionCredentials();
-        credentials.connectionString = "server=some-server";
-        credentials.database = "some-db";
-
-        let connectionDetails =
-            ConnectionCredentials.createConnectionDetails(credentials);
-        assert.equal(
-            connectionDetails.options.connectionString,
-            credentials.connectionString,
+        // Connect with savePassword true and blank password and
+        // confirm password is prompted for and saved for non-empty password
+        test(
+            "ensureRequiredPropertiesSet should request password and save it for non-empty passwords",
+            ensureRequestAndSavePassword(false),
         );
-        assert.equal(connectionDetails.options.database, credentials.database);
+
+        // Connect with savePassword true and blank password and
+        // confirm password is prompted for and saved correctly for an empty password
+        test(
+            "ensureRequiredPropertiesSet should request password and save it correctly for empty passswords",
+            ensureRequestAndSavePassword(true),
+        );
+    });
+
+    suite("ConnectionDetails conversion tests", () => {
+        // A connection string can be set alongside other properties for createConnectionDetails
+        test("createConnectionDetails sets properties in addition to the connection string", () => {
+            let credentials = new ConnectionCredentials();
+            credentials.connectionString = "server=some-server";
+            credentials.database = "some-db";
+
+            let connectionDetails =
+                ConnectionCredentials.createConnectionDetails(credentials);
+            assert.equal(
+                connectionDetails.options.connectionString,
+                credentials.connectionString,
+            );
+            assert.equal(
+                connectionDetails.options.database,
+                credentials.database,
+            );
+        });
+
+        test("createConnectionDetails sets properties from the connection string", () => {
+            const connDetails: ConnectionDetails = {
+                options: {
+                    server: "someServer,1234",
+                    user: "testUser",
+                    password: "testPassword",
+                },
+            };
+
+            const connInfo =
+                ConnectionCredentials.createConnectionInfo(connDetails);
+
+            assert.equal(connInfo.server, connDetails.options.server);
+            assert.equal(connInfo.user, connDetails.options.user);
+            assert.equal(connInfo.password, connDetails.options.password);
+            assert.equal(connInfo.port, 1234);
+        });
+
+        test("IConnectionInfo-ConnectionDetails conversion roundtrip", () => {
+            const originalConnInfo: IConnectionInfo = {
+                server: "testServer,1234",
+                database: "testDatabase",
+                user: "testUser",
+                password: "testPassword",
+                email: "testEmail@contoso.com",
+                accountId: "testAccountid",
+                tenantId: "testTenantId",
+                port: 1234,
+                authenticationType:
+                    AuthenticationTypes[AuthenticationTypes.SqlLogin],
+                azureAccountToken: "testToken",
+                expiresOn: 5678,
+                encrypt: "Strict",
+                trustServerCertificate: true,
+                hostNameInCertificate: "testHostName",
+                persistSecurityInfo: true,
+                secureEnclaves: "testSecureEnclaves",
+                columnEncryptionSetting: "Enabled",
+                attestationProtocol: "HGS",
+                enclaveAttestationUrl: "testEnclaveAttestationUrl",
+                connectTimeout: 7,
+                commandTimeout: 11,
+                connectRetryCount: 17,
+                connectRetryInterval: 19,
+                applicationName: "testApplicationName",
+                workstationId: "testWorkstationId",
+                applicationIntent: "ReadOnly",
+                currentLanguage: "",
+                pooling: true,
+                maxPoolSize: 23,
+                minPoolSize: 29,
+                loadBalanceTimeout: 31,
+                replication: true,
+                attachDbFilename: "testAttachDbFilename",
+                failoverPartner: "testFailoverPartner",
+                multiSubnetFailover: true,
+                multipleActiveResultSets: true,
+                packetSize: 37,
+                typeSystemVersion: "testTypeSystemVersion",
+                connectionString: "testConnectionString",
+            };
+
+            const connDetails =
+                ConnectionCredentials.createConnectionDetails(originalConnInfo);
+            const convertedConnInfo =
+                ConnectionCredentials.createConnectionInfo(connDetails);
+
+            for (const key in originalConnInfo) {
+                assert.equal(
+                    originalConnInfo[key as keyof IConnectionInfo],
+                    convertedConnInfo[key as keyof IConnectionInfo],
+                    `Mismatch on ${key}`,
+                );
+            }
+        });
     });
 
     test("Subsequent connection credential questions are skipped if a connection string is given", async () => {
