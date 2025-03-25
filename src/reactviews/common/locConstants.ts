@@ -335,6 +335,13 @@ export class LocConstants {
 
     public get schemaCompare() {
         return {
+            intro: l10n.t(
+                "To compare two schemas, first select a source schema and target schema, then press compare.",
+            ),
+            noDifferences: l10n.t("No schema differences were found."),
+            initializingComparison: l10n.t(
+                "Initializing comparison, this might take a while...",
+            ),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
             defaultUserName: l10n.t("default"),

@@ -3,15 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import SchemaDifferences from "./components/SchemaDifferences";
 import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
 import SchemaSelectorDrawer from "./components/SchemaSelectorDrawer";
 import CompareActionBar from "./components/CompareActionBar";
 import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
+import { schemaCompareContext } from "./SchemaCompareStateProvider";
+import Message from "./components/Message";
 
 export const SchemaComparePage = () => {
+    const context = useContext(schemaCompareContext);
     const [selectedDiffId, setSelectedDiffId] = useState(-1);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
@@ -42,16 +45,35 @@ export const SchemaComparePage = () => {
         setShowOptionsDrawer(show);
     };
 
+    const showMessage = () => {
+        if (
+            !context.state.schemaCompareResult ||
+            context.state.schemaCompareResult.areEqual ||
+            context.state.isComparisonInProgress
+        ) {
+            return true;
+        }
+
+        return false;
+    };
+
     return (
         <div>
             <CompareActionBar onOptionsClicked={openOptionsDialog} />
             <SelectSchemasPanel
                 onSelectSchemaClicked={handleSelectSchemaClicked}
             />
-            <SchemaDifferences onDiffSelected={handleDiffSelected} />
-            {selectedDiffId !== -1 && (
+
+            {showMessage() && <Message />}
+
+            {!showMessage() && (
+                <SchemaDifferences onDiffSelected={handleDiffSelected} />
+            )}
+
+            {!showMessage() && selectedDiffId !== -1 && (
                 <CompareDiffEditor selectedDiffId={selectedDiffId} />
             )}
+
             {showDrawer && (
                 <SchemaSelectorDrawer
                     show={showDrawer}
@@ -59,6 +81,7 @@ export const SchemaComparePage = () => {
                     showDrawer={handleShowDrawer}
                 />
             )}
+
             {showOptionsDrawer && (
                 <SchemaOptionsDrawer
                     show={showOptionsDrawer}
