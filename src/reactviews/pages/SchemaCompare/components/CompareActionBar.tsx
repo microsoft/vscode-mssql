@@ -106,7 +106,8 @@ const CompareActionBar = (props: Props) => {
         if (
             context.state.schemaCompareResult &&
             context.state.schemaCompareResult.differences &&
-            context.state.schemaCompareResult.differences.length > 0
+            context.state.schemaCompareResult.differences.length > 0 &&
+            Number(context.state.targetEndpointInfo.endpointType) !== 1 // Dacpac lewissanchez todo: Figure out how to move away from these magic numbers for enums
         ) {
             return false;
         }
@@ -143,7 +144,12 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
                 icon={<DocumentChevronDoubleRegular />}
                 onClick={handleGenerateScript}
-                disabled={true}
+                disabled={
+                    context.state.targetEndpointInfo &&
+                    Number(context.state.targetEndpointInfo.endpointType) === 0 // Database lewissanchez todo: Get rid of this magic number too by figuring out how to ref it from vscode-mssql
+                        ? false
+                        : true
+                }
             >
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
