@@ -6,25 +6,43 @@
 import { useContext } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
+import { makeStyles, Text } from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+    container: {
+        marginTop: "32px",
+        display: "flex",
+        gap: "16px",
+        flexDirection: "column",
+        alignItems: "stretch",
+    },
+});
 
 const Message = () => {
     const context = useContext(schemaCompareContext);
     const state = context.state;
+    const classes = useStyles();
 
     return (
-        <div>
+        <div className={classes.container}>
             {!state.isComparisonInProgress &&
                 state.schemaCompareResult &&
                 state.schemaCompareResult.areEqual && (
-                    <p>{loc.schemaCompare.noDifferences}</p>
+                    <Text size={400} align="center">
+                        {loc.schemaCompare.noDifferences}
+                    </Text>
                 )}
 
             {state.isComparisonInProgress && (
-                <p>{loc.schemaCompare.initializingComparison}</p>
+                <Text size={400} align="center">
+                    {loc.schemaCompare.initializingComparison}
+                </Text>
             )}
 
             {!state.isComparisonInProgress && !state.schemaCompareResult && (
-                <p>{loc.schemaCompare.intro}</p>
+                <Text size={400} align="center">
+                    {loc.schemaCompare.intro}
+                </Text>
             )}
         </div>
     );
