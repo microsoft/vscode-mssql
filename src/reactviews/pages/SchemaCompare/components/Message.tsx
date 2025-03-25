@@ -6,7 +6,7 @@
 import { useContext } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
-import { makeStyles, Text } from "@fluentui/react-components";
+import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
     container: {
@@ -42,9 +42,15 @@ const Message = () => {
 
     return (
         <div className={classes.container}>
-            <Text size={400} align="center">
-                {message}
-            </Text>
+            {state.isComparisonInProgress && (
+                <Spinner labelPosition="below" label={message} />
+            )}
+
+            {!state.isComparisonInProgress && (
+                <Text size={400} align="center">
+                    {message}
+                </Text>
+            )}
         </div>
     );
 };
