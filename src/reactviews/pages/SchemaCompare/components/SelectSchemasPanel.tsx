@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as mssql from "vscode-mssql";
 import { useContext } from "react";
 import {
     Button,
@@ -81,6 +82,20 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
         );
     };
 
+    const isEndpointEmpty = (
+        endpoint: mssql.SchemaCompareEndpointInfo,
+    ): boolean => {
+        if (
+            endpoint &&
+            (endpoint.serverDisplayName ||
+                endpoint.packageFilePath ||
+                endpoint.projectFilePath)
+        ) {
+            return false;
+        }
+        return true;
+    };
+
     return (
         <div
             className={mergeClasses(
@@ -111,6 +126,11 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 )}
                 size="medium"
                 onClick={handleCompare}
+                disabled={
+                    isEndpointEmpty(context.state.sourceEndpointInfo) ||
+                    isEndpointEmpty(context.state.targetEndpointInfo) ||
+                    context.state.isComparisonInProgress
+                }
             >
                 {loc.schemaCompare.compare}
             </Button>
