@@ -212,6 +212,10 @@ export default class ConnectionManager {
         }
     }
 
+    public get initialized(): Deferred<void> {
+        return this.connectionStore.initialized;
+    }
+
     /**
      * Exposed for testing purposes
      */
@@ -376,6 +380,15 @@ export default class ConnectionManager {
         return this.client.sendRequest(
             ConnectionContracts.GetConnectionStringRequest.type,
             listParams,
+        );
+    }
+
+    public async buildConnectionDetails(
+        connectionString: string,
+    ): Promise<ConnectionDetails> {
+        return await this.client.sendRequest(
+            ConnectionContracts.BuildConnectionDetailsRequest.type,
+            connectionString,
         );
     }
 
@@ -1099,7 +1112,11 @@ export default class ConnectionManager {
         fileUri: string,
     ): Promise<IConnectionInfo> {
         // show connection picklist
-        const connectionCreds = await this.connectionUI.promptForConnection();
+        const connectionProfileList =
+            await this._connectionStore.getPickListItems();
+        const connectionCreds = await this.connectionUI.promptForConnection(
+            connectionProfileList,
+        );
         if (connectionCreds) {
             // close active connection
             await this.disconnect(fileUri);

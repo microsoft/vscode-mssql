@@ -448,7 +448,7 @@ export default class MainController implements vscode.Disposable {
         executeScript: boolean = false,
     ): Promise<void> {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = Object.assign({}, node.connectionInfo);
+        let connectionCreds = node.connectionInfo;
         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         // if not connected or different database
         if (
@@ -745,6 +745,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider = new ObjectExplorerProvider(
+            this._vscodeWrapper,
             this._connectionMgr,
         );
         this.objectExplorerTree = vscode.window.createTreeView(
@@ -815,12 +816,10 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = Object.assign(
-                        {},
-                        treeNodeInfo.connectionInfo,
-                    );
+                    const connectionCredentials = treeNodeInfo.connectionInfo;
                     const databaseName =
                         ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+
                     if (
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
@@ -831,7 +830,7 @@ export default class MainController implements vscode.Disposable {
                     ) {
                         connectionCredentials.database = "";
                     }
-                    treeNodeInfo.connectionInfo = connectionCredentials;
+                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -882,9 +881,7 @@ export default class MainController implements vscode.Disposable {
                             profile,
                         );
                     if (profile) {
-                        node.parentNode.connectionInfo = <IConnectionInfo>(
-                            profile
-                        );
+                        node.parentNode.updateConnectionInfo(profile);
                         self._objectExplorerProvider.updateNode(
                             node.parentNode,
                         );
@@ -1099,7 +1096,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
-                    await UserSurvey.getInstance().promptUserForNPSFeedback();
+                    UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
             ),
         );
@@ -2011,7 +2008,8 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onSchemaCompare(node: any): Promise<void> {
-        const result = await this.schemaCompareService.getDefaultOptions();
+        const result =
+            await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2217,7 +2215,7 @@ export default class MainController implements vscode.Disposable {
             // user connections is a super set of object explorer connections
             // read the connections from glocal settings and workspace settings.
             let userConnections: any[] =
-                this.connectionManager.connectionStore.connectionConfig.getConnections(
+                await this.connectionManager.connectionStore.connectionConfig.getConnections(
                     true,
                 );
             let objectExplorerConnections =

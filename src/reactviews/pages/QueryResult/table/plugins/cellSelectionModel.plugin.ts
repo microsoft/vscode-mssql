@@ -18,6 +18,7 @@ import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
+import { Keys } from "../../keys";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -72,7 +73,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
-        // this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) => this.handleKeyDown(convertJQueryKeyDownEvent(e)));
+        this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
+            this.handleKeyDown(e as unknown as KeyboardEvent),
+        );
         this._handler.subscribe(
             this.grid.onAfterKeyboardNavigation,
             (_e: Event) => this.handleAfterKeyboardNavigationEvent(),
@@ -459,6 +462,49 @@ export class CellSelectionModel<T extends Slick.SlickData>
             ? { cell: 1, row: args.row }
             : { cell: args.cell, row: args.row };
         this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
+    }
+
+    public async handleSelectAll() {
+        let ranges: Slick.Range[];
+        let startColumn = 0;
+        // check for number column
+        if (
+            !isUndefinedOrNull(this.grid.getColumns()[0].selectable) &&
+            !this.grid.getColumns()[0].selectable
+        ) {
+            startColumn = 1;
+        }
+        ranges = [
+            new Slick.Range(
+                0,
+                startColumn,
+                this.grid.getDataLength() - 1,
+                this.grid.getColumns().length - 1,
+            ),
+        ];
+        this.setSelectedRanges(ranges);
+    }
+
+    private async handleKeyDown(e: KeyboardEvent): Promise<void> {
+        let handled = false;
+        let platform = await this.webViewState.extensionRpc.call("getPlatform");
+        if (platform === "darwin") {
+            // Cmd + A
+            if (e.metaKey && e.key === Keys.a) {
+                handled = true;
+                await this.handleSelectAll();
+            }
+        } else {
+            if (e.ctrlKey && e.key === Keys.a) {
+                handled = true;
+                await this.handleSelectAll();
+            }
+        }
+
+        if (handled) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
     }
 
     // private handleKeyDown(e: StandardKeyboardEvent) {

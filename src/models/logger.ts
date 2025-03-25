@@ -95,9 +95,13 @@ export class Logger implements ILogger {
         return this._piiLogging;
     }
 
-    /** If `mssql.logDebug` is enabled, prints the message to the developer console */
+    /**
+     * Prints at the `verbose` level.
+     * If `mssql.logDebug` is enabled, prints the message to the developer console.
+     **/
     public logDebug(message: string): void {
         Utils.logDebug(message);
+        this.write(LogLevel.Verbose, message);
     }
 
     public critical(msg: any, ...vals: any[]): void {
