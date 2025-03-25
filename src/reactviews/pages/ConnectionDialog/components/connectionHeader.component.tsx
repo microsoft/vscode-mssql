@@ -10,8 +10,8 @@ import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 
-const sqlServerImage = require("../../../../../media/sqlServer_light.svg");
-const sqlServerImageDark = require("../../../../../media/sqlServer_dark.svg");
+const databaseIconLight = require("../../../../../media/database_light.svg");
+const databaseIconDark = require("../../../../../media/database_dark.svg");
 
 export const ConnectionHeader = () => {
     const connectionDialogContext = useContext(ConnectionDialogContext);
@@ -29,10 +29,10 @@ export const ConnectionHeader = () => {
                 }}
                 src={
                     connectionDialogContext?.themeKind === ColorThemeKind.Light
-                        ? sqlServerImage
-                        : sqlServerImageDark
+                        ? databaseIconLight
+                        : databaseIconDark
                 }
-                alt="SQL Server"
+                alt={locConstants.connectionDialog.connectToDatabase}
                 height={60}
                 width={60}
             />
@@ -43,7 +43,7 @@ export const ConnectionHeader = () => {
                 }}
                 weight="medium"
             >
-                {locConstants.connectionDialog.connectToSQLServer}
+                {locConstants.connectionDialog.connectToDatabase}
             </Text>
         </div>
     );
