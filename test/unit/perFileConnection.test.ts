@@ -65,6 +65,7 @@ function createTestCredentials(): IConnectionInfo {
         hostNameInCertificate: "",
         persistSecurityInfo: false,
         columnEncryptionSetting: "enabled",
+        secureEnclaves: "Enabled",
         attestationProtocol: "HGS",
         enclaveAttestationUrl: "https://attestationurl",
         connectTimeout: 15,
@@ -163,7 +164,7 @@ suite("Per File Connection Tests", () => {
             .setup((x) => x.promptToChangeLanguageMode())
             .returns((x) => Promise.resolve(true));
         connectionUIMock
-            .setup((x) => x.promptForConnection())
+            .setup((x) => x.promptForConnection(TypeMoq.It.isAny()))
             .returns((x) => Promise.resolve(connectionCreds));
 
         // Return undefined to simulate the scenario that user doesn't want to enter new credentials
@@ -241,7 +242,7 @@ suite("Per File Connection Tests", () => {
             .setup((x) => x.promptToChangeLanguageMode())
             .returns((x) => Promise.resolve(true));
         connectionUIMock
-            .setup((x) => x.promptForConnection())
+            .setup((x) => x.promptForConnection(TypeMoq.It.isAny()))
             .returns((x) => Promise.resolve(connectionCreds));
 
         connectionUIMock

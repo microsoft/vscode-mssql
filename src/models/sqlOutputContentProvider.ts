@@ -151,6 +151,25 @@ export class SqlOutputContentProvider {
             );
     }
 
+    public sendToClipboard(
+        uri: string,
+        data: Array<any>,
+        batchId: number,
+        resultId: number,
+        selection: ISlickRange[],
+        headersFlag: boolean,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.exportCellsToClipboard(
+                data,
+                batchId,
+                resultId,
+                selection,
+                headersFlag,
+            );
+    }
+
     public editorSelectionRequestHandler(
         uri: string,
         selection: ISelectionData,
@@ -578,14 +597,21 @@ export class SqlOutputContentProvider {
                                     ),
                                 isError: false, // Elapsed time messages are never displayed as errors
                             });
-                        const tabState =
-                            Object.keys(
-                                this._queryResultWebviewController.getQueryResultState(
-                                    uri,
-                                ).resultSetSummaries,
-                            ).length > 0
-                                ? QueryResultPaneTabs.Results
-                                : QueryResultPaneTabs.Messages;
+                        // if there is an error, show the error message and set the tab to the messages tab
+                        let tabState: QueryResultPaneTabs;
+                        if (hasError) {
+                            tabState = QueryResultPaneTabs.Messages;
+                        } else {
+                            tabState =
+                                Object.keys(
+                                    this._queryResultWebviewController.getQueryResultState(
+                                        uri,
+                                    ).resultSetSummaries,
+                                ).length > 0
+                                    ? QueryResultPaneTabs.Results
+                                    : QueryResultPaneTabs.Messages;
+                        }
+
                         this._queryResultWebviewController.getQueryResultState(
                             uri,
                         ).tabStates.resultPaneTab = tabState;

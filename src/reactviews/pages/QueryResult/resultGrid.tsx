@@ -6,6 +6,7 @@
 import $ from "jquery";
 import {
     forwardRef,
+    useContext,
     useEffect,
     useImperativeHandle,
     useRef,
@@ -32,7 +33,8 @@ import {
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
-import { QueryResultState } from "./queryResultStateProvider";
+import { QueryResultContext } from "./queryResultStateProvider";
+import { LogCallback } from "../../../sharedInterfaces/webview";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -58,8 +60,8 @@ export interface ResultGridProps {
         QueryResultReducers
     >;
     gridParentRef?: React.RefObject<HTMLDivElement>;
-    state: QueryResultState;
     linkHandler: (fileContent: string, fileType: string) => void;
+    gridId: string;
 }
 
 export interface ResultGridHandle {
@@ -72,8 +74,16 @@ export interface ResultGridHandle {
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
     (props: ResultGridProps, ref) => {
         let table: Table<any>;
+
+        const context = useContext(QueryResultContext);
+        if (!context) {
+            return undefined;
+        }
         const gridContainerRef = useRef<HTMLDivElement>(null);
-        const [refreshkey, setRefreshKey] = useState(0);
+        const [refreshKey, setRefreshKey] = useState(0);
+        if (!props.gridParentRef) {
+            return undefined;
+        }
         const refreshGrid = () => {
             if (gridContainerRef.current) {
                 while (gridContainerRef.current.firstChild) {
@@ -82,9 +92,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     );
                 }
             }
-            setRefreshKey((prev) => prev + 1);
         };
         const resizeGrid = (width: number, height: number) => {
+            if (!table) {
+                context.log("resizeGrid - table is not initialized");
+                refreshGrid();
+                setRefreshKey(refreshKey + 1);
+            }
             let gridParent: HTMLElement | null;
             if (!props.resultSetSummary) {
                 return;
@@ -125,7 +139,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             }
         };
 
-        useEffect(() => {
+        const createTable = () => {
             const filter = async () => {
                 let hasNewFilters = await table.setupFilterState();
                 if (hasNewFilters) {
@@ -133,13 +147,11 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 }
             };
             const DEFAULT_FONT_SIZE = 12;
-            console.log(
-                "resultGrid: ",
-                props.state.state.fontSettings.fontSize,
-            );
-            const ROW_HEIGHT = props.state.state.fontSettings.fontSize! + 12; // 12 px is the padding
+            context?.log(`resultGrid: ${context.state.fontSettings.fontSize}`);
+
+            const ROW_HEIGHT = context.state.fontSettings.fontSize! + 12; // 12 px is the padding
             const COLUMN_WIDTH = Math.max(
-                (props.state.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
+                (context.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) *
                     120,
                 120,
             ); // Scale width with font size, but keep a minimum of 120px
@@ -173,7 +185,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                                             addClasses: string;
                                         } => {
                                       if (
-                                          isXmlCell(value) &&
+                                          isXmlCell(value, context?.log) &&
                                           props.resultSetSummary
                                       ) {
                                           props.resultSetSummary.columnInfo[
@@ -279,8 +291,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                 props.uri!,
                 props.resultSetSummary!,
                 props.webViewState!,
-                props.state,
+                context,
                 props.linkHandler!,
+                props.gridId,
                 { dataProvider: dataProvider, columns: columns },
                 tableOptions,
                 props.gridParentRef,
@@ -305,7 +318,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
                     ),
                 );
             }
-        }, [refreshkey]);
+        };
 
         useImperativeHandle(ref, () => ({
             refreshGrid,
@@ -313,6 +326,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>(
             hideGrid,
             showGrid,
         }));
+
+        useEffect(() => {
+            createTable();
+        }, [refreshKey]);
 
         return <div id="gridContainter" ref={gridContainerRef}></div>;
     },
@@ -322,7 +339,7 @@ function isJsonCell(value: DbCellValue): boolean {
     return !!(value && !value.isNull && value.displayValue?.match(IsJsonRegex));
 }
 
-function isXmlCell(value: DBCellValue): boolean {
+function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
     let isXML = false;
     try {
         if (value && !value.isNull && value.displayValue.trim() !== "") {
@@ -336,7 +353,7 @@ function isXmlCell(value: DBCellValue): boolean {
         }
     } catch (e) {
         // Ignore errors when parsing cell content, log and continue
-        console.log(`An error occurred when parsing data as XML: ${e}`);
+        log && log(`An error occurred when parsing data as XML: ${e}`); // only call if callback is defined
     }
     return isXML;
 }

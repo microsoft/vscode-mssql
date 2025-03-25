@@ -9,8 +9,9 @@ import { ConnectButton } from "./components/connectButton.component";
 import { Button, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { FormItemSpec } from "../../common/forms/form";
 import {
+    ConnectionDialogContextProps,
+    ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -230,6 +231,7 @@ export const AzureBrowsePage = () => {
                             onClick={() => {
                                 context.filterAzureSubscriptions();
                             }}
+                            size="small"
                         />
                         {context.state.loadingAzureSubscriptionsStatus ===
                         ApiStatus.Loading ? (
@@ -339,15 +341,17 @@ export const AzureBrowsePage = () => {
 
             {selectedServer && (
                 <>
-                    <FormField
+                    <FormField<
+                        IConnectionDialogProfile,
+                        ConnectionDialogWebviewState,
+                        ConnectionDialogFormItemSpec,
+                        ConnectionDialogContextProps
+                    >
                         context={context}
                         component={
-                            context.state.connectionComponents.components[
+                            context.state.formComponents[
                                 "trustServerCertificate"
-                            ] as FormItemSpec<
-                                ConnectionDialogWebviewState,
-                                IConnectionDialogProfile
-                            >
+                            ]!
                         }
                         idx={0}
                         props={{ orientation: "horizontal" }}
@@ -383,7 +387,7 @@ export const AzureBrowsePage = () => {
                         )
                         .map((inputName, idx) => {
                             const component =
-                                context.state.connectionComponents.components[
+                                context.state.formComponents[
                                     inputName as keyof IConnectionDialogProfile
                                 ];
                             if (component?.hidden !== false) {
@@ -391,15 +395,15 @@ export const AzureBrowsePage = () => {
                             }
 
                             return (
-                                <FormField
+                                <FormField<
+                                    IConnectionDialogProfile,
+                                    ConnectionDialogWebviewState,
+                                    ConnectionDialogFormItemSpec,
+                                    ConnectionDialogContextProps
+                                >
                                     key={idx}
                                     context={context}
-                                    component={
-                                        component as FormItemSpec<
-                                            ConnectionDialogWebviewState,
-                                            IConnectionDialogProfile
-                                        >
-                                    }
+                                    component={component}
                                     idx={idx}
                                     props={{ orientation: "horizontal" }}
                                 />

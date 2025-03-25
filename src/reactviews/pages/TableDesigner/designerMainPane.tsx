@@ -6,10 +6,8 @@
 import { Tab, TabList } from "@fluentui/react-tabs";
 import {
     CounterBadge,
-    Dropdown,
     Field,
     Input,
-    Option,
     Text,
     makeStyles,
     shorthands,
@@ -25,6 +23,7 @@ import {
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
 import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     root: {
@@ -66,36 +65,36 @@ const useStyles = makeStyles({
 
 export const DesignerMainPane = () => {
     const classes = useStyles();
-    const state = useContext(TableDesignerContext);
-    const metadata = state?.state;
-    if (!metadata) {
+    const context = useContext(TableDesignerContext);
+    const state = context?.state;
+    if (!state) {
         return null;
     }
     const [tableName, setTableName] = useState(
-        (metadata.model!["name"] as InputBoxProperties).value,
+        (state.model!["name"] as InputBoxProperties).value,
     );
     const [schema, setSchema] = useState(
-        (metadata.model!["schema"] as InputBoxProperties).value,
+        (state.model!["schema"] as InputBoxProperties).value,
     );
 
     useEffect(() => {
-        setTableName((metadata.model!["name"] as InputBoxProperties).value);
-        setSchema((metadata.model!["schema"] as InputBoxProperties).value);
-    }, [metadata.model]);
+        setTableName((state.model!["name"] as InputBoxProperties).value);
+        setSchema((state.model!["schema"] as InputBoxProperties).value);
+    }, [state.model]);
 
     const getCurrentTabIssuesCount = (tabId: string) => {
-        const tabComponents = metadata.view?.tabs.find(
+        const tabComponents = state.view?.tabs.find(
             (tab) => tab.id === tabId,
         )?.components;
         if (!tabComponents) {
             return 0;
         }
-        if (metadata.issues?.length === 0) {
+        if (state.issues?.length === 0) {
             return 0;
         }
         let count = 0;
-        for (let i = 0; i < metadata?.issues!.length; i++) {
-            const issue = metadata.issues![i];
+        for (let i = 0; i < state?.issues!.length; i++) {
+            const issue = state.issues![i];
             if (issue.propertyPath && issue.propertyPath.length > 0) {
                 if (
                     tabComponents.find(
@@ -146,8 +145,7 @@ export const DesignerMainPane = () => {
     }
 
     function getSortedSchemaValues() {
-        const schemas = (metadata?.model?.["schema"] as DropDownProperties)
-            .values;
+        const schemas = (state?.model?.["schema"] as DropDownProperties).values;
         const systemSchemas = new Set([
             "db_accessadmin",
             "db_backupoperator",
@@ -195,7 +193,7 @@ export const DesignerMainPane = () => {
                         }}
                         autoFocus // initial focus
                         onBlur={(_event) => {
-                            state.provider.processTableEdit({
+                            context.processTableEdit({
                                 source: "TabsView",
                                 type: DesignerEditType.Update,
                                 path: ["name"],
@@ -208,7 +206,24 @@ export const DesignerMainPane = () => {
                     label={locConstants.tableDesigner.schema}
                     orientation="horizontal"
                 >
-                    <Dropdown
+                    <SearchableDropdown
+                        size="medium"
+                        options={getSortedSchemaValues().map((option) => ({
+                            value: option,
+                        }))}
+                        onSelect={(option) => {
+                            context.processTableEdit({
+                                source: "TabsView",
+                                type: DesignerEditType.Update,
+                                path: ["schema"],
+                                value: option.value,
+                            });
+                        }}
+                        selectedOption={{
+                            value: schema,
+                        }}
+                    />
+                    {/* <Dropdown
                         size="medium"
                         value={schema}
                         onOptionSelect={(_event, data) => {
@@ -216,7 +231,7 @@ export const DesignerMainPane = () => {
                                 return;
                             }
                             setSchema(data?.optionValue);
-                            state.provider.processTableEdit({
+                            context.processTableEdit({
                                 source: "TabsView",
                                 type: DesignerEditType.Update,
                                 path: ["schema"],
@@ -230,18 +245,18 @@ export const DesignerMainPane = () => {
                                 return <Option>{option}</Option>;
                             })
                         }
-                    </Dropdown>
+                    </Dropdown> */}
                 </Field>
             </div>
             <TabList
                 size="small"
-                selectedValue={metadata.tabStates?.mainPaneTab}
+                selectedValue={state.tabStates?.mainPaneTab}
                 onTabSelect={(_event, data) => {
-                    state.provider.setTab(data.value as DesignerMainPaneTabs);
-                    state.provider.setPropertiesComponents(undefined);
+                    context.setTab(data.value as DesignerMainPaneTabs);
+                    context.setPropertiesComponents(undefined);
                 }}
             >
-                {metadata.view?.tabs.map((tab) => {
+                {state.view?.tabs.map((tab) => {
                     const ariaLabel = getTabAriaLabel(tab.id);
                     return (
                         <Tab title={ariaLabel} value={tab.id} key={tab.id}>
@@ -261,12 +276,12 @@ export const DesignerMainPane = () => {
                 })}
             </TabList>
             <div className={classes.form}>
-                {metadata.view?.tabs.map((tab) => {
+                {state.view?.tabs.map((tab) => {
                     return (
                         <div
                             style={{
                                 display:
-                                    metadata.tabStates?.mainPaneTab === tab.id
+                                    state.tabStates?.mainPaneTab === tab.id
                                         ? ""
                                         : "none",
                                 width: "100%",

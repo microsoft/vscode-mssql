@@ -35,19 +35,18 @@ const useStyles = makeStyles({
 
 export const ExecutionPlanPage = () => {
     const classes = useStyles();
-    const state = useContext(ExecutionPlanContext);
-    const executionPlanState = state?.state?.executionPlanState;
+    const context = useContext(ExecutionPlanContext);
+    const executionPlanState = context?.state?.executionPlanState;
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     useEffect(() => {
         if (
-            state &&
-            state.provider &&
+            context &&
             executionPlanState &&
             // checks if execution plans have already been gotten
             executionPlanState.executionPlanGraphs &&
             !executionPlanState.executionPlanGraphs.length
         ) {
-            state.provider.getExecutionPlan();
+            context.getExecutionPlan();
         }
     }, [executionPlanState]);
 

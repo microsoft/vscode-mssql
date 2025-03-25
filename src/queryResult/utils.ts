@@ -22,6 +22,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
+import store from "./singletonStore";
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -155,6 +156,30 @@ export function registerCommonRequestHandlers(
                 message.selection,
             );
     });
+
+    webviewController.registerRequestHandler(
+        "sendToClipboard",
+        async (message) => {
+            sendActionEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.CopyResults,
+                {
+                    correlationId: correlationId,
+                },
+            );
+            return webviewViewController
+                .getSqlOutputContentProvider()
+                .sendToClipboard(
+                    message.uri,
+                    message.data,
+                    message.batchId,
+                    message.resultId,
+                    message.selection,
+                    message.headersFlag,
+                );
+        },
+    );
+
     webviewController.registerRequestHandler(
         "copySelection",
         async (message) => {
@@ -217,22 +242,29 @@ export function registerCommonRequestHandlers(
                 message.selection,
             );
     });
+
+    // Register request handlers for query result filters
+    webviewController.registerRequestHandler("getFilters", async (message) => {
+        return store.get(message.uri);
+    });
+
+    webviewController.registerRequestHandler("setFilters", async (message) => {
+        store.set(message.uri, message.filters);
+        return true;
+    });
+
+    webviewController.registerRequestHandler(
+        "deleteFilter",
+        async (message) => {
+            store.delete(message.uri);
+            return true;
+        },
+    );
+
     webviewController.registerReducer(
         "setResultTab",
         async (state, payload) => {
             state.tabStates.resultPaneTab = payload.tabId;
-            return state;
-        },
-    );
-    webviewController.registerReducer(
-        "setFilterState",
-        async (state, payload) => {
-            state.filterState[payload.filterState.columnDef] = {
-                filterValues: payload.filterState.filterValues,
-                columnDef: payload.filterState.columnDef,
-                seachText: payload.filterState.seachText,
-                sorted: payload.filterState.sorted,
-            };
             return state;
         },
     );

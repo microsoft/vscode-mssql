@@ -97,16 +97,21 @@ const useStyles = makeStyles({
 
 export const DesignerResultPane = () => {
     const classes = useStyles();
-    const state = useContext(TableDesignerContext);
-    const metadata = state?.state;
+    const context = useContext(TableDesignerContext);
+    const state = context?.state;
+
+    if (!state) {
+        return undefined;
+    }
 
     const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
         const issuePath = issue.propertyPath ?? [];
-        console.log(`focusing on`, issuePath);
-        if (!metadata?.view?.tabs || !state?.provider) {
+        context?.log(`focusing on ${issuePath}`);
+
+        if (!state?.view?.tabs) {
             return;
         }
-        const containingTab = metadata.view.tabs.find((tab) => {
+        const containingTab = state.view.tabs.find((tab) => {
             return tab.components.find((c) => {
                 return c.propertyName === issuePath[0];
             });
@@ -115,7 +120,7 @@ export const DesignerResultPane = () => {
         if (!containingTab) {
             return;
         } else {
-            state.provider.setTab(containingTab.id as any);
+            context.setTab(containingTab.id as any);
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
         let tableComponent;
@@ -128,11 +133,11 @@ export const DesignerResultPane = () => {
             if (!tableComponent) {
                 return;
             }
-            tableModel = metadata.model![tableComponent.propertyName];
+            tableModel = state.model![tableComponent.propertyName];
             if (!tableModel) {
                 return;
             }
-            state?.provider.setPropertiesComponents({
+            context.setPropertiesComponents({
                 componentPath: [issuePath[0], issuePath[1]],
                 component: tableComponent,
                 model: tableModel,
@@ -145,8 +150,8 @@ export const DesignerResultPane = () => {
             case 3: // This is a component in the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
             case 5: // This is a component in the table inside the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
                 elementToFocus =
-                    state.elementRefs.current[
-                        state.provider.getComponentId(issuePath as any)
+                    context.elementRefs.current[
+                        context.getComponentId(issuePath as any)
                     ];
                 break;
             case 2: // This is table row. Therefore focuing on the first property of the row
@@ -157,8 +162,8 @@ export const DesignerResultPane = () => {
                     tableComponent.componentProperties as TableProperties
                 ).itemProperties[0].propertyName;
                 elementToFocus =
-                    state.elementRefs.current[
-                        state.provider.getComponentId([
+                    context.elementRefs.current[
+                        context.getComponentId([
                             ...issuePath,
                             firstProperty,
                         ] as any)
@@ -179,8 +184,8 @@ export const DesignerResultPane = () => {
                     subTableComponent.componentProperties as TableProperties
                 ).itemProperties[0].propertyName;
                 elementToFocus =
-                    state.elementRefs.current[
-                        state.provider.getComponentId([
+                    context.elementRefs.current[
+                        context.getComponentId([
                             ...issuePath,
                             firstPropertyInSubTable,
                         ] as any)
@@ -200,17 +205,14 @@ export const DesignerResultPane = () => {
         }
     };
 
-    if (!metadata) {
-        return undefined;
-    }
     return (
         <div className={classes.root}>
             <div className={classes.ribbon}>
                 <TabList
                     size="small"
-                    selectedValue={metadata.tabStates!.resultPaneTab}
+                    selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
-                        state.provider.setResultTab(
+                        context.setResultTab(
                             data.value as DesignerResultPaneTabs,
                         );
                     }}
@@ -222,24 +224,24 @@ export const DesignerResultPane = () => {
                     >
                         {locConstants.tableDesigner.scriptAsCreate}
                     </Tab>
-                    {metadata.issues?.length !== 0 && (
+                    {state.issues?.length !== 0 && (
                         <Tab
                             value={DesignerResultPaneTabs.Issues}
                             key={DesignerResultPaneTabs.Issues}
                         >
                             {locConstants.tableDesigner.issuesTabHeader(
-                                metadata.issues?.length!,
+                                state.issues?.length!,
                             )}
                         </Tab>
                     )}
                 </TabList>
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Script && (
                     <>
                         <Button
                             size="small"
                             appearance="outline"
-                            onClick={() => state.provider.scriptAsCreate()}
+                            onClick={() => context.scriptAsCreate()}
                             title={locConstants.tableDesigner.openInEditor}
                             icon={<OpenFilled />}
                         >
@@ -249,7 +251,7 @@ export const DesignerResultPane = () => {
                             size="small"
                             appearance="outline"
                             onClick={() =>
-                                state.provider.copyScriptAsCreateToClipboard()
+                                context.copyScriptAsCreateToClipboard()
                             }
                             title={locConstants.tableDesigner.copyScript}
                             icon={<CopyFilled />}
@@ -262,22 +264,22 @@ export const DesignerResultPane = () => {
                     size="small"
                     appearance="transparent"
                     onClick={() => {
-                        if (state.resultPaneResizeInfo.isMaximized) {
-                            state.resultPaneResizeInfo.setCurrentHeight(
-                                state.resultPaneResizeInfo.originalHeight,
+                        if (context.resultPaneResizeInfo.isMaximized) {
+                            context.resultPaneResizeInfo.setCurrentHeight(
+                                context.resultPaneResizeInfo.originalHeight,
                             );
                         }
-                        state.resultPaneResizeInfo.setIsMaximized(
-                            !state.resultPaneResizeInfo.isMaximized,
+                        context.resultPaneResizeInfo.setIsMaximized(
+                            !context.resultPaneResizeInfo.isMaximized,
                         );
                     }}
                     title={
-                        state.resultPaneResizeInfo.isMaximized
+                        context.resultPaneResizeInfo.isMaximized
                             ? locConstants.tableDesigner.restorePanelSize
                             : locConstants.tableDesigner.maximizePanelSize
                     }
                     icon={
-                        state.resultPaneResizeInfo.isMaximized ? (
+                        context.resultPaneResizeInfo.isMaximized ? (
                             <ChevronDownFilled />
                         ) : (
                             <ChevronUpFilled />
@@ -286,20 +288,17 @@ export const DesignerResultPane = () => {
                 />
             </div>
             <div className={classes.tabContent}>
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Script && (
                     <div className={classes.designerResultPaneScript}>
                         <Editor
                             height={"100%"}
                             width={"100%"}
                             language="sql"
-                            theme={resolveVscodeThemeType(state?.themeKind)}
+                            theme={resolveVscodeThemeType(context?.themeKind)}
                             value={
-                                (
-                                    metadata?.model![
-                                        "script"
-                                    ] as InputBoxProperties
-                                ).value ?? ""
+                                (state?.model!["script"] as InputBoxProperties)
+                                    .value ?? ""
                             }
                             options={{
                                 readOnly: true,
@@ -307,12 +306,12 @@ export const DesignerResultPane = () => {
                         ></Editor>
                     </div>
                 )}
-                {metadata.tabStates!.resultPaneTab ===
+                {state.tabStates!.resultPaneTab ===
                     DesignerResultPaneTabs.Issues &&
-                    metadata.issues?.length !== 0 && (
+                    state.issues?.length !== 0 && (
                         <div className={classes.issuesContainer}>
                             <List navigationMode="items">
-                                {metadata.issues!.map((item, index) => {
+                                {state.issues!.map((item, index) => {
                                     return (
                                         <ListItem
                                             key={`issue-${index}`}

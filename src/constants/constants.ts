@@ -17,7 +17,8 @@ export const connectionApplicationName = "vscode-mssql";
 export const outputChannelName = "MSSQL";
 export const connectionConfigFilename = "settings.json";
 export const connectionsArrayName = "connections";
-export const disconnectedServerLabel = "disconnectedServer";
+export const connectionGroupsArrayName = "connectionGroups";
+export const disconnectedServerNodeType = "disconnectedServer";
 export const serverLabel = "Server";
 export const folderLabel = "Folder";
 export const cmdRunQuery = "mssql.runQuery";
@@ -41,6 +42,7 @@ export const cmdStartQueryHistory = "mssql.startQueryHistoryCapture";
 export const cmdPauseQueryHistory = "mssql.pauseQueryHistoryCapture";
 export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
+export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -63,6 +65,7 @@ export const cmdObjectExplorerEnableGroupBySchemaCommand =
     "mssql.objectExplorer.enableGroupBySchema";
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
+export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
@@ -232,7 +235,7 @@ export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
 export const microsoftPrivacyStatementUrl =
-    "https://www.microsoft.com/en-us/privacy/privacystatement";
+    "https://go.microsoft.com/fwlink/?LinkId=521839";
 export const sqlPlanLanguageId = "sqlplan";
 export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {

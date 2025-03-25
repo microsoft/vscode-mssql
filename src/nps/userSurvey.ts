@@ -20,6 +20,7 @@ import {
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 const PROBABILITY = 0.15;
 const SESSION_COUNT_KEY = "nps/sessionCount";
@@ -31,16 +32,26 @@ const NEVER_KEY = "nps/never";
 export class UserSurvey {
     private static _instance: UserSurvey;
     private _webviewController: UserSurveyWebviewController;
-    private constructor(private _context: vscode.ExtensionContext) {}
-    public static createInstance(_context: vscode.ExtensionContext): void {
-        UserSurvey._instance = new UserSurvey(_context);
+    private constructor(
+        private _context: vscode.ExtensionContext,
+        private vscodeWrapper: VscodeWrapper,
+    ) {}
+    public static createInstance(
+        _context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
+    ): void {
+        UserSurvey._instance = new UserSurvey(_context, vscodeWrapper);
     }
     public static getInstance(): UserSurvey {
         return UserSurvey._instance;
     }
 
     /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
-    public async promptUserForNPSFeedback(): Promise<void> {
+    public promptUserForNPSFeedback(): void {
+        void (async () => this.promptUserForNPSFeedbackAsync)();
+    }
+
+    private async promptUserForNPSFeedbackAsync(): Promise<void> {
         const globalState = this._context.globalState;
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
         const extensionVersion =
@@ -93,6 +104,7 @@ export class UserSurvey {
         if (!this._webviewController || this._webviewController.isDisposed) {
             this._webviewController = new UserSurveyWebviewController(
                 this._context,
+                this.vscodeWrapper,
                 state,
             );
         } else {
@@ -205,8 +217,12 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
         new vscode.EventEmitter<void>();
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
-    constructor(context: vscode.ExtensionContext, state?: UserSurveyState) {
-        super(context, "userSurvey", state, {
+    constructor(
+        context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
+        state?: UserSurveyState,
+    ) {
+        super(context, vscodeWrapper, "userSurvey", "userSurvey", state, {
             title: locConstants.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

@@ -15,6 +15,7 @@ import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
     AuthenticationTypes,
+    IConnectionProfileWithSource,
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
@@ -22,6 +23,7 @@ import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
+import { Deferred } from "../protocol";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -43,6 +45,10 @@ export class ConnectionStore {
         if (!this._connectionConfig) {
             this._connectionConfig = new ConnectionConfig();
         }
+    }
+
+    public get initialized(): Deferred<void> {
+        return (this._connectionConfig as ConnectionConfig).initialized;
     }
 
     public static get CRED_PREFIX(): string {
@@ -182,9 +188,11 @@ export class ConnectionStore {
      *
      * @returns
      */
-    public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
+    public async getPickListItems(): Promise<
+        IConnectionCredentialsQuickPickItem[]
+    > {
         let pickListItems: IConnectionCredentialsQuickPickItem[] =
-            this.loadAllConnections(false);
+            await this.getConnectionQuickpickItems(false);
         pickListItems.push(<IConnectionCredentialsQuickPickItem>{
             label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
             connectionCreds: undefined,
@@ -199,10 +207,10 @@ export class ConnectionStore {
      *
      * @returns
      */
-    public getProfilePickListItems(
+    public async getProfilePickListItems(
         getWorkspaceProfiles: boolean,
-    ): IConnectionCredentialsQuickPickItem[] {
-        return this.loadProfiles(getWorkspaceProfiles);
+    ): Promise<IConnectionCredentialsQuickPickItem[]> {
+        return await this.loadProfiles(getWorkspaceProfiles);
     }
 
     public async addSavedPassword(
@@ -577,7 +585,7 @@ export class ConnectionStore {
         itemType: CredentialsQuickPickItemType,
     ): IConnectionCredentialsQuickPickItem {
         return <IConnectionCredentialsQuickPickItem>{
-            label: ConnInfo.getPicklistLabel(item, itemType),
+            label: ConnInfo.getSimpleConnectionDisplayName(item),
             description: ConnInfo.getPicklistDescription(item),
             detail: ConnInfo.getPicklistDetails(item),
             connectionCreds: item,
@@ -613,125 +621,66 @@ export class ConnectionStore {
         await this.saveProfile(profile);
     }
 
-    // Load connections from user preferences
-    public loadAllConnections(
-        addRecentConnections: boolean = false,
-    ): IConnectionCredentialsQuickPickItem[] {
-        let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
+    public async readAllConnections(
+        includeRecentConnections: boolean = false,
+    ): Promise<IConnectionProfileWithSource[]> {
+        let connResults: IConnectionProfileWithSource[] = [];
 
-        // Read recently used items from a memento
-        let recentConnections = [];
-        if (addRecentConnections) {
-            recentConnections = this.getConnectionsFromGlobalState(
-                Constants.configRecentConnections,
-            );
-        }
+        const connections = await this._connectionConfig.getConnections(true);
 
-        // Load connections from user preferences
-        // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
-        // Connections defined in workspace scope are unioned with the Connections defined in user scope
-        let profilesInConfiguration =
-            this._connectionConfig.getConnections(true);
-
-        // Remove any duplicates that are in both recent connections and the user settings
-        let profilesInRecentConnectionsList: number[] = [];
-        profilesInConfiguration = profilesInConfiguration.filter((profile) => {
-            for (let index = 0; index < recentConnections.length; index++) {
-                if (
-                    Utils.isSameProfile(
-                        profile,
-                        <IConnectionProfile>recentConnections[index],
-                    )
-                ) {
-                    if (
-                        Utils.isSameConnection(
-                            profile,
-                            recentConnections[index],
-                        )
-                    ) {
-                        // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
-                        ConnInfo.fixupConnectionCredentials(profile);
-                        recentConnections[index] = Object.assign({}, profile);
-                        profilesInRecentConnectionsList.push(index);
-                    }
-                    return false;
-                }
-            }
-            return true;
+        const configConnections = connections.map((c) => {
+            const conn = c as IConnectionProfileWithSource;
+            conn.profileSource = CredentialsQuickPickItemType.Profile;
+            return conn;
         });
 
-        // Ensure that MRU items which are actually profiles are labeled as such
-        let recentConnectionsItems = this.mapToQuickPickItems(
-            recentConnections,
-            CredentialsQuickPickItemType.Mru,
-        );
-        for (let index of profilesInRecentConnectionsList) {
-            recentConnectionsItems[index].quickPickItemType =
-                CredentialsQuickPickItemType.Profile;
+        connResults = connResults.concat(configConnections);
+
+        if (includeRecentConnections) {
+            const recentConnections = this.getRecentlyUsedConnections().map(
+                (c) => {
+                    const conn = c as IConnectionProfileWithSource;
+                    conn.profileSource = CredentialsQuickPickItemType.Mru;
+                    return conn;
+                },
+            );
+
+            connResults = connResults.concat(recentConnections);
         }
 
-        quickPickItems = quickPickItems.concat(recentConnectionsItems);
-        quickPickItems = quickPickItems.concat(
-            this.mapToQuickPickItems(
-                profilesInConfiguration,
-                CredentialsQuickPickItemType.Profile,
-            ),
+        // TODO re-add deduplication logic from old method
+
+        this._logger.logDebug(
+            `readAllConnections: ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"})`,
         );
 
-        // Return all connections
-        return quickPickItems;
+        return connResults;
     }
 
-    private getConnectionsFromGlobalState<T extends IConnectionInfo>(
-        configName: string,
-    ): T[] {
-        let connections: T[] = [];
-        // read from the global state
-        let configValues = this._context.globalState.get<T[]>(configName);
-        this.addConnections(connections, configValues);
-        return connections;
+    public async getConnectionQuickpickItems(
+        includeRecentConnections: boolean = false,
+    ): Promise<IConnectionCredentialsQuickPickItem[]> {
+        let output: IConnectionCredentialsQuickPickItem[] = [];
+        const connections = await this.readAllConnections(
+            includeRecentConnections,
+        );
+
+        output = connections.map((c) => {
+            return this.createQuickPickItem(c, c.profileSource);
+        });
+
+        return output;
     }
 
-    private mapToQuickPickItems(
-        connections: IConnectionInfo[],
-        itemType: CredentialsQuickPickItemType,
-    ): IConnectionCredentialsQuickPickItem[] {
-        return connections.map((c) => this.createQuickPickItem(c, itemType));
-    }
-
-    private loadProfiles(
+    private async loadProfiles(
         loadWorkspaceProfiles: boolean,
-    ): IConnectionCredentialsQuickPickItem[] {
+    ): Promise<IConnectionCredentialsQuickPickItem[]> {
         let connections: IConnectionProfile[] =
-            this._connectionConfig.getConnections(loadWorkspaceProfiles);
+            await this._connectionConfig.getConnections(loadWorkspaceProfiles);
         let quickPickItems = connections.map((c) =>
             this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile),
         );
         return quickPickItems;
-    }
-
-    private addConnections(
-        connections: IConnectionInfo[],
-        configValues: IConnectionInfo[],
-    ): void {
-        if (configValues) {
-            for (let index = 0; index < configValues.length; index++) {
-                let element = configValues[index];
-                if (
-                    element.server &&
-                    element.server.trim() &&
-                    !element.server.trim().startsWith("{{")
-                ) {
-                    let connection =
-                        ConnInfo.fixupConnectionCredentials(element);
-                    connections.push(connection);
-                } else {
-                    Utils.logDebug(
-                        `Missing server name in user preferences connection: index ( ${index} ): ${element.toString()}`,
-                    );
-                }
-            }
-        }
     }
 
     private getMaxRecentConnectionsCount(): number {

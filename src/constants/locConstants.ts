@@ -171,6 +171,9 @@ export function azureNoMicrosoftResource(provider: string) {
         comment: ["{0} is the provider"],
     });
 }
+export let unableToGetProxyAgentOptionsToGetTenants = l10n.t(
+    "Unable to read proxy agent options to get tenants.",
+);
 export let azureServerCouldNotStart = l10n.t(
     "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
 );
@@ -677,6 +680,12 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 }
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
+export class ObjectExplorer {
+    public static ErrorLoadingRefreshToTryAgain = l10n.t(
+        "Error loading; refresh to try again",
+    );
+}
+
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog (Preview)");
     public static azureAccount = l10n.t("Azure Account");
@@ -798,4 +807,8 @@ export class TableDesigner {
     public static General = l10n.t("General");
     public static Columns = l10n.t("Columns");
     public static AdvancedOptions = l10n.t("Advanced Options");
+}
+
+export class SchemaCompare {
+    public static Title = l10n.t("Schema Compare");
 }

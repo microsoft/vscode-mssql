@@ -246,7 +246,7 @@ declare module "vscode-mssql" {
     }
 
     /**
-     * Information about a database connection
+     * Information about a database connection necessary for connecting to a database.
      */
     export interface IConnectionInfo {
         /**
@@ -325,6 +325,11 @@ declare module "vscode-mssql" {
          * if the connection is open or has ever been in an open state.
          */
         persistSecurityInfo: boolean | undefined;
+
+		/**
+         * Gets or sets a value that specifies that Always Encrypted with Secure Enclaves is enabled in a connection.
+		 */
+		secureEnclaves: string | undefined;
 
         /**
          * Gets or sets a string value that specifies whether Always Encrypted is enabled or disabled for the connection.
@@ -458,6 +463,12 @@ declare module "vscode-mssql" {
         schemaObjectType = 5,
     }
 
+	/**
+	 * WARNING: The methods in this interface may be used by the SQL Projects extension.
+	 * 1. Be sure to check the current usage of these methods in the SQL Projects extension.
+	 * 2. Test against the current version of the SQL Projects extension by creating a vsix of
+	 * 	this extension and installing it alongside he SQL Projects extension.
+	 */
     export interface ISchemaCompareService {
         compare(
             operationId: string,
@@ -484,7 +495,7 @@ declare module "vscode-mssql" {
             targetFolderStructure: ExtractTarget,
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<SchemaComparePublishProjectResult>;
-        getDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
+        schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
         includeExcludeNode(
             operationId: string,
             diffEntry: DiffEntry,

@@ -1,4 +1,4 @@
-﻿const gulp = require('gulp');
+const gulp = require('gulp');
 const rename = require('gulp-rename');
 const ts = require('gulp-typescript');
 const tsProject = ts.createProject('tsconfig.json');
@@ -191,6 +191,7 @@ async function generateReactWebviewsBundle() {
 			'queryResult': 'src/reactviews/pages/QueryResult/index.tsx',
 			'userSurvey': 'src/reactviews/pages/UserSurvey/index.tsx',
 			'schemaDesigner': 'src/reactviews/pages/SchemaDesigner/index.tsx',
+			'schemaCompare': 'src/reactviews/pages/SchemaCompare/index.tsx',
 		},
 		bundle: true,
 		outdir: 'out/src/reactviews/assets',

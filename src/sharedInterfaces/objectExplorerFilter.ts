@@ -5,7 +5,7 @@
 
 import * as vscodeMssql from "vscode-mssql";
 
-import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
+import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
 
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
@@ -20,10 +20,8 @@ export interface ObjectExplorerReducers {
     cancel: {};
 }
 
-export interface ObjectExplorerFilterContextProps {
-    isLocalizationLoaded: boolean;
-    state: ObjectExplorerFilterState | undefined;
-    themeKind: ColorThemeKind;
+export interface ObjectExplorerFilterContextProps
+    extends WebviewContextProps<ObjectExplorerFilterState | undefined> {
     submit: (filters: vscodeMssql.NodeFilter[]) => void;
     clearAllFilters: () => void;
     cancel: () => void;

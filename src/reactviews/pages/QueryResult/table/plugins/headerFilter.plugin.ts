@@ -9,6 +9,7 @@
 import {
     ColumnFilterState,
     FilterableColumn,
+    GridColumnMap,
     SortProperties,
 } from "../interfaces";
 import { append, $ } from "../dom";
@@ -18,27 +19,34 @@ import {
 } from "../dataProvider";
 import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
-import { ColorThemeKind } from "../../../../common/vscodeWebviewProvider";
+import {
+    ColorThemeKind,
+    VscodeWebviewContext,
+} from "../../../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
 
-import { QueryResultState } from "../../queryResultStateProvider";
+import { QueryResultContextProps } from "../../queryResultStateProvider";
+import {
+    QueryResultReducers,
+    QueryResultWebviewState,
+} from "../../../../../sharedInterfaces/queryResult";
 
-export type HeaderFilterCommands = "sort-asc" | "sort-desc";
+export type SortDirection = "sort-asc" | "sort-desc" | "reset";
 
 export interface CommandEventArgs<T extends Slick.SlickData> {
     grid: Slick.Grid<T>;
     column: Slick.Column<T>;
-    command: HeaderFilterCommands;
+    command: SortDirection;
 }
 
 const ShowFilterText = locConstants.queryResult.showFilter;
+const SortAscendingText = locConstants.queryResult.sortAscending;
 
 export const FilterButtonWidth: number = 34;
 
 export class HeaderFilter<T extends Slick.SlickData> {
-    public theme: ColorThemeKind;
     public onFilterApplied = new Slick.Event<{
         grid: Slick.Grid<T>;
         column: FilterableColumn<T>;
@@ -51,20 +59,30 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
     private columnDef!: FilterableColumn<T>;
-    private columnButtonMapping: Map<string, HTMLElement> = new Map<
+    private columnFilterButtonMapping: Map<string, HTMLElement> = new Map<
         string,
         HTMLElement
+    >();
+    private columnSortStateMapping: Map<string, SortProperties> = new Map<
+        string,
+        SortProperties
     >();
     private _listData: TableFilterListElement[] = [];
     private _list!: VirtualizedList<TableFilterListElement>;
 
     private _eventManager = new EventManager();
-    private queryResultState: QueryResultState;
+    private currentSortColumn: string = "";
+    private currentSortButton: JQuery<HTMLElement> | null = null;
 
-    constructor(theme: ColorThemeKind, queryResultState: QueryResultState) {
-        this.queryResultState = queryResultState;
-        this.theme = theme;
-    }
+    constructor(
+        public theme: ColorThemeKind,
+        private queryResultContext: QueryResultContextProps,
+        private webviewState: VscodeWebviewContext<
+            QueryResultWebviewState,
+            QueryResultReducers
+        >,
+        private gridId: string,
+    ) {}
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
@@ -98,7 +116,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         args: Slick.OnHeaderCellRenderedEventArgs<T>,
     ) {
         const column = args.column as FilterableColumn<T>;
-        if ((<FilterableColumn<T>>column).filterable === false) {
+        if ((column as FilterableColumn<T>).filterable === false) {
             return;
         }
         if (args.node.classList.contains("slick-header-with-filter")) {
@@ -116,33 +134,149 @@ export class HeaderFilter<T extends Slick.SlickData> {
         const theme: string = resolveVscodeThemeType(this.theme);
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
-        const $el = jQuery(
+        const $filterButton = jQuery(
             `<button tabindex="-1" id="anchor-btn" aria-label="${ShowFilterText}" title="${ShowFilterText}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
+        const $sortButton = jQuery(
+            `<button tabindex="-1" id="anchor-btn" aria-label="${SortAscendingText}" title="${SortAscendingText} data-column-id=${column.id}"></button>`,
+        )
+            .addClass("slick-header-sort-button")
+            .data("column", column);
         if (column.filterValues?.length) {
-            this.setButtonImage($el, column.filterValues?.length > 0);
+            this.setFilterButtonImage(
+                $filterButton,
+                column.filterValues?.length > 0,
+            );
+        }
+        if (column.sorted) {
+            this.setSortButtonImage($sortButton, column);
+            this.columnSortStateMapping.set(column.id!, column.sorted);
         }
 
-        const elDivElement = $el.get(0);
-        if (elDivElement) {
+        const filterButton = $filterButton.get(0);
+        if (filterButton) {
             this._eventManager.addEventListener(
-                elDivElement,
+                filterButton,
                 "click",
                 async (e: Event) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    await this.showFilter(elDivElement);
+                    await this.showFilter(filterButton);
                     this.grid.onHeaderClick.notify();
                 },
             );
         }
 
-        $el.appendTo(args.node);
+        const sortButton = $sortButton.get(0);
+        if (sortButton) {
+            this._eventManager.addEventListener(
+                sortButton,
+                "click",
+                async (e: Event) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.columnDef = jQuery(sortButton).data("column"); //TODO: fix, shouldn't assign in the event handler
+                    let columnFilterState: ColumnFilterState = {
+                        columnDef: this.columnDef.id!,
+                        filterValues: this.columnDef.filterValues!,
+                        sorted: this.columnDef.sorted ?? SortProperties.NONE,
+                    };
+                    let sortState = this.columnSortStateMapping.get(column.id!);
 
-        //@ts-ignore
-        this.columnButtonMapping[column.id] = $el[0];
+                    switch (sortState) {
+                        case SortProperties.NONE:
+                            if (
+                                this.currentSortColumn &&
+                                this.currentSortButton
+                            ) {
+                                const $prevSortButton = this.currentSortButton;
+                                let prevColumnDef =
+                                    jQuery($prevSortButton).data("column");
+                                $prevSortButton.removeClass(
+                                    "slick-header-sortasc-button",
+                                );
+                                $prevSortButton.removeClass(
+                                    "slick-header-sortdesc-button",
+                                );
+                                $prevSortButton.addClass(
+                                    "slick-header-sort-button",
+                                );
+                                this.columnSortStateMapping.set(
+                                    this.currentSortColumn,
+                                    SortProperties.NONE,
+                                );
+                                columnFilterState.sorted = SortProperties.NONE;
+                                let prevFilterState: ColumnFilterState = {
+                                    columnDef: prevColumnDef.id!,
+                                    filterValues: prevColumnDef.filterValues!,
+                                    sorted: SortProperties.NONE,
+                                };
+                                await this.updateState(
+                                    prevFilterState,
+                                    prevColumnDef.id!,
+                                );
+                            }
+                            $sortButton.removeClass("slick-header-sort-button");
+                            $sortButton.addClass("slick-header-sortasc-button");
+                            await this.handleMenuItemClick("sort-asc", column);
+                            this.columnSortStateMapping.set(
+                                column.id!,
+                                SortProperties.ASC,
+                            );
+                            columnFilterState.sorted = SortProperties.ASC;
+                            this.currentSortColumn = column.id!;
+                            this.currentSortButton = $sortButton;
+                            break;
+                        case SortProperties.ASC:
+                            $sortButton.removeClass(
+                                "slick-header-sortasc-button",
+                            );
+                            $sortButton.addClass(
+                                "slick-header-sortdesc-button",
+                            );
+                            await this.handleMenuItemClick("sort-desc", column);
+                            this.columnSortStateMapping.set(
+                                column.id!,
+                                SortProperties.DESC,
+                            );
+                            columnFilterState.sorted = SortProperties.DESC;
+                            break;
+                        case SortProperties.DESC:
+                            $sortButton.removeClass(
+                                "slick-header-sortdesc-button",
+                            );
+                            $sortButton.addClass("slick-header-sort-button");
+                            this.columnSortStateMapping.set(
+                                column.id!,
+                                SortProperties.NONE,
+                            );
+                            await this.handleMenuItemClick("reset", column);
+                            columnFilterState.sorted = SortProperties.NONE;
+                            await this.updateState(
+                                columnFilterState,
+                                this.columnDef.id!,
+                            );
+                            this.currentSortColumn = "";
+                            break;
+                    }
+                    await this.updateState(
+                        columnFilterState,
+                        this.columnDef.id!,
+                    );
+                    this.grid.onHeaderClick.notify();
+                },
+            );
+        }
+
+        $sortButton.appendTo(args.node);
+        $filterButton.appendTo(args.node);
+
+        this.columnFilterButtonMapping.set(column.id!, filterButton);
+        if (this.columnSortStateMapping.get(column.id!) === undefined) {
+            this.columnSortStateMapping.set(column.id!, SortProperties.NONE);
+        }
     }
 
     private async showFilter(filterButton: HTMLElement) {
@@ -169,8 +303,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         const offset = jQuery(filterButton).offset();
         const $popup = jQuery(
             '<div id="popup-menu" class="slick-header-menu">' +
-                `<button id="sort-ascending" type="button" icon="slick-header-menuicon.ascending" class="sort-btn">${locConstants.queryResult.sortAscending}</button>` +
-                `<button id="sort-descending" type="button" icon="slick-header-menuicon.descending" class="sort-btn">${locConstants.queryResult.sortDescending}</button>` +
                 `<div style="display: flex; align-items: center; margin-bottom: 8px;">` +
                 `<input type="checkbox" id="select-all-checkbox" style="margin-right: 8px;" />` +
                 `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
@@ -257,8 +389,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 !$target.closest("#anchor-btn").length &&
                 !$target.closest("#popup-menu").length
             ) {
-                this.activePopup!.fadeOut();
-                this.activePopup = null;
+                if (this.activePopup) {
+                    this.activePopup.fadeOut();
+                    this.activePopup = null;
+                }
             }
         });
 
@@ -306,19 +440,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             `#apply-${this.columnDef.id}`,
             async () => {
-                this.columnDef.filterValues = this._listData
-                    .filter((element) => element.checked)
-                    .map((element) => element.value);
                 closePopup($popup);
                 this.activePopup = null;
                 this.applyFilterSelections();
                 if (!$menuButton) {
                     return;
                 }
-                this.setButtonImage(
-                    $menuButton,
-                    this.columnDef.filterValues.length > 0,
-                );
+                if (this.columnDef.filterValues) {
+                    this.setFilterButtonImage(
+                        $menuButton,
+                        this.columnDef.filterValues.length > 0,
+                    );
+                }
                 await this.handleApply(this.columnDef);
             },
         );
@@ -327,14 +460,14 @@ export class HeaderFilter<T extends Slick.SlickData> {
             "click",
             `#clear-${this.columnDef.id}`,
             async () => {
-                this.columnDef.filterValues!.length = 0;
+                if (this.columnDef.filterValues) {
+                    this.columnDef.filterValues.length = 0;
+                }
 
-                closePopup($popup);
-                this.activePopup = null;
                 if (!$menuButton) {
                     return;
                 }
-                this.setButtonImage($menuButton, false);
+                this.setFilterButtonImage($menuButton, false);
                 await this.handleApply(this.columnDef, true);
             },
         );
@@ -396,9 +529,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 const checkboxElement = itemDiv.querySelector(
                     "input[type='checkbox']",
                 ) as HTMLInputElement;
-                console.log(checkboxElement);
                 checkboxElement.checked = !checkboxElement.checked;
-                console.log(checkboxElement.checked);
                 this._listData[item.index].checked = checkboxElement.checked;
                 item.checked = checkboxElement.checked;
             },
@@ -436,8 +567,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.grid.render();
     }
 
-    private async handleApply(columnDef: Slick.Column<T>, clear?: boolean) {
-        let columnFilterState: ColumnFilterState;
+    private async resetData(columnDef: Slick.Column<T>) {
         const dataView = this.grid.getData() as IDisposableDataProvider<T>;
         if (instanceOfIDisposableDataProvider(dataView)) {
             await dataView.filter(this.grid.getColumns());
@@ -447,6 +577,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
         this.onFilterApplied.notify({ grid: this.grid, column: columnDef });
         this.setFocusToColumn(columnDef);
+    }
+
+    private async handleApply(columnDef: Slick.Column<T>, clear?: boolean) {
+        let columnFilterState: ColumnFilterState;
+        await this.resetData(columnDef);
         // clear filterValues if clear is true
         if (clear) {
             columnFilterState = {
@@ -454,6 +589,25 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 filterValues: [],
                 sorted: SortProperties.NONE,
             };
+            if (this.queryResultContext.state.uri) {
+                // Get the current filters from the query result singleton store
+                let gridColumnMapArray =
+                    (await this.webviewState.extensionRpc.call("getFilters", {
+                        uri: this.queryResultContext.state.uri,
+                    })) as GridColumnMap[];
+                if (!gridColumnMapArray) {
+                    gridColumnMapArray = [];
+                }
+                // Drill down into the grid column map array and clear the filter values for the specified column
+                gridColumnMapArray = this.clearFilterValues(
+                    gridColumnMapArray,
+                    columnDef.id!,
+                );
+                await this.webviewState.extensionRpc.call("setFilters", {
+                    uri: this.queryResultContext.state.uri,
+                    filters: gridColumnMapArray,
+                });
+            }
         } else {
             columnFilterState = {
                 columnDef: this.columnDef.id!,
@@ -461,15 +615,132 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 sorted: this.columnDef.sorted,
             };
         }
-        this.updateState(columnFilterState);
+
+        await this.updateState(columnFilterState, columnDef.id!);
     }
 
-    private updateState(newState: ColumnFilterState) {
-        this.queryResultState.provider.setFilterState(newState);
+    /**
+     * Update the filter state in the query result singleton store
+     * @param newState
+     * @param columnId
+     * @returns
+     */
+    private async updateState(
+        newState: ColumnFilterState,
+        columnId: string,
+    ): Promise<void> {
+        let newStateArray: GridColumnMap[];
+        // Check if there is any existing filter state
+        if (!this.queryResultContext.state.uri) {
+            this.queryResultContext.log("no uri set for query result state");
+            return;
+        }
+        let currentFiltersArray = (await this.webviewState.extensionRpc.call(
+            "getFilters",
+            {
+                uri: this.queryResultContext.state.uri,
+            },
+        )) as GridColumnMap[];
+        if (!currentFiltersArray) {
+            currentFiltersArray = [];
+        }
+        newStateArray = this.combineFilters(
+            currentFiltersArray,
+            newState,
+            columnId,
+        );
+        await this.webviewState.extensionRpc.call("setFilters", {
+            uri: this.queryResultContext.state.uri,
+            filters: newStateArray,
+        });
+    }
+
+    /**
+     * Drill down into the grid column map array and clear the filter values for the specified column
+     * @param gridFiltersArray
+     * @param columnId
+     * @returns
+     */
+    private clearFilterValues(
+        gridFiltersArray: GridColumnMap[],
+        columnId: string,
+    ) {
+        const targetGridFilters = gridFiltersArray.find(
+            (gridFilters) => gridFilters[this.gridId],
+        );
+
+        // Return original array if gridId is not found
+        if (!targetGridFilters) {
+            return gridFiltersArray;
+        }
+
+        // Iterate through each ColumnFilterMap and clear filterValues for the specified columnId
+        for (const columnFilterMap of targetGridFilters[this.gridId]) {
+            if (columnFilterMap[columnId]) {
+                columnFilterMap[columnId] = columnFilterMap[columnId].map(
+                    (filterState) => ({
+                        ...filterState,
+                        filterValues: [],
+                    }),
+                );
+            }
+        }
+
+        return gridFiltersArray;
+    }
+
+    /**
+     * Combines two GridColumnMaps into one, keeping filters separate for different gridIds and removing any duplicate filterValues within the same column id
+     * @param currentFiltersArray filters array for all grids
+     * @param newFilters
+     * @param columnId
+     * @returns
+     */
+    private combineFilters(
+        gridFiltersArray: GridColumnMap[],
+        newFilterState: ColumnFilterState,
+        columnId: string,
+    ): GridColumnMap[] {
+        // Find the appropriate GridColumnFilterMap for the gridId
+        let targetGridFilters = gridFiltersArray.find(
+            (gridFilters) => gridFilters[this.gridId],
+        );
+
+        if (!targetGridFilters) {
+            // If no GridColumnFilterMap found for the gridId, create a new one
+            targetGridFilters = { [this.gridId]: [] };
+            gridFiltersArray.push(targetGridFilters);
+        }
+
+        let columnFilterMap = targetGridFilters[this.gridId].find(
+            (map) => map[columnId],
+        );
+
+        if (!columnFilterMap) {
+            // If no existing ColumnFilterMap for this column, create a new one
+            columnFilterMap = { [columnId]: [newFilterState] };
+            targetGridFilters[this.gridId].push(columnFilterMap);
+        } else {
+            // Update the existing column filter state
+            const filterStates = columnFilterMap[columnId];
+            const existingIndex = filterStates.findIndex(
+                (filter) => filter.columnDef === newFilterState.columnDef,
+            );
+
+            if (existingIndex !== -1) {
+                // Replace existing filter state for the column
+                filterStates[existingIndex] = newFilterState;
+            } else {
+                // Add new filter state for this column
+                filterStates.push(newFilterState);
+            }
+        }
+
+        return [...gridFiltersArray];
     }
 
     private async handleMenuItemClick(
-        command: HeaderFilterCommands,
+        command: SortDirection,
         columnDef: Slick.Column<T>,
     ) {
         const dataView = this.grid.getData();
@@ -479,16 +750,18 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 command === "sort-asc",
             );
         }
-        if (
-            instanceOfIDisposableDataProvider<T>(dataView) &&
-            (command === "sort-asc" || command === "sort-desc")
-        ) {
-            await dataView.sort({
-                grid: this.grid,
-                multiColumnSort: false,
-                sortCol: this.columnDef,
-                sortAsc: command === "sort-asc",
-            });
+        if (instanceOfIDisposableDataProvider<T>(dataView)) {
+            if (command === "sort-asc" || command === "sort-desc") {
+                await dataView.sort({
+                    grid: this.grid,
+                    multiColumnSort: false,
+                    sortCol: this.columnDef,
+                    sortAsc: command === "sort-asc",
+                });
+            } else {
+                dataView.resetSort();
+                this.grid.setSortColumn("", false);
+            }
             this.grid.invalidateAllRows();
             this.grid.updateRowCount();
             this.grid.render();
@@ -600,7 +873,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         }
     }
 
-    private setButtonImage($el: JQuery<HTMLElement>, filtered: boolean) {
+    private setFilterButtonImage($el: JQuery<HTMLElement>, filtered: boolean) {
         const element: HTMLElement | undefined = $el.get(0);
         if (element) {
             if (filtered) {
@@ -610,6 +883,28 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 if (classList.contains("filtered")) {
                     classList.remove("filtered");
                 }
+            }
+        }
+    }
+
+    private setSortButtonImage(
+        $sortButton: JQuery<HTMLElement>,
+        column: FilterableColumn<T>,
+    ) {
+        if (
+            $sortButton &&
+            column.sorted &&
+            column.sorted !== SortProperties.NONE
+        ) {
+            switch (column.sorted) {
+                case SortProperties.ASC:
+                    $sortButton.removeClass("slick-header-sort-button");
+                    $sortButton.addClass("slick-header-sortasc-button");
+                    break;
+                case SortProperties.DESC:
+                    $sortButton.removeClass("slick-header-sort-button");
+                    $sortButton.addClass("slick-header-sortdesc-button");
+                    break;
             }
         }
     }

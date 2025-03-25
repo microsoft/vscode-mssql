@@ -30,6 +30,8 @@ export class LocConstants {
                     comment: ["{0} is the action being confirmed"],
                 }),
             close: l10n.t("Close"),
+            apply: l10n.t("Apply"),
+            clearSelection: l10n.t("Clear Selection"),
         };
     }
 
@@ -266,6 +268,10 @@ export class LocConstants {
             expandAll: l10n.t("Expand All"),
             collapseAll: l10n.t("Collapse All"),
             filterAnyField: l10n.t("Filter for any field..."),
+            next: l10n.t("Next"),
+            previous: l10n.t("Previous"),
+            expand: l10n.t("Expand"),
+            collapse: l10n.t("Collapse"),
         };
     }
 
@@ -285,6 +291,12 @@ export class LocConstants {
             notLikelyAtAll: l10n.t("Not likely at all"),
             extremelyLikely: l10n.t("Extremely likely"),
             privacyStatement: l10n.t("Privacy Statement"),
+            feedbackStatementShort: l10n.t(
+                "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
+            ),
+            feedbackStatementLong: l10n.t(
+                "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
+            ),
         };
     }
 

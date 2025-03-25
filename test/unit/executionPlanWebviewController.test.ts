@@ -16,6 +16,7 @@ import { contents } from "../resources/testsqlplan";
 import * as TypeMoq from "typemoq";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("ExecutionPlanWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -25,6 +26,7 @@ suite("ExecutionPlanWebviewController", () => {
     let controller: ExecutionPlanWebviewController;
     let mockInitialState: ep.ExecutionPlanWebviewState;
     let mockResultState: ep.ExecutionPlanWebviewState;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     const executionPlanContents = contents;
     const xmlPlanFileName = "testPlan.sqlplan";
@@ -40,6 +42,11 @@ suite("ExecutionPlanWebviewController", () => {
             sandbox.createStubInstance(ExecutionPlanService);
         mockUntitledSqlDocumentService = sandbox.createStubInstance(
             UntitledSqlDocumentService,
+        );
+
+        vscodeWrapper = TypeMoq.Mock.ofType(
+            VscodeWrapper,
+            TypeMoq.MockBehavior.Loose,
         );
 
         mockInitialState = {
@@ -60,6 +67,7 @@ suite("ExecutionPlanWebviewController", () => {
 
         controller = new ExecutionPlanWebviewController(
             mockContext,
+            vscodeWrapper.object,
             mockExecutionPlanService,
             mockUntitledSqlDocumentService,
             executionPlanContents,

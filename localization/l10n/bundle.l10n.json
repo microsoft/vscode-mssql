@@ -96,6 +96,8 @@
     ]
   },
   "Close": "Close",
+  "Apply": "Apply",
+  "Clear Selection": "Clear Selection",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -265,6 +267,10 @@
   "Expand All": "Expand All",
   "Collapse All": "Collapse All",
   "Filter for any field...": "Filter for any field...",
+  "Next": "Next",
+  "Previous": "Previous",
+  "Expand": "Expand",
+  "Collapse": "Collapse",
   "Microsoft would like your feedback": "Microsoft would like your feedback",
   "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
   "Very Satisfied": "Very Satisfied",
@@ -275,6 +281,8 @@
   "Not likely at all": "Not likely at all",
   "Extremely likely": "Extremely likely",
   "Privacy Statement": "Privacy Statement",
+  "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
+  "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
   "Results": "Results",
   "Messages": "Messages",
   "Timestamp": "Timestamp",
@@ -295,7 +303,6 @@
   "Copy Headers": "Copy Headers",
   "NULL": "NULL",
   "Blanks": "Blanks",
-  "Apply": "Apply",
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
@@ -419,6 +426,7 @@
       "{0} is the provider"
     ]
   },
+  "Unable to read proxy agent options to get tenants.": "Unable to read proxy agent options to get tenants.",
   "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.": "Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.",
   "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.": "Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.",
   "Authentication failed due to a state mismatch, please close ADS and try again.": "Authentication failed due to a state mismatch, please close ADS and try again.",
@@ -740,6 +748,7 @@
     ]
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
+  "Error loading; refresh to try again": "Error loading; refresh to try again",
   "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -806,6 +815,7 @@
     ]
   },
   "General": "General",
+  "Schema Compare": "Schema Compare",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

@@ -54,8 +54,8 @@ export const DesignerTable = ({
 }: DesignerTableProps) => {
     const tableProps =
         component.componentProperties as designer.DesignerTableProperties;
-    const state = useContext(TableDesignerContext);
-    if (!state) {
+    const context = useContext(TableDesignerContext);
+    if (!context) {
         return undefined;
     }
     const classes = useStyles();
@@ -159,7 +159,7 @@ export const DesignerTable = ({
     const rows = getRows();
 
     const moveRows = (from: number, to: number) => {
-        state?.provider.processTableEdit({
+        context.processTableEdit({
             type: designer.DesignerEditType.Move,
             path: [...componentPath, from],
             value: to,
@@ -167,17 +167,17 @@ export const DesignerTable = ({
         });
 
         // Focus on the first cell of the moved row
-        const firstCellElementId = state?.provider.getComponentId([
+        const firstCellElementId = context?.getComponentId([
             ...componentPath,
             to,
             columns[1].columnId,
         ]);
-        const element = state.elementRefs.current[firstCellElementId];
+        const element = context.elementRefs.current[firstCellElementId];
         element?.focus();
     };
 
     const getRowError = (index: number): string | undefined => {
-        const issue = state?.state.issues?.find((i) => {
+        const issue = context?.state.issues?.find((i) => {
             if (!i.propertyPath) {
                 return false;
             }
@@ -213,20 +213,20 @@ export const DesignerTable = ({
                                 }}
                                 onDragEnd={() => {
                                     if (
-                                        draggedRowId === undefined ||
-                                        draggedOverRowId === undefined
+                                        draggedRowId === -1 ||
+                                        draggedOverRowId === -1
                                     ) {
                                         return;
                                     }
                                     moveRows(draggedRowId, draggedOverRowId);
-                                    setDraggedRowId(undefined);
-                                    setDraggedOverRowId(undefined);
+                                    setDraggedRowId(-1);
+                                    setDraggedOverRowId(-1);
                                 }}
                                 onDrag={() => {
                                     setDraggedRowId(rowIndex);
                                 }}
                                 onDragStart={() => {
-                                    setDraggedOverRowId(undefined);
+                                    setDraggedOverRowId(-1);
                                     setDraggedRowId(rowIndex);
                                 }}
                             />
@@ -245,7 +245,7 @@ export const DesignerTable = ({
                         size="small"
                         icon={<DeleteRegular />}
                         onClick={async () => {
-                            state?.provider.processTableEdit({
+                            context.processTableEdit({
                                 path: [...componentPath, row.rowId],
                                 source: UiArea,
                                 type: designer.DesignerEditType.Remove,
@@ -315,12 +315,8 @@ export const DesignerTable = ({
         }
     };
 
-    const [draggedRowId, setDraggedRowId] = useState<number | undefined>(
-        undefined,
-    );
-    const [draggedOverRowId, setDraggedOverRowId] = useState<
-        number | undefined
-    >(undefined);
+    const [draggedRowId, setDraggedRowId] = useState<number>(-1);
+    const [draggedOverRowId, setDraggedOverRowId] = useState<number>(-1);
     const [focusedRowId, setFocusedRowId] = useState<number | undefined>(
         undefined,
     );
@@ -333,7 +329,7 @@ export const DesignerTable = ({
                         appearance="transparent"
                         icon={<AddFilled className={classes.tableActionIcon} />}
                         onClick={() => {
-                            state?.provider.processTableEdit({
+                            context.processTableEdit({
                                 path: [...componentPath, rows.length],
                                 source: UiArea,
                                 type: designer.DesignerEditType.Add,
@@ -457,10 +453,17 @@ export const DesignerTable = ({
                                         backgroundColor: backgroundColor,
                                         width: "calc(100% - 10px)",
                                         borderTop:
-                                            draggedOverRowId === index
+                                            draggedOverRowId === index &&
+                                            draggedRowId !== index &&
+                                            draggedRowId > index
                                                 ? draggedOverBorder
                                                 : border,
-                                        borderBottom: border,
+                                        borderBottom:
+                                            draggedOverRowId === index &&
+                                            draggedRowId !== index &&
+                                            draggedRowId < index
+                                                ? draggedOverBorder
+                                                : border,
                                         borderLeft: border,
                                         borderRight: border,
                                         marginTop: rowError ? "5px" : "",
@@ -473,16 +476,14 @@ export const DesignerTable = ({
                                         ) {
                                             return;
                                         }
-                                        state?.provider.setPropertiesComponents(
-                                            {
-                                                componentPath: [
-                                                    ...componentPath,
-                                                    row.rowId,
-                                                ],
-                                                component: component,
-                                                model: model,
-                                            },
-                                        );
+                                        context?.setPropertiesComponents({
+                                            componentPath: [
+                                                ...componentPath,
+                                                row.rowId,
+                                            ],
+                                            component: component,
+                                            model: model,
+                                        });
                                         setFocusedRowId(index);
                                         event.preventDefault();
                                     }}
@@ -499,7 +500,7 @@ export const DesignerTable = ({
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     column.columnId,
                                                 )}
-                                                id={`table-cell-${state?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
+                                                id={`table-cell-${context?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
                                                     paddingBottom: "5px",

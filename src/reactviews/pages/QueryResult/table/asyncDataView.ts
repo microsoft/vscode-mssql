@@ -286,6 +286,10 @@ export class AsyncDataProvider<T extends Slick.SlickData>
         throw new Error("Method not implemented.");
     }
 
+    resetSort(): void {
+        throw new Error("Method not implemented.");
+    }
+
     public getLength(): number {
         return this.dataRows.getLength();
     }

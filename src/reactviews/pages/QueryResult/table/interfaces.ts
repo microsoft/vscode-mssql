@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDisposableDataProvider } from "./dataProvider";
+import { SortDirection } from "./plugins/headerFilter.plugin";
 
 export interface ITableMouseEvent {
     anchor: HTMLElement | { x: number; y: number };
@@ -54,6 +55,21 @@ export interface ColumnFilterState {
     columnDef: string;
 }
 
+/**
+ * Maps all the column filters for a specific grid ID
+ */
+export type GridColumnMap = Record<string, ColumnFilterMap[]>;
+
+/**
+ * Maps the column filter state for a specific column
+ */
+export type ColumnFilterMap = Record<string, ColumnFilterState[]>;
+
+export interface GridFilters {
+    gridId: string;
+    columnFilters: ColumnFilterState;
+}
+
 export interface GridSortState {
     field: string;
     sortAsc: boolean;
@@ -63,6 +79,11 @@ export interface FilterableColumn<T extends Slick.SlickData>
     filterable?: boolean;
     filterValues?: Array<string>;
     sorted?: SortProperties;
+}
+
+export interface ColumnSortState<T extends Slick.SlickData> {
+    column: Slick.Column<T>;
+    sortDirection: SortDirection;
 }
 
 export interface ITableKeyboardEvent {
