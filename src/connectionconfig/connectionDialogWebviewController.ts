@@ -640,6 +640,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     this.state.selectedInputMode ===
                     ConnectionInputMode.ConnectionString
                 ) {
+                    // convert connection string to an IConnectionProfile object
                     const connDetails =
                         await this._mainController.connectionManager.buildConnectionDetails(
                             this.state.connectionProfile.connectionString,
@@ -652,7 +653,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     cleanedConnection.profileName =
                         this.state.connectionProfile.profileName;
                     cleanedConnection.savePassword =
-                        !!cleanedConnection.password;
+                        !!cleanedConnection.password; // if the password is included in the connection string, saving it is implied
 
                     // overwrite SQL Tools Service's default application name with the one the user provided (or MSSQL's default)
                     cleanedConnection.applicationName =
@@ -703,7 +704,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
 
             if (this._connectionToEditCopy) {
-                await this._mainController.connectionManager.getUriForConnection(
+                this._mainController.connectionManager.getUriForConnection(
                     this._connectionToEditCopy,
                 );
                 await this._objectExplorerProvider.removeConnectionNodes([
@@ -719,8 +720,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // all properties are set when converting from a ConnectionDetails object,
             // so we want to clean the default undefined properties before saving.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            cleanedConnection = this.removeDefaultProperties(
+            cleanedConnection = this.removeUndefinedProperties(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 cleanedConnection as any,
             );
 
@@ -766,7 +767,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return state;
     }
 
-    private removeDefaultProperties(
+    private removeUndefinedProperties(
         connProfile: IConnectionProfile,
     ): IConnectionProfile {
         // TODO: ideally this compares against the default values acquired from a source of truth (e.g. STS),
