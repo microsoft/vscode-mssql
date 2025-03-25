@@ -851,12 +851,14 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            if ((connectionProfile as IConnectionProfile).profileName) {
-                this._sessionIdToNodeLabelMap.set(
-                    sessionIdResponse.sessionId,
-                    (connectionProfile as IConnectionProfile).profileName,
-                );
-            }
+            const nodeLabel =
+                (connectionProfile as IConnectionProfile).profileName ??
+                ConnInfo.getConnectionDisplayName(connectionProfile);
+
+            this._sessionIdToNodeLabelMap.set(
+                sessionIdResponse.sessionId,
+                nodeLabel,
+            );
 
             const response: CreateSessionResponse =
                 await this._connectionManager.client.sendRequest(
