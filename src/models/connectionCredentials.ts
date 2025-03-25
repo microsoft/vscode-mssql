@@ -79,7 +79,11 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["user"] = credentials.user || credentials.email;
         details.options["password"] = credentials.password;
         details.options["authenticationType"] = credentials.authenticationType;
+        details.options["email"] = credentials.email;
+        details.options["accountId"] = credentials.accountId;
+        details.options["tenantId"] = credentials.tenantId;
         details.options["azureAccountToken"] = credentials.azureAccountToken;
+        details.options["expiresOn"] = credentials.expiresOn;
         details.options["encrypt"] = credentials.encrypt;
         details.options["trustServerCertificate"] =
             credentials.trustServerCertificate;
@@ -132,7 +136,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             connectionString: options["connectionString"],
             server: options["server"],
             port: options["server"]?.includes(",")
-                ? parseInt(options["server"].split(",")[1], 10)
+                ? parseInt(options["server"].split(",")[1])
                 : undefined,
             database: options["database"],
             user: options["user"],
