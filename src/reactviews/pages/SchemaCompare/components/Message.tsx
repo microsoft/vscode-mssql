@@ -23,27 +23,28 @@ const Message = () => {
     const state = context.state;
     const classes = useStyles();
 
+    let message = "";
+    if (
+        !state.isComparisonInProgress &&
+        state.schemaCompareResult &&
+        state.schemaCompareResult.areEqual
+    ) {
+        message = loc.schemaCompare.noDifferences;
+    } else if (state.isComparisonInProgress) {
+        message = loc.schemaCompare.initializingComparison;
+    } else if (!state.isComparisonInProgress && !state.schemaCompareResult) {
+        message = loc.schemaCompare.intro;
+    }
+
+    if (!message) {
+        return <></>;
+    }
+
     return (
         <div className={classes.container}>
-            {!state.isComparisonInProgress &&
-                state.schemaCompareResult &&
-                state.schemaCompareResult.areEqual && (
-                    <Text size={400} align="center">
-                        {loc.schemaCompare.noDifferences}
-                    </Text>
-                )}
-
-            {state.isComparisonInProgress && (
-                <Text size={400} align="center">
-                    {loc.schemaCompare.initializingComparison}
-                </Text>
-            )}
-
-            {!state.isComparisonInProgress && !state.schemaCompareResult && (
-                <Text size={400} align="center">
-                    {loc.schemaCompare.intro}
-                </Text>
-            )}
+            <Text size={400} align="center">
+                {message}
+            </Text>
         </div>
     );
 };
