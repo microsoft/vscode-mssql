@@ -1,4 +1,4 @@
-name: PR Checks
+name: Build and Test (Unit + E2E)
 # Trigger the workflow on PRs to the main branch.
 # It performs the following checks:
 # 1. Calculate the size difference between the webview bundles of the main branch and the PR branch.
