@@ -8,11 +8,14 @@ import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
+import { ReactFlow, ReactFlowProvider } from "@xyflow/react";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
-        <SchemaDesignerStateProvider>
-            <SchemaDesignerPage />
-        </SchemaDesignerStateProvider>
+        <ReactFlowProvider>
+            <SchemaDesignerStateProvider>
+                <SchemaDesignerPage />
+            </SchemaDesignerStateProvider>
+        </ReactFlowProvider>
     </VscodeWebviewProvider>,
 );

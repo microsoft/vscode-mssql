@@ -12,28 +12,75 @@ import {
     MenuTrigger,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { useContext } from "react";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
+import * as htmlToImage from "html-to-image";
+import { getNodesBounds, useReactFlow } from "@xyflow/react";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useContext } from "react";
 
 export function ExportDiagramButton() {
+    const { getNodes } = useReactFlow();
     const context = useContext(SchemaDesignerContext);
-    if (!context) {
-        return undefined;
-    }
+
     async function exportAs(format: "svg" | "png" | "jpeg") {
-        if (!context?.schemaDesigner) {
-            return;
-        }
-        const imageContent = await context.schemaDesigner.exportImage(format);
-        if (imageContent && context) {
-            context.saveAsFile({
-                format,
-                fileContents: imageContent.fileContent,
-                width: imageContent.width,
-                height: imageContent.height,
-            });
-            return;
+        const nodesBounds = getNodesBounds(getNodes());
+        const reactFlowContainer = document.querySelector(
+            ".react-flow__viewport",
+        ) as HTMLElement;
+
+        const width = nodesBounds.width + 20;
+        const height = nodesBounds.height + 20;
+        const background = "var(--vscode-editor-background)";
+
+        switch (format) {
+            case "png":
+                void htmlToImage
+                    .toPng(reactFlowContainer, {
+                        width: width,
+                        height: height,
+                        backgroundColor: background,
+                    })
+                    .then((dataUrl) => {
+                        context.saveAsFile({
+                            format,
+                            fileContents: dataUrl,
+                            width,
+                            height,
+                        });
+                    });
+                break;
+            case "jpeg":
+                void htmlToImage
+                    .toJpeg(reactFlowContainer, {
+                        width: width,
+                        height: height,
+                        backgroundColor: background,
+                    })
+                    .then((dataUrl) => {
+                        context.saveAsFile({
+                            format,
+                            fileContents: dataUrl,
+                            width,
+                            height,
+                        });
+                    });
+                break;
+            case "svg":
+                void htmlToImage
+                    .toSvg(reactFlowContainer, {
+                        width: width,
+                        height: height,
+                        backgroundColor: background,
+                    })
+                    .then((dataUrl) => {
+                        context.saveAsFile({
+                            format,
+                            fileContents: dataUrl,
+                            width,
+                            height,
+                        });
+                    });
+                break;
         }
     }
     return (

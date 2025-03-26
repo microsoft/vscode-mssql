@@ -9,6 +9,8 @@ const connectorIcon = require("./icons/connector.svg");
 import * as azdataGraph from "azdataGraph";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
+import { Edge, MarkerType, Node } from "@xyflow/react";
+import dagre from "@dagrejs/dagre";
 
 /**
  * Get the schema designer colors from the current theme
@@ -525,3 +527,227 @@ export function tableNameValidationError(
     }
     return undefined;
 }
+
+export const NODE_WIDTH = 300;
+const NODE_MARGIN = 50;
+const BASE_NODE_HEIGHT = 70;
+const COLUMN_HEIGHT = 30;
+
+export const getTableWidth = () => NODE_WIDTH + NODE_MARGIN;
+
+export const getTableHeight = (table: SchemaDesigner.Table) =>
+    BASE_NODE_HEIGHT + table.columns.length * COLUMN_HEIGHT;
+
+export function generateSchemaDesignerFlowComponents(
+    schema: SchemaDesigner.Schema,
+): {
+    nodes: Node<SchemaDesigner.Table>[];
+    edges: Edge<SchemaDesigner.ForeignKey>[];
+} {
+    if (!schema) {
+        return { nodes: [], edges: [] };
+    }
+
+    const LAYOUT_OPTIONS = {
+        rankdir: "LR",
+        marginx: 50,
+        marginy: 50,
+        nodesep: 50,
+        ranksep: 50,
+    };
+
+    const graph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+    graph.setGraph(LAYOUT_OPTIONS);
+
+    const rawNodes = schema.tables.map((table) => ({
+        id: table.id,
+        type: "tableNode",
+        data: { ...table },
+    }));
+
+    // Layout nodes and connect tables via foreign keys
+    rawNodes.forEach((node) => {
+        graph.setNode(node.id, {
+            width: getTableWidth(),
+            height: getTableHeight(node.data),
+        });
+
+        node.data.foreignKeys.forEach((fk) => {
+            const referencedTable = schema.tables.find(
+                (t) =>
+                    t.name === fk.referencedTableName &&
+                    t.schema === fk.referencedSchemaName,
+            );
+            if (referencedTable) {
+                graph.setEdge(node.id, referencedTable.id);
+            }
+        });
+    });
+
+    dagre.layout(graph);
+
+    const layoutedNodes = rawNodes.map((node) => {
+        const dagreNode = graph.node(node.id);
+
+        return {
+            ...node,
+            position: {
+                x: dagreNode.x - getTableWidth() / 2,
+                y: dagreNode.y - getTableHeight(node.data) / 2,
+            },
+        };
+    });
+
+    const edges: Edge<SchemaDesigner.ForeignKey>[] = [];
+
+    for (const table of schema.tables) {
+        for (const fk of table.foreignKeys) {
+            const referencedTable = schema.tables.find(
+                (t) =>
+                    t.name === fk.referencedTableName &&
+                    t.schema === fk.referencedSchemaName,
+            );
+
+            if (!referencedTable) continue;
+
+            fk.columns.forEach((col, idx) => {
+                const refCol = fk.referencedColumns[idx];
+
+                edges.push({
+                    id: `${table.name}-${referencedTable.name}-${col}-${refCol}`,
+                    source: table.id,
+                    target: referencedTable.id,
+                    sourceHandle: `right-${col}`,
+                    targetHandle: `left-${refCol}`,
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                    },
+                    data: {
+                        name: fk.name,
+                        id: fk.id,
+                        columns: [col],
+                        referencedSchemaName: fk.referencedSchemaName,
+                        referencedTableName: fk.referencedTableName,
+                        referencedColumns: [refCol],
+                        onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                        onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                    },
+                });
+            });
+        }
+    }
+
+    return {
+        nodes: layoutedNodes,
+        edges,
+    };
+}
+
+/**
+ * Extracts the schema model from the current nodes and edges
+ * @returns {SchemaDesigner.Schema} The current schema model
+ */
+export const extractSchemaModel = (
+    nodes: Node<SchemaDesigner.Table>[],
+    edges: Edge<SchemaDesigner.ForeignKey>[],
+): SchemaDesigner.Schema => {
+    // Create tables without foreign keys initially
+    nodes.forEach((node) => {
+        node.data.foreignKeys = [];
+    });
+
+    // Process edges to create foreign keys
+    edges.forEach((edge) => {
+        const sourceNode = nodes.find((node) => node.id === edge.source);
+        const targetNode = nodes.find((node) => node.id === edge.target);
+        if (!sourceNode || !targetNode) {
+            return;
+        }
+        const edgeData = edge.data as SchemaDesigner.ForeignKey;
+        if (!edgeData) {
+            return;
+        }
+
+        const foreignKey: SchemaDesigner.ForeignKey = {
+            id: edgeData.id,
+            name: edgeData.name,
+            columns: edgeData.columns,
+            referencedSchemaName: edgeData.referencedSchemaName,
+            referencedTableName: edgeData.referencedTableName,
+            referencedColumns: edgeData.referencedColumns,
+            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+        };
+
+        // Check if we already have a foreign key to this table
+        const existingForeignKey = sourceNode.data.foreignKeys.find(
+            (fk) =>
+                fk.referencedTableName === foreignKey.referencedTableName &&
+                fk.referencedSchemaName === foreignKey.referencedSchemaName,
+        );
+
+        if (existingForeignKey) {
+            // Add the new column to the existing foreign key
+            existingForeignKey.columns.push(foreignKey.columns[0]);
+            existingForeignKey.referencedColumns.push(
+                foreignKey.referencedColumns[0],
+            );
+        } else {
+            // Add as new foreign key
+            sourceNode.data.foreignKeys.push(foreignKey);
+        }
+    });
+
+    // Create tables without foreign keys initially
+    const tables = nodes.map((node) => {
+        const tableData = { ...node.data };
+        return tableData;
+    });
+
+    return {
+        tables: tables,
+    };
+};
+
+type EventMap = {
+    [event: string]: (...args: any[]) => void;
+};
+
+export class TypedEventEmitter<Events extends EventMap> {
+    private listeners: {
+        [K in keyof Events]?: Events[K][];
+    } = {};
+
+    on<K extends keyof Events>(event: K, listener: Events[K]) {
+        if (!this.listeners[event]) {
+            this.listeners[event] = [];
+        }
+        this.listeners[event]!.push(listener);
+    }
+
+    off<K extends keyof Events>(event: K, listener: Events[K]) {
+        this.listeners[event] = this.listeners[event]?.filter(
+            (l) => l !== listener,
+        );
+    }
+
+    emit<K extends keyof Events>(event: K, ...args: Parameters<Events[K]>) {
+        this.listeners[event]?.forEach((listener) => listener(...args));
+    }
+
+    once<K extends keyof Events>(event: K, listener: Events[K]) {
+        const onceWrapper: Events[K] = ((...args: Parameters<Events[K]>) => {
+            this.off(event, onceWrapper);
+            listener(...args);
+        }) as Events[K];
+        this.on(event, onceWrapper);
+    }
+}
+
+export type MyEvents = {
+    getScript: () => void;
+    openCodeDrawer: () => void;
+};
+
+const eventBus = new TypedEventEmitter<MyEvents>();
+export default eventBus;

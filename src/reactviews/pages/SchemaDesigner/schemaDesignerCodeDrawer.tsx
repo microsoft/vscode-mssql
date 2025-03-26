@@ -13,19 +13,31 @@ import {
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import Editor from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../common/utils";
+import eventBus from "./schemaDesignerUtils";
 
 export const SchemaDesignerCodeDrawer = () => {
     const context = useContext(SchemaDesignerContext);
+    const [code, setCode] = useState<string>("");
+    const [isCodeDrawerOpen, setIsCodeDrawerOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        eventBus.on("getScript", async () => {
+            const script = await context.getScript();
+            console.log(script);
+            setCode(script);
+        });
+        eventBus.on("openCodeDrawer", () => {
+            setIsCodeDrawerOpen(true);
+            eventBus.emit("getScript");
+        });
+    }, []);
+
     return (
-        <InlineDrawer
-            separator
-            open={context.isCodeDrawerOpen}
-            position="bottom"
-        >
+        <InlineDrawer separator open={isCodeDrawerOpen} position="bottom">
             <DrawerHeader>
                 <DrawerHeaderTitle
                     action={
@@ -58,9 +70,7 @@ export const SchemaDesignerCodeDrawer = () => {
                                 appearance="subtle"
                                 aria-label="Close"
                                 icon={<FluentIcons.Dismiss24Regular />}
-                                onClick={() =>
-                                    context.setIsCodeDrawerOpen(false)
-                                }
+                                onClick={() => setIsCodeDrawerOpen(false)}
                             />
                         </Toolbar>
                     }
@@ -71,11 +81,12 @@ export const SchemaDesignerCodeDrawer = () => {
 
             <DrawerBody>
                 <Editor
+                    key={code}
                     height={"100%"}
                     width={"100%"}
                     language="sql"
                     theme={resolveVscodeThemeType(context?.themeKind)}
-                    value={context.script.combinedScript ?? ""}
+                    value={code}
                     options={{
                         readOnly: true,
                     }}

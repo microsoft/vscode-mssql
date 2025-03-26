@@ -20,19 +20,18 @@ import {
     type Edge,
     addEdge,
     FinalConnectionState,
+    useReactFlow,
 } from "@xyflow/react";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import dagre from "@dagrejs/dagre";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
-import {
-    calculateTableHeight,
-    calculateTableWidth,
-} from "./schemaDesignerFlowConstants.js";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
-import { isForeignKeyValid } from "../schemaDesignerUtils.js";
+import eventBus, {
+    extractSchemaModel,
+    isForeignKeyValid,
+} from "../schemaDesignerUtils.js";
 import {
     Toast,
     ToastBody,
@@ -41,22 +40,12 @@ import {
     useId,
     useToastController,
 } from "@fluentui/react-components";
+import { v4 as uuidv4 } from "uuid";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
     tableNode: SchemaDesignerTableNode,
 };
-
-// Graph layout configuration
-const LAYOUT_CONFIG = {
-    rankdir: "LR",
-    marginx: 50,
-    marginy: 50,
-    nodesep: 50,
-    ranksep: 50,
-};
-
-const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
 /**
  * Schema Designer Flow Component
@@ -67,6 +56,8 @@ export const SchemaDesignerFlow = () => {
     const toasterId = useId("toaster");
     const { dispatchToast } = useToastController(toasterId);
 
+    const reactFlow = useReactFlow();
+
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
 
@@ -76,6 +67,15 @@ export const SchemaDesignerFlow = () => {
     >([]);
     const [relationshipEdges, setRelationshipEdges, onEdgesChange] =
         useEdgesState<Edge<SchemaDesigner.ForeignKey>>([]);
+
+    useEffect(() => {
+        const intialize = async () => {
+            const { nodes, edges } = await context.initializeSchemaDesigner();
+            setSchemaNodes(nodes);
+            setRelationshipEdges(edges);
+        };
+        void intialize();
+    }, []);
 
     /**
      * Displays an error toast notification
@@ -89,69 +89,6 @@ export const SchemaDesignerFlow = () => {
             </Toast>,
             { pauseOnHover: true, intent: "error" },
         );
-
-    /**
-     * Extracts the schema model from the current nodes and edges
-     * @returns {SchemaDesigner.Schema} The current schema model
-     */
-    const extractSchemaModel = (): SchemaDesigner.Schema => {
-        // Create tables without foreign keys initially
-        const tables = schemaNodes.map((node) => {
-            const tableData = { ...node.data };
-            tableData.foreignKeys = [];
-            return tableData;
-        });
-
-        // Process edges to create foreign keys
-        relationshipEdges.forEach((edge) => {
-            const sourceNode = schemaNodes.find(
-                (node) => node.id === edge.source,
-            );
-            const targetNode = schemaNodes.find(
-                (node) => node.id === edge.target,
-            );
-            if (!sourceNode || !targetNode) {
-                return;
-            }
-            const edgeData = edge.data as SchemaDesigner.ForeignKey;
-            if (!edgeData) {
-                return;
-            }
-
-            const foreignKey: SchemaDesigner.ForeignKey = {
-                id: edgeData.id,
-                name: edgeData.name,
-                columns: edgeData.columns,
-                referencedSchemaName: edgeData.referencedSchemaName,
-                referencedTableName: edgeData.referencedTableName,
-                referencedColumns: edgeData.referencedColumns,
-                onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
-                onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
-            };
-
-            // Check if we already have a foreign key to this table
-            const existingForeignKey = sourceNode.data.foreignKeys.find(
-                (fk) =>
-                    fk.referencedTableName === foreignKey.referencedTableName &&
-                    fk.referencedSchemaName === foreignKey.referencedSchemaName,
-            );
-
-            if (existingForeignKey) {
-                // Add the new column to the existing foreign key
-                existingForeignKey.columns.push(foreignKey.columns[0]);
-                existingForeignKey.referencedColumns.push(
-                    foreignKey.referencedColumns[0],
-                );
-            } else {
-                // Add as new foreign key
-                sourceNode.data.foreignKeys.push(foreignKey);
-            }
-        });
-
-        return {
-            tables: tables,
-        };
-    };
 
     /**
      * Extract column name from a handle ID
@@ -220,7 +157,7 @@ export const SchemaDesignerFlow = () => {
                     : `FK_${sourceNode.data.name}_${targetNode.data.name}`,
                 id: existingForeignKey
                     ? (existingForeignKey.data?.id ?? "")
-                    : "",
+                    : uuidv4(),
                 columns: [sourceColumn.name],
                 referencedSchemaName: targetNode.data.schema,
                 referencedTableName: targetNode.data.name,
@@ -229,6 +166,9 @@ export const SchemaDesignerFlow = () => {
                 onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
             },
         };
+
+        // Update create script
+        eventBus.emit("getScript");
 
         setRelationshipEdges((eds) => addEdge(newEdge, eds));
     };
@@ -273,7 +213,7 @@ export const SchemaDesignerFlow = () => {
 
             // Validate the foreign key
             const validationResult = isForeignKeyValid(
-                extractSchemaModel().tables,
+                extractSchemaModel(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
@@ -329,118 +269,13 @@ export const SchemaDesignerFlow = () => {
 
         // Validate the foreign key relationship
         const validationResult = isForeignKeyValid(
-            extractSchemaModel().tables,
+            extractSchemaModel(schemaNodes, relationshipEdges).tables,
             sourceTable.data,
             foreignKey,
         );
 
         return validationResult.isValid;
     };
-
-    /**
-     * Load and layout the schema data
-     */
-    useEffect(() => {
-        const schema = context?.schema;
-        if (!schema) {
-            return;
-        }
-
-        // Configure the dagre graph
-        dagreGraph.setGraph(LAYOUT_CONFIG);
-
-        // Create nodes from tables
-        let tableNodes = schema.tables.map((table) => ({
-            id: table.id,
-            type: "tableNode",
-            data: { ...table },
-        }));
-
-        // Add nodes and edges to dagre for layout calculations
-        tableNodes.forEach((node) => {
-            dagreGraph.setNode(node.id, {
-                width: calculateTableWidth(),
-                height: calculateTableHeight(node.data),
-            });
-
-            // Add edges for foreign keys
-            node.data.foreignKeys.forEach((foreignKey) => {
-                const targetTable = schema.tables.find(
-                    (table) =>
-                        table.name === foreignKey.referencedTableName &&
-                        table.schema === foreignKey.referencedSchemaName,
-                );
-                if (targetTable) {
-                    dagreGraph.setEdge(node.id, targetTable.id);
-                }
-            });
-        });
-
-        // Calculate layout
-        dagre.layout(dagreGraph);
-
-        // Apply positions to nodes
-        const positionedNodes = tableNodes.map((node) => {
-            const nodeWithPosition = dagreGraph.node(node.id);
-            const newNode: Node<SchemaDesigner.Table> = {
-                ...node,
-                // Convert dagre center position to React Flow top-left position
-                position: {
-                    x: nodeWithPosition.x - calculateTableWidth() / 2,
-                    y: nodeWithPosition.y - calculateTableHeight(node.data) / 2,
-                },
-            };
-            return newNode;
-        });
-
-        setSchemaNodes(positionedNodes);
-
-        // Create edges for ReactFlow
-        const relationshipEdges: Edge<SchemaDesigner.ForeignKey>[] = [];
-        schema.tables.forEach((table) => {
-            table.foreignKeys.forEach((foreignKey) => {
-                const targetTable = schema.tables.find(
-                    (t) =>
-                        t.name === foreignKey.referencedTableName &&
-                        t.schema === foreignKey.referencedSchemaName,
-                );
-
-                if (!targetTable) return;
-
-                // Create an edge for each column in the foreign key
-                foreignKey.columns.forEach((column, index) => {
-                    const sourceHandle = `right-${column}`;
-                    const targetHandle = `left-${foreignKey.referencedColumns[index]}`;
-
-                    relationshipEdges.push({
-                        id: `${table.name}-${targetTable.name}-${column}-${foreignKey.referencedColumns[index]}`,
-                        source: table.id,
-                        target: targetTable.id,
-                        sourceHandle: sourceHandle,
-                        targetHandle: targetHandle,
-                        markerEnd: {
-                            type: MarkerType.ArrowClosed,
-                        },
-                        data: {
-                            name: foreignKey.name,
-                            id: foreignKey.id,
-                            columns: [column],
-                            referencedSchemaName:
-                                foreignKey.referencedSchemaName,
-                            referencedTableName: foreignKey.referencedTableName,
-                            referencedColumns: [
-                                foreignKey.referencedColumns[index],
-                            ],
-                            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
-                            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
-                        },
-                    });
-                });
-            });
-        });
-
-        setRelationshipEdges(relationshipEdges);
-    }, [context?.schema]);
 
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
@@ -458,6 +293,9 @@ export const SchemaDesignerFlow = () => {
                 }}
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
+                onDelete={() => {
+                    eventBus.emit("getScript");
+                }}
                 fitView
             >
                 <Controls />

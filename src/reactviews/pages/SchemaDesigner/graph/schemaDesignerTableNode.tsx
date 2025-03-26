@@ -32,7 +32,7 @@ export const SchemaDesignerTableNode = ({
 }: {
     data: SchemaDesigner.Table;
 }) => {
-    const { getNodes, getEdges } = useReactFlow<
+    const { getEdges } = useReactFlow<
         Node<SchemaDesigner.Table>,
         Edge<SchemaDesigner.ForeignKey>
     >();
@@ -40,14 +40,9 @@ export const SchemaDesignerTableNode = ({
     const context = useContext(SchemaDesignerContext);
 
     const handleEditTable = () => {
-        const nodes = getNodes();
         const edges = getEdges();
 
-        // Find the node with the same id as the selected node
-        const selectedNode = nodes.find((node) => node.data.id === data.id);
         const nodeEdges = edges.filter((edge) => edge.source === data.id);
-        console.log("Selected node:", selectedNode);
-        console.log("Node edges:", nodeEdges);
         // Create foreign from edges
         const foreignKeysMap = new Map<string, SchemaDesigner.ForeignKey>();
         nodeEdges.forEach((edge) => {
@@ -71,8 +66,6 @@ export const SchemaDesignerTableNode = ({
         };
 
         tableCopy.foreignKeys = Array.from(foreignKeysMap.values());
-
-        console.log("Table copy:", tableCopy);
         context.setSelectedTable(tableCopy);
     };
 
