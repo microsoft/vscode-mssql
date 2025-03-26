@@ -27,7 +27,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
     let vsCodePage: Page;
 
     test.beforeAll(async () => {
-        // launch with new ui turned off
+        // Launch with new UI off
         const { electronApp, page } =
             await launchVsCodeWithMssqlExtension(true);
         vsCodeApp = electronApp;
