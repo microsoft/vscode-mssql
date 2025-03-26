@@ -19,9 +19,10 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import * as FluentIcons from "@fluentui/react-icons";
 import { NODEWIDTH } from "./schemaDesignerFlowConstants";
 import { locConstants } from "../../../common/locConstants";
-import { Edge, Handle, Node, Position, useReactFlow } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import eventBus from "../schemaDesignerUtils";
 
 const styles = makeStyles({
     columnsContainer: {},
@@ -32,41 +33,21 @@ export const SchemaDesignerTableNode = ({
 }: {
     data: SchemaDesigner.Table;
 }) => {
-    const { getEdges } = useReactFlow<
-        Node<SchemaDesigner.Table>,
-        Edge<SchemaDesigner.ForeignKey>
-    >();
-
     const context = useContext(SchemaDesignerContext);
 
     const handleEditTable = () => {
-        const edges = getEdges();
+        const schema = context.extractSchema();
+        const table = schema.tables.find((t) => t.id === data.id);
 
-        const nodeEdges = edges.filter((edge) => edge.source === data.id);
-        // Create foreign from edges
-        const foreignKeysMap = new Map<string, SchemaDesigner.ForeignKey>();
-        nodeEdges.forEach((edge) => {
-            const fk = edge.data;
-            if (!fk) {
-                return;
-            }
-            if (foreignKeysMap.has(fk.id)) {
-                const existingFk = foreignKeysMap.get(fk.id);
-                if (existingFk) {
-                    existingFk.columns.push(...fk.columns);
-                    existingFk.referencedColumns.push(...fk.referencedColumns);
-                }
-            } else {
-                foreignKeysMap.set(fk.id, fk);
-            }
-        });
+        if (!table) {
+            return;
+        }
 
         const tableCopy = {
             ...data,
         };
 
-        tableCopy.foreignKeys = Array.from(foreignKeysMap.values());
-        context.setSelectedTable(tableCopy);
+        eventBus.emit("editTable", tableCopy, schema);
     };
 
     const classes = styles();

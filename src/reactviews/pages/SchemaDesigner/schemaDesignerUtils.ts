@@ -3,403 +3,213 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SchemaDesignerConfig } from "azdataGraph/dist/src/ts/schemaDesigner/schemaDesignerInterfaces";
-import * as schemaDesignerIcons from "./schemaDesignerIcons";
-const connectorIcon = require("./icons/connector.svg");
-import * as azdataGraph from "azdataGraph";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
 import { Edge, MarkerType, Node } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
+import { v4 as uuidv4 } from "uuid";
+import { TypedEventEmitter } from "../../common/eventEmitter";
 
-/**
- * Get the schema designer colors from the current theme
- */
-export function getSchemaDesignerColors(): azdataGraph.SchemaDesignerColors {
-    const body = document.body;
-    const computedStyle = getComputedStyle(body);
-    return {
-        cellHighlight: computedStyle.getPropertyValue("--vscode-focusBorder"),
-        cellForeground: computedStyle.getPropertyValue(
-            "--vscode-editor-foreground",
-        ),
-        cellBackground: computedStyle.getPropertyValue(
-            "--vscode-editor-background",
-        ),
-        cellBorder: computedStyle.getPropertyValue("--vscode-badge-background"),
-        cellColumnHover: computedStyle.getPropertyValue(
-            "--vscode-inputOption-hoverBackground",
-        ),
-        cellDivider: computedStyle.getPropertyValue(
-            "--vscode-badge-background",
-        ),
-        toolbarBackground: "#2c2c2c",
-        toolbarForeground: "#ffffff",
-        toolbarHoverBackground: "#383838",
-        toolbarDividerBackground: "#444444",
-        graphBackground: computedStyle.getPropertyValue(
-            "--vscode-editor-background",
-        ),
-        graphGrid: computedStyle.getPropertyValue("--vscode-badge-background"),
-        edge: computedStyle.getPropertyValue("--vscode-editor-foreground"),
-        outlineHandleFill: computedStyle.getPropertyValue(
-            "--vscode-focusBorder",
-        ),
-        outline: computedStyle.getPropertyValue("--vscode-focusBorder"),
-        graphHandlePreview: computedStyle.getPropertyValue(
-            "--vscode-editor-foreground",
-        ),
-    };
-}
-
-/**
- * Schema designer configuration
- */
-export const schemaDesignerConfig: SchemaDesignerConfig = {
-    icons: {
-        addTableIcon: schemaDesignerIcons.addTableIcon,
-        undoIcon: schemaDesignerIcons.undoIcon,
-        redoIcon: schemaDesignerIcons.redoIcon,
-        zoomInIcon: schemaDesignerIcons.zoomInIcon,
-        zoomOutIcon: schemaDesignerIcons.zoomOutIcon,
-        zoomFitIcon: schemaDesignerIcons.zoomFitIcon,
-        deleteIcon: schemaDesignerIcons.deleteIcon,
-        entityIcon: schemaDesignerIcons.entityIcon,
-        connectorIcon: connectorIcon,
-        exportIcon: schemaDesignerIcons.exportIcon,
-        autoArrangeCellsIcon: schemaDesignerIcons.autoarrangeIcon,
-        editIcon: schemaDesignerIcons.editIcon,
-        cancelIcon: schemaDesignerIcons.cancelIcon,
-        primaryKeyIcon: schemaDesignerIcons.primaryKeyIcon,
-        foreignKeyIcon: schemaDesignerIcons.foreignKeyIcon,
-    },
-    colors: getSchemaDesignerColors(),
-    graphFontFamily: "",
-    isEditable: true,
-    editTable: function (
-        _table: azdataGraph.Table,
-        _cell: azdataGraph.mxCell,
-        _x: number,
-        _y: number,
-        _scale: number,
-        _model: azdataGraph.Schema,
-    ): Promise<azdataGraph.Table> {
-        throw new Error("Function not implemented.");
-    },
-    updateEditorPosition: function (
-        _x: number,
-        _y: number,
-        _scale: number,
-    ): void {},
-    publish(_schema: azdataGraph.Schema): void {
-        throw new Error("Function not implemented.");
-    },
-    showToolbar: false,
-    isForeignKeyValid: function (
-        _source: azdataGraph.mxCell,
-        _target: azdataGraph.mxCell,
-        _sourceColumn: number,
-        _targetColumn: number,
-    ): boolean {
-        console.log(
-            `isForeignKeyValid: ${_source.id} -> ${_target.id}, sourceColumn: ${_sourceColumn}, targetColumn: ${_targetColumn}`,
-        );
-        return true;
-        // throw new Error("Function not implemented.");
-    },
-};
-
-/**
- * Generate a new name for the column based on the existing columns
- * @param existingColumns The existing columns in the table
- * @returns The new column name
- */
-export function getNextColumnName(
-    existingColumns: SchemaDesigner.Column[],
-): string {
+export function getNextColumnName(columns: SchemaDesigner.Column[]): string {
     let index = 1;
-    let columnName = `column_${index}`;
-    while (existingColumns.some((column) => column.name === columnName)) {
-        index++;
-        columnName = `column_${index}`;
-    }
-    return columnName;
+    while (columns.some((c) => c.name === `column_${index}`)) index++;
+    return `column_${index}`;
 }
 
-/**
- * Generate a new name for the foreign key based on the existing foreign keys
- * @param existingEdges The existing foreign keys in the table
- * @returns The new foreign key name
- */
 export function getNextForeignKeyName(
-    existingEdges: SchemaDesigner.ForeignKey[],
+    foreignKeys: SchemaDesigner.ForeignKey[],
 ): string {
     let index = 1;
-    let foreignKeyName = `FK_${index}`;
-    while (existingEdges.some((edge) => edge.name === foreignKeyName)) {
-        index++;
-        foreignKeyName = `FK_${index}`;
-    }
-    return foreignKeyName;
+    while (foreignKeys.some((fk) => fk.name === `FK_${index}`)) index++;
+    return `FK_${index}`;
 }
 
-/**
- * Get all tables in the schema except the current one
- * @param schema
- * @param currentTable
- * @returns
- */
 export function getAllTables(
     schema: SchemaDesigner.Schema,
-    currentTable: SchemaDesigner.Table,
+    current: SchemaDesigner.Table,
 ): SchemaDesigner.Table[] {
     return schema.tables
-        .filter(
-            (entity) =>
-                entity.schema !== currentTable.schema ||
-                entity.name !== currentTable.name,
-        )
+        .filter((t) => t.schema !== current.schema || t.name !== current.name)
         .sort();
 }
 
-/**
- * Get display name for the table
- * @param schema schema
- * @param displayName display name
- * @returns table
- */
 export function getTableFromDisplayName(
     schema: SchemaDesigner.Schema,
     displayName: string,
 ): SchemaDesigner.Table {
-    return schema.tables.find(
-        (entity) => `${entity.schema}.${entity.name}` === displayName,
-    )!;
+    return schema.tables.find((t) => `${t.schema}.${t.name}` === displayName)!;
+}
+
+export function isLengthBasedType(type: string) {
+    return [
+        "char",
+        "varchar",
+        "nchar",
+        "nvarchar",
+        "binary",
+        "varbinary",
+    ].includes(type);
+}
+
+export function isPrecisionBasedType(type: string) {
+    return ["decimal", "numeric", "float", "real"].includes(type);
+}
+
+export function areDataTypesCompatible(
+    col: SchemaDesigner.Column,
+    refCol: SchemaDesigner.Column,
+): ForeignKeyValidationResult {
+    if (col.dataType !== refCol.dataType) {
+        return {
+            isValid: false,
+            errorMessage: locConstants.schemaDesigner.incompatibleDataTypes(
+                col.dataType,
+                col.name,
+                refCol.dataType,
+                refCol.name,
+            ),
+        };
+    }
+
+    if (
+        isLengthBasedType(col.dataType) &&
+        col.maxLength !== refCol.maxLength &&
+        refCol.maxLength !== -1
+    ) {
+        return {
+            isValid: false,
+            errorMessage: locConstants.schemaDesigner.incompatibleLength(
+                col.name,
+                refCol.name,
+                col.maxLength,
+                refCol.maxLength,
+            ),
+        };
+    }
+
+    if (
+        isPrecisionBasedType(col.dataType) &&
+        (col.precision !== refCol.precision || col.scale !== refCol.scale)
+    ) {
+        return {
+            isValid: false,
+            errorMessage:
+                locConstants.schemaDesigner.incompatiblePrecisionOrScale(
+                    col.name,
+                    refCol.name,
+                ),
+        };
+    }
+
+    return { isValid: true };
 }
 
 export function isForeignKeyValid(
     tables: SchemaDesigner.Table[],
     table: SchemaDesigner.Table,
-    foreignKey: SchemaDesigner.ForeignKey,
+    fk: SchemaDesigner.ForeignKey,
 ): ForeignKeyValidationResult {
-    // Check if the name is not empty
-    if (foreignKey.name === "") {
+    if (!fk.name)
         return {
+            isValid: false,
             errorMessage: locConstants.schemaDesigner.foreignKeyNameEmptyError,
-            isValid: false,
         };
-    }
 
-    const referencedTable = tables.find(
+    const refTable = tables.find(
         (t) =>
-            t.name === foreignKey.referencedTableName &&
-            t.schema === foreignKey.referencedSchemaName,
+            t.name === fk.referencedTableName &&
+            t.schema === fk.referencedSchemaName,
     );
-    // Check if the foreign table exists
-    if (!referencedTable) {
+    if (!refTable)
         return {
-            errorMessage: locConstants.schemaDesigner.referencedTableNotFound(
-                foreignKey.referencedTableName,
-            ),
             isValid: false,
+            errorMessage: locConstants.schemaDesigner.referencedTableNotFound(
+                fk.referencedTableName,
+            ),
         };
-    }
 
-    // Check if the foreign key columns are not repeated in the same table
-    const columnNames = foreignKey.columns;
-    const uniqueColumnNames = new Set(columnNames);
-    if (uniqueColumnNames.size !== columnNames.length) {
+    const uniqueCols = new Set(fk.columns);
+    if (uniqueCols.size !== fk.columns.length) {
         return {
+            isValid: false,
             errorMessage:
                 locConstants.schemaDesigner.duplicateForeignKeyColumns,
-            isValid: false,
         };
     }
 
-    for (let i = 0; i < foreignKey.columns.length; i++) {
-        const columnName = foreignKey.columns[i];
-
-        // Check if the column exists in the table
-        const column = table.columns.find((c) => c.name === columnName);
-        if (!column) {
-            return {
-                errorMessage:
-                    locConstants.schemaDesigner.columnNotFound(columnName),
-                isValid: false,
-            };
-        }
-        const referencedColumnName = foreignKey.referencedColumns[i];
-        const referencedColumn = referencedTable.columns.find(
-            (c) => c.name === referencedColumnName,
+    for (let i = 0; i < fk.columns.length; i++) {
+        const col = table.columns.find((c) => c.name === fk.columns[i]);
+        const refCol = refTable.columns.find(
+            (c) => c.name === fk.referencedColumns[i],
         );
 
-        // Check if the referenced column exists
-        if (!referencedColumn) {
+        if (!col)
             return {
+                isValid: false,
+                errorMessage: locConstants.schemaDesigner.columnNotFound(
+                    fk.columns[i],
+                ),
+            };
+        if (!refCol)
+            return {
+                isValid: false,
                 errorMessage:
                     locConstants.schemaDesigner.referencedColumnNotFound(
-                        referencedColumnName,
+                        fk.referencedColumns[i],
                     ),
-                isValid: false,
             };
-        }
 
-        // Check if the data types are compatible
-        const datatypeCompatibility = areDataTypesCompatible(
-            column,
-            referencedColumn,
-        );
-        if (!datatypeCompatibility.isValid) {
+        const typeCheck = areDataTypesCompatible(col, refCol);
+        if (!typeCheck.isValid) return typeCheck;
+
+        if (!refCol.isPrimaryKey && !refCol.isUnique) {
             return {
-                errorMessage: datatypeCompatibility.errorMessage,
                 isValid: false,
-            };
-        }
-
-        // // Referenced column must be a primary key or unique
-        if (!referencedColumn.isPrimaryKey && !referencedColumn.isUnique) {
-            return {
                 errorMessage:
                     locConstants.schemaDesigner.referencedColumnNotUnique(
-                        referencedColumnName,
+                        refCol.name,
                     ),
-                isValid: false,
             };
         }
 
-        // Check for cyclic foreign key references
-        if (isCyclicForeignKey(tables, referencedTable, table)) {
+        if (isCyclicForeignKey(tables, refTable, table)) {
             return {
+                isValid: false,
                 errorMessage:
                     locConstants.schemaDesigner.cyclicForeignKeyDetected(
                         table.name,
-                        referencedTable.name,
+                        refTable.name,
                     ),
-                isValid: false,
             };
         }
     }
 
-    return {
-        isValid: true,
-    };
-}
-
-export function areDataTypesCompatible(
-    column: SchemaDesigner.Column,
-    referencedColumn: SchemaDesigner.Column,
-): ForeignKeyValidationResult {
-    if (column.dataType !== referencedColumn.dataType) {
-        return {
-            errorMessage: locConstants.schemaDesigner.incompatibleDataTypes(
-                column.dataType,
-                column.name,
-                referencedColumn.dataType,
-                referencedColumn.name,
-            ),
-            isValid: false,
-        };
-    }
-
-    if (
-        isLengthBasedType(column.dataType) &&
-        column.maxLength !== referencedColumn.maxLength &&
-        referencedColumn.maxLength !== -1
-    ) {
-        return {
-            errorMessage: locConstants.schemaDesigner.incompatibleLength(
-                column.name,
-                referencedColumn.name,
-                column.maxLength,
-                referencedColumn.maxLength,
-            ),
-            isValid: false,
-        };
-    }
-
-    if (
-        (isPrecisionBasedType(column.dataType) &&
-            column.precision !== referencedColumn.precision) ||
-        column.scale !== referencedColumn.scale
-    ) {
-        return {
-            errorMessage:
-                locConstants.schemaDesigner.incompatiblePrecisionOrScale(
-                    column.name,
-                    referencedColumn.name,
-                ),
-            isValid: false,
-        };
-    }
-
-    return {
-        isValid: true,
-    };
-}
-
-export function isLengthBasedType(dataType: string): boolean {
-    return (
-        dataType === "char" ||
-        dataType === "varchar" ||
-        dataType === "nchar" ||
-        dataType === "nvarchar" ||
-        dataType === "binary" ||
-        dataType === "varbinary"
-    );
-}
-
-export function isPrecisionBasedType(dataType: string): boolean {
-    return (
-        dataType === "decimal" ||
-        dataType === "numeric" ||
-        dataType === "float" ||
-        dataType === "real"
-    );
+    return { isValid: true };
 }
 
 export function isCyclicForeignKey(
     tables: SchemaDesigner.Table[],
-    currentTable: SchemaDesigner.Table | undefined,
-    referencedTable: SchemaDesigner.Table | undefined,
-    visited: Set<string> = new Set(),
+    current: SchemaDesigner.Table | undefined,
+    target: SchemaDesigner.Table | undefined,
+    visited = new Set<string>(),
 ): boolean {
-    if (!currentTable || !referencedTable) {
-        return false;
-    }
+    if (!current || !target) return false;
+    if (visited.has(current.id)) return true;
 
-    if (visited.has(currentTable.id)) {
-        return true; // Cycle detected
-    }
-
-    visited.add(currentTable.id);
-
-    for (const foreignKey of currentTable.foreignKeys) {
-        const currentReferencedTable = tables.find(
+    visited.add(current.id);
+    for (const fk of current.foreignKeys) {
+        const next = tables.find(
             (t) =>
-                t.name === foreignKey.referencedTableName &&
-                t.schema === foreignKey.referencedSchemaName,
+                t.name === fk.referencedTableName &&
+                t.schema === fk.referencedSchemaName,
         );
-
-        if (!currentReferencedTable) {
-            continue; // Skip if the referenced table is not found
-        }
-
-        if (currentReferencedTable.id === referencedTable.id) {
-            return true; // Cycle detected
-        }
-
+        if (!next) continue;
         if (
-            isCyclicForeignKey(
-                tables,
-                currentReferencedTable,
-                referencedTable,
-                new Set(visited),
-            )
-        ) {
+            next.id === target.id ||
+            isCyclicForeignKey(tables, next, target, new Set(visited))
+        )
             return true;
-        }
     }
-
     return false;
 }
 
@@ -410,41 +220,33 @@ export interface ForeignKeyValidationResult {
 
 // TODO: Remove when publish script is implemented with DacFx
 export function addWarningToSQLScript(script: string): string {
-    const warning =
-        `-- **************************************************\n` +
-        `-- WARNING: REVIEW BEFORE APPLYING CHANGES\n` +
-        `-- **************************************************\n` +
-        `-- You are about to modify the database schema.\n` +
-        `-- Please carefully review the script before execution, as changes can:\n` +
-        `--\n` +
-        `-- - Impact existing data integrity and relationships\n` +
-        `-- - Cause unintended data loss or corruption\n` +
-        `-- - Affect system performance and application stability\n` +
-        `--\n` +
-        `-- RECOMMENDED ACTIONS:\n` +
-        `-- - Backup your database before proceeding\n` +
-        `-- - Test the script in a development environment\n` +
-        `-- - Ensure all dependencies and constraints are considered\n` +
-        `--\n` +
-        `-- Proceed with caution. Once applied, changes may not be reversible.\n` +
-        `-- **************************************************\n\n`;
+    return (
+        `-- **************************************************
+-- WARNING: REVIEW BEFORE APPLYING CHANGES
+-- **************************************************
+-- You are about to modify the database schema.
+-- Please carefully review the script before execution, as changes can:
+-- - Impact existing data integrity and relationships
+-- - Cause unintended data loss or corruption
+-- - Affect system performance and application stability
+-- RECOMMENDED ACTIONS:
+-- - Backup your database before proceeding
+-- - Test the script in a development environment
+-- - Ensure all dependencies and constraints are considered
+-- Proceed with caution. Once applied, changes may not be reversible.
+-- **************************************************
 
-    return warning + script;
+` + script
+    );
 }
 
-/**
- * Fill in default values for the column properties based on the data type
- * @param column The column to fill defaults for
- * @returns The column with default values filled in
- */
 export function fillColumnDefaults(
     column: SchemaDesigner.Column,
 ): SchemaDesigner.Column {
-    if (isLengthBasedType(column.dataType)) {
+    if (isLengthBasedType(column.dataType))
         column.maxLength = getDefaultLength(column.dataType);
-    } else {
-        column.maxLength = 0;
-    }
+    else column.maxLength = 0;
+
     if (isPrecisionBasedType(column.dataType)) {
         column.precision = getDefaultPrecision(column.dataType);
         column.scale = getDefaultScale(column.dataType);
@@ -452,16 +254,12 @@ export function fillColumnDefaults(
         column.precision = 0;
         column.scale = 0;
     }
+
     return column;
 }
 
-/**
- * Get the default length for a given data type
- * @param dataType The data type
- * @returns The default length
- */
-export function getDefaultLength(dataType: string): number {
-    switch (dataType) {
+export function getDefaultLength(type: string) {
+    switch (type) {
         case "char":
         case "nchar":
         case "binary":
@@ -471,17 +269,11 @@ export function getDefaultLength(dataType: string): number {
         case "varbinary":
             return 50;
         default:
-            return 0; // Default length not applicable
+            return 0;
     }
 }
-
-/**
- * Get the default precision for a given data type
- * @param dataType The data type
- * @returns The default precision
- */
-export function getDefaultPrecision(dataType: string): number {
-    switch (dataType) {
+export function getDefaultPrecision(type: string) {
+    switch (type) {
         case "decimal":
         case "numeric":
             return 18;
@@ -490,22 +282,16 @@ export function getDefaultPrecision(dataType: string): number {
         case "real":
             return 24;
         default:
-            return 0; // Default precision not applicable
+            return 0;
     }
 }
-
-/**
- * Get the default scale for a given data type
- * @param dataType The data type
- * @returns The default scale
- */
-export function getDefaultScale(dataType: string): number {
-    switch (dataType) {
+export function getDefaultScale(type: string) {
+    switch (type) {
         case "decimal":
         case "numeric":
             return 2;
         default:
-            return 0; // Default scale not applicable
+            return 0;
     }
 }
 
@@ -513,18 +299,16 @@ export function tableNameValidationError(
     schema: SchemaDesigner.Schema,
     table: SchemaDesigner.Table,
 ): string | undefined {
-    const existingTable = schema.tables.find(
+    const conflict = schema.tables.find(
         (t) =>
-            t.name.toLocaleLowerCase() === table.name.toLocaleLowerCase() &&
-            t.schema.toLocaleLowerCase() === table.schema.toLocaleLowerCase() &&
+            t.name.toLowerCase() === table.name.toLowerCase() &&
+            t.schema.toLowerCase() === table.schema.toLowerCase() &&
             t.id !== table.id,
     );
-    if (existingTable) {
+
+    if (conflict)
         return locConstants.schemaDesigner.tableNameRepeatedError(table.name);
-    }
-    if (table.name === "") {
-        return locConstants.schemaDesigner.tableNameEmptyError;
-    }
+    if (!table.name) return locConstants.schemaDesigner.tableNameEmptyError;
     return undefined;
 }
 
@@ -713,45 +497,51 @@ export const extractSchemaModel = (
     };
 };
 
-type EventMap = {
-    [event: string]: (...args: any[]) => void;
-};
-
-export class TypedEventEmitter<Events extends EventMap> {
-    private listeners: {
-        [K in keyof Events]?: Events[K][];
-    } = {};
-
-    on<K extends keyof Events>(event: K, listener: Events[K]) {
-        if (!this.listeners[event]) {
-            this.listeners[event] = [];
-        }
-        this.listeners[event]!.push(listener);
-    }
-
-    off<K extends keyof Events>(event: K, listener: Events[K]) {
-        this.listeners[event] = this.listeners[event]?.filter(
-            (l) => l !== listener,
-        );
-    }
-
-    emit<K extends keyof Events>(event: K, ...args: Parameters<Events[K]>) {
-        this.listeners[event]?.forEach((listener) => listener(...args));
-    }
-
-    once<K extends keyof Events>(event: K, listener: Events[K]) {
-        const onceWrapper: Events[K] = ((...args: Parameters<Events[K]>) => {
-            this.off(event, onceWrapper);
-            listener(...args);
-        }) as Events[K];
-        this.on(event, onceWrapper);
-    }
-}
-
 export type MyEvents = {
     getScript: () => void;
     openCodeDrawer: () => void;
+    editTable: (
+        table: SchemaDesigner.Table,
+        schema: SchemaDesigner.Schema,
+    ) => void;
+    newTable: (schema: SchemaDesigner.Schema) => void;
 };
 
 const eventBus = new TypedEventEmitter<MyEvents>();
 export default eventBus;
+
+export function getNextTableName(tables: SchemaDesigner.Table[]): string {
+    let index = 1;
+    while (tables.some((t) => t.name === `table_${index}`)) index++;
+    return `table_${index}`;
+}
+
+export function createNewTable(
+    schema: SchemaDesigner.Schema,
+    schemaNames: string[],
+): SchemaDesigner.Table {
+    const name = getNextTableName(schema.tables);
+    return {
+        name,
+        schema: schemaNames[0],
+        columns: [
+            {
+                name: "Id",
+                dataType: "int",
+                maxLength: 0,
+                precision: 0,
+                scale: 0,
+                isNullable: true,
+                isPrimaryKey: false,
+                isUnique: false,
+                id: uuidv4(),
+                isIdentity: true,
+                identitySeed: 1,
+                identityIncrement: 1,
+                collation: "",
+            },
+        ],
+        foreignKeys: [],
+        id: uuidv4(),
+    };
+}

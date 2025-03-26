@@ -23,14 +23,18 @@ export function ExportDiagramButton() {
     const context = useContext(SchemaDesignerContext);
 
     async function exportAs(format: "svg" | "png" | "jpeg") {
-        const nodesBounds = getNodesBounds(getNodes());
         const reactFlowContainer = document.querySelector(
             ".react-flow__viewport",
         ) as HTMLElement;
+        const computedStyle = getComputedStyle(reactFlowContainer);
+        const graphBackgroundColor = computedStyle.getPropertyValue(
+            "--vscode-editor-background",
+        );
+
+        const nodesBounds = getNodesBounds(getNodes());
 
         const width = nodesBounds.width + 20;
         const height = nodesBounds.height + 20;
-        const background = "var(--vscode-editor-background)";
 
         switch (format) {
             case "png":
@@ -38,7 +42,7 @@ export function ExportDiagramButton() {
                     .toPng(reactFlowContainer, {
                         width: width,
                         height: height,
-                        backgroundColor: background,
+                        backgroundColor: graphBackgroundColor,
                     })
                     .then((dataUrl) => {
                         context.saveAsFile({
@@ -54,7 +58,7 @@ export function ExportDiagramButton() {
                     .toJpeg(reactFlowContainer, {
                         width: width,
                         height: height,
-                        backgroundColor: background,
+                        backgroundColor: graphBackgroundColor,
                     })
                     .then((dataUrl) => {
                         context.saveAsFile({
@@ -70,7 +74,7 @@ export function ExportDiagramButton() {
                     .toSvg(reactFlowContainer, {
                         width: width,
                         height: height,
-                        backgroundColor: background,
+                        backgroundColor: graphBackgroundColor,
                     })
                     .then((dataUrl) => {
                         context.saveAsFile({

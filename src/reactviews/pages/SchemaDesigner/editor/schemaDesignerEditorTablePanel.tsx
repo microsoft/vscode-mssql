@@ -31,7 +31,6 @@ import {
     useTableFeatures,
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
@@ -45,6 +44,7 @@ import {
 } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
+import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
 
 const useStyles = makeStyles({
     panel: {
@@ -482,43 +482,23 @@ const ColumnsTable = ({
 };
 
 // Main component
-export const SchemaDesignerEditorTablePanel = ({
-    setErrorCount,
-}: {
-    setErrorCount: (errorCount: number) => void;
-}) => {
+export const SchemaDesignerEditorTablePanel = () => {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useContext(SchemaDesignerEditorContext);
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
         useState<number>(-1);
 
     // Memoized values
-    const datatypes = useMemo(() => context.datatypes, [context.datatypes]);
+    const datatypes = useMemo(() => context.dataTypes, [context.dataTypes]);
     const allTables = useMemo(() => {
-        if (!context.schemaDesigner?.schema) return [];
-        return getAllTables(
-            context.schemaDesigner.schema,
-            context.selectedTable,
-        );
-    }, [context.schemaDesigner?.schema, context.selectedTable]);
+        return getAllTables(context.schema, context.table);
+    }, [context.schema, context.table]);
 
     // Reset focus when selected table changes
     useEffect(() => {
         setLastColumnNameInputIndex(-1);
-
-        // Validate table names
-        if (
-            tableNameValidationError(
-                context.schemaDesigner?.schema!,
-                context.selectedTable,
-            )
-        ) {
-            setErrorCount(1);
-        } else {
-            setErrorCount(0);
-        }
-    }, [context.selectedTable]);
+    }, [context.table]);
 
     // Focus on newly added column
     useEffect(() => {
@@ -530,8 +510,8 @@ export const SchemaDesignerEditorTablePanel = ({
     // Check if a column can be deleted
     const isColumnDeletable = (column: SchemaDesigner.Column) => {
         // If there is an incoming or outgoing foreign key with this column, disable delete
-        const hasRelatedForeignKey = context.selectedTable.foreignKeys.some(
-            (fk) => fk.columns.includes(column.name),
+        const hasRelatedForeignKey = context.table.foreignKeys.some((fk) =>
+            fk.columns.includes(column.name),
         );
 
         // If this column is a referenced column in any foreign key, disable delete
@@ -546,7 +526,7 @@ export const SchemaDesignerEditorTablePanel = ({
 
     // Add a new column
     const addColumn = () => {
-        const newColumns = [...context.selectedTable.columns];
+        const newColumns = [...context.table.columns];
         newColumns.push({
             id: uuidv4(),
             name: getNextColumnName(newColumns),
@@ -563,8 +543,8 @@ export const SchemaDesignerEditorTablePanel = ({
             identityIncrement: 1,
         });
 
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             columns: newColumns,
         });
 
@@ -576,43 +556,54 @@ export const SchemaDesignerEditorTablePanel = ({
         index: number,
         updatedColumn: SchemaDesigner.Column,
     ) => {
-        const newColumns = [...context.selectedTable.columns];
+        const newColumns = [...context.table.columns];
         newColumns[index] = updatedColumn;
 
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             columns: newColumns,
         });
     };
 
     // Delete column at specified index
     const deleteColumn = (index: number) => {
-        const newColumns = [...context.selectedTable.columns];
+        const newColumns = [...context.table.columns];
         newColumns.splice(index, 1);
 
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             columns: newColumns,
         });
     };
 
     // Update table schema
     const updateTableSchema = (schema: string) => {
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             schema: schema,
         });
     };
 
     // Update table name
     const updateTableName = (name: string) => {
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             name: name,
         });
+        const error = tableNameValidationError(context.schema, context.table);
+        if (error) {
+            context.setErrors({
+                ...context.errors,
+                name: error,
+            });
+        } else {
+            const newErrors = { ...context.errors };
+            delete newErrors.name;
+            context.setErrors(newErrors);
+        }
     };
 
-    if (!context.selectedTable) {
+    if (!context.table) {
         return undefined;
     }
 
@@ -623,29 +614,24 @@ export const SchemaDesignerEditorTablePanel = ({
                 <Label>{locConstants.schemaDesigner.schema}</Label>
                 <SearchableDropdown
                     placeholder="Search Schema"
-                    options={context.schemaNames.map((schema) => ({
+                    options={context.schemas.map((schema) => ({
                         displayName: schema,
                         value: schema,
                     }))}
                     selectedOption={{
-                        text: context.selectedTable.schema,
-                        value: context.selectedTable.schema,
+                        text: context.table.schema,
+                        value: context.table.schema,
                     }}
                     onSelect={(selected) => updateTableSchema(selected.value)}
                 />
             </Field>
 
             {/* Table Name */}
-            <Field
-                validationMessage={tableNameValidationError(
-                    context.schemaDesigner?.schema!,
-                    context.selectedTable,
-                )}
-            >
+            <Field validationMessage={context.errors.name}>
                 <Label>{locConstants.schemaDesigner.name}</Label>
                 <Input
                     autoFocus
-                    value={context.selectedTable.name}
+                    value={context.table.name}
                     onChange={(_e, data) => updateTableName(data.value)}
                 />
             </Field>
@@ -663,7 +649,7 @@ export const SchemaDesignerEditorTablePanel = ({
             {/* Columns Table */}
             <div className={classes.scrollContainer}>
                 <ColumnsTable
-                    columns={context.selectedTable.columns}
+                    columns={context.table.columns}
                     updateColumn={updateColumn}
                     deleteColumn={deleteColumn}
                     columnNameInputRefs={columnNameInputRefs}

@@ -31,7 +31,6 @@ import {
 } from "@fluentui/react-components";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     getAllTables,
@@ -43,6 +42,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import * as FluentIcons from "@fluentui/react-icons";
+import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
 
 const useStyles = makeStyles({
     panel: {
@@ -166,15 +166,15 @@ const ColumnMappingTable = ({
     );
 
     // Get the target table based on the foreign key reference
-    const context = useContext(SchemaDesignerContext);
+    const context = useContext(SchemaDesignerEditorContext);
     const targetTable = useMemo(() => {
-        if (!context.schemaDesigner?.schema) return { columns: [] };
+        if (!context.schema) return { columns: [] };
         return getTableFromDisplayName(
-            context.schemaDesigner.schema,
+            context.schema,
             `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
         );
     }, [
-        context.schemaDesigner?.schema,
+        context.schema,
         foreignKey.referencedSchemaName,
         foreignKey.referencedTableName,
     ]);
@@ -331,21 +331,21 @@ const ForeignKeyCard = ({
     ) => void;
 }) => {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useContext(SchemaDesignerEditorContext);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>("");
 
     // Add a mapping between source and target columns
     const addColumnMapping = () => {
-        if (!context.schemaDesigner?.schema) return;
+        if (!context.schema) return;
 
         const updatedForeignKey = { ...foreignKey };
 
         // Get default source and target columns
-        const sourceColumn = context.selectedTable.columns[0]?.name || "";
+        const sourceColumn = context.table.columns[0]?.name || "";
 
         const targetTable = getTableFromDisplayName(
-            context.schemaDesigner.schema,
+            context.schema,
             `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
         );
         const targetColumn = targetTable.columns[0]?.name || "";
@@ -358,19 +358,13 @@ const ForeignKeyCard = ({
     };
 
     useEffect(() => {
-        const validationResult = isForeignKeyValid(
-            context.schemaDesigner?.schema?.tables ?? [],
-            context.selectedTable,
-            foreignKey,
-        );
-        if (validationResult.isValid) {
-            setErrorMessage("");
+        const error = context.errors[`foreignKey-${foreignKey.id}`];
+        if (error) {
+            setErrorMessage(error);
         } else {
-            if (validationResult.errorMessage) {
-                setErrorMessage(validationResult.errorMessage);
-            }
+            setErrorMessage("");
         }
-    }, [context.selectedTable]);
+    }, [context.errors]);
 
     return (
         <Card className={classes.cardStyle} key={`fk-card-${index}`}>
@@ -424,14 +418,10 @@ const ForeignKeyCard = ({
                         ]}
                         multiselect={false}
                         onOptionSelect={(_e, data) => {
-                            if (
-                                !data.optionText ||
-                                !context.schemaDesigner?.schema
-                            )
-                                return;
+                            if (!data.optionText || !context.schema) return;
 
                             const targetTable = getTableFromDisplayName(
-                                context.schemaDesigner.schema,
+                                context.schema,
                                 data.optionText,
                             );
 
@@ -486,7 +476,7 @@ const ForeignKeyCard = ({
                 <ColumnMappingTable
                     foreignKey={foreignKey}
                     foreignKeyIndex={index}
-                    selectedTable={context.selectedTable}
+                    selectedTable={context.table}
                     updateForeignKey={onUpdate}
                 />
             </div>
@@ -494,44 +484,44 @@ const ForeignKeyCard = ({
     );
 };
 
-export const SchemaDesignerEditorForeignKeyPanel = ({
-    setErrorCount,
-}: {
-    setErrorCount: (errorCount: number) => void;
-}) => {
+export const SchemaDesignerEditorForeignKeyPanel = () => {
     const classes = useStyles();
-    const context = useContext(SchemaDesignerContext);
+    const context = useContext(SchemaDesignerEditorContext);
     const foreignKeyInputRefs = useRef<Array<HTMLInputElement | null>>([]);
     const [lastAddedForeignKeyIndex, setLastAddedForeignKeyIndex] =
         useState<number>(-1);
 
     // Get all available tables for foreign key references
     const availableTables = useMemo(() => {
-        if (!context.schemaDesigner) return [];
-        return getAllTables(
-            context.schemaDesigner.schema,
-            context.selectedTable,
-        );
-    }, [context.schemaDesigner, context.selectedTable]);
+        if (!context.schema) return [];
+        return getAllTables(context.schema, context.table);
+    }, [context.table]);
 
     // Reset focus when the selected table changes
     useEffect(() => {
-        if (context.selectedTable) {
+        if (context.table) {
             setLastAddedForeignKeyIndex(-1);
         }
-        let error = 0;
-        context.selectedTable.foreignKeys.forEach((foreignKey) => {
+        context.table.foreignKeys.forEach((foreignKey) => {
             const validationResult = isForeignKeyValid(
-                context.schemaDesigner?.schema?.tables ?? [],
-                context.selectedTable,
+                context.schema?.tables ?? [],
+                context.table,
                 foreignKey,
             );
             if (!validationResult.isValid) {
-                error++;
+                context.setErrors({
+                    ...context.errors,
+                    [`foreignKey-${foreignKey.id}`]:
+                        validationResult.errorMessage ?? "",
+                });
+            } else {
+                // Remove error message if valid
+                const updatedErrors = { ...context.errors };
+                delete updatedErrors[`foreignKey-${foreignKey.id}`];
+                context.setErrors(updatedErrors);
             }
         });
-        setErrorCount(error);
-    }, [context.selectedTable]);
+    }, [context.table]);
 
     // Focus on the newly added foreign key's name input
     useEffect(() => {
@@ -540,7 +530,7 @@ export const SchemaDesignerEditorForeignKeyPanel = ({
         }
     }, [lastAddedForeignKeyIndex]);
 
-    if (!context.schemaDesigner || !context.selectedTable) {
+    if (!context.table) {
         return undefined;
     }
 
@@ -550,8 +540,8 @@ export const SchemaDesignerEditorForeignKeyPanel = ({
         const firstTable = availableTables[0];
         const newForeignKey: SchemaDesigner.ForeignKey = {
             id: uuidv4(),
-            name: getNextForeignKeyName(context.selectedTable.foreignKeys),
-            columns: [context.selectedTable.columns[0]?.name || ""],
+            name: getNextForeignKeyName(context.table.foreignKeys),
+            columns: [context.table.columns[0]?.name || ""],
             referencedSchemaName: firstTable.schema,
             referencedTableName: firstTable.name,
             referencedColumns: [firstTable.columns[0]?.name || ""],
@@ -560,12 +550,12 @@ export const SchemaDesignerEditorForeignKeyPanel = ({
         };
 
         const updatedForeignKeys = [
-            ...context.selectedTable.foreignKeys,
+            ...context.table.foreignKeys,
             newForeignKey,
         ];
 
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             foreignKeys: updatedForeignKeys,
         });
 
@@ -574,11 +564,11 @@ export const SchemaDesignerEditorForeignKeyPanel = ({
 
     // Delete a foreign key
     const deleteForeignKey = (index: number) => {
-        const updatedForeignKeys = [...context.selectedTable.foreignKeys];
+        const updatedForeignKeys = [...context.table.foreignKeys];
         updatedForeignKeys.splice(index, 1);
 
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             foreignKeys: updatedForeignKeys,
         });
     };
@@ -588,11 +578,11 @@ export const SchemaDesignerEditorForeignKeyPanel = ({
         index: number,
         updatedForeignKey: SchemaDesigner.ForeignKey,
     ) => {
-        const updatedForeignKeys = [...context.selectedTable.foreignKeys];
+        const updatedForeignKeys = [...context.table.foreignKeys];
         updatedForeignKeys[index] = updatedForeignKey;
 
-        context.setSelectedTable({
-            ...context.selectedTable,
+        context.setTable({
+            ...context.table,
             foreignKeys: updatedForeignKeys,
         });
     };
@@ -608,7 +598,7 @@ export const SchemaDesignerEditorForeignKeyPanel = ({
             </Button>
 
             <div className={classes.scrollContainer}>
-                {context.selectedTable.foreignKeys.map((foreignKey, index) => (
+                {context.table.foreignKeys.map((foreignKey, index) => (
                     <ForeignKeyCard
                         key={`foreign-key-${foreignKey.id}`}
                         foreignKey={foreignKey}

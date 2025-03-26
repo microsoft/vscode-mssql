@@ -5,8 +5,9 @@
 
 import { Button, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
+import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
+import eventBus from "../schemaDesignerUtils";
 
 const useStyles = makeStyles({
     editorFooter: {
@@ -17,12 +18,8 @@ const useStyles = makeStyles({
         padding: "10px",
     },
 });
-export function SchemaDesignerEditorFooter({
-    errorCount,
-}: {
-    errorCount: number;
-}) {
-    const context = useContext(SchemaDesignerContext);
+export function SchemaDesignerEditorFooter() {
+    const context = useContext(SchemaDesignerEditorContext);
     if (!context) {
         return undefined;
     }
@@ -32,22 +29,17 @@ export function SchemaDesignerEditorFooter({
             <Button
                 appearance="primary"
                 onClick={() => {
-                    if (context.schemaDesigner) {
-                        context.schemaDesigner.updateActiveCellStateTable(
-                            context.selectedTable,
-                        );
-                    }
-                    context.getScript();
-                    context.setIsEditDrawerOpen(false);
+                    context.save();
+                    eventBus.emit("getScript");
                 }}
-                disabled={errorCount > 0}
+                disabled={Object.keys(context.errors).length > 0}
             >
                 {locConstants.schemaDesigner.save}
             </Button>
             <Button
                 appearance="secondary"
                 onClick={() => {
-                    context.setIsEditDrawerOpen(false);
+                    context.cancel();
                 }}
             >
                 {locConstants.schemaDesigner.cancel}

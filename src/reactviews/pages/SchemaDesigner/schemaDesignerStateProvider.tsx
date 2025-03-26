@@ -39,6 +39,8 @@ export interface SchemaDesignerContextProps
 
     showError: (message: string) => void;
     editTable: (table: SchemaDesigner.Table) => Promise<SchemaDesigner.Table>;
+
+    extractSchema: () => SchemaDesigner.Schema;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -100,8 +102,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         return script.combinedScript;
     };
 
-    const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
         void extensionRpc.call("exportToFile", {
@@ -149,6 +149,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         });
     };
 
+    const extractSchema = () => {
+        const schema = extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        return schema;
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -165,12 +173,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 openInEditor,
                 openInEditorWithConnection,
                 copyToClipboard,
+                extractSchema,
 
                 selectedTable,
                 setSelectedTable,
-                isEditDrawerOpen,
-                setIsEditDrawerOpen,
-
                 showError,
             }}
         >

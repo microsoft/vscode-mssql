@@ -12,10 +12,10 @@ import {
 } from "@fluentui/react-components";
 import { useContext, useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
-import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesignerEditorFooter } from "./schemaDesignerEditorFooter";
 import { SchemaDesignerEditorTablePanel } from "./schemaDesignerEditorTablePanel";
 import { SchemaDesignerEditorForeignKeyPanel } from "./schemaDesignerEditorForeignKeyPanel";
+import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
 
 const useStyles = makeStyles({
     editor: {
@@ -62,21 +62,18 @@ const useStyles = makeStyles({
 export const SchemaDesignerEditor = () => {
     const classes = useStyles();
 
-    const context = useContext(SchemaDesignerContext);
+    const context = useContext(SchemaDesignerEditorContext);
     if (!context) {
         return undefined;
     }
 
     const [selectedTabValue, setSelectedTabValue] = useState<TabValue>("table");
-    const [tablePanelErrorCount, setTablePanelErrorCount] = useState(0);
-    const [foreignKeyPanelErrorCount, setForeignKeyPanelErrorCount] =
-        useState(0);
 
     useEffect(() => {
         setSelectedTabValue("table");
-    }, [context.isEditDrawerOpen]);
+    }, [context.schema]);
 
-    if (!context.selectedTable) {
+    if (!context.table) {
         return undefined;
     }
 
@@ -90,7 +87,7 @@ export const SchemaDesignerEditor = () => {
                     {locConstants.schemaDesigner.table}
                     <CounterBadge
                         size="small"
-                        count={tablePanelErrorCount}
+                        count={Object.keys(context.errors).length}
                         color="danger"
                     />
                 </Tab>
@@ -98,26 +95,20 @@ export const SchemaDesignerEditor = () => {
                     {locConstants.schemaDesigner.foreignKeys}
                     <CounterBadge
                         size="small"
-                        count={foreignKeyPanelErrorCount}
+                        count={Object.keys(context.errors).length}
                         color="danger"
                     />
                 </Tab>
             </TabList>
             <div className={classes.editorPanel}>
                 {selectedTabValue === "table" && (
-                    <SchemaDesignerEditorTablePanel
-                        setErrorCount={setTablePanelErrorCount}
-                    />
+                    <SchemaDesignerEditorTablePanel />
                 )}
                 {selectedTabValue === "foreignKeys" && (
-                    <SchemaDesignerEditorForeignKeyPanel
-                        setErrorCount={setForeignKeyPanelErrorCount}
-                    />
+                    <SchemaDesignerEditorForeignKeyPanel />
                 )}
             </div>
-            <SchemaDesignerEditorFooter
-                errorCount={tablePanelErrorCount + foreignKeyPanelErrorCount}
-            />
+            <SchemaDesignerEditorFooter />
         </div>
     );
 };

@@ -8,6 +8,7 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
+import eventBus from "../schemaDesignerUtils";
 
 export function AddTableButton() {
     const context = useContext(SchemaDesignerContext);
@@ -20,9 +21,7 @@ export function AddTableButton() {
             icon={<FluentIcons.TableAdd16Regular />}
             size="small"
             onClick={() => {
-                if (context?.schemaDesigner) {
-                    context.schemaDesigner.addNewTable();
-                }
+                eventBus.emit("newTable", context.extractSchema());
             }}
             title={locConstants.schemaDesigner.addTable}
             appearance="subtle"
