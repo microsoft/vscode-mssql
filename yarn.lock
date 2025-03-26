@@ -2345,10 +2345,10 @@
   dependencies:
     "@vscode/extension-telemetry" "0.6.1"
 
-"@microsoft/vscode-azext-azureauth@^2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-azureauth/-/vscode-azext-azureauth-2.5.0.tgz#b881ea5c633a08c675d0a02741b256faf6d9cd28"
-  integrity sha512-5XZhKg5JJv74sVRurvtCbtBPqTnXcJ3H0+GyTYwFcrW4v5kedYiXHyZqvaRQ4p33/U4J1uwr9xQkaBVB+TjhPQ==
+"@microsoft/vscode-azext-azureauth@^4.1.1":
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-azureauth/-/vscode-azext-azureauth-4.1.1.tgz#7c61cc6d4012ea3a0f8758c6a005eadc16a42660"
+  integrity sha512-ZHRoNBBwZBg8sqZ7/C+VMQOp7zusJxIpXzLlRpWGjrDI8PSFQk2bZloVdW877YeSLMe2464mjTlWMhEEa07Kaw==
   dependencies:
     "@azure/arm-resources-subscriptions" "^2.1.0"
     "@azure/core-client" "^1.9.2"
@@ -3686,10 +3686,10 @@ axe-core@^4.10.0:
   resolved "https://registry.yarnpkg.com/axe-core/-/axe-core-4.10.0.tgz#d9e56ab0147278272739a000880196cdfe113b59"
   integrity sha512-Mr2ZakwQ7XUAjp7pAwQWRhhK8mQQ6JAaNWSjmjxil0R8BPioMtQsTLOolGYkji1rcL++3dCqZA3zWqpT+9Ew6g==
 
-axios@^1.7.4:
-  version "1.7.4"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.4.tgz#4c8ded1b43683c8dd362973c393f3ede24052aa2"
-  integrity sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==
+axios@^1.8.2:
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.8.2.tgz#fabe06e241dfe83071d4edfbcaa7b1c3a40f7979"
+  integrity sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.0"

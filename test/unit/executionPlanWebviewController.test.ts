@@ -114,6 +114,7 @@ suite("ExecutionPlanWebviewController", () => {
                 mockInitialState,
                 controller.executionPlanService,
                 [controller.executionPlanContents],
+                "SqlplanFile",
             ],
             "createExecutionPlanGraphs should be called with correct arguments",
         );
@@ -402,6 +403,7 @@ suite("Execution Plan Utilities", () => {
             mockInitialState,
             mockExecutionPlanService,
             [executionPlanContents],
+            "Tests" as never,
         );
 
         const planFile: ep.ExecutionPlanGraphInfo = {
@@ -428,6 +430,7 @@ suite("Execution Plan Utilities", () => {
             mockInitialState,
             mockExecutionPlanService,
             [executionPlanContents],
+            "Tests" as never,
         );
 
         const planFile: ep.ExecutionPlanGraphInfo = {

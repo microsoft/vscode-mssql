@@ -21,6 +21,7 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
+    Activated = "Activated",
     GenerateScript = "GenerateScript",
     Refresh = "Refresh",
     CreateProject = "CreateProject",

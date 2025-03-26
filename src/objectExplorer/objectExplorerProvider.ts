@@ -9,6 +9,7 @@ import { ObjectExplorerService } from "./objectExplorerService";
 import { TreeNodeInfo } from "./treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> =
@@ -19,8 +20,16 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _objectExplorerExists: boolean;
     private _objectExplorerService: ObjectExplorerService;
 
-    constructor(connectionManager: ConnectionManager) {
+    constructor(
+        private _vscodeWrapper: VscodeWrapper,
+        connectionManager: ConnectionManager,
+    ) {
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
+
         this._objectExplorerService = new ObjectExplorerService(
+            this._vscodeWrapper,
             connectionManager,
             this,
         );

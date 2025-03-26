@@ -56,6 +56,8 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
+import { Logger } from "../models/logger";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -68,6 +70,7 @@ function getParentNode(node: TreeNodeType): TreeNodeInfo {
 
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
+    private _logger: Logger;
     private _currentNode: TreeNodeInfo;
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
     private _sessionIdToNodeLabelMap: Map<string, string>;
@@ -83,10 +86,21 @@ export class ObjectExplorerService {
     >;
 
     constructor(
+        private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _objectExplorerProvider: ObjectExplorerProvider,
     ) {
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
+
         this._client = this._connectionManager.client;
+
+        this._logger = Logger.create(
+            this._vscodeWrapper.outputChannel,
+            "ObjectExplorerService",
+        );
+
         this._treeNodeToChildrenMap = new Map<
             vscode.TreeItem,
             vscode.TreeItem[]
@@ -188,7 +202,9 @@ export class ObjectExplorerService {
             } else {
                 // create session failure
                 if (self._currentNode?.connectionInfo?.password) {
-                    self._currentNode.connectionInfo.password = "";
+                    const profile = this._currentNode.connectionInfo;
+                    profile.password = "";
+                    this._currentNode.updateConnectionInfo(profile);
                 }
                 let error = LocalizedConstants.connectErrorLabel;
                 let errorNumber: number;
@@ -276,7 +292,7 @@ export class ObjectExplorerService {
         node: TreeNodeInfo,
         profile: IConnectionInfo,
     ): Promise<void> {
-        node.connectionInfo = profile;
+        node.updateConnectionInfo(profile);
         this.updateNode(node);
         let fileUri = this.getNodeIdentifier(node);
         if (
@@ -520,9 +536,11 @@ export class ObjectExplorerService {
     /**
      * Get nodes from saved connections
      */
-    private async addSavedNodesConnectionsToRoot(): Promise<void> {
+    private async getSavedConnectionNodes(): Promise<TreeNodeInfo[]> {
+        const result: TreeNodeInfo[] = [];
+
         let savedConnections =
-            this._connectionManager.connectionStore.readAllConnections();
+            await this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
             let nodeLabel =
                 ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
@@ -551,8 +569,10 @@ export class ObjectExplorerService {
                 undefined,
                 undefined,
             );
-            this._rootTreeNodeArray.push(node);
+            result.push(node);
         }
+
+        return result;
     }
 
     private static get disconnectedNodeContextValue(): TreeNodeContextValue {
@@ -581,7 +601,7 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Helper to show the Add Connection node
+     * Helper to show the Add Connection node; only displayed when there are no saved connections
      */
     private getAddConnectionNode(): AddConnectionTreeNode[] {
         this._rootTreeNodeArray = [];
@@ -611,6 +631,10 @@ export class ObjectExplorerService {
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
+            this._logger.logDebug(
+                `Getting children for node '${element.nodePath}'`,
+            );
+
             // set current node for very first expansion of disconnected node
             if (this._currentNode !== element) {
                 this._currentNode = element;
@@ -668,24 +692,33 @@ export class ObjectExplorerService {
                 }
             }
         } else {
-            // retrieve saved connections first when opening object explorer
-            // for the first time
+            this._logger.logDebug("Getting root OE nodes");
+
+            // retrieve saved connections first when opening object explorer for the first time
             let savedConnections =
-                this._connectionManager.connectionStore.readAllConnections();
-            // if there are no saved connections
-            // show the add connection node
+                await this._connectionManager.connectionStore.readAllConnections();
+
+            // if there are no saved connections, show the add connection node
             if (savedConnections.length === 0) {
+                this._logger.logDebug(
+                    "No saved connections found; displaying 'Add Connection' node",
+                );
                 return this.getAddConnectionNode();
             }
-            // if OE doesn't exist the first time
-            // then build the nodes off of saved connections
+
+            // if OE doesn't exist the first time, then build the nodes off of saved connections
             if (!this._objectExplorerProvider.objectExplorerExists) {
                 // if there are actually saved connections
-                this._rootTreeNodeArray = [];
-                await this.addSavedNodesConnectionsToRoot();
+                this._rootTreeNodeArray = await this.getSavedConnectionNodes();
+                this._logger.logDebug(
+                    `No current OE; created OE root with ${this._rootTreeNodeArray.length}`,
+                );
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
             } else {
+                this._logger.logDebug(
+                    `Returning cached OE root nodes (${this._rootTreeNodeArray.length})`,
+                );
                 // otherwise returned the cached nodes
                 return this.sortByServerName(this._rootTreeNodeArray);
             }
@@ -820,12 +853,14 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            if ((connectionProfile as IConnectionProfile).profileName) {
-                this._sessionIdToNodeLabelMap.set(
-                    sessionIdResponse.sessionId,
-                    (connectionProfile as IConnectionProfile).profileName,
-                );
-            }
+            const nodeLabel =
+                (connectionProfile as IConnectionProfile).profileName ??
+                ConnInfo.getConnectionDisplayName(connectionProfile);
+
+            this._sessionIdToNodeLabelMap.set(
+                sessionIdResponse.sessionId,
+                nodeLabel,
+            );
 
             const response: CreateSessionResponse =
                 await this._connectionManager.client.sendRequest(
@@ -924,7 +959,9 @@ export class ObjectExplorerService {
             node.context = ObjectExplorerService.disconnectedNodeContextValue;
             node.sessionId = undefined;
             if (!(node.connectionInfo as IConnectionProfile).savePassword) {
-                node.connectionInfo.password = "";
+                const profile = node.connectionInfo;
+                profile.password = "";
+                node.updateConnectionInfo(profile);
             }
             const label =
                 typeof node.label === "string" ? node.label : node.label.label;
@@ -1085,7 +1122,8 @@ export class ObjectExplorerService {
         }
     }
 
-    /** Getters */
+    //#region Getters and Setters
+
     public get currentNode(): TreeNodeInfo {
         return this._currentNode;
     }
@@ -1101,10 +1139,9 @@ export class ObjectExplorerService {
         return connections;
     }
 
-    /**
-     * Setters
-     */
     public set currentNode(node: TreeNodeInfo) {
         this._currentNode = node;
     }
+
+    //#endregion
 }

@@ -86,10 +86,15 @@ export async function updateTotalCost(
     };
 }
 
+/**
+ * Creates the execution plan graph state from XML, and loads them into `state`
+ * @param source the UI making the call, for telemetry purposes.
+ */
 export async function createExecutionPlanGraphs(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     executionPlanService: ExecutionPlanService,
     xmlPlans: string[],
+    source: "SqlplanFile" | "QueryResults",
 ) {
     let newState = {
         ...state.executionPlanState,
@@ -105,23 +110,25 @@ export async function createExecutionPlanGraphs(
                 (await executionPlanService.getExecutionPlan(planFile)).graphs,
             );
             newState.loadState = ApiStatus.Loaded;
-
-            sendActionEvent(
-                TelemetryViews.ExecutionPlan,
-                TelemetryActions.OpenExecutionPlan,
-                {},
-                {
-                    numberOfPlans:
-                        state.executionPlanState.executionPlanGraphs.length,
-                    loadTimeInMs: performance.now() - startTime,
-                },
-            );
         } catch (e) {
             // malformed xml
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
         }
     }
+
+    sendActionEvent(
+        TelemetryViews.ExecutionPlan,
+        TelemetryActions.OpenExecutionPlan,
+        {
+            source: source,
+        },
+        {
+            numberOfPlans: state.executionPlanState.executionPlanGraphs.length,
+            loadTimeInMs: performance.now() - startTime,
+        },
+    );
+
     state.executionPlanState = newState;
     state.executionPlanState.totalCost = calculateTotalCost(state);
 

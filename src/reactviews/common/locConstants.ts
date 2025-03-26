@@ -31,6 +31,7 @@ export class LocConstants {
                 }),
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
+            clearSelection: l10n.t("Clear Selection"),
         };
     }
 
@@ -163,7 +164,7 @@ export class LocConstants {
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test Connection"),
-            connectToSQLServer: l10n.t("Connect to SQL Server"),
+            connectToDatabase: l10n.t("Connect to Database"),
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),

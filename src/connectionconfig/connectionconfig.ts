@@ -11,72 +11,117 @@ import { IConnectionConfig } from "./iconnectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { Deferred } from "../protocol";
 import { ConnectionProfile } from "../models/connectionProfile";
+import { Logger } from "../models/logger";
+import { getConnectionDisplayName } from "../models/connectionInfo";
 
 /**
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
-    initialized: Deferred<void> = new Deferred<void>();
+    private logger: Logger;
 
+    initialized: Deferred<void> = new Deferred<void>();
     RootGroupName: string = "ROOT";
 
     /**
      * Constructor.
      */
     public constructor(private _vscodeWrapper?: VscodeWrapper) {
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
         }
+
+        this.logger = Logger.create(
+            this._vscodeWrapper.outputChannel,
+            "ConnectionConfig",
+        );
+
         void this.assignMissingIds();
     }
 
-    private get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper;
-    }
-
-    private set vscodeWrapper(value: VscodeWrapper) {
-        this._vscodeWrapper = value;
+    private getRootGroup(): IConnectionGroup | undefined {
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
+        return groups.find((group) => group.name === this.RootGroupName);
     }
 
     private async assignMissingIds(): Promise<void> {
+        let madeChanges = false;
+
         // Connection groups
         const groups: IConnectionGroup[] = this.getGroupsFromSettings();
 
-        // ensure each group has an id
-        groups.forEach((group) => {
-            if (!group.id) {
-                group.id = Utils.generateGuid();
-            }
-        });
-
         // ensure ROOT group exists
-        let rootGroup = groups.find(
-            (group) => group.name === this.RootGroupName,
-        );
+        let rootGroup = this.getRootGroup();
+
         if (!rootGroup) {
             rootGroup = {
                 name: this.RootGroupName,
                 id: Utils.generateGuid(),
             };
+
+            this.logger.logDebug(
+                `Adding missing ROOT group to connection groups`,
+            );
+            madeChanges = true;
             groups.push(rootGroup);
+        }
+
+        // Clean up connection groups
+        for (const group of groups) {
+            if (group.id === rootGroup.id) {
+                continue;
+            }
+
+            // ensure each group has an ID
+            if (!group.id) {
+                group.id = Utils.generateGuid();
+                madeChanges = true;
+                this.logger.logDebug(
+                    `Adding missing ID to connection group '${group.name}'`,
+                );
+            }
+
+            // ensure each group is in a group
+            if (!group.groupId) {
+                group.groupId = rootGroup.id;
+                madeChanges = true;
+                this.logger.logDebug(
+                    `Adding missing parentId to connection '${group.name}'`,
+                );
+            }
         }
 
         // Clean up connection profiles
         const profiles: IConnectionProfile[] = this.getProfilesFromSettings();
 
-        profiles.forEach((profile) => {
-            // ensure each profile has an id
-            ConnectionProfile.addIdIfMissing(profile);
+        for (const profile of profiles) {
+            // ensure each profile has an ID
+            if (ConnectionProfile.addIdIfMissing(profile)) {
+                madeChanges = true;
+                this.logger.logDebug(
+                    `Adding missing ID to connection '${getConnectionDisplayName(profile)}'`,
+                );
+            }
 
             // ensure each profile is in a group
             if (!profile.groupId) {
                 profile.groupId = rootGroup.id;
+                madeChanges = true;
+                this.logger.logDebug(
+                    `Adding missing groupId to connection '${getConnectionDisplayName(profile)}'`,
+                );
             }
-        });
+        }
 
         // Save the changes to settings
-        await this.writeConnectionGroupsToSettings(groups);
-        await this.writeProfilesToSettings(profiles);
+        if (madeChanges) {
+            this.logger.logDebug(
+                `Updates made to connection profiles and groups.  Writing all ${groups.length} group(s) and ${profiles.length} profile(s) to settings.`,
+            );
+
+            await this.writeConnectionGroupsToSettings(groups);
+            await this.writeProfilesToSettings(profiles);
+        }
 
         this.initialized.resolve();
     }
@@ -85,6 +130,17 @@ export class ConnectionConfig implements IConnectionConfig {
      * Add a new connection to the connection config.
      */
     public async addConnection(profile: IConnectionProfile): Promise<void> {
+        if (profile.groupId === undefined) {
+            const rootGroup = this.getRootGroup();
+            if (rootGroup) {
+                profile.groupId = rootGroup.id;
+            }
+        }
+
+        if (profile.id === undefined) {
+            ConnectionProfile.addIdIfMissing(profile);
+        }
+
         let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
@@ -101,9 +157,11 @@ export class ConnectionConfig implements IConnectionConfig {
      * are sorted first by whether they were found in the user/workspace settings,
      * and next alphabetically by profile/server name.
      */
-    public getConnections(
+    public async getConnections(
         getWorkspaceConnections: boolean,
-    ): IConnectionProfile[] {
+    ): Promise<IConnectionProfile[]> {
+        await this.initialized;
+
         let profiles: IConnectionProfile[] = [];
 
         // Read from user settings

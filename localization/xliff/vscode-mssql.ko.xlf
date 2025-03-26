@@ -304,6 +304,10 @@
         <source xml:lang="en">Clear Recent Connections List</source>
         <target state="translated">최근 연결 목록 삭제</target>
       </trans-unit>
+      <trans-unit id="++CODE++c52ff5ea803d577544a8224d1404ecefa836b803f029d87cd7450af6c18a70ef">
+        <source xml:lang="en">Clear Selection</source>
+        <target state="translated">선택 영역 지우기</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">데이터베이스에 연결하려면 클릭</target>
@@ -668,7 +672,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
-        <target state="new">Error loading; refresh to try again</target>
+        <target state="translated">로드하는 동안 오류가 발생했습니다. 다시 시도하려면 새로 고치세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -2117,11 +2121,15 @@
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
         <source xml:lang="en">Connect to a SQL Database</source>
-        <target state="new">Connect to a SQL Database</target>
+        <target state="translated">SQL Database 연결</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
         <source xml:lang="en">Connection Dialog</source>
-        <target state="new">Connection Dialog</target>
+        <target state="translated">연결 대화 상자</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups">
+        <source xml:lang="en">Connection groups</source>
+        <target state="translated">장치 그룹</target>
       </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
@@ -2145,13 +2153,13 @@
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
-        <target state="new">Create a Table with Table Designer</target>
+        <target state="translated">테이블 디자이너를 사용하여 테이블 만들기</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
         <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.
 Once you're done making your changes, click the 'Publish' button to send the changes to your database.</source>
-        <target state="new">Create a new table in your database, or edit existing tables with the table designer.
-Once you're done making your changes, click the 'Publish' button to send the changes to your database.</target>
+        <target state="translated">데이터베이스에 새 테이블을 만들거나 테이블 디자이너를 사용하여 기존 테이블을 편집하세요.
+변경이 완료되면 '게시' 버튼을 클릭하여 변경 사항을 데이터베이스에 전송하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
@@ -2195,11 +2203,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
         <source xml:lang="en">Enable Modern Features</source>
-        <target state="new">Enable Modern Features</target>
+        <target state="translated">최신 기능 사용</target>
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences">
         <source xml:lang="en">Enable Modern Features</source>
-        <target state="new">Enable Modern Features</target>
+        <target state="translated">최신 기능 사용</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -2287,13 +2295,13 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="new">Enable modern features in MSSQL</target>
+        <target state="translated">MSSQL에서 최신 활성화</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
         <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
 [Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="new">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</target>
+        <target state="translated">VS Code에서 SQL 데이터베이스로 작업하는 최신 방법을 제공하는 새로운 데이터 개발 기능 세트를 사용하세요.
+[새 환경 사용](command:mssql.enableRichExperiences)</target>
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
@@ -2329,7 +2337,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
-        <target state="new">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</target>
+        <target state="translated">생산성을 높일 수 있는 MSSQL 확장의 더 많은 기능을 숙지하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.filterNode">
         <source xml:lang="en">Filter (Preview)</source>
@@ -2337,11 +2345,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
         <source xml:lang="en">Filter your Object Explorer Tree</source>
-        <target state="new">Filter your Object Explorer Tree</target>
+        <target state="translated">개체 탐색기 트리 필터링</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
-        <target state="new">Get Started with MSSQL for Visual Studio Code</target>
+        <target state="translated">Visual Studio Code용 MSSQL을 사용하여 시작</target>
       </trans-unit>
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
@@ -2359,9 +2367,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.
 You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.
 [Open Connection Dialog](command:mssql.addObjectExplorer)</source>
-        <target state="new">Make a new connection to a SQL database, or edit existing connections with the connection dialog.
-You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.
-[Open Connection Dialog](command:mssql.addObjectExplorer)</target>
+        <target state="translated">SQL 데이터베이스에 새 연결을 만들거나 연결 대화 상자를 사용하여 기존 연결을 편집하세요.
+연결 정보를 입력하거나, 연결 문자열을 사용하거나, Azure 구독을 검색하여 데이터베이스에 연결할 수 있습니다.
+[연결 대화 상자 열기](command:mssql.addObjectExplorer)</target>
       </trans-unit>
       <trans-unit id="mssql.manageProfiles">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -2401,7 +2409,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.title">
         <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
-        <target state="new">Next Steps with MSSQL for Visual Studio Code</target>
+        <target state="translated">Visual Studio Code용 MSSQL을 사용한 다음 단계</target>
       </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
@@ -2413,13 +2421,13 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
         <source xml:lang="en">Object Explorer filters</source>
-        <target state="new">Object Explorer filters</target>
+        <target state="translated">개체 탐색기 필터</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
         <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.
 Start by clicking the filter button next to most folders in the Connections view.</source>
-        <target state="new">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.
-Start by clicking the filter button next to most folders in the Connections view.</target>
+        <target state="translated">개체 탐색기 트리에 필터를 적용하여 가장 중요한 데이터베이스 개체만 보세요.
+먼저 연결 보기에서 대부분의 폴더 옆에 있는 필터 버튼을 클릭하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
@@ -2451,11 +2459,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
         <source xml:lang="en">Query editor and query results pane</source>
-        <target state="new">Query editor and query results pane</target>
+        <target state="translated">쿼리 편집기 및 쿼리 결과 창</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
         <source xml:lang="en">Query plan visualization</source>
-        <target state="new">Query plan visualization</target>
+        <target state="translated">쿼리 계획 시각화</target>
       </trans-unit>
       <trans-unit id="mssql.refreshObjectExplorerNode">
         <source xml:lang="en">Refresh</source>
@@ -2483,7 +2491,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
         <source xml:lang="en">Run a SQL Query</source>
-        <target state="new">Run a SQL Query</target>
+        <target state="translated">SQL 쿼리 실행</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare (Preview)</source>
@@ -2583,15 +2591,15 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
         <source xml:lang="en">Sort and Filter Query Results</source>
-        <target state="new">Sort and Filter Query Results</target>
+        <target state="translated">쿼리 결과 정렬 및 필터링</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText">
         <source xml:lang="en">Sort and filter options for query results</source>
-        <target state="new">Sort and filter options for query results</target>
+        <target state="translated">쿼리 결과에 대한 정렬 및 필터링 옵션</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
-        <target state="new">Sort and filter your query results to find the data you need quickly.</target>
+        <target state="translated">쿼리 결과를 정렬하고 필터링하여 필요한 데이터를 빠르게 찾으세요.</target>
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
@@ -2599,15 +2607,43 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
-        <target state="new">Table Designer</target>
+        <target state="translated">테이블 디자이너</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.color">
+        <source xml:lang="en">The color of the connection group.</source>
+        <target state="translated">연결 그룹의 색입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.description">
+        <source xml:lang="en">The description of the connection group.</source>
+        <target state="translated">연결 그룹의 설명입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">연결 목록에 저장할 최근에 사용한 최대 연결 수입니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.name">
+        <source xml:lang="en">The name of the connection group.</source>
+        <target state="translated">연결 그룹의 이름입니다.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         <target state="translated">개체 탐색기 노드를 확장하기 위한 시간 제한(초)입니다. 기본값은 45초입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.groupId">
+        <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+        <target state="translated">이 연결 프로필이 속한 연결 그룹의 고유 식별자입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.id">
+        <source xml:lang="en">The unique identifier for the connection group.</source>
+        <target state="translated">이 연결 그룹의 고유 식별자입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.parentId">
+        <source xml:lang="en">The unique identifier for the parent connection group.</source>
+        <target state="translated">부모 연결 그룹의 고유 식별자입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.id">
+        <source xml:lang="en">The unique identifier for this connection profile.</source>
+        <target state="translated">이 연결 프로필의 고유 식별자입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
@@ -2620,8 +2656,8 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.description">
         <source xml:lang="en">Understand what your query is doing by viewing the query plan.
 See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</source>
-        <target state="new">Understand what your query is doing by viewing the query plan.
-See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</target>
+        <target state="translated">쿼리 계획을 확인하여 쿼리가 수행하는 작업을 이해하세요.
+쿼리를 실행하지 않고 예상 요금제를 보거나 쿼리 편집기 창 상단의 버튼을 토글하여 쿼리를 실행한 후 실제 요금제를 볼 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
@@ -2633,7 +2669,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
-        <target state="new">Visualize a Query Plan</target>
+        <target state="translated">쿼리 계획 시각화</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
@@ -2642,12 +2678,12 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
         <source xml:lang="en">Write a SQL query, and run it against your database.
 You can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.</source>
-        <target state="new">Write a SQL query, and run it against your database.
-You can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.</target>
+        <target state="translated">SQL 쿼리를 작성하고 데이터베이스에 대해 실행하세요.
+'새 탭에서 열기' 단추를 클릭하여 자체 탭에서 쿼리 결과를 볼 수도 있으며, 선택적으로 이를 기본 동작으로 설정할 수도 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.description">
         <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
-        <target state="new">Your first steps for connecting to and developing with a SQL database</target>
+        <target state="translated">SQL 데이터베이스에 연결하고 개발하기 위한 첫 번째 단계</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.textIdentifier">
         <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
@@ -2735,7 +2771,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
         <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
-        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</target>
+        <target state="translated">[선택 사항] 연결 시도를 종료하고 오류를 생성하기 전에 서버에 대한 연결을 기다리는 시간(초)을 지정하세요. 기본값은 30초입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
