@@ -223,18 +223,6 @@ jobs:
           name: CoverageReport # Artifact name
           path: coveragereport # Directory containing files to upload
 
-      - name: Upload PR coverage report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: CoverageReportPR # Artifact name
-          path: ./pr/coverage/cobertura-coverage.xml
-
-      - name: Upload Main coverage report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: CoverageReportMain # Artifact name
-          path: ./main/coverage/cobertura-coverage.xml
-
       - name: Code coverage
         run: |
           cd main
