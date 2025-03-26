@@ -832,6 +832,9 @@
     <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
+    <trans-unit id="++CODE++5ae5256284272a7585c1b275ef82e5d337ca3353c8e608120019177aad6a26c6">
+      <source xml:lang="en">Manage relationships</source>
+    </trans-unit>
     <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
       <source xml:lang="en">Mandatory (Recommended)</source>
     </trans-unit>
