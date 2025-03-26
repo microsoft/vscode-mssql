@@ -29,7 +29,6 @@ import {
     publishProjectChanges,
     saveScmp,
     getSchemaCompareEndpointTypeString,
-    sqlDatabaseProjectsPublishChanges,
     showOpenDialogForScmp,
     showSaveDialogForScmp,
     showOpenDialogForDacpacOrSqlProj,
@@ -648,7 +647,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     break;
 
                 case mssql.SchemaCompareEndpointType.Project:
-                    publishResult = await this.publishChangesToProject(state);
+                    publishResult = await publishProjectChanges(
+                        this.operationId,
+                        {
+                            targetProjectPath:
+                                state.targetEndpointInfo.projectFilePath,
+                            targetFolderStructure:
+                                state.targetEndpointInfo.extractTarget,
+                            taskExecutionMode: TaskExecutionMode.execute,
+                        },
+                        this.schemaCompareService,
+                    );
                     break;
 
                 case mssql.SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
@@ -1149,25 +1158,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         return finalDifferences;
-    }
-
-    private async publishChangesToProject(
-        state: SchemaCompareWebViewState,
-    ): Promise<mssql.ResultStatus> {
-        const result: mssql.ResultStatus = await vscode.commands.executeCommand(
-            sqlDatabaseProjectsPublishChanges,
-            this.operationId,
-            state.targetEndpointInfo.projectFilePath,
-            state.targetEndpointInfo.extractTarget,
-        );
-
-        if (!result.success) {
-            vscode.window.showErrorMessage(
-                loc.schemaCompare.thereWasAnErrorUpdatingTheProject,
-            );
-        }
-
-        return result;
     }
 
     /**
