@@ -8,6 +8,7 @@ import * as cd from "./containerDeploymentInterfaces";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { createContext } from "react";
 import { ContainerDeploymentContextProps } from "./containerDeploymentInterfaces";
+import { getCoreRPCs } from "../../common/utils";
 
 const ContainerDeploymentContext = createContext<
     ContainerDeploymentContextProps | undefined
@@ -29,6 +30,7 @@ const ContainerDeploymentStateProvider: React.FC<
             value={{
                 state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
+                ...getCoreRPCs(webviewState),
                 formAction: function (event): void {
                     webviewState?.extensionRpc.action("formAction", {
                         event: event,

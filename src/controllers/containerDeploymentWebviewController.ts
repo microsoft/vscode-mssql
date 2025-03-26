@@ -6,7 +6,6 @@
 import * as cd from "../reactviews/pages/ContainerDeployment/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import ConnectionManager from "./connectionManager";
 import { exec } from "child_process";
 import { platform } from "os";
@@ -18,19 +17,26 @@ import {
     FormItemSpec,
 } from "../reactviews/common/forms/form";
 import MainController from "./mainController";
+import { FormWebviewController } from "../forms/formWebviewController";
+import VscodeWrapper from "./vscodeWrapper";
 
-export class ContainerDeploymentWebviewController extends ReactWebviewPanelController<
+export class ContainerDeploymentWebviewController extends FormWebviewController<
+    cd.DockerConnectionProfile,
     cd.ContainerDeploymentWebviewState,
+    cd.ContainerDeploymentFormItemSpec,
     cd.ContainerDeploymentReducers
 > {
     constructor(
         context: vscode.ExtensionContext,
+        vscodeWrapper: VscodeWrapper,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
         public connectionManager: ConnectionManager,
     ) {
         super(
             context,
+            vscodeWrapper,
+            "containerDeployment",
             "containerDeployment",
             new cd.ContainerDeploymentWebviewState(),
             {
@@ -206,6 +212,16 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
         });
     }
 
+    async updateItemVisibility() {}
+
+    protected getActiveFormComponents(
+        state: cd.ContainerDeploymentWebviewState,
+    ): (keyof cd.DockerConnectionProfile)[] {
+        return Object.keys(
+            state.formComponents,
+        ) as (keyof cd.DockerConnectionProfile)[];
+    }
+
     public async checkLinuxEngine(): Promise<boolean> {
         return new Promise((resolve) => {
             exec(cd.COMMANDS.SWITCH_LINUX_ENGINE, (error) => {
@@ -217,7 +233,10 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
     public async validateContainerName(containerName: string): Promise<string> {
         return new Promise((resolve) => {
             exec(cd.COMMANDS.VALIDATE_CONTAINER_NAME, (error, stdout) => {
-                const existingContainers = stdout.trim().split("\n");
+                let existingContainers: string[] = [];
+                if (stdout) {
+                    existingContainers = stdout.trim().split("\n");
+                }
 
                 let newContainerName: string = "";
                 if (containerName.trim() == "") {
@@ -229,7 +248,7 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     }
                 } else if (
                     !existingContainers.includes(containerName) &&
-                    /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(newContainerName)
+                    /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(containerName)
                 ) {
                     newContainerName = containerName;
                 }
@@ -370,8 +389,9 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
     public setFormComponents(): Record<
         string,
         FormItemSpec<
+            cd.DockerConnectionProfile,
             cd.ContainerDeploymentWebviewState,
-            cd.DockerConnectionProfile
+            cd.ContainerDeploymentFormItemSpec
         >
     > {
         return {
@@ -387,8 +407,9 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     { displayName: "2017", value: "2017" },
                 ] as FormItemOptions[],
             } as FormItemSpec<
+                cd.DockerConnectionProfile,
                 cd.ContainerDeploymentWebviewState,
-                cd.DockerConnectionProfile
+                cd.ContainerDeploymentFormItemSpec
             >,
 
             password: {
@@ -408,8 +429,9 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     };
                 },
             } as FormItemSpec<
+                cd.DockerConnectionProfile,
                 cd.ContainerDeploymentWebviewState,
-                cd.DockerConnectionProfile
+                cd.ContainerDeploymentFormItemSpec
             >,
 
             containerName: {
@@ -428,8 +450,9 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                           };
                 },
             } as FormItemSpec<
+                cd.DockerConnectionProfile,
                 cd.ContainerDeploymentWebviewState,
-                cd.DockerConnectionProfile
+                cd.ContainerDeploymentFormItemSpec
             >,
 
             acceptEula: {
@@ -448,8 +471,9 @@ export class ContainerDeploymentWebviewController extends ReactWebviewPanelContr
                     };
                 },
             } as FormItemSpec<
+                cd.DockerConnectionProfile,
                 cd.ContainerDeploymentWebviewState,
-                cd.DockerConnectionProfile
+                cd.ContainerDeploymentFormItemSpec
             >,
         };
     }

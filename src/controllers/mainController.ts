@@ -1491,6 +1491,7 @@ export default class MainController implements vscode.Disposable {
     public async onDeployContainer(): Promise<boolean> {
         const reactPanel = new ContainerDeploymentWebviewController(
             this._context,
+            this._vscodeWrapper,
             this,
             this._connectionMgr,
         );

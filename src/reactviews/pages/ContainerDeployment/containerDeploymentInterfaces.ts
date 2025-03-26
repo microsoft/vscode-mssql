@@ -13,7 +13,12 @@ import {
 } from "../../common/forms/form";
 
 export class ContainerDeploymentWebviewState
-    implements FormState<DockerConnectionProfile>
+    implements
+        FormState<
+            DockerConnectionProfile,
+            ContainerDeploymentWebviewState,
+            ContainerDeploymentFormItemSpec
+        >
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
@@ -39,7 +44,11 @@ export class ContainerDeploymentWebviewState
     formState: DockerConnectionProfile = undefined;
     formComponents: Record<
         string,
-        FormItemSpec<ContainerDeploymentWebviewState, DockerConnectionProfile>
+        FormItemSpec<
+            DockerConnectionProfile,
+            ContainerDeploymentWebviewState,
+            ContainerDeploymentFormItemSpec
+        >
     > = {};
     platform: string = "";
     // Used for container name validation within the form
@@ -67,10 +76,20 @@ export interface DockerStep {
     errorMessage?: string;
 }
 
+export interface ContainerDeploymentFormItemSpec
+    extends FormItemSpec<
+        DockerConnectionProfile,
+        ContainerDeploymentWebviewState,
+        ContainerDeploymentFormItemSpec
+    > {
+    isAdvancedOption?: boolean;
+}
+
 export interface ContainerDeploymentContextProps
     extends FormContextProps<
+        DockerConnectionProfile,
         ContainerDeploymentWebviewState,
-        DockerConnectionProfile
+        ContainerDeploymentFormItemSpec
     > {
     /**
      * Gets the execution plan graph from the provider

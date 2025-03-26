@@ -8,6 +8,12 @@ import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ContainerSetupStepsPage } from "./containerSetupStepsPage";
+import {
+    ContainerDeploymentContextProps,
+    ContainerDeploymentFormItemSpec,
+    ContainerDeploymentWebviewState,
+    DockerConnectionProfile,
+} from "./containerDeploymentInterfaces";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -70,7 +76,12 @@ export const ContainerInputForm: React.FC = () => {
         <div className={classes.outerDiv}>
             {Object.values(state.state.formComponents).map(
                 (component, index) => (
-                    <FormField
+                    <FormField<
+                        DockerConnectionProfile,
+                        ContainerDeploymentWebviewState,
+                        ContainerDeploymentFormItemSpec,
+                        ContainerDeploymentContextProps
+                    >
                         key={index}
                         context={state}
                         component={component}
