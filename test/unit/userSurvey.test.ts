@@ -160,8 +160,6 @@ suite("UserSurvey Tests", () => {
             "sendActionEvent should be called",
         );
 
-        const calls = sendActionEvent.getCalls();
-
         assert.strictEqual(
             sendActionEvent.calledWith(
                 TelemetryViews.UserSurvey,
