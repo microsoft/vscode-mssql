@@ -364,7 +364,7 @@ export class LocConstants {
             addTable: l10n.t("Add Table"),
             autoArrange: l10n.t("Auto Arrange"),
             filter: l10n.t("Filter"),
-            clearFilter: l10n.t("Clear"),
+            clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
             refresh: l10n.t("Refresh"),
             publishChanges: l10n.t("Publish Changes"),
@@ -372,7 +372,6 @@ export class LocConstants {
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
-            deleteNodes: l10n.t("Delete Node"),
             createAsScript: l10n.t("Create As Script"),
             details: l10n.t("Details"),
             script: l10n.t("Script"),
@@ -500,6 +499,7 @@ export class LocConstants {
                     comment: ["{0} is the number of columns"],
                 }),
             manageRelationships: l10n.t("Manage relationships"),
+            noChangesDetected: l10n.t("No changes detected"),
         };
     }
 }

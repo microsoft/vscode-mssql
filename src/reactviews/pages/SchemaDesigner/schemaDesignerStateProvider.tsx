@@ -12,13 +12,7 @@ import {
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
-import {
-    Edge,
-    Node,
-    OnEdgesChange,
-    OnNodesChange,
-    useReactFlow,
-} from "@xyflow/react";
+import { Edge, Node, useReactFlow } from "@xyflow/react";
 import {
     extractSchemaModel,
     generateSchemaDesignerFlowComponents,
@@ -27,33 +21,24 @@ import {
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
+    schemaNames: string[];
+    datatypes: string[];
     getScript: () => Promise<string>;
     initializeSchemaDesigner: () => Promise<{
         nodes: Node<SchemaDesigner.Table>[];
         edges: Edge<SchemaDesigner.ForeignKey>[];
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
+    getReport: () => Promise<SchemaDesigner.GetReportResponse>;
+    openInEditor: (text: string) => void;
+    openInEditorWithConnection: (text: string) => void;
 
     selectedTable: SchemaDesigner.Table;
     setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
-    isEditDrawerOpen: boolean;
-    setIsEditDrawerOpen: (isEditDrawerOpen: boolean) => void;
-    isPublishChangesEnabled: boolean;
-    setIsPublishChangesEnabled: (isPublishChangesEnabled: boolean) => void;
-    getReport: () => void;
     copyToClipboard: (text: string) => void;
-    openInEditor: (text: string) => void;
-    openInEditorWithConnection: (text: string) => void;
-    script: SchemaDesigner.GenerateScriptResponse;
-    schemaNames: string[];
-    datatypes: string[];
-    report: SchemaDesigner.GetReportResponse;
+
     showError: (message: string) => void;
-    selectedReportTab: string;
-    setSelectedReportTab: (selectedReportTab: string) => void;
     editTable: (table: SchemaDesigner.Table) => Promise<SchemaDesigner.Table>;
-    onNodesChange: OnNodesChange<Node<SchemaDesigner.Table>>;
-    onEdgesChange: OnEdgesChange<Edge<SchemaDesigner.ForeignKey>>;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -116,11 +101,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     };
 
     const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-    const [isPublishChangesEnabled, setIsPublishChangesEnabled] =
-        useState(false);
-
-    const [selectedReportTab, setSelectedReportTab] =
-        useState<string>("report");
 
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
@@ -129,42 +109,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         });
     };
 
-    const [script, setScript] = useState<SchemaDesigner.GenerateScriptResponse>(
-        {
-            combinedScript: "",
-            scripts: [],
-        },
-    );
-
-    const [report, setReport] = useState<SchemaDesigner.GetReportResponse>({
-        reports: [],
-        updateScript: "",
-    });
-
-    extensionRpc.subscribe(
-        "schemaDesignerStateProvider",
-        "isModelReady",
-        (payload: unknown) => {
-            const typedPayload = payload as {
-                isModelReady: boolean;
-            };
-            setIsPublishChangesEnabled(typedPayload.isModelReady);
-        },
-    );
-
     const getReport = async () => {
-        if (schemaDesigner) {
-            const report = (await extensionRpc.call("getReport", {
-                updatedSchema: schemaDesigner.schema,
-            })) as SchemaDesigner.GetReportResponse;
-            setReport(report);
+        const schema = extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        if (!schema) {
+            return;
         }
+
+        const report = (await extensionRpc.call("getReport", {
+            updatedSchema: schema,
+        })) as SchemaDesigner.GetReportResponse;
+
+        return report;
     };
+
     const copyToClipboard = (text: string) => {
         void extensionRpc.call("copyToClipboard", {
             text: text,
         });
     };
+
     const openInEditor = (text: string) => {
         void extensionRpc.call("openInEditor", {
             text: text,
@@ -190,27 +156,22 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 extensionRpc: extensionRpc,
                 state: state,
                 themeKind: themeKind,
+                schemaNames,
+                datatypes,
                 getScript,
                 initializeSchemaDesigner,
                 saveAsFile,
+                getReport,
+                openInEditor,
+                openInEditorWithConnection,
+                copyToClipboard,
 
                 selectedTable,
                 setSelectedTable,
                 isEditDrawerOpen,
                 setIsEditDrawerOpen,
-                isPublishChangesEnabled,
-                setIsPublishChangesEnabled,
-                getReport,
-                copyToClipboard,
-                openInEditor,
-                openInEditorWithConnection,
-                script,
-                schemaNames,
-                datatypes,
-                report,
+
                 showError,
-                selectedReportTab,
-                setSelectedReportTab,
             }}
         >
             {children}

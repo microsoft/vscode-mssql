@@ -10,10 +10,8 @@ import "azdataGraph/src/css/common.css";
 import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
-//import { SchemaDiagramZoomControls } from "./schemaDiagramZoomControls";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
 import { SchemaDesignerCodeDrawer } from "./schemaDesignerCodeDrawer";
-// import { SchemaDiagramGraph } from "./schemaDesignerGraph";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 
 export const SchemaDesignerPage = () => {
@@ -29,7 +27,6 @@ export const SchemaDesignerPage = () => {
                 <GraphContainer>
                     <SchemaDesignerToolbar />
                     <SchemaDesignerFlow />
-                    {/* <SchemaDiagramZoomControls /> */}
                 </GraphContainer>
                 <SchemaDesignerCodeDrawer />
             </MainLayout>

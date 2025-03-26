@@ -629,8 +629,8 @@ export function generateSchemaDesignerFlowComponents(
                         referencedSchemaName: fk.referencedSchemaName,
                         referencedTableName: fk.referencedTableName,
                         referencedColumns: [refCol],
-                        onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
-                        onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                        onDeleteAction: fk.onDeleteAction,
+                        onUpdateAction: fk.onUpdateAction,
                     },
                 });
             });
@@ -651,59 +651,63 @@ export const extractSchemaModel = (
     nodes: Node<SchemaDesigner.Table>[],
     edges: Edge<SchemaDesigner.ForeignKey>[],
 ): SchemaDesigner.Schema => {
-    // Create tables without foreign keys initially
-    nodes.forEach((node) => {
-        node.data.foreignKeys = [];
-    });
+    // Create a deep copy of the nodes to avoid mutating the original data
+    const tables = nodes.map((node) => ({
+        ...node.data,
+        foreignKeys: [] as SchemaDesigner.ForeignKey[],
+    }));
 
     // Process edges to create foreign keys
     edges.forEach((edge) => {
         const sourceNode = nodes.find((node) => node.id === edge.source);
         const targetNode = nodes.find((node) => node.id === edge.target);
+
         if (!sourceNode || !targetNode) {
+            console.warn(`Edge ${edge.id} references non-existent nodes`);
             return;
         }
-        const edgeData = edge.data as SchemaDesigner.ForeignKey;
+
+        const edgeData = edge.data;
         if (!edgeData) {
+            console.warn(`Edge ${edge.id} has no data`);
             return;
         }
 
         const foreignKey: SchemaDesigner.ForeignKey = {
             id: edgeData.id,
             name: edgeData.name,
-            columns: edgeData.columns,
+            columns: [...edgeData.columns],
             referencedSchemaName: edgeData.referencedSchemaName,
             referencedTableName: edgeData.referencedTableName,
-            referencedColumns: edgeData.referencedColumns,
-            onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
-            onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+            referencedColumns: [...edgeData.referencedColumns],
+            onDeleteAction: edgeData.onDeleteAction,
+            onUpdateAction: edgeData.onUpdateAction,
         };
 
-        // Check if we already have a foreign key to this table
-        const existingForeignKey = sourceNode.data.foreignKeys.find(
-            (fk) =>
-                fk.referencedTableName === foreignKey.referencedTableName &&
-                fk.referencedSchemaName === foreignKey.referencedSchemaName,
+        // Find the table node that corresponds to the source of the edge
+        const sourceTable = tables.find((node) => node.id === edge.source);
+        if (!sourceTable) {
+            console.warn(`Source table ${edge.source} not found`);
+            return;
+        }
+
+        // Find if the foreign key already exists in the source table
+        const existingForeignKey = sourceTable.foreignKeys.find(
+            (fk) => fk.id === foreignKey.id,
         );
 
         if (existingForeignKey) {
-            // Add the new column to the existing foreign key
+            // Update the existing foreign key
             existingForeignKey.columns.push(foreignKey.columns[0]);
             existingForeignKey.referencedColumns.push(
                 foreignKey.referencedColumns[0],
             );
+            return;
         } else {
-            // Add as new foreign key
-            sourceNode.data.foreignKeys.push(foreignKey);
+            // Add the new foreign key to the source table
+            sourceTable.foreignKeys.push(foreignKey);
         }
     });
-
-    // Create tables without foreign keys initially
-    const tables = nodes.map((node) => {
-        const tableData = { ...node.data };
-        return tableData;
-    });
-
     return {
         tables: tables,
     };

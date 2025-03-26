@@ -25,10 +25,11 @@ export const SchemaDesignerCodeDrawer = () => {
     const [isCodeDrawerOpen, setIsCodeDrawerOpen] = useState<boolean>(false);
 
     useEffect(() => {
-        eventBus.on("getScript", async () => {
-            const script = await context.getScript();
-            console.log(script);
-            setCode(script);
+        eventBus.on("getScript", () => {
+            setTimeout(async () => {
+                const script = await context.getScript();
+                setCode(script);
+            }, 0);
         });
         eventBus.on("openCodeDrawer", () => {
             setIsCodeDrawerOpen(true);
@@ -48,11 +49,7 @@ export const SchemaDesignerCodeDrawer = () => {
                                     locConstants.schemaDesigner.openInEditor
                                 }
                                 icon={<FluentIcons.OpenRegular />}
-                                onClick={() =>
-                                    context.openInEditor(
-                                        context.script.combinedScript,
-                                    )
-                                }
+                                onClick={() => context.openInEditor(code)}
                             >
                                 {locConstants.schemaDesigner.openInEditor}
                             </Button>
@@ -60,11 +57,7 @@ export const SchemaDesignerCodeDrawer = () => {
                                 appearance="subtle"
                                 aria-label="Copy"
                                 icon={<FluentIcons.CopyRegular />}
-                                onClick={() =>
-                                    context.copyToClipboard(
-                                        context.script.combinedScript,
-                                    )
-                                }
+                                onClick={() => context.copyToClipboard(code)}
                             />
                             <Button
                                 appearance="subtle"

@@ -20,7 +20,6 @@ import {
     type Edge,
     addEdge,
     FinalConnectionState,
-    useReactFlow,
 } from "@xyflow/react";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -55,8 +54,6 @@ export const SchemaDesignerFlow = () => {
     // Toast notification setup
     const toasterId = useId("toaster");
     const { dispatchToast } = useToastController(toasterId);
-
-    const reactFlow = useReactFlow();
 
     // Context for schema data
     const context = useContext(SchemaDesignerContext);
@@ -167,10 +164,10 @@ export const SchemaDesignerFlow = () => {
             },
         };
 
+        setRelationshipEdges((eds) => addEdge(newEdge, eds));
+
         // Update create script
         eventBus.emit("getScript");
-
-        setRelationshipEdges((eds) => addEdge(newEdge, eds));
     };
 
     /**

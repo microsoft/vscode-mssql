@@ -11,15 +11,20 @@ import {
     SearchBox,
     Text,
     Button,
+    //Button,
 } from "@fluentui/react-components";
 import { List, ListItem } from "@fluentui/react-list-preview";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
+import { Edge, Node, useReactFlow } from "@xyflow/react";
+import { extractSchemaModel } from "../schemaDesignerUtils";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
+    const reactFlow = useReactFlow();
     if (!context) {
         return undefined;
     }
@@ -30,32 +35,59 @@ export function FilterTablesButton() {
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     function loadTables() {
-        const schemaDesigner = context?.schemaDesigner;
-        if (schemaDesigner) {
-            const schema = schemaDesigner.schema;
-            if (schema) {
-                const tableNames = schema.tables.map(
-                    (table) => `${table.schema}.${table.name}`,
-                );
-                // bring selected tables to the top
-                tableNames.sort((a, b) => {
-                    const aSelected = selectedTables.includes(a);
-                    const bSelected = selectedTables.includes(b);
-                    if (aSelected && !bSelected) {
-                        return -1;
-                    }
-                    if (!aSelected && bSelected) {
-                        return 1;
-                    }
-                    return a.localeCompare(b);
-                });
-                setTableNames(tableNames);
-                setFilteredTableNames(tableNames);
-            }
+        const schema = extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+
+        if (!schema) {
+            return;
         }
+        const tableNames = schema.tables.map(
+            (table) => `${table.schema}.${table.name}`,
+        );
+        // bring selected tables to the top
+        tableNames.sort((a, b) => {
+            const aSelected = selectedTables.includes(a);
+            const bSelected = selectedTables.includes(b);
+            if (aSelected && !bSelected) {
+                return -1;
+            }
+            if (!aSelected && bSelected) {
+                return 1;
+            }
+            return a.localeCompare(b);
+        });
+        setTableNames(tableNames);
+        setFilteredTableNames(tableNames);
     }
 
-    useEffect(() => {}, []);
+    useEffect(() => {
+        const nodes = reactFlow.getNodes();
+        if (selectedTables.length === 0) {
+            nodes.forEach((node) => {
+                reactFlow.updateNode(node.id, {
+                    ...node,
+                    hidden: false,
+                });
+            });
+            return;
+        }
+        nodes.forEach((node) => {
+            const tableName = `${node.data.schema}.${node.data.name}`;
+            if (selectedTables.includes(tableName)) {
+                reactFlow.updateNode(node.id, {
+                    ...node,
+                    hidden: false,
+                });
+            } else {
+                reactFlow.updateNode(node.id, {
+                    ...node,
+                    hidden: true,
+                });
+            }
+        });
+    }, [selectedTables]);
 
     return (
         <Menu open={isFilterMenuOpen}>
@@ -76,7 +108,17 @@ export function FilterTablesButton() {
                 </MenuButton>
             </MenuTrigger>
 
-            <MenuPopover>
+            <MenuPopover
+                style={{
+                    width: "250px",
+                    padding: "10px",
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                        setIsFilterMenuOpen(false);
+                    }
+                }}
+            >
                 <SearchBox
                     size="small"
                     placeholder="Search"
@@ -107,6 +149,7 @@ export function FilterTablesButton() {
                     style={{
                         maxHeight: "150px",
                         overflowY: "auto",
+                        padding: "5px",
                     }}
                     selectedItems={selectedTables}
                     onSelectionChange={(_e, data) => {
@@ -137,37 +180,8 @@ export function FilterTablesButton() {
                         style={{
                             flex: "1",
                         }}
-                        appearance="primary"
-                        onClick={() => {
-                            if (context.schemaDesigner) {
-                                const selectedTableIds =
-                                    context.schemaDesigner.schema.tables
-                                        .filter((table) => {
-                                            const tableName = `${table.schema}.${table.name}`;
-                                            return selectedTables.includes(
-                                                tableName,
-                                            );
-                                        })
-                                        .map((table) => table.id);
-                                context.schemaDesigner.filterCells(
-                                    selectedTableIds,
-                                );
-                            }
-                            setIsFilterMenuOpen(false);
-                        }}
-                    >
-                        {locConstants.schemaDesigner.applyFilter}
-                    </Button>
-                    <Button
-                        size="small"
-                        style={{
-                            flex: "1",
-                        }}
                         onClick={() => {
                             setSelectedTables([]);
-                            if (context.schemaDesigner) {
-                                context.schemaDesigner.filterCells([]);
-                            }
                         }}
                     >
                         {locConstants.schemaDesigner.clearFilter}

@@ -8,9 +8,16 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { Node, Edge, useReactFlow } from "@xyflow/react";
+import {
+    extractSchemaModel,
+    generateSchemaDesignerFlowComponents,
+} from "../schemaDesignerUtils";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export function AutoArrangeButton() {
     const context = useContext(SchemaDesignerContext);
+    const reactFlow = useReactFlow();
     if (!context) {
         return undefined;
     }
@@ -19,9 +26,30 @@ export function AutoArrangeButton() {
             icon={<FluentIcons.Flowchart16Filled />}
             size="small"
             onClick={() => {
-                if (context?.schemaDesigner) {
-                    context.schemaDesigner.autoLayout();
-                }
+                const nodes =
+                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+                const schema = extractSchemaModel(
+                    nodes,
+                    reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+                );
+                const generateComponenets =
+                    generateSchemaDesignerFlowComponents(schema);
+
+                nodes.forEach((node) => {
+                    const nodeId = node.id;
+                    const tableId = node.data.id;
+                    const table = generateComponenets.nodes.find(
+                        (n) => n.data.id === tableId,
+                    );
+                    if (table) {
+                        reactFlow.updateNode(nodeId, {
+                            position: {
+                                x: table.position.x,
+                                y: table.position.y,
+                            },
+                        });
+                    }
+                });
             }}
             title={locConstants.schemaDesigner.autoArrange}
             appearance="subtle"
