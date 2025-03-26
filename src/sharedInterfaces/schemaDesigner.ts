@@ -15,7 +15,7 @@ export namespace SchemaDesigner {
         tables: Table[];
     }
 
-    export interface Table {
+    export type Table = {
         /**
          * Id of the table
          */
@@ -36,7 +36,7 @@ export namespace SchemaDesigner {
          * Foreign keys of the table
          */
         foreignKeys: ForeignKey[];
-    }
+    };
 
     export interface Column {
         /**
@@ -93,7 +93,7 @@ export namespace SchemaDesigner {
         collation: string;
     }
 
-    export interface ForeignKey {
+    export type ForeignKey = {
         /**
          * Id of the foreign key
          */
@@ -126,7 +126,7 @@ export namespace SchemaDesigner {
          * On update action of the relationship
          */
         onUpdateAction: OnAction;
-    }
+    };
 
     export enum OnAction {
         CASCADE = "0",

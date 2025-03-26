@@ -19,7 +19,9 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import * as FluentIcons from "@fluentui/react-icons";
 import { NODEWIDTH } from "./schemaDesignerFlowConstants";
 import { locConstants } from "../../../common/locConstants";
-import { Handle, Position } from "@xyflow/react";
+import { Edge, Handle, Node, Position, useReactFlow } from "@xyflow/react";
+import { useContext } from "react";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 const styles = makeStyles({
     columnsContainer: {},
@@ -30,6 +32,50 @@ export const SchemaDesignerTableNode = ({
 }: {
     data: SchemaDesigner.Table;
 }) => {
+    const { getNodes, getEdges } = useReactFlow<
+        Node<SchemaDesigner.Table>,
+        Edge<SchemaDesigner.ForeignKey>
+    >();
+
+    const context = useContext(SchemaDesignerContext);
+
+    const handleEditTable = () => {
+        const nodes = getNodes();
+        const edges = getEdges();
+
+        // Find the node with the same id as the selected node
+        const selectedNode = nodes.find((node) => node.data.id === data.id);
+        const nodeEdges = edges.filter((edge) => edge.source === data.id);
+        console.log("Selected node:", selectedNode);
+        console.log("Node edges:", nodeEdges);
+        // Create foreign from edges
+        const foreignKeysMap = new Map<string, SchemaDesigner.ForeignKey>();
+        nodeEdges.forEach((edge) => {
+            const fk = edge.data;
+            if (!fk) {
+                return;
+            }
+            if (foreignKeysMap.has(fk.id)) {
+                const existingFk = foreignKeysMap.get(fk.id);
+                if (existingFk) {
+                    existingFk.columns.push(...fk.columns);
+                    existingFk.referencedColumns.push(...fk.referencedColumns);
+                }
+            } else {
+                foreignKeysMap.set(fk.id, fk);
+            }
+        });
+
+        const tableCopy = {
+            ...data,
+        };
+
+        tableCopy.foreignKeys = Array.from(foreignKeysMap.values());
+
+        console.log("Table copy:", tableCopy);
+        context.setSelectedTable(tableCopy);
+    };
+
     const classes = styles();
     return (
         <div
@@ -81,7 +127,7 @@ export const SchemaDesignerTableNode = ({
                         icon={<FluentIcons.EditRegular />}
                         disabled={false}
                         onClick={() => {
-                            console.log("Edit table", data);
+                            handleEditTable();
                         }}
                         style={{
                             marginLeft: "auto",
@@ -102,8 +148,15 @@ export const SchemaDesignerTableNode = ({
 
                         <MenuPopover>
                             <MenuList>
-                                <MenuItem>Item a</MenuItem>
-                                <MenuItem>Item b</MenuItem>
+                                <MenuItem icon={<FluentIcons.FlowRegular />}>
+                                    {
+                                        locConstants.schemaDesigner
+                                            .manageRelationships
+                                    }
+                                </MenuItem>
+                                <MenuItem icon={<FluentIcons.DeleteRegular />}>
+                                    {locConstants.schemaDesigner.delete}
+                                </MenuItem>
                             </MenuList>
                         </MenuPopover>
                     </Menu>
@@ -127,7 +180,7 @@ export const SchemaDesignerTableNode = ({
                             <Handle
                                 type="source"
                                 position={Position.Left}
-                                id={`column-in-${column.name}`}
+                                id={`left-${column.name}`}
                                 isConnectable={true}
                                 style={{
                                     marginLeft: "2px",
@@ -158,7 +211,7 @@ export const SchemaDesignerTableNode = ({
                             <Handle
                                 type="source"
                                 position={Position.Right}
-                                id={`column-out-${column.name}`}
+                                id={`right-${column.name}`}
                                 isConnectable={true}
                                 style={{
                                     marginRight: "2px",

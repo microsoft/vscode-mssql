@@ -76,7 +76,7 @@ export const SchemaDesignerEditor = () => {
         setSelectedTabValue("table");
     }, [context.isEditDrawerOpen]);
 
-    if (!context.selectedTable || !context.schemaDesigner?.schema) {
+    if (!context.selectedTable) {
         return undefined;
     }
 

@@ -12,6 +12,7 @@ import {
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 import * as azdataGraph from "azdataGraph";
+import { ReactFlowProvider } from "@xyflow/react";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -42,6 +43,7 @@ export interface SchemaDesignerContextProps
     showError: (message: string) => void;
     selectedReportTab: string;
     setSelectedReportTab: (selectedReportTab: string) => void;
+    editTable: (table: SchemaDesigner.Table) => Promise<SchemaDesigner.Table>;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -174,42 +176,44 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     };
 
     return (
-        <SchemaDesignerContext.Provider
-            value={{
-                ...getCoreRPCs(webviewContext),
-                extensionRpc: extensionRpc,
-                state: state,
-                themeKind: themeKind,
-                saveAsFile,
-                schemaDesigner,
-                setSchemaDesigner,
-                schema,
-                setSchema,
-                selectedTable,
-                setSelectedTable,
-                isEditDrawerOpen,
-                setIsEditDrawerOpen,
-                isPublishChangesEnabled,
-                setIsPublishChangesEnabled,
-                isCodeDrawerOpen,
-                setIsCodeDrawerOpen,
-                getScript,
-                getReport,
-                copyToClipboard,
-                openInEditor,
-                openInEditorWithConnection,
-                script,
-                schemaNames,
-                datatypes,
-                initializeSchemaDesigner,
-                report,
-                showError,
-                selectedReportTab,
-                setSelectedReportTab,
-            }}
-        >
-            {children}
-        </SchemaDesignerContext.Provider>
+        <ReactFlowProvider>
+            <SchemaDesignerContext.Provider
+                value={{
+                    ...getCoreRPCs(webviewContext),
+                    extensionRpc: extensionRpc,
+                    state: state,
+                    themeKind: themeKind,
+                    saveAsFile,
+                    schemaDesigner,
+                    setSchemaDesigner,
+                    schema,
+                    setSchema,
+                    selectedTable,
+                    setSelectedTable,
+                    isEditDrawerOpen,
+                    setIsEditDrawerOpen,
+                    isPublishChangesEnabled,
+                    setIsPublishChangesEnabled,
+                    isCodeDrawerOpen,
+                    setIsCodeDrawerOpen,
+                    getScript,
+                    getReport,
+                    copyToClipboard,
+                    openInEditor,
+                    openInEditorWithConnection,
+                    script,
+                    schemaNames,
+                    datatypes,
+                    initializeSchemaDesigner,
+                    report,
+                    showError,
+                    selectedReportTab,
+                    setSelectedReportTab,
+                }}
+            >
+                {children}
+            </SchemaDesignerContext.Provider>
+        </ReactFlowProvider>
     );
 };
 

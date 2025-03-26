@@ -499,6 +499,7 @@ export class LocConstants {
                     args: [colCount],
                     comment: ["{0} is the number of columns"],
                 }),
+            manageRelationships: l10n.t("Manage relationships"),
         };
     }
 }
