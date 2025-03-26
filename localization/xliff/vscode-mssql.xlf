@@ -431,9 +431,6 @@
     <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
       <source xml:lang="en">Delete</source>
     </trans-unit>
-    <trans-unit id="++CODE++5d3c908d3befeb8193089fef795e75b4470658a1bcc5c952ce539143b9246041">
-      <source xml:lang="en">Delete Node</source>
-    </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
@@ -931,6 +928,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
+      <source xml:lang="en">No changes detected</source>
     </trans-unit>
     <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
       <source xml:lang="en">No connection profile to remove.</source>

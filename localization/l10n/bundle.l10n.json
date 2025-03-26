@@ -328,7 +328,6 @@
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
   "Changed Tables": "Changed Tables",
-  "Delete Node": "Delete Node",
   "Create As Script": "Create As Script",
   "Details": "Details",
   "Script": "Script",
@@ -420,6 +419,7 @@
     ]
   },
   "Manage relationships": "Manage relationships",
+  "No changes detected": "No changes detected",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
