@@ -227,14 +227,19 @@ jobs:
         run: |
           cd main
           xml_coverage_main="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the main branch's cobertura report
           line_rate_main=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_main" | sed 's/line-rate="\([0-9.]*\)"/\1/')
           line_rate_main=$(printf "%.2f" $(echo "$line_rate_main * 100" | bc))
+          # Save formatted line rate in env variable
           echo "line_rate_main=$line_rate_main" >> $GITHUB_ENV
           cd ../pr
           xml_coverage_pr="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the pr branch's cobertura report
           line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
           line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
+          # Save formatted line rate in env variable
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
+          # Calculate difference in line coverage rate
           echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
           coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "coverage_text_color=$coverage_text_color" >> $GITHUB_ENV

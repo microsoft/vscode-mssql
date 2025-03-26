@@ -9,7 +9,7 @@ const concat = require('gulp-concat');
 const minifier = require('gulp-uglify/minifier');
 const uglifyjs = require('uglify-js');
 const argv = require('yargs').argv;
-const min = (argv.min === undefined) ? false : true;
+const min = argv.min === "true";
 const prod = argv.prod === "true";
 const vscodeTest = require('@vscode/test-electron');
 const { exec } = require('child_process');
