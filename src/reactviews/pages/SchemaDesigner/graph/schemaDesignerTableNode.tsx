@@ -106,6 +106,10 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
         eventBus.emit("editTable", tableCopy, schema);
     };
 
+    const handleDeleteTable = () => {
+        void context.deleteTable(table);
+    };
+
     const handleManageRelationships = () => {
         const schema = context.extractSchema();
         const foundTable = schema.tables.find((t) => t.id === table.id);
@@ -147,7 +151,7 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
                         </MenuItem>
                         <MenuItem
                             icon={<FluentIcons.DeleteRegular />}
-                            onClick={handleEditTable}
+                            onClick={handleDeleteTable}
                         >
                             {locConstants.schemaDesigner.delete}
                         </MenuItem>

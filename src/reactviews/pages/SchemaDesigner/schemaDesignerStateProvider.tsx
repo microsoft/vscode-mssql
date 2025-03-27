@@ -176,8 +176,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         );
 
         if (nodeWithPosition) {
+            nodeWithPosition.selected = true;
             reactFlow.addNodes(nodeWithPosition);
             reactFlow.addEdges(edgesForNewTable);
+            requestAnimationFrame(async () => {
+                await reactFlow.setCenter(
+                    nodeWithPosition.position.x,
+                    nodeWithPosition.position.y,
+                    {
+                        duration: 500,
+                    },
+                );
+            });
+
             eventBus.emit("getScript");
             return true;
         }
