@@ -9,11 +9,8 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Node, Edge, useReactFlow } from "@xyflow/react";
-import {
-    extractSchemaModel,
-    generateSchemaDesignerFlowComponents,
-} from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { flowUtils } from "../schemaDesignerUtils";
 
 export function AutoArrangeButton() {
     const context = useContext(SchemaDesignerContext);
@@ -28,12 +25,12 @@ export function AutoArrangeButton() {
             onClick={() => {
                 const nodes =
                     reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
-                const schema = extractSchemaModel(
+                const schema = flowUtils.extractSchemaModel(
                     nodes,
                     reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
                 );
                 const generateComponenets =
-                    generateSchemaDesignerFlowComponents(schema);
+                    flowUtils.generateSchemaDesignerFlowComponents(schema);
 
                 nodes.forEach((node) => {
                     const nodeId = node.id;

@@ -15,13 +15,9 @@ import { SchemaDesignerEditor } from "./schemaDesignerEditor";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { createContext, useContext, useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
-import eventBus, {
-    createNewTable,
-    extractSchemaModel,
-    generateSchemaDesignerFlowComponents,
-} from "../schemaDesignerUtils";
+import { tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { Edge, Node, useReactFlow } from "@xyflow/react";
+import eventBus from "../schemaDesignerEvents";
 
 export interface SchemaDesignerEditorContextProps {
     schema: SchemaDesigner.Schema;
@@ -46,7 +42,6 @@ export const SchemaDesignerEditorContext =
 
 export const SchemaDesignerEditorDrawer = () => {
     const context = useContext(SchemaDesignerContext);
-    const reactFlow = useReactFlow();
     if (!context) {
         return undefined;
     }
@@ -75,76 +70,63 @@ export const SchemaDesignerEditorDrawer = () => {
     const [showForeignKey, setShowForeignKey] = useState(false);
 
     useEffect(() => {
-        eventBus.on("editTable", (table, schema, showForeignKey) => {
-            const edges = reactFlow
-                .getEdges()
-                .filter(
-                    (edge) => edge.source === table.id,
-                ) as Edge<SchemaDesigner.ForeignKey>[];
+        const handleEditTable = (
+            tableToEdit: SchemaDesigner.Table,
+            schemaData: SchemaDesigner.Schema,
+            showForeignKeySection?: boolean,
+        ) => {
+            // Get table with updated foreign keys
+            const updatedTable =
+                context.getTableWithForeignKeys(tableToEdit.id) || tableToEdit;
 
-            const edgesMap = new Map<string, SchemaDesigner.ForeignKey>();
-            edges.forEach((edge) => {
-                const sourceTable = schema.tables.find(
-                    (t) => t.id === edge.source,
-                );
-                const targetTable = schema.tables.find(
-                    (t) => t.id === edge.target,
-                );
-                if (!sourceTable || !targetTable) {
-                    return;
-                }
-                if (!edge.data) {
-                    return;
-                }
-                const foreignKey: SchemaDesigner.ForeignKey = {
-                    id: edge.data.id,
-                    columns: edge.data.columns,
-                    name: edge.data.name,
-                    onDeleteAction: edge.data.onDeleteAction,
-                    onUpdateAction: edge.data.onUpdateAction,
-                    referencedColumns: edge.data.referencedColumns,
-                    referencedSchemaName: edge.data.referencedSchemaName,
-                    referencedTableName: edge.data.referencedTableName,
-                };
-                if (edgesMap.has(edge.id)) {
-                    // If the edge already exists, append columns and referencedColumns
-                    const existingForeignKey = edgesMap.get(edge.id);
-                    if (existingForeignKey) {
-                        existingForeignKey.columns.push(...foreignKey.columns);
-                        existingForeignKey.referencedColumns.push(
-                            ...foreignKey.referencedColumns,
-                        );
-                    }
-                } else {
-                    edgesMap.set(edge.id, foreignKey);
-                }
-            });
-
-            table.foreignKeys = Array.from(edgesMap.values());
-
+            // Update state
             setSchemas(context.schemaNames);
             setDataTypes(context.datatypes);
             setIsEditDrawerOpen(true);
-            setSchema(schema);
-            setTable(table);
+            setSchema(schemaData);
+            setTable(updatedTable);
             setIsNewTable(false);
-            if (showForeignKey) {
-                setShowForeignKey(true);
-            } else {
-                setShowForeignKey(false);
-            }
-        });
-        eventBus.on("newTable", (schema) => {
+            setShowForeignKey(Boolean(showForeignKeySection));
+        };
+
+        const handleNewTable = (schemaData: SchemaDesigner.Schema) => {
             setSchemas(context.schemaNames);
             setDataTypes(context.datatypes);
-            setSchema(schema);
-            setTable(createNewTable(schema, context.schemaNames));
+            setSchema(schemaData);
+            setTable(
+                tableUtils.createNewTable(schemaData, context.schemaNames),
+            );
             setIsNewTable(true);
             setIsEditDrawerOpen(true);
-        });
+        };
+        eventBus.on("editTable", handleEditTable);
+        eventBus.on("newTable", handleNewTable);
+
+        return () => {
+            eventBus.off("editTable", handleEditTable);
+            eventBus.off("newTable", handleNewTable);
+        };
     });
 
-    useEffect(() => {}, [table]);
+    const saveTable = async () => {
+        // If errors are present, do not save
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
+
+        let success = false;
+
+        if (isNewTable) {
+            success = await context.addTable(table);
+        } else {
+            success = await context.updateTable(table);
+        }
+
+        if (success) {
+            setIsEditDrawerOpen(false);
+            eventBus.emit("getScript"); // Update the SQL script
+        }
+    };
 
     return (
         <OverlayDrawer
@@ -162,118 +144,8 @@ export const SchemaDesignerEditorDrawer = () => {
                     setTable: setTable,
                     isEditDrawerOpen: isEditDrawerOpen,
                     setIsEditDrawerOpen: setIsEditDrawerOpen,
-                    save: async () => {
-                        // If errors are present, do not save
-                        if (Object.keys(errors).length > 0) {
-                            return;
-                        }
-                        // Save the table
-                        if (isNewTable) {
-                            const newReactFlowNode: Node<SchemaDesigner.Table> =
-                                {
-                                    id: table.id,
-                                    type: "tableNode",
-                                    data: {
-                                        ...table,
-                                    },
-                                    position: { x: 0, y: 0 },
-                                };
-
-                            const schemaModel = extractSchemaModel(
-                                reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-                            );
-
-                            schemaModel.tables.push(newReactFlowNode.data);
-
-                            const updatedPositions =
-                                generateSchemaDesignerFlowComponents(
-                                    schemaModel,
-                                );
-
-                            const nodeWithPosition =
-                                updatedPositions.nodes.find(
-                                    (node) => node.id === newReactFlowNode.id,
-                                );
-
-                            const edgesForNewTable =
-                                updatedPositions.edges.filter(
-                                    (edge) =>
-                                        edge.source === newReactFlowNode.id ||
-                                        edge.target === newReactFlowNode.id,
-                                );
-                            if (!nodeWithPosition && !edgesForNewTable) {
-                                return;
-                            }
-                            reactFlow.addNodes(nodeWithPosition!);
-                            reactFlow.addEdges(edgesForNewTable);
-                        } else {
-                            const schema = extractSchemaModel(
-                                reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-                            );
-
-                            const tableNode = schema.tables.find(
-                                (node) => node.id === table.id,
-                            );
-
-                            if (!tableNode) {
-                                return;
-                            }
-
-                            const updatedTable = {
-                                ...tableNode,
-                                ...table,
-                            };
-
-                            const updatedSchema = {
-                                ...schema,
-                                tables: schema.tables.map((node) =>
-                                    node.id === table.id ? updatedTable : node,
-                                ),
-                            };
-
-                            // delete the old edges
-                            const edgesToDelete = reactFlow
-                                .getEdges()
-                                .filter(
-                                    (edge) =>
-                                        edge.source === table.id ||
-                                        edge.target === table.id,
-                                );
-                            await reactFlow.deleteElements({
-                                nodes: [],
-                                edges: edgesToDelete,
-                            });
-
-                            const newFlowComponents =
-                                generateSchemaDesignerFlowComponents(
-                                    updatedSchema,
-                                );
-                            const nodeWithPosition =
-                                newFlowComponents.nodes.find(
-                                    (node) => node.id === table.id,
-                                );
-                            if (!nodeWithPosition) {
-                                return;
-                            }
-                            const edgesForUpdatedTable =
-                                newFlowComponents.edges.filter(
-                                    (edge) =>
-                                        edge.source === table.id ||
-                                        edge.target === table.id,
-                                );
-                            reactFlow.updateNode(
-                                nodeWithPosition.id,
-                                nodeWithPosition.data,
-                            );
-                            reactFlow.addEdges(edgesForUpdatedTable);
-                        }
-                        setIsEditDrawerOpen(false);
-                    },
-                    cancel: () => {
-                        setIsEditDrawerOpen(false);
-                    },
+                    save: saveTable,
+                    cancel: () => setIsEditDrawerOpen(false),
                     isNewTable: isNewTable,
                     errors: errors,
                     setErrors: setErrors,

@@ -6,34 +6,18 @@
 import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { useReactFlow } from "@xyflow/react";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useContext } from "react";
 
 export function DeleteNodesButton() {
-    const reactflow = useReactFlow();
+    const context = useContext(SchemaDesignerContext);
     return (
         <Button
             size="small"
             icon={<FluentIcons.Delete16Filled />}
             title={locConstants.schemaDesigner.delete}
             appearance="subtle"
-            onClick={() => {
-                const selectedNodes = reactflow
-                    .getNodes()
-                    .filter((node) => node.selected);
-                if (selectedNodes.length > 0) {
-                    void reactflow.deleteElements({
-                        nodes: selectedNodes,
-                    });
-                } else {
-                    const selectedEdges = reactflow
-                        .getEdges()
-                        .filter((edge) => edge.selected);
-                    void reactflow.deleteElements({
-                        nodes: [],
-                        edges: selectedEdges,
-                    });
-                }
-            }}
+            onClick={() => context.deleteSelectedNodes()}
         >
             {locConstants.schemaDesigner.delete}
         </Button>

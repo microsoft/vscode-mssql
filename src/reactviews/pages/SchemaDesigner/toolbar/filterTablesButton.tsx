@@ -19,8 +19,8 @@ import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
-import { extractSchemaModel } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { flowUtils } from "../schemaDesignerUtils";
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
@@ -35,7 +35,7 @@ export function FilterTablesButton() {
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     function loadTables() {
-        const schema = extractSchemaModel(
+        const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );

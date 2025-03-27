@@ -17,16 +17,17 @@ import {
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { Handle, Position, useReactFlow } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import eventBus, { NODE_WIDTH } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import eventBus from "../schemaDesignerEvents";
+import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
 
 // Styles for the table node components
 const useStyles = makeStyles({
     tableNodeContainer: {
-        width: `${NODE_WIDTH}px`,
+        width: `${LAYOUT_CONSTANTS.NODE_WIDTH}px`,
         backgroundColor: "var(--vscode-editor-background)",
         borderRadius: "5px",
         display: "flex",
@@ -63,13 +64,6 @@ const useStyles = makeStyles({
         fontSize: "11px",
         paddingLeft: "35px",
     },
-    columnRow: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        padding: "4px 10px",
-        position: "relative",
-    },
     columnName: {
         flexGrow: 1,
         overflow: "hidden",
@@ -98,7 +92,6 @@ const useStyles = makeStyles({
 // TableHeaderActions component for the edit button and menu
 const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
     const context = useContext(SchemaDesignerContext);
-    const reactFlow = useReactFlow();
     const styles = useStyles();
 
     const handleEditTable = () => {
@@ -123,14 +116,6 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 
         const tableCopy = { ...table };
         eventBus.emit("editTable", tableCopy, schema, true);
-    };
-
-    const handleDeleteTable = () => {
-        const node = reactFlow.getNode(table.id);
-        if (!node) {
-            return;
-        }
-        void reactFlow.deleteElements({ nodes: [node] });
     };
 
     return (
@@ -162,7 +147,7 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
                         </MenuItem>
                         <MenuItem
                             icon={<FluentIcons.DeleteRegular />}
-                            onClick={handleDeleteTable}
+                            onClick={handleEditTable}
                         >
                             {locConstants.schemaDesigner.delete}
                         </MenuItem>
@@ -199,8 +184,10 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
 const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
     const styles = useStyles();
 
+    console.log("Rendering column:", column);
+
     return (
-        <div className={styles.columnRow} key={column.name}>
+        <div className={"column"} key={column.name}>
             <Handle
                 type="source"
                 position={Position.Left}

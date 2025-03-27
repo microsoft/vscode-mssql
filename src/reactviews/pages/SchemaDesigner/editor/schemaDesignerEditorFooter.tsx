@@ -7,7 +7,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
-import eventBus from "../schemaDesignerUtils";
+import eventBus from "../schemaDesignerEvents";
 
 const useStyles = makeStyles({
     editorFooter: {

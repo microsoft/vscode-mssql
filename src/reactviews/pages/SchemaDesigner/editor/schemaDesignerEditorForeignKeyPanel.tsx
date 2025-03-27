@@ -33,10 +33,9 @@ import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
-    getAllTables,
-    getNextForeignKeyName,
-    getTableFromDisplayName,
-    isForeignKeyValid,
+    foreignKeyUtils,
+    namingUtils,
+    tableUtils,
 } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
@@ -169,7 +168,7 @@ const ColumnMappingTable = ({
     const context = useContext(SchemaDesignerEditorContext);
     const targetTable = useMemo(() => {
         if (!context.schema) return { columns: [] };
-        return getTableFromDisplayName(
+        return tableUtils.getTableFromDisplayName(
             context.schema,
             `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
         );
@@ -344,7 +343,7 @@ const ForeignKeyCard = ({
         // Get default source and target columns
         const sourceColumn = context.table.columns[0]?.name || "";
 
-        const targetTable = getTableFromDisplayName(
+        const targetTable = tableUtils.getTableFromDisplayName(
             context.schema,
             `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
         );
@@ -420,10 +419,11 @@ const ForeignKeyCard = ({
                         onOptionSelect={(_e, data) => {
                             if (!data.optionText || !context.schema) return;
 
-                            const targetTable = getTableFromDisplayName(
-                                context.schema,
-                                data.optionText,
-                            );
+                            const targetTable =
+                                tableUtils.getTableFromDisplayName(
+                                    context.schema,
+                                    data.optionText,
+                                );
 
                             // When target table changes, update reference info and reset column mappings
                             const defaultTargetColumn =
@@ -494,7 +494,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
     // Get all available tables for foreign key references
     const availableTables = useMemo(() => {
         if (!context.schema) return [];
-        return getAllTables(context.schema, context.table);
+        return tableUtils.getAllTables(context.schema, context.table);
     }, [context.table]);
 
     // Reset focus when the selected table changes
@@ -503,7 +503,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
             setLastAddedForeignKeyIndex(-1);
         }
         context.table.foreignKeys.forEach((foreignKey) => {
-            const validationResult = isForeignKeyValid(
+            const validationResult = foreignKeyUtils.isForeignKeyValid(
                 context.schema?.tables ?? [],
                 context.table,
                 foreignKey,
@@ -540,7 +540,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
         const firstTable = availableTables[0];
         const newForeignKey: SchemaDesigner.ForeignKey = {
             id: uuidv4(),
-            name: getNextForeignKeyName(context.table.foreignKeys),
+            name: namingUtils.getNextForeignKeyName(context.table.foreignKeys),
             columns: [context.table.columns[0]?.name || ""],
             referencedSchemaName: firstTable.schema,
             referencedTableName: firstTable.name,

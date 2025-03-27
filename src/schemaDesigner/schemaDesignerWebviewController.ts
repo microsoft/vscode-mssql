@@ -184,6 +184,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     {},
                     this.treeNode.connectionInfo,
                 );
+
                 const databaseName = ObjectExplorerUtils.getDatabaseName(
                     this.treeNode,
                 );
@@ -195,17 +196,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 } else if (databaseName === LocConstants.defaultDatabaseLabel) {
                     connectionCredentials.database = "";
                 }
-                this.treeNode.connectionInfo = connectionCredentials;
+
+                this.treeNode.updateConnectionInfo(connectionCredentials);
                 void this.mainController.onNewQuery(
                     this.treeNode,
                     payload.text,
                 );
             },
         );
-
-        this.registerRequestHandler("showError", async (payload) => {
-            await this.vscodeWrapper.showErrorMessage(payload.message);
-        });
     }
 
     override dispose(): void {

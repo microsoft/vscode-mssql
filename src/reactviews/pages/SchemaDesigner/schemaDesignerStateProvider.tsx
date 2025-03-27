@@ -13,10 +13,8 @@ import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, Node, useReactFlow } from "@xyflow/react";
-import {
-    extractSchemaModel,
-    generateSchemaDesignerFlowComponents,
-} from "./schemaDesignerUtils";
+import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
+import eventBus from "./schemaDesignerEvents";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -32,15 +30,16 @@ export interface SchemaDesignerContextProps
     getReport: () => Promise<SchemaDesigner.GetReportResponse>;
     openInEditor: (text: string) => void;
     openInEditorWithConnection: (text: string) => void;
-
-    selectedTable: SchemaDesigner.Table;
     setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
     copyToClipboard: (text: string) => void;
-
-    showError: (message: string) => void;
-    editTable: (table: SchemaDesigner.Table) => Promise<SchemaDesigner.Table>;
-
     extractSchema: () => SchemaDesigner.Schema;
+    addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    deleteSelectedNodes: () => void;
+    getTableWithForeignKeys: (
+        tableId: string,
+    ) => SchemaDesigner.Table | undefined;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -70,7 +69,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
             "initializeSchemaDesigner",
         )) as SchemaDesigner.CreateSessionResponse;
 
-        const { nodes, edges } = generateSchemaDesignerFlowComponents(
+        const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(
             model.schema,
         );
 
@@ -85,14 +84,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
 
     const reactFlow = useReactFlow();
 
-    // Table under edit
-    const [selectedTable, setSelectedTable] = useState<
-        SchemaDesigner.Table | undefined
-    >(undefined);
-
     // Get the script from the server
     const getScript = async () => {
-        const schema = extractSchemaModel(
+        const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
@@ -110,7 +104,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     };
 
     const getReport = async () => {
-        const schema = extractSchemaModel(
+        const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
@@ -143,18 +137,166 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         });
     };
 
-    const showError = (message: string) => {
-        void extensionRpc.call("showError", {
-            message: message,
-        });
-    };
-
     const extractSchema = () => {
-        const schema = extractSchemaModel(
+        const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
         return schema;
+    };
+
+    /**
+     * Adds a new table to the flow
+     */
+    const addTable = async (table: SchemaDesigner.Table) => {
+        const newReactFlowNode: Node<SchemaDesigner.Table> = {
+            id: table.id,
+            type: "tableNode",
+            data: { ...table },
+            position: { x: 0, y: 0 },
+        };
+
+        const schemaModel = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+
+        schemaModel.tables.push(newReactFlowNode.data);
+        const updatedPositions =
+            flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
+
+        const nodeWithPosition = updatedPositions.nodes.find(
+            (node) => node.id === newReactFlowNode.id,
+        );
+
+        const edgesForNewTable = updatedPositions.edges.filter(
+            (edge) =>
+                edge.source === newReactFlowNode.id ||
+                edge.target === newReactFlowNode.id,
+        );
+
+        if (nodeWithPosition) {
+            reactFlow.addNodes(nodeWithPosition);
+            reactFlow.addEdges(edgesForNewTable);
+            eventBus.emit("getScript");
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * Updates a table in the flow
+     */
+    const updateTable = async (table: SchemaDesigner.Table) => {
+        const schemaModel = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+
+        const tableNode = schemaModel.tables.find(
+            (node) => node.id === table.id,
+        );
+        if (!tableNode) {
+            console.warn(`Table with id ${table.id} not found`);
+            return false;
+        }
+
+        const updatedTable = {
+            ...tableNode,
+            ...table,
+        };
+
+        const updatedSchema = {
+            ...schemaModel,
+            tables: schemaModel.tables.map((node) =>
+                node.id === table.id ? updatedTable : node,
+            ),
+        };
+
+        // Delete existing edges for this table
+        const edgesToDelete = reactFlow
+            .getEdges()
+            .filter(
+                (edge) => edge.source === table.id || edge.target === table.id,
+            );
+
+        await reactFlow.deleteElements({
+            nodes: [],
+            edges: edgesToDelete,
+        });
+
+        // Regenerate flow components with updated schema
+        const newFlowComponents =
+            flowUtils.generateSchemaDesignerFlowComponents(updatedSchema);
+
+        const nodeWithPosition = newFlowComponents.nodes.find(
+            (node) => node.id === table.id,
+        );
+
+        if (nodeWithPosition) {
+            const edgesForUpdatedTable = newFlowComponents.edges.filter(
+                (edge) => edge.source === table.id || edge.target === table.id,
+            );
+
+            reactFlow.updateNodeData(
+                nodeWithPosition.id,
+                nodeWithPosition.data,
+            );
+            reactFlow.addEdges(edgesForUpdatedTable);
+            return true;
+        }
+        return false;
+    };
+
+    const deleteTable = async (table: SchemaDesigner.Table) => {
+        const node = reactFlow.getNode(table.id);
+        if (!node) {
+            return false;
+        }
+        void reactFlow.deleteElements({ nodes: [node] });
+    };
+
+    /**
+     * Gets a table with its foreign keys from the flow
+     */
+    const getTableWithForeignKeys = (
+        tableId: string,
+    ): SchemaDesigner.Table | undefined => {
+        const schemaModel = extractSchema();
+        const table = schemaModel.tables.find((t) => t.id === tableId);
+
+        if (!table) {
+            return undefined;
+        }
+
+        // Update foreign keys from edges
+        table.foreignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            tableId,
+            schemaModel,
+        );
+
+        return table;
+    };
+
+    const deleteSelectedNodes = () => {
+        const selectedNodes = reactFlow
+            .getNodes()
+            .filter((node) => node.selected);
+        if (selectedNodes.length > 0) {
+            void reactFlow.deleteElements({
+                nodes: selectedNodes,
+            });
+        } else {
+            const selectedEdges = reactFlow
+                .getEdges()
+                .filter((edge) => edge.selected);
+            void reactFlow.deleteElements({
+                nodes: [],
+                edges: selectedEdges,
+            });
+        }
     };
 
     return (
@@ -174,10 +316,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 openInEditorWithConnection,
                 copyToClipboard,
                 extractSchema,
-
-                selectedTable,
-                setSelectedTable,
-                showError,
+                getTableWithForeignKeys,
+                updateTable,
+                addTable,
+                deleteTable,
+                deleteSelectedNodes,
             }}
         >
             {children}

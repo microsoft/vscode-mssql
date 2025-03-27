@@ -6,7 +6,7 @@
 import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import eventBus from "../schemaDesignerUtils";
+import eventBus from "../schemaDesignerEvents";
 
 export function ViewCodeDialogButton() {
     return (

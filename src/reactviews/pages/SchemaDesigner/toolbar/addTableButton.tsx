@@ -8,7 +8,7 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
-import eventBus from "../schemaDesignerUtils";
+import eventBus from "../schemaDesignerEvents";
 
 export function AddTableButton() {
     const context = useContext(SchemaDesignerContext);

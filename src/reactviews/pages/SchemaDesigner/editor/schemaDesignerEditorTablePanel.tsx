@@ -34,14 +34,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
-import {
-    fillColumnDefaults,
-    getAllTables,
-    getNextColumnName,
-    isLengthBasedType,
-    isPrecisionBasedType,
-    tableNameValidationError,
-} from "../schemaDesignerUtils";
+import { columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
@@ -140,7 +133,7 @@ const ColumnAdvancedOptions = ({
                 />
             </Field>
 
-            {isLengthBasedType(column.dataType) && (
+            {columnUtils.isLengthBasedType(column.dataType) && (
                 <Field
                     label={{
                         children: (
@@ -167,7 +160,7 @@ const ColumnAdvancedOptions = ({
                 </Field>
             )}
 
-            {isPrecisionBasedType(column.dataType) && (
+            {columnUtils.isPrecisionBasedType(column.dataType) && (
                 <>
                     <Field
                         label={{
@@ -366,7 +359,7 @@ const ColumnsTable = ({
                             };
                             updateColumn(
                                 index,
-                                fillColumnDefaults(updatedColumn),
+                                columnUtils.fillColumnDefaults(updatedColumn),
                             );
                         }}
                         style={{
@@ -492,7 +485,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     // Memoized values
     const datatypes = useMemo(() => context.dataTypes, [context.dataTypes]);
     const allTables = useMemo(() => {
-        return getAllTables(context.schema, context.table);
+        return tableUtils.getAllTables(context.schema, context.table);
     }, [context.schema, context.table]);
 
     // Reset focus when selected table changes
@@ -529,7 +522,7 @@ export const SchemaDesignerEditorTablePanel = () => {
         const newColumns = [...context.table.columns];
         newColumns.push({
             id: uuidv4(),
-            name: getNextColumnName(newColumns),
+            name: namingUtils.getNextColumnName(newColumns),
             dataType: "int",
             isPrimaryKey: newColumns.length === 0, // First column is primary key by default
             isIdentity: false,
@@ -590,7 +583,10 @@ export const SchemaDesignerEditorTablePanel = () => {
             ...context.table,
             name: name,
         });
-        const error = tableNameValidationError(context.schema, context.table);
+        const error = tableUtils.tableNameValidationError(
+            context.schema,
+            context.table,
+        );
         if (error) {
             context.setErrors({
                 ...context.errors,

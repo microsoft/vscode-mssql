@@ -17,7 +17,7 @@ import { useContext, useEffect, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import Editor from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../common/utils";
-import eventBus from "./schemaDesignerUtils";
+import eventBus from "./schemaDesignerEvents";
 
 export const SchemaDesignerCodeDrawer = () => {
     const context = useContext(SchemaDesignerContext);
