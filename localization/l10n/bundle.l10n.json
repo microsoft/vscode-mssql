@@ -391,8 +391,8 @@
       "{1} is target column"
     ]
   },
-  "Column '{0}' must be a primary key or have a unique constraint/{0} is the referenced column": {
-    "message": "Column '{0}' must be a primary key or have a unique constraint",
+  "Column '{0}' must be a primary key/{0} is the referenced column": {
+    "message": "Column '{0}' must be a primary key",
     "comment": [
       "{0} is the referenced column"
     ]

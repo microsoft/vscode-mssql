@@ -284,8 +284,8 @@
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
     </trans-unit>
-    <trans-unit id="++CODE++88412efd7e0ac9a0f75eb6e75d837ed196f1c0667f7cc90dd5c4a06bc80540a7">
-      <source xml:lang="en">Column &apos;{0}&apos; must be a primary key or have a unique constraint</source>
+    <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
+      <source xml:lang="en">Column &apos;{0}&apos; must be a primary key</source>
       <note>{0} is the referenced column</note>
     </trans-unit>
     <trans-unit id="++CODE++d93bc428789daab792bbefccefbef350850821d750aff6d09f87b4a77d9fe66a">
