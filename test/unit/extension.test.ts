@@ -40,24 +40,27 @@ suite("Extension API Tests", () => {
             mockContext.object,
         );
 
-        mainController.connectionManager = connectionManager.object;
-
         connectionStore = TypeMoq.Mock.ofType(
             ConnectionStore,
             TypeMoq.MockBehavior.Loose,
             mockContext.object,
         );
 
-        mainController.connectionManager.connectionStore =
-            connectionStore.object;
-
         connectionUi = TypeMoq.Mock.ofType(
             ConnectionUI,
             TypeMoq.MockBehavior.Loose,
-            mainController.connectionManager,
+            connectionManager.object,
             mockContext.object,
         );
-        mainController.connectionManager.connectionUI = connectionUi.object;
+
+        connectionManager
+            .setup((cm) => cm.connectionStore)
+            .returns(() => connectionStore.object);
+        connectionManager
+            .setup((cm) => cm.connectionUI)
+            .returns(() => connectionUi.object);
+
+        mainController.connectionManager = connectionManager.object;
     });
 
     test("Gets sqlToolsServicePath", async () => {
