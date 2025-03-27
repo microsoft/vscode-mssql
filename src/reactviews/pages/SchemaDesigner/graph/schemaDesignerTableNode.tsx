@@ -19,7 +19,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import * as FluentIcons from "@fluentui/react-icons";
 import { NODEWIDTH } from "./schemaDesignerFlowConstants";
 import { locConstants } from "../../../common/locConstants";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import eventBus from "../schemaDesignerUtils";
@@ -34,6 +34,7 @@ export const SchemaDesignerTableNode = ({
     data: SchemaDesigner.Table;
 }) => {
     const context = useContext(SchemaDesignerContext);
+    const reactFlow = useReactFlow();
 
     const handleEditTable = () => {
         const schema = context.extractSchema();
@@ -122,13 +123,47 @@ export const SchemaDesignerTableNode = ({
 
                         <MenuPopover>
                             <MenuList>
-                                <MenuItem icon={<FluentIcons.FlowRegular />}>
+                                <MenuItem
+                                    icon={<FluentIcons.FlowRegular />}
+                                    onClick={() => {
+                                        const schema = context.extractSchema();
+                                        const table = schema.tables.find(
+                                            (t) => t.id === data.id,
+                                        );
+
+                                        if (!table) {
+                                            return;
+                                        }
+
+                                        const tableCopy = {
+                                            ...data,
+                                        };
+
+                                        eventBus.emit(
+                                            "editTable",
+                                            tableCopy,
+                                            schema,
+                                            true,
+                                        );
+                                    }}
+                                >
                                     {
                                         locConstants.schemaDesigner
                                             .manageRelationships
                                     }
                                 </MenuItem>
-                                <MenuItem icon={<FluentIcons.DeleteRegular />}>
+                                <MenuItem
+                                    icon={<FluentIcons.DeleteRegular />}
+                                    onClick={() => {
+                                        const node = reactFlow.getNode(data.id);
+                                        if (!node) {
+                                            return;
+                                        }
+                                        void reactFlow.deleteElements({
+                                            nodes: [node],
+                                        });
+                                    }}
+                                >
                                     {locConstants.schemaDesigner.delete}
                                 </MenuItem>
                             </MenuList>

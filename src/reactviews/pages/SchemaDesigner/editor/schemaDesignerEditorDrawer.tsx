@@ -36,6 +36,7 @@ export interface SchemaDesignerEditorContextProps {
     setErrors: (errors: Record<string, string>) => void;
     schemas: string[];
     dataTypes: string[];
+    showForeignKey: boolean;
 }
 
 export const SchemaDesignerEditorContext =
@@ -71,8 +72,10 @@ export const SchemaDesignerEditorDrawer = () => {
     const [schemas, setSchemas] = useState<string[]>([]);
     const [dataTypes, setDataTypes] = useState<string[]>([]);
 
+    const [showForeignKey, setShowForeignKey] = useState(false);
+
     useEffect(() => {
-        eventBus.on("editTable", (table, schema) => {
+        eventBus.on("editTable", (table, schema, showForeignKey) => {
             const edges = reactFlow
                 .getEdges()
                 .filter(
@@ -125,6 +128,11 @@ export const SchemaDesignerEditorDrawer = () => {
             setSchema(schema);
             setTable(table);
             setIsNewTable(false);
+            if (showForeignKey) {
+                setShowForeignKey(true);
+            } else {
+                setShowForeignKey(false);
+            }
         });
         eventBus.on("newTable", (schema) => {
             setSchemas(context.schemaNames);
@@ -269,6 +277,7 @@ export const SchemaDesignerEditorDrawer = () => {
                     isNewTable: isNewTable,
                     errors: errors,
                     setErrors: setErrors,
+                    showForeignKey: showForeignKey,
                 }}
             >
                 <DrawerHeader>
@@ -282,7 +291,9 @@ export const SchemaDesignerEditorDrawer = () => {
                             />
                         }
                     >
-                        {locConstants.schemaDesigner.editTable}
+                        {isNewTable
+                            ? locConstants.schemaDesigner.addTable
+                            : locConstants.schemaDesigner.editTable}
                     </DrawerHeaderTitle>
                 </DrawerHeader>
 

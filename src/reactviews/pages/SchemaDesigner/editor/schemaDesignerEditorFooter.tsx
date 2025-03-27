@@ -34,7 +34,9 @@ export function SchemaDesignerEditorFooter() {
                 }}
                 disabled={Object.keys(context.errors).length > 0}
             >
-                {locConstants.schemaDesigner.save}
+                {context.isNewTable
+                    ? locConstants.schemaDesigner.add
+                    : locConstants.schemaDesigner.save}
             </Button>
             <Button
                 appearance="secondary"

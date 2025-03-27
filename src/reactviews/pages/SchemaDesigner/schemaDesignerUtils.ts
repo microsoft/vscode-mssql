@@ -503,6 +503,7 @@ export type MyEvents = {
     editTable: (
         table: SchemaDesigner.Table,
         schema: SchemaDesigner.Schema,
+        showForeignKeys?: boolean,
     ) => void;
     newTable: (schema: SchemaDesigner.Schema) => void;
 };

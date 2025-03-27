@@ -343,6 +343,7 @@ export class LocConstants {
             table: l10n.t("Table"),
             foreignKeys: l10n.t("Foreign Keys"),
             save: l10n.t("Save"),
+            add: l10n.t("Add"),
             cancel: l10n.t("Cancel"),
             dataType: l10n.t("Type"),
             primaryKey: l10n.t("Primary Key"),

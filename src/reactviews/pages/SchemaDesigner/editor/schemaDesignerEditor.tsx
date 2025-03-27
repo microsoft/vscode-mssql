@@ -70,8 +70,12 @@ export const SchemaDesignerEditor = () => {
     const [selectedTabValue, setSelectedTabValue] = useState<TabValue>("table");
 
     useEffect(() => {
-        setSelectedTabValue("table");
-    }, [context.schema]);
+        if (context.showForeignKey) {
+            setSelectedTabValue("foreignKeys");
+        } else {
+            setSelectedTabValue("table");
+        }
+    }, [context.schema, context.showForeignKey]);
 
     if (!context.table) {
         return undefined;

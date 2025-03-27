@@ -173,16 +173,17 @@ export function FilterTablesButton() {
                         display: "flex",
                         flexDirection: "row",
                         gap: "5px",
+                        justifyContent: "flex-end",
                     }}
                 >
                     <Button
                         size="small"
-                        style={{
-                            flex: "1",
-                        }}
+                        style={{}}
                         onClick={() => {
                             setSelectedTables([]);
                         }}
+                        appearance="subtle"
+                        icon={<FluentIcons.DismissRegular />}
                     >
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
