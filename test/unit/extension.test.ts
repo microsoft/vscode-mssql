@@ -112,38 +112,44 @@ suite("Extension API Tests", () => {
             mockContext.object,
         );
 
-        let passedUri: string;
+        let originalMainController = Extension.controller;
 
-        mockMainController
-            .setup((m) =>
-                m.connect(
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            )
-            .returns(
-                (
-                    uri: string,
-                    connectionInfo: IConnectionInfo,
-                    connectionPromise: Deferred<boolean>,
-                    _saveConnection?: boolean,
-                ) => {
-                    passedUri = uri;
-                    connectionPromise.resolve(true);
-                    return Promise.resolve(true);
-                },
+        try {
+            let passedUri: string;
+
+            mockMainController
+                .setup((m) =>
+                    m.connect(
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(
+                    (
+                        uri: string,
+                        connectionInfo: IConnectionInfo,
+                        connectionPromise: Deferred<boolean>,
+                        _saveConnection?: boolean,
+                    ) => {
+                        passedUri = uri;
+                        connectionPromise.resolve(true);
+                        return Promise.resolve(true);
+                    },
+                );
+
+            (Extension as any).controller = mockMainController.object;
+
+            const returnedUri = await vscodeMssql.connect(
+                testConnInfo,
+                false /* saveConnection */,
             );
 
-        (Extension as any).controller = mockMainController.object;
-
-        const returnedUri = await vscodeMssql.connect(
-            testConnInfo,
-            false /* saveConnection */,
-        );
-
-        expect(returnedUri).to.equal(passedUri);
+            expect(returnedUri).to.equal(passedUri);
+        } finally {
+            (Extension as any).controller = originalMainController;
+        }
     });
 
     test("listDatabases", async () => {
