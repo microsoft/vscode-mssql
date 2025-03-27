@@ -7,11 +7,14 @@ import * as constants from "../../src/constants/constants";
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
+import { IExtension } from "vscode-mssql";
 
 // Launches and activates the extension.
-export async function activateExtension() {
-    const extension = vscode.extensions.getExtension(constants.extensionId);
-    await extension.activate();
+export async function activateExtension(): Promise<IExtension> {
+    const extension = vscode.extensions.getExtension<IExtension>(
+        constants.extensionId,
+    );
+    return await extension.activate();
 }
 
 // Stubs the telemetry code
