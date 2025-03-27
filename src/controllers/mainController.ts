@@ -408,7 +408,7 @@ export default class MainController implements vscode.Disposable {
                                 await activeEditor.edit((editBuilder) => {
                                     editBuilder.insert(
                                         new vscode.Position(0, 0),
-                                        `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server})\n`,
+                                        `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server} : ${connectionCredentials.database} : ${connectionCredentials.user})\n`,
                                     );
                                 });
                             } else {
@@ -419,7 +419,9 @@ export default class MainController implements vscode.Disposable {
                             }
                         } else {
                             // The editor was somehow not created
-                            this._vscodeWrapper.showErrorMessage("Chat with database: unable to open editor");
+                            this._vscodeWrapper.showErrorMessage(
+                                "Chat with database: unable to open editor",
+                            );
                         }
                     }
 
@@ -430,7 +432,8 @@ export default class MainController implements vscode.Disposable {
                             `@${Constants.mssqlChatParticipantName} Hello!`,
                         );
                     }
-                });
+                },
+            );
 
             this.initializeQueryHistory();
 
