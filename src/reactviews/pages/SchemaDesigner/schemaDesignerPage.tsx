@@ -5,9 +5,6 @@
 
 import { useContext } from "react";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
-import "azdataGraph/dist/index.css";
-import "azdataGraph/src/css/common.css";
-import "azdataGraph/src/css/explorer.css";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
