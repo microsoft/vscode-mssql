@@ -15,221 +15,250 @@ import {
     MenuTrigger,
     Text,
 } from "@fluentui/react-components";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import * as FluentIcons from "@fluentui/react-icons";
-import { NODEWIDTH } from "./schemaDesignerFlowConstants";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import eventBus from "../schemaDesignerUtils";
+import eventBus, { NODE_WIDTH } from "../schemaDesignerUtils";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
-const styles = makeStyles({
-    columnsContainer: {},
+// Styles for the table node components
+const useStyles = makeStyles({
+    tableNodeContainer: {
+        width: `${NODE_WIDTH}px`,
+        backgroundColor: "var(--vscode-editor-background)",
+        borderRadius: "5px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "5px",
+    },
+    tableHeader: {
+        width: "100%",
+        display: "flex",
+        height: "50px",
+        flexDirection: "column",
+    },
+    tableHeaderRow: {
+        width: "100%",
+        display: "flex",
+        height: "30px",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: "5px",
+        paddingTop: "10px",
+    },
+    tableIcon: {
+        padding: "0 5px",
+        width: "20px",
+        height: "20px",
+    },
+    tableTitle: {
+        flexGrow: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        fontWeight: "600",
+    },
+    tableSubtitle: {
+        fontSize: "11px",
+        paddingLeft: "35px",
+    },
+    columnRow: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        padding: "4px 10px",
+        position: "relative",
+    },
+    columnName: {
+        flexGrow: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
+    columnType: {
+        fontSize: "12px",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    handleLeft: {
+        marginLeft: "2px",
+    },
+    handleRight: {
+        marginRight: "2px",
+    },
+    keyIcon: {
+        padding: "0 5px",
+        width: "16px",
+        height: "16px",
+    },
+    actionButton: {
+        marginLeft: "auto",
+    },
 });
 
+// TableHeaderActions component for the edit button and menu
+const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
+    const context = useContext(SchemaDesignerContext);
+    const reactFlow = useReactFlow();
+    const styles = useStyles();
+
+    const handleEditTable = () => {
+        const schema = context.extractSchema();
+        const foundTable = schema.tables.find((t) => t.id === table.id);
+
+        if (!foundTable) {
+            return;
+        }
+
+        const tableCopy = { ...table };
+        eventBus.emit("editTable", tableCopy, schema);
+    };
+
+    const handleManageRelationships = () => {
+        const schema = context.extractSchema();
+        const foundTable = schema.tables.find((t) => t.id === table.id);
+
+        if (!foundTable) {
+            return;
+        }
+
+        const tableCopy = { ...table };
+        eventBus.emit("editTable", tableCopy, schema, true);
+    };
+
+    const handleDeleteTable = () => {
+        const node = reactFlow.getNode(table.id);
+        if (!node) {
+            return;
+        }
+        void reactFlow.deleteElements({ nodes: [node] });
+    };
+
+    return (
+        <>
+            <Button
+                appearance="subtle"
+                icon={<FluentIcons.EditRegular />}
+                onClick={handleEditTable}
+                className={styles.actionButton}
+                size="small"
+            />
+            <Menu>
+                <MenuTrigger disableButtonEnhancement>
+                    <MenuButton
+                        icon={<FluentIcons.MoreVerticalRegular />}
+                        className={styles.actionButton}
+                        size="small"
+                        appearance="subtle"
+                    />
+                </MenuTrigger>
+
+                <MenuPopover>
+                    <MenuList>
+                        <MenuItem
+                            icon={<FluentIcons.FlowRegular />}
+                            onClick={handleManageRelationships}
+                        >
+                            {locConstants.schemaDesigner.manageRelationships}
+                        </MenuItem>
+                        <MenuItem
+                            icon={<FluentIcons.DeleteRegular />}
+                            onClick={handleDeleteTable}
+                        >
+                            {locConstants.schemaDesigner.delete}
+                        </MenuItem>
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
+        </>
+    );
+};
+
+// TableHeader component for the table title and subtitle
+const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
+    const styles = useStyles();
+
+    return (
+        <div className={styles.tableHeader}>
+            <div className={styles.tableHeaderRow}>
+                <FluentIcons.TableRegular className={styles.tableIcon} />
+                <Text className={styles.tableTitle}>
+                    {`${table.schema}.${table.name}`}
+                </Text>
+                <TableHeaderActions table={table} />
+            </div>
+            <div className={styles.tableSubtitle}>
+                {locConstants.schemaDesigner.tableNodeSubText(
+                    table.columns.length,
+                )}
+            </div>
+        </div>
+    );
+};
+
+// TableColumn component for rendering a single column
+const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
+    const styles = useStyles();
+
+    return (
+        <div className={styles.columnRow} key={column.name}>
+            <Handle
+                type="source"
+                position={Position.Left}
+                id={`left-${column.name}`}
+                isConnectable={true}
+                className={styles.handleLeft}
+            />
+
+            {column.isPrimaryKey && (
+                <FluentIcons.KeyRegular className={styles.keyIcon} />
+            )}
+
+            <Text
+                className={styles.columnName}
+                style={{ paddingLeft: column.isPrimaryKey ? "0px" : "30px" }}
+            >
+                {column.name}
+            </Text>
+
+            <Text className={styles.columnType}>
+                {column.dataType.toUpperCase()}
+            </Text>
+
+            <Handle
+                type="source"
+                position={Position.Right}
+                id={`right-${column.name}`}
+                isConnectable={true}
+                className={styles.handleRight}
+            />
+        </div>
+    );
+};
+
+// TableColumns component for rendering all columns
+const TableColumns = ({ columns }: { columns: SchemaDesigner.Column[] }) => {
+    return (
+        <div>
+            {columns.map((column) => (
+                <TableColumn key={column.name} column={column} />
+            ))}
+        </div>
+    );
+};
+
+// Main SchemaDesignerTableNode component
 export const SchemaDesignerTableNode = ({
     data,
 }: {
     data: SchemaDesigner.Table;
 }) => {
-    const context = useContext(SchemaDesignerContext);
-    const reactFlow = useReactFlow();
+    const styles = useStyles();
 
-    const handleEditTable = () => {
-        const schema = context.extractSchema();
-        const table = schema.tables.find((t) => t.id === data.id);
-
-        if (!table) {
-            return;
-        }
-
-        const tableCopy = {
-            ...data,
-        };
-
-        eventBus.emit("editTable", tableCopy, schema);
-    };
-
-    const classes = styles();
     return (
-        <div
-            style={{
-                width: `${NODEWIDTH}px`,
-                backgroundColor: "var(--vscode-editor-background)",
-                borderRadius: "5px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "5px",
-            }}
-        >
-            <div
-                style={{
-                    width: "100%",
-                    display: "flex",
-                    height: "50px",
-                    flexDirection: "column",
-                }}
-            >
-                <div
-                    style={{
-                        width: "100%",
-                        display: "flex",
-                        height: "30px",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: "5px",
-                        paddingTop: "10px",
-                    }}
-                >
-                    <FluentIcons.TableRegular
-                        style={{
-                            padding: "0 5px",
-                            width: "20px",
-                            height: "20px",
-                        }}
-                    />
-                    <Text
-                        style={{
-                            flexGrow: 1,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            fontWeight: "600",
-                        }}
-                    >{`${data.schema}.${data.name}`}</Text>
-                    <Button
-                        appearance="subtle"
-                        icon={<FluentIcons.EditRegular />}
-                        disabled={false}
-                        onClick={() => {
-                            handleEditTable();
-                        }}
-                        style={{
-                            marginLeft: "auto",
-                        }}
-                        size="small"
-                    />
-                    <Menu>
-                        <MenuTrigger disableButtonEnhancement>
-                            <MenuButton
-                                icon={<FluentIcons.MoreVerticalRegular />}
-                                style={{
-                                    marginLeft: "auto",
-                                }}
-                                size="small"
-                                appearance="subtle"
-                            />
-                        </MenuTrigger>
-
-                        <MenuPopover>
-                            <MenuList>
-                                <MenuItem
-                                    icon={<FluentIcons.FlowRegular />}
-                                    onClick={() => {
-                                        const schema = context.extractSchema();
-                                        const table = schema.tables.find(
-                                            (t) => t.id === data.id,
-                                        );
-
-                                        if (!table) {
-                                            return;
-                                        }
-
-                                        const tableCopy = {
-                                            ...data,
-                                        };
-
-                                        eventBus.emit(
-                                            "editTable",
-                                            tableCopy,
-                                            schema,
-                                            true,
-                                        );
-                                    }}
-                                >
-                                    {
-                                        locConstants.schemaDesigner
-                                            .manageRelationships
-                                    }
-                                </MenuItem>
-                                <MenuItem
-                                    icon={<FluentIcons.DeleteRegular />}
-                                    onClick={() => {
-                                        const node = reactFlow.getNode(data.id);
-                                        if (!node) {
-                                            return;
-                                        }
-                                        void reactFlow.deleteElements({
-                                            nodes: [node],
-                                        });
-                                    }}
-                                >
-                                    {locConstants.schemaDesigner.delete}
-                                </MenuItem>
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
-                </div>
-                <div
-                    style={{
-                        fontSize: "11px",
-                        paddingLeft: "35px",
-                    }}
-                >
-                    {locConstants.schemaDesigner.tableNodeSubText(
-                        data.columns.length,
-                    )}
-                </div>
-            </div>
+        <div className={styles.tableNodeContainer}>
+            <TableHeader table={data} />
             <Divider />
-            <div className={classes.columnsContainer}>
-                {data.columns.map((column) => {
-                    return (
-                        <div key={column.name} className={"column"}>
-                            <Handle
-                                type="source"
-                                position={Position.Left}
-                                id={`left-${column.name}`}
-                                isConnectable={true}
-                                style={{
-                                    marginLeft: "2px",
-                                }}
-                            />
-                            {column.isPrimaryKey && (
-                                <FluentIcons.KeyRegular
-                                    style={{
-                                        padding: "0 5px",
-                                        width: "16px",
-                                        height: "16px",
-                                    }}
-                                />
-                            )}
-                            <Text
-                                style={{
-                                    flexGrow: 1,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    paddingLeft: column.isPrimaryKey
-                                        ? "0px"
-                                        : "30px",
-                                }}
-                            >
-                                {column.name}
-                            </Text>
-                            <Text>{column.dataType.toUpperCase()}</Text>
-                            <Handle
-                                type="source"
-                                position={Position.Right}
-                                id={`right-${column.name}`}
-                                isConnectable={true}
-                                style={{
-                                    marginRight: "2px",
-                                }}
-                            />
-                        </div>
-                    );
-                })}
-            </div>
+            <TableColumns columns={data.columns} />
         </div>
     );
 };
