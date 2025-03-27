@@ -202,7 +202,9 @@ export class ObjectExplorerService {
             } else {
                 // create session failure
                 if (self._currentNode?.connectionInfo?.password) {
-                    self._currentNode.connectionInfo.password = "";
+                    const profile = this._currentNode.connectionInfo;
+                    profile.password = "";
+                    this._currentNode.updateConnectionInfo(profile);
                 }
                 let error = LocalizedConstants.connectErrorLabel;
                 let errorNumber: number;
@@ -290,7 +292,7 @@ export class ObjectExplorerService {
         node: TreeNodeInfo,
         profile: IConnectionInfo,
     ): Promise<void> {
-        node.connectionInfo = profile;
+        node.updateConnectionInfo(profile);
         this.updateNode(node);
         let fileUri = this.getNodeIdentifier(node);
         if (
@@ -851,12 +853,14 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            if ((connectionProfile as IConnectionProfile).profileName) {
-                this._sessionIdToNodeLabelMap.set(
-                    sessionIdResponse.sessionId,
-                    (connectionProfile as IConnectionProfile).profileName,
-                );
-            }
+            const nodeLabel =
+                (connectionProfile as IConnectionProfile).profileName ??
+                ConnInfo.getConnectionDisplayName(connectionProfile);
+
+            this._sessionIdToNodeLabelMap.set(
+                sessionIdResponse.sessionId,
+                nodeLabel,
+            );
 
             const response: CreateSessionResponse =
                 await this._connectionManager.client.sendRequest(
@@ -955,7 +959,9 @@ export class ObjectExplorerService {
             node.context = ObjectExplorerService.disconnectedNodeContextValue;
             node.sessionId = undefined;
             if (!(node.connectionInfo as IConnectionProfile).savePassword) {
-                node.connectionInfo.password = "";
+                const profile = node.connectionInfo;
+                profile.password = "";
+                node.updateConnectionInfo(profile);
             }
             const label =
                 typeof node.label === "string" ? node.label : node.label.label;

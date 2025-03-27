@@ -216,7 +216,7 @@ export class ListDatabasesResult {
 
 // ------------------------------- </ List Databases Request > --------------------------------------
 
-// ------------------------------- < Connection String Request > ---------------------------------------
+// ------------------------------- < Get Connection String Request > ---------------------------------------
 /**
  * Get Connection String request callback declaration
  */
@@ -257,7 +257,19 @@ export class GetConnectionStringParams {
     public includeApplicationName?: boolean;
 }
 
-// ------------------------------- </ Connection String Request > --------------------------------------
+// ------------------------------- </ Get Connection String Request > --------------------------------------
+
+// ------------------------------- < Build Connection Details Request > ---------------------------------------
+/**
+ * Get Connection String request callback declaration
+ */
+export namespace BuildConnectionDetailsRequest {
+    export const type = new RequestType<string, ConnectionDetails, void, void>(
+        "connection/buildconnectioninfo",
+    );
+}
+
+// ------------------------------- </ Build Connection Details > --------------------------------------
 
 // ------------------------------- < Encryption IV/KEY updation Event > ------------------------------------
 /**

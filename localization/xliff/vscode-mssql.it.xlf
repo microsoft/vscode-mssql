@@ -306,7 +306,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c52ff5ea803d577544a8224d1404ecefa836b803f029d87cd7450af6c18a70ef">
         <source xml:lang="en">Clear Selection</source>
-        <target state="new">Clear Selection</target>
+        <target state="translated">Cancella selezione</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
