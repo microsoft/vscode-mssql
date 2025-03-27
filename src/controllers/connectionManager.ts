@@ -1528,6 +1528,11 @@ export default class ConnectionManager {
         return await connectionCompletePromise;
     }
 
+    /**
+     * Registers a listener that is triggered when the active connections change.
+     *
+     * @param listener - A callback function to be invoked when the "activeConnectionsChanged" event occurs.
+     */
     public onActiveConnectionsChanged(listener: () => void): void {
         this._event.on("activeConnectionsChanged", listener);
     }
