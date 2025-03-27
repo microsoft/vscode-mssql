@@ -356,9 +356,9 @@
         <source xml:lang="en">Connect</source>
         <target state="translated">連線</target>
       </trans-unit>
-      <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
-        <source xml:lang="en">Connect to SQL Server</source>
-        <target state="translated">連接到 SQL Server</target>
+      <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
+        <source xml:lang="en">Connect to Database</source>
+        <target state="new">Connect to Database</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
