@@ -268,7 +268,8 @@
         "id": "mssql.agent",
         "name": "mssql",
         "description": "Azure SQL Copilot agent",
-        "commands": []
+        "commands": [],
+        "isSticky":true
       }
     ],
     "customEditors": [
