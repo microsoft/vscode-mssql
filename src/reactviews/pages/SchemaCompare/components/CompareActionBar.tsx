@@ -91,15 +91,12 @@ const CompareActionBar = (props: Props) => {
     const isEndpointEmpty = (
         endpoint: mssql.SchemaCompareEndpointInfo,
     ): boolean => {
-        if (
+        return !(
             endpoint &&
             (endpoint.serverDisplayName ||
                 endpoint.packageFilePath ||
                 endpoint.projectFilePath)
-        ) {
-            return false;
-        }
-        return true;
+        );
     };
 
     const disableApplyButton = (): boolean => {
