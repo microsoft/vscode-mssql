@@ -10,12 +10,12 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
 import MainController from "../controllers/mainController";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
+
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
     SchemaDesigner.SchemaDesignerReducers
 > {
-    private sessionId: string = "";
+    private _sessionId: string = "";
 
     constructor(
         context: vscode.ExtensionContext,
@@ -87,7 +87,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             },
         );
         this.schemaDesignerService.onSchemaReady((model) => {
-            if (model.sessionId === this.sessionId) {
+            if (model.sessionId === this._sessionId) {
                 resolveModelReadyProgress();
                 this.postNotification("isModelReady", {
                     isModelReady: true,
@@ -142,14 +142,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     .toLocaleLowerCase()
                     .localeCompare(b.toLocaleLowerCase());
             });
-            this.sessionId = sessionResponse.sessionId;
+            this._sessionId = sessionResponse.sessionId;
             return sessionResponse;
         });
 
         this.registerRequestHandler("getScript", async (payload) => {
             const script = await this.schemaDesignerService.generateScript({
                 updatedSchema: payload.updatedSchema,
-                sessionId: this.sessionId,
+                sessionId: this._sessionId,
             });
             return script;
         });
@@ -157,7 +157,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.registerRequestHandler("getReport", async (payload) => {
             const report = await this.schemaDesignerService.getReport({
                 updatedSchema: payload.updatedSchema,
-                sessionId: this.sessionId,
+                sessionId: this._sessionId,
             });
             return report;
         });
@@ -180,24 +180,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.registerRequestHandler(
             "openInEditorWithConnection",
             async (payload) => {
-                const connectionCredentials = Object.assign(
-                    {},
-                    this.treeNode.connectionInfo,
-                );
-
-                const databaseName = ObjectExplorerUtils.getDatabaseName(
-                    this.treeNode,
-                );
-                if (
-                    databaseName !== connectionCredentials.database &&
-                    databaseName !== LocConstants.defaultDatabaseLabel
-                ) {
-                    connectionCredentials.database = databaseName;
-                } else if (databaseName === LocConstants.defaultDatabaseLabel) {
-                    connectionCredentials.database = "";
-                }
-
-                this.treeNode.updateConnectionInfo(connectionCredentials);
                 void this.mainController.onNewQuery(
                     this.treeNode,
                     payload.text,
@@ -209,7 +191,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     override dispose(): void {
         super.dispose();
         this.schemaDesignerService.disposeSession({
-            sessionId: this.sessionId,
+            sessionId: this._sessionId,
         });
     }
 }
