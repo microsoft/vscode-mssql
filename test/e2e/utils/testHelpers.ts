@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect, Page } from "@playwright/test";
+import { expect, FrameLocator, Page } from "@playwright/test";
 
 export async function addDatabaseConnection(
     vsCodePage: Page,
@@ -15,9 +15,6 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    // wait for 5 seconds for the extension to load
-    await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-
     const addConnectionButton = await vsCodePage.locator(
         'div[aria-label="Add Connection"]',
     );
@@ -118,4 +115,13 @@ export async function waitForCommandPaletteToBeVisible(
 ): Promise<void> {
     const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
     await expect(commandPaletteInput).toBeVisible();
+}
+
+export async function getWebviewByTitle(
+    vsCodePage: Page,
+    title: string,
+): Promise<FrameLocator> {
+    return vsCodePage
+        .frameLocator(".webview")
+        .frameLocator(`[title='${title}']`);
 }

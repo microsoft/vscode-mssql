@@ -55,14 +55,15 @@
     "watch": "gulp watch",
     "lint": "eslint --quiet --cache",
     "localization": "gulp ext:extract-localization-strings",
-    "smoketest": "gulp ext:smoke",
+    "smoketest": "yarn instrument && yarn e2eTest",
     "test": "node ./out/test/unit/runTest.js",
     "package": "vsce package",
     "prepare": "husky",
     "lint-staged": "lint-staged --quiet",
     "precommit": "run-p lint-staged localization",
     "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
-    "testWithCoverage": "yarn test && yarn gulp cover"
+    "instrument": "nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**",
+    "e2eTest": "npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
   },
   "lint-staged": {
     "*.ts": "eslint --quiet --cache",
@@ -110,6 +111,7 @@
     "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "@vscode/l10n": "^0.0.18",
     "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-cli": "^0.0.10",
@@ -171,8 +173,11 @@
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
+    "vite": "^6.2.0",
+    "vite-plugin-istanbul": "^7.0.0",
     "vscode-nls-dev": "2.0.1",
     "xliff": "^6.2.1",
+    "xml2js": "^0.6.2",
     "yargs": "^17.7.2"
   },
   "dependencies": {
