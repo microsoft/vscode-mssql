@@ -36,6 +36,9 @@
     <trans-unit id="++CODE++63d01a41e50ddec3d6edfabbbf3f1c34d09f581236beab50bf510ea11e9ef4c5">
       <source xml:lang="en">Actual Number of Rows For All Executions</source>
     </trans-unit>
+    <trans-unit id="++CODE++9fd728c66c9a256b121472dabf32a34317aed01d8427d70ec830289cf23a7cc8">
+      <source xml:lang="en">Add</source>
+    </trans-unit>
     <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
       <source xml:lang="en">Add Column</source>
     </trans-unit>
