@@ -118,8 +118,7 @@ const SchemaOptionsDrawer = (props: Props) => {
             open={props.show}
             onOpenChange={(_, { open: show }) => props.showDrawer(show)}
             position="end"
-            size="medium"
-        >
+            size="medium">
             <DrawerHeader>
                 <DrawerHeaderTitle
                     action={
@@ -129,16 +128,14 @@ const SchemaOptionsDrawer = (props: Props) => {
                             icon={<Dismiss24Regular />}
                             onClick={() => props.showDrawer(false)}
                         />
-                    }
-                >
+                    }>
                     {loc.schemaCompare.schemaCompareOptions}
                 </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody>
                 <TabList
                     selectedValue={selectedValue}
-                    onTabSelect={onTabSelect}
-                >
+                    onTabSelect={onTabSelect}>
                     <Tab id="GeneralOptions" value="generalOptions">
                         {loc.schemaCompare.generalOptions}
                     </Tab>
@@ -150,15 +147,13 @@ const SchemaOptionsDrawer = (props: Props) => {
                     <Accordion
                         collapsible
                         multiple
-                        defaultOpenItems={["0", "1"]}
-                    >
+                        defaultOpenItems={["0", "1"]}>
                         <AccordionItem value="0">
                             <AccordionHeader>
                                 {loc.schemaCompare.settings}
                             </AccordionHeader>
                             <AccordionPanel
-                                className={classes.generalOptionsContainer}
-                            >
+                                className={classes.generalOptionsContainer}>
                                 <List>
                                     {optionsToValueNameLookup &&
                                         generalOptionEntries.map(
@@ -169,8 +164,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                                         value={key}
                                                         aria-label={
                                                             value.displayName
-                                                        }
-                                                    >
+                                                        }>
                                                         <Checkbox
                                                             checked={
                                                                 value.value
@@ -189,8 +183,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                                                 setDescription(
                                                                     value.description,
                                                                 )
-                                                            }
-                                                        >
+                                                            }>
                                                             {value.displayName}
                                                         </Label>
                                                     </ListItem>
@@ -218,8 +211,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                     <ListItem
                                         key={key}
                                         value={key}
-                                        aria-label={value}
-                                    >
+                                        aria-label={value}>
                                         <Checkbox
                                             checked={handleSetObjectTypesCheckedState(
                                                 key,
@@ -242,8 +234,7 @@ const SchemaOptionsDrawer = (props: Props) => {
             <DrawerFooter>
                 <Button
                     appearance="secondary"
-                    onClick={() => context.resetOptions()}
-                >
+                    onClick={() => context.resetOptions()}>
                     {loc.schemaCompare.reset}
                 </Button>
                 <Button
@@ -251,14 +242,12 @@ const SchemaOptionsDrawer = (props: Props) => {
                     onClick={() => {
                         context.confirmSchemaOptions(optionsChanged);
                         props.showDrawer(false);
-                    }}
-                >
+                    }}>
                     {loc.schemaCompare.ok}
                 </Button>
                 <Button
                     appearance="secondary"
-                    onClick={() => props.showDrawer(false)}
-                >
+                    onClick={() => props.showDrawer(false)}>
                     {loc.schemaCompare.cancel}
                 </Button>
             </DrawerFooter>

@@ -48,21 +48,18 @@ const SelectSchemaInput = (props: Props) => {
             className={mergeClasses(
                 classes.layoutVertically,
                 classes.inputWidth,
-            )}
-        >
+            )}>
             <Label
                 htmlFor={props.id}
                 size={props.size}
-                disabled={props.disabled}
-            >
+                disabled={props.disabled}>
                 {props.label}
             </Label>
             <div
                 className={mergeClasses(
                     classes.layoutHorizontally,
                     props.className ?? "",
-                )}
-            >
+                )}>
                 <Input
                     id={props.id}
                     className={classes.inputWidth}
@@ -72,8 +69,7 @@ const SelectSchemaInput = (props: Props) => {
                 <Button
                     size="small"
                     className={classes.buttonLeftSmallMargin}
-                    onClick={props.selectFile}
-                >
+                    onClick={props.selectFile}>
                     ...
                 </Button>
             </div>
