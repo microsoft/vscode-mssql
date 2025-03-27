@@ -1587,6 +1587,9 @@
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerChatWithDatabase">
+      <source xml:lang="en">Chat with this database</source>
+    </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
     </trans-unit>

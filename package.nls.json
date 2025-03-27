@@ -34,6 +34,7 @@
 "mssql.showGettingStarted":"Getting Started Guide",
 "mssql.newQuery":"New Query",
 "mssql.objectExplorerNewQuery":"New Query",
+"mssql.objectExplorerChatWithDatabase": "Chat with this database",
 "mssql.schemaCompare": "Schema Compare (Preview)",
 "mssql.toggleSqlCmd":"Toggle SQLCMD Mode",
 "mssql.copyObjectName":"Copy Object Name",

@@ -353,6 +353,85 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
+            this._event.on(
+                Constants.cmdChatWithDatabase,
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    const connectionCredentials = Object.assign(
+                        {},
+                        treeNodeInfo.connectionInfo,
+                    );
+                    const databaseName =
+                        ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    if (
+                        databaseName !== connectionCredentials.database &&
+                        databaseName !== LocalizedConstants.defaultDatabaseLabel
+                    ) {
+                        connectionCredentials.database = databaseName;
+                    } else if (
+                        databaseName === LocalizedConstants.defaultDatabaseLabel
+                    ) {
+                        connectionCredentials.database = "";
+                    }
+
+                    // Check if the active document already has this database as a connection.
+                    var alreadyActive = false;
+                    let activeEditor = vscode.window.activeTextEditor;
+                    if (activeEditor) {
+                        const uri = activeEditor.document.uri.toString();
+                        const connection =
+                            this._connectionMgr.getConnectionInfo(uri);
+                        if (connection) {
+                            if (
+                                connection.credentials.user ===
+                                    connectionCredentials.user &&
+                                connection.credentials.database ===
+                                    connectionCredentials.database
+                            ) {
+                                alreadyActive = true;
+                            }
+                        }
+                    }
+
+                    if (!alreadyActive) {
+                        treeNodeInfo.connectionInfo = connectionCredentials;
+                        await this.onNewQuery(treeNodeInfo);
+
+                        // Check if the new editor was created
+                        activeEditor = vscode.window.activeTextEditor;
+                        if (activeEditor) {
+                            const documentText =
+                                activeEditor.document.getText();
+                            if (documentText.length === 0) {
+                                // The editor is empty; safe to insert text
+                                const server = connectionCredentials.server;
+                                await activeEditor.edit((editBuilder) => {
+                                    editBuilder.insert(
+                                        new vscode.Position(0, 0),
+                                        `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server})\n`,
+                                    );
+                                });
+                            } else {
+                                // The editor already contains text
+                                console.warn(
+                                    "Chat with database: unable to open editor",
+                                );
+                            }
+                        } else {
+                            // The editor was somehow not created
+                            this._vscodeWrapper.showErrorMessage("Chat with database: unable to open editor");
+                        }
+                    }
+
+                    if (activeEditor) {
+                        // Open chat window
+                        vscode.commands.executeCommand(
+                            "workbench.action.chat.open",
+                            `@${Constants.mssqlChatParticipantName} Hello!`,
+                        );
+                    }
+                });
+
             this.initializeQueryHistory();
 
             this.sqlTasksService = new SqlTasksService(
