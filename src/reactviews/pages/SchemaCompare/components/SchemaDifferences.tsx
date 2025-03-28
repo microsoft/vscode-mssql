@@ -144,7 +144,8 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
                     columns={columns}
                     getRowId={(item: DiffItem) => item.id}
                     focusMode="composite"
-                    style={{ minWidth: "550px" }}>
+                    style={{ minWidth: "550px" }}
+                >
                     <DataGridHeader>
                         <DataGridRow>
                             {({ renderHeaderCell }) => (
@@ -158,7 +159,8 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
                         {({ item, rowId }) => (
                             <DataGridRow<DiffItem>
                                 key={rowId}
-                                onClick={() => onDiffSelected(item.id)}>
+                                onClick={() => onDiffSelected(item.id)}
+                            >
                                 {({ renderCell }) => (
                                     <DataGridCell>
                                         {renderCell(item)}
