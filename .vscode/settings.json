@@ -29,6 +29,7 @@
         "typescript"
     ],
     "svg.preview.background": "dark-transparent",
+    "prettier.printWidth": 100,
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
