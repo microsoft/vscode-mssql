@@ -33,7 +33,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
-import { columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { AdvancedColumnOption, columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
@@ -81,124 +81,82 @@ const ColumnAdvancedOptions = ({
     index: number;
     updateColumn: (index: number, updatedColumn: SchemaDesigner.Column) => void;
 }) => {
+    const [options, setOptions] = useState<AdvancedColumnOption[]>([]);
     const classes = useStyles();
-
+    useEffect(() => {
+        const advancedOptions = columnUtils.getAdvancedOptions(column);
+        setOptions(advancedOptions);
+    }, [column]);
     return (
         <div className={classes.advancedOptionsContainer}>
-            <Field>
-                <Checkbox
-                    size="medium"
-                    checked={column.isNullable}
-                    onChange={(_e, data) => {
-                        updateColumn(index, {
-                            ...column,
-                            isNullable: data.checked as boolean,
-                        });
-                    }}
-                    label="Allow NULL"
-                />
-            </Field>
-            <Field>
-                <Checkbox
-                    size="medium"
-                    checked={column.isUnique}
-                    onChange={(_e, data) => {
-                        updateColumn(index, {
-                            ...column,
-                            isUnique: data.checked as boolean,
-                        });
-                    }}
-                    label="Unique"
-                />
-            </Field>
-            <Field>
-                <Checkbox
-                    size="medium"
-                    checked={column.isIdentity}
-                    onChange={(_e, data) => {
-                        const updatedColumn = {
-                            ...column,
-                            isIdentity: data.checked as boolean,
-                        };
-
-                        if (data.checked) {
-                            updatedColumn.identitySeed = 1;
-                            updatedColumn.identityIncrement = 1;
-                        }
-
-                        updateColumn(index, updatedColumn);
-                    }}
-                    label="Identity"
-                />
-            </Field>
-
-            {columnUtils.isLengthBasedType(column.dataType) && (
-                <Field
-                    label={{
-                        children: (
-                            <InfoLabel size="small" info="Max length of the column">
-                                Max Length
-                            </InfoLabel>
-                        ),
-                    }}>
-                    <Input
-                        size="small"
-                        type="number"
-                        value={column.maxLength.toString()}
-                        onChange={(_e, data) => {
-                            updateColumn(index, {
-                                ...column,
-                                maxLength: parseInt(data.value),
-                            });
-                        }}
-                    />
-                </Field>
-            )}
-
-            {columnUtils.isPrecisionBasedType(column.dataType) && (
-                <>
-                    <Field
-                        label={{
-                            children: (
-                                <InfoLabel size="small" info="Precision of the column">
-                                    Precision
-                                </InfoLabel>
-                            ),
-                        }}>
-                        <Input
-                            size="small"
-                            type="number"
-                            value={column.precision.toString()}
-                            onChange={(_e, data) => {
-                                updateColumn(index, {
-                                    ...column,
-                                    precision: parseInt(data.value),
-                                });
-                            }}
-                        />
-                    </Field>
-                    <Field
-                        label={{
-                            children: (
-                                <InfoLabel size="small" info="Scale of the column">
-                                    Scale
-                                </InfoLabel>
-                            ),
-                        }}>
-                        <Input
-                            size="small"
-                            type="number"
-                            value={column.scale.toString()}
-                            onChange={(_e, data) => {
-                                updateColumn(index, {
-                                    ...column,
-                                    scale: parseInt(data.value),
-                                });
-                            }}
-                        />
-                    </Field>
-                </>
-            )}
+            {options.map((option) => {
+                switch (option.type) {
+                    case "checkbox":
+                        return (
+                            <Field key={option.label}>
+                                <Checkbox
+                                    size="medium"
+                                    checked={column[option.columnProperty] as boolean}
+                                    onChange={(_e, data) => {
+                                        updateColumn(
+                                            index,
+                                            option.columnModifier(column, data.checked as boolean),
+                                        );
+                                    }}
+                                    label={option.label}
+                                />
+                            </Field>
+                        );
+                    case "input":
+                        return (
+                            <Field
+                                key={option.label}
+                                label={{
+                                    children: (
+                                        <InfoLabel size="small" info={option.hint}>
+                                            {option.label}
+                                        </InfoLabel>
+                                    ),
+                                }}>
+                                <Input
+                                    size="small"
+                                    value={(column[option.columnProperty] as number).toString()}
+                                    onChange={(_e, data) => {
+                                        updateColumn(
+                                            index,
+                                            option.columnModifier(column, data.value),
+                                        );
+                                    }}
+                                />
+                            </Field>
+                        );
+                    case "input-number":
+                        return (
+                            <Field
+                                key={option.label}
+                                label={{
+                                    children: (
+                                        <InfoLabel size="small" info={option.hint}>
+                                            {option.label}
+                                        </InfoLabel>
+                                    ),
+                                }}>
+                                <Input
+                                    size="small"
+                                    type="number"
+                                    value={(column[option.columnProperty] as number).toString()}
+                                    onChange={(_e, data) => {
+                                        updateColumn(
+                                            index,
+                                            option.columnModifier(column, parseInt(data.value)),
+                                        );
+                                    }}
+                                />
+                            </Field>
+                        );
+                }
+                return <></>;
+            })}
         </div>
     );
 };
@@ -331,6 +289,7 @@ const ColumnsTable = ({
                             const updatedColumn = {
                                 ...column,
                                 dataType: selected.value,
+                                defaultValue: "",
                             };
                             updateColumn(index, columnUtils.fillColumnDefaults(updatedColumn));
                         }}
@@ -371,7 +330,6 @@ const ColumnsTable = ({
                 const id = "schema-designer-menu-" + column.id;
                 return (
                     <Popover
-                        trapFocus
                         positioning={{
                             position: "below",
                         }}>
@@ -494,6 +452,7 @@ export const SchemaDesignerEditorTablePanel = () => {
             collation: "",
             identitySeed: 1,
             identityIncrement: 1,
+            defaultValue: "",
         });
 
         context.setTable({

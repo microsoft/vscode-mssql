@@ -85,6 +85,7 @@ export const tableUtils = {
                     identitySeed: 1,
                     identityIncrement: 1,
                     collation: "",
+                    defaultValue: "",
                 },
             ],
             foreignKeys: [],
@@ -93,13 +94,25 @@ export const tableUtils = {
     },
 };
 
+export interface AdvancedColumnOption {
+    label: string;
+    type: "input" | "input-number" | "checkbox";
+    value: string | number | boolean;
+    hint?: string;
+    columnProperty: keyof SchemaDesigner.Column;
+    columnModifier: (
+        column: SchemaDesigner.Column,
+        value: string | number | boolean,
+    ) => SchemaDesigner.Column;
+}
+
 export const columnUtils = {
     isLengthBasedType: (type: string): boolean => {
         return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(type);
     },
 
     isPrecisionBasedType: (type: string): boolean => {
-        return ["decimal", "numeric", "float", "real"].includes(type);
+        return ["decimal", "numeric"].includes(type);
     },
 
     getDefaultLength: (type: string): number => {
@@ -122,10 +135,6 @@ export const columnUtils = {
             case "decimal":
             case "numeric":
                 return 18;
-            case "float":
-                return 53;
-            case "real":
-                return 24;
             default:
                 return 0;
         }
@@ -135,7 +144,7 @@ export const columnUtils = {
         switch (type) {
             case "decimal":
             case "numeric":
-                return 2;
+                return 0;
             default:
                 return 0;
         }
@@ -155,6 +164,84 @@ export const columnUtils = {
         }
 
         return column;
+    },
+
+    getAdvancedOptions: (column: SchemaDesigner.Column): AdvancedColumnOption[] => {
+        const options: AdvancedColumnOption[] = [];
+        // Adding allow null option
+        options.push({
+            label: locConstants.schemaDesigner.allowNull,
+            type: "checkbox",
+            value: false,
+            columnProperty: "isNullable",
+            columnModifier: (column, value) => {
+                column.isNullable = value as boolean;
+                return column;
+            },
+        });
+
+        // Push is identity option
+        options.push({
+            label: locConstants.schemaDesigner.isIdentity,
+            value: "isIdentity",
+            type: "checkbox",
+            columnProperty: "isIdentity",
+            columnModifier: (column, value) => {
+                column.isIdentity = value as boolean;
+                column.identitySeed = value ? 1 : 0;
+                column.identityIncrement = value ? 1 : 0;
+                return column;
+            },
+        });
+
+        if (columnUtils.isLengthBasedType(column.dataType)) {
+            options.push({
+                label: locConstants.schemaDesigner.maxLength,
+                value: "",
+                type: "input-number",
+                columnProperty: "maxLength",
+                columnModifier: (column, value) => {
+                    column.maxLength = value as number;
+                    return column;
+                },
+            });
+        }
+
+        if (columnUtils.isPrecisionBasedType(column.dataType)) {
+            options.push({
+                label: locConstants.schemaDesigner.precision,
+                value: "",
+                type: "input-number",
+                columnProperty: "precision",
+                columnModifier: (column, value) => {
+                    column.precision = value as number;
+                    return column;
+                },
+            });
+            options.push({
+                label: locConstants.schemaDesigner.scale,
+                value: "",
+                type: "input-number",
+                columnProperty: "scale",
+                columnModifier: (column, value) => {
+                    column.scale = value as number;
+                    return column;
+                },
+            });
+        }
+
+        options.push({
+            label: locConstants.schemaDesigner.defaultValue,
+            value: "",
+            type: "input",
+            columnProperty: "defaultValue",
+            columnModifier: (column, value) => {
+                column.defaultValue = value as string;
+                return column;
+            },
+        });
+
+        return options;
     },
 };
 

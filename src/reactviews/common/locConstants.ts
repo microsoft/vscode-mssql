@@ -450,6 +450,12 @@ export class LocConstants {
                 }),
             manageRelationships: l10n.t("Manage relationships"),
             noChangesDetected: l10n.t("No changes detected"),
+            allowNull: l10n.t("Allow Null"),
+            maxLength: l10n.t("Max Length"),
+            isIdentity: l10n.t("Is Identity"),
+            scale: l10n.t("Scale"),
+            precision: l10n.t("Precision"),
+            defaultValue: l10n.t("Default Value"),
         };
     }
 }

@@ -91,6 +91,10 @@ export namespace SchemaDesigner {
          * Collation of the column
          */
         collation: string;
+        /**
+         * Default value of the column
+         */
+        defaultValue: string;
     }
 
     export type ForeignKey = {
