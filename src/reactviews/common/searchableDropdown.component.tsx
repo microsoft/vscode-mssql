@@ -81,10 +81,7 @@ export interface SearchableDropdownProps {
     clearable?: boolean;
 }
 
-const getOptionDisplayText = (
-    option: SearchableDropdownOptions,
-    placeholder?: string,
-): string => {
+const getOptionDisplayText = (option: SearchableDropdownOptions, placeholder?: string): string => {
     const optionText = option.text || option.value;
     if (optionText === "" && placeholder) {
         return placeholder;
@@ -144,9 +141,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
 
     const updateOption = (option: SearchableDropdownOptions) => {
-        const index = props.options.findIndex(
-            (opt) => opt.value === option.value,
-        );
+        const index = props.options.findIndex((opt) => opt.value === option.value);
         setSelectedOption(option);
         setSelectedOptionIndex(index);
         props.onSelect(option, index);
@@ -215,9 +210,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         // Focus to the selected item if the search box was focused
                         if (menuItemRefs.current[selectedOption.value]) {
                             setTimeout(() => {
-                                menuItemRefs.current[
-                                    selectedOption.value
-                                ]?.focus();
+                                menuItemRefs.current[selectedOption.value]?.focus();
                             }, 0);
                         }
                         setIsSearchFocused(false);
@@ -287,8 +280,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 setIsMenuOpen(data.open);
                 if (selectedOptionIndex !== -1 && !listScrolled) {
                     requestAnimationFrame(() => {
-                        const selectedItemRef =
-                            menuItemRefs.current[selectedOption.value];
+                        const selectedItemRef = menuItemRefs.current[selectedOption.value];
                         if (selectedItemRef && menuContainerRef.current) {
                             selectedItemRef.scrollIntoView({
                                 block: "nearest",
@@ -332,15 +324,9 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                         }}
-                        title={getOptionDisplayText(
-                            selectedOption,
-                            props.placeholder,
-                        )}
+                        title={getOptionDisplayText(selectedOption, props.placeholder)}
                     >
-                        {getOptionDisplayText(
-                            selectedOption,
-                            props.placeholder,
-                        )}
+                        {getOptionDisplayText(selectedOption, props.placeholder)}
                     </Text>
                 </Button>
             </MenuTrigger>

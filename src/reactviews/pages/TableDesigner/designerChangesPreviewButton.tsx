@@ -11,11 +11,7 @@ import {
     Spinner,
     makeStyles,
 } from "@fluentui/react-components";
-import {
-    CopyRegular,
-    DatabaseArrowDownRegular,
-    ErrorCircleRegular,
-} from "@fluentui/react-icons";
+import { CopyRegular, DatabaseArrowDownRegular, ErrorCircleRegular } from "@fluentui/react-icons";
 import {
     Dialog,
     DialogActions,
@@ -96,10 +92,7 @@ export const DesignerChangesPreviewButton = () => {
     const getDialogCloseButton = () => {
         return (
             <DialogTrigger disableButtonEnhancement>
-                <Button
-                    appearance="secondary"
-                    onClick={() => setIsConfirmationChecked(false)}
-                >
+                <Button appearance="secondary" onClick={() => setIsConfirmationChecked(false)}>
                     {locConstants.common.close}
                 </Button>
             </DialogTrigger>
@@ -130,9 +123,7 @@ export const DesignerChangesPreviewButton = () => {
                     </MessageBarBody>
                     <MessageBarActions>
                         <Button
-                            onClick={() =>
-                                designerContext.copyPublishErrorToClipboard()
-                            }
+                            onClick={() => designerContext.copyPublishErrorToClipboard()}
                             icon={<CopyRegular />}
                         >
                             {locConstants.tableDesigner.copy}
@@ -168,16 +159,10 @@ export const DesignerChangesPreviewButton = () => {
     const publishingSuccessDialogContents = () => (
         <>
             <DialogContent className={classes.dialogContent}>
-                <div>
-                    {locConstants.tableDesigner.changesPublishedSuccessfully}
-                </div>
+                <div>{locConstants.tableDesigner.changesPublishedSuccessfully}</div>
             </DialogContent>
             <DialogActions>
-                <Button
-                    size="medium"
-                    appearance="primary"
-                    onClick={designerContext.closeDesigner}
-                >
+                <Button size="medium" appearance="primary" onClick={designerContext.closeDesigner}>
                     {locConstants.tableDesigner.closeDesigner}
                 </Button>
                 <DialogTrigger action="close">
@@ -212,8 +197,7 @@ export const DesignerChangesPreviewButton = () => {
             <DialogContent className={classes.dialogContent}>
                 <ErrorCircleRegular className={classes.errorIcon} />
                 <div>
-                    {designerContext.state.generatePreviewReportResult
-                        ?.schemaValidationError ??
+                    {designerContext.state.generatePreviewReportResult?.schemaValidationError ??
                         locConstants.tableDesigner.errorLoadingPreview}
                 </div>
             </DialogContent>
@@ -240,15 +224,10 @@ export const DesignerChangesPreviewButton = () => {
             <>
                 <DialogContent>
                     <div className={classes.markdownContainer}>
-                        <ReactMarkdown>
-                            {state?.generatePreviewReportResult?.report}
-                        </ReactMarkdown>
+                        <ReactMarkdown>{state?.generatePreviewReportResult?.report}</ReactMarkdown>
                     </div>
                     <Checkbox
-                        label={
-                            locConstants.tableDesigner
-                                .designerPreviewConfirmation
-                        }
+                        label={locConstants.tableDesigner.designerPreviewConfirmation}
                         required
                         checked={isConfirmationChecked}
                         onChange={(_event, data) => {
@@ -263,18 +242,15 @@ export const DesignerChangesPreviewButton = () => {
                          */
                         onFocus={(event) => {
                             if (event.target.parentElement) {
-                                event.target.parentElement.style.outlineStyle =
-                                    "solid";
+                                event.target.parentElement.style.outlineStyle = "solid";
                                 event.target.parentElement.style.outlineColor =
                                     "var(--vscode-focusBorder)";
                             }
                         }}
                         onBlur={(event) => {
                             if (event.target.parentElement) {
-                                event.target.parentElement.style.outline =
-                                    "none";
-                                event.target.parentElement.style.outlineColor =
-                                    "";
+                                event.target.parentElement.style.outline = "none";
+                                event.target.parentElement.style.outlineColor = "";
                             }
                         }}
                     />
@@ -286,10 +262,7 @@ export const DesignerChangesPreviewButton = () => {
                             icon={generateScriptIcon()}
                             iconPosition="after"
                             className={classes.openScript}
-                            disabled={
-                                state.apiState?.previewState !==
-                                LoadState.Loaded
-                            }
+                            disabled={state.apiState?.previewState !== LoadState.Loaded}
                             appearance="secondary"
                             onClick={designerContext.generateScript}
                         >
@@ -301,8 +274,7 @@ export const DesignerChangesPreviewButton = () => {
                         disabled={!isConfirmationChecked}
                         title={
                             !isConfirmationChecked
-                                ? locConstants.tableDesigner
-                                      .youMustReviewAndAccept
+                                ? locConstants.tableDesigner.youMustReviewAndAccept
                                 : locConstants.tableDesigner.updateDatabase
                         }
                         appearance="primary"
@@ -355,9 +327,7 @@ export const DesignerChangesPreviewButton = () => {
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>
-                        {locConstants.tableDesigner.previewDatabaseUpdates}
-                    </DialogTitle>
+                    <DialogTitle>{locConstants.tableDesigner.previewDatabaseUpdates}</DialogTitle>
                     {getDialogContent()}
                 </DialogBody>
             </DialogSurface>

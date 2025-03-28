@@ -3,11 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    ArrowClockwise16Filled,
-    Delete16Regular,
-    ServerRegular,
-} from "@fluentui/react-icons";
+import { ArrowClockwise16Filled, Delete16Regular, ServerRegular } from "@fluentui/react-icons";
 import {
     Button,
     Card,
@@ -98,9 +94,7 @@ export const ConnectionsListContainer = () => {
                                     context.deleteSavedConnection(connection);
                                     e.stopPropagation();
                                 },
-                                tooltip:
-                                    locConstants.connectionDialog
-                                        .deleteSavedConnection,
+                                tooltip: locConstants.connectionDialog.deleteSavedConnection,
                             }}
                         />
                     );
@@ -129,9 +123,7 @@ export const ConnectionsListContainer = () => {
                                     context.removeRecentConnection(connection);
                                     e.stopPropagation();
                                 },
-                                tooltip:
-                                    locConstants.connectionDialog
-                                        .removeRecentConnection,
+                                tooltip: locConstants.connectionDialog.removeRecentConnection,
                             }}
                         />
                     );

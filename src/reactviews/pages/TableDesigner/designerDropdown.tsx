@@ -39,9 +39,7 @@ export const DesignerDropdown = ({
         return undefined;
     }
     const width =
-        UiArea === "PropertiesView"
-            ? "100%"
-            : (component.componentProperties.width ?? "350px");
+        UiArea === "PropertiesView" ? "100%" : (component.componentProperties.width ?? "350px");
     //const dropdownId = useId(context.getComponentId(componentPath) ?? "");
 
     useEffect(() => {
@@ -53,20 +51,14 @@ export const DesignerDropdown = ({
             label={{
                 children: showLabel ? (
                     <InfoLabel size="small" info={component.description}>
-                        {showLabel
-                            ? component.componentProperties.title
-                            : undefined}
+                        {showLabel ? component.componentProperties.title : undefined}
                     </InfoLabel>
                 ) : undefined,
             }}
             validationState={
-                showError && context.getErrorMessage(componentPath)
-                    ? "error"
-                    : undefined
+                showError && context.getErrorMessage(componentPath) ? "error" : undefined
             }
-            validationMessage={
-                showError ? context.getErrorMessage(componentPath) : ""
-            }
+            validationMessage={showError ? context.getErrorMessage(componentPath) : ""}
             style={{ width: width }}
             size="small"
             orientation={horizontal ? "horizontal" : "vertical"}

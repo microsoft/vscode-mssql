@@ -19,10 +19,7 @@ import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.compon
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
-import {
-    DefaultSelectionMode,
-    updateComboboxSelection,
-} from "../../common/comboboxHelper";
+import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 
 export const AzureBrowsePage = () => {
@@ -35,41 +32,30 @@ export const AzureBrowsePage = () => {
     }
 
     const [subscriptions, setSubscriptions] = useState<string[]>([]);
-    const [selectedSubscription, setSelectedSubscription] = useState<
-        string | undefined
-    >(undefined);
+    const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
     const [subscriptionValue, setSubscriptionValue] = useState<string>("");
 
     const [resourceGroups, setResourceGroups] = useState<string[]>([]);
-    const [selectedResourceGroup, setSelectedResourceGroup] = useState<
-        string | undefined
-    >(undefined);
+    const [selectedResourceGroup, setSelectedResourceGroup] = useState<string | undefined>(
+        undefined,
+    );
     const [resourceGroupValue, setResourceGroupValue] = useState<string>("");
 
     const [locations, setLocations] = useState<string[]>([]);
-    const [selectedLocation, setSelectedLocation] = useState<
-        string | undefined
-    >(undefined);
+    const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
     const [locationValue, setLocationValue] = useState<string>("");
 
     const [servers, setServers] = useState<string[]>([]);
-    const [selectedServer, setSelectedServer] = useState<string | undefined>(
-        undefined,
-    );
+    const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
     const [serverValue, setServerValue] = useState<string>("");
 
     const [databases, setDatabases] = useState<string[]>([]);
-    const [selectedDatabase, setSelectedDatabase] = useState<
-        string | undefined
-    >(undefined);
+    const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     function setSelectedServerWithFormState(server: string | undefined) {
         setSelectedServer(server);
-        setConnectionProperty(
-            "server",
-            server ? server + ".database.windows.net" : "",
-        );
+        setConnectionProperty("server", server ? server + ".database.windows.net" : "");
     }
 
     // #region Effects
@@ -77,9 +63,7 @@ export const AzureBrowsePage = () => {
     // subscriptions
     useEffect(() => {
         const subs = removeDuplicates(
-            context.state.azureSubscriptions.map(
-                (sub) => `${sub.name} (${sub.id})`,
-            ),
+            context.state.azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`),
         );
         setSubscriptions(subs.sort());
 
@@ -102,9 +86,7 @@ export const AzureBrowsePage = () => {
             );
         }
 
-        const rgs = removeDuplicates(
-            activeServers.map((server) => server.resourceGroup),
-        );
+        const rgs = removeDuplicates(activeServers.map((server) => server.resourceGroup));
         setResourceGroups(rgs.sort());
 
         updateComboboxSelection(
@@ -132,9 +114,7 @@ export const AzureBrowsePage = () => {
             );
         }
 
-        const locs = removeDuplicates(
-            activeServers.map((server) => server.location),
-        );
+        const locs = removeDuplicates(activeServers.map((server) => server.location));
 
         setLocations(locs.sort());
 
@@ -164,14 +144,10 @@ export const AzureBrowsePage = () => {
         }
 
         if (selectedLocation) {
-            activeServers = activeServers.filter(
-                (server) => server.location === selectedLocation,
-            );
+            activeServers = activeServers.filter((server) => server.location === selectedLocation);
         }
 
-        const srvs = removeDuplicates(
-            activeServers.map((server) => server.server),
-        );
+        const srvs = removeDuplicates(activeServers.map((server) => server.server));
         setServers(srvs.sort());
 
         // intentionally cleared
@@ -210,10 +186,7 @@ export const AzureBrowsePage = () => {
 
     // #endregion
 
-    function setConnectionProperty(
-        propertyName: keyof IConnectionDialogProfile,
-        value: string,
-    ) {
+    function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
@@ -233,8 +206,7 @@ export const AzureBrowsePage = () => {
                             }}
                             size="small"
                         />
-                        {context.state.loadingAzureSubscriptionsStatus ===
-                        ApiStatus.Loading ? (
+                        {context.state.loadingAzureSubscriptionsStatus === ApiStatus.Loading ? (
                             <Spinner size="tiny" />
                         ) : undefined}
                     </>
@@ -275,10 +247,9 @@ export const AzureBrowsePage = () => {
                     placeholder: Loc.connectionDialog.azureFilterPlaceholder(
                         Loc.connectionDialog.subscription,
                     ),
-                    invalidOptionErrorMessage:
-                        Loc.connectionDialog.invalidAzureBrowse(
-                            Loc.connectionDialog.subscription,
-                        ),
+                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                        Loc.connectionDialog.subscription,
+                    ),
                 }}
             />
             <AzureFilterCombobox
@@ -293,10 +264,9 @@ export const AzureBrowsePage = () => {
                     placeholder: Loc.connectionDialog.azureFilterPlaceholder(
                         Loc.connectionDialog.resourceGroup,
                     ),
-                    invalidOptionErrorMessage:
-                        Loc.connectionDialog.invalidAzureBrowse(
-                            Loc.connectionDialog.resourceGroup,
-                        ),
+                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                        Loc.connectionDialog.resourceGroup,
+                    ),
                 }}
             />
             <AzureFilterCombobox
@@ -311,18 +281,16 @@ export const AzureBrowsePage = () => {
                     placeholder: Loc.connectionDialog.azureFilterPlaceholder(
                         Loc.connectionDialog.location,
                     ),
-                    invalidOptionErrorMessage:
-                        Loc.connectionDialog.invalidAzureBrowse(
-                            Loc.connectionDialog.location,
-                        ),
+                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                        Loc.connectionDialog.location,
+                    ),
                 }}
             />
             <AzureFilterCombobox
                 label={Loc.connectionDialog.serverLabel}
                 required
                 decoration={
-                    context.state.loadingAzureServersStatus ===
-                    ApiStatus.Loading ? (
+                    context.state.loadingAzureServersStatus === ApiStatus.Loading ? (
                         <Spinner size="tiny" />
                     ) : undefined
                 }
@@ -332,10 +300,9 @@ export const AzureBrowsePage = () => {
                     setValue: setServerValue,
                     selection: selectedServer,
                     setSelection: setSelectedServerWithFormState,
-                    invalidOptionErrorMessage:
-                        Loc.connectionDialog.invalidAzureBrowse(
-                            Loc.connectionDialog.server,
-                        ),
+                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                        Loc.connectionDialog.server,
+                    ),
                 }}
             />
 
@@ -348,11 +315,7 @@ export const AzureBrowsePage = () => {
                         ConnectionDialogContextProps
                     >
                         context={context}
-                        component={
-                            context.state.formComponents[
-                                "trustServerCertificate"
-                            ]!
-                        }
+                        component={context.state.formComponents["trustServerCertificate"]!}
                         idx={0}
                         props={{ orientation: "horizontal" }}
                     />
@@ -369,21 +332,16 @@ export const AzureBrowsePage = () => {
                                 setConnectionProperty("database", db ?? "");
                             },
                             placeholder: `<${Loc.connectionDialog.default}>`,
-                            invalidOptionErrorMessage:
-                                Loc.connectionDialog.invalidAzureBrowse(
-                                    Loc.connectionDialog.database,
-                                ),
+                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                                Loc.connectionDialog.database,
+                            ),
                         }}
                     />
                     {context.state.connectionComponents.mainOptions
                         .filter(
                             // filter out inputs that are manually placed above
                             (opt) =>
-                                ![
-                                    "server",
-                                    "database",
-                                    "trustServerCertificate",
-                                ].includes(opt),
+                                !["server", "database", "trustServerCertificate"].includes(opt),
                         )
                         .map((inputName, idx) => {
                             const component =

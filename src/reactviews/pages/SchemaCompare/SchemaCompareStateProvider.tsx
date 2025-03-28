@@ -17,13 +17,8 @@ interface SchemaCompareStateProviderProps {
     children: React.ReactNode;
 }
 
-const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
-    children,
-}) => {
-    const webViewState = useVscodeWebview<
-        sc.SchemaCompareWebViewState,
-        sc.SchemaCompareReducers
-    >();
+const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({ children }) => {
+    const webViewState = useVscodeWebview<sc.SchemaCompareWebViewState, sc.SchemaCompareReducers>();
     const schemaCompareState = webViewState?.state;
 
     return (
@@ -60,14 +55,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     targetDatabaseName: string,
                     taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
-                    webViewState?.extensionRpc.action(
-                        "publishDatabaseChanges",
-                        {
-                            targetServerName: targetServerName,
-                            targetDatabaseName: targetDatabaseName,
-                            taskExecutionMode: taskExecutionMode,
-                        },
-                    );
+                    webViewState?.extensionRpc.action("publishDatabaseChanges", {
+                        targetServerName: targetServerName,
+                        targetDatabaseName: targetDatabaseName,
+                        taskExecutionMode: taskExecutionMode,
+                    });
                 },
                 publishProjectChanges: function (
                     targetProjectPath: string,

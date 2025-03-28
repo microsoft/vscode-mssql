@@ -29,11 +29,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
 import { locConstants } from "../../common/locConstants";
-import {
-    ACTIONBAR_WIDTH_PX,
-    SCROLLBAR_PX,
-    TABLE_ALIGN_PX,
-} from "./table/table";
+import { ACTIONBAR_WIDTH_PX, SCROLLBAR_PX, TABLE_ALIGN_PX } from "./table/table";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
@@ -105,10 +101,7 @@ const useStyles = makeStyles({
 
 const MIN_GRID_HEIGHT = 273; // Minimum height for a grid
 
-function getAvailableHeight(
-    resultPaneParent: HTMLDivElement,
-    ribbonRef: HTMLDivElement,
-) {
+function getAvailableHeight(resultPaneParent: HTMLDivElement, ribbonRef: HTMLDivElement) {
     return resultPaneParent.clientHeight - ribbonRef.clientHeight;
 }
 
@@ -119,10 +112,7 @@ export const QueryResultPane = () => {
     if (!context) {
         return;
     }
-    const webViewState = useVscodeWebview<
-        qr.QueryResultWebviewState,
-        qr.QueryResultReducers
-    >();
+    const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const state = context.state;
 
     // lifecycle logging right after context consumption
@@ -187,26 +177,13 @@ export const QueryResultPane = () => {
                 return;
             }
 
-            const availableHeight = getAvailableHeight(
-                resultPaneParent,
-                ribbonRef.current,
-            );
-            if (
-                state.tabStates?.resultPaneTab ===
-                qr.QueryResultPaneTabs.Messages
-            ) {
+            const availableHeight = getAvailableHeight(resultPaneParent, ribbonRef.current);
+            if (state.tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Messages) {
                 setMessageGridHeight(availableHeight);
             }
             if (resultPaneParent.clientWidth && availableHeight) {
-                const gridHeight = calculateGridHeight(
-                    gridCount,
-                    availableHeight,
-                );
-                const gridWidth = calculateGridWidth(
-                    resultPaneParent,
-                    gridCount,
-                    availableHeight,
-                );
+                const gridHeight = calculateGridHeight(gridCount, availableHeight);
+                const gridWidth = calculateGridWidth(resultPaneParent, gridCount, availableHeight);
                 if (gridCount > 1) {
                     gridRefs.current.forEach((gridRef) => {
                         gridRef?.resizeGrid(gridWidth, gridHeight);
@@ -224,10 +201,7 @@ export const QueryResultPane = () => {
         };
     }, [state?.resultSetSummaries, resultPaneParentRef.current]);
 
-    const calculateGridHeight = (
-        gridCount: number,
-        availableHeight: number,
-    ) => {
+    const calculateGridHeight = (gridCount: number, availableHeight: number) => {
         if (gridCount > 1) {
             // Calculate the grid height, ensuring it's not smaller than the minimum height
             return Math.max(
@@ -246,15 +220,9 @@ export const QueryResultPane = () => {
     ) => {
         if (gridCount > 1) {
             let scrollbarAdjustment =
-                gridCount * MIN_GRID_HEIGHT >= availableHeight
-                    ? SCROLLBAR_PX
-                    : 0;
+                gridCount * MIN_GRID_HEIGHT >= availableHeight ? SCROLLBAR_PX : 0;
 
-            return (
-                resultPaneParent.clientWidth -
-                ACTIONBAR_WIDTH_PX -
-                scrollbarAdjustment
-            );
+            return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX - scrollbarAdjustment;
         }
         // gridCount is 1
         return resultPaneParent.clientWidth - ACTIONBAR_WIDTH_PX;
@@ -268,11 +236,7 @@ export const QueryResultPane = () => {
 
     //#region Result Grid
     const gridRefs = useRef<ResultGridHandle[]>([]);
-    const renderGrid = (
-        batchId: number,
-        resultId: number,
-        gridCount: number,
-    ) => {
+    const renderGrid = (batchId: number, resultId: number, gridCount: number) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
         const gridId = `resultGrid-${batchId}-${resultId}`;
         return (
@@ -298,10 +262,7 @@ export const QueryResultPane = () => {
                 }}
             >
                 <ResultGrid
-                    loadFunc={(
-                        offset: number,
-                        count: number,
-                    ): Thenable<any[]> => {
+                    loadFunc={(offset: number, count: number): Thenable<any[]> => {
                         console.debug("getRows rpc call", {
                             uri: state?.uri,
                             batchId: batchId,
@@ -323,27 +284,21 @@ export const QueryResultPane = () => {
                                 }
                                 let r = response as qr.ResultSetSubset;
                                 var columnLength =
-                                    state?.resultSetSummaries[batchId][resultId]
-                                        ?.columnInfo?.length;
+                                    state?.resultSetSummaries[batchId][resultId]?.columnInfo
+                                        ?.length;
                                 return r.rows.map((r) => {
                                     let dataWithSchema: {
                                         [key: string]: any;
                                     } = {};
                                     // skip the first column since its a number column
-                                    for (
-                                        let i = 1;
-                                        columnLength && i < columnLength + 1;
-                                        i++
-                                    ) {
-                                        const displayValue =
-                                            r[i - 1].displayValue ?? "";
+                                    for (let i = 1; columnLength && i < columnLength + 1; i++) {
+                                        const displayValue = r[i - 1].displayValue ?? "";
                                         const ariaLabel = displayValue;
                                         dataWithSchema[(i - 1).toString()] = {
                                             displayValue: displayValue,
                                             ariaLabel: ariaLabel,
                                             isNull: r[i - 1].isNull,
-                                            invariantCultureDisplayValue:
-                                                displayValue,
+                                            invariantCultureDisplayValue: displayValue,
                                         };
                                     }
                                     return dataWithSchema;
@@ -351,9 +306,7 @@ export const QueryResultPane = () => {
                             });
                     }}
                     ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
-                    resultSetSummary={
-                        state?.resultSetSummaries[batchId][resultId]
-                    }
+                    resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
                     gridParentRef={gridParentRef}
                     uri={state?.uri}
                     webViewState={webViewState}
@@ -362,9 +315,7 @@ export const QueryResultPane = () => {
                 />
                 <CommandBar
                     uri={state?.uri}
-                    resultSetSummary={
-                        state?.resultSetSummaries[batchId][resultId]
-                    }
+                    resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
                     maximizeResults={() => {
                         maximizeResults(gridRefs.current[gridCount]);
                         hideOtherGrids(gridRefs, gridCount);
@@ -402,12 +353,8 @@ export const QueryResultPane = () => {
 
     const maximizeResults = (gridRef: ResultGridHandle) => {
         const height =
-            getAvailableHeight(
-                resultPaneParentRef.current!,
-                ribbonRef.current!,
-            ) - TABLE_ALIGN_PX;
-        const width =
-            resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+            getAvailableHeight(resultPaneParentRef.current!, ribbonRef.current!) - TABLE_ALIGN_PX;
+        const width = resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
         gridRef.resizeGrid(width, height);
     };
 
@@ -415,13 +362,9 @@ export const QueryResultPane = () => {
         gridRefs.forEach((gridRef) => {
             const height = calculateGridHeight(
                 gridRefs.length,
-                getAvailableHeight(
-                    resultPaneParentRef.current!,
-                    ribbonRef.current!,
-                ),
+                getAvailableHeight(resultPaneParentRef.current!, ribbonRef.current!),
             );
-            const width =
-                resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
+            const width = resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
             gridRef.resizeGrid(width, height);
         });
     };
@@ -431,8 +374,7 @@ export const QueryResultPane = () => {
         let count = 0;
         for (const batchIdStr in state?.resultSetSummaries ?? {}) {
             const batchId = parseInt(batchIdStr);
-            for (const resultIdStr in state?.resultSetSummaries[batchId] ??
-                {}) {
+            for (const resultIdStr in state?.resultSetSummaries[batchId] ?? {}) {
                 const resultId = parseInt(resultIdStr);
                 grids.push(renderGrid(batchId, resultId, count));
                 count++;
@@ -449,10 +391,7 @@ export const QueryResultPane = () => {
             renderHeaderCell: () => <>{locConstants.queryResult.timestamp}</>,
             renderCell: (item) => (
                 <div>
-                    <DataGridCell
-                        focusMode="group"
-                        style={{ minHeight: "18px", width: "100px" }}
-                    >
+                    <DataGridCell focusMode="group" style={{ minHeight: "18px", width: "100px" }}>
                         {item.batchId === undefined ? item.time : null}
                     </DataGridCell>
                 </div>
@@ -464,22 +403,16 @@ export const QueryResultPane = () => {
             renderCell: (item) => {
                 if (item.link?.text && item.selection) {
                     return (
-                        <DataGridCell
-                            focusMode="group"
-                            style={{ minHeight: "18px" }}
-                        >
+                        <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
                             <div style={{ whiteSpace: "nowrap" }}>
                                 {item.message}{" "}
                                 <Link
                                     className={classes.messagesLink}
                                     onClick={async () => {
-                                        await webViewState.extensionRpc.call(
-                                            "setEditorSelection",
-                                            {
-                                                uri: item.link?.uri,
-                                                selectionData: item.selection,
-                                            },
-                                        );
+                                        await webViewState.extensionRpc.call("setEditorSelection", {
+                                            uri: item.link?.uri,
+                                            selectionData: item.selection,
+                                        });
                                     }}
                                     inline
                                 >
@@ -490,10 +423,7 @@ export const QueryResultPane = () => {
                     );
                 } else {
                     return (
-                        <DataGridCell
-                            focusMode="group"
-                            style={{ minHeight: "18px" }}
-                        >
+                        <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
                             <div
                                 style={{
                                     whiteSpace: "nowrap",
@@ -512,18 +442,13 @@ export const QueryResultPane = () => {
     ];
     const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => {
         return (
-            <DataGridRow<qr.IMessage>
-                key={rowId}
-                className={classes.messagesRows}
-                style={style}
-            >
+            <DataGridRow<qr.IMessage> key={rowId} className={classes.messagesRows} style={style}>
                 {({ renderCell }) => <>{renderCell(item)}</>}
             </DataGridRow>
         );
     };
 
-    const [columns] =
-        useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
+    const [columns] = useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
     const items: qr.IMessage[] = splitMessages(state?.messages) ?? [];
 
     const sizingOptions: TableColumnSizingOptions = {
@@ -539,8 +464,7 @@ export const QueryResultPane = () => {
         },
     };
 
-    const [columnSizingOption] =
-        useState<TableColumnSizingOptions>(sizingOptions);
+    const [columnSizingOption] = useState<TableColumnSizingOptions>(sizingOptions);
 
     const renderMessageGrid = () => {
         return (
@@ -551,10 +475,7 @@ export const QueryResultPane = () => {
                 resizableColumns={true}
                 columnSizingOptions={columnSizingOption}
             >
-                <DataGridBody<qr.IMessage>
-                    itemSize={18}
-                    height={messageGridHeight}
-                >
+                <DataGridBody<qr.IMessage> itemSize={18} height={messageGridHeight}>
                     {renderRow}
                 </DataGridBody>
             </DataGrid>
@@ -579,12 +500,9 @@ export const QueryResultPane = () => {
     //#endregion
 
     const getWebviewLocation = async () => {
-        const res = (await webViewState.extensionRpc.call(
-            "getWebviewLocation",
-            {
-                uri: state?.uri,
-            },
-        )) as string;
+        const res = (await webViewState.extensionRpc.call("getWebviewLocation", {
+            uri: state?.uri,
+        })) as string;
         setWebviewLocation(res);
     };
     const [webviewLocation, setWebviewLocation] = useState("");
@@ -620,9 +538,7 @@ export const QueryResultPane = () => {
                     size="medium"
                     selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
-                        context.setResultTab(
-                            data.value as qr.QueryResultPaneTabs,
-                        );
+                        context.setResultTab(data.value as qr.QueryResultPaneTabs);
                     }}
                     className={classes.queryResultPaneTabs}
                 >
@@ -640,15 +556,14 @@ export const QueryResultPane = () => {
                     >
                         {locConstants.queryResult.messages}
                     </Tab>
-                    {Object.keys(state.resultSetSummaries).length > 0 &&
-                        state.isExecutionPlan && (
-                            <Tab
-                                value={qr.QueryResultPaneTabs.ExecutionPlan}
-                                key={qr.QueryResultPaneTabs.ExecutionPlan}
-                            >
-                                {locConstants.queryResult.queryPlan}
-                            </Tab>
-                        )}
+                    {Object.keys(state.resultSetSummaries).length > 0 && state.isExecutionPlan && (
+                        <Tab
+                            value={qr.QueryResultPaneTabs.ExecutionPlan}
+                            key={qr.QueryResultPaneTabs.ExecutionPlan}
+                        >
+                            {locConstants.queryResult.queryPlan}
+                        </Tab>
+                    )}
                 </TabList>
                 {webviewLocation === "panel" && (
                     <Button
@@ -656,12 +571,9 @@ export const QueryResultPane = () => {
                         iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
-                            await webViewState.extensionRpc.call(
-                                "openInNewTab",
-                                {
-                                    uri: state?.uri,
-                                },
-                            );
+                            await webViewState.extensionRpc.call("openInNewTab", {
+                                uri: state?.uri,
+                            });
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
                         style={{ marginTop: "4px", marginBottom: "4px" }}
@@ -671,12 +583,10 @@ export const QueryResultPane = () => {
                 )}
             </div>
             <div className={classes.tabContent}>
-                {state.tabStates!.resultPaneTab ===
-                    qr.QueryResultPaneTabs.Results &&
+                {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
                     Object.keys(state.resultSetSummaries).length > 0 &&
                     renderGridPanel()}
-                {state.tabStates!.resultPaneTab ===
-                    qr.QueryResultPaneTabs.Messages && (
+                {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && (
                     <div
                         className={classes.messagesContainer}
                         data-vscode-context={JSON.stringify({
@@ -687,8 +597,7 @@ export const QueryResultPane = () => {
                         {renderMessageGrid()}
                     </div>
                 )}
-                {state.tabStates!.resultPaneTab ===
-                    qr.QueryResultPaneTabs.ExecutionPlan &&
+                {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan &&
                     state.isExecutionPlan && (
                         <div
                             id={"executionPlanResultsTab"}

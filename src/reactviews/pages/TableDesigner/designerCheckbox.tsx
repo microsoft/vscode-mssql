@@ -54,8 +54,7 @@ export const DesignerCheckbox = ({
             orientation="horizontal"
             style={{
                 width:
-                    (component.componentProperties.width ??
-                    UiArea === "PropertiesView")
+                    (component.componentProperties.width ?? UiArea === "PropertiesView")
                         ? "100%"
                         : "400px",
             }}

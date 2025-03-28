@@ -15,21 +15,14 @@ import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 
-const ConnectionDialogContext = createContext<
-    ConnectionDialogContextProps | undefined
->(undefined);
+const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
 interface ConnectionDialogProviderProps {
     children: React.ReactNode;
 }
 
-const ConnectionDialogStateProvider: React.FC<
-    ConnectionDialogProviderProps
-> = ({ children }) => {
-    const webviewState = useVscodeWebview<
-        ConnectionDialogWebviewState,
-        ConnectionDialogReducers
-    >();
+const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
+    const webviewState = useVscodeWebview<ConnectionDialogWebviewState, ConnectionDialogReducers>();
     const connectionDialogState = webviewState?.state;
     return (
         <ConnectionDialogContext.Provider
@@ -37,9 +30,7 @@ const ConnectionDialogStateProvider: React.FC<
                 state: connectionDialogState,
                 themeKind: webviewState?.themeKind,
                 ...getCoreRPCs(webviewState),
-                loadConnection: function (
-                    connection: IConnectionDialogProfile,
-                ): void {
+                loadConnection: function (connection: IConnectionDialogProfile): void {
                     webviewState?.extensionRpc.action("loadConnection", {
                         connection: connection,
                     });
@@ -49,15 +40,10 @@ const ConnectionDialogStateProvider: React.FC<
                         event: event,
                     });
                 },
-                setConnectionInputType: function (
-                    inputMode: ConnectionInputMode,
-                ): void {
-                    webviewState?.extensionRpc.action(
-                        "setConnectionInputType",
-                        {
-                            inputMode: inputMode,
-                        },
-                    );
+                setConnectionInputType: function (inputMode: ConnectionInputMode): void {
+                    webviewState?.extensionRpc.action("setConnectionInputType", {
+                        inputMode: inputMode,
+                    });
                 },
                 connect: function (): void {
                     webviewState?.extensionRpc.action("connect");
@@ -82,23 +68,17 @@ const ConnectionDialogStateProvider: React.FC<
                     webviewState?.extensionRpc.action("closeDialog");
                 },
                 filterAzureSubscriptions: function (): void {
-                    webviewState.extensionRpc.action(
-                        "filterAzureSubscriptions",
-                    );
+                    webviewState.extensionRpc.action("filterAzureSubscriptions");
                 },
                 refreshConnectionsList: function (): void {
                     webviewState.extensionRpc.action("refreshConnectionsList");
                 },
-                deleteSavedConnection: function (
-                    connection: IConnectionDialogProfile,
-                ): void {
+                deleteSavedConnection: function (connection: IConnectionDialogProfile): void {
                     webviewState.extensionRpc.action("deleteSavedConnection", {
                         connection: connection,
                     });
                 },
-                removeRecentConnection: function (
-                    connection: IConnectionDialogProfile,
-                ): void {
+                removeRecentConnection: function (connection: IConnectionDialogProfile): void {
                     webviewState.extensionRpc.action("removeRecentConnection", {
                         connection: connection,
                     });

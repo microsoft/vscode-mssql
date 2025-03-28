@@ -9,16 +9,9 @@ import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
-import {
-    saveAsCsvIcon,
-    saveAsExcelIcon,
-    saveAsJsonIcon,
-} from "./queryResultUtils";
+import { saveAsCsvIcon, saveAsExcelIcon, saveAsJsonIcon } from "./queryResultUtils";
 import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
-import {
-    ArrowMaximize16Filled,
-    ArrowMinimize16Filled,
-} from "@fluentui/react-icons";
+import { ArrowMaximize16Filled, ArrowMinimize16Filled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -47,10 +40,7 @@ const CommandBar = (props: CommandBarProps) => {
         return undefined;
     }
 
-    const webViewState = useVscodeWebview<
-        qr.QueryResultWebviewState,
-        qr.QueryResultReducers
-    >();
+    const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const classes = useStyles();
 
     const saveResults = (buttonLabel: string) => {
@@ -77,36 +67,24 @@ const CommandBar = (props: CommandBarProps) => {
     };
 
     const hasMultipleResults = () => {
-        return (
-            Object.keys(context.state.resultSetSummaries).length > 0 &&
-            checkMultipleResults()
-        );
+        return Object.keys(context.state.resultSetSummaries).length > 0 && checkMultipleResults();
     };
 
     return (
         <div className={classes.commandBar}>
             {hasMultipleResults() && (
-                <Tooltip
-                    content={locConstants.queryResult.maximize}
-                    relationship="label"
-                >
+                <Tooltip content={locConstants.queryResult.maximize} relationship="label">
                     <Button
                         appearance="subtle"
                         onClick={() => {
-                            maxView
-                                ? props.restoreResults?.()
-                                : props.maximizeResults?.();
+                            maxView ? props.restoreResults?.() : props.maximizeResults?.();
                             setMaxView((prev) => !prev); // Toggle maxView state
                         }}
                         icon={
                             maxView ? (
-                                <ArrowMinimize16Filled
-                                    className={classes.buttonImg}
-                                />
+                                <ArrowMinimize16Filled className={classes.buttonImg} />
                             ) : (
-                                <ArrowMaximize16Filled
-                                    className={classes.buttonImg}
-                                />
+                                <ArrowMaximize16Filled className={classes.buttonImg} />
                             )
                         }
                         title={
@@ -118,29 +96,20 @@ const CommandBar = (props: CommandBarProps) => {
                 </Tooltip>
             )}
 
-            <Tooltip
-                content={locConstants.queryResult.saveAsCsv}
-                relationship="label"
-            >
+            <Tooltip content={locConstants.queryResult.saveAsCsv} relationship="label">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {
                         saveResults("csv");
                     }}
                     icon={
-                        <img
-                            className={classes.buttonImg}
-                            src={saveAsCsvIcon(context.themeKind)}
-                        />
+                        <img className={classes.buttonImg} src={saveAsCsvIcon(context.themeKind)} />
                     }
                     className="codicon saveCsv"
                     title={locConstants.queryResult.saveAsCsv}
                 />
             </Tooltip>
-            <Tooltip
-                content={locConstants.queryResult.saveAsJson}
-                relationship="label"
-            >
+            <Tooltip content={locConstants.queryResult.saveAsJson} relationship="label">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {
@@ -156,10 +125,7 @@ const CommandBar = (props: CommandBarProps) => {
                     title={locConstants.queryResult.saveAsJson}
                 />
             </Tooltip>
-            <Tooltip
-                content={locConstants.queryResult.saveAsExcel}
-                relationship="label"
-            >
+            <Tooltip content={locConstants.queryResult.saveAsExcel} relationship="label">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {

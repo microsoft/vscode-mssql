@@ -67,9 +67,9 @@ export interface WebviewContextProps<TState> {
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
 
-const VscodeWebviewContext = createContext<
-    VscodeWebviewContext<unknown, unknown> | undefined
->(undefined);
+const VscodeWebviewContext = createContext<VscodeWebviewContext<unknown, unknown> | undefined>(
+    undefined,
+);
 
 interface VscodeWebviewProviderProps {
     children: React.ReactNode;
@@ -80,9 +80,7 @@ interface VscodeWebviewProviderProps {
  * theming, state management, rpc and vscode api.
  * @param param0 child components
  */
-export function VscodeWebviewProvider<State, Reducers>({
-    children,
-}: VscodeWebviewProviderProps) {
+export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebviewProviderProps) {
     const vscodeApi = vscodeApiInstance;
     const extensionRpc = WebviewRpc.getInstance<Reducers>(vscodeApi);
     const [theme, setTheme] = useState(ColorThemeKind.Light);
@@ -107,9 +105,7 @@ export function VscodeWebviewProvider<State, Reducers>({
         }
 
         async function getLocalization() {
-            const fileContents = (await extensionRpc.call(
-                "getLocalization",
-            )) as string;
+            const fileContents = (await extensionRpc.call("getLocalization")) as string;
             if (fileContents) {
                 await l10n.config({
                     contents: fileContents,
@@ -131,13 +127,9 @@ export function VscodeWebviewProvider<State, Reducers>({
         void getLocalization();
     }, []);
 
-    extensionRpc.subscribe(
-        "vscodeWebviewProvider",
-        "onDidChangeTheme",
-        (params) => {
-            setTheme(params as ColorThemeKind);
-        },
-    );
+    extensionRpc.subscribe("vscodeWebviewProvider", "onDidChangeTheme", (params) => {
+        setTheme(params as ColorThemeKind);
+    });
 
     extensionRpc.subscribe("vscodeWebviewProvider", "updateState", (params) => {
         setState(params as State);
@@ -176,9 +168,7 @@ export function VscodeWebviewProvider<State, Reducers>({
 export function useVscodeWebview<State, Reducers>() {
     const context = useContext(VscodeWebviewContext);
     if (!context) {
-        throw new Error(
-            "useVscodeWebview must be used within a VscodeWebviewProvider",
-        );
+        throw new Error("useVscodeWebview must be used within a VscodeWebviewProvider");
     }
     return context as VscodeWebviewContext<State, Reducers>;
 }

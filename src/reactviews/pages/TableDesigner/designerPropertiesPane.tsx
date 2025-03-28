@@ -26,11 +26,7 @@ import {
     DropDownProperties,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import {
-    ChevronRightFilled,
-    ChevronLeftFilled,
-    DismissRegular,
-} from "@fluentui/react-icons";
+import { ChevronRightFilled, ChevronLeftFilled, DismissRegular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -88,11 +84,7 @@ export const DesignerPropertiesPane = () => {
     const data = parentTablePropertiesModel.data![index];
 
     const groups = Array.from(
-        new Set(
-            parentTableProperties.itemProperties
-                ?.filter((i) => i.group)
-                .map((i) => i.group),
-        ),
+        new Set(parentTableProperties.itemProperties?.filter((i) => i.group).map((i) => i.group)),
     );
     groups?.unshift("General");
 
@@ -131,12 +123,9 @@ export const DesignerPropertiesPane = () => {
                                         <DesignerCheckbox
                                             UiArea="PropertiesView"
                                             component={item}
-                                            model={
-                                                modelValue as CheckBoxProperties
-                                            }
+                                            model={modelValue as CheckBoxProperties}
                                             componentPath={[
-                                                ...propertiesPaneData!
-                                                    .componentPath,
+                                                ...propertiesPaneData!.componentPath,
                                                 item.propertyName,
                                             ]}
                                             key={`${group}-${item.propertyName}`}
@@ -147,12 +136,9 @@ export const DesignerPropertiesPane = () => {
                                         <DesignerInputBox
                                             UiArea="PropertiesView"
                                             component={item}
-                                            model={
-                                                modelValue as InputBoxProperties
-                                            }
+                                            model={modelValue as InputBoxProperties}
                                             componentPath={[
-                                                ...propertiesPaneData!
-                                                    .componentPath,
+                                                ...propertiesPaneData!.componentPath,
                                                 item.propertyName,
                                             ]}
                                             horizontal
@@ -164,12 +150,9 @@ export const DesignerPropertiesPane = () => {
                                         <DesignerDropdown
                                             UiArea="PropertiesView"
                                             component={item}
-                                            model={
-                                                modelValue as DropDownProperties
-                                            }
+                                            model={modelValue as DropDownProperties}
                                             componentPath={[
-                                                ...propertiesPaneData!
-                                                    .componentPath,
+                                                ...propertiesPaneData!.componentPath,
                                                 item.propertyName,
                                             ]}
                                             horizontal
@@ -181,12 +164,9 @@ export const DesignerPropertiesPane = () => {
                                         <DesignerTable
                                             UiArea="PropertiesView"
                                             component={item}
-                                            model={
-                                                modelValue as DesignerTableProperties
-                                            }
+                                            model={modelValue as DesignerTableProperties}
                                             componentPath={[
-                                                ...propertiesPaneData!
-                                                    .componentPath,
+                                                ...propertiesPaneData!.componentPath,
                                                 item.propertyName,
                                             ]}
                                             loadPropertiesTabData={false}
@@ -225,9 +205,7 @@ export const DesignerPropertiesPane = () => {
             .map((group) => {
                 const groupItems = parentTableProperties
                     .itemProperties!.filter(
-                        (i) =>
-                            (group === "General" && !i.group) ||
-                            group === i.group,
+                        (i) => (group === "General" && !i.group) || group === i.group,
                     )
                     .filter((item) => {
                         if (item.showInPropertiesView === false) {
@@ -326,11 +304,7 @@ export const DesignerPropertiesPane = () => {
                 />
             </div>
             <div className={classes.stack}>
-                <Accordion
-                    multiple
-                    collapsible
-                    defaultOpenItems={getExpandedGroups()}
-                >
+                <Accordion multiple collapsible defaultOpenItems={getExpandedGroups()}>
                     {data && getAccordionGroups()}
                 </Accordion>
             </div>

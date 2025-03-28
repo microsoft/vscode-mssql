@@ -55,15 +55,11 @@ export const ExecutionPlanPage = () => {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
-                        <Spinner
-                            label="Loading execution plan..."
-                            labelPosition="below"
-                        />
+                        <Spinner label="Loading execution plan..." labelPosition="below" />
                     </div>
                 );
             case ApiStatus.Loaded:
-                const executionPlanGraphs =
-                    executionPlanState?.executionPlanGraphs ?? [];
+                const executionPlanGraphs = executionPlanState?.executionPlanGraphs ?? [];
                 return executionPlanGraphs?.map((_: any, index: number) => (
                     <ExecutionPlanGraph key={index} graphIndex={index} />
                 ));
@@ -71,9 +67,7 @@ export const ExecutionPlanPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>
-                            {executionPlanState?.errorMessage ?? ""}
-                        </Text>
+                        <Text size={400}>{executionPlanState?.errorMessage ?? ""}</Text>
                     </div>
                 );
         }

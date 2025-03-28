@@ -14,13 +14,7 @@ import {
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
-import {
-    Field,
-    Image,
-    MessageBar,
-    Radio,
-    RadioGroup,
-} from "@fluentui/react-components";
+import { Field, Image, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular, SlideText20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
@@ -36,9 +30,7 @@ import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
 
-function renderContent(
-    connectionDialogContext: ConnectionDialogContextProps,
-): ReactNode {
+function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
         case ConnectionInputMode.Parameters:
             return <ConnectionFormPage />;
@@ -73,26 +65,19 @@ export const ConnectionInfoFormContainer = () => {
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {context.state.formError && (
-                    <MessageBar
-                        intent="error"
-                        style={{ minHeight: "min-content" }}
-                    >
+                    <MessageBar intent="error" style={{ minHeight: "min-content" }}>
                         {context.state.formError}
                     </MessageBar>
                 )}
 
                 {context.state.dialog?.type === "trustServerCert" && (
                     <TrustServerCertificateDialog
-                        dialogProps={
-                            context.state.dialog as TrustServerCertDialogProps
-                        }
+                        dialogProps={context.state.dialog as TrustServerCertDialogProps}
                     />
                 )}
                 {context.state.dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
-                        dialogProps={
-                            context.state.dialog as AddFirewallRuleDialogProps
-                        }
+                        dialogProps={context.state.dialog as AddFirewallRuleDialogProps}
                     />
                 )}
 
@@ -104,9 +89,7 @@ export const ConnectionInfoFormContainer = () => {
                 >
                     context={context}
                     component={
-                        context.state.formComponents[
-                            "profileName"
-                        ] as ConnectionDialogFormItemSpec
+                        context.state.formComponents["profileName"] as ConnectionDialogFormItemSpec
                     }
                     idx={0}
                     props={{ orientation: "horizontal" }}
@@ -116,9 +99,7 @@ export const ConnectionInfoFormContainer = () => {
                     <Field label="Input type" orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                context.setConnectionInputType(
-                                    data.value as ConnectionInputMode,
-                                );
+                                context.setConnectionInputType(data.value as ConnectionInputMode);
                             }}
                             value={context.state.selectedInputMode}
                         >
@@ -131,13 +112,8 @@ export const ConnectionInfoFormContainer = () => {
                                             alignItems: "center",
                                         }}
                                     >
-                                        <Form20Regular
-                                            style={{ marginRight: "8px" }}
-                                        />
-                                        {
-                                            locConstants.connectionDialog
-                                                .parameters
-                                        }
+                                        <Form20Regular style={{ marginRight: "8px" }} />
+                                        {locConstants.connectionDialog.parameters}
                                     </div>
                                 }
                             />
@@ -150,13 +126,8 @@ export const ConnectionInfoFormContainer = () => {
                                             alignItems: "center",
                                         }}
                                     >
-                                        <SlideText20Regular
-                                            style={{ marginRight: "8px" }}
-                                        />
-                                        {
-                                            locConstants.connectionDialog
-                                                .connectionString
-                                        }
+                                        <SlideText20Regular style={{ marginRight: "8px" }} />
+                                        {locConstants.connectionDialog.connectionString}
                                     </div>
                                 }
                             />
@@ -176,10 +147,7 @@ export const ConnectionInfoFormContainer = () => {
                                             width={20}
                                             style={{ marginRight: "8px" }}
                                         />
-                                        {
-                                            locConstants.connectionDialog
-                                                .browseAzure
-                                        }
+                                        {locConstants.connectionDialog.browseAzure}
                                     </div>
                                 }
                             />

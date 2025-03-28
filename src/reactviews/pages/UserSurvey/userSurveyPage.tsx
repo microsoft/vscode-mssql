@@ -103,9 +103,7 @@ export const UserSurveyPage = () => {
                 {userSurveryProvider.state.title ??
                     locConstants.userFeedback.microsoftWouldLikeYourFeedback}
             </h2>
-            {userSurveryProvider.state.subtitle && (
-                <p>{userSurveryProvider.state.subtitle}</p>
-            )}
+            {userSurveryProvider.state.subtitle && <p>{userSurveryProvider.state.subtitle}</p>}
 
             {userSurveryProvider.state.questions.map((question, index) => {
                 switch (question.type) {
@@ -150,17 +148,14 @@ export const UserSurveyPage = () => {
                             locConstants.userFeedback.submit}
                     </Button>
                     <Button onClick={() => userSurveryProvider.cancel()}>
-                        {userSurveryProvider.state.cancelButtonText ??
-                            locConstants.common.cancel}
+                        {userSurveryProvider.state.cancelButtonText ?? locConstants.common.cancel}
                     </Button>
                 </div>
             </div>
             <div className={classes.privacyDisclaimer}>
                 <Popover inline openOnHover positioning={{ coverTarget: true }}>
                     <PopoverTrigger>
-                        <p>
-                            {locConstants.userFeedback.feedbackStatementShort}
-                        </p>
+                        <p>{locConstants.userFeedback.feedbackStatementShort}</p>
                     </PopoverTrigger>
                     <PopoverSurface>
                         <div style={{ width: "600px" }}>
@@ -185,10 +180,7 @@ export interface QuestionProps<T> {
     onChange: (data: string | number) => void;
 }
 
-export const NSATQuestion = ({
-    question,
-    onChange,
-}: QuestionProps<NsatQuestion>) => {
+export const NSATQuestion = ({ question, onChange }: QuestionProps<NsatQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -198,8 +190,7 @@ export const NSATQuestion = ({
             label={
                 <Text weight="bold">
                     {question.label ??
-                        locConstants.userFeedback
-                            .overallHowSatisfiedAreYouWithMSSQLExtension}
+                        locConstants.userFeedback.overallHowSatisfiedAreYouWithMSSQLExtension}
                 </Text>
             }
             required={question.required ?? false}
@@ -208,31 +199,16 @@ export const NSATQuestion = ({
                 layout="horizontal-stacked"
                 onChange={(_e, d) => onChange(parseInt(d.value))}
             >
-                <Radio
-                    value={"0"}
-                    label={locConstants.userFeedback.veryDissatisfied}
-                />
-                <Radio
-                    value={"1"}
-                    label={locConstants.userFeedback.dissatisfied}
-                />
-                <Radio
-                    value={"2"}
-                    label={locConstants.userFeedback.satisfied}
-                />
-                <Radio
-                    value={"3"}
-                    label={locConstants.userFeedback.verySatisfied}
-                />
+                <Radio value={"0"} label={locConstants.userFeedback.veryDissatisfied} />
+                <Radio value={"1"} label={locConstants.userFeedback.dissatisfied} />
+                <Radio value={"2"} label={locConstants.userFeedback.satisfied} />
+                <Radio value={"3"} label={locConstants.userFeedback.verySatisfied} />
             </RadioGroup>
         </Field>
     );
 };
 
-export const NPSQuestion = ({
-    question,
-    onChange,
-}: QuestionProps<NpsQuestion>) => {
+export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -317,10 +293,7 @@ export const NPSQuestion = ({
     );
 };
 
-export const TextAreaQuestion = ({
-    question,
-    onChange,
-}: QuestionProps<TextareaQuestion>) => {
+export const TextAreaQuestion = ({ question, onChange }: QuestionProps<TextareaQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -331,10 +304,7 @@ export const TextAreaQuestion = ({
             label={<Text weight="bold">{question.label}</Text>}
             hint={question.placeholder}
         >
-            <Textarea
-                onChange={(_e, data) => onChange(data.value)}
-                resize="vertical"
-            />
+            <Textarea onChange={(_e, data) => onChange(data.value)} resize="vertical" />
         </Field>
     );
 };

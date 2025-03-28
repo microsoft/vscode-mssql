@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles } from "@fluentui/react-components";
-import {
-    AppsListDetailRegular,
-    ChevronDownRegular,
-    ChevronUpRegular,
-} from "@fluentui/react-icons";
+import { AppsListDetailRegular, ChevronDownRegular, ChevronUpRegular } from "@fluentui/react-icons";
 import React, { useState } from "react";
 
 export type DesignerCollapsibleDivProps = {
@@ -65,9 +61,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const DesignerCollapsibleDiv: React.FC<DesignerCollapsibleDivProps> = (
-    props,
-) => {
+export const DesignerCollapsibleDiv: React.FC<DesignerCollapsibleDivProps> = (props) => {
     const classes = useStyles();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const onCollapseHandler = () => {
@@ -89,22 +83,13 @@ export const DesignerCollapsibleDiv: React.FC<DesignerCollapsibleDivProps> = (
                 <div className={classes.headerTitle} title={props.header.title}>
                     {props.header.title}
                 </div>
-                <div
-                    className={classes.collapseButton}
-                    onClick={onCollapseHandler}
-                >
+                <div className={classes.collapseButton} onClick={onCollapseHandler}>
                     <Button
                         style={{
                             marginTop: "-5px",
                         }}
                         appearance="subtle"
-                        icon={
-                            isCollapsed ? (
-                                <ChevronDownRegular />
-                            ) : (
-                                <ChevronUpRegular />
-                            )
-                        }
+                        icon={isCollapsed ? <ChevronDownRegular /> : <ChevronUpRegular />}
                     />
                 </div>
             </div>

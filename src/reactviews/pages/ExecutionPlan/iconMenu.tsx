@@ -7,12 +7,7 @@ import "./executionPlan.css";
 
 import * as utils from "./queryPlanSetup";
 
-import {
-    Toolbar,
-    ToolbarButton,
-    makeStyles,
-    tokens,
-} from "@fluentui/react-components";
+import { Toolbar, ToolbarButton, makeStyles, tokens } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
@@ -94,8 +89,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     const CUSTOM_ZOOM = locConstants.executionPlan.customZoom;
     const FIND_NODE = locConstants.executionPlan.findNode;
     const PROPERTIES = locConstants.executionPlan.properties;
-    const HIGHLIGHT_OPS =
-        locConstants.executionPlan.highlightExpensiveOperation;
+    const HIGHLIGHT_OPS = locConstants.executionPlan.highlightExpensiveOperation;
     const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
 
     const handleSavePlan = async () => {
@@ -178,13 +172,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             <ToolbarButton
                 className={classes.button}
                 tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.save(theme)}
-                        alt={SAVE_PLAN}
-                    />
-                }
+                icon={<img className={classes.buttonImg} src={utils.save(theme)} alt={SAVE_PLAN} />}
                 onClick={handleSavePlan}
                 title={SAVE_PLAN}
                 aria-label={SAVE_PLAN}
@@ -226,13 +214,7 @@ export const IconStack: React.FC<IconStackProps> = ({
             <ToolbarButton
                 className={classes.button}
                 tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.zoomIn(theme)}
-                        alt={ZOOM_IN}
-                    />
-                }
+                icon={<img className={classes.buttonImg} src={utils.zoomIn(theme)} alt={ZOOM_IN} />}
                 onClick={handleZoomIn}
                 title={ZOOM_IN}
                 aria-label={ZOOM_IN}
@@ -241,11 +223,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 className={classes.button}
                 tabIndex={0}
                 icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.zoomOut(theme)}
-                        alt={ZOOM_OUT}
-                    />
+                    <img className={classes.buttonImg} src={utils.zoomOut(theme)} alt={ZOOM_OUT} />
                 }
                 onClick={handleZoomOut}
                 title={ZOOM_OUT}
@@ -289,11 +267,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 className={classes.button}
                 tabIndex={0}
                 icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.search(theme)}
-                        alt={FIND_NODE}
-                    />
+                    <img className={classes.buttonImg} src={utils.search(theme)} alt={FIND_NODE} />
                 }
                 onClick={() => setInputContainer(InputEnum.FindNode)}
                 title={FIND_NODE}

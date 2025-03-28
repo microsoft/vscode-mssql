@@ -18,12 +18,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
-import {
-    FormContextProps,
-    FormItemSpec,
-    FormItemType,
-    FormState,
-} from "./form";
+import { FormContextProps, FormItemSpec, FormItemType, FormState } from "./form";
 import { useEffect, useState } from "react";
 
 export const FormInput = <
@@ -84,13 +79,7 @@ export const FormInput = <
                     contentAfter={
                         <Button
                             onClick={() => setShowPassword(!showPassword)}
-                            icon={
-                                showPassword ? (
-                                    <EyeRegular />
-                                ) : (
-                                    <EyeOffRegular />
-                                )
-                            }
+                            icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
                             size="small"
                         ></Button>
@@ -140,14 +129,8 @@ export const FormField = <
     return (
         <div className={formStyles.formComponentDiv} key={idx}>
             <Field
-                validationMessage={
-                    component.validation?.validationMessage ?? ""
-                }
-                orientation={
-                    component.type === FormItemType.Checkbox
-                        ? "horizontal"
-                        : "vertical"
-                }
+                validationMessage={component.validation?.validationMessage ?? ""}
+                orientation={component.type === FormItemType.Checkbox ? "horizontal" : "vertical"}
                 validationState={
                     component.validation
                         ? component.validation.isValid
@@ -161,10 +144,7 @@ export const FormField = <
                     component.tooltip
                         ? {
                               children: (_: unknown, slotProps: LabelProps) => (
-                                  <InfoLabel
-                                      {...slotProps}
-                                      info={component.tooltip}
-                                  >
+                                  <InfoLabel {...slotProps} info={component.tooltip}>
                                       {component.label}
                                   </InfoLabel>
                               ),
@@ -257,14 +237,10 @@ export function generateFormComponent<
                     placeholder={component.placeholder ?? ""}
                     value={
                         component.options.find(
-                            (option) =>
-                                option.value ===
-                                formState[component.propertyName],
+                            (option) => option.value === formState[component.propertyName],
                         )?.displayName ?? ""
                     }
-                    selectedOptions={[
-                        formState[component.propertyName] as string,
-                    ]}
+                    selectedOptions={[formState[component.propertyName] as string]}
                     onOptionSelect={(_event, data) => {
                         context?.formAction({
                             propertyName: component.propertyName,
@@ -290,9 +266,7 @@ export function generateFormComponent<
             return (
                 <Checkbox
                     size="medium"
-                    checked={
-                        (formState[component.propertyName] as boolean) ?? false
-                    }
+                    checked={(formState[component.propertyName] as boolean) ?? false}
                     onChange={(_value, data) =>
                         context?.formAction({
                             propertyName: component.propertyName,

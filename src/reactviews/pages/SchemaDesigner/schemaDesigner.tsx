@@ -34,8 +34,7 @@ export const SchemaDesigner = () => {
                     cellForeground: "var(--vscode-editor-foreground)",
                     cellBackground: "var(--vscode-editor-background)",
                     cellBorder: "var(--vscode-badge-background)",
-                    cellColumnHover:
-                        "var(--vscode-inputOption-hoverBackground)",
+                    cellColumnHover: "var(--vscode-inputOption-hoverBackground)",
                     cellDivider: "var(--vscode-badge-background)",
                     toolbarBackground: "#2c2c2c",
                     toolbarForeground: "#ffffff",

@@ -75,11 +75,7 @@ export const AdvancedOptionsDrawer = ({
                                 >
                                     key={idx}
                                     context={context}
-                                    component={
-                                        context.state.formComponents[
-                                            optionName
-                                        ]!
-                                    }
+                                    component={context.state.formComponents[optionName]!}
                                     idx={idx}
                                 />
                             );
@@ -90,44 +86,32 @@ export const AdvancedOptionsDrawer = ({
                     {context.state.connectionComponents.groupedAdvancedOptions.map(
                         (group, groupIndex) => {
                             return (
-                                <AccordionItem
-                                    value={group.groupName}
-                                    key={groupIndex}
-                                >
-                                    <AccordionHeader>
-                                        {group.groupName}
-                                    </AccordionHeader>
+                                <AccordionItem value={group.groupName} key={groupIndex}>
+                                    <AccordionHeader>{group.groupName}</AccordionHeader>
                                     <AccordionPanel>
-                                        {group.options.map(
-                                            (optionName, idx) => {
-                                                if (
-                                                    context.state
-                                                        .formComponents[
-                                                        optionName
-                                                    ]?.hidden === true
-                                                ) {
-                                                    return undefined;
-                                                }
-                                                return (
-                                                    <FormField<
-                                                        IConnectionDialogProfile,
-                                                        ConnectionDialogWebviewState,
-                                                        ConnectionDialogFormItemSpec,
-                                                        ConnectionDialogContextProps
-                                                    >
-                                                        key={idx}
-                                                        context={context}
-                                                        component={
-                                                            context.state
-                                                                .formComponents[
-                                                                optionName
-                                                            ]!
-                                                        }
-                                                        idx={idx}
-                                                    />
-                                                );
-                                            },
-                                        )}
+                                        {group.options.map((optionName, idx) => {
+                                            if (
+                                                context.state.formComponents[optionName]?.hidden ===
+                                                true
+                                            ) {
+                                                return undefined;
+                                            }
+                                            return (
+                                                <FormField<
+                                                    IConnectionDialogProfile,
+                                                    ConnectionDialogWebviewState,
+                                                    ConnectionDialogFormItemSpec,
+                                                    ConnectionDialogContextProps
+                                                >
+                                                    key={idx}
+                                                    context={context}
+                                                    component={
+                                                        context.state.formComponents[optionName]!
+                                                    }
+                                                    idx={idx}
+                                                />
+                                            );
+                                        })}
                                     </AccordionPanel>
                                 </AccordionItem>
                             );

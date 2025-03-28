@@ -57,21 +57,15 @@ export const AddFirewallRuleDialog = ({
 
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const [selectedTenantId, setSelectedTenantId] = useState<string>(
-        dialogProps.tenants[0].id,
-    );
+    const [selectedTenantId, setSelectedTenantId] = useState<string>(dialogProps.tenants[0].id);
 
     const [tenantDisplayText, setTenantDisplayText] = useState(
         formatTenant(dialogProps.tenants[0]),
     );
 
-    const [ruleName, setRuleName] = useState(
-        "ClientIPAddress_" + formatDate(new Date()),
-    );
+    const [ruleName, setRuleName] = useState("ClientIPAddress_" + formatDate(new Date()));
 
-    const [ipSelectionMode, setIpSelectionMode] = useState(
-        IpSelectionMode.SpecificIp,
-    );
+    const [ipSelectionMode, setIpSelectionMode] = useState(IpSelectionMode.SpecificIp);
 
     const [startIp, setStartIp] = useState(
         dialogProps.clientIp.replace(/\.[0-9]+$/g, ".0"), // replace last octet with 0
@@ -80,13 +74,8 @@ export const AddFirewallRuleDialog = ({
         dialogProps.clientIp.replace(/\.[0-9]+$/g, ".255"), // replace last octet with 255
     );
 
-    const onTenantOptionSelect = (
-        _: SelectionEvents,
-        data: OptionOnSelectData,
-    ) => {
-        setSelectedTenantId(
-            data.selectedOptions.length > 0 ? data.selectedOptions[0] : "",
-        );
+    const onTenantOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
+        setSelectedTenantId(data.selectedOptions.length > 0 ? data.selectedOptions[0] : "");
         setTenantDisplayText(data.optionText ?? "");
     };
 
@@ -94,14 +83,9 @@ export const AddFirewallRuleDialog = ({
         <Dialog open={dialogProps.type === "addFirewallRule"}>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>
-                        {Loc.connectionDialog.createNewFirewallRule}
-                    </DialogTitle>
+                    <DialogTitle>{Loc.connectionDialog.createNewFirewallRule}</DialogTitle>
                     <DialogContent>
-                        <MessageBar
-                            intent="error"
-                            style={{ paddingRight: "12px" }}
-                        >
+                        <MessageBar intent="error" style={{ paddingRight: "12px" }}>
                             {dialogProps.message}
                         </MessageBar>
                         <br />
@@ -113,10 +97,7 @@ export const AddFirewallRuleDialog = ({
 
                         <div style={{ marginTop: "12px" }}>
                             {dialogProps.tenants.length > 0 && (
-                                <Field
-                                    label="Tenant"
-                                    className={formStyles.formComponentDiv}
-                                >
+                                <Field label="Tenant" className={formStyles.formComponentDiv}>
                                     <Dropdown
                                         value={tenantDisplayText}
                                         selectedOptions={[selectedTenantId]}
@@ -136,10 +117,7 @@ export const AddFirewallRuleDialog = ({
                                     </Dropdown>
                                 </Field>
                             )}
-                            <Field
-                                label="Rule name"
-                                className={formStyles.formComponentDiv}
-                            >
+                            <Field label="Rule name" className={formStyles.formComponentDiv}>
                                 <Input
                                     value={ruleName}
                                     onChange={(_ev, data) => {
@@ -152,9 +130,7 @@ export const AddFirewallRuleDialog = ({
                                 <RadioGroup
                                     value={ipSelectionMode}
                                     onChange={(_, data) =>
-                                        setIpSelectionMode(
-                                            data.value as IpSelectionMode,
-                                        )
+                                        setIpSelectionMode(data.value as IpSelectionMode)
                                     }
                                 >
                                     <Radio
@@ -178,10 +154,7 @@ export const AddFirewallRuleDialog = ({
                                         setStartIp(data.value);
                                     }}
                                     id="startIpInput"
-                                    disabled={
-                                        ipSelectionMode ===
-                                        IpSelectionMode.SpecificIp
-                                    }
+                                    disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
                                     className={styles.ipInputBox}
                                 />
                                 <Label>To</Label>
@@ -191,10 +164,7 @@ export const AddFirewallRuleDialog = ({
                                         setEndIp(data.value);
                                     }}
                                     id="endIpInput"
-                                    disabled={
-                                        ipSelectionMode ===
-                                        IpSelectionMode.SpecificIp
-                                    }
+                                    disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
                                     className={styles.ipInputBox}
                                 />
                             </div>
@@ -208,19 +178,14 @@ export const AddFirewallRuleDialog = ({
                                 context.addFirewallRule(
                                     ruleName,
                                     selectedTenantId,
-                                    ipSelectionMode ===
-                                        IpSelectionMode.SpecificIp
+                                    ipSelectionMode === IpSelectionMode.SpecificIp
                                         ? dialogProps.clientIp
                                         : { startIp, endIp },
                                 );
                                 // if adding the firewall rule is successful, it will attempt to reconnect
                                 // otherwise, it will display an error at the top of the connection dialog
                             }}
-                            icon={
-                                isProcessing ? (
-                                    <Spinner size="tiny" />
-                                ) : undefined
-                            }
+                            icon={isProcessing ? <Spinner size="tiny" /> : undefined}
                         >
                             {Loc.connectionDialog.addFirewallRule}
                         </Button>
@@ -246,11 +211,9 @@ function padTo2Digits(num: number) {
 // format as "YYYY-MM-DD_hh-mm-ss" (default Azure rulename format)
 function formatDate(date: Date) {
     return (
-        [
-            date.getFullYear(),
-            padTo2Digits(date.getMonth() + 1),
-            padTo2Digits(date.getDate()),
-        ].join("-") +
+        [date.getFullYear(), padTo2Digits(date.getMonth() + 1), padTo2Digits(date.getDate())].join(
+            "-",
+        ) +
         "_" +
         [
             padTo2Digits(date.getHours()),

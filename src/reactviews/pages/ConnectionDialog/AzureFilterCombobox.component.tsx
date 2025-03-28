@@ -62,9 +62,7 @@ export const AzureFilterCombobox = ({
     const onBlur = () => {
         if (content.value) {
             setValidationMessage(
-                content.valueList.includes(content.value)
-                    ? ""
-                    : content.invalidOptionErrorMessage,
+                content.valueList.includes(content.value) ? "" : content.invalidOptionErrorMessage,
             );
         }
     };

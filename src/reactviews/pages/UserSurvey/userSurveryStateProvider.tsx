@@ -12,21 +12,14 @@ import {
 } from "../../../sharedInterfaces/userSurvey";
 import { getCoreRPCs } from "../../common/utils";
 
-const UserSurveyContext = createContext<UserSurveyContextProps | undefined>(
-    undefined,
-);
+const UserSurveyContext = createContext<UserSurveyContextProps | undefined>(undefined);
 
 interface UserSurveyProviderProps {
     children: React.ReactNode;
 }
 
-const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
-    children,
-}) => {
-    const vscodeWebviewProvider = useVscodeWebview<
-        UserSurveyState,
-        UserSurveyReducers
-    >();
+const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }) => {
+    const vscodeWebviewProvider = useVscodeWebview<UserSurveyState, UserSurveyReducers>();
     return (
         <UserSurveyContext.Provider
             value={{
@@ -41,9 +34,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({
                     await vscodeWebviewProvider.extensionRpc.action("cancel");
                 },
                 openPrivacyStatement: async () => {
-                    await vscodeWebviewProvider.extensionRpc.action(
-                        "openPrivacyStatement",
-                    );
+                    await vscodeWebviewProvider.extensionRpc.action("openPrivacyStatement");
                 },
                 themeKind: vscodeWebviewProvider.themeKind,
             }}
