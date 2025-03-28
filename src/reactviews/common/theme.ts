@@ -5,6 +5,9 @@
 
 import * as fluentui from "@fluentui/react-components";
 
+/**
+ * This maps the Fluent UI theme variables to the VS Code theme variables.
+ */
 export const webviewTheme: fluentui.Theme = {
     ...fluentui.webLightTheme,
     colorNeutralBackground1: "var(--vscode-editor-background)",
@@ -84,4 +87,24 @@ export const webviewTheme: fluentui.Theme = {
      * Specifies the background color for a selected div.
      */
     colorNeutralForeground2BrandSelected: "var(--vscode-button-background)",
+    /**
+     * Specified the shadow color for card components.
+     */
+    shadow4: "0 0 2px var(--vscode-widget-shadow), 0 2px 4px var(--vscode-widget-shadow)",
+    /**
+     * Specifies the shadow color for popover components.
+     */
+    colorNeutralShadowAmbient: "var(--vscode-widget-shadow)",
+    /**
+     * Specifies the shadow color for popover components.
+     */
+    colorNeutralShadowKey: "var(--vscode-widget-shadow)",
+    /**
+     * Color for the background of a selected item in a subtle button.
+     */
+    colorSubtleBackgroundSelected: "var(--vscode-menu-selectionBackground)",
+    /**
+     * Color for the foreground of a selected item in a subtle button.
+     */
+    colorNeutralForeground1Selected: "var(--vscode-menu-selectionForeground)",
 };

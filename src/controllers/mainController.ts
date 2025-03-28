@@ -58,10 +58,10 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
+import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 
 /**
  * The main controller class that initializes the extension
@@ -821,25 +821,24 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
-                    Constants.cmdVisualizeSchema,
+                    Constants.cmdDesignSchema,
                     async (node: TreeNodeInfo) => {
-                        const uri = this.connectionManager.getUriForConnection(node.connectionInfo);
-                        const schema = await this.schemaDesignerService.getSchemaModel({
-                            connectionUri: uri,
-                            databaseName: node.metadata.name,
-                        });
-
-                        console.log(schema);
-
-                        const schemaDesignerWebvie = new SchemaDesignerWebviewController(
-                            this._context,
-                            this._vscodeWrapper,
-                            this.schemaDesignerService,
-                            node.metadata.name,
-                            schema,
+                        const connectionUri = this.connectionManager.getUriForConnection(
+                            node.connectionInfo,
                         );
 
-                        schemaDesignerWebvie.revealToForeground();
+                        const schemaDesigner =
+                            SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                this._context,
+                                this._vscodeWrapper,
+                                this,
+                                this.schemaDesignerService,
+                                connectionUri,
+                                node.metadata.name,
+                                node,
+                            );
+
+                        schemaDesigner.revealToForeground();
                     },
                 ),
             );

@@ -80,6 +80,7 @@
         "@angular/router": "~3.1.2",
         "@angular/upgrade": "~2.1.2",
         "@azure/core-paging": "^1.6.2",
+        "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@eslint/js": "^9.5.0",
         "@fluentui/react-components": "^9.55.1",
@@ -118,10 +119,11 @@
         "@vscode/test-electron": "^2.4.1",
         "@vscode/vsce": "^3.1.1",
         "@xmldom/xmldom": "0.8.4",
+        "@xyflow/react": "^12.4.4",
         "angular-in-memory-web-api": "0.1.13",
         "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
         "assert": "^1.4.1",
-        "azdataGraph": "github:Microsoft/azdataGraph#0.0.77",
+        "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
         "chai": "^3.5.0",
         "cli-color": "^2.0.4",
         "coveralls": "^3.0.2",
@@ -148,6 +150,7 @@
         "gulp-sourcemaps": "^1.6.0",
         "gulp-typescript": "^5.0.1",
         "gulp-uglify": "^2.0.0",
+        "html-to-image": "1.11.11",
         "husky": "^9.0.11",
         "istanbul": "^0.4.5",
         "lint-staged": "^15.2.10",
@@ -212,6 +215,7 @@
         "tmp": "^0.0.28",
         "tunnel": "0.0.6",
         "underscore": "^1.8.3",
+        "uuid": "^11.0.5",
         "vscode-languageclient": "5.2.1",
         "vscode-nls": "^2.0.2",
         "yallist": "^5.0.0",
@@ -506,7 +510,7 @@
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
                 },
                 {
-                    "command": "mssql.visualizeSchema",
+                    "command": "mssql.designSchema",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && config.mssql.enableSchemaDesigner",
                     "group": "MS_SQL@6"
                 },
@@ -818,12 +822,12 @@
                 }
             },
             {
-                "command": "mssql.visualizeSchema",
-                "title": "%mssql.visualizeSchema%",
+                "command": "mssql.designSchema",
+                "title": "%mssql.designSchema%",
                 "category": "MS SQL",
                 "icon": {
-                    "dark": "media/visualizeSchema_dark.svg",
-                    "light": "media/visualizeSchema_light.svg"
+                    "dark": "media/designSchema_dark.svg",
+                    "light": "media/vdesignSchema_light.svg"
                 }
             },
             {
