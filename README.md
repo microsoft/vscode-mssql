@@ -3,7 +3,7 @@
 
 # MSSQL extension for Visual Studio Code
 
-This extension is designed to help developers seamlessly work with their databases, simplifying the use of SQL Server, SQL Database in Fabric, and all Azure SQL offerings — including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs—as the backend for their applications.
+This extension is designed to help developers seamlessly work with their databases, simplifying the use of SQL Server, SQL Database in Fabric, and all Azure SQL offerings — including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs — as the backend for their applications.
 With a rich set of features, the MSSQL extension for Visual Studio Code enhances the development experience, offering functionalities such as:
 
 - **Connect to Microsoft SQL Server and Azure SQL Database**: Seamlessly connect to your databases to manage and query data. The new **Connection Dialog (`Preview`)** offers a more intuitive interface, with options for entering parameters, connection strings, or browsing Azure databases. The Recent Connections panel provides quick access to previously used servers.
