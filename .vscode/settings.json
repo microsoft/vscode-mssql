@@ -12,22 +12,14 @@
     "typescript.tsdk": "./node_modules/typescript/lib", // we want to use the TS server from our node_modules folder to control its version
     "files.watcherExclude": {
         "**/.git/objects/**": true,
-        "**/out/*" : true
+        "**/out/*": true
     },
 
-	"lcov.path": [
-		"coverage/lcov.info"
-	],
-	"yaml.schemas": {
-		"https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
-	},
-    "eslint.validate": [
-        "javascript",
-        "javascriptreact",
-        "html",
-        "typescriptreact",
-        "typescript"
-    ],
+    "lcov.path": ["coverage/lcov.info"],
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
+    },
+    "eslint.validate": ["javascript", "javascriptreact", "html", "typescriptreact", "typescript"],
     "svg.preview.background": "dark-transparent",
     "prettier.printWidth": 100,
     "[typescript]": {
