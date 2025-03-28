@@ -607,28 +607,3 @@ export const flowUtils = {
         };
     },
 };
-
-// SQL Script utilities
-export const scriptUtils = {
-    // TODO: Remove when publish script is implemented with DacFx
-    addWarningToSQLScript: (script: string): string => {
-        return (
-            `-- **************************************************
--- WARNING: REVIEW BEFORE APPLYING CHANGES
--- **************************************************
--- You are about to modify the database schema.
--- Please carefully review the script before execution, as changes can:
--- - Impact existing data integrity and relationships
--- - Cause unintended data loss or corruption
--- - Affect system performance and application stability
--- RECOMMENDED ACTIONS:
--- - Backup your database before proceeding
--- - Test the script in a development environment
--- - Ensure all dependencies and constraints are considered
--- Proceed with caution. Once applied, changes may not be reversible.
--- **************************************************
-
-` + script
-        );
-    },
-};

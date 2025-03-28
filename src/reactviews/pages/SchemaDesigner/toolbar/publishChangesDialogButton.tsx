@@ -29,7 +29,6 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Editor } from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../../common/utils";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { scriptUtils } from "../schemaDesignerUtils";
 
 export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
@@ -290,9 +289,7 @@ export function PublishChangesDialogButton() {
                                     <Editor
                                         height="500px"
                                         defaultLanguage="sql"
-                                        defaultValue={scriptUtils.addWarningToSQLScript(
-                                            report?.updateScript ?? "",
-                                        )}
+                                        defaultValue={report?.updateScript}
                                         theme={resolveVscodeThemeType(context?.themeKind)}
                                         options={{
                                             readOnly: true,
@@ -309,9 +306,7 @@ export function PublishChangesDialogButton() {
                         <Button
                             appearance="secondary"
                             onClick={() => {
-                                context.openInEditorWithConnection(
-                                    scriptUtils.addWarningToSQLScript(report?.updateScript ?? ""),
-                                );
+                                context.openInEditorWithConnection(report?.updateScript ?? "");
                             }}
                             disabled={report?.updateScript === ""}>
                             Open Publish Script
