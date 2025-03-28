@@ -310,7 +310,7 @@ jobs:
             # Updates to localized strings required
 
       - name: Create or update comment
-        if: ${{ env.loc_update_required == 'true' }} && github.event_name != 'push'
+        if: github.event_name != 'push' && ${{ env.loc_update_required == 'true' }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
@@ -326,7 +326,7 @@ jobs:
           edit-mode: replace
 
       - name: Delete comment
-        if: ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != '' && github.event_name != 'push'
+        if: github.event_name != 'push' && ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != ''
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
