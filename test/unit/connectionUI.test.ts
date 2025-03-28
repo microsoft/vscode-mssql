@@ -36,23 +36,16 @@ suite("Connection UI tests", () => {
     let globalstate: TypeMoq.IMock<
         vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
     >;
-    let quickPickMock: TypeMoq.IMock<
-        vscode.QuickPick<IConnectionCredentialsQuickPickItem>
-    >;
+    let quickPickMock: TypeMoq.IMock<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>;
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
         outputChannel.setup((c) => c.clear());
         outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
         outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
         quickPickMock =
-            TypeMoq.Mock.ofType<
-                vscode.QuickPick<IConnectionCredentialsQuickPickItem>
-            >();
+            TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
         quickPickMock.setup((q) => q.items);
         quickPickMock.setup((q) => q.show());
         vscodeWrapper
@@ -60,15 +53,11 @@ suite("Connection UI tests", () => {
             .returns(() => outputChannel.object);
         vscodeWrapper.setup((v) => v.showErrorMessage(TypeMoq.It.isAny()));
         vscodeWrapper.setup((v) => v.executeCommand(TypeMoq.It.isAnyString()));
-        vscodeWrapper
-            .setup((v) => v.createQuickPick())
-            .returns(() => quickPickMock.object);
+        vscodeWrapper.setup((v) => v.createQuickPick()).returns(() => quickPickMock.object);
         prompter = TypeMoq.Mock.ofType<IPrompter>();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext
-            .setup((c) => c.globalState)
-            .returns(() => globalstate.object);
+        mockContext.setup((c) => c.globalState).returns(() => globalstate.object);
         connectionStore = TypeMoq.Mock.ofType(
             ConnectionStore,
             TypeMoq.MockBehavior.Loose,
@@ -83,10 +72,7 @@ suite("Connection UI tests", () => {
             vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
         >();
         mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockAccountStore = new AccountStore(
-            mockContext.object,
-            mockLogger.object,
-        );
+        mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
         connectionUI = new ConnectionUI(
             connectionManager.object,
             mockContext.object,
@@ -100,10 +86,7 @@ suite("Connection UI tests", () => {
     test("showConnectionErrors should show errors in the output channel", () => {
         connectionUI.showConnectionErrors(TypeMoq.It.isAnyString());
         outputChannel.verify((c) => c.clear(), TypeMoq.Times.once());
-        outputChannel.verify(
-            (c) => c.append(TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+        outputChannel.verify((c) => c.append(TypeMoq.It.isAny()), TypeMoq.Times.once());
         outputChannel.verify((c) => c.show(true), TypeMoq.Times.once());
     });
 
@@ -162,11 +145,8 @@ suite("Connection UI tests", () => {
     test("showConnections with recent but no selection", async () => {
         // setup stubbed event for us to trigger later
         const onDidHideEventEmitter = new vscode.EventEmitter<void>();
-        quickPickMock
-            .setup((q) => q.onDidHide)
-            .returns(() => onDidHideEventEmitter.event);
-        const promptForConnectionPromise =
-            connectionUI.promptForConnection(undefined);
+        quickPickMock.setup((q) => q.onDidHide).returns(() => onDidHideEventEmitter.event);
+        const promptForConnectionPromise = connectionUI.promptForConnection(undefined);
         // Trigger onDidHide event to simulate user exiting the dialog without choosing anything
         onDidHideEventEmitter.fire();
         await promptForConnectionPromise;
@@ -177,9 +157,7 @@ suite("Connection UI tests", () => {
     test("promptLanguageFlavor should prompt for a language flavor", () => {
         let mockProvider = { providerId: "test" };
         prompter
-            .setup((p) =>
-                p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((p) => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockProvider));
         return connectionUI.promptLanguageFlavor().then(() => {
             prompter.verify(
@@ -194,10 +172,7 @@ suite("Connection UI tests", () => {
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(TypeMoq.It.isAny()));
         return connectionUI.promptToCancelConnection().then(() => {
-            prompter.verify(
-                (p) => p.promptSingle(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
     });
 
@@ -206,10 +181,7 @@ suite("Connection UI tests", () => {
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(TypeMoq.It.isAnyString()));
         return connectionUI.promptToCancelConnection().then(() => {
-            prompter.verify(
-                (p) => p.promptSingle(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
     });
 
@@ -218,10 +190,7 @@ suite("Connection UI tests", () => {
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(TypeMoq.It.isAny()));
         return connectionUI.promptToChangeLanguageMode().then(() => {
-            prompter.verify(
-                (p) => p.promptSingle(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
             vscodeWrapper.verify(
                 (v) => v.executeCommand(TypeMoq.It.isAnyString()),
                 TypeMoq.Times.once(),
@@ -234,10 +203,7 @@ suite("Connection UI tests", () => {
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
         return connectionUI.promptToChangeLanguageMode().then(() => {
-            prompter.verify(
-                (p) => p.promptSingle(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
             vscodeWrapper.verify(
                 (v) => v.executeCommand(TypeMoq.It.isAnyString()),
                 TypeMoq.Times.never(),
@@ -257,9 +223,7 @@ suite("Connection UI tests", () => {
                     },
                 ]),
             );
-        connectionStore.setup(
-            async (c) => await c.removeProfile(TypeMoq.It.isAny()),
-        );
+        connectionStore.setup(async (c) => await c.removeProfile(TypeMoq.It.isAny()));
         let mockItem = {
             ConfirmRemoval: true,
             ChooseProfile: {
@@ -270,14 +234,8 @@ suite("Connection UI tests", () => {
             .setup((p) => p.prompt(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockItem));
         return connectionUI.removeProfile().then(() => {
-            connectionStore.verify(
-                (c) => c.getProfilePickListItems(false),
-                TypeMoq.Times.once(),
-            );
-            prompter.verify(
-                (p) => p.prompt(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            connectionStore.verify((c) => c.getProfilePickListItems(false), TypeMoq.Times.once());
+            prompter.verify((p) => p.prompt(TypeMoq.It.isAny()), TypeMoq.Times.once());
             connectionStore.verify(
                 async (c) => await c.removeProfile(TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
@@ -290,14 +248,8 @@ suite("Connection UI tests", () => {
             .setup((c) => c.getProfilePickListItems(TypeMoq.It.isAny()))
             .returns(() => undefined);
         return await connectionUI.removeProfile().then(() => {
-            connectionStore.verify(
-                (c) => c.getProfilePickListItems(false),
-                TypeMoq.Times.once(),
-            );
-            prompter.verify(
-                (p) => p.prompt(TypeMoq.It.isAny()),
-                TypeMoq.Times.never(),
-            );
+            connectionStore.verify((c) => c.getProfilePickListItems(false), TypeMoq.Times.once());
+            prompter.verify((p) => p.prompt(TypeMoq.It.isAny()), TypeMoq.Times.never());
             vscodeWrapper.verify(
                 (v) => v.showErrorMessage(TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
@@ -310,19 +262,14 @@ suite("Connection UI tests", () => {
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
         void connectionUI.promptToManageProfiles();
-        prompter.verify(
-            (p) => p.promptSingle(TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+        prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
     test("promptForRetryCreateProfile should show an error message and create profile", async () => {
         let profile = new ConnectionProfile();
         let mockConnection = { connectionString: "test" };
         vscodeWrapper
-            .setup((v) =>
-                v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(LocalizedConstants.retryLabel));
         prompter
             .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
@@ -339,21 +286,13 @@ suite("Connection UI tests", () => {
     test("createProfileWithDifferentCredentials should prompt to recreate connection", () => {
         let credentials = new ConnectionCredentials();
         vscodeWrapper
-            .setup((v) =>
-                v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve("test"));
-        return connectionUI
-            .createProfileWithDifferentCredentials(credentials)
-            .then(() => {
-                vscodeWrapper.verify(
-                    (v) =>
-                        v.showErrorMessage(
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
-                    TypeMoq.Times.once(),
-                );
-            });
+        return connectionUI.createProfileWithDifferentCredentials(credentials).then(() => {
+            vscodeWrapper.verify(
+                (v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+        });
     });
 });

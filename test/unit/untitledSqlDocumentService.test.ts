@@ -17,9 +17,7 @@ interface IFixture {
 }
 
 suite("UntitledSqlDocumentService Tests", () => {
-    function createTextDocumentObject(
-        fileName: string = "",
-    ): vscode.TextDocument {
+    function createTextDocumentObject(fileName: string = ""): vscode.TextDocument {
         return {
             uri: undefined,
             eol: undefined,
@@ -56,9 +54,7 @@ suite("UntitledSqlDocumentService Tests", () => {
                 return Promise.resolve(createTextDocumentObject());
             });
         vscodeWrapper
-            .setup((x) =>
-                x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(TypeMoq.It.isAny());
             });
@@ -79,13 +75,9 @@ suite("UntitledSqlDocumentService Tests", () => {
         fixture = createUntitledSqlDocumentService(fixture);
 
         void fixture.service.newQuery().then((_) => {
+            fixture.vscodeWrapper.verify((x) => x.openMsSqlTextDocument(), TypeMoq.Times.once());
             fixture.vscodeWrapper.verify(
-                (x) => x.openMsSqlTextDocument(),
-                TypeMoq.Times.once(),
-            );
-            fixture.vscodeWrapper.verify(
-                (x) =>
-                    x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                (x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
         });

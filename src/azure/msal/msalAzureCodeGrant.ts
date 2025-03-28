@@ -11,11 +11,7 @@ import {
     CryptoProvider,
     PublicClientApplication,
 } from "@azure/msal-node";
-import {
-    ITenant,
-    AzureAuthType,
-    IProviderSettings,
-} from "../../models/contracts/azure";
+import { ITenant, AzureAuthType, IProviderSettings } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
 import { Logger } from "../../models/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
@@ -106,8 +102,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
                 code: "",
             };
 
-            let authCodeUrl =
-                await this.clientApplication.getAuthCodeUrl(authUrlRequest);
+            let authCodeUrl = await this.clientApplication.getAuthCodeUrl(authUrlRequest);
             await vscode.env.openExternal(
                 vscode.Uri.parse(
                     `http://localhost:${serverPort}/signin?nonce=${encodeURIComponent(this.pkceCodes.nonce)}`,
@@ -125,13 +120,10 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
             throw new AzureAuthError("error", "Error requesting auth code", e);
         }
 
-        let result =
-            await this.clientApplication.acquireTokenByCode(authCodeRequest);
+        let result = await this.clientApplication.acquireTokenByCode(authCodeRequest);
         if (!result) {
             this.logger.error("Failed to acquireTokenByCode");
-            this.logger.error(
-                `Auth Code Request: ${JSON.stringify(authCodeRequest)}`,
-            );
+            this.logger.error(`Auth Code Request: ${JSON.stringify(authCodeRequest)}`);
             throw Error("Failed to fetch token using auth code");
         } else {
             return {
@@ -174,19 +166,15 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         };
 
         server.on("/landing.css", (req, reqUrl, res) => {
-            sendFile(
-                res,
-                path.join(mediaPath, "landing.css"),
-                "text/css; charset=utf-8",
-            ).catch(this.logger.error);
+            sendFile(res, path.join(mediaPath, "landing.css"), "text/css; charset=utf-8").catch(
+                this.logger.error,
+            );
         });
 
         server.on("/SignIn.svg", (req, reqUrl, res) => {
-            sendFile(
-                res,
-                path.join(mediaPath, "SignIn.svg"),
-                "image/svg+xml",
-            ).catch(this.logger.error);
+            sendFile(res, path.join(mediaPath, "SignIn.svg"), "image/svg+xml").catch(
+                this.logger.error,
+            );
         });
 
         server.on("/signin", (req, reqUrl, res) => {
@@ -265,8 +253,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
 
     private async createCryptoValuesMsal(): Promise<void> {
         this.pkceCodes.nonce = this.cryptoProvider.createNewGuid();
-        const { verifier, challenge } =
-            await this.cryptoProvider.generatePkceCodes();
+        const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
         this.pkceCodes.codeVerifier = verifier;
         this.pkceCodes.codeChallenge = challenge;
     }

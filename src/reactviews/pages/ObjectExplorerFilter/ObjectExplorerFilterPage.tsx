@@ -78,9 +78,7 @@ export const useStyles = makeStyles({
 export const ObjectExplorerFilterPage = () => {
     const classes = useStyles();
     const provider = useContext(ObjectExplorerFilterContext);
-    const [errorMessage, setErrorMessage] = useState<string | undefined>(
-        undefined,
-    );
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
     const AND = locConstants.objectExplorerFiltering.and;
@@ -93,17 +91,13 @@ export const ObjectExplorerFilterPage = () => {
     const EQUALS = locConstants.objectExplorerFiltering.equals;
     const NOT_EQUALS = locConstants.objectExplorerFiltering.notEquals;
     const LESS_THAN = locConstants.objectExplorerFiltering.lessThan;
-    const LESS_THAN_OR_EQUALS =
-        locConstants.objectExplorerFiltering.lessThanOrEquals;
+    const LESS_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.lessThanOrEquals;
     const GREATER_THAN = locConstants.objectExplorerFiltering.greaterThan;
-    const GREATER_THAN_OR_EQUALS =
-        locConstants.objectExplorerFiltering.greaterThanOrEquals;
+    const GREATER_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.greaterThanOrEquals;
     const BETWEEN = locConstants.objectExplorerFiltering.between;
     const NOT_BETWEEN = locConstants.objectExplorerFiltering.notBetween;
 
-    function getFilterOperatorString(
-        operator: NodeFilterOperator | undefined,
-    ): string | undefined {
+    function getFilterOperatorString(operator: NodeFilterOperator | undefined): string | undefined {
         if (operator === undefined) {
             return undefined;
         }
@@ -176,9 +170,7 @@ export const ObjectExplorerFilterPage = () => {
         }
     }
 
-    function getFilterOperators(
-        property: vscodeMssql.NodeFilterProperty,
-    ): string[] {
+    function getFilterOperators(property: vscodeMssql.NodeFilterProperty): string[] {
         switch (property.type) {
             case NodeFilterPropertyDataType.Boolean:
                 return [EQUALS, NOT_EQUALS];
@@ -223,9 +215,7 @@ export const ObjectExplorerFilterPage = () => {
     }
 
     function getFilterChoices(
-        property:
-            | vscodeMssql.NodeFilterChoiceProperty
-            | vscodeMssql.NodeFilterProperty,
+        property: vscodeMssql.NodeFilterChoiceProperty | vscodeMssql.NodeFilterProperty,
     ):
         | {
               name: string;
@@ -234,9 +224,7 @@ export const ObjectExplorerFilterPage = () => {
         | undefined {
         switch (property.type) {
             case NodeFilterPropertyDataType.Choice:
-                return (
-                    property as vscodeMssql.NodeFilterChoiceProperty
-                ).choices.map((choice) => {
+                return (property as vscodeMssql.NodeFilterChoiceProperty).choices.map((choice) => {
                     return {
                         name: choice.value,
                         displayName: choice.displayName!,
@@ -283,8 +271,7 @@ export const ObjectExplorerFilterPage = () => {
                         selectedOperator:
                             filter === undefined
                                 ? getFilterOperators(value)[0]
-                                : (getFilterOperatorString(filter?.operator) ??
-                                  ""),
+                                : (getFilterOperatorString(filter?.operator) ?? ""),
                         description: value.description,
                     };
                 }) ?? [],
@@ -296,10 +283,7 @@ export const ObjectExplorerFilterPage = () => {
         setErrorMessage(undefined);
     }, [provider?.state?.filterProperties]);
 
-    function renderCell(
-        columnId: TableColumnId,
-        item: ObjectExplorerPageFilter,
-    ) {
+    function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
         switch (columnId) {
             case "property":
                 return (
@@ -317,39 +301,24 @@ export const ObjectExplorerFilterPage = () => {
                             value={item.selectedOperator ?? ""}
                             selectedOptions={[item.selectedOperator]}
                             onOptionSelect={(_e, d) => {
-                                uiFilters[item.index].selectedOperator =
-                                    d.optionValue!;
+                                uiFilters[item.index].selectedOperator = d.optionValue!;
                                 // Check if the value is an array and set it to an empty array if it is
-                                if (
-                                    d.optionValue === BETWEEN ||
-                                    d.optionValue === NOT_BETWEEN
-                                ) {
-                                    if (
-                                        !Array.isArray(
-                                            uiFilters[item.index].value,
-                                        )
-                                    ) {
+                                if (d.optionValue === BETWEEN || d.optionValue === NOT_BETWEEN) {
+                                    if (!Array.isArray(uiFilters[item.index].value)) {
                                         uiFilters[item.index].value = [
-                                            uiFilters[item.index]
-                                                .value as string,
+                                            uiFilters[item.index].value as string,
                                             "",
                                         ];
                                     }
                                 } else {
-                                    if (
-                                        Array.isArray(
-                                            uiFilters[item.index].value,
-                                        )
-                                    ) {
+                                    if (Array.isArray(uiFilters[item.index].value)) {
                                         uiFilters[item.index].value = (
-                                            uiFilters[item.index]
-                                                .value as string[]
+                                            uiFilters[item.index].value as string[]
                                         )[0];
                                     }
                                 }
                                 setUiFilters([...uiFilters]);
-                            }}
-                        >
+                            }}>
                             {item.operatorOptions.map((option) => {
                                 return (
                                     <Option key={option} value={option}>
@@ -396,10 +365,7 @@ export const ObjectExplorerFilterPage = () => {
                                         className={classes.inputs}
                                         value={(item.value as string[])[0]}
                                         onChange={(_e, d) => {
-                                            (
-                                                uiFilters[item.index]
-                                                    .value as string[]
-                                            )[0] = d.value;
+                                            (uiFilters[item.index].value as string[])[0] = d.value;
                                             setUiFilters([...uiFilters]);
                                         }}
                                     />
@@ -409,10 +375,7 @@ export const ObjectExplorerFilterPage = () => {
                                         className={classes.inputs}
                                         value={(item.value as string[])[1]}
                                         onChange={(_e, d) => {
-                                            (
-                                                uiFilters[item.index]
-                                                    .value as string[]
-                                            )[1] = d.value;
+                                            (uiFilters[item.index].value as string[])[1] = d.value;
                                             setUiFilters([...uiFilters]);
                                         }}
                                     />
@@ -442,17 +405,12 @@ export const ObjectExplorerFilterPage = () => {
                                 className={classes.inputs}
                                 value={item.value as string}
                                 onOptionSelect={(_e, d) => {
-                                    uiFilters[item.index].value =
-                                        d.optionText ?? "";
+                                    uiFilters[item.index].value = d.optionText ?? "";
                                     setUiFilters([...uiFilters]);
-                                }}
-                            >
+                                }}>
                                 {item.choices!.map((choice) => {
                                     return (
-                                        <Option
-                                            key={choice.name}
-                                            value={choice.name}
-                                        >
+                                        <Option key={choice.name} value={choice.name}>
                                             {choice.displayName}
                                         </Option>
                                     );
@@ -470,10 +428,8 @@ export const ObjectExplorerFilterPage = () => {
                             icon={<EraserRegular />}
                             onClick={() => {
                                 if (
-                                    uiFilters[item.index].selectedOperator ===
-                                        BETWEEN ||
-                                    uiFilters[item.index].selectedOperator ===
-                                        NOT_BETWEEN
+                                    uiFilters[item.index].selectedOperator === BETWEEN ||
+                                    uiFilters[item.index].selectedOperator === NOT_BETWEEN
                                 ) {
                                     uiFilters[item.index].value = ["", ""];
                                 } else {
@@ -514,8 +470,7 @@ export const ObjectExplorerFilterPage = () => {
         }),
     ];
 
-    const [columns] =
-        useState<TableColumnDefinition<ObjectExplorerPageFilter>[]>(columnsDef);
+    const [columns] = useState<TableColumnDefinition<ObjectExplorerPageFilter>[]>(columnsDef);
 
     const sizingOptions: TableColumnSizingOptions = {
         property: {
@@ -540,16 +495,14 @@ export const ObjectExplorerFilterPage = () => {
         },
     };
 
-    const [columnSizingOptions] =
-        useState<TableColumnSizingOptions>(sizingOptions);
-    const { getRows, columnSizing_unstable, tableRef } =
-        useTableFeatures<ObjectExplorerPageFilter>(
-            {
-                columns: columns,
-                items: uiFilters,
-            },
-            [useTableColumnSizing_unstable({ columnSizingOptions })],
-        );
+    const [columnSizingOptions] = useState<TableColumnSizingOptions>(sizingOptions);
+    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures<ObjectExplorerPageFilter>(
+        {
+            columns: columns,
+            items: uiFilters,
+        },
+        [useTableColumnSizing_unstable({ columnSizingOptions })],
+    );
     const rows = getRows();
     if (!provider) {
         return undefined;
@@ -558,9 +511,7 @@ export const ObjectExplorerFilterPage = () => {
         <div className={classes.root}>
             <Text size={400}>{l10n.t("Filter Settings")}</Text>
             <Body1Strong>
-                {locConstants.objectExplorerFiltering.path(
-                    provider?.state?.nodePath!,
-                )}
+                {locConstants.objectExplorerFiltering.path(provider?.state?.nodePath!)}
             </Body1Strong>
             {errorMessage && errorMessage !== "" && (
                 <MessageBar intent={"error"}>
@@ -576,8 +527,7 @@ export const ObjectExplorerFilterPage = () => {
                 as="table"
                 size="small"
                 {...columnSizing_unstable.getTableProps()}
-                ref={tableRef}
-            >
+                ref={tableRef}>
                 <TableHeader>
                     <TableRow>
                         {columns.map((column) => {
@@ -586,8 +536,7 @@ export const ObjectExplorerFilterPage = () => {
                                     key={column.columnId}
                                     {...columnSizing_unstable.getTableHeaderCellProps(
                                         column.columnId,
-                                    )}
-                                >
+                                    )}>
                                     {column.renderHeaderCell()}
                                 </TableHeaderCell>
                             );
@@ -604,12 +553,8 @@ export const ObjectExplorerFilterPage = () => {
                                             key={column.columnId}
                                             {...columnSizing_unstable.getTableHeaderCellProps(
                                                 column.columnId,
-                                            )}
-                                        >
-                                            {renderCell(
-                                                column.columnId,
-                                                uiFilters[index],
-                                            )}
+                                            )}>
+                                            {renderCell(column.columnId, uiFilters[index])}
                                         </TableCell>
                                     );
                                 })}
@@ -625,8 +570,7 @@ export const ObjectExplorerFilterPage = () => {
                     justifyContent: "space-between",
                     marginTop: "10px",
                     maxWidth: "300px",
-                }}
-            >
+                }}>
                 <Button
                     appearance="secondary"
                     onClick={() => {
@@ -641,16 +585,14 @@ export const ObjectExplorerFilterPage = () => {
                             }
                         }
                         setUiFilters([...uiFilters]);
-                    }}
-                >
+                    }}>
                     {locConstants.objectExplorerFiltering.clearAll}
                 </Button>
                 <Button
                     appearance="secondary"
                     onClick={() => {
                         provider.cancel();
-                    }}
-                >
+                    }}>
                     {locConstants.common.close}
                 </Button>
                 <Button
@@ -661,18 +603,12 @@ export const ObjectExplorerFilterPage = () => {
                                 let value = undefined;
                                 switch (f.type) {
                                     case NodeFilterPropertyDataType.Boolean:
-                                        if (
-                                            f.value === "" ||
-                                            f.value === undefined
-                                        ) {
+                                        if (f.value === "" || f.value === undefined) {
                                             value = undefined;
                                         } else {
                                             value =
-                                                f.choices?.find(
-                                                    (c) =>
-                                                        c.displayName ===
-                                                        f.value,
-                                                )?.name ?? undefined;
+                                                f.choices?.find((c) => c.displayName === f.value)
+                                                    ?.name ?? undefined;
                                         }
                                         break;
                                     case NodeFilterPropertyDataType.Number:
@@ -680,9 +616,7 @@ export const ObjectExplorerFilterPage = () => {
                                             f.selectedOperator === BETWEEN ||
                                             f.selectedOperator === NOT_BETWEEN
                                         ) {
-                                            value = (f.value as string[]).map(
-                                                (v) => Number(v),
-                                            );
+                                            value = (f.value as string[]).map((v) => Number(v));
                                         } else {
                                             value = Number(f.value);
                                         }
@@ -692,27 +626,19 @@ export const ObjectExplorerFilterPage = () => {
                                         value = f.value;
                                         break;
                                     case NodeFilterPropertyDataType.Choice:
-                                        if (
-                                            f.value === "" ||
-                                            f.value === undefined
-                                        ) {
+                                        if (f.value === "" || f.value === undefined) {
                                             value = undefined;
                                         } else {
                                             value =
-                                                f.choices?.find(
-                                                    (c) =>
-                                                        c.displayName ===
-                                                        f.value,
-                                                )?.name ?? undefined;
+                                                f.choices?.find((c) => c.displayName === f.value)
+                                                    ?.name ?? undefined;
                                         }
                                         break;
                                 }
                                 return {
                                     name: f.name,
                                     value: value!,
-                                    operator: getFilterOperatorEnum(
-                                        f.selectedOperator,
-                                    ),
+                                    operator: getFilterOperatorEnum(f.selectedOperator),
                                 };
                             })
                             .filter((f) => {
@@ -731,39 +657,27 @@ export const ObjectExplorerFilterPage = () => {
                         let errorText = "";
                         for (let filter of filters) {
                             if (
-                                filter.operator ===
-                                    NodeFilterOperator.Between ||
-                                filter.operator ===
-                                    NodeFilterOperator.NotBetween
+                                filter.operator === NodeFilterOperator.Between ||
+                                filter.operator === NodeFilterOperator.NotBetween
                             ) {
-                                let value1 = (
-                                    filter.value as string[] | number[]
-                                )[0];
-                                let value2 = (
-                                    filter.value as string[] | number[]
-                                )[1];
+                                let value1 = (filter.value as string[] | number[])[0];
+                                let value2 = (filter.value as string[] | number[])[1];
                                 if (!value1 && value2) {
                                     errorText =
                                         locConstants.objectExplorerFiltering.firstValueEmptyError(
-                                            getFilterOperatorString(
-                                                filter.operator,
-                                            )!,
+                                            getFilterOperatorString(filter.operator)!,
                                             filter.name,
                                         );
                                 } else if (!value2 && value1) {
                                     errorText =
                                         locConstants.objectExplorerFiltering.secondValueEmptyError(
-                                            getFilterOperatorString(
-                                                filter.operator,
-                                            )!,
+                                            getFilterOperatorString(filter.operator)!,
                                             filter.name,
                                         );
                                 } else if (value1 > value2) {
                                     errorText =
                                         locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
-                                            getFilterOperatorString(
-                                                filter.operator,
-                                            )!,
+                                            getFilterOperatorString(filter.operator)!,
                                             filter.name,
                                         );
                                 }
@@ -774,8 +688,7 @@ export const ObjectExplorerFilterPage = () => {
                             return;
                         }
                         provider.submit(filters);
-                    }}
-                >
+                    }}>
                     {locConstants.objectExplorerFiltering.ok}
                 </Button>
             </div>

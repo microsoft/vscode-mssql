@@ -7,9 +7,7 @@ import DecompressProvider from "../../src/languageservice/decompressProvider";
 import { IPackage, IStatusView } from "../../src/languageservice/interfaces";
 import { ILogger } from "../../src/models/interfaces";
 import { assert } from "chai";
-import HttpClient, {
-    IDownloadProgress,
-} from "../../src/languageservice/httpClient";
+import HttpClient, { IDownloadProgress } from "../../src/languageservice/httpClient";
 
 suite("Language Service Tests", () => {
     suite("Decompress Provider Tests", () => {
@@ -57,9 +55,7 @@ suite("Language Service Tests", () => {
                 installingService: () => undefined,
                 serviceInstalled: () => undefined,
                 serviceInstallationFailed: () => undefined,
-                updateServiceDownloadingProgress: (
-                    downloadPercentage: number,
-                ) => undefined,
+                updateServiceDownloadingProgress: (downloadPercentage: number) => undefined,
             };
             httpClient.handleDataReceivedEvent(
                 mockProgress,

@@ -6,10 +6,7 @@
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
-import {
-    TelemetryViews,
-    TelemetryActions,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     createExecutionPlanGraphs,
@@ -29,10 +26,7 @@ export function getNewResultPaneViewColumn(
     vscodeWrapper: VscodeWrapper,
 ): vscode.ViewColumn {
     // // Find configuration options
-    let config = vscodeWrapper.getConfiguration(
-        Constants.extensionConfigSectionName,
-        uri,
-    );
+    let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, uri);
     let splitPaneSelection = config[Constants.configSplitPaneSelection];
     let viewColumn: vscode.ViewColumn;
 
@@ -62,9 +56,7 @@ export function getNewResultPaneViewColumn(
 }
 
 export function registerCommonRequestHandlers(
-    webviewController:
-        | QueryResultWebviewController
-        | QueryResultWebviewPanelController,
+    webviewController: QueryResultWebviewController | QueryResultWebviewPanelController,
     correlationId: string,
 ) {
     let webviewViewController: QueryResultWebviewController =
@@ -82,31 +74,26 @@ export function registerCommonRequestHandlers(
                 message.rowStart,
                 message.numberOfRows,
             );
-        let currentState = webviewViewController.getQueryResultState(
-            message.uri,
-        );
+        let currentState = webviewViewController.getQueryResultState(message.uri);
         if (
             currentState.isExecutionPlan &&
             currentState.resultSetSummaries[message.batchId] &&
             // check if the current result set is the result set that contains the xml plan
-            currentState.resultSetSummaries[message.batchId][message.resultId]
-                .columnInfo[0].columnName === Constants.showPlanXmlColumnName
+            currentState.resultSetSummaries[message.batchId][message.resultId].columnInfo[0]
+                .columnName === Constants.showPlanXmlColumnName
         ) {
-            currentState.executionPlanState.xmlPlans[
-                `${message.batchId},${message.resultId}`
-            ] = result.rows[0][0].displayValue;
+            currentState.executionPlanState.xmlPlans[`${message.batchId},${message.resultId}`] =
+                result.rows[0][0].displayValue;
         }
         // if we are on the last result set and still don't have any xml plans
         // then we should not show the query plan. for example, this happens
         // if user runs actual plan with all print statements
         else if (
             // check that we're on the last batch
-            message.batchId ===
-                recordLength(currentState.resultSetSummaries) - 1 &&
+            message.batchId === recordLength(currentState.resultSetSummaries) - 1 &&
             // check that we're on the last result within the batch
             message.resultId ===
-                recordLength(currentState.resultSetSummaries[message.batchId]) -
-                    1 &&
+                recordLength(currentState.resultSetSummaries[message.batchId]) - 1 &&
             // check that there's we have no xml plans
             (!currentState.executionPlanState?.xmlPlans ||
                 !recordLength(currentState.executionPlanState.xmlPlans))
@@ -117,35 +104,25 @@ export function registerCommonRequestHandlers(
         webviewViewController.setQueryResultState(message.uri, currentState);
         return result;
     });
-    webviewController.registerRequestHandler(
-        "setEditorSelection",
-        async (message) => {
-            if (!message.uri || !message.selectionData) {
-                console.warn(
-                    `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
-                );
-                return;
-            }
+    webviewController.registerRequestHandler("setEditorSelection", async (message) => {
+        if (!message.uri || !message.selectionData) {
+            console.warn(
+                `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
+            );
+            return;
+        }
 
-            return await webviewViewController
-                .getSqlOutputContentProvider()
-                .editorSelectionRequestHandler(
-                    message.uri,
-                    message.selectionData,
-                );
-        },
-    );
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .editorSelectionRequestHandler(message.uri, message.selectionData);
+    });
     webviewController.registerRequestHandler("saveResults", async (message) => {
-        sendActionEvent(
-            TelemetryViews.QueryResult,
-            TelemetryActions.SaveResults,
-            {
-                correlationId: correlationId,
-                format: message.format,
-                selection: message.selection,
-                origin: message.origin,
-            },
-        );
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.SaveResults, {
+            correlationId: correlationId,
+            format: message.format,
+            selection: message.selection,
+            origin: message.origin,
+        });
         return await webviewViewController
             .getSqlOutputContentProvider()
             .saveResultsRequestHandler(
@@ -157,82 +134,55 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler(
-        "sendToClipboard",
-        async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CopyResults,
-                {
-                    correlationId: correlationId,
-                },
+    webviewController.registerRequestHandler("sendToClipboard", async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+        });
+        return webviewViewController
+            .getSqlOutputContentProvider()
+            .sendToClipboard(
+                message.uri,
+                message.data,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.headersFlag,
             );
-            return webviewViewController
-                .getSqlOutputContentProvider()
-                .sendToClipboard(
-                    message.uri,
-                    message.data,
-                    message.batchId,
-                    message.resultId,
-                    message.selection,
-                    message.headersFlag,
-                );
-        },
-    );
+    });
 
-    webviewController.registerRequestHandler(
-        "copySelection",
-        async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CopyResults,
-                {
-                    correlationId: correlationId,
-                },
+    webviewController.registerRequestHandler("copySelection", async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                false,
             );
-            return await webviewViewController
-                .getSqlOutputContentProvider()
-                .copyRequestHandler(
-                    message.uri,
-                    message.batchId,
-                    message.resultId,
-                    message.selection,
-                    false,
-                );
-        },
-    );
-    webviewController.registerRequestHandler(
-        "copyWithHeaders",
-        async (message) => {
-            sendActionEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CopyResultsHeaders,
-                {
-                    correlationId: correlationId,
-                    format: undefined,
-                    selection: undefined,
-                    origin: undefined,
-                },
-            );
-            return await webviewViewController
-                .getSqlOutputContentProvider()
-                .copyRequestHandler(
-                    message.uri,
-                    message.batchId,
-                    message.resultId,
-                    message.selection,
-                    true, //copy headers flag
-                );
-        },
-    );
-    webviewController.registerRequestHandler("copyHeaders", async (message) => {
-        sendActionEvent(
-            TelemetryViews.QueryResult,
-            TelemetryActions.CopyHeaders,
-            {
-                correlationId: correlationId,
-            },
+    });
+    webviewController.registerRequestHandler("copyWithHeaders", async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResultsHeaders, {
+            correlationId: correlationId,
+            format: undefined,
+            selection: undefined,
+            origin: undefined,
+        });
+        return await webviewViewController.getSqlOutputContentProvider().copyRequestHandler(
+            message.uri,
+            message.batchId,
+            message.resultId,
+            message.selection,
+            true, //copy headers flag
         );
+    });
+    webviewController.registerRequestHandler("copyHeaders", async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
+            correlationId: correlationId,
+        });
         return await webviewViewController
             .getSqlOutputContentProvider()
             .copyHeadersRequestHandler(
@@ -253,89 +203,63 @@ export function registerCommonRequestHandlers(
         return true;
     });
 
-    webviewController.registerRequestHandler(
-        "deleteFilter",
-        async (message) => {
-            store.delete(message.uri);
-            return true;
-        },
-    );
+    webviewController.registerRequestHandler("deleteFilter", async (message) => {
+        store.delete(message.uri);
+        return true;
+    });
 
-    webviewController.registerReducer(
-        "setResultTab",
-        async (state, payload) => {
-            state.tabStates.resultPaneTab = payload.tabId;
-            return state;
-        },
-    );
-    webviewController.registerReducer(
-        "getExecutionPlan",
-        async (state, payload) => {
-            // because this is an overridden call, this makes sure it is being
-            // called properly
-            if (!("uri" in payload)) return state;
+    webviewController.registerReducer("setResultTab", async (state, payload) => {
+        state.tabStates.resultPaneTab = payload.tabId;
+        return state;
+    });
+    webviewController.registerReducer("getExecutionPlan", async (state, payload) => {
+        // because this is an overridden call, this makes sure it is being
+        // called properly
+        if (!("uri" in payload)) return state;
 
-            const currentResultState =
-                webviewViewController.getQueryResultState(payload.uri);
-            // Ensure execution plan state exists and execution plan graphs have not loaded
-            if (
-                currentResultState.executionPlanState &&
-                currentResultState.executionPlanState.executionPlanGraphs
-                    .length === 0 &&
-                // Check for non-empty XML plans and result summaries
-                recordLength(currentResultState.executionPlanState.xmlPlans) &&
-                recordLength(currentResultState.resultSetSummaries) &&
-                // Verify XML plans match expected number of result sets
-                recordLength(currentResultState.executionPlanState.xmlPlans) ===
-                    webviewViewController.getNumExecutionPlanResultSets(
-                        currentResultState.resultSetSummaries,
-                        currentResultState.actualPlanEnabled,
-                    )
-            ) {
-                state = (await createExecutionPlanGraphs(
-                    state,
-                    webviewViewController.getExecutionPlanService(),
-                    Object.values(
-                        currentResultState.executionPlanState.xmlPlans,
-                    ),
-                    "QueryResults",
-                )) as qr.QueryResultWebviewState;
-                state.executionPlanState.loadState = ApiStatus.Loaded;
-                state.tabStates.resultPaneTab =
-                    qr.QueryResultPaneTabs.ExecutionPlan;
-            }
-
-            return state;
-        },
-    );
-    webviewController.registerReducer(
-        "openFileThroughLink",
-        async (state, payload) => {
-            // TO DO: add formatting? ADS doesn't do this, but it may be nice...
-            const newDoc = await vscode.workspace.openTextDocument({
-                content: payload.content,
-                language: payload.type,
-            });
-
-            void vscode.window.showTextDocument(newDoc);
-
-            return state;
-        },
-    );
-    webviewController.registerReducer(
-        "saveExecutionPlan",
-        async (state, payload) => {
-            return (await saveExecutionPlan(
+        const currentResultState = webviewViewController.getQueryResultState(payload.uri);
+        // Ensure execution plan state exists and execution plan graphs have not loaded
+        if (
+            currentResultState.executionPlanState &&
+            currentResultState.executionPlanState.executionPlanGraphs.length === 0 &&
+            // Check for non-empty XML plans and result summaries
+            recordLength(currentResultState.executionPlanState.xmlPlans) &&
+            recordLength(currentResultState.resultSetSummaries) &&
+            // Verify XML plans match expected number of result sets
+            recordLength(currentResultState.executionPlanState.xmlPlans) ===
+                webviewViewController.getNumExecutionPlanResultSets(
+                    currentResultState.resultSetSummaries,
+                    currentResultState.actualPlanEnabled,
+                )
+        ) {
+            state = (await createExecutionPlanGraphs(
                 state,
-                payload,
+                webviewViewController.getExecutionPlanService(),
+                Object.values(currentResultState.executionPlanState.xmlPlans),
+                "QueryResults",
             )) as qr.QueryResultWebviewState;
-        },
-    );
+            state.executionPlanState.loadState = ApiStatus.Loaded;
+            state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
+        }
+
+        return state;
+    });
+    webviewController.registerReducer("openFileThroughLink", async (state, payload) => {
+        // TO DO: add formatting? ADS doesn't do this, but it may be nice...
+        const newDoc = await vscode.workspace.openTextDocument({
+            content: payload.content,
+            language: payload.type,
+        });
+
+        void vscode.window.showTextDocument(newDoc);
+
+        return state;
+    });
+    webviewController.registerReducer("saveExecutionPlan", async (state, payload) => {
+        return (await saveExecutionPlan(state, payload)) as qr.QueryResultWebviewState;
+    });
     webviewController.registerReducer("showPlanXml", async (state, payload) => {
-        return (await showPlanXml(
-            state,
-            payload,
-        )) as qr.QueryResultWebviewState;
+        return (await showPlanXml(state, payload)) as qr.QueryResultWebviewState;
     });
     webviewController.registerReducer("showQuery", async (state, payload) => {
         return (await showQuery(
@@ -344,15 +268,9 @@ export function registerCommonRequestHandlers(
             webviewViewController.getUntitledDocumentService(),
         )) as qr.QueryResultWebviewState;
     });
-    webviewController.registerReducer(
-        "updateTotalCost",
-        async (state, payload) => {
-            return (await updateTotalCost(
-                state,
-                payload,
-            )) as qr.QueryResultWebviewState;
-        },
-    );
+    webviewController.registerReducer("updateTotalCost", async (state, payload) => {
+        return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
+    });
 }
 
 export function recordLength(record: any): number {

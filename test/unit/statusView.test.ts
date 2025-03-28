@@ -18,16 +18,11 @@ suite("Status View Tests", () => {
                 return currentStatus;
             };
             let actualStatusMessage = "";
-            let expectedStatusMessage =
-                LocalizedConstants.gettingDefinitionMessage;
+            let expectedStatusMessage = LocalizedConstants.gettingDefinitionMessage;
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
-            statusView.updateStatusMessage(
-                newStatus,
-                getCurrentStatus,
-                updateMessage,
-            );
+            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, "");
             setTimeout(() => {
                 assert.equal(actualStatusMessage, expectedStatusMessage);
@@ -41,8 +36,7 @@ suite("Status View Tests", () => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
             let newStatus = LocalizedConstants.definitionRequestedStatus;
-            let currentStatus =
-                LocalizedConstants.definitionRequestCompletedStatus;
+            let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
             let getCurrentStatus = () => {
                 return currentStatus;
             };
@@ -51,11 +45,7 @@ suite("Status View Tests", () => {
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
-            statusView.updateStatusMessage(
-                newStatus,
-                getCurrentStatus,
-                updateMessage,
-            );
+            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, "");
             setTimeout(() => {
                 assert.equal(actualStatusMessage, expectedStatusMessage);
@@ -69,8 +59,7 @@ suite("Status View Tests", () => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
             let newStatus = LocalizedConstants.definitionRequestCompletedStatus;
-            let currentStatus =
-                LocalizedConstants.definitionRequestCompletedStatus;
+            let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
             let getCurrentStatus = () => {
                 return currentStatus;
             };
@@ -79,11 +68,7 @@ suite("Status View Tests", () => {
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
-            statusView.updateStatusMessage(
-                newStatus,
-                getCurrentStatus,
-                updateMessage,
-            );
+            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, expectedStatusMessage);
             statusView.dispose();
             done();
@@ -99,16 +84,11 @@ suite("Status View Tests", () => {
                 return currentStatus;
             };
             let actualStatusMessage = "";
-            let expectedStatusMessage =
-                LocalizedConstants.updatingIntelliSenseLabel;
+            let expectedStatusMessage = LocalizedConstants.updatingIntelliSenseLabel;
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
-            statusView.updateStatusMessage(
-                newStatus,
-                getCurrentStatus,
-                updateMessage,
-            );
+            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, expectedStatusMessage);
             statusView.dispose();
             done();
@@ -128,11 +108,7 @@ suite("Status View Tests", () => {
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
-            statusView.updateStatusMessage(
-                newStatus,
-                getCurrentStatus,
-                updateMessage,
-            );
+            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, expectedStatusMessage);
             statusView.dispose();
             done();

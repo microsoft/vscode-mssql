@@ -25,10 +25,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
             deploymentOptions: deploymentOptions,
         };
 
-        return this._client.sendRequest(
-            schemaCompareContracts.SchemaCompareRequest.type,
-            params,
-        );
+        return this._client.sendRequest(schemaCompareContracts.SchemaCompareRequest.type, params);
     }
 
     public generateScript(
@@ -64,8 +61,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         };
 
         return this._client.sendRequest(
-            schemaCompareContracts.SchemaComparePublishDatabaseChangesRequest
-                .type,
+            schemaCompareContracts.SchemaComparePublishDatabaseChangesRequest.type,
             params,
         );
     }
@@ -84,8 +80,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         };
 
         return this._client.sendRequest(
-            schemaCompareContracts.SchemaComparePublishProjectChangesRequest
-                .type,
+            schemaCompareContracts.SchemaComparePublishProjectChangesRequest.type,
             params,
         );
     }
@@ -118,9 +113,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
-    public openScmp(
-        filePath: string,
-    ): Thenable<mssql.SchemaCompareOpenScmpResult> {
+    public openScmp(filePath: string): Thenable<mssql.SchemaCompareOpenScmpResult> {
         const params: mssql.SchemaCompareOpenScmpParams = {
             filePath: filePath,
         };

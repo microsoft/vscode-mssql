@@ -23,8 +23,7 @@ export const authSection = "auth";
 
 export const azureSection = "azure";
 
-export const azureAccountProviderCredentials =
-    "azureAccountProviderCredentials";
+export const azureAccountProviderCredentials = "azureAccountProviderCredentials";
 
 export const cloudSection = "cloud";
 
@@ -40,20 +39,15 @@ export const sqlAuthProviderSection = "enableSqlAuthenticationProvider";
 
 export const enableConnectionPoolingSection = "enableConnectionPooling";
 
-export const mssqlAuthenticationProviderConfig =
-    mssqlSection + "." + sqlAuthProviderSection;
+export const mssqlAuthenticationProviderConfig = mssqlSection + "." + sqlAuthProviderSection;
 
-export const accountsClearTokenCacheCommand =
-    accountsSection + "." + clearTokenCacheCommand;
+export const accountsClearTokenCacheCommand = accountsSection + "." + clearTokenCacheCommand;
 
-export const accountsAzureAuthSection =
-    accountsSection + "." + azureSection + "." + authSection;
+export const accountsAzureAuthSection = accountsSection + "." + azureSection + "." + authSection;
 
-export const accountsAzureCloudSection =
-    accountsSection + "." + azureSection + "." + cloudSection;
+export const accountsAzureCloudSection = accountsSection + "." + azureSection + "." + cloudSection;
 
-export const azureTenantConfigSection =
-    azureSection + "." + tenantSection + "." + configSection;
+export const azureTenantConfigSection = azureSection + "." + tenantSection + "." + configSection;
 
 export const oldMsalCacheFileName = "azureTokenCacheMsal-azure_publicCloud";
 
@@ -149,8 +143,7 @@ export enum ProxyStatus {
  */
 export const constants = {
     MSAL_SKU: "msal.js.node",
-    JWT_BEARER_ASSERTION_TYPE:
-        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    JWT_BEARER_ASSERTION_TYPE: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     AUTHORIZATION_PENDING: "authorization_pending",
     HTTP_PROTOCOL: "http://",
     LOCALHOST: "localhost",

@@ -28,32 +28,28 @@ export const ConnectionFormPage = () => {
 
     return (
         <div>
-            {context.state.connectionComponents.mainOptions.map(
-                (inputName, idx) => {
-                    const component =
-                        context.state.formComponents[
-                            inputName as keyof IConnectionDialogProfile
-                        ];
-                    if (component?.hidden !== false) {
-                        return undefined;
-                    }
+            {context.state.connectionComponents.mainOptions.map((inputName, idx) => {
+                const component =
+                    context.state.formComponents[inputName as keyof IConnectionDialogProfile];
+                if (component?.hidden !== false) {
+                    return undefined;
+                }
 
-                    return (
-                        <FormField<
-                            IConnectionDialogProfile,
-                            ConnectionDialogWebviewState,
-                            ConnectionDialogFormItemSpec,
-                            ConnectionDialogContextProps
-                        >
-                            key={idx}
-                            context={context}
-                            component={component}
-                            idx={idx}
-                            props={{ orientation: "horizontal" }}
-                        />
-                    );
-                },
-            )}
+                return (
+                    <FormField<
+                        IConnectionDialogProfile,
+                        ConnectionDialogWebviewState,
+                        ConnectionDialogFormItemSpec,
+                        ConnectionDialogContextProps
+                    >
+                        key={idx}
+                        context={context}
+                        component={component}
+                        idx={idx}
+                        props={{ orientation: "horizontal" }}
+                    />
+                );
+            })}
             <AdvancedOptionsDrawer
                 isAdvancedDrawerOpen={isAdvancedDrawerOpen}
                 setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
@@ -63,8 +59,7 @@ export const ConnectionFormPage = () => {
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}
-                    className={formStyles.formNavTrayButton}
-                >
+                    className={formStyles.formNavTrayButton}>
                     {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>

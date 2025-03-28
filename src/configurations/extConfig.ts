@@ -31,27 +31,19 @@ export default class ExtConfig implements IConfig {
     }
 
     public getSqlToolsServiceDownloadUrl(): string {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceDownloadUrlConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceDownloadUrlConfigKey);
     }
 
     public getSqlToolsInstallDirectory(): string {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceInstallDirConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceInstallDirConfigKey);
     }
 
     public getSqlToolsExecutableFiles(): string[] {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceExecutableFilesConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceExecutableFilesConfigKey);
     }
 
     public getSqlToolsPackageVersion(): string {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceVersionConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }
 
     public useServiceVersion(version: number): void {
@@ -64,9 +56,7 @@ export default class ExtConfig implements IConfig {
 
     public getSqlToolsConfigValue(configKey: string): any {
         let configValue: string = <string>(
-            this.getExtensionConfig(
-                `${Constants.sqlToolsServiceConfigKey}.${configKey}`,
-            )
+            this.getExtensionConfig(`${Constants.sqlToolsServiceConfigKey}.${configKey}`)
         );
         if (!configValue) {
             configValue = this._config.getSqlToolsConfigValue(configKey);

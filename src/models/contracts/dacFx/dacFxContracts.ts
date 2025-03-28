@@ -7,39 +7,27 @@ import { RequestType } from "vscode-languageclient";
 import * as mssql from "vscode-mssql";
 
 export namespace ExportRequest {
-    export const type = new RequestType<
-        mssql.ExportParams,
-        mssql.DacFxResult,
-        void,
-        void
-    >("dacfx/export");
+    export const type = new RequestType<mssql.ExportParams, mssql.DacFxResult, void, void>(
+        "dacfx/export",
+    );
 }
 
 export namespace ImportRequest {
-    export const type = new RequestType<
-        mssql.ImportParams,
-        mssql.DacFxResult,
-        void,
-        void
-    >("dacfx/import");
+    export const type = new RequestType<mssql.ImportParams, mssql.DacFxResult, void, void>(
+        "dacfx/import",
+    );
 }
 
 export namespace ExtractRequest {
-    export const type = new RequestType<
-        mssql.ExtractParams,
-        mssql.DacFxResult,
-        void,
-        void
-    >("dacfx/extract");
+    export const type = new RequestType<mssql.ExtractParams, mssql.DacFxResult, void, void>(
+        "dacfx/extract",
+    );
 }
 
 export namespace DeployRequest {
-    export const type = new RequestType<
-        mssql.DeployParams,
-        mssql.DacFxResult,
-        void,
-        void
-    >("dacfx/deploy");
+    export const type = new RequestType<mssql.DeployParams, mssql.DacFxResult, void, void>(
+        "dacfx/deploy",
+    );
 }
 
 export namespace GenerateDeployScriptRequest {

@@ -357,9 +357,7 @@ export interface ExecutionPlanService {
      * Gets the execution plan graph from the provider for a given plan file
      * @param planFile file that contains the execution plan
      */
-    getExecutionPlan(
-        planFile: ExecutionPlanGraphInfo,
-    ): Thenable<GetExecutionPlanResult>;
+    getExecutionPlan(planFile: ExecutionPlanGraphInfo): Thenable<GetExecutionPlanResult>;
 
     // /**
     //  * Compares two execution plans and identifies matching regions in both execution plans.
@@ -386,9 +384,7 @@ export interface InternalExecutionPlanEdge extends ExecutionPlanEdge {
     id?: string;
 }
 
-export type InternalExecutionPlanElement =
-    | InternalExecutionPlanEdge
-    | ExecutionPlanNode;
+export type InternalExecutionPlanElement = InternalExecutionPlanEdge | ExecutionPlanNode;
 
 export interface AzDataGraphCell {
     /**

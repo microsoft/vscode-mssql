@@ -29,30 +29,20 @@ import {
     DbCellValue,
     ExecutionPlanOptions,
 } from "../models/contracts/queryExecute";
-import {
-    QueryDisposeParams,
-    QueryDisposeRequest,
-} from "../models/contracts/queryDispose";
+import { QueryDisposeParams, QueryDisposeRequest } from "../models/contracts/queryDispose";
 import {
     QueryCancelParams,
     QueryCancelResult,
     QueryCancelRequest,
 } from "../models/contracts/queryCancel";
-import {
-    ISlickRange,
-    ISelectionData,
-    IResultMessage,
-} from "../models/interfaces";
+import { ISlickRange, ISelectionData, IResultMessage } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "./../models/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 export interface IResultSet {
     columns: string[];
@@ -186,10 +176,7 @@ export default class QueryRunner {
 
                 // Send the request to execute the query
                 await this._client
-                    .sendRequest(
-                        QueryExecuteStatementRequest.type,
-                        queryDetails,
-                    )
+                    .sendRequest(QueryExecuteStatementRequest.type, queryDetails)
                     .then(onSuccess, onError);
             },
         );
@@ -215,14 +202,8 @@ export default class QueryRunner {
             let queryString: string;
             if (selection) {
                 let range = this._vscodeWrapper.range(
-                    this._vscodeWrapper.position(
-                        selection.startLine,
-                        selection.startColumn,
-                    ),
-                    this._vscodeWrapper.position(
-                        selection.endLine,
-                        selection.endColumn,
-                    ),
+                    this._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                    this._vscodeWrapper.position(selection.endLine, selection.endColumn),
                 );
                 queryString = doc.getText(range);
             } else {
@@ -243,10 +224,7 @@ export default class QueryRunner {
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    private async doRunQuery(
-        selection: ISelectionData,
-        queryCallback: any,
-    ): Promise<void> {
+    private async doRunQuery(selection: ISelectionData, queryCallback: any): Promise<void> {
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgStartedExecute(this._ownerUri),
         );
@@ -259,9 +237,7 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
-            QueryRunner._runningQueries.push(
-                vscode.Uri.parse(this._ownerUri).fsPath,
-            );
+            QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
             vscode.commands.executeCommand(
                 "setContext",
                 "mssql.runningQueries",
@@ -275,9 +251,7 @@ export default class QueryRunner {
             this._isExecuting = false;
             this.removeRunningQuery();
             // TODO: localize
-            this._vscodeWrapper.showErrorMessage(
-                "Execution failed: " + error.message,
-            );
+            this._vscodeWrapper.showErrorMessage("Execution failed: " + error.message);
         };
 
         await queryCallback(onSuccess, onError);
@@ -298,9 +272,7 @@ export default class QueryRunner {
     }
 
     // handle the result of the notification
-    public handleQueryComplete(
-        result: QueryExecuteCompleteNotificationResult,
-    ): void {
+    public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgFinishedExecute(this._ownerUri),
         );
@@ -312,10 +284,8 @@ export default class QueryRunner {
 
         this._batchSets.map((batch) => {
             if (batch.selection) {
-                batch.selection.startLine =
-                    batch.selection.startLine + this._resultLineOffset;
-                batch.selection.endLine =
-                    batch.selection.endLine + this._resultLineOffset;
+                batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
+                batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
             }
         });
 
@@ -346,12 +316,9 @@ export default class QueryRunner {
                 rowCount: result.batchSummaries.reduce((totalCount, batch) => {
                     return (
                         totalCount +
-                        batch.resultSetSummaries.reduce(
-                            (rowCount, resultSet) => {
-                                return rowCount + resultSet.rowCount;
-                            },
-                            0,
-                        )
+                        batch.resultSetSummaries.reduce((rowCount, resultSet) => {
+                            return rowCount + resultSet.rowCount;
+                        }, 0)
                     );
                 }, 0),
                 totalExecutionTime: this._totalElapsedMilliseconds,
@@ -379,23 +346,16 @@ export default class QueryRunner {
         this.eventEmitter.emit("batchStart", batch);
     }
 
-    public handleBatchComplete(
-        result: QueryExecuteBatchNotificationParams,
-    ): void {
+    public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
         let batch: BatchSummary = result.batchSummary;
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
-        let executionTime = <number>(
-            (Utils.parseTimeString(batch.executionElapsed) || 0)
-        );
+        let executionTime = <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
-            this.sendBatchTimeMessage(
-                batch.id,
-                Utils.parseNumAsTimeString(executionTime),
-            );
+            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
         }
         this.eventEmitter.emit("batchComplete", batch);
     }
@@ -409,25 +369,16 @@ export default class QueryRunner {
         for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
             const batchSet = this.batchSets[batchId];
             this.eventEmitter.emit("batchStart", batchSet);
-            let executionTime = <number>(
-                (Utils.parseTimeString(batchSet.executionElapsed) || 0)
-            );
+            let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
             if (executionTime > 0) {
                 // send a time message in the format used for query complete
-                this.sendBatchTimeMessage(
-                    batchSet.id,
-                    Utils.parseNumAsTimeString(executionTime),
-                );
+                this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
             }
 
             // replay the messages for the current batch
             const messages = this._batchSetMessages[batchId];
             if (messages !== undefined) {
-                for (
-                    let messageId = 0;
-                    messageId < messages.length;
-                    ++messageId
-                ) {
+                for (let messageId = 0; messageId < messages.length; ++messageId) {
                     // Send the message to the results pane
                     this.eventEmitter.emit("message", messages[messageId]);
                 }
@@ -456,9 +407,7 @@ export default class QueryRunner {
         return true;
     }
 
-    public handleResultSetComplete(
-        result: QueryExecuteResultSetCompleteNotificationParams,
-    ): void {
+    public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
 
@@ -472,10 +421,7 @@ export default class QueryRunner {
         message.time = new Date(message.time).toLocaleTimeString();
 
         // save the message into the batch summary so it can be restored on view refresh
-        if (
-            message.batchId >= 0 &&
-            this._batchSetMessages[message.batchId] !== undefined
-        ) {
+        if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
             this._batchSetMessages[message.batchId].push(message);
         }
 
@@ -530,24 +476,15 @@ export default class QueryRunner {
         let disposeDetails = new QueryDisposeParams();
         disposeDetails.ownerUri = this.uri;
         try {
-            await this._client.sendRequest(
-                QueryDisposeRequest.type,
-                disposeDetails,
-            );
+            await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
         } catch (error) {
             // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
-                "Failed disposing query: " + error.message,
-            );
+            this._vscodeWrapper.showErrorMessage("Failed disposing query: " + error.message);
             void Promise.reject(error);
         }
     }
 
-    private getColumnHeaders(
-        batchId: number,
-        resultId: number,
-        range: ISlickRange,
-    ): string[] {
+    private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
         let headers: string[] = undefined;
         let batchSummary: BatchSummary = this.batchSets[batchId];
         if (batchSummary !== undefined) {
@@ -583,11 +520,7 @@ export default class QueryRunner {
             fromRow: undefined,
             toRow: undefined,
         };
-        let columnHeaders = this.getColumnHeaders(
-            batchId,
-            resultId,
-            columnRange,
-        );
+        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
         copyString += columnHeaders.join("\t");
 
         let oldLang: string;
@@ -617,12 +550,7 @@ export default class QueryRunner {
         let copyString = "";
 
         if (this.shouldIncludeHeaders(includeHeaders)) {
-            copyString = this.addHeadersToCopyString(
-                copyString,
-                batchId,
-                resultId,
-                selection,
-            );
+            copyString = this.addHeadersToCopyString(copyString, batchId, resultId, selection);
         }
         // sort the selections by row to maintain copy order
         selection.sort((a, b) => a.fromRow - b.fromRow);
@@ -656,11 +584,7 @@ export default class QueryRunner {
         }
         await p;
 
-        copyString = this.constructCopyString(
-            copyString,
-            rowIdToRowMap,
-            rowIdToSelectionMap,
-        );
+        copyString = this.constructCopyString(copyString, rowIdToRowMap, rowIdToSelectionMap);
 
         await this.writeStringToClipboard(copyString);
     }
@@ -674,12 +598,7 @@ export default class QueryRunner {
     ) {
         let copyString = "";
         if (headersFlag) {
-            copyString = this.addHeadersToCopyString(
-                copyString,
-                batchId,
-                resultId,
-                selection,
-            );
+            copyString = this.addHeadersToCopyString(copyString, batchId, resultId, selection);
         }
 
         // create a mapping of rows to selections
@@ -690,12 +609,7 @@ export default class QueryRunner {
         let tasks = selection.map((range) => {
             return async () => {
                 const result = data;
-                this.getRowMappings(
-                    result,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
+                this.getRowMappings(result, range, rowIdToSelectionMap, rowIdToRowMap);
             };
         });
         let p = tasks[0]();
@@ -704,11 +618,7 @@ export default class QueryRunner {
         }
         await p;
 
-        copyString = this.constructCopyString(
-            copyString,
-            rowIdToRowMap,
-            rowIdToSelectionMap,
-        );
+        copyString = this.constructCopyString(copyString, rowIdToRowMap, rowIdToSelectionMap);
 
         await this.writeStringToClipboard(copyString);
     }
@@ -747,10 +657,7 @@ export default class QueryRunner {
     ) {
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
-        const endColumns = this.getSelectionEndColumns(
-            rowIdToRowMap,
-            rowIdToSelectionMap,
-        );
+        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
         const firstColumn = endColumns[0];
         const lastColumn = endColumns[1];
         for (let rowId of allRowIds) {
@@ -759,11 +666,7 @@ export default class QueryRunner {
 
             // sort selections by column to go from left to right
             rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell
-                    ? -1
-                    : a.fromCell > b.fromCell
-                      ? 1
-                      : 0;
+                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
             });
 
             for (let i = 0; i < rowSelections.length; i++) {
@@ -773,16 +676,11 @@ export default class QueryRunner {
                 for (let j = firstColumn; j < rowSelection.fromCell; j++) {
                     copyString += "\t";
                 }
-                let cellObjects = row.slice(
-                    rowSelection.fromCell,
-                    rowSelection.toCell + 1,
-                );
+                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
 
                 // Remove newlines if requested
                 let cells = this.shouldRemoveNewLines()
-                    ? cellObjects.map((x) =>
-                          this.removeNewLines(x.displayValue),
-                      )
+                    ? cellObjects.map((x) => this.removeNewLines(x.displayValue))
                     : cellObjects.map((x) => x.displayValue);
                 copyString += cells.join("\t");
 
@@ -796,10 +694,7 @@ export default class QueryRunner {
 
         // Remove the last extra new line
         if (copyString.length > 1) {
-            copyString = copyString.substring(
-                0,
-                copyString.length - os.EOL.length,
-            );
+            copyString = copyString.substring(0, copyString.length - os.EOL.length);
         }
         return copyString;
     }
@@ -835,11 +730,7 @@ export default class QueryRunner {
             fromRow: undefined,
             toRow: undefined,
         };
-        let columnHeaders = this.getColumnHeaders(
-            batchId,
-            resultId,
-            columnRange,
-        );
+        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
         copyString += columnHeaders.join("\t");
         copyString += os.EOL;
         return copyString;
@@ -864,10 +755,7 @@ export default class QueryRunner {
             ownerUri: this.uri,
             options: queryExecuteOptions,
         };
-        await this._client.sendRequest(
-            QueryExecuteOptionsRequest.type,
-            queryExecuteOptionsParams,
-        );
+        await this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams);
         this._isSqlCmd = !this._isSqlCmd;
         return true;
     }
@@ -892,9 +780,7 @@ export default class QueryRunner {
             Constants.extensionConfigSectionName,
             this.uri,
         );
-        let removeNewLines: boolean = config.get(
-            Constants.configCopyRemoveNewLine,
-        );
+        let removeNewLines: boolean = config.get(Constants.configCopyRemoveNewLine);
         return removeNewLines;
     }
 
@@ -939,10 +825,7 @@ export default class QueryRunner {
         for (let rowId of allRowIds) {
             const rowSelections = rowIdToSelectionMap.get(rowId);
             for (let i = 0; i < rowSelections.length; i++) {
-                if (
-                    firstColumn === -1 ||
-                    rowSelections[i].fromCell < firstColumn
-                ) {
+                if (firstColumn === -1 || rowSelections[i].fromCell < firstColumn) {
                     firstColumn = rowSelections[i].fromCell;
                 }
                 if (lastColumn === -1 || rowSelections[i].toCell > lastColumn) {

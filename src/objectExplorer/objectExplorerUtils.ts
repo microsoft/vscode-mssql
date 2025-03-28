@@ -12,10 +12,7 @@ import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeType } from "./connectTreeNode";
 
 export class ObjectExplorerUtils {
-    public static readonly rootPath: string = path.join(
-        __dirname,
-        "objectTypes",
-    );
+    public static readonly rootPath: string = path.join(__dirname, "objectTypes");
 
     public static iconPath(label: string): string {
         if (label) {
@@ -77,9 +74,7 @@ export class ObjectExplorerUtils {
         // the database it's nested in)
         while (node) {
             if (node.metadata) {
-                if (
-                    node.metadata.metadataTypeName === Constants.databaseString
-                ) {
+                if (node.metadata.metadataTypeName === Constants.databaseString) {
                     return node.metadata.name;
                 }
             }

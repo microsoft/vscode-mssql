@@ -27,9 +27,7 @@ export class WebviewRpc<Reducers> {
         [method: string]: Record<string, (params: unknown) => void>;
     } = {};
     private static _instance: WebviewRpc<any>;
-    public static getInstance<Reducers>(
-        vscodeApi: WebviewApi<unknown>,
-    ): WebviewRpc<Reducers> {
+    public static getInstance<Reducers>(vscodeApi: WebviewApi<unknown>): WebviewRpc<Reducers> {
         if (!WebviewRpc._instance) {
             WebviewRpc._instance = new WebviewRpc<Reducers>(vscodeApi);
         }
@@ -53,9 +51,7 @@ export class WebviewRpc<Reducers> {
             if (message.type === "notification") {
                 const { method, params } = message;
                 if (this._methodSubscriptions[method]) {
-                    Object.values(this._methodSubscriptions[method]).forEach(
-                        (cb) => cb(params),
-                    );
+                    Object.values(this._methodSubscriptions[method]).forEach((cb) => cb(params));
                 }
             }
         });
@@ -88,11 +84,7 @@ export class WebviewRpc<Reducers> {
         void this.call("action", { type: method, payload });
     }
 
-    public subscribe(
-        callerId: string,
-        method: string,
-        callback: (params: unknown) => void,
-    ) {
+    public subscribe(callerId: string, method: string, callback: (params: unknown) => void) {
         if (!this._methodSubscriptions[method]) {
             this._methodSubscriptions[method] = {};
         }

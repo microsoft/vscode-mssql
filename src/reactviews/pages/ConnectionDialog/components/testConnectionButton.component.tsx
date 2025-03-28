@@ -27,8 +27,7 @@ export const TestConnectionButton = ({
                 // TODO: connectionDialogContext.testConnection();
             }}
             className={className}
-            style={style}
-        >
+            style={style}>
             {locConstants.connectionDialog.testConnection}
         </Button>
     );

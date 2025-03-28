@@ -13,12 +13,7 @@ import { ObjectMetadata } from "vscode-mssql";
 
 suite("Object Explorer Utils Tests", () => {
     test("Test iconPath function", () => {
-        const testObjects = [
-            "Server",
-            "Table",
-            "StoredProcedure",
-            "disconnectedServer",
-        ];
+        const testObjects = ["Server", "Table", "StoredProcedure", "disconnectedServer"];
         const expectedPaths = [
             "Server_green.svg",
             "Table.svg",
@@ -28,10 +23,9 @@ suite("Object Explorer Utils Tests", () => {
         for (let i = 0; i < testObjects.length; i++) {
             const iconPath = ObjectExplorerUtils.iconPath(testObjects[i]);
             const fileName = path.basename(iconPath);
-            expect(
-                fileName,
-                "File name should be the same as expected file name",
-            ).is.equal(expectedPaths[i]);
+            expect(fileName, "File name should be the same as expected file name").is.equal(
+                expectedPaths[i],
+            );
         }
     });
 
@@ -101,10 +95,9 @@ suite("Object Explorer Utils Tests", () => {
 
         for (let i = 0; i < testNodes.length; i++) {
             const nodeUri = ObjectExplorerUtils.getNodeUri(testNodes[i]);
-            expect(
-                nodeUri,
-                "Node URI should be the same as expected Node URI",
-            ).is.equal(expectedUris[i]);
+            expect(nodeUri, "Node URI should be the same as expected Node URI").is.equal(
+                expectedUris[i],
+            );
         }
     });
 
@@ -126,13 +119,10 @@ suite("Object Explorer Utils Tests", () => {
         ];
 
         for (let i = 0; i < testProfiles.length; i++) {
-            const uri = ObjectExplorerUtils.getNodeUriFromProfile(
-                testProfiles[i],
+            const uri = ObjectExplorerUtils.getNodeUriFromProfile(testProfiles[i]);
+            expect(uri, "Node URI should be the same as expected Node URI").is.equal(
+                expectedProfiles[i],
             );
-            expect(
-                uri,
-                "Node URI should be the same as expected Node URI",
-            ).is.equal(expectedProfiles[i]);
         }
     });
 
@@ -198,12 +188,7 @@ suite("Object Explorer Utils Tests", () => {
             databaseTestNode,
             undefined,
         );
-        const testNodes = [
-            serverTestNode,
-            databaseTestNode,
-            databaseTestNode2,
-            tableTestNode,
-        ];
+        const testNodes = [serverTestNode, databaseTestNode, databaseTestNode2, tableTestNode];
         const expectedDatabaseNames = [
             "test_database",
             "databaseTest",
@@ -211,9 +196,7 @@ suite("Object Explorer Utils Tests", () => {
             "databaseTest",
         ];
         for (let i = 0; i < testNodes.length; i++) {
-            let databaseName = ObjectExplorerUtils.getDatabaseName(
-                testNodes[i],
-            );
+            let databaseName = ObjectExplorerUtils.getDatabaseName(testNodes[i]);
             assert.equal(databaseName, expectedDatabaseNames[i]);
         }
     });

@@ -31,15 +31,10 @@ suite("ReactWebviewPanelController", () => {
         sandbox = sinon.createSandbox();
         mockWebview = {
             postMessage: sandbox.stub(),
-            asWebviewUri: sandbox
-                .stub()
-                .returns(vscode.Uri.parse("https://example.com/")),
+            asWebviewUri: sandbox.stub().returns(vscode.Uri.parse("https://example.com/")),
             onDidReceiveMessage: sandbox.stub(),
         } as any;
-        showInformationMessageStub = sandbox.stub(
-            vscode.window,
-            "showInformationMessage",
-        );
+        showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
         mockPanel = {
             webview: mockWebview,
             title: "Test Panel",
@@ -59,9 +54,7 @@ suite("ReactWebviewPanelController", () => {
         // Stub locConstants
         locConstantsStub = {
             Webview: {
-                webviewRestorePrompt: sandbox
-                    .stub()
-                    .returns("Restore webview?"),
+                webviewRestorePrompt: sandbox.stub().returns("Restore webview?"),
                 Restore: "Restore",
             },
         };
@@ -117,9 +110,7 @@ suite("ReactWebviewPanelController", () => {
                 {
                     enableScripts: true,
                     retainContextWhenHidden: true,
-                    localResourceRoots: [
-                        vscode.Uri.file(mockContext.extensionPath),
-                    ],
+                    localResourceRoots: [vscode.Uri.file(mockContext.extensionPath)],
                 },
             ),
         );
@@ -142,14 +133,9 @@ suite("ReactWebviewPanelController", () => {
 
     test("Should register onDidReceiveMessage handler", () => {
         createController();
-        const onDidReceiveMessageSpy =
-            mockWebview.onDidReceiveMessage as sinon.SinonSpy;
-        assert.ok(
-            onDidReceiveMessageSpy.calledOnce,
-            "onDidReceiveMessage should be called once",
-        );
-        const onDidReceiveMessageHandler =
-            onDidReceiveMessageSpy.firstCall.args[0];
+        const onDidReceiveMessageSpy = mockWebview.onDidReceiveMessage as sinon.SinonSpy;
+        assert.ok(onDidReceiveMessageSpy.calledOnce, "onDidReceiveMessage should be called once");
+        const onDidReceiveMessageHandler = onDidReceiveMessageSpy.firstCall.args[0];
         assert.strictEqual(
             typeof onDidReceiveMessageHandler,
             "function",
@@ -185,8 +171,7 @@ suite("ReactWebviewPanelController", () => {
         };
         showInformationMessageStub.resolves(restoreOption);
         // Simulate panel disposal
-        const disposeHandler = (mockPanel.onDidDispose as sinon.SinonStub)
-            .firstCall.args[0];
+        const disposeHandler = (mockPanel.onDidDispose as sinon.SinonStub).firstCall.args[0];
         await disposeHandler();
 
         // Expect showInformationMessage to be called with the correct prompt
@@ -198,11 +183,7 @@ suite("ReactWebviewPanelController", () => {
 
         const promptCallerArgs = showInformationMessageStub.firstCall.args;
 
-        assert.deepEqual(
-            promptCallerArgs[0],
-            "Restore webview?",
-            "prompt message is not correct",
-        );
+        assert.deepEqual(promptCallerArgs[0], "Restore webview?", "prompt message is not correct");
 
         assert.deepEqual(
             promptCallerArgs[1],
@@ -237,8 +218,7 @@ suite("ReactWebviewPanelController", () => {
             showRestorePromptAfterClose: false,
         };
 
-        const onDidReceiveMessageStub =
-            mockWebview.onDidReceiveMessage as sinon.SinonStub;
+        const onDidReceiveMessageStub = mockWebview.onDidReceiveMessage as sinon.SinonStub;
         onDidReceiveMessageStub.returns({
             dispose: sinon.stub().returns(true),
         });
@@ -251,8 +231,7 @@ suite("ReactWebviewPanelController", () => {
         sandbox.stub(controller, "dispose").resolves();
 
         // Simulate panel disposal
-        const disposeHandler = (mockPanel.onDidDispose as sinon.SinonStub)
-            .firstCall.args[0];
+        const disposeHandler = (mockPanel.onDidDispose as sinon.SinonStub).firstCall.args[0];
         await disposeHandler();
 
         // Expect showInformationMessage to not be called
@@ -289,18 +268,9 @@ suite("ReactWebviewPanelController", () => {
         const controller = createController();
         const html = controller["_getHtmlTemplate"]();
         assert.strictEqual(typeof html, "string", "HTML should be a string");
-        assert.ok(
-            html.includes("testSource.css"),
-            "HTML should include testSource.css",
-        );
-        assert.ok(
-            html.includes("testSource.js"),
-            "HTML should include testSource.js",
-        );
-        assert.ok(
-            html.includes('nonce="test-nonce"'),
-            "HTML should include the nonce",
-        );
+        assert.ok(html.includes("testSource.css"), "HTML should include testSource.css");
+        assert.ok(html.includes("testSource.js"), "HTML should include testSource.js");
+        assert.ok(html.includes('nonce="test-nonce"'), "HTML should include the nonce");
         assert.ok(
             html.includes('<base href="https://example.com//">'),
             "HTML should include the correct base href",
@@ -317,26 +287,10 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-const vscodeWrapper = TypeMoq.Mock.ofType(
-    VscodeWrapper,
-    TypeMoq.MockBehavior.Loose,
-);
+const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
-class TestReactWebviewPanelController extends ReactWebviewPanelController<
-    TestState,
-    TestReducers
-> {
-    constructor(
-        context: vscode.ExtensionContext,
-        options: MssqlWebviewPanelOptions,
-    ) {
-        super(
-            context,
-            vscodeWrapper.object,
-            "testSource",
-            "testSource",
-            { count: 0 },
-            options,
-        );
+class TestReactWebviewPanelController extends ReactWebviewPanelController<TestState, TestReducers> {
+    constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
+        super(context, vscodeWrapper.object, "testSource", "testSource", { count: 0 }, options);
     }
 }

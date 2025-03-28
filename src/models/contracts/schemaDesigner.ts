@@ -4,16 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestType } from "vscode-languageclient";
-import {
-    GetSchemaModelRequestParams,
-    ISchema,
-} from "../../sharedInterfaces/schemaDesigner";
+import { GetSchemaModelRequestParams, ISchema } from "../../sharedInterfaces/schemaDesigner";
 
 export namespace GetSchemaModelRequest {
-    export const type = new RequestType<
-        GetSchemaModelRequestParams,
-        ISchema,
-        void,
-        void
-    >("schemaDesigner/getSchemaModel");
+    export const type = new RequestType<GetSchemaModelRequestParams, ISchema, void, void>(
+        "schemaDesigner/getSchemaModel",
+    );
 }

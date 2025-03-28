@@ -30,12 +30,10 @@ export class ConnectionDialogWebviewState
         this.formState = value;
     }
 
-    formComponents: Partial<
-        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-    > = {};
+    formComponents: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> =
+        {};
 
-    public selectedInputMode: ConnectionInputMode =
-        ConnectionInputMode.Parameters;
+    public selectedInputMode: ConnectionInputMode = ConnectionInputMode.Parameters;
     public connectionComponents: ConnectionComponentsInfo = {
         mainOptions: [],
         topAdvancedOptions: [],
@@ -159,8 +157,7 @@ export enum AuthenticationType {
     AzureMFA = "AzureMFA",
 }
 
-export interface ConnectionDialogReducers
-    extends FormReducers<IConnectionDialogProfile> {
+export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
     };

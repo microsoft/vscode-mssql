@@ -6,10 +6,7 @@
 import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
@@ -23,10 +20,10 @@ import VscodeWrapper from "./vscodeWrapper";
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebviewPanelController<
+export class ReactWebviewPanelController<State, Reducers> extends ReactWebviewBaseController<
     State,
-    Reducers,
-> extends ReactWebviewBaseController<State, Reducers> {
+    Reducers
+> {
     private _panel: vscode.WebviewPanel;
 
     /**
@@ -63,18 +60,14 @@ export class ReactWebviewPanelController<
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.file(this._context.extensionPath),
-                ],
+                localResourceRoots: [vscode.Uri.file(this._context.extensionPath)],
             },
         );
 
         this._panel.webview.html = this._getHtmlTemplate();
         this._panel.iconPath = this._options.iconPath;
         this.registerDisposable(
-            this._panel.webview.onDidReceiveMessage(
-                this._webviewMessageHandler,
-            ),
+            this._panel.webview.onDidReceiveMessage(this._webviewMessageHandler),
         );
         this.registerDisposable(
             this._panel.onDidDispose(async () => {
@@ -106,9 +99,7 @@ export class ReactWebviewPanelController<
      * Displays the webview in the foreground
      * @param viewColumn The view column that the webview will be displayed in
      */
-    public revealToForeground(
-        viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
-    ): void {
+    public revealToForeground(viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): void {
         this._panel.reveal(viewColumn, true);
     }
 

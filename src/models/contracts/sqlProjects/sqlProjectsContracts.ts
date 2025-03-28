@@ -18,21 +18,15 @@ export namespace CreateSqlProjectRequest {
 }
 
 export namespace OpenSqlProjectRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/openProject");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/openProject",
+    );
 }
 
 export namespace CloseSqlProjectRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/closeProject");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/closeProject",
+    );
 }
 
 export namespace GetCrossPlatformCompatibilityRequest {
@@ -45,12 +39,9 @@ export namespace GetCrossPlatformCompatibilityRequest {
 }
 
 export namespace UpdateProjectForCrossPlatformRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/updateProjectForCrossPlatform");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/updateProjectForCrossPlatform",
+    );
 }
 
 export namespace GetProjectPropertiesRequest {
@@ -113,21 +104,15 @@ export namespace ExcludeSqlObjectScriptRequest {
 }
 
 export namespace MoveSqlObjectScriptRequest {
-    export const type = new RequestType<
-        mssql.MoveItemParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/moveSqlObjectScript");
+    export const type = new RequestType<mssql.MoveItemParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/moveSqlObjectScript",
+    );
 }
 
 export namespace GetSqlObjectScriptsRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.GetScriptsResult,
-        void,
-        void
-    >("sqlProjects/getSqlObjectScripts");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void, void>(
+        "sqlProjects/getSqlObjectScripts",
+    );
 }
 
 //#endregion
@@ -135,48 +120,33 @@ export namespace GetSqlObjectScriptsRequest {
 //#region Folder functions
 
 export namespace AddFolderRequest {
-    export const type = new RequestType<
-        mssql.FolderParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/addFolder");
+    export const type = new RequestType<mssql.FolderParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/addFolder",
+    );
 }
 
 export namespace DeleteFolderRequest {
-    export const type = new RequestType<
-        mssql.FolderParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/deleteFolder");
+    export const type = new RequestType<mssql.FolderParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/deleteFolder",
+    );
 }
 
 export namespace GetFoldersRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.GetFoldersResult,
-        void,
-        void
-    >("sqlProjects/getFolders");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetFoldersResult, void, void>(
+        "sqlProjects/getFolders",
+    );
 }
 
 export namespace ExcludeFolderRequest {
-    export const type = new RequestType<
-        mssql.FolderParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/excludeFolder");
+    export const type = new RequestType<mssql.FolderParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/excludeFolder",
+    );
 }
 
 export namespace MoveFolderRequest {
-    export const type = new RequestType<
-        mssql.MoveFolderParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/moveFolder");
+    export const type = new RequestType<mssql.MoveFolderParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/moveFolder",
+    );
 }
 
 //#endregion
@@ -238,39 +208,27 @@ export namespace ExcludePreDeploymentScriptRequest {
 }
 
 export namespace MovePostDeploymentScriptRequest {
-    export const type = new RequestType<
-        mssql.MoveItemParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/movePostDeploymentScript");
+    export const type = new RequestType<mssql.MoveItemParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/movePostDeploymentScript",
+    );
 }
 
 export namespace MovePreDeploymentScriptRequest {
-    export const type = new RequestType<
-        mssql.MoveItemParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/movePreDeploymentScript");
+    export const type = new RequestType<mssql.MoveItemParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/movePreDeploymentScript",
+    );
 }
 
 export namespace GetPostDeploymentScriptsRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.GetScriptsResult,
-        void,
-        void
-    >("sqlProjects/getPostDeploymentScripts");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void, void>(
+        "sqlProjects/getPostDeploymentScripts",
+    );
 }
 
 export namespace GetPreDeploymentScriptsRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.GetScriptsResult,
-        void,
-        void
-    >("sqlProjects/getPreDeploymentScripts");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void, void>(
+        "sqlProjects/getPreDeploymentScripts",
+    );
 }
 
 //#endregion
@@ -305,21 +263,15 @@ export namespace ExcludeNoneItemRequest {
 }
 
 export namespace GetNoneItemsRequest {
-    export const type = new RequestType<
-        mssql.SqlProjectParams,
-        mssql.GetScriptsResult,
-        void,
-        void
-    >("sqlProjects/getNoneItems");
+    export const type = new RequestType<mssql.SqlProjectParams, mssql.GetScriptsResult, void, void>(
+        "sqlProjects/getNoneItems",
+    );
 }
 
 export namespace MoveNoneItemRequest {
-    export const type = new RequestType<
-        mssql.MoveItemParams,
-        mssql.ResultStatus,
-        void,
-        void
-    >("sqlProjects/moveNoneItem");
+    export const type = new RequestType<mssql.MoveItemParams, mssql.ResultStatus, void, void>(
+        "sqlProjects/moveNoneItem",
+    );
 }
 
 //#endregion
