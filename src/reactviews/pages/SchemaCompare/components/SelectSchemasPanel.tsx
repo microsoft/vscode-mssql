@@ -102,7 +102,8 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 classes.layoutHorizontally,
                 classes.center,
                 classes.topMargin,
-            )}>
+            )}
+        >
             <SelectSchemaInput
                 id={sourceId}
                 label={loc.schemaCompare.source}
@@ -129,7 +130,8 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo) ||
                     context.state.isComparisonInProgress
-                }>
+                }
+            >
                 {loc.schemaCompare.compare}
             </Button>
         </div>
