@@ -129,6 +129,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         sandbox = sinon.createSandbox();
 
         mockInitialState = {
+            isSqlProjectExtensionInstalled: false,
             isComparisonInProgress: false,
             activeServers: {},
             databases: [],
