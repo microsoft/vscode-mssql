@@ -1,9 +1,10 @@
-[![PR check](https://github.com/microsoft/vscode-mssql/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/microsoft/vscode-mssql/actions/workflows/pr-checks.yml)
-[![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
+[![Daily Build and Test](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml/badge.svg?branch=main&event=schedule)](https://github.com/microsoft/vscode-mssql/actions/workflows/daily-build-and-test.yml)
+![GitHub Discussions](https://img.shields.io/github/discussions/microsoft/vscode-mssql)
 
-# mssql for Visual Studio Code
+# MSSQL extension for Visual Studio Code
 
-This extension is designed to help developers seamlessly work with their databases, making it easier to use SQL Server or any Azure SQL service (including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs) as the backend for their applications. With a rich set of features, **mssql** for Visual Studio Code enhances the development experience, offering functionalities such as:
+This extension is designed to help developers seamlessly work with their databases, simplifying the use of SQL Server, SQL Database in Fabric, and all Azure SQL offerings—including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs—as the backend for their applications.
+With a rich set of features, the MSSQL extension for Visual Studio Code enhances the development experience, offering functionalities such as:
 
 - **Connect to Microsoft SQL Server and Azure SQL Database**: Seamlessly connect to your databases to manage and query data. The new **Connection Dialog (`Preview`)** offers a more intuitive interface, with options for entering parameters, connection strings, or browsing Azure databases. The Recent Connections panel provides quick access to previously used servers.
 - **Create and manage connection profiles**: Easily manage multiple connection profiles and quickly reconnect using your most recently used connections.
