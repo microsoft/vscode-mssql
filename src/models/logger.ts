@@ -36,8 +36,7 @@ export class Logger implements ILogger {
     ) {}
 
     public static create(channel: OutputChannel, prefix?: string): Logger {
-        const logLevel: LogLevel =
-            LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
+        const logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
         const pii = Utils.getConfigPiiLogging();
 
         function logToOutputChannel(message: string): void {
@@ -65,12 +64,8 @@ export class Logger implements ILogger {
         if (this.piiLogging) {
             msg = [
                 msg,
-                ...objsToSanitize?.map(
-                    (obj) => `${obj.name}=${sanitize(obj.objOrArray)}`,
-                ),
-                ...stringsToShorten.map(
-                    (str) => `${str.name}=${shorten(str.value)}`,
-                ),
+                ...objsToSanitize?.map((obj) => `${obj.name}=${sanitize(obj.objOrArray)}`),
+                ...stringsToShorten.map((str) => `${str.name}=${shorten(str.value)}`),
             ].join(" ");
             this.write(LogLevel.Pii, msg, ...vals);
         }

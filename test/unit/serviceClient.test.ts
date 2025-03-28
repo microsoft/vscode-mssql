@@ -24,20 +24,13 @@ interface IFixture {
 suite("Service Client tests", () => {
     let testConfig: TypeMoq.IMock<IConfig>;
     let testServiceProvider: TypeMoq.IMock<ServerProvider>;
-    let logger = new Logger(
-        (text) => console.log(text),
-        LogLevel.Verbose,
-        false,
-    );
+    let logger = new Logger((text) => console.log(text), LogLevel.Verbose, false);
     let testStatusView: TypeMoq.IMock<StatusView>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
         testConfig = TypeMoq.Mock.ofType(ExtConfig, TypeMoq.MockBehavior.Loose);
-        testServiceProvider = TypeMoq.Mock.ofType(
-            ServerProvider,
-            TypeMoq.MockBehavior.Strict,
-        );
+        testServiceProvider = TypeMoq.Mock.ofType(ServerProvider, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType(StatusView);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
     });
@@ -72,13 +65,11 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        void serviceClient
-            .initializeForPlatform(fixture.platformInfo, undefined)
-            .then((result) => {
-                assert.notEqual(result, undefined);
-                assert.equal(result.serverPath, fixture.installedServerPath);
-                assert.equal(result.installedBeforeInitializing, false);
-            });
+        void serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then((result) => {
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
         done();
     });
 
@@ -98,13 +89,11 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        void serviceClient
-            .initializeForPlatform(fixture.platformInfo, undefined)
-            .then((result) => {
-                assert.notEqual(result, undefined);
-                assert.equal(result.serverPath, fixture.downloadedServerPath);
-                assert.equal(result.installedBeforeInitializing, true);
-            });
+        void serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then((result) => {
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.downloadedServerPath);
+            assert.equal(result.installedBeforeInitializing, true);
+        });
         done();
     });
 
@@ -112,11 +101,7 @@ suite("Service Client tests", () => {
         let fixture: IFixture = {
             installedServerPath: "already installed service",
             downloadedServerPath: undefined,
-            platformInfo: new PlatformInformation(
-                "invalid platform",
-                "x86_64",
-                undefined,
-            ),
+            platformInfo: new PlatformInformation("invalid platform", "x86_64", undefined),
         };
 
         setupMocks(fixture);
@@ -165,22 +150,17 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        void serviceClient
-            .initializeForPlatform(fixture.platformInfo, undefined)
-            .then((result) => {
-                assert.equal(serviceVersion, 1);
-                platformInfoMock.verify(
-                    (x) => x.isMacVersionLessThan(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                testConfig.verify(
-                    (x) => x.useServiceVersion(1),
-                    TypeMoq.Times.once(),
-                );
-                assert.notEqual(result, undefined);
-                assert.equal(result.serverPath, fixture.installedServerPath);
-                assert.equal(result.installedBeforeInitializing, false);
-            });
+        void serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then((result) => {
+            assert.equal(serviceVersion, 1);
+            platformInfoMock.verify(
+                (x) => x.isMacVersionLessThan(TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+            testConfig.verify((x) => x.useServiceVersion(1), TypeMoq.Times.once());
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
         done();
     });
 
@@ -213,22 +193,17 @@ suite("Service Client tests", () => {
             vscodeWrapper.object,
         );
 
-        void serviceClient
-            .initializeForPlatform(fixture.platformInfo, undefined)
-            .then((result) => {
-                assert.equal(serviceVersion, 0);
-                platformInfoMock.verify(
-                    (x) => x.isMacVersionLessThan(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                testConfig.verify(
-                    (x) => x.useServiceVersion(1),
-                    TypeMoq.Times.never(),
-                );
-                assert.notEqual(result, undefined);
-                assert.equal(result.serverPath, fixture.installedServerPath);
-                assert.equal(result.installedBeforeInitializing, false);
-            });
+        void serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then((result) => {
+            assert.equal(serviceVersion, 0);
+            platformInfoMock.verify(
+                (x) => x.isMacVersionLessThan(TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+            testConfig.verify((x) => x.useServiceVersion(1), TypeMoq.Times.never());
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
         done();
     });
 
@@ -237,11 +212,7 @@ suite("Service Client tests", () => {
             let fixture: IFixture = {
                 installedServerPath: "already installed service",
                 downloadedServerPath: undefined,
-                platformInfo: new PlatformInformation(
-                    "win32",
-                    "x86_64",
-                    undefined,
-                ),
+                platformInfo: new PlatformInformation("win32", "x86_64", undefined),
             };
             const testFile = "file:///my/test/file.sql";
             const status = "new status";
@@ -254,8 +225,7 @@ suite("Service Client tests", () => {
                 testStatusView.object,
                 vscodeWrapper.object,
             );
-            let statusChangeParams =
-                new LanguageServiceContracts.StatusChangeParams();
+            let statusChangeParams = new LanguageServiceContracts.StatusChangeParams();
             statusChangeParams.ownerUri = testFile;
             statusChangeParams.status = status;
             serviceClient

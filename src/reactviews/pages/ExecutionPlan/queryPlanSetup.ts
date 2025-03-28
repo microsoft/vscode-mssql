@@ -405,9 +405,7 @@ export function getCollapseExpandPaths(colorTheme: ColorThemeKind) {
 export const save = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const saveIcon =
-        theme === "dark"
-            ? require("./icons/saveDark.svg")
-            : require("./icons/save.svg");
+        theme === "dark" ? require("./icons/saveDark.svg") : require("./icons/save.svg");
     return saveIcon;
 };
 
@@ -423,36 +421,28 @@ export const openPlanFile = (colorTheme: ColorThemeKind) => {
 export const openQuery = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const openQueryIcon =
-        theme === "dark"
-            ? require("./icons/openQueryDark.svg")
-            : require("./icons/openQuery.svg");
+        theme === "dark" ? require("./icons/openQueryDark.svg") : require("./icons/openQuery.svg");
     return openQueryIcon;
 };
 
 export const zoomIn = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const zoomInIcon =
-        theme === "dark"
-            ? require("./icons/zoomInDark.svg")
-            : require("./icons/zoomIn.svg");
+        theme === "dark" ? require("./icons/zoomInDark.svg") : require("./icons/zoomIn.svg");
     return zoomInIcon;
 };
 
 export const zoomOut = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const zoomOutIcon =
-        theme === "dark"
-            ? require("./icons/zoomOutDark.svg")
-            : require("./icons/zoomOut.svg");
+        theme === "dark" ? require("./icons/zoomOutDark.svg") : require("./icons/zoomOut.svg");
     return zoomOutIcon;
 };
 
 export const zoomToFit = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const zoomToFitIcon =
-        theme === "dark"
-            ? require("./icons/zoomToFitDark.svg")
-            : require("./icons/zoomToFit.svg");
+        theme === "dark" ? require("./icons/zoomToFitDark.svg") : require("./icons/zoomToFit.svg");
     return zoomToFitIcon;
 };
 
@@ -468,9 +458,7 @@ export const customZoom = (colorTheme: ColorThemeKind) => {
 export const search = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const searchIcon =
-        theme === "dark"
-            ? require("./icons/searchDark.svg")
-            : require("./icons/search.svg");
+        theme === "dark" ? require("./icons/searchDark.svg") : require("./icons/search.svg");
     return searchIcon;
 };
 
@@ -540,18 +528,14 @@ export const sortReverseAlphabetically = (colorTheme: ColorThemeKind) => {
 export const filterIcon = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const filterIcon =
-        theme === "dark"
-            ? require("./icons/filterDark.svg")
-            : require("./icons/filter.svg");
+        theme === "dark" ? require("./icons/filterDark.svg") : require("./icons/filter.svg");
     return filterIcon;
 };
 
 export const expandAll = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const expandAllIcon =
-        theme === "dark"
-            ? require("./icons/expandAllDark.svg")
-            : require("./icons/expandAll.svg");
+        theme === "dark" ? require("./icons/expandAllDark.svg") : require("./icons/expandAll.svg");
     return expandAllIcon;
 };
 

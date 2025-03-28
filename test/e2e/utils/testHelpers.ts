@@ -15,9 +15,7 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    const addConnectionButton = await vsCodePage.locator(
-        'div[aria-label="Add Connection"]',
-    );
+    const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
     let isConnectionButtonVisible = await addConnectionButton.isVisible();
     if (!isConnectionButtonVisible) {
         await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
@@ -58,10 +56,9 @@ export async function addDatabaseConnection(
     const enableTrustServerCertificateButton = await vsCodePage.getByText(
         "Enable Trust Server Certificate",
     );
-    const isEnableTrustButtonVisible =
-        await enableTrustServerCertificateButton.isVisible({
-            timeout: 3 * 1000,
-        });
+    const isEnableTrustButtonVisible = await enableTrustServerCertificateButton.isVisible({
+        timeout: 3 * 1000,
+    });
     if (isEnableTrustButtonVisible) {
         await enableTrustServerCertificateButton.click();
     }
@@ -100,28 +97,15 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
     await vsCodePage.click('a[aria-label="Execute Query (Ctrl+Shift+E)"]');
 }
 
-export async function enterTextIntoQueryEditor(
-    vsCodePage: Page,
-    text: string,
-): Promise<void> {
-    await vsCodePage.fill(
-        'textarea[class="inputarea monaco-mouse-cursor-text"]',
-        text,
-    );
+export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
+    await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', text);
 }
 
-export async function waitForCommandPaletteToBeVisible(
-    vsCodePage: Page,
-): Promise<void> {
+export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
     const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
     await expect(commandPaletteInput).toBeVisible();
 }
 
-export async function getWebviewByTitle(
-    vsCodePage: Page,
-    title: string,
-): Promise<FrameLocator> {
-    return vsCodePage
-        .frameLocator(".webview")
-        .frameLocator(`[title='${title}']`);
+export async function getWebviewByTitle(vsCodePage: Page, title: string): Promise<FrameLocator> {
+    return vsCodePage.frameLocator(".webview").frameLocator(`[title='${title}']`);
 }

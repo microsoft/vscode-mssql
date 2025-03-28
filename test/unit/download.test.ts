@@ -38,10 +38,7 @@ suite("ServiceDownloadProvider Tests", () => {
     setup(() => {
         config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType<IStatusView>();
-        testHttpClient = TypeMoq.Mock.ofType(
-            HttpClient,
-            TypeMoq.MockBehavior.Strict,
-        );
+        testHttpClient = TypeMoq.Mock.ofType(HttpClient, TypeMoq.MockBehavior.Strict);
         testDecompressProvider = TypeMoq.Mock.ofType(DecompressProvider);
         testLogger = TypeMoq.Mock.ofType(Logger);
     });
@@ -50,12 +47,8 @@ suite("ServiceDownloadProvider Tests", () => {
         let expectedPathFromConfig = __dirname;
         let expectedVersionFromConfig = "0.0.4";
         let expected = expectedPathFromConfig;
-        config
-            .setup((x) => x.getSqlToolsInstallDirectory())
-            .returns(() => expectedPathFromConfig);
-        config
-            .setup((x) => x.getSqlToolsPackageVersion())
-            .returns(() => expectedVersionFromConfig);
+        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
         let downloadProvider = new ServiceDownloadProvider(
             config.object,
             undefined,
@@ -63,9 +56,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient.object,
             testDecompressProvider.object,
         );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(
-            Runtime.OSX_10_11_64,
-        );
+        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
         assert.equal(expected, actual);
     });
 
@@ -73,12 +64,8 @@ suite("ServiceDownloadProvider Tests", () => {
         let expectedPathFromConfig = __dirname + "/{#version#}";
         let expectedVersionFromConfig = "0.0.4";
         let expected = __dirname + "/0.0.4";
-        config
-            .setup((x) => x.getSqlToolsInstallDirectory())
-            .returns(() => expectedPathFromConfig);
-        config
-            .setup((x) => x.getSqlToolsPackageVersion())
-            .returns(() => expectedVersionFromConfig);
+        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
         let downloadProvider = new ServiceDownloadProvider(
             config.object,
             undefined,
@@ -86,9 +73,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient.object,
             testDecompressProvider.object,
         );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(
-            Runtime.OSX_10_11_64,
-        );
+        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
         assert.equal(expected, actual);
     });
 
@@ -96,12 +81,8 @@ suite("ServiceDownloadProvider Tests", () => {
         let expectedPathFromConfig = __dirname + "/{#version#}/{#platform#}";
         let expectedVersionFromConfig = "0.0.4";
         let expected = __dirname + "/0.0.4/OSX";
-        config
-            .setup((x) => x.getSqlToolsInstallDirectory())
-            .returns(() => expectedPathFromConfig);
-        config
-            .setup((x) => x.getSqlToolsPackageVersion())
-            .returns(() => expectedVersionFromConfig);
+        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
         let downloadProvider = new ServiceDownloadProvider(
             config.object,
             undefined,
@@ -109,9 +90,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient.object,
             testDecompressProvider.object,
         );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(
-            Runtime.OSX_10_11_64,
-        );
+        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
         assert.equal(expected, actual);
     });
 
@@ -119,12 +98,8 @@ suite("ServiceDownloadProvider Tests", () => {
         let expectedPathFromConfig = "../service/{#version#}/{#platform#}";
         let expectedVersionFromConfig = "0.0.4";
         let expected = path.join(__dirname, "../../../service/0.0.4/OSX");
-        config
-            .setup((x) => x.getSqlToolsInstallDirectory())
-            .returns(() => expectedPathFromConfig);
-        config
-            .setup((x) => x.getSqlToolsPackageVersion())
-            .returns(() => expectedVersionFromConfig);
+        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
         let downloadProvider = new ServiceDownloadProvider(
             config.object,
             undefined,
@@ -132,9 +107,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient.object,
             testDecompressProvider.object,
         );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(
-            Runtime.OSX_10_11_64,
-        );
+        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
         assert.equal(expected, actual);
     });
 
@@ -152,9 +125,7 @@ suite("ServiceDownloadProvider Tests", () => {
                 testHttpClient.object,
                 testDecompressProvider.object,
             );
-            let actual = downloadProvider.getDownloadFileName(
-                Runtime.Windows_64,
-            );
+            let actual = downloadProvider.getDownloadFileName(Runtime.Windows_64);
             assert.equal(actual, expectedName);
             done();
         }).catch((error) => {
@@ -162,9 +133,7 @@ suite("ServiceDownloadProvider Tests", () => {
         });
     });
 
-    async function createDownloadProvider(
-        fixture: IFixture,
-    ): Promise<IFixture> {
+    async function createDownloadProvider(fixture: IFixture): Promise<IFixture> {
         let fileName = "fileName";
         let baseDownloadUrl = "baseDownloadUrl/{#version#}/{#fileName#}";
         let version = "1.0.0";
@@ -177,18 +146,12 @@ suite("ServiceDownloadProvider Tests", () => {
             console.error(err);
         }
 
-        config
-            .setup((x) => x.getSqlToolsInstallDirectory())
-            .returns(() => installFolder);
+        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => installFolder);
         config
             .setup((x) => x.getSqlToolsConfigValue("downloadFileNames"))
             .returns(() => fileNamesJson);
-        config
-            .setup((x) => x.getSqlToolsServiceDownloadUrl())
-            .returns(() => baseDownloadUrl);
-        config
-            .setup((x) => x.getSqlToolsPackageVersion())
-            .returns(() => version);
+        config.setup((x) => x.getSqlToolsServiceDownloadUrl()).returns(() => baseDownloadUrl);
+        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => version);
         testStatusView.setup((x) => x.installingService());
         testStatusView.setup((x) => x.serviceInstalled());
         testLogger.setup((x) => x.append(TypeMoq.It.isAny()));
@@ -232,32 +195,24 @@ suite("ServiceDownloadProvider Tests", () => {
         };
 
         fixture = await createDownloadProvider(fixture);
-        return fixture.downloadProvider
-            .installSQLToolsService(Runtime.Windows_64)
-            .then((_) => {
-                testHttpClient.verify(
-                    (x) =>
-                        x.downloadFile(
-                            fixture.downloadUrl,
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
-                    TypeMoq.Times.once(),
-                );
-                testDecompressProvider.verify(
-                    (x) => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                testStatusView.verify(
-                    (x) => x.installingService(),
-                    TypeMoq.Times.once(),
-                );
-                testStatusView.verify(
-                    (x) => x.serviceInstalled(),
-                    TypeMoq.Times.once(),
-                );
-            });
+        return fixture.downloadProvider.installSQLToolsService(Runtime.Windows_64).then((_) => {
+            testHttpClient.verify(
+                (x) =>
+                    x.downloadFile(
+                        fixture.downloadUrl,
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                TypeMoq.Times.once(),
+            );
+            testDecompressProvider.verify(
+                (x) => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+            testStatusView.verify((x) => x.installingService(), TypeMoq.Times.once());
+            testStatusView.verify((x) => x.serviceInstalled(), TypeMoq.Times.once());
+        });
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
@@ -270,32 +225,24 @@ suite("ServiceDownloadProvider Tests", () => {
         };
 
         fixture = await createDownloadProvider(fixture);
-        return fixture.downloadProvider
-            .installSQLToolsService(Runtime.Windows_64)
-            .catch((_) => {
-                testHttpClient.verify(
-                    (x) =>
-                        x.downloadFile(
-                            fixture.downloadUrl,
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
-                    TypeMoq.Times.once(),
-                );
-                testDecompressProvider.verify(
-                    (x) => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    TypeMoq.Times.never(),
-                );
-                testStatusView.verify(
-                    (x) => x.installingService(),
-                    TypeMoq.Times.never(),
-                );
-                testStatusView.verify(
-                    (x) => x.serviceInstalled(),
-                    TypeMoq.Times.never(),
-                );
-            });
+        return fixture.downloadProvider.installSQLToolsService(Runtime.Windows_64).catch((_) => {
+            testHttpClient.verify(
+                (x) =>
+                    x.downloadFile(
+                        fixture.downloadUrl,
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                TypeMoq.Times.once(),
+            );
+            testDecompressProvider.verify(
+                (x) => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                TypeMoq.Times.never(),
+            );
+            testStatusView.verify((x) => x.installingService(), TypeMoq.Times.never());
+            testStatusView.verify((x) => x.serviceInstalled(), TypeMoq.Times.never());
+        });
     });
 
     test.skip("installSQLToolsService should not update status to installed decompress fails", async () => {
@@ -307,31 +254,23 @@ suite("ServiceDownloadProvider Tests", () => {
         };
 
         fixture = await createDownloadProvider(fixture);
-        return fixture.downloadProvider
-            .installSQLToolsService(Runtime.Windows_64)
-            .catch((_) => {
-                testHttpClient.verify(
-                    (x) =>
-                        x.downloadFile(
-                            fixture.downloadUrl,
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
-                    TypeMoq.Times.once(),
-                );
-                testDecompressProvider.verify(
-                    (x) => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                testStatusView.verify(
-                    (x) => x.installingService(),
-                    TypeMoq.Times.once(),
-                );
-                testStatusView.verify(
-                    (x) => x.serviceInstalled(),
-                    TypeMoq.Times.never(),
-                );
-            });
+        return fixture.downloadProvider.installSQLToolsService(Runtime.Windows_64).catch((_) => {
+            testHttpClient.verify(
+                (x) =>
+                    x.downloadFile(
+                        fixture.downloadUrl,
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                TypeMoq.Times.once(),
+            );
+            testDecompressProvider.verify(
+                (x) => x.decompress(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+            testStatusView.verify((x) => x.installingService(), TypeMoq.Times.once());
+            testStatusView.verify((x) => x.serviceInstalled(), TypeMoq.Times.never());
+        });
     });
 });

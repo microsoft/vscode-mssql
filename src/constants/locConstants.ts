@@ -57,15 +57,11 @@ export function msgCancelQueryFailed(error: string) {
         comment: ["{0} is the error message"],
     });
 }
-export let msgCancelQueryNotRunning = l10n.t(
-    "Cannot cancel query as no query is running.",
-);
+export let msgCancelQueryNotRunning = l10n.t("Cannot cancel query as no query is running.");
 export let msgChooseDatabaseNotConnected = l10n.t(
     "No connection was found. Please connect to a server first.",
 );
-export let msgChooseDatabasePlaceholder = l10n.t(
-    "Choose a database from the list below",
-);
+export let msgChooseDatabasePlaceholder = l10n.t("Choose a database from the list below");
 export function msgConnectionError(errorNumber: number, errorMessage: string) {
     return l10n.t({
         message: "Error {0}: {1}",
@@ -81,10 +77,7 @@ export function msgConnectionError2(errorMessage: string) {
     });
 }
 export let serverNameMissing = l10n.t("Server name not set.");
-export function msgConnectionErrorPasswordExpired(
-    errorNumber: number,
-    errorMessage: string,
-) {
+export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMessage: string) {
     return l10n.t({
         message:
             "Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.",
@@ -93,21 +86,13 @@ export function msgConnectionErrorPasswordExpired(
     });
 }
 export let connectionErrorChannelName = l10n.t("Connection Errors");
-export let msgPromptCancelConnect = l10n.t(
-    "Server connection in progress. Do you want to cancel?",
-);
-export let msgPromptClearRecentConnections = l10n.t(
-    "Confirm to clear recent connections list",
-);
+export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
+export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
     'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.',
 );
-export let recentConnectionsPlaceholder = l10n.t(
-    "Choose a connection profile from the list below",
-);
-export let CreateProfileFromConnectionsListLabel = l10n.t(
-    "Create Connection Profile",
-);
+export let recentConnectionsPlaceholder = l10n.t("Choose a connection profile from the list below");
+export let CreateProfileFromConnectionsListLabel = l10n.t("Create Connection Profile");
 export let CreateProfileLabel = l10n.t("Create");
 export let ClearRecentlyUsedLabel = l10n.t("Clear Recent Connections List");
 export let EditProfilesLabel = l10n.t("Edit");
@@ -129,28 +114,18 @@ export let authTypePrompt = l10n.t("Authentication Type");
 export let authTypeName = l10n.t("authenticationType");
 export let authTypeIntegrated = l10n.t("Integrated");
 export let authTypeSql = l10n.t("SQL Login");
-export let authTypeAzureActiveDirectory = l10n.t(
-    "Microsoft Entra Id - Universal w/ MFA Support",
-);
+export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("Azure Logs");
 export let azureConsentDialogOpen = l10n.t("Open");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
-export function azureConsentDialogBody(
-    tenantName: string,
-    tenantId: string,
-    resource: string,
-) {
+export function azureConsentDialogBody(tenantName: string, tenantId: string, resource: string) {
     return l10n.t({
         message:
             "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.",
         args: [tenantName, tenantId, resource],
-        comment: [
-            "{0} is the tenant name",
-            "{1} is the tenant id",
-            "{2} is the resource",
-        ],
+        comment: ["{0} is the tenant name", "{1} is the tenant id", "{2} is the resource"],
     });
 }
 export function azureConsentDialogBodyAccount(resource: string) {
@@ -165,8 +140,7 @@ export let azureMicrosoftCorpAccount = l10n.t("Microsoft Corp");
 export let azureMicrosoftAccount = l10n.t("Microsoft Entra Account");
 export function azureNoMicrosoftResource(provider: string) {
     return l10n.t({
-        message:
-            "Provider '{0}' does not have a Microsoft resource endpoint defined.",
+        message: "Provider '{0}' does not have a Microsoft resource endpoint defined.",
         args: [provider],
         comment: ["{0} is the provider"],
     });
@@ -188,9 +162,7 @@ export let encryptName = l10n.t("encrypt");
 export let encryptOptional = l10n.t("Optional (False)");
 export let encryptMandatory = l10n.t("Mandatory (True)");
 export let encryptMandatoryRecommended = l10n.t("Mandatory (Recommended)");
-export let enableTrustServerCertificate = l10n.t(
-    "Enable Trust Server Certificate",
-);
+export let enableTrustServerCertificate = l10n.t("Enable Trust Server Certificate");
 export let readMore = l10n.t("Read more");
 export let msgCopyAndOpenWebpage = l10n.t("Copy code and open webpage");
 export let azureChooseAccount = l10n.t("Choose a Microsoft Entra account");
@@ -202,16 +174,13 @@ export function accountAddedSuccessfully(account: string) {
         comment: ["{0} is the account name"],
     });
 }
-export let accountCouldNotBeAdded = l10n.t(
-    "New Microsoft Entra account could not be added.",
-);
+export let accountCouldNotBeAdded = l10n.t("New Microsoft Entra account could not be added.");
 export let accountRemovedSuccessfully = l10n.t(
     "Selected Microsoft Entra account removed successfully.",
 );
 export function accountRemovalFailed(error: string) {
     return l10n.t({
-        message:
-            "An error occurred while removing Microsoft Entra account: {0}",
+        message: "An error occurred while removing Microsoft Entra account: {0}",
         args: [error],
         comment: ["{0} is the error message"],
     });
@@ -219,9 +188,7 @@ export function accountRemovalFailed(error: string) {
 export let noAzureAccountForRemoval = l10n.t(
     "No Microsoft Entra account can be found for removal.",
 );
-export let clearedAzureTokenCache = l10n.t(
-    "Azure token cache cleared successfully.",
-);
+export let clearedAzureTokenCache = l10n.t("Azure token cache cleared successfully.");
 export let cannotConnect = l10n.t(
     "Cannot connect due to expired tokens. Please re-authenticate and try again.",
 );
@@ -239,25 +206,17 @@ export let profileNamePrompt = l10n.t("Profile Name");
 export let profileNamePlaceholder = l10n.t(
     "[Optional] Enter a display name for this connection profile",
 );
-export let msgCannotOpenContent = l10n.t(
-    "Error occurred opening content in editor.",
-);
+export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
 export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
 export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
-export let confirmRemoveProfilePrompt = l10n.t(
-    "Confirm to remove this profile.",
-);
+export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
 export let msgNoProfilesSaved = l10n.t("No connection profile to remove.");
 export let msgProfileRemoved = l10n.t("Profile removed successfully");
 export let msgProfileCreated = l10n.t("Profile created successfully");
-export let msgProfileCreatedAndConnected = l10n.t(
-    "Profile created and connected",
-);
-export let msgClearedRecentConnections = l10n.t(
-    "Recent connections list cleared",
-);
+export let msgProfileCreatedAndConnected = l10n.t("Profile created and connected");
+export let msgClearedRecentConnections = l10n.t("Recent connections list cleared");
 export let msgIsRequired = l10n.t(" is required.");
 export let msgError = l10n.t("Error: ");
 export let msgYes = l10n.t("Yes");
@@ -280,10 +239,7 @@ export let untitledScheme = l10n.t("untitled");
 export let msgChangeLanguageMode = l10n.t(
     'To use this command, you must set the language to "SQL". Confirm to change language mode.',
 );
-export function msgChangedDatabaseContext(
-    databaseName: string,
-    documentName: string,
-) {
+export function msgChangedDatabaseContext(databaseName: string, documentName: string) {
     return l10n.t({
         message: 'Changed database context to "{0}" for document "{1}"',
         args: [databaseName, documentName],
@@ -304,10 +260,7 @@ export let msgPromptSSLCertificateValidationFailed = l10n.t(
 export let msgPromptRetryFirewallRuleNotSignedIn = l10n.t(
     "Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.",
 );
-export function msgPromptRetryFirewallRuleSignedIn(
-    clientIp: string,
-    serverName: string,
-) {
+export function msgPromptRetryFirewallRuleSignedIn(clientIp: string, serverName: string) {
     return l10n.t({
         message:
             "Your client IP Address '{0}' does not have access to the server '{1}' you're attempting to connect to. Would you like to create new firewall rule?",
@@ -324,12 +277,8 @@ export let msgAccountRefreshFailed = l10n.t(
 export let msgPromptProfileUpdateFailed = l10n.t(
     "Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.",
 );
-export let msgUnableToExpand = l10n.t(
-    "Unable to expand. Please check logs for more information.",
-);
-export let msgPromptFirewallRuleCreated = l10n.t(
-    "Firewall rule successfully created.",
-);
+export let msgUnableToExpand = l10n.t("Unable to expand. Please check logs for more information.");
+export let msgPromptFirewallRuleCreated = l10n.t("Firewall rule successfully created.");
 export let msgAuthTypeNotFound = l10n.t(
     "Failed to get authentication method, please remove and re-add the account.",
 );
@@ -399,26 +348,16 @@ export let msgAzureCredStoreSaveFailedError = l10n.t(
 );
 export function msgRefreshConnection(connectionId: string, uri: string) {
     return l10n.t({
-        message:
-            "Failed to refresh connection ${0} with uri {1}, invalid connection result.",
+        message: "Failed to refresh connection ${0} with uri {1}, invalid connection result.",
         args: [connectionId, uri],
         comment: ["{0} is the connection id", "{1} is the uri"],
     });
 }
-export function msgRefreshTokenSuccess(
-    connectionId: string,
-    uri: string,
-    message: string,
-) {
+export function msgRefreshTokenSuccess(connectionId: string, uri: string, message: string) {
     return l10n.t({
-        message:
-            "Successfully refreshed token for connection {0} with uri {1}, {2}",
+        message: "Successfully refreshed token for connection {0} with uri {1}, {2}",
         args: [connectionId, uri, message],
-        comment: [
-            "{0} is the connection id",
-            "{1} is the uri",
-            "{2} is the message",
-        ],
+        comment: ["{0} is the connection id", "{1} is the uri", "{2} is the message"],
     });
 }
 export function msgRefreshTokenNotNeeded(connectionId: string, uri: string) {
@@ -435,14 +374,9 @@ export function msgConnectedServerInfo(
     serverInfo: string,
 ) {
     return l10n.t({
-        message:
-            'Connected to server "{0}" on document "{1}". Server information: {2}',
+        message: 'Connected to server "{0}" on document "{1}". Server information: {2}',
         args: [serverName, documentName, serverInfo],
-        comment: [
-            "{0} is the server name",
-            "{1} is the document name",
-            "{2} is the server info",
-        ],
+        comment: ["{0} is the server name", "{1} is the document name", "{2} is the server info"],
     });
 }
 export function msgConnectionFailed(serverName: string, errorMessage: string) {
@@ -458,30 +392,16 @@ export function msgChangingDatabase(
     documentName: string,
 ) {
     return l10n.t({
-        message:
-            'Changing database context to "{0}" on server "{1}" on document "{2}".',
+        message: 'Changing database context to "{0}" on server "{1}" on document "{2}".',
         args: [databaseName, serverName, documentName],
-        comment: [
-            "{0} is the database name",
-            "{1} is the server name",
-            "{2} is the document name",
-        ],
+        comment: ["{0} is the database name", "{1} is the server name", "{2} is the document name"],
     });
 }
-export function msgChangedDatabase(
-    databaseName: string,
-    serverName: string,
-    documentName: string,
-) {
+export function msgChangedDatabase(databaseName: string, serverName: string, documentName: string) {
     return l10n.t({
-        message:
-            'Changed database context to "{0}" on server "{1}" on document "{2}".',
+        message: 'Changed database context to "{0}" on server "{1}" on document "{2}".',
         args: [databaseName, serverName, documentName],
-        comment: [
-            "{0} is the database name",
-            "{1} is the server name",
-            "{2} is the document name",
-        ],
+        comment: ["{0} is the database name", "{1} is the server name", "{2} is the document name"],
     });
 }
 export function msgDisconnected(documentName: string) {
@@ -491,26 +411,20 @@ export function msgDisconnected(documentName: string) {
         comment: ["{0} is the document name"],
     });
 }
-export let macOpenSslErrorMessage = l10n.t(
-    "OpenSSL version >=1.0.1 is required to connect.",
-);
+export let macOpenSslErrorMessage = l10n.t("OpenSSL version >=1.0.1 is required to connect.");
 export let macOpenSslHelpButton = l10n.t("Help");
 export let macSierraRequiredErrorMessage = l10n.t(
     "macOS Sierra or newer is required to use this feature.",
 );
 export let gettingDefinitionMessage = l10n.t("Getting definition ...");
 export let definitionRequestedStatus = l10n.t("DefinitionRequested");
-export let definitionRequestCompletedStatus = l10n.t(
-    "DefinitionRequestCompleted",
-);
+export let definitionRequestCompletedStatus = l10n.t("DefinitionRequestCompleted");
 export let updatingIntelliSenseStatus = l10n.t("updatingIntelliSense");
 export let intelliSenseUpdatedStatus = l10n.t("intelliSenseUpdated");
 export let testLocalizationConstant = l10n.t("test");
 export let disconnectOptionLabel = l10n.t("Disconnect");
 export let disconnectOptionDescription = l10n.t("Close the current connection");
-export let disconnectConfirmationMsg = l10n.t(
-    "Are you sure you want to disconnect?",
-);
+export let disconnectConfirmationMsg = l10n.t("Are you sure you want to disconnect?");
 export function elapsedBatchTime(batchTime: string) {
     return l10n.t({
         message: "Batch execution time: {0}",
@@ -518,9 +432,7 @@ export function elapsedBatchTime(batchTime: string) {
         comment: ["{0} is the batch time"],
     });
 }
-export let noActiveEditorMsg = l10n.t(
-    "A SQL editor must have focus before executing this command",
-);
+export let noActiveEditorMsg = l10n.t("A SQL editor must have focus before executing this command");
 export let maximizeLabel = l10n.t("Maximize");
 export let restoreLabel = l10n.t("Restore");
 export let saveCSVLabel = l10n.t("Save as CSV");
@@ -570,12 +482,8 @@ export let autoDisableNonTSqlLanguageServicePrompt = l10n.t(
 export let msgAddConnection = l10n.t("Add Connection");
 export let msgConnect = l10n.t("Connect");
 export let azureSignIn = l10n.t("Azure: Sign In");
-export let azureSignInDescription = l10n.t(
-    "Sign in to your Azure subscription",
-);
-export let azureSignInWithDeviceCode = l10n.t(
-    "Azure: Sign In with Device Code",
-);
+export let azureSignInDescription = l10n.t("Sign in to your Azure subscription");
+export let azureSignInWithDeviceCode = l10n.t("Azure: Sign In with Device Code");
 export let azureSignInWithDeviceCodeDescription = l10n.t(
     "Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work",
 );
@@ -597,19 +505,11 @@ export function taskStatusWithMessage(status: string, message: string) {
         comment: ["{0} is the status", "{1} is the message"],
     });
 }
-export function taskStatusWithNameAndMessage(
-    taskName: string,
-    status: string,
-    message: string,
-) {
+export function taskStatusWithNameAndMessage(taskName: string, status: string, message: string) {
     return l10n.t({
         message: "{0}: {1}. {2}",
         args: [taskName, status, message],
-        comment: [
-            "{0} is the task name",
-            "{1} is the status",
-            "{2} is the message",
-        ],
+        comment: ["{0} is the task name", "{1} is the status", "{2} is the message"],
     });
 }
 export let failed = l10n.t("Failed");
@@ -630,17 +530,13 @@ export function deleteCredentialError(id: string, error: string) {
 export let msgClearedRecentConnectionsWithErrors = l10n.t(
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
 );
-export let connectProgressNoticationTitle = l10n.t(
-    "Testing connection profile...",
-);
+export let connectProgressNoticationTitle = l10n.t("Testing connection profile...");
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
 );
 export let newColumnWidthPrompt = l10n.t("Enter new column width");
 export let columnWidthInvalidNumberError = l10n.t("Invalid column width");
-export let columnWidthMustBePositiveError = l10n.t(
-    "Width cannot be 0 or negative",
-);
+export let columnWidthMustBePositiveError = l10n.t("Width cannot be 0 or negative");
 export let objectExplorerNodeRefreshError = l10n.t(
     "An error occurred refreshing nodes. See the MSSQL output channel for more details.",
 );
@@ -681,9 +577,7 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ObjectExplorer {
-    public static ErrorLoadingRefreshToTryAgain = l10n.t(
-        "Error loading; refresh to try again",
-    );
+    public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
 }
 
 export class ConnectionDialog {
@@ -699,25 +593,17 @@ export class ConnectionDialog {
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
     public static connectionString = l10n.t("Connection String");
-    public static connectionStringIsRequired = l10n.t(
-        "Connection string is required",
-    );
+    public static connectionStringIsRequired = l10n.t("Connection string is required");
     public static signIn = l10n.t("Sign in");
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
 
-    public static errorLoadingAzureDatabases(
-        subscriptionName: string,
-        subscriptionId: string,
-    ) {
+    public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
         return l10n.t({
             message:
                 "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
             args: [subscriptionName, subscriptionId],
-            comment: [
-                "{0} is the subscription name",
-                "{1} is the subscription id",
-            ],
+            comment: ["{0} is the subscription name", "{1} is the subscription id"],
         });
     }
     public static deleteTheSavedConnection = (connectionName: string) => {
@@ -728,21 +614,15 @@ export class ConnectionDialog {
         });
     };
 
-    public static errorLoadingAzureAccountInfoForTenantId = (
-        tenantId: string,
-    ) => {
+    public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({
-            message:
-                "Error loading Azure account information for tenant ID '{0}'",
+            message: "Error loading Azure account information for tenant ID '{0}'",
             args: [tenantId],
             comment: ["{0} is the tenant ID"],
         });
     };
 
-    public static errorCreatingFirewallRule = (
-        ruleInfo: string,
-        error: string,
-    ) => {
+    public static errorCreatingFirewallRule = (ruleInfo: string, error: string) => {
         return l10n.t({
             message:
                 "Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}",
@@ -771,9 +651,7 @@ export class UserSurvey {
     public static privacyDisclaimer = l10n.t(
         "Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.",
     );
-    public static overallHowStatisfiedAreYouWithFeature = (
-        featureName: string,
-    ) =>
+    public static overallHowStatisfiedAreYouWithFeature = (featureName: string) =>
         l10n.t({
             message: "Overall, how satisfied are you with {0}?",
             args: [featureName],
@@ -782,8 +660,7 @@ export class UserSurvey {
 
     public static howLikelyAreYouToRecommendFeature = (featureName: string) =>
         l10n.t({
-            message:
-                "How likely it is that you would recommend {0} to a friend or colleague?",
+            message: "How likely it is that you would recommend {0} to a friend or colleague?",
             args: [featureName],
             comment: ["{0} is the feature name"],
         });

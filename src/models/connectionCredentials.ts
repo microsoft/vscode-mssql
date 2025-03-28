@@ -7,12 +7,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import { ConnectionStore } from "./connectionStore";
 import * as utils from "./utils";
-import {
-    QuestionTypes,
-    IQuestion,
-    IPrompter,
-    INameValueChoice,
-} from "../prompts/question";
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from "../prompts/question";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 
@@ -61,9 +56,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     /**
      * Create a connection details contract from connection credentials.
      */
-    public static createConnectionDetails(
-        credentials: IConnectionInfo,
-    ): ConnectionDetails {
+    public static createConnectionDetails(credentials: IConnectionInfo): ConnectionDetails {
         let details: ConnectionDetails = {
             options: {},
         };
@@ -85,24 +78,17 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["azureAccountToken"] = credentials.azureAccountToken;
         details.options["expiresOn"] = credentials.expiresOn;
         details.options["encrypt"] = credentials.encrypt;
-        details.options["trustServerCertificate"] =
-            credentials.trustServerCertificate;
-        details.options["hostNameInCertificate"] =
-            credentials.hostNameInCertificate;
-        details.options["persistSecurityInfo"] =
-            credentials.persistSecurityInfo;
+        details.options["trustServerCertificate"] = credentials.trustServerCertificate;
+        details.options["hostNameInCertificate"] = credentials.hostNameInCertificate;
+        details.options["persistSecurityInfo"] = credentials.persistSecurityInfo;
         details.options["secureEnclaves"] = credentials.secureEnclaves;
-        details.options["columnEncryptionSetting"] =
-            credentials.columnEncryptionSetting;
-        details.options["attestationProtocol"] =
-            credentials.attestationProtocol;
-        details.options["enclaveAttestationUrl"] =
-            credentials.enclaveAttestationUrl;
+        details.options["columnEncryptionSetting"] = credentials.columnEncryptionSetting;
+        details.options["attestationProtocol"] = credentials.attestationProtocol;
+        details.options["enclaveAttestationUrl"] = credentials.enclaveAttestationUrl;
         details.options["connectTimeout"] = credentials.connectTimeout;
         details.options["commandTimeout"] = credentials.commandTimeout;
         details.options["connectRetryCount"] = credentials.connectRetryCount;
-        details.options["connectRetryInterval"] =
-            credentials.connectRetryInterval;
+        details.options["connectRetryInterval"] = credentials.connectRetryInterval;
         details.options["applicationName"] = credentials.applicationName;
         details.options["workstationId"] = credentials.workstationId;
         details.options["applicationIntent"] = credentials.applicationIntent;
@@ -114,10 +100,8 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["replication"] = credentials.replication;
         details.options["attachDbFilename"] = credentials.attachDbFilename;
         details.options["failoverPartner"] = credentials.failoverPartner;
-        details.options["multiSubnetFailover"] =
-            credentials.multiSubnetFailover;
-        details.options["multipleActiveResultSets"] =
-            credentials.multipleActiveResultSets;
+        details.options["multiSubnetFailover"] = credentials.multiSubnetFailover;
+        details.options["multipleActiveResultSets"] = credentials.multipleActiveResultSets;
         details.options["packetSize"] = credentials.packetSize;
         details.options["typeSystemVersion"] = credentials.typeSystemVersion;
 
@@ -127,9 +111,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     /**
      * Create an IConnectionInfo object from a ConnectionDetails contract.
      */
-    public static createConnectionInfo(
-        connDetails: ConnectionDetails,
-    ): IConnectionInfo {
+    public static createConnectionInfo(connDetails: ConnectionDetails): IConnectionInfo {
         const options = connDetails.options || {};
 
         const connInfo: IConnectionInfo = {
@@ -196,10 +178,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                 connectionStore,
                 defaultProfileValues,
             );
-        let unprocessedCredentials: IConnectionInfo = Object.assign(
-            {},
-            credentials,
-        );
+        let unprocessedCredentials: IConnectionInfo = Object.assign({}, credentials);
 
         // Potentially ask to save password
         questions.push({
@@ -214,21 +193,15 @@ export class ConnectionCredentials implements IConnectionInfo {
                 if (isProfile) {
                     // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
                     return (
-                        ConnectionCredentials.isPasswordBasedCredential(
-                            credentials,
-                        ) &&
-                        typeof (<IConnectionProfile>credentials)
-                            .savePassword === "undefined" &&
+                        ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                        typeof (<IConnectionProfile>credentials).savePassword === "undefined" &&
                         wasPasswordEmptyInConfigFile
                     );
                 } else {
                     // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
                     return (
-                        ConnectionCredentials.isPasswordBasedCredential(
-                            credentials,
-                        ) &&
-                        typeof (<IConnectionProfile>credentials)
-                            .savePassword === "undefined"
+                        ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                        typeof (<IConnectionProfile>credentials).savePassword === "undefined"
                     );
                 }
             },
@@ -240,31 +213,24 @@ export class ConnectionCredentials implements IConnectionInfo {
         return prompter.prompt(questions).then(async (answers) => {
             if (answers) {
                 if (isProfile) {
-                    let profile: IConnectionProfile = <IConnectionProfile>(
-                        credentials
-                    );
+                    let profile: IConnectionProfile = <IConnectionProfile>credentials;
 
                     // If this is a profile, and the user has set save password to true and either
                     // stored the password in the config file or purposefully set an empty password,
                     // then transfer the password to the credential store
                     if (
                         profile.savePassword &&
-                        (!wasPasswordEmptyInConfigFile ||
-                            profile.emptyPasswordInput)
+                        (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)
                     ) {
                         // Remove profile, then save profile without plain text password
-                        await connectionStore
-                            .removeProfile(profile)
-                            .then(async () => {
-                                await connectionStore.saveProfile(profile);
-                            });
+                        await connectionStore.removeProfile(profile).then(async () => {
+                            await connectionStore.saveProfile(profile);
+                        });
                         // Or, if the user answered any additional questions for the profile, be sure to save it
                     } else if (
-                        profile.authenticationType !==
-                            unprocessedCredentials.authenticationType ||
+                        profile.authenticationType !== unprocessedCredentials.authenticationType ||
                         profile.savePassword !==
-                            (<IConnectionProfile>unprocessedCredentials)
-                                .savePassword ||
+                            (<IConnectionProfile>unprocessedCredentials).savePassword ||
                         profile.password !== unprocessedCredentials.password
                     ) {
                         if (await connectionStore.removeProfile(profile)) {
@@ -290,8 +256,7 @@ export class ConnectionCredentials implements IConnectionInfo {
         let authenticationChoices: INameValueChoice[] =
             ConnectionCredentials.getAuthenticationTypesChoice();
 
-        let connectionStringSet: () => boolean = () =>
-            Boolean(credentials.connectionString);
+        let connectionStringSet: () => boolean = () => Boolean(credentials.connectionString);
 
         let questions: IQuestion[] = [
             // Server or connection string must be present
@@ -300,9 +265,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                 name: LocalizedConstants.serverPrompt,
                 message: LocalizedConstants.serverPrompt,
                 placeHolder: LocalizedConstants.serverPlaceholder,
-                default: defaultProfileValues
-                    ? defaultProfileValues.server
-                    : undefined,
+                default: defaultProfileValues ? defaultProfileValues.server : undefined,
                 shouldPrompt: (answers) => utils.isEmpty(credentials.server),
                 validate: (value) =>
                     ConnectionCredentials.validateRequiredString(
@@ -310,10 +273,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                         value,
                     ),
                 onAnswered: (value) =>
-                    ConnectionCredentials.processServerOrConnectionString(
-                        value,
-                        credentials,
-                    ),
+                    ConnectionCredentials.processServerOrConnectionString(value, credentials),
             },
             // Database name is not required, prompt is optional
             {
@@ -321,11 +281,8 @@ export class ConnectionCredentials implements IConnectionInfo {
                 name: LocalizedConstants.databasePrompt,
                 message: LocalizedConstants.databasePrompt,
                 placeHolder: LocalizedConstants.databasePlaceholder,
-                default: defaultProfileValues
-                    ? defaultProfileValues.database
-                    : undefined,
-                shouldPrompt: (answers) =>
-                    !connectionStringSet() && promptForDbName,
+                default: defaultProfileValues ? defaultProfileValues.database : undefined,
+                shouldPrompt: (answers) => !connectionStringSet() && promptForDbName,
                 onAnswered: (value) => (credentials.database = value),
             },
             // AuthenticationType is required if there is more than 1 option on this platform
@@ -340,17 +297,11 @@ export class ConnectionCredentials implements IConnectionInfo {
                     authenticationChoices.length > 1,
                 validate: (value) => {
                     if (
-                        value ===
-                            utils.authTypeToString(
-                                AuthenticationTypes.Integrated,
-                            ) &&
+                        value === utils.authTypeToString(AuthenticationTypes.Integrated) &&
                         SqlToolsServerClient.instance.getServiceVersion() === 1
                     ) {
                         return LocalizedConstants.macSierraRequiredErrorMessage;
-                    } else if (
-                        value ===
-                        utils.authTypeToString(AuthenticationTypes.AzureMFA)
-                    ) {
+                    } else if (value === utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
                         return undefined;
                     }
                     return undefined;
@@ -365,9 +316,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                 name: LocalizedConstants.usernamePrompt,
                 message: LocalizedConstants.usernamePrompt,
                 placeHolder: LocalizedConstants.usernamePlaceholder,
-                default: defaultProfileValues
-                    ? defaultProfileValues.user
-                    : undefined,
+                default: defaultProfileValues ? defaultProfileValues.user : undefined,
                 shouldPrompt: (answers) =>
                     !connectionStringSet() &&
                     ConnectionCredentials.shouldPromptForUser(credentials),
@@ -399,13 +348,8 @@ export class ConnectionCredentials implements IConnectionInfo {
                 onAnswered: (value) => {
                     if (credentials) {
                         credentials.password = value;
-                        if (
-                            typeof (<IConnectionProfile>credentials) !==
-                            "undefined"
-                        ) {
-                            (<IConnectionProfile>(
-                                credentials
-                            )).emptyPasswordInput = utils.isEmpty(
+                        if (typeof (<IConnectionProfile>credentials) !== "undefined") {
+                            (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(
                                 credentials.password,
                             );
                         }
@@ -415,11 +359,10 @@ export class ConnectionCredentials implements IConnectionInfo {
                     if (value.connectionString) {
                         if ((value as IConnectionProfile).savePassword) {
                             // look up connection string
-                            let connectionString =
-                                await connectionStore.lookupPassword(
-                                    value,
-                                    true,
-                                );
+                            let connectionString = await connectionStore.lookupPassword(
+                                value,
+                                true,
+                            );
                             value.connectionString = connectionString;
                         }
                     } else {
@@ -437,13 +380,7 @@ export class ConnectionCredentials implements IConnectionInfo {
         credentials: IConnectionInfo,
     ): void {
         // If the value contains a connection string server name key, assume it is a connection string
-        const dataSourceKeys = [
-            "data source=",
-            "server=",
-            "address=",
-            "addr=",
-            "network address=",
-        ];
+        const dataSourceKeys = ["data source=", "server=", "address=", "addr=", "network address="];
         let isConnectionString = dataSourceKeys.some(
             (key) => value.toLowerCase().indexOf(key) !== -1,
         );
@@ -464,9 +401,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 
     // Prompt for password if this is a password based credential and the password for the profile was empty
     // and not explicitly set as empty. If it was explicitly set as empty, only prompt if pw not saved
-    public static shouldPromptForPassword(
-        credentials: IConnectionInfo,
-    ): boolean {
+    public static shouldPromptForPassword(credentials: IConnectionInfo): boolean {
         let isSavedEmptyPassword: boolean =
             (<IConnectionProfile>credentials).emptyPasswordInput &&
             (<IConnectionProfile>credentials).savePassword;
@@ -478,25 +413,16 @@ export class ConnectionCredentials implements IConnectionInfo {
         );
     }
 
-    public static isPasswordBasedCredential(
-        credentials: IConnectionInfo,
-    ): boolean {
+    public static isPasswordBasedCredential(credentials: IConnectionInfo): boolean {
         // TODO consider enum based verification and handling of AD auth here in the future
         let authenticationType = credentials.authenticationType;
         if (typeof credentials.authenticationType === "undefined") {
-            authenticationType = utils.authTypeToString(
-                AuthenticationTypes.SqlLogin,
-            );
+            authenticationType = utils.authTypeToString(AuthenticationTypes.SqlLogin);
         }
-        return (
-            authenticationType ===
-            utils.authTypeToString(AuthenticationTypes.SqlLogin)
-        );
+        return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
     }
 
-    public static isPasswordBasedConnectionString(
-        connectionString: string,
-    ): boolean {
+    public static isPasswordBasedConnectionString(connectionString: string): boolean {
         const connString = connectionString.toLowerCase();
         return (
             (connString.includes("user") ||
@@ -508,10 +434,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     }
 
     // Validates a string is not empty, returning undefined if true and an error message if not
-    protected static validateRequiredString(
-        property: string,
-        value: string,
-    ): string {
+    protected static validateRequiredString(property: string, value: string): string {
         if (utils.isEmpty(value)) {
             return property + LocalizedConstants.msgIsRequired;
         }

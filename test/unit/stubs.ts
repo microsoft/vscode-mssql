@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import {
-    IQuestion,
-    IPrompter,
-    IPromptCallback,
-} from "../../src/prompts/question";
+import { IQuestion, IPrompter, IPromptCallback } from "../../src/prompts/question";
 import * as vscode from "vscode";
 
 // Dummy implementation to simplify mocking
@@ -19,10 +15,7 @@ class TestPrompter implements IPrompter {
     public prompt<T>(questions: IQuestion[]): Promise<{ [key: string]: T }> {
         return Promise.resolve(undefined);
     }
-    public promptCallback(
-        questions: IQuestion[],
-        callback: IPromptCallback,
-    ): void {
+    public promptCallback(questions: IQuestion[], callback: IPromptCallback): void {
         callback({});
     }
 }
@@ -63,10 +56,7 @@ function createWorkspaceConfiguration(
                 key: undefined,
                 defaultValue: undefined,
                 globalValue: items[section],
-                workspaceValue:
-                    workspaceItems === undefined
-                        ? undefined
-                        : workspaceItems[section],
+                workspaceValue: workspaceItems === undefined ? undefined : workspaceItems[section],
             };
         },
         update(section: string, value: any, global?: boolean): Thenable<void> {

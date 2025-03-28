@@ -28,20 +28,14 @@ export const test = baseTest.extend<{
             }),
         );
         await fs.promises.mkdir(istanbulCLIOutput, { recursive: true });
-        await context.exposeFunction(
-            "collectIstanbulCoverage",
-            (coverageJSON: string) => {
-                if (coverageJSON) {
-                    fs.writeFileSync(
-                        path.join(
-                            istanbulCLIOutput,
-                            `playwright_coverage_${generateUUID()}.json`,
-                        ),
-                        coverageJSON,
-                    );
-                }
-            },
-        );
+        await context.exposeFunction("collectIstanbulCoverage", (coverageJSON: string) => {
+            if (coverageJSON) {
+                fs.writeFileSync(
+                    path.join(istanbulCLIOutput, `playwright_coverage_${generateUUID()}.json`),
+                    coverageJSON,
+                );
+            }
+        });
         await use(context);
         for (const page of context.pages()) {
             await page.evaluate(() =>

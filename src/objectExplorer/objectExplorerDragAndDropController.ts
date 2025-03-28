@@ -33,10 +33,7 @@ export class ObjectExplorerDragAndDropController
                     objectString = `[${item.metadata.name}]`;
                     break;
             }
-            dataTransfer.set(
-                "text/plain",
-                new vscode.DataTransferItem(objectString),
-            );
+            dataTransfer.set("text/plain", new vscode.DataTransferItem(objectString));
         }
     }
 }

@@ -36,9 +36,7 @@ export async function getAllValues<T, TResult>(
 }
 
 export type SubscriptionClientFactory = (token: IToken) => SubscriptionClient;
-export function defaultSubscriptionClientFactory(
-    token: IToken,
-): SubscriptionClient {
+export function defaultSubscriptionClientFactory(token: IToken): SubscriptionClient {
     return new SubscriptionClient(new TokenCredentialWrapper(token));
 }
 
@@ -50,10 +48,7 @@ export function defaultResourceManagementClientFactory(
     token: IToken,
     subscriptionId: string,
 ): ResourceManagementClient {
-    return new ResourceManagementClient(
-        new TokenCredentialWrapper(token),
-        subscriptionId,
-    );
+    return new ResourceManagementClient(new TokenCredentialWrapper(token), subscriptionId);
 }
 
 export type SqlManagementClientFactory = (
@@ -64,16 +59,11 @@ export function defaultSqlManagementClientFactory(
     token: IToken,
     subscriptionId: string,
 ): SqlManagementClient {
-    return new SqlManagementClient(
-        new TokenCredentialWrapper(token),
-        subscriptionId,
-    );
+    return new SqlManagementClient(new TokenCredentialWrapper(token), subscriptionId);
 }
 
 function getConfiguration(): vscode.WorkspaceConfiguration {
-    return vscode.workspace.getConfiguration(
-        Constants.extensionConfigSectionName,
-    );
+    return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
 export function getAzureActiveDirectoryConfig(): AzureAuthType {
@@ -91,9 +81,7 @@ export function getAzureActiveDirectoryConfig(): AzureAuthType {
 export function getEnableSqlAuthenticationProviderConfig(): boolean {
     const config = getConfiguration();
     if (config) {
-        const val: boolean | undefined = config.get(
-            Constants.sqlAuthProviderSection,
-        );
+        const val: boolean | undefined = config.get(Constants.sqlAuthProviderSection);
         if (val !== undefined) {
             return val;
         }
@@ -104,9 +92,7 @@ export function getEnableSqlAuthenticationProviderConfig(): boolean {
 export function getEnableConnectionPoolingConfig(): boolean {
     const config = getConfiguration();
     if (config) {
-        const val: boolean | undefined = config.get(
-            Constants.enableConnectionPoolingSection,
-        );
+        const val: boolean | undefined = config.get(Constants.enableConnectionPoolingSection);
         if (val !== undefined) {
             return val;
         }
@@ -125,10 +111,7 @@ export function getAppDataPath(): string {
         case "darwin":
             return path.join(os.homedir(), "Library", "Application Support");
         case "linux":
-            return (
-                process.env["XDG_CONFIG_HOME"] ||
-                path.join(os.homedir(), ".config")
-            );
+            return process.env["XDG_CONFIG_HOME"] || path.join(os.homedir(), ".config");
         default:
             throw new Error("Platform not supported");
     }

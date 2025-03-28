@@ -19,9 +19,7 @@ const defaultOptions: IRowNumberColumnOptions = {
     autoCellSelection: true,
 };
 
-export class RowNumberColumn<T extends Slick.SlickData>
-    implements Slick.Plugin<T>
-{
+export class RowNumberColumn<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private handler = new Slick.EventHandler();
     private grid!: Slick.Grid<T>;
 
@@ -32,10 +30,8 @@ export class RowNumberColumn<T extends Slick.SlickData>
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
         this.handler
-            .subscribe(
-                this.grid.onClick,
-                (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
-                    this.handleClick(e as MouseEvent, args),
+            .subscribe(this.grid.onClick, (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
+                this.handleClick(e as MouseEvent, args),
             )
             .subscribe(
                 this.grid.onHeaderClick,
@@ -60,10 +56,7 @@ export class RowNumberColumn<T extends Slick.SlickData>
         }
     }
 
-    private handleHeaderClick(
-        _e: MouseEvent,
-        args: Slick.OnHeaderClickEventArgs<T>,
-    ): void {
+    private handleHeaderClick(_e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>): void {
         if (args.column.id === "rowNumber" && this.options?.autoCellSelection) {
             this.grid.setActiveCell(this.grid.getViewport()?.top ?? 0, 1);
             let selectionModel = this.grid.getSelectionModel();

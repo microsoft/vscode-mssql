@@ -4,10 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import {
-    GetExecutionPlanRequest,
-    GetExecutionPlanParams,
-} from "../models/contracts/executionPlan";
+import { GetExecutionPlanRequest, GetExecutionPlanParams } from "../models/contracts/executionPlan";
 import * as ep from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
 
 export class ExecutionPlanService implements ep.ExecutionPlanService {
@@ -19,10 +16,7 @@ export class ExecutionPlanService implements ep.ExecutionPlanService {
             let params: GetExecutionPlanParams = {
                 graphInfo: planFile,
             };
-            return await this._sqlToolsClient.sendRequest(
-                GetExecutionPlanRequest.type,
-                params,
-            );
+            return await this._sqlToolsClient.sendRequest(GetExecutionPlanRequest.type, params);
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
             throw e;

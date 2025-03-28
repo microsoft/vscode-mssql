@@ -21,21 +21,14 @@ export class AzureResourceController {
      * @param session Azure session
      * @returns List of locations
      */
-    public async getLocations(
-        session: mssql.IAzureAccountSession,
-    ): Promise<Location[]> {
+    public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
         const subClient = this._subscriptionClientFactory(session.token!);
         if (session.subscription?.subscriptionId) {
             const locationsPages = await subClient.subscriptions.listLocations(
                 session.subscription.subscriptionId,
             );
-            let locations = await azureUtils.getAllValues(
-                locationsPages,
-                (v) => v,
-            );
-            return locations.sort((a, b) =>
-                (a.name || "").localeCompare(b.name || ""),
-            );
+            let locations = await azureUtils.getAllValues(locationsPages, (v) => v);
+            return locations.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
         } else {
             throw new Error("Invalid session");
         }
@@ -57,17 +50,13 @@ export class AzureResourceController {
         token: mssql.IToken,
     ): Promise<string | undefined> {
         if (subscriptionId && resourceGroupName) {
-            const sqlClient = this._sqlManagementClientFactory(
-                token,
-                subscriptionId,
-            );
+            const sqlClient = this._sqlManagementClientFactory(token, subscriptionId);
             if (sqlClient) {
-                const result =
-                    await sqlClient.servers.beginCreateOrUpdateAndWait(
-                        resourceGroupName,
-                        serverName,
-                        parameters,
-                    );
+                const result = await sqlClient.servers.beginCreateOrUpdateAndWait(
+                    resourceGroupName,
+                    serverName,
+                    parameters,
+                );
 
                 return result.fullyQualifiedDomainName;
             }
@@ -80,23 +69,15 @@ export class AzureResourceController {
      * @param session Azure session
      * @returns List of resource groups
      */
-    public async getResourceGroups(
-        session: mssql.IAzureAccountSession,
-    ): Promise<ResourceGroup[]> {
+    public async getResourceGroups(session: mssql.IAzureAccountSession): Promise<ResourceGroup[]> {
         if (session.subscription?.subscriptionId) {
             const resourceGroupClient = this._resourceManagementClientFactory(
                 session.token!,
                 session.subscription.subscriptionId,
             );
-            const newGroupsPages =
-                await resourceGroupClient.resourceGroups.list();
-            let groups = await azureUtils.getAllValues(
-                newGroupsPages,
-                (v) => v,
-            );
-            return groups.sort((a, b) =>
-                (a.name || "").localeCompare(b.name || ""),
-            );
+            const newGroupsPages = await resourceGroupClient.resourceGroups.list();
+            let groups = await azureUtils.getAllValues(newGroupsPages, (v) => v);
+            return groups.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
         } else {
             throw new Error("Invalid session");
         }

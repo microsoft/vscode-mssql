@@ -155,8 +155,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         connectionProfile: IConnectionProfile,
         sourceContext: any,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
-        let ownerUri =
-            await this.connectionMgr.getUriForConnection(connectionProfile);
+        let ownerUri = await this.connectionMgr.getUriForConnection(connectionProfile);
         let user = connectionProfile.user;
         if (!user) {
             user = "default";
@@ -170,9 +169,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             ownerUri: ownerUri,
             packageFilePath: "",
             connectionDetails: undefined,
-            connectionName: connectionProfile.profileName
-                ? connectionProfile.profileName
-                : "",
+            connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
             projectFilePath: "",
             targetScripts: [],
             dataSchemaProvider: "",
@@ -182,9 +179,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return source;
     }
 
-    private getEndpointInfoFromDacpac(
-        sourceDacpac: string,
-    ): mssql.SchemaCompareEndpointInfo {
+    private getEndpointInfoFromDacpac(sourceDacpac: string): mssql.SchemaCompareEndpointInfo {
         const source = {
             endpointType: mssql.SchemaCompareEndpointType.Dacpac,
             serverDisplayName: "",
@@ -202,9 +197,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return source;
     }
 
-    private getEndpointInfoFromProject(
-        sourceProject: string,
-    ): mssql.SchemaCompareEndpointInfo {
+    private getEndpointInfoFromProject(sourceProject: string): mssql.SchemaCompareEndpointInfo {
         const source = {
             endpointType: mssql.SchemaCompareEndpointType.Project,
             packageFilePath: "",
@@ -236,11 +229,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("compare", async (state, payload) => {
-            const result = await compare(
-                this.operationId,
-                payload,
-                this.schemaCompareService,
-            );
+            const result = await compare(this.operationId, payload, this.schemaCompareService);
 
             state.schemaCompareResult = result;
             return state;
@@ -257,33 +246,27 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer(
-            "publishDatabaseChanges",
-            async (state, payload) => {
-                const result = await publishDatabaseChanges(
-                    this.operationId,
-                    payload,
-                    this.schemaCompareService,
-                );
+        this.registerReducer("publishDatabaseChanges", async (state, payload) => {
+            const result = await publishDatabaseChanges(
+                this.operationId,
+                payload,
+                this.schemaCompareService,
+            );
 
-                state.publishDatabaseChangesResultStatus = result;
-                return state;
-            },
-        );
+            state.publishDatabaseChangesResultStatus = result;
+            return state;
+        });
 
-        this.registerReducer(
-            "publishProjectChanges",
-            async (state, payload) => {
-                const result = await publishProjectChanges(
-                    this.operationId,
-                    payload,
-                    this.schemaCompareService,
-                );
+        this.registerReducer("publishProjectChanges", async (state, payload) => {
+            const result = await publishProjectChanges(
+                this.operationId,
+                payload,
+                this.schemaCompareService,
+            );
 
-                state.schemaComparePublishProjectResult = result;
-                return state;
-            },
-        );
+            state.schemaComparePublishProjectResult = result;
+            return state;
+        });
 
         this.registerReducer("getDefaultOptions", async (state) => {
             const result = await getDefaultOptions(this.schemaCompareService);
@@ -318,10 +301,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("cancel", async (state) => {
-            const result = await cancel(
-                this.operationId,
-                this.schemaCompareService,
-            );
+            const result = await cancel(this.operationId, this.schemaCompareService);
 
             state.cancelResultStatus = result;
             return state;

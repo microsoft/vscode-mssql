@@ -59,14 +59,11 @@ export class LocConstants {
                 l10n.t({
                     message: "Path: {0}",
                     args: [path],
-                    comment: [
-                        "{0} is the path of the node in the object explorer",
-                    ],
+                    comment: ["{0} is the path of the node in the object explorer"],
                 }),
             firstValueEmptyError: (operator: string, filterName: string) =>
                 l10n.t({
-                    message:
-                        "The first value must be set for the {0} operator in the {1} filter",
+                    message: "The first value must be set for the {0} operator in the {1} filter",
                     args: [operator, filterName],
                     comment: [
                         "{0} is the operator for the filter",
@@ -75,18 +72,14 @@ export class LocConstants {
                 }),
             secondValueEmptyError: (operator: string, filterName: string) =>
                 l10n.t({
-                    message:
-                        "The second value must be set for the {0} operator in the {1} filter",
+                    message: "The second value must be set for the {0} operator in the {1} filter",
                     args: [operator, filterName],
                     comment: [
                         "{0} is the operator for the filter",
                         "{1} is the name of the filter",
                     ],
                 }),
-            firstValueLessThanSecondError: (
-                operator: string,
-                filterName: string,
-            ) =>
+            firstValueLessThanSecondError: (operator: string, filterName: string) =>
                 l10n.t({
                     message:
                         "The first value must be less than the second value for the {0} operator in the {1} filter",
@@ -106,9 +99,7 @@ export class LocConstants {
     public get tableDesigner() {
         return {
             publishingChanges: l10n.t("Publishing Changes"),
-            changesPublishedSuccessfully: l10n.t(
-                "Changes published successfully",
-            ),
+            changesPublishedSuccessfully: l10n.t("Changes published successfully"),
             closeDesigner: l10n.t("Close Designer"),
             continueEditing: l10n.t("Continue Editing"),
             loadingTableDesigner: l10n.t("Loading Table Designer"),
@@ -152,9 +143,7 @@ export class LocConstants {
             schema: l10n.t("Schema"),
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
-            youMustReviewAndAccept: l10n.t(
-                "You must review and accept the terms to proceed",
-            ),
+            youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
         };
     }
 
@@ -189,13 +178,9 @@ export class LocConstants {
                 "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
             ),
             readMore: l10n.t("Read more"),
-            enableTrustServerCertificateButton: l10n.t(
-                "Enable 'Trust Server Certificate'",
-            ),
+            enableTrustServerCertificateButton: l10n.t("Enable 'Trust Server Certificate'"),
             createNewFirewallRule: l10n.t("Create a new firewall rule"),
-            firewallRuleNeededMessage: l10n.t(
-                "A firewall rule is required to access this server.",
-            ),
+            firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
             addFirewallRule: l10n.t("Add Firewall Rule"),
             azureFilterPlaceholder: (dropdownContentType: string) =>
                 l10n.t({
@@ -221,18 +206,11 @@ export class LocConstants {
 
     public get executionPlan() {
         return {
-            queryCostRelativeToScript: (
-                index: number,
-                costPercentage: string,
-            ) =>
+            queryCostRelativeToScript: (index: number, costPercentage: string) =>
                 l10n.t({
-                    message:
-                        "Query {0}:  Query cost (relative to the script):  {1}%",
+                    message: "Query {0}:  Query cost (relative to the script):  {1}%",
                     args: [index, costPercentage],
-                    comment: [
-                        "{0} is the query number",
-                        "{1} is the query cost",
-                    ],
+                    comment: ["{0} is the query number", "{1} is the query cost"],
                 }),
             equals: l10n.t("Equals"),
             contains: l10n.t("Contains"),
@@ -240,9 +218,7 @@ export class LocConstants {
             actualElapsedCpuTime: l10n.t("Actual Elapsed CPU Time"),
             cost: l10n.t("Cost"),
             subtreeCost: l10n.t("Subtree Cost"),
-            actualNumberOfRowsForAllExecutions: l10n.t(
-                "Actual Number of Rows For All Executions",
-            ),
+            actualNumberOfRowsForAllExecutions: l10n.t("Actual Number of Rows For All Executions"),
             numberOfRowsRead: l10n.t("Number of Rows Read"),
             off: l10n.t("Off"),
             metric: l10n.t("Metric"),
@@ -255,9 +231,7 @@ export class LocConstants {
             zoomToFit: l10n.t("Zoom to Fit"),
             customZoom: l10n.t("Custom Zoom"),
             findNode: l10n.t("Find Node"),
-            highlightExpensiveOperation: l10n.t(
-                "Highlight Expensive Operation",
-            ),
+            highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
             name: l10n.t("Name"),
@@ -277,9 +251,7 @@ export class LocConstants {
 
     public get userFeedback() {
         return {
-            microsoftWouldLikeYourFeedback: l10n.t(
-                "Microsoft would like your feedback",
-            ),
+            microsoftWouldLikeYourFeedback: l10n.t("Microsoft would like your feedback"),
             overallHowSatisfiedAreYouWithMSSQLExtension: l10n.t(
                 "Overall, how satisfied are you with the MSSQL extension?",
             ),
