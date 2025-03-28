@@ -22,8 +22,7 @@ export function SchemaDesignerToolbar() {
                 width: "100%",
                 overflow: "hidden",
                 overflowX: "auto",
-            }}
-        >
+            }}>
             <PublishChangesDialogButton />
             <ViewCodeDialogButton />
             <ExportDiagramButton />

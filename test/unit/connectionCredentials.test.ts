@@ -15,10 +15,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IPrompter, IQuestion } from "../../src/prompts/question";
 import { TestPrompter } from "./stubs";
-import {
-    AuthenticationTypes,
-    IConnectionProfile,
-} from "../../src/models/interfaces";
+import { AuthenticationTypes, IConnectionProfile } from "../../src/models/interfaces";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 import * as assert from "assert";
@@ -36,9 +33,7 @@ suite("ConnectionCredentials Tests", () => {
             profileName: "defaultProfile",
             server: "namedServer",
             database: "bcd",
-            authenticationType: utils.authTypeToString(
-                interfaces.AuthenticationTypes.SqlLogin,
-            ),
+            authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: "cde",
         });
 
@@ -81,9 +76,7 @@ suite("ConnectionCredentials Tests", () => {
             .returns((profile1: IConnectionProfile) => Promise.resolve(true));
         connectionStore
             .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
-            .returns((profile1: IConnectionProfile) =>
-                Promise.resolve(profile1),
-            );
+            .returns((profile1: IConnectionProfile) => Promise.resolve(profile1));
         prompter
             .setup((x) => x.prompt(TypeMoq.It.isAny()))
             .returns((questions: IQuestion[]) => Promise.resolve(answers));
@@ -99,20 +92,14 @@ suite("ConnectionCredentials Tests", () => {
         );
     }
 
-    function ensureRequestAndSavePassword(
-        emptyPassword: boolean,
-    ): (done: MochaDone) => void {
+    function ensureRequestAndSavePassword(emptyPassword: boolean): (done: MochaDone) => void {
         return (done: MochaDone) => {
             // Setup Profile Information to have savePassword on and blank
-            let profile = Object.assign(
-                new ConnectionProfile(),
-                defaultProfile,
-                {
-                    savePassword: true,
-                    emptyPasswordInput: emptyPassword,
-                    password: "",
-                },
-            );
+            let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
+                savePassword: true,
+                emptyPasswordInput: emptyPassword,
+                password: "",
+            });
 
             // Setup input paramaters
             let isProfile = true;
@@ -124,27 +111,18 @@ suite("ConnectionCredentials Tests", () => {
             // Mocking functions
             connectionStore
                 .setup(async (x) => await x.removeProfile(TypeMoq.It.isAny()))
-                .returns((profile1: IConnectionProfile) =>
-                    Promise.resolve(true),
-                );
+                .returns((profile1: IConnectionProfile) => Promise.resolve(true));
             connectionStore
                 .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
-                .returns((profile1: IConnectionProfile) =>
-                    Promise.resolve(profile1),
-                );
+                .returns((profile1: IConnectionProfile) => Promise.resolve(profile1));
             prompter
                 .setup((x) => x.prompt(TypeMoq.It.isAny()))
                 .callback((questions) => {
                     passwordQuestion = questions.filter(
-                        (question) =>
-                            question.name === LocalizedConstants.passwordPrompt,
+                        (question) => question.name === LocalizedConstants.passwordPrompt,
                     );
-                    answers[LocalizedConstants.passwordPrompt] = emptyPassword
-                        ? ""
-                        : "newPassword";
-                    void passwordQuestion[0].onAnswered(
-                        answers[LocalizedConstants.passwordPrompt],
-                    );
+                    answers[LocalizedConstants.passwordPrompt] = emptyPassword ? "" : "newPassword";
+                    void passwordQuestion[0].onAnswered(answers[LocalizedConstants.passwordPrompt]);
                 })
                 .returns((questions: IQuestion[]) => Promise.resolve(answers));
 
@@ -161,10 +139,7 @@ suite("ConnectionCredentials Tests", () => {
                     assert.ok(success);
                     // Checking to see password question was prompted
                     assert.ok(passwordQuestion);
-                    assert.equal(
-                        success.password,
-                        answers[LocalizedConstants.passwordPrompt],
-                    );
+                    assert.equal(success.password, answers[LocalizedConstants.passwordPrompt]);
                     connectionStore.verify(
                         async (x) => await x.removeProfile(TypeMoq.It.isAny()),
                         TypeMoq.Times.once(),
@@ -183,14 +158,10 @@ suite("ConnectionCredentials Tests", () => {
         // Connect with savePassword true and filled password and ensure password is saved and removed from plain text
         test("ensureRequiredPropertiesSet should remove password from plain text and save password to Credential Store", (done) => {
             // Setup Profile Information to have savePassword on and filled in password
-            let profile = Object.assign(
-                new ConnectionProfile(),
-                defaultProfile,
-                {
-                    savePassword: true,
-                    password: "oldPassword",
-                },
-            );
+            let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
+                savePassword: true,
+                password: "oldPassword",
+            });
             let emptyPassword = false;
 
             connectProfile(profile, emptyPassword)
@@ -212,14 +183,10 @@ suite("ConnectionCredentials Tests", () => {
         // Connect with savePassword true and empty password does not reset password
         test("ensureRequiredPropertiesSet should keep Credential Store password", (done) => {
             // Setup Profile Information to have savePassword on and blank
-            let profile = Object.assign(
-                new ConnectionProfile(),
-                defaultProfile,
-                {
-                    savePassword: true,
-                    password: "",
-                },
-            );
+            let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
+                savePassword: true,
+                password: "",
+            });
 
             let emptyPassword = true;
             connectProfile(profile, emptyPassword)
@@ -241,14 +208,10 @@ suite("ConnectionCredentials Tests", () => {
         // Connect with savePassword false and ensure password is never saved
         test("ensureRequiredPropertiesSet should not save password", (done) => {
             // Setup Profile Information to have savePassword off and blank
-            let profile = Object.assign(
-                new ConnectionProfile(),
-                defaultProfile,
-                {
-                    savePassword: false,
-                    password: "oldPassword",
-                },
-            );
+            let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
+                savePassword: false,
+                password: "oldPassword",
+            });
 
             let emptyPassword = false;
             connectProfile(profile, emptyPassword)
@@ -270,14 +233,10 @@ suite("ConnectionCredentials Tests", () => {
         // Connect with savePassword false and ensure empty password is never saved
         test("ensureRequiredPropertiesSet should not save password, empty password case", (done) => {
             // Setup Profile Information to have savePassword off and blank
-            let profile = Object.assign(
-                new ConnectionProfile(),
-                defaultProfile,
-                {
-                    savePassword: false,
-                    password: "",
-                },
-            );
+            let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
+                savePassword: false,
+                password: "",
+            });
 
             let emptyPassword = true;
             connectProfile(profile, emptyPassword)
@@ -318,16 +277,9 @@ suite("ConnectionCredentials Tests", () => {
             credentials.connectionString = "server=some-server";
             credentials.database = "some-db";
 
-            let connectionDetails =
-                ConnectionCredentials.createConnectionDetails(credentials);
-            assert.equal(
-                connectionDetails.options.connectionString,
-                credentials.connectionString,
-            );
-            assert.equal(
-                connectionDetails.options.database,
-                credentials.database,
-            );
+            let connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
+            assert.equal(connectionDetails.options.connectionString, credentials.connectionString);
+            assert.equal(connectionDetails.options.database, credentials.database);
         });
 
         test("createConnectionDetails sets properties from the connection string", () => {
@@ -339,8 +291,7 @@ suite("ConnectionCredentials Tests", () => {
                 },
             };
 
-            const connInfo =
-                ConnectionCredentials.createConnectionInfo(connDetails);
+            const connInfo = ConnectionCredentials.createConnectionInfo(connDetails);
 
             assert.equal(connInfo.server, connDetails.options.server);
             assert.equal(connInfo.user, connDetails.options.user);
@@ -358,8 +309,7 @@ suite("ConnectionCredentials Tests", () => {
                 accountId: "testAccountid",
                 tenantId: "testTenantId",
                 port: 1234,
-                authenticationType:
-                    AuthenticationTypes[AuthenticationTypes.SqlLogin],
+                authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
                 azureAccountToken: "testToken",
                 expiresOn: 5678,
                 encrypt: "Strict",
@@ -392,10 +342,8 @@ suite("ConnectionCredentials Tests", () => {
                 connectionString: "testConnectionString",
             };
 
-            const connDetails =
-                ConnectionCredentials.createConnectionDetails(originalConnInfo);
-            const convertedConnInfo =
-                ConnectionCredentials.createConnectionInfo(connDetails);
+            const connDetails = ConnectionCredentials.createConnectionDetails(originalConnInfo);
+            const convertedConnInfo = ConnectionCredentials.createConnectionInfo(connDetails);
 
             for (const key in originalConnInfo) {
                 assert.equal(
@@ -409,9 +357,12 @@ suite("ConnectionCredentials Tests", () => {
 
     test("Subsequent connection credential questions are skipped if a connection string is given", async () => {
         let credentials = new ConnectionCredentials();
-        let questions = await ConnectionCredentials[
-            "getRequiredCredentialValuesQuestions"
-        ](credentials, false, false, undefined);
+        let questions = await ConnectionCredentials["getRequiredCredentialValuesQuestions"](
+            credentials,
+            false,
+            false,
+            undefined,
+        );
         let serverQuestion = questions.filter(
             (question) => question.name === LocalizedConstants.serverPrompt,
         )[0];
@@ -423,16 +374,17 @@ suite("ConnectionCredentials Tests", () => {
         let otherQuestions = questions.filter(
             (question) => question.name !== LocalizedConstants.serverPrompt,
         );
-        otherQuestions.forEach((question) =>
-            assert.equal(question.shouldPrompt({}), false),
-        );
+        otherQuestions.forEach((question) => assert.equal(question.shouldPrompt({}), false));
     });
 
     test("Server question properly handles connection strings", async () => {
         let credentials = new ConnectionCredentials();
-        let questions = await ConnectionCredentials[
-            "getRequiredCredentialValuesQuestions"
-        ](credentials, false, false, undefined);
+        let questions = await ConnectionCredentials["getRequiredCredentialValuesQuestions"](
+            credentials,
+            false,
+            false,
+            undefined,
+        );
         let serverQuestion = questions.filter(
             (question) => question.name === LocalizedConstants.serverPrompt,
         )[0];

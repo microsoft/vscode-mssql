@@ -17,8 +17,7 @@ export function ViewCodeDialogButton() {
             appearance="subtle"
             onClick={() => {
                 eventBus.emit("openCodeDrawer");
-            }}
-        >
+            }}>
             {locConstants.schemaDesigner.viewCode}
         </Button>
     );

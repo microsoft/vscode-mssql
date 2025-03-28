@@ -136,15 +136,11 @@ const ColumnAdvancedOptions = ({
                 <Field
                     label={{
                         children: (
-                            <InfoLabel
-                                size="small"
-                                info="Max length of the column"
-                            >
+                            <InfoLabel size="small" info="Max length of the column">
                                 Max Length
                             </InfoLabel>
                         ),
-                    }}
-                >
+                    }}>
                     <Input
                         size="small"
                         type="number"
@@ -164,15 +160,11 @@ const ColumnAdvancedOptions = ({
                     <Field
                         label={{
                             children: (
-                                <InfoLabel
-                                    size="small"
-                                    info="Precision of the column"
-                                >
+                                <InfoLabel size="small" info="Precision of the column">
                                     Precision
                                 </InfoLabel>
                             ),
-                        }}
-                    >
+                        }}>
                         <Input
                             size="small"
                             type="number"
@@ -188,15 +180,11 @@ const ColumnAdvancedOptions = ({
                     <Field
                         label={{
                             children: (
-                                <InfoLabel
-                                    size="small"
-                                    info="Scale of the column"
-                                >
+                                <InfoLabel size="small" info="Scale of the column">
                                     Scale
                                 </InfoLabel>
                             ),
-                        }}
-                    >
+                        }}>
                         <Input
                             size="small"
                             type="number"
@@ -238,21 +226,15 @@ const ColumnsTable = ({
     const columnDefinitions = [
         createTableColumn({
             columnId: "name",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.name}</Text>
-            ),
+            renderHeaderCell: () => <Text>{locConstants.schemaDesigner.name}</Text>,
         }),
         createTableColumn({
             columnId: "type",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.dataType}</Text>
-            ),
+            renderHeaderCell: () => <Text>{locConstants.schemaDesigner.dataType}</Text>,
         }),
         createTableColumn({
             columnId: "primaryKey",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.primaryKey}</Text>
-            ),
+            renderHeaderCell: () => <Text>{locConstants.schemaDesigner.primaryKey}</Text>,
         }),
         createTableColumn({
             columnId: "delete",
@@ -295,9 +277,7 @@ const ColumnsTable = ({
 
     // Configure table
     const [tableColumns] =
-        useState<TableColumnDefinition<SchemaDesigner.Column>[]>(
-            columnDefinitions,
-        );
+        useState<TableColumnDefinition<SchemaDesigner.Column>[]>(columnDefinitions);
     const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
         {
             columns: tableColumns,
@@ -313,11 +293,7 @@ const ColumnsTable = ({
     );
 
     // Render cell content based on column id
-    const renderCell = (
-        column: SchemaDesigner.Column,
-        columnId: TableColumnId,
-        index: number,
-    ) => {
+    const renderCell = (column: SchemaDesigner.Column, columnId: TableColumnId, index: number) => {
         switch (columnId) {
             case "name":
                 return (
@@ -356,10 +332,7 @@ const ColumnsTable = ({
                                 ...column,
                                 dataType: selected.value,
                             };
-                            updateColumn(
-                                index,
-                                columnUtils.fillColumnDefaults(updatedColumn),
-                            );
+                            updateColumn(index, columnUtils.fillColumnDefaults(updatedColumn));
                         }}
                         style={{
                             minWidth: "150px",
@@ -401,8 +374,7 @@ const ColumnsTable = ({
                         trapFocus
                         positioning={{
                             position: "below",
-                        }}
-                    >
+                        }}>
                         <PopoverTrigger disableButtonEnhancement>
                             <Button
                                 size="small"
@@ -436,17 +408,13 @@ const ColumnsTable = ({
             as="table"
             size="extra-small"
             {...columnSizing_unstable.getTableProps()}
-            ref={tableRef}
-        >
+            ref={tableRef}>
             <TableHeader>
                 <TableRow>
                     {columnDefinitions.map((column) => (
                         <TableHeaderCell
-                            {...columnSizing_unstable.getTableHeaderCellProps(
-                                column.columnId,
-                            )}
-                            key={column.columnId}
-                        >
+                            {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+                            key={column.columnId}>
                             {column.renderHeaderCell()}
                         </TableHeaderCell>
                     ))}
@@ -457,11 +425,8 @@ const ColumnsTable = ({
                     <TableRow key={index}>
                         {tableColumns.map((column) => (
                             <TableCell
-                                {...columnSizing_unstable.getTableCellProps(
-                                    column.columnId,
-                                )}
-                                key={column.columnId}
-                            >
+                                {...columnSizing_unstable.getTableCellProps(column.columnId)}
+                                key={column.columnId}>
                                 {renderCell(row.item, column.columnId, index)}
                             </TableCell>
                         ))}
@@ -477,8 +442,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerEditorContext);
     const columnNameInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-    const [lastColumnNameInputIndex, setLastColumnNameInputIndex] =
-        useState<number>(-1);
+    const [lastColumnNameInputIndex, setLastColumnNameInputIndex] = useState<number>(-1);
 
     // Memoized values
     const datatypes = useMemo(() => context.dataTypes, [context.dataTypes]);
@@ -507,9 +471,7 @@ export const SchemaDesignerEditorTablePanel = () => {
 
         // If this column is a referenced column in any foreign key, disable delete
         const isReferencedInForeignKey = allTables.some((table) =>
-            table.foreignKeys.some((fk) =>
-                fk.referencedColumns.includes(column.name),
-            ),
+            table.foreignKeys.some((fk) => fk.referencedColumns.includes(column.name)),
         );
 
         return !hasRelatedForeignKey && !isReferencedInForeignKey;
@@ -543,10 +505,7 @@ export const SchemaDesignerEditorTablePanel = () => {
     };
 
     // Update column at specified index
-    const updateColumn = (
-        index: number,
-        updatedColumn: SchemaDesigner.Column,
-    ) => {
+    const updateColumn = (index: number, updatedColumn: SchemaDesigner.Column) => {
         const newColumns = [...context.table.columns];
         newColumns[index] = updatedColumn;
 
@@ -581,10 +540,7 @@ export const SchemaDesignerEditorTablePanel = () => {
             ...context.table,
             name: name,
         });
-        const error = tableUtils.tableNameValidationError(
-            context.schema,
-            context.table,
-        );
+        const error = tableUtils.tableNameValidationError(context.schema, context.table);
         if (error) {
             context.setErrors({
                 ...context.errors,
@@ -635,8 +591,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                 appearance="secondary"
                 icon={<FluentIcons.AddRegular />}
                 className={classes.newColumnButton}
-                onClick={addColumn}
-            >
+                onClick={addColumn}>
                 {locConstants.schemaDesigner.newColumn}
             </Button>
 

@@ -25,40 +25,25 @@ export default class HttpClient implements IHttpClient {
     ): Promise<void> {
         const url = parseUrl(urlString);
         let options = this.getHttpClientOptions(url);
-        let clientRequest =
-            url.protocol === "http:" ? http.request : https.request;
+        let clientRequest = url.protocol === "http:" ? http.request : https.request;
 
         return new Promise<void>((resolve, reject) => {
             if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
-                return reject(
-                    new PackageError("Temporary package file unavailable", pkg),
-                );
+                return reject(new PackageError("Temporary package file unavailable", pkg));
             }
 
             let request = clientRequest(options, (response) => {
-                if (
-                    response.statusCode === 301 ||
-                    response.statusCode === 302
-                ) {
+                if (response.statusCode === 301 || response.statusCode === 302) {
                     // Redirect - download from new location
                     return resolve(
-                        this.downloadFile(
-                            response.headers.location!,
-                            pkg,
-                            logger,
-                            statusView,
-                        ),
+                        this.downloadFile(response.headers.location!, pkg, logger, statusView),
                     );
                 }
 
                 if (response.statusCode !== 200) {
                     // Download failed - print error message
-                    logger.appendLine(
-                        `failed (error code '${response.statusCode}')`,
-                    );
-                    return reject(
-                        new PackageError(response.statusCode!.toString(), pkg),
-                    );
+                    logger.appendLine(`failed (error code '${response.statusCode}')`);
+                    return reject(new PackageError(response.statusCode!.toString(), pkg));
                 }
 
                 // If status code is 200
@@ -72,13 +57,7 @@ export default class HttpClient implements IHttpClient {
             });
 
             request.on("error", (error: any) => {
-                reject(
-                    new PackageError(
-                        `Request error: ${error.code || "NONE"}`,
-                        pkg,
-                        error,
-                    ),
-                );
+                reject(new PackageError(`Request error: ${error.code || "NONE"}`, pkg, error));
             });
 
             // Execute the request
@@ -119,13 +98,9 @@ export default class HttpClient implements IHttpClient {
 
         // Update status bar item with percentage
         if (progress.packageSize > 0) {
-            let newPercentage = Math.ceil(
-                100 * (progress.downloadedBytes / progress.packageSize),
-            );
+            let newPercentage = Math.ceil(100 * (progress.downloadedBytes / progress.packageSize));
             if (newPercentage !== progress.downloadPercentage) {
-                statusView.updateServiceDownloadingProgress(
-                    progress.downloadPercentage,
-                );
+                statusView.updateServiceDownloadingProgress(progress.downloadPercentage);
                 progress.downloadPercentage = newPercentage;
             }
 
@@ -154,12 +129,7 @@ export default class HttpClient implements IHttpClient {
             };
             logger.append(`(${Math.ceil(progress.packageSize / 1024)} KB) `);
             response.on("data", (data) => {
-                this.handleDataReceivedEvent(
-                    progress,
-                    data,
-                    logger,
-                    statusView,
-                );
+                this.handleDataReceivedEvent(progress, data, logger, statusView);
             });
             let tmpFile = fs.createWriteStream("", { fd: pkg.tmpFile.fd });
             response.on("end", () => {
@@ -167,13 +137,7 @@ export default class HttpClient implements IHttpClient {
             });
 
             response.on("error", (err: any) => {
-                reject(
-                    new PackageError(
-                        `Response error: ${err.code || "NONE"}`,
-                        pkg,
-                        err,
-                    ),
-                );
+                reject(new PackageError(`Response error: ${err.code || "NONE"}`, pkg, err));
             });
 
             // Begin piping data from the response to the package file

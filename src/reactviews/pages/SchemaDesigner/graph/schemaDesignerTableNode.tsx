@@ -145,14 +145,10 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
                     <MenuList>
                         <MenuItem
                             icon={<FluentIcons.FlowRegular />}
-                            onClick={handleManageRelationships}
-                        >
+                            onClick={handleManageRelationships}>
                             {locConstants.schemaDesigner.manageRelationships}
                         </MenuItem>
-                        <MenuItem
-                            icon={<FluentIcons.DeleteRegular />}
-                            onClick={handleDeleteTable}
-                        >
+                        <MenuItem icon={<FluentIcons.DeleteRegular />} onClick={handleDeleteTable}>
                             {locConstants.schemaDesigner.delete}
                         </MenuItem>
                     </MenuList>
@@ -170,15 +166,11 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <Text className={styles.tableTitle}>
-                    {`${table.schema}.${table.name}`}
-                </Text>
+                <Text className={styles.tableTitle}>{`${table.schema}.${table.name}`}</Text>
                 <TableHeaderActions table={table} />
             </div>
             <div className={styles.tableSubtitle}>
-                {locConstants.schemaDesigner.tableNodeSubText(
-                    table.columns.length,
-                )}
+                {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}
             </div>
         </div>
     );
@@ -197,20 +189,15 @@ const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
                 className={styles.handleLeft}
             />
 
-            {column.isPrimaryKey && (
-                <FluentIcons.KeyRegular className={styles.keyIcon} />
-            )}
+            {column.isPrimaryKey && <FluentIcons.KeyRegular className={styles.keyIcon} />}
 
             <Text
                 className={styles.columnName}
-                style={{ paddingLeft: column.isPrimaryKey ? "0px" : "30px" }}
-            >
+                style={{ paddingLeft: column.isPrimaryKey ? "0px" : "30px" }}>
                 {column.name}
             </Text>
 
-            <Text className={styles.columnType}>
-                {column.dataType.toUpperCase()}
-            </Text>
+            <Text className={styles.columnType}>{column.dataType.toUpperCase()}</Text>
 
             <Handle
                 type="source"
@@ -235,11 +222,7 @@ const TableColumns = ({ columns }: { columns: SchemaDesigner.Column[] }) => {
 };
 
 // Main SchemaDesignerTableNode component
-export const SchemaDesignerTableNode = ({
-    data,
-}: {
-    data: SchemaDesigner.Table;
-}) => {
+export const SchemaDesignerTableNode = ({ data }: { data: SchemaDesigner.Table }) => {
     const styles = useStyles();
 
     return (

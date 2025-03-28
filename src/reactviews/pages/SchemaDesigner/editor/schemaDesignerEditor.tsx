@@ -3,13 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    CounterBadge,
-    makeStyles,
-    Tab,
-    TabList,
-    TabValue,
-} from "@fluentui/react-components";
+import { CounterBadge, makeStyles, Tab, TabList, TabValue } from "@fluentui/react-components";
 import { useContext, useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerEditorFooter } from "./schemaDesignerEditorFooter";
@@ -85,8 +79,7 @@ export const SchemaDesignerEditor = () => {
         <div className={classes.editor}>
             <TabList
                 selectedValue={selectedTabValue}
-                onTabSelect={(_e, data) => setSelectedTabValue(data.value)}
-            >
+                onTabSelect={(_e, data) => setSelectedTabValue(data.value)}>
                 <Tab value="table">
                     {locConstants.schemaDesigner.table}
                     <CounterBadge
@@ -105,12 +98,8 @@ export const SchemaDesignerEditor = () => {
                 </Tab>
             </TabList>
             <div className={classes.editorPanel}>
-                {selectedTabValue === "table" && (
-                    <SchemaDesignerEditorTablePanel />
-                )}
-                {selectedTabValue === "foreignKeys" && (
-                    <SchemaDesignerEditorForeignKeyPanel />
-                )}
+                {selectedTabValue === "table" && <SchemaDesignerEditorTablePanel />}
+                {selectedTabValue === "foreignKeys" && <SchemaDesignerEditorForeignKeyPanel />}
             </div>
             <SchemaDesignerEditorFooter />
         </div>

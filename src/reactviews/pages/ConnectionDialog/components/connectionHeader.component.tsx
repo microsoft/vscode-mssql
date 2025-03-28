@@ -21,8 +21,7 @@ export const ConnectionHeader = () => {
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-            }}
-        >
+            }}>
             <Image
                 style={{
                     padding: "10px",
@@ -41,8 +40,7 @@ export const ConnectionHeader = () => {
                 style={{
                     lineHeight: "60px",
                 }}
-                weight="medium"
-            >
+                weight="medium">
                 {locConstants.connectionDialog.connectToDatabase}
             </Text>
         </div>

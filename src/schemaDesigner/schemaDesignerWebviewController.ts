@@ -16,9 +16,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
-    private _resolveModelReadyProgress: (
-        value: void | PromiseLike<void>,
-    ) => void;
+    private _resolveModelReadyProgress: (value: void | PromiseLike<void>) => void;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -102,44 +100,31 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 filters: {
                     [payload.format]: [payload.format],
                 },
-                defaultUri: vscode.Uri.file(
-                    `${this.databaseName}.${payload.format}`,
-                ),
+                defaultUri: vscode.Uri.file(`${this.databaseName}.${payload.format}`),
                 saveLabel: LocConstants.SchemaDesigner.Save,
                 title: LocConstants.SchemaDesigner.SaveAs,
             });
             if (payload.format === "svg") {
-                let fileContents = decodeURIComponent(
-                    payload.fileContents.split(",")[1],
-                );
-                await vscode.workspace.fs.writeFile(
-                    outputPath,
-                    Buffer.from(fileContents, "utf8"),
-                );
+                let fileContents = decodeURIComponent(payload.fileContents.split(",")[1]);
+                await vscode.workspace.fs.writeFile(outputPath, Buffer.from(fileContents, "utf8"));
             } else {
-                let fileContents = Buffer.from(
-                    payload.fileContents.split(",")[1],
-                    "base64",
-                );
+                let fileContents = Buffer.from(payload.fileContents.split(",")[1], "base64");
                 vscode.workspace.fs.writeFile(outputPath, fileContents);
             }
         });
 
         this.registerRequestHandler("initializeSchemaDesigner", async () => {
-            const sessionResponse =
-                await this.schemaDesignerService.createSession({
-                    connectionUri: this.connectionUri,
-                    databaseName: this.databaseName,
-                });
+            const sessionResponse = await this.schemaDesignerService.createSession({
+                connectionUri: this.connectionUri,
+                databaseName: this.databaseName,
+            });
 
             const schemaSet = new Set<string>(sessionResponse.schemaNames);
             sessionResponse.schema.tables.forEach((table) => {
                 schemaSet.add(table.schema);
             });
             sessionResponse.schemaNames = Array.from(schemaSet).sort((a, b) => {
-                return a
-                    .toLocaleLowerCase()
-                    .localeCompare(b.toLocaleLowerCase());
+                return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
             });
             this._sessionId = sessionResponse.sessionId;
             return sessionResponse;
@@ -166,9 +151,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.registerRequestHandler("openInEditor", async (payload) => {
-            const document = await this.vscodeWrapper.openMsSqlTextDocument(
-                payload.text,
-            );
+            const document = await this.vscodeWrapper.openMsSqlTextDocument(payload.text);
             // Open the document in the editor
             await this.vscodeWrapper.showTextDocument(document, {
                 viewColumn: vscode.ViewColumn.Active,
@@ -176,15 +159,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             });
         });
 
-        this.registerRequestHandler(
-            "openInEditorWithConnection",
-            async (payload) => {
-                void this.mainController.onNewQuery(
-                    this.treeNode,
-                    payload.text,
-                );
-            },
-        );
+        this.registerRequestHandler("openInEditorWithConnection", async (payload) => {
+            void this.mainController.onNewQuery(this.treeNode, payload.text);
+        });
     }
 
     override dispose(): void {

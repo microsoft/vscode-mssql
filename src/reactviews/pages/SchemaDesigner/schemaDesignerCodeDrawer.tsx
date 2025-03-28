@@ -45,12 +45,9 @@ export const SchemaDesignerCodeDrawer = () => {
                         <Toolbar>
                             <Button
                                 appearance="subtle"
-                                aria-label={
-                                    locConstants.schemaDesigner.openInEditor
-                                }
+                                aria-label={locConstants.schemaDesigner.openInEditor}
                                 icon={<FluentIcons.OpenRegular />}
-                                onClick={() => context.openInEditor(code)}
-                            >
+                                onClick={() => context.openInEditor(code)}>
                                 {locConstants.schemaDesigner.openInEditor}
                             </Button>
                             <Button
@@ -66,8 +63,7 @@ export const SchemaDesignerCodeDrawer = () => {
                                 onClick={() => setIsCodeDrawerOpen(false)}
                             />
                         </Toolbar>
-                    }
-                >
+                    }>
                     {locConstants.schemaDesigner.viewCode}
                 </DrawerHeaderTitle>
             </DrawerHeader>
@@ -82,8 +78,7 @@ export const SchemaDesignerCodeDrawer = () => {
                     value={code}
                     options={{
                         readOnly: true,
-                    }}
-                ></Editor>
+                    }}></Editor>
             </DrawerBody>
         </InlineDrawer>
     );

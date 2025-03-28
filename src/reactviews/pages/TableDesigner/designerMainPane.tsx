@@ -70,12 +70,8 @@ export const DesignerMainPane = () => {
     if (!state) {
         return null;
     }
-    const [tableName, setTableName] = useState(
-        (state.model!["name"] as InputBoxProperties).value,
-    );
-    const [schema, setSchema] = useState(
-        (state.model!["schema"] as InputBoxProperties).value,
-    );
+    const [tableName, setTableName] = useState((state.model!["name"] as InputBoxProperties).value);
+    const [schema, setSchema] = useState((state.model!["schema"] as InputBoxProperties).value);
 
     useEffect(() => {
         setTableName((state.model!["name"] as InputBoxProperties).value);
@@ -83,9 +79,7 @@ export const DesignerMainPane = () => {
     }, [state.model]);
 
     const getCurrentTabIssuesCount = (tabId: string) => {
-        const tabComponents = state.view?.tabs.find(
-            (tab) => tab.id === tabId,
-        )?.components;
+        const tabComponents = state.view?.tabs.find((tab) => tab.id === tabId)?.components;
         if (!tabComponents) {
             return 0;
         }
@@ -96,11 +90,7 @@ export const DesignerMainPane = () => {
         for (let i = 0; i < state?.issues!.length; i++) {
             const issue = state.issues![i];
             if (issue.propertyPath && issue.propertyPath.length > 0) {
-                if (
-                    tabComponents.find(
-                        (c) => c.propertyName === issue.propertyPath![0],
-                    )
-                ) {
+                if (tabComponents.find((c) => c.propertyName === issue.propertyPath![0])) {
                     count++;
                 }
             }
@@ -181,10 +171,7 @@ export const DesignerMainPane = () => {
     return (
         <div className={classes.root}>
             <div className={classes.title}>
-                <Field
-                    label={locConstants.tableDesigner.tableName}
-                    orientation="horizontal"
-                >
+                <Field label={locConstants.tableDesigner.tableName} orientation="horizontal">
                     <Input
                         size="medium"
                         value={tableName}
@@ -202,10 +189,7 @@ export const DesignerMainPane = () => {
                         }}
                     />
                 </Field>
-                <Field
-                    label={locConstants.tableDesigner.schema}
-                    orientation="horizontal"
-                >
+                <Field label={locConstants.tableDesigner.schema} orientation="horizontal">
                     <SearchableDropdown
                         size="medium"
                         options={getSortedSchemaValues().map((option) => ({
@@ -254,8 +238,7 @@ export const DesignerMainPane = () => {
                 onTabSelect={(_event, data) => {
                     context.setTab(data.value as DesignerMainPaneTabs);
                     context.setPropertiesComponents(undefined);
-                }}
-            >
+                }}>
                 {state.view?.tabs.map((tab) => {
                     const ariaLabel = getTabAriaLabel(tab.id);
                     return (
@@ -280,15 +263,11 @@ export const DesignerMainPane = () => {
                     return (
                         <div
                             style={{
-                                display:
-                                    state.tabStates?.mainPaneTab === tab.id
-                                        ? ""
-                                        : "none",
+                                display: state.tabStates?.mainPaneTab === tab.id ? "" : "none",
                                 width: "100%",
                                 height: "100%",
                             }}
-                            key={tab.id}
-                        >
+                            key={tab.id}>
                             <DesignerMainPaneTab tabId={tab.id} />
                         </div>
                     );

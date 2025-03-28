@@ -274,9 +274,7 @@ export namespace SchemaDesigner {
          * @param request - Request parameters for creating a schema designer session
          * @returns - Response for creating a schema designer session
          */
-        createSession(
-            request: CreateSessionRequest,
-        ): Thenable<CreateSessionResponse>;
+        createSession(request: CreateSessionRequest): Thenable<CreateSessionResponse>;
 
         /**
          * Disposes the schema designer session
@@ -289,9 +287,7 @@ export namespace SchemaDesigner {
          * @param request - Request parameters for getting the create as script
          * @returns - Response for getting the create as script
          */
-        generateScript(
-            request: GenerateScriptRequest,
-        ): Thenable<GenerateScriptResponse>;
+        generateScript(request: GenerateScriptRequest): Thenable<GenerateScriptResponse>;
 
         /**
          * Gets the report for the schema designer session

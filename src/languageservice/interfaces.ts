@@ -33,10 +33,7 @@ export interface IPackage {
     isZipFile: boolean;
 }
 
-export class FirewallRuleError
-    extends Error
-    implements vscodeMssql.IFireWallRuleError
-{
+export class FirewallRuleError extends Error implements vscodeMssql.IFireWallRuleError {
     constructor(
         public connectionUri: string,
         errorMessage: string,

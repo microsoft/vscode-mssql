@@ -16,9 +16,7 @@ export const namingUtils = {
         return `column_${index}`;
     },
 
-    getNextForeignKeyName: (
-        foreignKeys: SchemaDesigner.ForeignKey[],
-    ): string => {
+    getNextForeignKeyName: (foreignKeys: SchemaDesigner.ForeignKey[]): string => {
         let index = 1;
         while (foreignKeys.some((fk) => fk.name === `FK_${index}`)) index++;
         return `FK_${index}`;
@@ -37,9 +35,7 @@ export const tableUtils = {
         current: SchemaDesigner.Table,
     ): SchemaDesigner.Table[] => {
         return schema.tables
-            .filter(
-                (t) => t.schema !== current.schema || t.name !== current.name,
-            )
+            .filter((t) => t.schema !== current.schema || t.name !== current.name)
             .sort();
     },
 
@@ -47,9 +43,7 @@ export const tableUtils = {
         schema: SchemaDesigner.Schema,
         displayName: string,
     ): SchemaDesigner.Table => {
-        return schema.tables.find(
-            (t) => `${t.schema}.${t.name}` === displayName,
-        )!;
+        return schema.tables.find((t) => `${t.schema}.${t.name}` === displayName)!;
     },
 
     tableNameValidationError: (
@@ -63,10 +57,7 @@ export const tableUtils = {
                 t.id !== table.id,
         );
 
-        if (conflict)
-            return locConstants.schemaDesigner.tableNameRepeatedError(
-                table.name,
-            );
+        if (conflict) return locConstants.schemaDesigner.tableNameRepeatedError(table.name);
         if (!table.name) return locConstants.schemaDesigner.tableNameEmptyError;
         return undefined;
     },
@@ -104,14 +95,7 @@ export const tableUtils = {
 
 export const columnUtils = {
     isLengthBasedType: (type: string): boolean => {
-        return [
-            "char",
-            "varchar",
-            "nchar",
-            "nvarchar",
-            "binary",
-            "varbinary",
-        ].includes(type);
+        return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(type);
     },
 
     isPrecisionBasedType: (type: string): boolean => {
@@ -157,9 +141,7 @@ export const columnUtils = {
         }
     },
 
-    fillColumnDefaults: (
-        column: SchemaDesigner.Column,
-    ): SchemaDesigner.Column => {
+    fillColumnDefaults: (column: SchemaDesigner.Column): SchemaDesigner.Column => {
         if (columnUtils.isLengthBasedType(column.dataType))
             column.maxLength = columnUtils.getDefaultLength(column.dataType);
         else column.maxLength = 0;
@@ -221,11 +203,10 @@ export const foreignKeyUtils = {
         ) {
             return {
                 isValid: false,
-                errorMessage:
-                    locConstants.schemaDesigner.incompatiblePrecisionOrScale(
-                        col.name,
-                        refCol.name,
-                    ),
+                errorMessage: locConstants.schemaDesigner.incompatiblePrecisionOrScale(
+                    col.name,
+                    refCol.name,
+                ),
             };
         }
 
@@ -244,19 +225,12 @@ export const foreignKeyUtils = {
         visited.add(current.id);
         for (const fk of current.foreignKeys) {
             const next = tables.find(
-                (t) =>
-                    t.name === fk.referencedTableName &&
-                    t.schema === fk.referencedSchemaName,
+                (t) => t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
             );
             if (!next) continue;
             if (
                 next.id === target.id ||
-                foreignKeyUtils.isCyclicForeignKey(
-                    tables,
-                    next,
-                    target,
-                    new Set(visited),
-                )
+                foreignKeyUtils.isCyclicForeignKey(tables, next, target, new Set(visited))
             )
                 return true;
         }
@@ -271,79 +245,62 @@ export const foreignKeyUtils = {
         if (!fk.name)
             return {
                 isValid: false,
-                errorMessage:
-                    locConstants.schemaDesigner.foreignKeyNameEmptyError,
+                errorMessage: locConstants.schemaDesigner.foreignKeyNameEmptyError,
             };
 
         const refTable = tables.find(
-            (t) =>
-                t.name === fk.referencedTableName &&
-                t.schema === fk.referencedSchemaName,
+            (t) => t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
         );
         if (!refTable)
             return {
                 isValid: false,
-                errorMessage:
-                    locConstants.schemaDesigner.referencedTableNotFound(
-                        fk.referencedTableName,
-                    ),
+                errorMessage: locConstants.schemaDesigner.referencedTableNotFound(
+                    fk.referencedTableName,
+                ),
             };
 
         const uniqueCols = new Set(fk.columns);
         if (uniqueCols.size !== fk.columns.length) {
             return {
                 isValid: false,
-                errorMessage:
-                    locConstants.schemaDesigner.duplicateForeignKeyColumns,
+                errorMessage: locConstants.schemaDesigner.duplicateForeignKeyColumns,
             };
         }
 
         for (let i = 0; i < fk.columns.length; i++) {
             const col = table.columns.find((c) => c.name === fk.columns[i]);
-            const refCol = refTable.columns.find(
-                (c) => c.name === fk.referencedColumns[i],
-            );
+            const refCol = refTable.columns.find((c) => c.name === fk.referencedColumns[i]);
 
             if (!col)
                 return {
                     isValid: false,
-                    errorMessage: locConstants.schemaDesigner.columnNotFound(
-                        fk.columns[i],
-                    ),
+                    errorMessage: locConstants.schemaDesigner.columnNotFound(fk.columns[i]),
                 };
             if (!refCol)
                 return {
                     isValid: false,
-                    errorMessage:
-                        locConstants.schemaDesigner.referencedColumnNotFound(
-                            fk.referencedColumns[i],
-                        ),
+                    errorMessage: locConstants.schemaDesigner.referencedColumnNotFound(
+                        fk.referencedColumns[i],
+                    ),
                 };
 
-            const typeCheck = foreignKeyUtils.areDataTypesCompatible(
-                col,
-                refCol,
-            );
+            const typeCheck = foreignKeyUtils.areDataTypesCompatible(col, refCol);
             if (!typeCheck.isValid) return typeCheck;
 
             if (!refCol.isPrimaryKey && !refCol.isUnique) {
                 return {
                     isValid: false,
-                    errorMessage:
-                        locConstants.schemaDesigner.referencedColumnNotPK(
-                            refCol.name,
-                        ),
+                    errorMessage: locConstants.schemaDesigner.referencedColumnNotPK(refCol.name),
                 };
             }
 
             if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {
                 return {
                     isValid: false,
-                    errorMessage:
-                        locConstants.schemaDesigner.cyclicForeignKeyDetected(
-                            table.name,
-                            refTable.name,
-                        ),
+                    errorMessage: locConstants.schemaDesigner.cyclicForeignKeyDetected(
+                        table.name,
+                        refTable.name,
+                    ),
                 };
             }
         }
@@ -356,9 +313,7 @@ export const foreignKeyUtils = {
         sourceTableId: string,
         schema: SchemaDesigner.Schema,
     ): SchemaDesigner.ForeignKey[] => {
-        const filteredEdges = edges.filter(
-            (edge) => edge.source === sourceTableId,
-        );
+        const filteredEdges = edges.filter((edge) => edge.source === sourceTableId);
         const edgesMap = new Map<string, SchemaDesigner.ForeignKey>();
 
         filteredEdges.forEach((edge) => {
@@ -385,9 +340,7 @@ export const foreignKeyUtils = {
                 const existingForeignKey = edgesMap.get(edge.data.id);
                 if (existingForeignKey) {
                     existingForeignKey.columns.push(...foreignKey.columns);
-                    existingForeignKey.referencedColumns.push(
-                        ...foreignKey.referencedColumns,
-                    );
+                    existingForeignKey.referencedColumns.push(...foreignKey.referencedColumns);
                 }
             } else {
                 edgesMap.set(edge.data.id, foreignKey);
@@ -417,9 +370,7 @@ export const foreignKeyUtils = {
     ): SchemaDesigner.ForeignKey => {
         return {
             id: existingFkId || uuidv4(),
-            name:
-                existingFkName ||
-                `FK_${sourceNode.data.name}_${targetNode.data.name}`,
+            name: existingFkName || `FK_${sourceNode.data.name}_${targetNode.data.name}`,
             columns: [sourceColumnName],
             referencedSchemaName: targetNode.data.schema,
             referencedTableName: targetNode.data.name,
@@ -452,14 +403,10 @@ export const foreignKeyUtils = {
         }
 
         const sourceColumnName = connection.sourceHandle
-            ? foreignKeyUtils.extractColumnNameFromHandle(
-                  connection.sourceHandle,
-              )
+            ? foreignKeyUtils.extractColumnNameFromHandle(connection.sourceHandle)
             : "";
         const targetColumnName = connection.targetHandle
-            ? foreignKeyUtils.extractColumnNameFromHandle(
-                  connection.targetHandle,
-              )
+            ? foreignKeyUtils.extractColumnNameFromHandle(connection.targetHandle)
             : "";
 
         if (!sourceColumnName || !targetColumnName) {
@@ -503,12 +450,10 @@ export const LAYOUT_CONSTANTS = {
 
 // Flow layout utilities
 export const flowUtils = {
-    getTableWidth: (): number =>
-        LAYOUT_CONSTANTS.NODE_WIDTH + LAYOUT_CONSTANTS.NODE_MARGIN,
+    getTableWidth: (): number => LAYOUT_CONSTANTS.NODE_WIDTH + LAYOUT_CONSTANTS.NODE_MARGIN,
 
     getTableHeight: (table: SchemaDesigner.Table): number =>
-        LAYOUT_CONSTANTS.BASE_NODE_HEIGHT +
-        table.columns.length * LAYOUT_CONSTANTS.COLUMN_HEIGHT,
+        LAYOUT_CONSTANTS.BASE_NODE_HEIGHT + table.columns.length * LAYOUT_CONSTANTS.COLUMN_HEIGHT,
 
     generateSchemaDesignerFlowComponents: (
         schema: SchemaDesigner.Schema,
@@ -520,9 +465,7 @@ export const flowUtils = {
             return { nodes: [], edges: [] };
         }
 
-        const graph = new dagre.graphlib.Graph().setDefaultEdgeLabel(
-            () => ({}),
-        );
+        const graph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
         graph.setGraph(LAYOUT_CONSTANTS.LAYOUT_OPTIONS);
 
         const rawNodes = schema.tables.map((table) => ({
@@ -541,8 +484,7 @@ export const flowUtils = {
             node.data.foreignKeys.forEach((fk) => {
                 const referencedTable = schema.tables.find(
                     (t) =>
-                        t.name === fk.referencedTableName &&
-                        t.schema === fk.referencedSchemaName,
+                        t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
                 );
                 if (referencedTable) {
                     graph.setEdge(node.id, referencedTable.id);
@@ -570,8 +512,7 @@ export const flowUtils = {
             for (const fk of table.foreignKeys) {
                 const referencedTable = schema.tables.find(
                     (t) =>
-                        t.name === fk.referencedTableName &&
-                        t.schema === fk.referencedSchemaName,
+                        t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
                 );
 
                 if (!referencedTable) continue;
@@ -625,9 +566,7 @@ export const flowUtils = {
             const targetNode = nodes.find((node) => node.id === edge.target);
 
             if (!sourceNode || !targetNode || !edge.data) {
-                console.warn(
-                    `Edge ${edge.id} references non-existent nodes or has no data`,
-                );
+                console.warn(`Edge ${edge.id} references non-existent nodes or has no data`);
                 return;
             }
 
@@ -657,9 +596,7 @@ export const flowUtils = {
             if (existingForeignKey) {
                 // Update the existing foreign key
                 existingForeignKey.columns.push(foreignKey.columns[0]);
-                existingForeignKey.referencedColumns.push(
-                    foreignKey.referencedColumns[0],
-                );
+                existingForeignKey.referencedColumns.push(foreignKey.referencedColumns[0]);
             } else {
                 // Add the new foreign key to the source table
                 sourceTable.foreignKeys.push(foreignKey);

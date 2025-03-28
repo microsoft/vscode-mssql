@@ -14,14 +14,11 @@ suite("Webview Panel Controller Tests", () => {
     let mockWebviewPanelController: TypeMoq.IMock<WebviewPanelController>;
 
     setup(() => {
-        mockWebviewPanelController =
-            TypeMoq.Mock.ofType<WebviewPanelController>();
+        mockWebviewPanelController = TypeMoq.Mock.ofType<WebviewPanelController>();
         mockWebviewPanelController
             .setup((c) => c.init())
             .returns(() => {
-                mockWebviewPanelController
-                    .setup((c) => c.isDisposed)
-                    .returns(() => false);
+                mockWebviewPanelController.setup((c) => c.isDisposed).returns(() => false);
                 webviewPanel = vscode.window.createWebviewPanel(
                     testTitle,
                     testTitle,
@@ -35,9 +32,7 @@ suite("Webview Panel Controller Tests", () => {
                 if (webviewPanel) {
                     webviewPanel.dispose();
                 }
-                mockWebviewPanelController
-                    .setup((c) => c.isDisposed)
-                    .returns(() => true);
+                mockWebviewPanelController.setup((c) => c.isDisposed).returns(() => true);
             });
     });
 

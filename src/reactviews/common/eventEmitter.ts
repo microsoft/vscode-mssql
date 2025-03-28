@@ -20,9 +20,7 @@ export class TypedEventEmitter<Events extends EventMap> {
     }
 
     off<K extends keyof Events>(event: K, listener: Events[K]) {
-        this.listeners[event] = this.listeners[event]?.filter(
-            (l) => l !== listener,
-        );
+        this.listeners[event] = this.listeners[event]?.filter((l) => l !== listener);
     }
 
     emit<K extends keyof Events>(event: K, ...args: Parameters<Events[K]>) {

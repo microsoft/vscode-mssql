@@ -69,11 +69,8 @@ suite("MainController Tests", function () {
         );
         mainController.connectionManager = connectionManager.object;
 
-        untitledSqlDocumentService = TypeMoq.Mock.ofType(
-            UntitledSqlDocumentService,
-        );
-        mainController.untitledSqlDocumentService =
-            untitledSqlDocumentService.object;
+        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
+        mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
 
         // Watching these functions and input paramters
         connectionManager
@@ -89,12 +86,7 @@ suite("MainController Tests", function () {
             });
 
         connectionManager
-            .setup((x) =>
-                x.transferFileConnection(
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            )
+            .setup((x) => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .callback((doc, newDoc) => {
                 docUriCallback = doc;
                 newDocUriCallback = newDoc;
@@ -120,9 +112,7 @@ suite("MainController Tests", function () {
     test("onDidCloseTextDocument should call untitledDoc function when an untitled file is saved", (done) => {
         // Scheme of older doc must be untitled
         let document2 = <vscode.TextDocument>{
-            uri: vscode.Uri.parse(
-                `${LocalizedConstants.untitledScheme}:${docUri}`,
-            ),
+            uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
             languageId: "sql",
         };
 
@@ -131,11 +121,7 @@ suite("MainController Tests", function () {
         void mainController.onDidCloseTextDocument(document2);
         try {
             connectionManager.verify(
-                (x) =>
-                    x.transferFileConnection(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
+                (x) => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
             assert.equal(docUriCallback, document2.uri.toString());
@@ -155,11 +141,7 @@ suite("MainController Tests", function () {
         // Verify renameDoc function was called
         try {
             connectionManager.verify(
-                (x) =>
-                    x.transferFileConnection(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
+                (x) => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
             assert.equal(docUriCallback, document.uri.toString());
@@ -230,11 +212,7 @@ suite("MainController Tests", function () {
                 TypeMoq.Times.never(),
             );
             connectionManager.verify(
-                (x) =>
-                    x.transferFileConnection(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
+                (x) => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                 TypeMoq.Times.never(),
             );
             done();
@@ -244,8 +222,7 @@ suite("MainController Tests", function () {
     });
 
     test("TextDocument Events should handle non-initialized connection manager", (done) => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let controller: MainController = new MainController(
             TestExtensionContext.object,
             undefined, // ConnectionManager
@@ -279,14 +256,8 @@ suite("MainController Tests", function () {
             });
 
         await mainController.onNewQuery(undefined, undefined);
-        untitledSqlDocumentService.verify(
-            (x) => x.newQuery(undefined),
-            TypeMoq.Times.once(),
-        );
-        connectionManager.verify(
-            (x) => x.onNewConnection(),
-            TypeMoq.Times.atLeastOnce(),
-        );
+        untitledSqlDocumentService.verify((x) => x.newQuery(undefined), TypeMoq.Times.once());
+        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
     });
 
     test("onNewQuery should not call the new connection if new query fails", (done) => {
@@ -302,24 +273,15 @@ suite("MainController Tests", function () {
             });
 
         mainController.onNewQuery(undefined, undefined).catch((error) => {
-            untitledSqlDocumentService.verify(
-                (x) => x.newQuery(undefined),
-                TypeMoq.Times.once(),
-            );
-            connectionManager.verify(
-                (x) => x.onNewConnection(),
-                TypeMoq.Times.never(),
-            );
+            untitledSqlDocumentService.verify((x) => x.newQuery(undefined), TypeMoq.Times.once());
+            connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());
             done();
         });
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => undefined);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => undefined);
         let controller: MainController = new MainController(
             TestExtensionContext.object,
             undefined, // ConnectionManager
@@ -332,18 +294,12 @@ suite("MainController Tests", function () {
             false,
             "Expected validateTextDocumentHasFocus to return false when the active document URI is undefined",
         );
-        vscodeWrapperMock.verify(
-            (x) => x.activeTextEditorUri,
-            TypeMoq.Times.once(),
-        );
+        vscodeWrapperMock.verify((x) => x.activeTextEditorUri, TypeMoq.Times.once());
     });
 
     test("validateTextDocumentHasFocus returns true if there is an active text document", () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => "test_uri");
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => "test_uri");
         let controller: MainController = new MainController(
             TestExtensionContext.object,
             undefined, // ConnectionManager
@@ -359,8 +315,7 @@ suite("MainController Tests", function () {
     });
 
     test("onManageProfiles should call the connetion manager to manage profiles", async () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionManager.setup((c) => c.onManageProfiles());
         let controller: MainController = new MainController(
             TestExtensionContext.object,
@@ -368,9 +323,6 @@ suite("MainController Tests", function () {
             vscodeWrapperMock.object,
         );
         await controller.onManageProfiles();
-        connectionManager.verify(
-            (c) => c.onManageProfiles(),
-            TypeMoq.Times.once(),
-        );
+        connectionManager.verify((c) => c.onManageProfiles(), TypeMoq.Times.once());
     });
 });

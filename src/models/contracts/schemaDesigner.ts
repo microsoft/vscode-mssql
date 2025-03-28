@@ -17,12 +17,9 @@ export namespace SchemaDesignerRequests {
     }
 
     export namespace DisposeSession {
-        export const type = new RequestType<
-            SchemaDesigner.DisposeSessionRequest,
-            void,
-            void,
-            void
-        >("schemaDesigner/disposeSession");
+        export const type = new RequestType<SchemaDesigner.DisposeSessionRequest, void, void, void>(
+            "schemaDesigner/disposeSession",
+        );
     }
 
     export namespace GenerateScript {
@@ -35,10 +32,9 @@ export namespace SchemaDesignerRequests {
     }
 
     export namespace SchemaReady {
-        export const type = new NotificationType<
-            SchemaDesigner.SchemaDesignerSession,
-            void
-        >("schemaDesigner/schemaReady");
+        export const type = new NotificationType<SchemaDesigner.SchemaDesignerSession, void>(
+            "schemaDesigner/schemaReady",
+        );
     }
 
     export namespace GetReport {

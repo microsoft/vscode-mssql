@@ -17,8 +17,7 @@ export function DeleteNodesButton() {
             icon={<FluentIcons.Delete16Filled />}
             title={locConstants.schemaDesigner.delete}
             appearance="subtle"
-            onClick={() => context.deleteSelectedNodes()}
-        >
+            onClick={() => context.deleteSelectedNodes()}>
             {locConstants.schemaDesigner.delete}
         </Button>
     );

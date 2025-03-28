@@ -56,11 +56,12 @@ export const SchemaDesignerFlow = () => {
     const context = useContext(SchemaDesignerContext);
 
     // State for nodes and edges
-    const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<
-        Node<SchemaDesigner.Table>
+    const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
+        [],
+    );
+    const [relationshipEdges, setRelationshipEdges, onEdgesChange] = useEdgesState<
+        Edge<SchemaDesigner.ForeignKey>
     >([]);
-    const [relationshipEdges, setRelationshipEdges, onEdgesChange] =
-        useEdgesState<Edge<SchemaDesigner.ForeignKey>>([]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -89,35 +90,18 @@ export const SchemaDesignerFlow = () => {
      * @param {Connection} params - Connection parameters
      */
     const handleConnect = (params: Connection) => {
-        const sourceNode = schemaNodes.find(
-            (node) => node.id === params.source,
-        );
-        const targetNode = schemaNodes.find(
-            (node) => node.id === params.target,
-        );
+        const sourceNode = schemaNodes.find((node) => node.id === params.source);
+        const targetNode = schemaNodes.find((node) => node.id === params.target);
 
-        if (
-            !sourceNode ||
-            !targetNode ||
-            !params.sourceHandle ||
-            !params.targetHandle
-        ) {
+        if (!sourceNode || !targetNode || !params.sourceHandle || !params.targetHandle) {
             return;
         }
 
-        const sourceColumnName = foreignKeyUtils.extractColumnNameFromHandle(
-            params.sourceHandle,
-        );
-        const targetColumnName = foreignKeyUtils.extractColumnNameFromHandle(
-            params.targetHandle,
-        );
+        const sourceColumnName = foreignKeyUtils.extractColumnNameFromHandle(params.sourceHandle);
+        const targetColumnName = foreignKeyUtils.extractColumnNameFromHandle(params.targetHandle);
 
-        const sourceColumn = sourceNode.data.columns.find(
-            (c) => c.name === sourceColumnName,
-        );
-        const targetColumn = targetNode.data.columns.find(
-            (c) => c.name === targetColumnName,
-        );
+        const sourceColumn = sourceNode.data.columns.find((c) => c.name === sourceColumnName);
+        const targetColumn = targetNode.data.columns.find((c) => c.name === targetColumnName);
 
         if (!sourceColumn || !targetColumn) {
             return;
@@ -125,8 +109,7 @@ export const SchemaDesignerFlow = () => {
 
         // Check if there's already a foreign key between these tables
         const existingForeignKey = relationshipEdges.find(
-            (edge) =>
-                edge.source === sourceNode.id && edge.target === targetNode.id,
+            (edge) => edge.source === sourceNode.id && edge.target === targetNode.id,
         );
 
         // Create the edge data from foreign key
@@ -160,10 +143,7 @@ export const SchemaDesignerFlow = () => {
      * @param {Event} _event - The connection event
      * @param {FinalConnectionState} connectionState - The final connection state
      */
-    const handleConnectEnd = (
-        _event: Event,
-        connectionState: FinalConnectionState,
-    ) => {
+    const handleConnectEnd = (_event: Event, connectionState: FinalConnectionState) => {
         if (!connectionState.isValid) {
             if (
                 !connectionState.fromHandle ||
@@ -177,27 +157,23 @@ export const SchemaDesignerFlow = () => {
             }
 
             // Create a test foreign key to validate
-            const sourceColumnName =
-                foreignKeyUtils.extractColumnNameFromHandle(
-                    connectionState.fromHandle.id,
-                );
-            const targetColumnName =
-                foreignKeyUtils.extractColumnNameFromHandle(
-                    connectionState.toHandle.id,
-                );
+            const sourceColumnName = foreignKeyUtils.extractColumnNameFromHandle(
+                connectionState.fromHandle.id,
+            );
+            const targetColumnName = foreignKeyUtils.extractColumnNameFromHandle(
+                connectionState.toHandle.id,
+            );
 
-            const potentialForeignKey =
-                foreignKeyUtils.createForeignKeyFromConnection(
-                    connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,
-                    connectionState.toNode as unknown as Node<SchemaDesigner.Table>,
-                    sourceColumnName,
-                    targetColumnName,
-                );
+            const potentialForeignKey = foreignKeyUtils.createForeignKeyFromConnection(
+                connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,
+                connectionState.toNode as unknown as Node<SchemaDesigner.Table>,
+                sourceColumnName,
+                targetColumnName,
+            );
 
             // Validate the foreign key
             const validationResult = foreignKeyUtils.isForeignKeyValid(
-                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges)
-                    .tables,
+                flowUtils.extractSchemaModel(schemaNodes, relationshipEdges).tables,
                 connectionState.fromNode.data as SchemaDesigner.Table,
                 potentialForeignKey,
             );
@@ -245,15 +221,10 @@ export const SchemaDesignerFlow = () => {
                 onDelete={() => {
                     eventBus.emit("getScript");
                 }}
-                fitView
-            >
+                fitView>
                 <Controls />
                 <MiniMap pannable zoomable />
-                <Background
-                    variant={BackgroundVariant.Dots}
-                    gap={12}
-                    size={1}
-                />
+                <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
         </div>
     );

@@ -35,10 +35,9 @@ export interface SchemaDesignerEditorContextProps {
     showForeignKey: boolean;
 }
 
-export const SchemaDesignerEditorContext =
-    createContext<SchemaDesignerEditorContextProps>(
-        undefined as unknown as SchemaDesignerEditorContextProps,
-    );
+export const SchemaDesignerEditorContext = createContext<SchemaDesignerEditorContextProps>(
+    undefined as unknown as SchemaDesignerEditorContextProps,
+);
 
 export const SchemaDesignerEditorDrawer = () => {
     const context = useContext(SchemaDesignerContext);
@@ -76,8 +75,7 @@ export const SchemaDesignerEditorDrawer = () => {
             showForeignKeySection?: boolean,
         ) => {
             // Get table with updated foreign keys
-            const updatedTable =
-                context.getTableWithForeignKeys(tableToEdit.id) || tableToEdit;
+            const updatedTable = context.getTableWithForeignKeys(tableToEdit.id) || tableToEdit;
 
             // Update state
             setSchemas(context.schemaNames);
@@ -93,9 +91,7 @@ export const SchemaDesignerEditorDrawer = () => {
             setSchemas(context.schemaNames);
             setDataTypes(context.datatypes);
             setSchema(schemaData);
-            setTable(
-                tableUtils.createNewTable(schemaData, context.schemaNames),
-            );
+            setTable(tableUtils.createNewTable(schemaData, context.schemaNames));
             setIsNewTable(true);
             setIsEditDrawerOpen(true);
         };
@@ -133,8 +129,7 @@ export const SchemaDesignerEditorDrawer = () => {
             position={"end"}
             open={isEditDrawerOpen}
             onOpenChange={(_, { open }) => setIsEditDrawerOpen(open)}
-            style={{ width: `600px` }}
-        >
+            style={{ width: `600px` }}>
             <SchemaDesignerEditorContext.Provider
                 value={{
                     schemas: schemas,
@@ -150,8 +145,7 @@ export const SchemaDesignerEditorDrawer = () => {
                     errors: errors,
                     setErrors: setErrors,
                     showForeignKey: showForeignKey,
-                }}
-            >
+                }}>
                 <DrawerHeader>
                     <DrawerHeaderTitle
                         action={
@@ -161,8 +155,7 @@ export const SchemaDesignerEditorDrawer = () => {
                                 icon={<FluentIcons.Dismiss24Regular />}
                                 onClick={() => setIsEditDrawerOpen(false)}
                             />
-                        }
-                    >
+                        }>
                         {isNewTable
                             ? locConstants.schemaDesigner.addTable
                             : locConstants.schemaDesigner.editTable}

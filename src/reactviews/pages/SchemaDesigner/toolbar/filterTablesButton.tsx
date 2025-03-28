@@ -43,9 +43,7 @@ export function FilterTablesButton() {
         if (!schema) {
             return;
         }
-        const tableNames = schema.tables.map(
-            (table) => `${table.schema}.${table.name}`,
-        );
+        const tableNames = schema.tables.map((table) => `${table.schema}.${table.name}`);
         // bring selected tables to the top
         tableNames.sort((a, b) => {
             const aSelected = selectedTables.includes(a);
@@ -102,8 +100,7 @@ export function FilterTablesButton() {
                         loadTables();
                         setIsFilterMenuOpen(!isFilterMenuOpen);
                     }}
-                    appearance="subtle"
-                >
+                    appearance="subtle">
                     {locConstants.schemaDesigner.filter}
                 </MenuButton>
             </MenuTrigger>
@@ -117,8 +114,7 @@ export function FilterTablesButton() {
                     if (e.key === "Escape") {
                         setIsFilterMenuOpen(false);
                     }
-                }}
-            >
+                }}>
                 <SearchBox
                     size="small"
                     placeholder="Search"
@@ -133,17 +129,14 @@ export function FilterTablesButton() {
                             return;
                         }
                         const filteredNames = tableNames.filter((name) =>
-                            name
-                                .toLowerCase()
-                                .includes(searchText.toLowerCase()),
+                            name.toLowerCase().includes(searchText.toLowerCase()),
                         );
                         setFilteredTableNames(filteredNames);
                     }}
                     onAbort={() => {
                         setFilteredTableNames(tableNames);
                         setSelectedTables([]);
-                    }}
-                ></SearchBox>
+                    }}></SearchBox>
                 <List
                     selectionMode="multiselect"
                     style={{
@@ -154,15 +147,13 @@ export function FilterTablesButton() {
                     selectedItems={selectedTables}
                     onSelectionChange={(_e, data) => {
                         setSelectedTables(data.selectedItems as string[]);
-                    }}
-                >
+                    }}>
                     {filteredTableNames.map((tableName) => (
                         <ListItem value={tableName} key={tableName}>
                             <Text
                                 style={{
                                     lineHeight: "30px",
-                                }}
-                            >
+                                }}>
                                 {tableName}
                             </Text>
                         </ListItem>
@@ -174,8 +165,7 @@ export function FilterTablesButton() {
                         flexDirection: "row",
                         gap: "5px",
                         justifyContent: "flex-end",
-                    }}
-                >
+                    }}>
                     <Button
                         size="small"
                         style={{}}
@@ -183,8 +173,7 @@ export function FilterTablesButton() {
                             setSelectedTables([]);
                         }}
                         appearance="subtle"
-                        icon={<FluentIcons.DismissRegular />}
-                    >
+                        icon={<FluentIcons.DismissRegular />}>
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
                 </div>

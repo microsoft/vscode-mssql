@@ -32,11 +32,7 @@ import {
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import {
-    foreignKeyUtils,
-    namingUtils,
-    tableUtils,
-} from "../schemaDesignerUtils";
+import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -90,10 +86,7 @@ const ColumnMappingTable = ({
     foreignKey: SchemaDesigner.ForeignKey;
     foreignKeyIndex: number;
     selectedTable: SchemaDesigner.Table;
-    updateForeignKey: (
-        index: number,
-        updatedForeignKey: SchemaDesigner.ForeignKey,
-    ) => void;
+    updateForeignKey: (index: number, updatedForeignKey: SchemaDesigner.ForeignKey) => void;
 }) => {
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
 
@@ -104,15 +97,11 @@ const ColumnMappingTable = ({
     }>[] = [
         createTableColumn({
             columnId: "columnName",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.columnName}</Text>
-            ),
+            renderHeaderCell: () => <Text>{locConstants.schemaDesigner.columnName}</Text>,
         }),
         createTableColumn({
             columnId: "foreignKeyColumnName",
-            renderHeaderCell: () => (
-                <Text>{locConstants.schemaDesigner.foreignColumn}</Text>
-            ),
+            renderHeaderCell: () => <Text>{locConstants.schemaDesigner.foreignColumn}</Text>,
         }),
         createTableColumn({
             columnId: "delete",
@@ -172,11 +161,7 @@ const ColumnMappingTable = ({
             context.schema,
             `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
         );
-    }, [
-        context.schema,
-        foreignKey.referencedSchemaName,
-        foreignKey.referencedTableName,
-    ]);
+    }, [context.schema, foreignKey.referencedSchemaName, foreignKey.referencedTableName]);
 
     // Handle rendering of different cell types
     const renderCell = (columnId: TableColumnId, mappingIndex: number) => {
@@ -223,11 +208,8 @@ const ColumnMappingTable = ({
                             value: foreignKey.referencedColumns[mappingIndex],
                         }}
                         onSelect={(selected) => {
-                            const updatedReferencedColumns = [
-                                ...foreignKey.referencedColumns,
-                            ];
-                            updatedReferencedColumns[mappingIndex] =
-                                selected.value;
+                            const updatedReferencedColumns = [...foreignKey.referencedColumns];
+                            updatedReferencedColumns[mappingIndex] = selected.value;
 
                             updateForeignKey(foreignKeyIndex, {
                                 ...foreignKey,
@@ -249,9 +231,7 @@ const ColumnMappingTable = ({
                         icon={<DeleteRegular />}
                         onClick={() => {
                             const updatedColumns = [...foreignKey.columns];
-                            const updatedReferencedColumns = [
-                                ...foreignKey.referencedColumns,
-                            ];
+                            const updatedReferencedColumns = [...foreignKey.referencedColumns];
 
                             updatedColumns.splice(mappingIndex, 1);
                             updatedReferencedColumns.splice(mappingIndex, 1);
@@ -276,17 +256,13 @@ const ColumnMappingTable = ({
             as="table"
             size="extra-small"
             {...columnSizing_unstable.getTableProps()}
-            ref={tableRef}
-        >
+            ref={tableRef}>
             <TableHeader>
                 <TableRow>
                     {columnDefinitions.map((column) => (
                         <TableHeaderCell
-                            {...columnSizing_unstable.getTableHeaderCellProps(
-                                column.columnId,
-                            )}
-                            key={column.columnId}
-                        >
+                            {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+                            key={column.columnId}>
                             {column.renderHeaderCell()}
                         </TableHeaderCell>
                     ))}
@@ -297,11 +273,8 @@ const ColumnMappingTable = ({
                     <TableRow key={`mapping-${mappingIndex}`}>
                         {columnDefinitions.map((column) => (
                             <TableCell
-                                {...columnSizing_unstable.getTableCellProps(
-                                    column.columnId,
-                                )}
-                                key={column.columnId}
-                            >
+                                {...columnSizing_unstable.getTableCellProps(column.columnId)}
+                                key={column.columnId}>
                                 {renderCell(column.columnId, mappingIndex)}
                             </TableCell>
                         ))}
@@ -324,10 +297,7 @@ const ForeignKeyCard = ({
     index: number;
     allTables: SchemaDesigner.Table[];
     onDelete: (index: number) => void;
-    onUpdate: (
-        index: number,
-        updatedForeignKey: SchemaDesigner.ForeignKey,
-    ) => void;
+    onUpdate: (index: number, updatedForeignKey: SchemaDesigner.ForeignKey) => void;
 }) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerEditorContext);
@@ -368,11 +338,7 @@ const ForeignKeyCard = ({
     return (
         <Card className={classes.cardStyle} key={`fk-card-${index}`}>
             <CardHeader
-                header={
-                    <Text>
-                        {locConstants.schemaDesigner.foreignKeyIndex(index + 1)}
-                    </Text>
-                }
+                header={<Text>{locConstants.schemaDesigner.foreignKeyIndex(index + 1)}</Text>}
                 action={
                     <Button
                         appearance="subtle"
@@ -383,9 +349,7 @@ const ForeignKeyCard = ({
             />
 
             {/* Error Message */}
-            {errorMessage && (
-                <MessageBar intent="error">{errorMessage}</MessageBar>
-            )}
+            {errorMessage && <MessageBar intent="error">{errorMessage}</MessageBar>}
 
             {/* Foreign Key Name */}
             <div className={classes.row}>
@@ -419,15 +383,13 @@ const ForeignKeyCard = ({
                         onOptionSelect={(_e, data) => {
                             if (!data.optionText || !context.schema) return;
 
-                            const targetTable =
-                                tableUtils.getTableFromDisplayName(
-                                    context.schema,
-                                    data.optionText,
-                                );
+                            const targetTable = tableUtils.getTableFromDisplayName(
+                                context.schema,
+                                data.optionText,
+                            );
 
                             // When target table changes, update reference info and reset column mappings
-                            const defaultTargetColumn =
-                                targetTable.columns[0]?.name || "";
+                            const defaultTargetColumn = targetTable.columns[0]?.name || "";
 
                             onUpdate(index, {
                                 ...foreignKey,
@@ -436,8 +398,7 @@ const ForeignKeyCard = ({
                                 referencedColumns: [defaultTargetColumn],
                             });
                         }}
-                        style={{ minWidth: "auto" }}
-                    >
+                        style={{ minWidth: "auto" }}>
                         {allTables
                             .slice()
                             .sort((a, b) => {
@@ -450,10 +411,7 @@ const ForeignKeyCard = ({
                             .map((table) => {
                                 const displayName = `${table.schema}.${table.name}`;
                                 return (
-                                    <Option
-                                        key={`table-option-${table.name}`}
-                                        value={displayName}
-                                    >
+                                    <Option key={`table-option-${table.name}`} value={displayName}>
                                         {displayName}
                                     </Option>
                                 );
@@ -467,8 +425,7 @@ const ForeignKeyCard = ({
                     icon={<FluentIcons.AddRegular />}
                     className={classes.actionButton}
                     onClick={addColumnMapping}
-                    size="small"
-                >
+                    size="small">
                     {locConstants.schemaDesigner.newColumnMapping}
                 </Button>
 
@@ -488,8 +445,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerEditorContext);
     const foreignKeyInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-    const [lastAddedForeignKeyIndex, setLastAddedForeignKeyIndex] =
-        useState<number>(-1);
+    const [lastAddedForeignKeyIndex, setLastAddedForeignKeyIndex] = useState<number>(-1);
 
     // Get all available tables for foreign key references
     const availableTables = useMemo(() => {
@@ -511,8 +467,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
             if (!validationResult.isValid) {
                 context.setErrors({
                     ...context.errors,
-                    [`foreignKey-${foreignKey.id}`]:
-                        validationResult.errorMessage ?? "",
+                    [`foreignKey-${foreignKey.id}`]: validationResult.errorMessage ?? "",
                 });
             } else {
                 // Remove error message if valid
@@ -549,10 +504,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
             onUpdateAction: SchemaDesigner.OnAction.CASCADE,
         };
 
-        const updatedForeignKeys = [
-            ...context.table.foreignKeys,
-            newForeignKey,
-        ];
+        const updatedForeignKeys = [...context.table.foreignKeys, newForeignKey];
 
         context.setTable({
             ...context.table,
@@ -574,10 +526,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
     };
 
     // Update a foreign key
-    const updateForeignKey = (
-        index: number,
-        updatedForeignKey: SchemaDesigner.ForeignKey,
-    ) => {
+    const updateForeignKey = (index: number, updatedForeignKey: SchemaDesigner.ForeignKey) => {
         const updatedForeignKeys = [...context.table.foreignKeys];
         updatedForeignKeys[index] = updatedForeignKey;
 
@@ -592,8 +541,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
             <Button
                 icon={<AddRegular />}
                 className={classes.newForeignKeyButton}
-                onClick={addForeignKey}
-            >
+                onClick={addForeignKey}>
                 {locConstants.schemaDesigner.newForeignKey}
             </Button>
 

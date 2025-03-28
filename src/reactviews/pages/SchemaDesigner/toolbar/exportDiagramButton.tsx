@@ -23,13 +23,9 @@ export function ExportDiagramButton() {
     const context = useContext(SchemaDesignerContext);
 
     async function exportAs(format: "svg" | "png" | "jpeg") {
-        const reactFlowContainer = document.querySelector(
-            ".react-flow__viewport",
-        ) as HTMLElement;
+        const reactFlowContainer = document.querySelector(".react-flow__viewport") as HTMLElement;
         const computedStyle = getComputedStyle(reactFlowContainer);
-        const graphBackgroundColor = computedStyle.getPropertyValue(
-            "--vscode-editor-background",
-        );
+        const graphBackgroundColor = computedStyle.getPropertyValue("--vscode-editor-background");
 
         const nodesBounds = getNodesBounds(getNodes());
 
@@ -94,8 +90,7 @@ export function ExportDiagramButton() {
                     icon={<FluentIcons.ArrowExportUp16Filled />}
                     size="small"
                     title={locConstants.schemaDesigner.export}
-                    appearance="subtle"
-                >
+                    appearance="subtle">
                     {locConstants.schemaDesigner.export}
                 </MenuButton>
             </MenuTrigger>

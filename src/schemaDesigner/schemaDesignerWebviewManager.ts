@@ -12,8 +12,7 @@ import MainController from "../controllers/mainController";
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
-    private schemaDesigners: Map<string, SchemaDesignerWebviewController> =
-        new Map();
+    private schemaDesigners: Map<string, SchemaDesignerWebviewController> = new Map();
 
     public static getInstance(): SchemaDesignerWebviewManager {
         if (!this.instance) {

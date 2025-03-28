@@ -21,21 +21,13 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
 } {
     if (sandbox) {
         return {
-            sendActionEvent: sandbox
-                .stub(telemetry, "sendActionEvent")
-                .callsFake(() => {}),
-            sendErrorEvent: sandbox
-                .stub(telemetry, "sendErrorEvent")
-                .callsFake(() => {}),
+            sendActionEvent: sandbox.stub(telemetry, "sendActionEvent").callsFake(() => {}),
+            sendErrorEvent: sandbox.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
         };
     } else {
         return {
-            sendActionEvent: sinon
-                .stub(telemetry, "sendActionEvent")
-                .callsFake(() => {}),
-            sendErrorEvent: sinon
-                .stub(telemetry, "sendErrorEvent")
-                .callsFake(() => {}),
+            sendActionEvent: sinon.stub(telemetry, "sendActionEvent").callsFake(() => {}),
+            sendErrorEvent: sinon.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
         };
     }
 }

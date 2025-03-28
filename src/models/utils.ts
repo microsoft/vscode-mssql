@@ -10,11 +10,7 @@ import * as path from "path";
 import * as findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
-import {
-    IAzureSignInQuickPickItem,
-    IConnectionProfile,
-    AuthenticationTypes,
-} from "./interfaces";
+import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as fs from "fs";
 import { AzureAuthType } from "./contracts/azure";
@@ -151,9 +147,7 @@ export function getActiveTextEditorUri(): string {
 
 // Helper to log debug messages
 export function logDebug(msg: any): void {
-    let config = vscode.workspace.getConfiguration(
-        Constants.extensionConfigSectionName,
-    );
+    let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
     let logDebugInfo = config.get(Constants.configLogDebugInfo);
     if (logDebugInfo === true) {
         let currentTime = new Date().toLocaleTimeString();
@@ -218,10 +212,7 @@ export function formatString(str: string, ...args: any[]): string {
 /**
  * Compares 2 accounts to see if they are the same.
  */
-export function isSameAccountKey(
-    currentAccountKey: string,
-    newAccountKey: string,
-): boolean {
+export function isSameAccountKey(currentAccountKey: string, newAccountKey: string): boolean {
     return currentAccountKey === newAccountKey;
 }
 
@@ -229,10 +220,7 @@ export function isSameAccountKey(
  * Compares 2 database names to see if they are the same.
  * If either is undefined or empty, it is assumed to be 'master'
  */
-function isSameDatabase(
-    currentDatabase: string,
-    expectedDatabase: string,
-): boolean {
+function isSameDatabase(currentDatabase: string, expectedDatabase: string): boolean {
     if (isEmpty(currentDatabase)) {
         currentDatabase = Constants.defaultDatabase;
     }
@@ -282,14 +270,9 @@ export function isSameProfile(
     } else if (currentProfile.profileName) {
         // This has a profile name but expected does not - can break early
         return false;
-    } else if (
-        currentProfile.connectionString ||
-        expectedProfile.connectionString
-    ) {
+    } else if (currentProfile.connectionString || expectedProfile.connectionString) {
         // If either profile uses connection strings, compare them directly
-        return (
-            currentProfile.connectionString === expectedProfile.connectionString
-        );
+        return currentProfile.connectionString === expectedProfile.connectionString;
     } else if (
         currentProfile.authenticationType === Constants.azureMfa &&
         expectedProfile.authenticationType === Constants.azureMfa
@@ -297,10 +280,7 @@ export function isSameProfile(
         return (
             expectedProfile.server === currentProfile.server &&
             isSameDatabase(expectedProfile.database, currentProfile.database) &&
-            isSameAccountKey(
-                expectedProfile.accountId,
-                currentProfile.accountId,
-            )
+            isSameAccountKey(expectedProfile.accountId, currentProfile.accountId)
         );
     }
     return (
@@ -339,10 +319,7 @@ export function isSameConnectionInfo(
           : // Not Azure MFA connections
             expectedConn.server === conn.server &&
             isSameDatabase(expectedConn.database, conn.database) &&
-            isSameAuthenticationType(
-                expectedConn.authenticationType,
-                conn.authenticationType,
-            ) &&
+            isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType) &&
             (conn.authenticationType === Constants.sqlAuthentication
                 ? conn.user === expectedConn.user
                 : isEmpty(conn.user) === isEmpty(expectedConn.user)) &&
@@ -452,12 +429,7 @@ export function parseNumAsTimeString(value: number): string {
     let hs = h < 10 ? "0" + h : "" + h;
     let ms = m < 10 ? "0" + m : "" + m;
     let ss = s < 10 ? "0" + s : "" + s;
-    let mss =
-        tempVal < 10
-            ? "00" + tempVal
-            : tempVal < 100
-              ? "0" + tempVal
-              : "" + tempVal;
+    let mss = tempVal < 10 ? "00" + tempVal : tempVal < 100 ? "0" + tempVal : "" + tempVal;
 
     let rs = hs + ":" + ms + ":" + ss;
 
@@ -465,9 +437,7 @@ export function parseNumAsTimeString(value: number): string {
 }
 
 function getConfiguration(): vscode.WorkspaceConfiguration {
-    return vscode.workspace.getConfiguration(
-        Constants.extensionConfigSectionName,
-    );
+    return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
 export function getConfigTracingLevel(): string {
@@ -500,9 +470,7 @@ export function getConfigLogFilesRemovalLimit(): number {
 export function getConfigLogRetentionSeconds(): number {
     let config = getConfiguration();
     if (config) {
-        return Number(
-            (config.get(configLogRetentionMinutes, 0) * 60).toFixed(0),
-        );
+        return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
     } else {
         return undefined;
     }
@@ -528,9 +496,7 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(
     console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
     // Delete old log files
     let deletedLogFiles = removeOldLogFiles(logPath, fileName);
-    console.log(
-        `Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`,
-    );
+    console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
     console.log(
         `This process (ui Extenstion Host) for ${path.basename(executablePath)} is pid: ${process.pid}`,
     );
@@ -567,10 +533,7 @@ export function getSignInQuickPickItems(): IAzureSignInQuickPickItem[] {
 /**
  * Limits the size of a string with ellipses in the middle
  */
-export function limitStringSize(
-    input: string,
-    forCommandPalette: boolean = false,
-): string {
+export function limitStringSize(input: string, forCommandPalette: boolean = false): string {
     if (!forCommandPalette) {
         if (input.length > 45) {
             return `${input.substr(0, 20)}...${input.substr(input.length - 20, input.length)}`;

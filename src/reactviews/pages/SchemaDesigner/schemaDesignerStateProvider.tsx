@@ -5,10 +5,7 @@
 
 import { createContext, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
-import {
-    useVscodeWebview,
-    WebviewContextProps,
-} from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -37,9 +34,7 @@ export interface SchemaDesignerContextProps
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
-    getTableWithForeignKeys: (
-        tableId: string,
-    ) => SchemaDesigner.Table | undefined;
+    getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -50,9 +45,7 @@ interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
 
-const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
-    children,
-}) => {
+const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
     const webviewContext = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
@@ -69,9 +62,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
             "initializeSchemaDesigner",
         )) as SchemaDesigner.CreateSessionResponse;
 
-        const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(
-            model.schema,
-        );
+        const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
         setDatatypes(model.dataTypes);
         setSchemaNames(model.schemaNames);
@@ -162,17 +153,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         );
 
         schemaModel.tables.push(newReactFlowNode.data);
-        const updatedPositions =
-            flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
+        const updatedPositions = flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
 
         const nodeWithPosition = updatedPositions.nodes.find(
             (node) => node.id === newReactFlowNode.id,
         );
 
         const edgesForNewTable = updatedPositions.edges.filter(
-            (edge) =>
-                edge.source === newReactFlowNode.id ||
-                edge.target === newReactFlowNode.id,
+            (edge) => edge.source === newReactFlowNode.id || edge.target === newReactFlowNode.id,
         );
 
         if (nodeWithPosition) {
@@ -205,9 +193,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
 
-        const tableNode = schemaModel.tables.find(
-            (node) => node.id === table.id,
-        );
+        const tableNode = schemaModel.tables.find((node) => node.id === table.id);
         if (!tableNode) {
             console.warn(`Table with id ${table.id} not found`);
             return false;
@@ -220,17 +206,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
 
         const updatedSchema = {
             ...schemaModel,
-            tables: schemaModel.tables.map((node) =>
-                node.id === table.id ? updatedTable : node,
-            ),
+            tables: schemaModel.tables.map((node) => (node.id === table.id ? updatedTable : node)),
         };
 
         // Delete existing edges for this table
         const edgesToDelete = reactFlow
             .getEdges()
-            .filter(
-                (edge) => edge.source === table.id || edge.target === table.id,
-            );
+            .filter((edge) => edge.source === table.id || edge.target === table.id);
 
         await reactFlow.deleteElements({
             nodes: [],
@@ -238,22 +220,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
         });
 
         // Regenerate flow components with updated schema
-        const newFlowComponents =
-            flowUtils.generateSchemaDesignerFlowComponents(updatedSchema);
+        const newFlowComponents = flowUtils.generateSchemaDesignerFlowComponents(updatedSchema);
 
-        const nodeWithPosition = newFlowComponents.nodes.find(
-            (node) => node.id === table.id,
-        );
+        const nodeWithPosition = newFlowComponents.nodes.find((node) => node.id === table.id);
 
         if (nodeWithPosition) {
             const edgesForUpdatedTable = newFlowComponents.edges.filter(
                 (edge) => edge.source === table.id || edge.target === table.id,
             );
 
-            reactFlow.updateNodeData(
-                nodeWithPosition.id,
-                nodeWithPosition.data,
-            );
+            reactFlow.updateNodeData(nodeWithPosition.id, nodeWithPosition.data);
             reactFlow.addEdges(edgesForUpdatedTable);
             return true;
         }
@@ -271,9 +247,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     /**
      * Gets a table with its foreign keys from the flow
      */
-    const getTableWithForeignKeys = (
-        tableId: string,
-    ): SchemaDesigner.Table | undefined => {
+    const getTableWithForeignKeys = (tableId: string): SchemaDesigner.Table | undefined => {
         const schemaModel = extractSchema();
         const table = schemaModel.tables.find((t) => t.id === tableId);
 
@@ -292,17 +266,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
     };
 
     const deleteSelectedNodes = () => {
-        const selectedNodes = reactFlow
-            .getNodes()
-            .filter((node) => node.selected);
+        const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
         if (selectedNodes.length > 0) {
             void reactFlow.deleteElements({
                 nodes: selectedNodes,
             });
         } else {
-            const selectedEdges = reactFlow
-                .getEdges()
-                .filter((edge) => edge.selected);
+            const selectedEdges = reactFlow.getEdges().filter((edge) => edge.selected);
             void reactFlow.deleteElements({
                 nodes: [],
                 edges: selectedEdges,
@@ -332,8 +302,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 addTable,
                 deleteTable,
                 deleteSelectedNodes,
-            }}
-        >
+            }}>
             {children}
         </SchemaDesignerContext.Provider>
     );

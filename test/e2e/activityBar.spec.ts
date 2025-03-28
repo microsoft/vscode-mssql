@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, Page, test, expect } from "@playwright/test";
+import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
 import { mssqlActivityBarButton } from "./utils/commonSelectors";
+import { test, expect } from "./baseFixtures";
 
 test.describe("MSSQL Extension - Activity Bar", async () => {
     let vsCodeApp: ElectronApplication;
@@ -14,8 +15,7 @@ test.describe("MSSQL Extension - Activity Bar", async () => {
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } =
-            await launchVsCodeWithMssqlExtension(true);
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension(true);
         vsCodeApp = electronApp;
         vsCodePage = page;
     });

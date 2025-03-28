@@ -27,10 +27,7 @@ suite("Stub Status View tests", function (): void {
 
     test("Test installing service method", () => {
         stubStatusView.installingService();
-        assert.isTrue(
-            logStub.calledWith("..."),
-            "Should print expected output to console",
-        );
+        assert.isTrue(logStub.calledWith("..."), "Should print expected output to console");
     });
 
     test("Test service installed method", () => {
@@ -51,10 +48,7 @@ suite("Stub Status View tests", function (): void {
 
     test("Test update service downloading progress method", () => {
         stubStatusView.updateServiceDownloadingProgress(100);
-        assert.isTrue(
-            logStub.calledWith("100%"),
-            "Should print expected output to console",
-        );
+        assert.isTrue(logStub.calledWith("100%"), "Should print expected output to console");
     });
 });
 
@@ -73,52 +67,34 @@ suite("Stub Logger tests", function (): void {
 
     test("Test logdebug method", () => {
         stubLogger.logDebug("test");
-        assert.isTrue(
-            logStub.calledWith("test"),
-            "Should print expected output to console",
-        );
+        assert.isTrue(logStub.calledWith("test"), "Should print expected output to console");
     });
 
     test("Test increaseIndent method", () => {
         stubLogger.increaseIndent();
-        assert.isTrue(
-            logStub.notCalled,
-            "Should not have printed anything to console",
-        );
+        assert.isTrue(logStub.notCalled, "Should not have printed anything to console");
     });
 
     test("Test decreaseIndent method", () => {
         stubLogger.decreaseIndent();
-        assert.isTrue(
-            logStub.notCalled,
-            "Should not have printed anything to console",
-        );
+        assert.isTrue(logStub.notCalled, "Should not have printed anything to console");
     });
 
     test("Test append method", () => {
         stubLogger.append("test");
-        assert.isTrue(
-            logStub.calledWith("test"),
-            "Should print expected output to console",
-        );
+        assert.isTrue(logStub.calledWith("test"), "Should print expected output to console");
     });
 
     test("Test appendLine method", () => {
         stubLogger.appendLine("test");
-        assert.isTrue(
-            logStub.calledWith("test"),
-            "Should print expected output to console",
-        );
+        assert.isTrue(logStub.calledWith("test"), "Should print expected output to console");
     });
 });
 
 suite("Test Service Installer Util functions", () => {
     test("Test getServiceInstallDirectoryRoot function", () => {
         let path = getServiceInstallDirectoryRoot();
-        assert.isNotNull(
-            path,
-            "Service install directory root should not be null",
-        );
+        assert.isNotNull(path, "Service install directory root should not be null");
     });
 
     // test('Test getgetServiceInstallDirectory function', async () => {
@@ -128,9 +104,6 @@ suite("Test Service Installer Util functions", () => {
 
     test("Test installService function", async () => {
         let installedPath = await installService(undefined);
-        assert.isNotNull(
-            installedPath,
-            "Service installed path should not be null",
-        );
+        assert.isNotNull(installedPath, "Service installed path should not be null");
     });
 });

@@ -14,8 +14,7 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     page: Page;
 }> {
     const vsCodeVersionName = getVsCodeVersionName();
-    const vsCodeExecutablePath =
-        await downloadAndUnzipVSCode(vsCodeVersionName);
+    const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
 
     const mssqlExtensionPath = path.resolve(__dirname, "../../../");
 
@@ -41,6 +40,27 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
 
     const page = await electronApp.firstWindow({
         timeout: 10 * 1000, // 10 seconds
+    });
+
+    // Navigate to Sql Server Tab
+    const sqlServerTabElement = page.locator('[role="tab"][aria-label*="SQL Server (Ctrl+Alt+D)"]');
+    await sqlServerTabElement.waitFor({ state: "visible", timeout: 30 * 1000 });
+    await page.keyboard.press("Control+Alt+D");
+
+    // Wait for extension to load
+    const objectExplorerProviderElement = page
+        .getByText("There is no data provider registered that can provide view data.")
+        .first();
+    await objectExplorerProviderElement.waitFor({
+        state: "hidden",
+        timeout: 30 * 1000,
+    });
+
+    // Ensure the extension has loaded by checking object explorer has loaded
+    const objectExplorerElement = page.locator('[role="treeitem"][aria-label*="Add Connection"]');
+    await objectExplorerElement.waitFor({
+        state: "visible",
+        timeout: 30 * 1000,
     });
 
     return { electronApp, page };

@@ -40,8 +40,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => (
             display: "flex",
             flexDirection: "column",
             position: "relative",
-        }}
-    >
+        }}>
         {children}
     </div>
 );
@@ -56,8 +55,7 @@ const GraphContainer = ({ children }: { children: React.ReactNode }) => (
             display: "flex",
             flexDirection: "column",
             position: "relative",
-        }}
-    >
+        }}>
         {children}
     </div>
 );

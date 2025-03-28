@@ -39,9 +39,7 @@ export interface ITableDesignerService {
      * Generate preview report describing the changes to be made.
      * @param table the table information
      */
-    generatePreviewReport(
-        table: TableInfo,
-    ): Thenable<GeneratePreviewReportResult>;
+    generatePreviewReport(table: TableInfo): Thenable<GeneratePreviewReportResult>;
 
     /**
      * Notify the provider that the table designer has been closed.
@@ -271,8 +269,7 @@ export interface TableDesignerView {
     useAdvancedSaveMode: boolean;
 }
 
-export interface TableDesignerBuiltInTableViewOptions
-    extends DesignerTablePropertiesBase {
+export interface TableDesignerBuiltInTableViewOptions extends DesignerTablePropertiesBase {
     /**
      * Whether to show the table. Default value is false.
      */
@@ -350,8 +347,7 @@ export interface DesignerDataPropertyInfo {
 /**
  * The definition of the property in the designer with tab info.
  */
-export interface DesignerDataPropertyWithTabInfo
-    extends DesignerDataPropertyInfo {
+export interface DesignerDataPropertyWithTabInfo extends DesignerDataPropertyInfo {
     /**
      * The tab info where this property belongs to.
      */
@@ -366,12 +362,7 @@ export interface DesignerDataPropertyWithTabInfo
 /**
  * The child component types supported by designer.
  */
-export type DesignerComponentTypeName =
-    | "input"
-    | "checkbox"
-    | "dropdown"
-    | "table"
-    | "textarea";
+export type DesignerComponentTypeName = "input" | "checkbox" | "dropdown" | "table" | "textarea";
 
 export interface DesignerTablePropertiesBase {
     /**
@@ -760,8 +751,4 @@ export interface TableDesignerReducers {
     copyPublishErrorToClipboard: {};
 }
 
-export type DesignerUIArea =
-    | "PropertiesView"
-    | "ScriptView"
-    | "TopContentView"
-    | "TabsView";
+export type DesignerUIArea = "PropertiesView" | "ScriptView" | "TopContentView" | "TabsView";

@@ -16,9 +16,7 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 
 export class TableDesignerService implements designer.ITableDesignerService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
-    async initializeTableDesigner(
-        table: designer.TableInfo,
-    ): Promise<designer.TableDesignerInfo> {
+    async initializeTableDesigner(table: designer.TableInfo): Promise<designer.TableDesignerInfo> {
         try {
             return await this._sqlToolsClient.sendRequest(
                 InitializeTableDesignerRequest.type,
@@ -34,18 +32,16 @@ export class TableDesignerService implements designer.ITableDesignerService {
         tableChangeInfo: designer.DesignerEdit,
     ): Promise<designer.DesignerEditResult<designer.TableDesignerView>> {
         try {
-            return await this._sqlToolsClient.sendRequest(
-                ProcessTableDesignerEditRequest.type,
-                { tableInfo: table, tableChangeInfo: tableChangeInfo },
-            );
+            return await this._sqlToolsClient.sendRequest(ProcessTableDesignerEditRequest.type, {
+                tableInfo: table,
+                tableChangeInfo: tableChangeInfo,
+            });
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
             throw e;
         }
     }
-    async publishChanges(
-        table: designer.TableInfo,
-    ): Promise<designer.PublishChangesResult> {
+    async publishChanges(table: designer.TableInfo): Promise<designer.PublishChangesResult> {
         try {
             return await this._sqlToolsClient.sendRequest(
                 PublishTableDesignerChangesRequest.type,
@@ -82,10 +78,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
     }
     async disposeTableDesigner(table: designer.TableInfo): Promise<void> {
         try {
-            return await this._sqlToolsClient.sendRequest(
-                DisposeTableDesignerRequest.type,
-                table,
-            );
+            return await this._sqlToolsClient.sendRequest(DisposeTableDesignerRequest.type, table);
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
             throw e;

@@ -24,8 +24,7 @@ export function AddTableButton() {
                 eventBus.emit("newTable", context.extractSchema());
             }}
             title={locConstants.schemaDesigner.addTable}
-            appearance="subtle"
-        >
+            appearance="subtle">
             {locConstants.schemaDesigner.addTable}
         </Button>
     );

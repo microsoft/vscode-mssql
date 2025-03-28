@@ -9,10 +9,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../../src/sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { stubTelemetry } from "./utils";
@@ -31,20 +28,14 @@ suite("UserSurvey Tests", () => {
             update: sandbox.stub(),
         };
 
-        const vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
         context = {
             globalState: globalState,
             extensionUri: vscode.Uri.file("test"),
         };
 
-        showInformationMessageStub = sandbox.stub(
-            vscode.window,
-            "showInformationMessage",
-        );
+        showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
         UserSurvey.createInstance(context, vscodeWrapper.object);
     });
 
@@ -154,11 +145,7 @@ suite("UserSurvey Tests", () => {
             "revealToForeground should have been called",
         );
 
-        assert.strictEqual(
-            sendActionEvent.calledOnce,
-            true,
-            "sendActionEvent should be called",
-        );
+        assert.strictEqual(sendActionEvent.calledOnce, true, "sendActionEvent should be called");
 
         assert.strictEqual(
             sendActionEvent.calledWith(

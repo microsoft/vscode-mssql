@@ -7,26 +7,18 @@ import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { SchemaDesignerRequests } from "../models/contracts/schemaDesigner";
 
-export class SchemaDesignerService
-    implements SchemaDesigner.ISchemaDesignerService
-{
-    private _modelReadyListeners: ((
-        modelReady: SchemaDesigner.SchemaDesignerSession,
-    ) => void)[] = [];
+export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerService {
+    private _modelReadyListeners: ((modelReady: SchemaDesigner.SchemaDesignerSession) => void)[] =
+        [];
 
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {
         this.setUpEventListeners();
     }
 
     private setUpEventListeners(): void {
-        this._sqlToolsClient.onNotification(
-            SchemaDesignerRequests.SchemaReady.type,
-            (result) => {
-                this._modelReadyListeners.forEach((listener) =>
-                    listener(result),
-                );
-            },
-        );
+        this._sqlToolsClient.onNotification(SchemaDesignerRequests.SchemaReady.type, (result) => {
+            this._modelReadyListeners.forEach((listener) => listener(result));
+        });
     }
 
     async createSession(
@@ -43,9 +35,7 @@ export class SchemaDesignerService
         }
     }
 
-    async disposeSession(
-        request: SchemaDesigner.DisposeSessionRequest,
-    ): Promise<void> {
+    async disposeSession(request: SchemaDesigner.DisposeSessionRequest): Promise<void> {
         try {
             await this._sqlToolsClient.sendRequest(
                 SchemaDesignerRequests.DisposeSession.type,
@@ -85,9 +75,7 @@ export class SchemaDesignerService
         }
     }
 
-    onSchemaReady(
-        listener: (model: SchemaDesigner.SchemaDesignerSession) => void,
-    ): void {
+    onSchemaReady(listener: (model: SchemaDesigner.SchemaDesignerSession) => void): void {
         this._modelReadyListeners.push(listener);
     }
 }

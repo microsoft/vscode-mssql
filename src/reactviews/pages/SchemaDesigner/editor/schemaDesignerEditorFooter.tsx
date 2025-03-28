@@ -32,8 +32,7 @@ export function SchemaDesignerEditorFooter() {
                     context.save();
                     eventBus.emit("getScript");
                 }}
-                disabled={Object.keys(context.errors).length > 0}
-            >
+                disabled={Object.keys(context.errors).length > 0}>
                 {context.isNewTable
                     ? locConstants.schemaDesigner.add
                     : locConstants.schemaDesigner.save}
@@ -42,8 +41,7 @@ export function SchemaDesignerEditorFooter() {
                 appearance="secondary"
                 onClick={() => {
                     context.cancel();
-                }}
-            >
+                }}>
                 {locConstants.schemaDesigner.cancel}
             </Button>
         </div>

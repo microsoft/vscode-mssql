@@ -23,21 +23,17 @@ export function AutoArrangeButton() {
             icon={<FluentIcons.Flowchart16Filled />}
             size="small"
             onClick={() => {
-                const nodes =
-                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+                const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
                 const schema = flowUtils.extractSchemaModel(
                     nodes,
                     reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
                 );
-                const generateComponenets =
-                    flowUtils.generateSchemaDesignerFlowComponents(schema);
+                const generateComponenets = flowUtils.generateSchemaDesignerFlowComponents(schema);
 
                 nodes.forEach((node) => {
                     const nodeId = node.id;
                     const tableId = node.data.id;
-                    const table = generateComponenets.nodes.find(
-                        (n) => n.data.id === tableId,
-                    );
+                    const table = generateComponenets.nodes.find((n) => n.data.id === tableId);
                     if (table) {
                         reactFlow.updateNode(nodeId, {
                             position: {
@@ -49,8 +45,7 @@ export function AutoArrangeButton() {
                 });
             }}
             title={locConstants.schemaDesigner.autoArrange}
-            appearance="subtle"
-        >
+            appearance="subtle">
             {locConstants.schemaDesigner.autoArrange}
         </Button>
     );

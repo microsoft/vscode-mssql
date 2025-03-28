@@ -37,21 +37,16 @@ export function PublishChangesDialogButton() {
         return undefined;
     }
 
-    const [report, setReport] = useState<
-        SchemaDesigner.GetReportResponse | undefined
-    >(undefined);
+    const [report, setReport] = useState<SchemaDesigner.GetReportResponse | undefined>(undefined);
     const [loading, setLoading] = useState<ApiStatus>(ApiStatus.NotStarted);
 
     const [selectedReportId, setSelectedReportId] = useState<string>("");
 
-    const [isPublishChangesEnabled, setIsPublishChangesEnabled] =
-        useState<boolean>(false);
+    const [isPublishChangesEnabled, setIsPublishChangesEnabled] = useState<boolean>(false);
 
     const [reportTab, setReportTab] = useState<string>("report");
 
-    function getReportIcon(
-        state: SchemaDesigner.SchemaDesignerReportTableState,
-    ) {
+    function getReportIcon(state: SchemaDesigner.SchemaDesignerReportTableState) {
         switch (state) {
             case SchemaDesigner.SchemaDesignerReportTableState.Created:
                 return <FluentIcons.AddFilled />;
@@ -94,9 +89,7 @@ export function PublishChangesDialogButton() {
             return undefined;
         }
         if (
-            report.reports?.filter(
-                (report) => report.tableState === filterTableState,
-            ).length === 0
+            report.reports?.filter((report) => report.tableState === filterTableState).length === 0
         ) {
             return undefined;
         }
@@ -111,12 +104,9 @@ export function PublishChangesDialogButton() {
                         minWidth: "180px",
                         overflow: "hidden",
                         overflowY: "auto",
-                    }}
-                >
+                    }}>
                     {report.reports
-                        ?.filter(
-                            (report) => report.tableState === filterTableState,
-                        )
+                        ?.filter((report) => report.tableState === filterTableState)
                         .map((report) => {
                             return (
                                 <TreeItem
@@ -131,13 +121,8 @@ export function PublishChangesDialogButton() {
                                             report.tableId === selectedReportId
                                                 ? "var(--vscode-list-activeSelectionBackground)"
                                                 : "",
-                                    }}
-                                >
-                                    <TreeItemLayout
-                                        iconBefore={getReportIcon(
-                                            filterTableState,
-                                        )}
-                                    >
+                                    }}>
+                                    <TreeItemLayout iconBefore={getReportIcon(filterTableState)}>
                                         {report.tableName}
                                     </TreeItemLayout>
                                 </TreeItem>
@@ -158,15 +143,10 @@ export function PublishChangesDialogButton() {
         if (selectedReport) {
             const reportMarkdown = `### ${selectedReport.tableName}\n\n`;
 
-            const actions = selectedReport.actionsPerformed
-                ?.map((item) => `- ${item}`)
-                .join("\n");
+            const actions = selectedReport.actionsPerformed?.map((item) => `- ${item}`).join("\n");
 
             return (
-                reportMarkdown +
-                "#### Actions performed\n\n" +
-                (actions ? actions : "") +
-                "\n\n"
+                reportMarkdown + "#### Actions performed\n\n" + (actions ? actions : "") + "\n\n"
             );
         }
         return "";
@@ -189,8 +169,7 @@ export function PublishChangesDialogButton() {
                             setReport(report);
                         }
                         setLoading(ApiStatus.Loaded);
-                    }}
-                >
+                    }}>
                     {locConstants.schemaDesigner.publishChanges}
                 </Button>
             </DialogTrigger>
@@ -198,8 +177,7 @@ export function PublishChangesDialogButton() {
                 style={{
                     width: "100%",
                     maxWidth: "800px",
-                }}
-            >
+                }}>
                 <DialogBody>
                     <DialogTitle>Publish changes</DialogTitle>
                     <DialogContent>
@@ -212,142 +190,119 @@ export function PublishChangesDialogButton() {
                                 }}
                             />
                         )}
-                        {loading === ApiStatus.Loaded &&
-                            report?.reports?.length === 0 && (
-                                <div
+                        {loading === ApiStatus.Loaded && report?.reports?.length === 0 && (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    minHeight: "200px",
+                                }}>
+                                <FluentIcons.BranchFilled
                                     style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        minHeight: "200px",
+                                        marginRight: "10px",
+                                        width: "50px",
+                                        height: "50px",
                                     }}
-                                >
-                                    <FluentIcons.BranchFilled
-                                        style={{
-                                            marginRight: "10px",
-                                            width: "50px",
-                                            height: "50px",
-                                        }}
-                                    />
-                                    {
-                                        locConstants.schemaDesigner
-                                            .noChangesDetected
-                                    }
-                                </div>
-                            )}
-                        {loading === ApiStatus.Loaded &&
-                            report &&
-                            report?.reports?.length > 0 && (
-                                <>
-                                    <TabList
-                                        selectedValue={reportTab}
-                                        onTabSelect={(_e, data) =>
-                                            setReportTab(data.value as string)
-                                        }
-                                    >
-                                        <Tab value={"report"}>
-                                            {
-                                                locConstants.schemaDesigner
-                                                    .details
-                                            }
-                                        </Tab>
-                                        <Tab value={"publishScript"}>
-                                            {locConstants.schemaDesigner.script}
-                                        </Tab>
-                                    </TabList>
-                                    <Divider
-                                        style={{
-                                            marginTop: "10px",
-                                            marginBottom: "10px",
-                                        }}
-                                    />
-                                    {reportTab === "report" && (
-                                        <>
+                                />
+                                {locConstants.schemaDesigner.noChangesDetected}
+                            </div>
+                        )}
+                        {loading === ApiStatus.Loaded && report && report?.reports?.length > 0 && (
+                            <>
+                                <TabList
+                                    selectedValue={reportTab}
+                                    onTabSelect={(_e, data) => setReportTab(data.value as string)}>
+                                    <Tab value={"report"}>
+                                        {locConstants.schemaDesigner.details}
+                                    </Tab>
+                                    <Tab value={"publishScript"}>
+                                        {locConstants.schemaDesigner.script}
+                                    </Tab>
+                                </TabList>
+                                <Divider
+                                    style={{
+                                        marginTop: "10px",
+                                        marginBottom: "10px",
+                                    }}
+                                />
+                                {reportTab === "report" && (
+                                    <>
+                                        <div
+                                            style={{
+                                                width: "100%",
+                                                display: "flex",
+                                                flexDirection: "row",
+                                                minHeight: "500px",
+                                                maxHeight: "500px",
+                                                overflow: "hidden",
+                                            }}>
+                                            <Tree
+                                                size="small"
+                                                aria-label="Small Size Tree"
+                                                defaultOpenItems={[
+                                                    "Added Tables",
+                                                    "Modified Tables",
+                                                    "Dropped Tables",
+                                                ]}
+                                                style={{
+                                                    minWidth: "250px",
+                                                    overflow: "hidden",
+                                                    overflowY: "auto",
+                                                }}>
+                                                {renderTreeNode(
+                                                    "Added Tables",
+                                                    SchemaDesigner.SchemaDesignerReportTableState
+                                                        .Created,
+                                                )}
+                                                {renderTreeNode(
+                                                    "Modified Tables",
+                                                    SchemaDesigner.SchemaDesignerReportTableState
+                                                        .Updated,
+                                                )}
+                                                {renderTreeNode(
+                                                    "Dropped Tables",
+                                                    SchemaDesigner.SchemaDesignerReportTableState
+                                                        .Dropped,
+                                                )}
+                                            </Tree>
+                                            <Divider
+                                                vertical
+                                                style={{
+                                                    marginLeft: "10px",
+                                                    marginRight: "10px",
+                                                }}
+                                            />
                                             <div
                                                 style={{
                                                     width: "100%",
-                                                    display: "flex",
-                                                    flexDirection: "row",
-                                                    minHeight: "500px",
-                                                    maxHeight: "500px",
-                                                    overflow: "hidden",
-                                                }}
-                                            >
-                                                <Tree
-                                                    size="small"
-                                                    aria-label="Small Size Tree"
-                                                    defaultOpenItems={[
-                                                        "Added Tables",
-                                                        "Modified Tables",
-                                                        "Dropped Tables",
-                                                    ]}
-                                                    style={{
-                                                        minWidth: "250px",
-                                                        overflow: "hidden",
-                                                        overflowY: "auto",
-                                                    }}
-                                                >
-                                                    {renderTreeNode(
-                                                        "Added Tables",
-                                                        SchemaDesigner
-                                                            .SchemaDesignerReportTableState
-                                                            .Created,
-                                                    )}
-                                                    {renderTreeNode(
-                                                        "Modified Tables",
-                                                        SchemaDesigner
-                                                            .SchemaDesignerReportTableState
-                                                            .Updated,
-                                                    )}
-                                                    {renderTreeNode(
-                                                        "Dropped Tables",
-                                                        SchemaDesigner
-                                                            .SchemaDesignerReportTableState
-                                                            .Dropped,
-                                                    )}
-                                                </Tree>
-                                                <Divider
-                                                    vertical
-                                                    style={{
-                                                        marginLeft: "10px",
-                                                        marginRight: "10px",
-                                                    }}
-                                                />
-                                                <div
-                                                    style={{
-                                                        width: "100%",
-                                                        flexGrow: 1,
-                                                        height: "100%",
-                                                        overflow: "auto",
-                                                    }}
-                                                >
-                                                    <Markdown>
-                                                        {getSelectedReportMarkdown()}
-                                                    </Markdown>
-                                                </div>
+                                                    flexGrow: 1,
+                                                    height: "100%",
+                                                    overflow: "auto",
+                                                }}>
+                                                <Markdown>{getSelectedReportMarkdown()}</Markdown>
                                             </div>
-                                        </>
-                                    )}
-                                    {reportTab === "publishScript" && (
-                                        <Editor
-                                            height="500px"
-                                            defaultLanguage="sql"
-                                            defaultValue={scriptUtils.addWarningToSQLScript(
-                                                report?.updateScript ?? "",
-                                            )}
-                                            theme={resolveVscodeThemeType(
-                                                context?.themeKind,
-                                            )}
-                                            options={{
-                                                readOnly: true,
-                                                minimap: { enabled: false },
-                                                wordWrap: "on",
-                                            }}
-                                        />
-                                    )}
-                                </>
-                            )}
+                                        </div>
+                                    </>
+                                )}
+                                {reportTab === "publishScript" && (
+                                    <Editor
+                                        height="500px"
+                                        defaultLanguage="sql"
+                                        defaultValue={scriptUtils.addWarningToSQLScript(
+                                            report?.updateScript ?? "",
+                                        )}
+                                        theme={resolveVscodeThemeType(context?.themeKind)}
+                                        options={{
+                                            readOnly: true,
+                                            minimap: { enabled: false },
+                                            wordWrap: "on",
+                                        }}
+                                    />
+                                )}
+                            </>
+                        )}
                     </DialogContent>
                     <DialogActions>
                         {/* <Button appearance="primary">Publish</Button> */}
@@ -355,13 +310,10 @@ export function PublishChangesDialogButton() {
                             appearance="secondary"
                             onClick={() => {
                                 context.openInEditorWithConnection(
-                                    scriptUtils.addWarningToSQLScript(
-                                        report?.updateScript ?? "",
-                                    ),
+                                    scriptUtils.addWarningToSQLScript(report?.updateScript ?? ""),
                                 );
                             }}
-                            disabled={report?.updateScript === ""}
-                        >
+                            disabled={report?.updateScript === ""}>
                             Open Publish Script
                         </Button>
                         <DialogTrigger disableButtonEnhancement>

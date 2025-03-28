@@ -28,19 +28,13 @@ suite("Azure Controller Tests", () => {
     });
 
     test("isTokenValid should return false for expired token", () => {
-        const actual = AzureController.isTokenValid(
-            "token",
-            currentTime - 4 * 60,
-        );
+        const actual = AzureController.isTokenValid("token", currentTime - 4 * 60);
         const expected = false;
         assert.strictEqual(actual, expected);
     });
 
     test("isTokenValid should return true for valid token", () => {
-        const actual = AzureController.isTokenValid(
-            "token",
-            currentTime + 3 * 60,
-        );
+        const actual = AzureController.isTokenValid("token", currentTime + 3 * 60);
         const expected = true;
         assert.strictEqual(actual, expected);
     });

@@ -114,9 +114,7 @@ export async function run(): Promise<void> {
 
     if (failures > 0) {
         console.log("\nFailed Tests:");
-        failedTests.forEach((test, index) =>
-            console.log(`${index + 1}) ${test}`),
-        );
+        failedTests.forEach((test, index) => console.log(`${index + 1}) ${test}`));
         throw new Error(`${failures} tests failed.`);
     }
 }
