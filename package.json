@@ -32,7 +32,7 @@
     "MSSQL",
     "SQL Server",
     "Azure SQL Database",
-    "Azure SQL Data Warehouse",
+    "SQL database in Fabric",
     "multi-root ready"
   ],
   "activationEvents": [
