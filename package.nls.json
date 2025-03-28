@@ -174,7 +174,7 @@
     "mssql.enableNewQueryResultFeature.description": "Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
     "mssql.userFeedback": "Give Feedback",
     "mssql.selectedSubscriptions": "Selected Subscriptions",
-    "mssql.visualizeSchema": "Visualize Schema",
+    "mssql.designSchema": "Design Schema (Preview)",
     "mssql.walkthroughs.getStarted.title": "Get Started with MSSQL for Visual Studio Code",
     "mssql.walkthroughs.getStarted.description": "Your first steps for connecting to and developing with a SQL database",
     "mssql.walkthroughs.getStarted.enableModernFeatures.title": "Enable Modern Features",

@@ -48,6 +48,10 @@
         <source xml:lang="en">Actual Number of Rows For All Executions</source>
         <target state="translated">すべての実行の実際の行数</target>
       </trans-unit>
+      <trans-unit id="++CODE++9fd728c66c9a256b121472dabf32a34317aed01d8427d70ec830289cf23a7cc8">
+        <source xml:lang="en">Add</source>
+        <target state="new">Add</target>
+      </trans-unit>
       <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
         <source xml:lang="en">Add Column</source>
         <target state="translated">列の追加</target>
@@ -60,9 +64,21 @@
         <source xml:lang="en">Add Firewall Rule</source>
         <target state="translated">ファイアウォール ルールの追加</target>
       </trans-unit>
+      <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
+        <source xml:lang="en">Add Table</source>
+        <target state="new">Add Table</target>
+      </trans-unit>
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
         <target state="translated">Microsoft Entra アカウントを追加...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
+        <source xml:lang="en">Add new column</source>
+        <target state="new">Add new column</target>
+      </trans-unit>
+      <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
+        <source xml:lang="en">Add new foreign key</source>
+        <target state="new">Add new foreign key</target>
       </trans-unit>
       <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
         <source xml:lang="en">Additional parameters</source>
@@ -79,6 +95,10 @@
       <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">詳細オプション</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
+        <source xml:lang="en">Allow Null</source>
+        <target state="new">Allow Null</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -137,6 +157,10 @@
       <trans-unit id="++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878">
         <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
         <target state="translated">状態の不一致のため、認証に失敗しました。 ADS を終了してから、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
+        <source xml:lang="en">Auto Arrange</source>
+        <target state="new">Auto Arrange</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -232,6 +256,18 @@
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
         <target state="translated">トークンの有効期限が切れているため、接続できません。再認証して、もう一度お試しください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
+        <source xml:lang="en">Cannot create foreign key</source>
+        <target state="new">Cannot create foreign key</target>
+      </trans-unit>
+      <trans-unit id="++CODE++db1e549937a7102cda82a262a27f86166ea3c25f6441098efbc9c17de5eb362c">
+        <source xml:lang="en">Cannot create foreign key with duplicate columns</source>
+        <target state="new">Cannot create foreign key with duplicate columns</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
+        <source xml:lang="en">Changed Tables</source>
+        <target state="new">Changed Tables</target>
+      </trans-unit>
       <trans-unit id="++CODE++6ba2dfc2755e1d829986d3bf36cdea9fc88fa8c16d079b7d0f6a6309e8e67a6a">
         <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source>
         <note>{0} is the database name
@@ -292,6 +328,12 @@
         <source xml:lang="en">Choose a database from the list below</source>
         <target state="translated">下の一覧からデータベースを選択してください</target>
       </trans-unit>
+      <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
+        <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
+        <note>{0} is source table
+{1} is target table</note>
+        <target state="new">Circular reference detected: '{0}' → '{1}' creates a cycle</target>
+      </trans-unit>
       <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
         <source xml:lang="en">Clear</source>
         <target state="translated">クリア</target>
@@ -335,6 +377,20 @@
       <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
         <source xml:lang="en">Column</source>
         <target state="translated">列</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
+        <source xml:lang="en">Column '{0}' must be a primary key</source>
+        <note>{0} is the referenced column</note>
+        <target state="new">Column '{0}' must be a primary key</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d93bc428789daab792bbefccefbef350850821d750aff6d09f87b4a77d9fe66a">
+        <source xml:lang="en">Column '{0}' not found</source>
+        <note>{0} is the column name</note>
+        <target state="new">Column '{0}' not found</target>
+      </trans-unit>
+      <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
+        <source xml:lang="en">Column Name</source>
+        <target state="new">Column Name</target>
       </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
@@ -454,6 +510,10 @@
         <source xml:lang="en">Create</source>
         <target state="translated">作成</target>
       </trans-unit>
+      <trans-unit id="++CODE++7aa0a3ede22306a6fe14f159fb12acfbb63bad17edf71486aa552c2cd757e5cd">
+        <source xml:lang="en">Create As Script</source>
+        <target state="new">Create As Script</target>
+      </trans-unit>
       <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
         <source xml:lang="en">Create Connection Profile</source>
         <target state="translated">接続プロファイルの作成</target>
@@ -477,6 +537,14 @@
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
         <target state="translated">データ型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
+        <source xml:lang="en">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</source>
+        <note>{0} is source data type
+{1} is source column
+{2} is target data type
+{3} is target column</note>
+        <target state="new">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</target>
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
@@ -517,6 +585,10 @@
       <trans-unit id="++CODE++b16cf0590a6c78b2e8047509582e5448bd55e408cd112bd1f064e34529f6ce3d">
         <source xml:lang="en">Description for the table.</source>
         <target state="translated">テーブルの説明です。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
+        <source xml:lang="en">Details</source>
+        <target state="new">Details</target>
       </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -570,6 +642,10 @@
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
         <target state="translated">編集</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
+        <source xml:lang="en">Edit Table</source>
+        <target state="new">Edit Table</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -726,6 +802,10 @@
         <source xml:lang="en">Expand All</source>
         <target state="translated">すべて展開</target>
       </trans-unit>
+      <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
+        <source xml:lang="en">Export</source>
+        <target state="new">Export</target>
+      </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
         <target state="translated">式</target>
@@ -766,6 +846,10 @@
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
         <target state="translated">結果を保存できませんでした。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
+        <source xml:lang="en">Filter</source>
+        <target state="new">Filter</target>
       </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
@@ -820,6 +904,11 @@
         <source xml:lang="en">Foreign Key</source>
         <target state="translated">外部キー</target>
       </trans-unit>
+      <trans-unit id="++CODE++7243088a776ee64422264949fcd3e6bff4cab595d0f7fb6bf45d5765a2c2ef66">
+        <source xml:lang="en">Foreign Key {0}</source>
+        <note>{0} is the index of the foreign key</note>
+        <target state="new">Foreign Key {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7d30023ced5527cc9061c41e18c832bba55267935cbfc5c45a68dbf5dcc5a310">
         <source xml:lang="en">Foreign Keys</source>
         <target state="translated">外部キー</target>
@@ -827,6 +916,15 @@
       <trans-unit id="++CODE++343460cabeff0fb48d3eaab8a7b7cec8ab6533656b987b607002e6fae59daa8b">
         <source xml:lang="en">Foreign Table</source>
         <target state="translated">外部テーブル</target>
+      </trans-unit>
+      <trans-unit id="++CODE++328923e4274282cae8dc3222c0281c6454f9625843394b33364bfb4213436f1a">
+        <source xml:lang="en">Foreign key '{0}' already exists</source>
+        <note>{0} is the foreign key name</note>
+        <target state="new">Foreign key '{0}' already exists</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e6603b955a2b4bfe8e11ed330edfcdbfd8af1d94b683e2829ba11da61c8640c9">
+        <source xml:lang="en">Foreign key name cannot be empty</source>
+        <target state="new">Foreign key name cannot be empty</target>
       </trans-unit>
       <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
         <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
@@ -919,6 +1017,10 @@
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">列の幅が無効です</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
+        <source xml:lang="en">Is Identity</source>
+        <target state="new">Is Identity</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
         <source xml:lang="en">Issues ({0})</source>
         <note>{0} is the number of issues</note>
@@ -944,6 +1046,14 @@
         <source xml:lang="en">Length</source>
         <target state="translated">長さ</target>
       </trans-unit>
+      <trans-unit id="++CODE++66a64458c4ba13495492108557828d5ef43bfc7f9aca725db617d6a1556ad088">
+        <source xml:lang="en">Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})</source>
+        <note>{0} is source column
+{1} is source length
+{2} is target column
+{3} is target length</note>
+        <target state="new">Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})</target>
+      </trans-unit>
       <trans-unit id="++CODE++ab7e3aa3d0d8c78763c986b6a831726ff623b195a38a8d4b1191976c0becf72e">
         <source xml:lang="en">Less Than</source>
         <target state="translated">指定値より小さい</target>
@@ -965,6 +1075,10 @@
         <source xml:lang="en">Loading Report</source>
         <target state="translated">レポートを読み込んでいます</target>
       </trans-unit>
+      <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
+        <source xml:lang="en">Loading Schema Designer Model...</source>
+        <target state="new">Loading Schema Designer Model...</target>
+      </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">テーブル デザイナーを読み込んでいます</target>
@@ -985,6 +1099,10 @@
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">接続プロファイルの管理</target>
       </trans-unit>
+      <trans-unit id="++CODE++5ae5256284272a7585c1b275ef82e5d337ca3353c8e608120019177aad6a26c6">
+        <source xml:lang="en">Manage relationships</source>
+        <target state="new">Manage relationships</target>
+      </trans-unit>
       <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
         <source xml:lang="en">Mandatory (Recommended)</source>
         <target state="translated">必須 (推奨)</target>
@@ -992,6 +1110,10 @@
       <trans-unit id="++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7">
         <source xml:lang="en">Mandatory (True)</source>
         <target state="translated">必須 (True)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++305fd6adb2295a939e62e4fed83349c610aa4e1840280503e6b64c8042dccd16">
+        <source xml:lang="en">Max Length</source>
+        <target state="new">Max Length</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -1094,6 +1216,10 @@
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
         <target state="translated">新しい Microsoft Entra アカウントを追加できませんでした。</target>
       </trans-unit>
+      <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
+        <source xml:lang="en">New column mapping</source>
+        <target state="new">New column mapping</target>
+      </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
         <target state="translated">次へ</target>
@@ -1109,6 +1235,10 @@
       <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">使用できるクエリはありません</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
+        <source xml:lang="en">No changes detected</source>
+        <target state="new">No changes detected</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -1212,6 +1342,10 @@
         <source xml:lang="en">Open XML</source>
         <target state="translated">XML を開く</target>
       </trans-unit>
+      <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
+        <source xml:lang="en">Open in Editor</source>
+        <target state="new">Open in Editor</target>
+      </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
         <target state="translated">新しいタブで開く</target>
@@ -1265,6 +1399,12 @@
       <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
         <source xml:lang="en">Precision</source>
         <target state="translated">精度</target>
+      </trans-unit>
+      <trans-unit id="++CODE++db941d8c187f4fc67aa4904ca92e659aa8f19fc4f6409af9f9e63f741d1fcc80">
+        <source xml:lang="en">Precision/scale mismatch between '{0}' and '{1}'</source>
+        <note>{0} is source column
+{1} is target column</note>
+        <target state="new">Precision/scale mismatch between '{0}' and '{1}'</target>
       </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
@@ -1330,6 +1470,10 @@
         <source xml:lang="en">Publish</source>
         <target state="translated">公開</target>
       </trans-unit>
+      <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
+        <source xml:lang="en">Publish Changes</source>
+        <target state="new">Publish Changes</target>
+      </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">変更をパブリッシュしています</target>
@@ -1367,6 +1511,20 @@
       <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
         <source xml:lang="en">Recent connections list cleared</source>
         <target state="translated">最近の接続の一覧がクリアされました</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
+        <source xml:lang="en">Referenced column '{0}' not found</source>
+        <note>{0} is the column name</note>
+        <target state="new">Referenced column '{0}' not found</target>
+      </trans-unit>
+      <trans-unit id="++CODE++797ad1e737f00e56b04c2d4140e177a26977d3a90e9ea84cb65016e21c50113f">
+        <source xml:lang="en">Referenced table '{0}' not found</source>
+        <note>{0} is the table name</note>
+        <target state="new">Referenced table '{0}' not found</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e91610117029a62a478b7fa7df0b8598bebe3ab1e192d4b1882e310719c9671">
+        <source xml:lang="en">Refresh</source>
+        <target state="new">Refresh</target>
       </trans-unit>
       <trans-unit id="++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0">
         <source xml:lang="en">Refresh Credentials</source>
@@ -1437,6 +1595,14 @@
         <source xml:lang="en">Satisfied</source>
         <target state="translated">満足</target>
       </trans-unit>
+      <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
+        <source xml:lang="en">Save</source>
+        <target state="new">Save</target>
+      </trans-unit>
+      <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
+        <source xml:lang="en">Save As</source>
+        <target state="new">Save As</target>
+      </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
         <target state="translated">パスワードの保存</target>
@@ -1480,6 +1646,14 @@
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">Schema Compare</target>
+      </trans-unit>
+      <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
+        <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
+        <target state="new">Schema Designer Model is ready. Changes can now be published.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
+        <source xml:lang="en">Script</source>
+        <target state="new">Script</target>
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
@@ -1595,6 +1769,10 @@
         <source xml:lang="en">Sort Descending</source>
         <target state="translated">降順で並べ替え</target>
       </trans-unit>
+      <trans-unit id="++CODE++2b25c7e56081a32eca68cf954d0dae7f5d558f2111699c5b4e39596584c40b39">
+        <source xml:lang="en">Source Column</source>
+        <target state="new">Source Column</target>
+      </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
         <target state="translated">列がテーブルの主キーに含まれるかどうかを指定します。</target>
@@ -1663,13 +1841,35 @@
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">MSAL に切り替える</target>
       </trans-unit>
+      <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
+        <source xml:lang="en">Table</source>
+        <target state="new">Table</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e37d0b463100c4d709173a6502222535a4960da7c2ae4c1317ba1e20ece36b3e">
+        <source xml:lang="en">Table '{0}' already exists</source>
+        <note>{0} is the table name</note>
+        <target state="new">Table '{0}' already exists</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17">
+        <source xml:lang="en">Table '{0}' not found</source>
+        <note>{0} is the table name</note>
+        <target state="new">Table '{0}' not found</target>
+      </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">テーブル名</target>
       </trans-unit>
+      <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
+        <source xml:lang="en">Table name cannot be empty</source>
+        <target state="new">Table name cannot be empty</target>
+      </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
         <target state="translated">アンケートに答える</target>
+      </trans-unit>
+      <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
+        <source xml:lang="en">Target Table</source>
+        <target state="new">Target Table</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -1855,6 +2055,10 @@
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">非常に満足</target>
       </trans-unit>
+      <trans-unit id="++CODE++d56bf62b4b9935c64d1da0afbf5f5c86b0301ca7bebad0086c8ce3085ae5ab06">
+        <source xml:lang="en">View Code</source>
+        <target state="new">View Code</target>
+      </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
         <target state="translated">表示数を増やす</target>
@@ -1995,6 +2199,11 @@
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (フィルター処理済み)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
+        <source xml:lang="en">{0} column data</source>
+        <note>{0} is the number of columns</note>
+        <target state="new">{0} column data</target>
       </trans-unit>
       <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
         <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
@@ -2164,6 +2373,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">削除</target>
+      </trans-unit>
+      <trans-unit id="mssql.designSchema">
+        <source xml:lang="en">Design Schema (Preview)</source>
+        <target state="new">Design Schema (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
@@ -2662,10 +2875,6 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
-      </trans-unit>
-      <trans-unit id="mssql.visualizeSchema">
-        <source xml:lang="en">Visualize Schema</source>
-        <target state="translated">スキーマの視覚化</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

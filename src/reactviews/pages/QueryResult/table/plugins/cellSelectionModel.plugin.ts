@@ -170,7 +170,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
-        if ((e.target as EventTargetWithClassName).className === "slick-resizable-handle") {
+        if (e.target) {
+            if ((e.target as EventTargetWithClassName).className === "slick-resizable-handle") {
+                return;
+            }
+        }
+        if (!args) {
             return;
         }
         if (!isUndefinedOrNull(args.column)) {

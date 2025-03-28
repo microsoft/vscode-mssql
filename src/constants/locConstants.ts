@@ -689,3 +689,12 @@ export class TableDesigner {
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
 }
+
+export class SchemaDesigner {
+    public static LoadingSchemaDesginerModel = l10n.t("Loading Schema Designer Model...");
+    public static SchemaReady = l10n.t(
+        "Schema Designer Model is ready. Changes can now be published.",
+    );
+    public static SaveAs = l10n.t("Save As");
+    public static Save = l10n.t("Save");
+}

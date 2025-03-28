@@ -1794,6 +1794,9 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="mssql.designSchema">
+      <source xml:lang="en">Design Schema (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
     </trans-unit>
@@ -2159,9 +2162,6 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
-    </trans-unit>
-    <trans-unit id="mssql.visualizeSchema">
-      <source xml:lang="en">Visualize Schema</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

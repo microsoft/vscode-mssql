@@ -87,6 +87,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const targetDatabase = this.getDatabaseNameForNode(this._targetNode);
         // get database name from connection string
         const databaseName = targetDatabase ? targetDatabase : "master";
+        // clone connection info and set database name
 
         const connectionInfo = this._targetNode.connectionInfo;
         connectionInfo.database = databaseName;
