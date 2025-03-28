@@ -314,9 +314,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     "ms-mssql.sql-database-projects-vscode",
                 );
 
-                if (extension && !extension.isActive) {
-                    await extension.activate();
-                    state.isSqlProjectExtensionInstalled = extension.isActive;
+                if (extension) {
+                    if (!extension.isActive) {
+                        await extension.activate();
+                    }
+                    state.isSqlProjectExtensionInstalled = true;
                 } else {
                     state.isSqlProjectExtensionInstalled = false;
                 }
