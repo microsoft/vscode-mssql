@@ -4,11 +4,11 @@
 * Release date: March 31, 2025
 * Release status: GA
 ### What’s new in 1.30.0
-Enabled new UI enhancements by default for improved development experience
-Improved reliability in Connection Dialog and Connections view
-Enhanced usability in Query Results pane
-Fixed Azure subscription loading issues
-Accessibility improvements across the extension
+* Enabled new UI enhancements by default for improved development experience
+* Improved reliability in Connection Dialog and Connections view
+* Enhanced usability in Query Results pane
+* Fixed Azure subscription loading issues
+* Accessibility improvements across the extension
 
 ## Version 1.29.1
 * Release date: March 12, 2025
