@@ -304,6 +304,10 @@
         <source xml:lang="en">Clear Recent Connections List</source>
         <target state="translated">Borrar la lista de conexiones recientes</target>
       </trans-unit>
+      <trans-unit id="++CODE++c52ff5ea803d577544a8224d1404ecefa836b803f029d87cd7450af6c18a70ef">
+        <source xml:lang="en">Clear Selection</source>
+        <target state="translated">Borrar selección</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">Hacer clic para conectarse a una base de datos</target>
@@ -322,7 +326,7 @@
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
-        <target state="new">Collapse</target>
+        <target state="translated">Contraer</target>
       </trans-unit>
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
@@ -352,9 +356,9 @@
         <source xml:lang="en">Connect</source>
         <target state="translated">Conectar</target>
       </trans-unit>
-      <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
-        <source xml:lang="en">Connect to SQL Server</source>
-        <target state="translated">Conectar con SQL Server</target>
+      <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
+        <source xml:lang="en">Connect to Database</source>
+        <target state="new">Connect to Database</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -666,6 +670,10 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">Error al cargar la vista previa</target>
       </trans-unit>
+      <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
+        <source xml:lang="en">Error loading; refresh to try again</source>
+        <target state="translated">Error al cargar; actualizar para volver a intentarlo</target>
+      </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">Error al abrir contenido en el editor.</target>
@@ -712,7 +720,7 @@
       </trans-unit>
       <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
         <source xml:lang="en">Expand</source>
-        <target state="new">Expand</target>
+        <target state="translated">Expandir</target>
       </trans-unit>
       <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
         <source xml:lang="en">Expand All</source>
@@ -1088,7 +1096,7 @@
       </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
-        <target state="new">Next</target>
+        <target state="translated">Siguiente</target>
       </trans-unit>
       <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
         <source xml:lang="en">No</source>
@@ -1264,7 +1272,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
         <source xml:lang="en">Previous</source>
-        <target state="new">Previous</target>
+        <target state="translated">Anterior</target>
       </trans-unit>
       <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
         <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
@@ -2113,11 +2121,15 @@
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
         <source xml:lang="en">Connect to a SQL Database</source>
-        <target state="new">Connect to a SQL Database</target>
+        <target state="translated">Conexión a una base de datos SQL</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
         <source xml:lang="en">Connection Dialog</source>
-        <target state="new">Connection Dialog</target>
+        <target state="translated">Cuadro de diálogo de conexión</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups">
+        <source xml:lang="en">Connection groups</source>
+        <target state="translated">Grupos de conexiones</target>
       </trans-unit>
       <trans-unit id="mssql.connections">
         <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
@@ -2141,13 +2153,13 @@
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
-        <target state="new">Create a Table with Table Designer</target>
+        <target state="translated">Creación de una tabla con el Diseñador de tablas</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
         <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.
 Once you're done making your changes, click the 'Publish' button to send the changes to your database.</source>
-        <target state="new">Create a new table in your database, or edit existing tables with the table designer.
-Once you're done making your changes, click the 'Publish' button to send the changes to your database.</target>
+        <target state="translated">Cree una nueva tabla en su base de datos o edite las tablas existentes con el Diseñador de tablas.
+Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar' para enviar los cambios a la base de datos.</target>
       </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
@@ -2191,11 +2203,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
         <source xml:lang="en">Enable Modern Features</source>
-        <target state="new">Enable Modern Features</target>
+        <target state="translated">Habilitación de características modernas</target>
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences">
         <source xml:lang="en">Enable Modern Features</source>
-        <target state="new">Enable Modern Features</target>
+        <target state="translated">Habilitación de características modernas</target>
       </trans-unit>
       <trans-unit id="mssql.query.alwaysEncryptedParameterization">
         <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
@@ -2283,13 +2295,13 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>
-        <target state="new">Enable modern features in MSSQL</target>
+        <target state="translated">Habilitación de características modernas en MSSQL</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
         <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
 [Enable New Experiences](command:mssql.enableRichExperiences)</source>
-        <target state="new">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.
-[Enable New Experiences](command:mssql.enableRichExperiences)</target>
+        <target state="translated">Habilite el nuevo conjunto de características de desarrollo de datos que proporcionan una forma moderna de trabajar con su base de datos SQL en VS Code.
+[Habilitar nuevas experiencias](command:mssql.enableRichExperiences)</target>
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
@@ -2325,7 +2337,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
-        <target state="new">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</target>
+        <target state="translated">Familiarícese con más características de la extensión MSSQL que pueden ayudarle a ser más productivo.</target>
       </trans-unit>
       <trans-unit id="mssql.filterNode">
         <source xml:lang="en">Filter (Preview)</source>
@@ -2333,11 +2345,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
         <source xml:lang="en">Filter your Object Explorer Tree</source>
-        <target state="new">Filter your Object Explorer Tree</target>
+        <target state="translated">Filtrado del árbol del Explorador de objetos</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.title">
         <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
-        <target state="new">Get Started with MSSQL for Visual Studio Code</target>
+        <target state="translated">Introducción a MSSQL para Visual Studio Code</target>
       </trans-unit>
       <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
@@ -2355,9 +2367,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.
 You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.
 [Open Connection Dialog](command:mssql.addObjectExplorer)</source>
-        <target state="new">Make a new connection to a SQL database, or edit existing connections with the connection dialog.
-You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.
-[Open Connection Dialog](command:mssql.addObjectExplorer)</target>
+        <target state="translated">Realice una nueva conexión a una base de datos SQL o edite las conexiones existentes con el cuadro de diálogo de conexión.
+Puede conectarse a una base de datos escribiendo su información de conexión, usando una cadena de conexión o navegando por sus suscripciones de Azure.
+[Abrir cuadro de diálogo de conexión](command:mssql.addObjectExplorer)</target>
       </trans-unit>
       <trans-unit id="mssql.manageProfiles">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -2397,7 +2409,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.title">
         <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
-        <target state="new">Next Steps with MSSQL for Visual Studio Code</target>
+        <target state="translated">Pasos siguientes con MSSQL para Visual Studio Code</target>
       </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
@@ -2409,13 +2421,13 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
         <source xml:lang="en">Object Explorer filters</source>
-        <target state="new">Object Explorer filters</target>
+        <target state="translated">Filtros del Explorador de objetos</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
         <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.
 Start by clicking the filter button next to most folders in the Connections view.</source>
-        <target state="new">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.
-Start by clicking the filter button next to most folders in the Connections view.</target>
+        <target state="translated">Vea solo los objetos de la base de datos que más le interesan aplicando filtros al árbol del Explorador de objetos.
+Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las carpetas en la vista Conexiones.</target>
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
@@ -2447,11 +2459,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
         <source xml:lang="en">Query editor and query results pane</source>
-        <target state="new">Query editor and query results pane</target>
+        <target state="translated">Editor de consultas y panel de resultados de consultas</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
         <source xml:lang="en">Query plan visualization</source>
-        <target state="new">Query plan visualization</target>
+        <target state="translated">Visualización del plan de consulta</target>
       </trans-unit>
       <trans-unit id="mssql.refreshObjectExplorerNode">
         <source xml:lang="en">Refresh</source>
@@ -2479,7 +2491,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
         <source xml:lang="en">Run a SQL Query</source>
-        <target state="new">Run a SQL Query</target>
+        <target state="translated">Ejecución de una consulta SQL</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare (Preview)</source>
@@ -2579,15 +2591,15 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
         <source xml:lang="en">Sort and Filter Query Results</source>
-        <target state="new">Sort and Filter Query Results</target>
+        <target state="translated">Ordenar y filtrar los resultados de la consulta</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText">
         <source xml:lang="en">Sort and filter options for query results</source>
-        <target state="new">Sort and filter options for query results</target>
+        <target state="translated">Opciones de ordenación y filtrado para los resultados de la consulta</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
-        <target state="new">Sort and filter your query results to find the data you need quickly.</target>
+        <target state="translated">Ordene y filtre los resultados de la consulta para encontrar rápidamente los datos que necesita.</target>
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
@@ -2595,15 +2607,43 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
-        <target state="new">Table Designer</target>
+        <target state="translated">Diseñador de tablas</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.color">
+        <source xml:lang="en">The color of the connection group.</source>
+        <target state="translated">Color del grupo de conexiones.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.description">
+        <source xml:lang="en">The description of the connection group.</source>
+        <target state="translated">Descripción del grupo de conexiones.</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">Número máximo de conexiones usadas recientemente que se van a almacenar en la lista de conexiones.</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroup.name">
+        <source xml:lang="en">The name of the connection group.</source>
+        <target state="translated">Nombre del grupo de conexiones.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         <target state="translated">Tiempo de espera en segundos para expandir un nodo en Explorador de objetos. El valor predeterminado es 45 segundos.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.groupId">
+        <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+        <target state="translated">Identificador único del grupo de conexiones al que pertenece este perfil de conexión.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.id">
+        <source xml:lang="en">The unique identifier for the connection group.</source>
+        <target state="translated">Identificador único del grupo de conexiones.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroup.parentId">
+        <source xml:lang="en">The unique identifier for the parent connection group.</source>
+        <target state="translated">Identificador único del grupo de conexiones primario.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.id">
+        <source xml:lang="en">The unique identifier for this connection profile.</source>
+        <target state="translated">Identificador único de este perfil de conexión.</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
@@ -2616,8 +2656,8 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.description">
         <source xml:lang="en">Understand what your query is doing by viewing the query plan.
 See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</source>
-        <target state="new">Understand what your query is doing by viewing the query plan.
-See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</target>
+        <target state="translated">Comprenda qué está haciendo su consulta viendo el plan de consulta.
+Vea el plan estimado sin ejecutar la consulta, o vea el plan de consulta real después de ejecutar la consulta alternando los botones en la parte superior de la ventana del editor de consultas.</target>
       </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
@@ -2629,7 +2669,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
-        <target state="new">Visualize a Query Plan</target>
+        <target state="translated">Visualización de un plan de consulta</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
@@ -2638,12 +2678,12 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
         <source xml:lang="en">Write a SQL query, and run it against your database.
 You can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.</source>
-        <target state="new">Write a SQL query, and run it against your database.
-You can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.</target>
+        <target state="translated">Escriba una consulta SQL y ejecútela en la base de datos.
+También puedes hacer clic en el botón 'Abrir en nueva pestaña' para ver los resultados de su consulta en su propia pestaña y, opcionalmente, establecerlo como comportamiento predeterminado.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.description">
         <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
-        <target state="new">Your first steps for connecting to and developing with a SQL database</target>
+        <target state="translated">Los primeros pasos para conectarse y desarrollar con una base de datos SQL</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.textIdentifier">
         <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
@@ -2731,7 +2771,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
         <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
-        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</target>
+        <target state="translated">[Opcional] Especifique el tiempo en segundos que se debe esperar para establecer una conexión con el servidor antes de finalizar el intento de conexión y generar un error. El valor predeterminado es 30 segundos.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.maxPoolSize">
         <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>

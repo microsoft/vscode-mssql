@@ -20,6 +20,7 @@ dotenv.config({ path: './test/e2e/.env' });
  */
 export default defineConfig({
   testDir: './test/e2e',
+  testMatch: ["**/*.spec.ts"],
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

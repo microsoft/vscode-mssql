@@ -298,6 +298,7 @@ export function registerCommonRequestHandlers(
                     Object.values(
                         currentResultState.executionPlanState.xmlPlans,
                     ),
+                    "QueryResults",
                 )) as qr.QueryResultWebviewState;
                 state.executionPlanState.loadState = ApiStatus.Loaded;
                 state.tabStates.resultPaneTab =

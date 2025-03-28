@@ -1,4 +1,4 @@
-name: PR Checks
+name: Build and Test (Unit + E2E)
 # Trigger the workflow on PRs to the main branch.
 # It performs the following checks:
 # 1. Calculate the size difference between the webview bundles of the main branch and the PR branch.
@@ -6,12 +6,19 @@ name: PR Checks
 # 3. Does a check if the PR has properly localized strings.
 
 on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+      - 'release/**'
+  workflow_dispatch:
 
 jobs:
-  pr-checks:
+  build-and-test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,6 +45,12 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Setup .NET Core # Required to execute ReportGenerator
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+          dotnet-quality: 'ga'
+
       - name: Install tools
         run: |
           echo "Installing Yarn"
@@ -59,24 +72,14 @@ jobs:
         with:
           source-dir: './pr'
 
-      - name: Code coverage
+      - name: Run lint
         run: |
-          cd main
-          DISPLAY=:10 yarn test
-          xml_coverage_main=$(find ./coverage -name 'cobertura-coverage.xml')
-          line_rate_main=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_main" | sed 's/line-rate="\([0-9.]*\)"/\1/')
-          line_rate_main=$(printf "%.2f" $(echo "$line_rate_main * 100" | bc))
-          echo "line_rate_main=$line_rate_main" >> $GITHUB_ENV
-          cd ../pr
-          DISPLAY=:10 yarn test
-          xml_coverage_pr=$(find ./coverage -name 'cobertura-coverage.xml')
-          line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
-          line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
-          echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
-          echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
-          coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
-          echo "coverage_text_color=$coverage_text_color" >> $GITHUB_ENV
+          cd ./pr
+          yarn lint
 
+      # Calculate sizes and package before testing;
+      # Testing generates sourcemaps and instrumented code
+      # that increase size
       - name: Package both branches
         run: |
           cd main
@@ -121,6 +124,125 @@ jobs:
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
           vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "vsix_text_color=$vsix_text_color" >> $GITHUB_ENV
+
+      - name: Run unit tests
+        run: |
+          cd main
+          DISPLAY=:10 yarn test
+          cd ../pr
+          DISPLAY=:10 yarn test
+
+      - name: PR Unit Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: 'Unit Test Report'
+          path: ./test-reports/**/*.xml
+          reporter: jest-junit
+          working-directory: ./pr
+          badge-title: 'unit-tests'
+
+      - name: Build mappings for React Webviews
+        run: |
+          cd ./pr
+          gulp ext:compile-reactviews --prod=false
+          cd ../main
+          gulp ext:compile-reactviews --prod=false
+
+      - name: Setup environment for smoke tests
+        run: |
+          echo "Setting up environment for smoke tests"
+          echo "PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)" >> $GITHUB_ENV
+          sudo cp build/mssql.init /etc/init.d/mssql-server
+          sudo chmod +x /etc/init.d/mssql-server
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
+          sudo apt-get update
+          sudo apt-get install -y mssql-server
+          sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD=${{ env.PASSWORD }} /opt/mssql/bin/mssql-conf setup || true
+          sudo service mssql-server start
+        working-directory: ./pr
+
+      - name: Run smoke tests
+        run: |
+          VS_CODE_VERSION=stable
+          SERVER_NAME=localhost
+          AUTHENTICATION_TYPE="SQL Login"
+          USER_NAME=sa
+          PASSWORD=${{ env.PASSWORD }}
+          SAVE_PASSWORD=No
+          PROFILE_NAME=test-server
+          cd pr
+          DISPLAY=:10 yarn smoketest
+          cd ../main
+          DISPLAY=:10 yarn smoketest
+
+      - name: Upload Smoke Test Screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-test-failure-screenshots
+          path: ./pr/test-results/**/
+          retention-days: 7
+
+      - name: Smoke Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+            name: 'Smoke Test Report'
+            path: ./test-reports/**/smoke-results.xml
+            reporter: jest-junit
+            badge-title: 'smoke-tests'
+            working-directory: ./pr
+
+      - name: Merge Smoke and Unit Test Coverage Reports
+        run: |
+          if [ -f main/test/resources/mergeReports.js ]; then
+            node main/test/resources/mergeReports.js main/coverage/coverage-e2e/cobertura-coverage.xml main/coverage/cobertura-coverage.xml
+          else
+            echo "mergeReports.js not found in ./main, skipping..."
+          fi
+
+          if [ -f pr/test/resources/mergeReports.js ]; then
+            node pr/test/resources/mergeReports.js pr/coverage/coverage-e2e/cobertura-coverage.xml pr/coverage/cobertura-coverage.xml
+          else
+            echo "mergeReports.js not found in ./pr, skipping..."
+          fi
+
+      - name: Generate Coverage Report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
+        with:
+          reports: './pr/coverage/cobertura-coverage.xml'
+          targetdir: 'coveragereport'
+          reporttypes: 'Html'
+          toolpath: 'reportgeneratortool'
+
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CoverageReport # Artifact name
+          path: coveragereport # Directory containing files to upload
+
+      - name: Code coverage
+        run: |
+          cd main
+          xml_coverage_main="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the main branch's cobertura report
+          line_rate_main=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_main" | sed 's/line-rate="\([0-9.]*\)"/\1/')
+          line_rate_main=$(printf "%.2f" $(echo "$line_rate_main * 100" | bc))
+          # Save formatted line rate in env variable
+          echo "line_rate_main=$line_rate_main" >> $GITHUB_ENV
+          cd ../pr
+          xml_coverage_pr="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the pr branch's cobertura report
+          line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
+          line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
+          # Save formatted line rate in env variable
+          echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
+          # Calculate difference in line coverage rate
+          echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
+          coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
+          echo "coverage_text_color=$coverage_text_color" >> $GITHUB_ENV
 
       - name: Write PR results to markdown
         run: |

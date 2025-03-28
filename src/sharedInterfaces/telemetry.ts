@@ -28,6 +28,7 @@ export enum TelemetryActions {
     SaveScmp = "SaveScmp",
     OptionsChanged = "OptionsChanged",
     ResetOptions = "ResetOptions",
+    Activated = "Activated",
     GenerateScript = "GenerateScript",
     Refresh = "Refresh",
     CreateProject = "CreateProject",

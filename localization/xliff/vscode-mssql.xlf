@@ -250,6 +250,9 @@
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
     </trans-unit>
+    <trans-unit id="++CODE++c52ff5ea803d577544a8224d1404ecefa836b803f029d87cd7450af6c18a70ef">
+      <source xml:lang="en">Clear Selection</source>
+    </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
     </trans-unit>
@@ -289,8 +292,8 @@
     <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
       <source xml:lang="en">Connect</source>
     </trans-unit>
-    <trans-unit id="++CODE++8a8bef20f041d1f1fc0ea7966a3fa58563c599617464a303258ed302ddca5a79">
-      <source xml:lang="en">Connect to SQL Server</source>
+    <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
+      <source xml:lang="en">Connect to Database</source>
     </trans-unit>
     <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
       <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
@@ -1764,6 +1767,9 @@
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
       <source xml:lang="en">Connection Dialog</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups">
+      <source xml:lang="en">Connection groups</source>
+    </trans-unit>
     <trans-unit id="mssql.connections">
       <source xml:lang="en">Connection profiles defined in &apos;User Settings&apos; are shown under &apos;MS SQL: Connect&apos; command in the command palette.</source>
     </trans-unit>
@@ -2115,11 +2121,32 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroup.color">
+      <source xml:lang="en">The color of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.description">
+      <source xml:lang="en">The description of the connection group.</source>
+    </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroup.name">
+      <source xml:lang="en">The name of the connection group.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.expandTimeout">
       <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.groupId">
+      <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.id">
+      <source xml:lang="en">The unique identifier for the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.parentId">
+      <source xml:lang="en">The unique identifier for the parent connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.id">
+      <source xml:lang="en">The unique identifier for this connection profile.</source>
     </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>

@@ -9,7 +9,7 @@ import * as path from "path";
 import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 
-export async function launchVsCodeWithMssqlExtension(): Promise<{
+export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     electronApp: ElectronApplication;
     page: Page;
 }> {
@@ -18,6 +18,11 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{
         await downloadAndUnzipVSCode(vsCodeVersionName);
 
     const mssqlExtensionPath = path.resolve(__dirname, "../../../");
+
+    const settingsOption = oldUi
+        ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
+        : "";
+
     const electronApp = await electron.launch({
         executablePath: vsCodeExecutablePath,
         args: [
@@ -30,11 +35,39 @@ export async function launchVsCodeWithMssqlExtension(): Promise<{
             "--profile-temp", // "debug in a clean environment"
             "--skip-release-notes",
             "--skip-welcome",
+            settingsOption,
         ],
     });
 
     const page = await electronApp.firstWindow({
         timeout: 10 * 1000, // 10 seconds
+    });
+
+    // Navigate to Sql Server Tab
+    const sqlServerTabElement = page.locator(
+        '[role="tab"][aria-label*="SQL Server (Ctrl+Alt+D)"]',
+    );
+    await sqlServerTabElement.waitFor({ state: "visible", timeout: 30 * 1000 });
+    await page.keyboard.press("Control+Alt+D");
+
+    // Wait for extension to load
+    const objectExplorerProviderElement = page
+        .getByText(
+            "There is no data provider registered that can provide view data.",
+        )
+        .first();
+    await objectExplorerProviderElement.waitFor({
+        state: "hidden",
+        timeout: 30 * 1000,
+    });
+
+    // Ensure the extension has loaded by checking object explorer has loaded
+    const objectExplorerElement = page.locator(
+        '[role="treeitem"][aria-label*="Add Connection"]',
+    );
+    await objectExplorerElement.waitFor({
+        state: "visible",
+        timeout: 30 * 1000,
     });
 
     return { electronApp, page };

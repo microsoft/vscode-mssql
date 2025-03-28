@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDisposableDataProvider } from "./dataProvider";
+import { SortDirection } from "./plugins/headerFilter.plugin";
 
 export interface ITableMouseEvent {
     anchor: HTMLElement | { x: number; y: number };
@@ -78,6 +79,11 @@ export interface FilterableColumn<T extends Slick.SlickData>
     filterable?: boolean;
     filterValues?: Array<string>;
     sorted?: SortProperties;
+}
+
+export interface ColumnSortState<T extends Slick.SlickData> {
+    column: Slick.Column<T>;
+    sortDirection: SortDirection;
 }
 
 export interface ITableKeyboardEvent {

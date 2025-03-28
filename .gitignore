@@ -30,3 +30,4 @@ webviews-metafile.json
 # Ignore all l10n files except the default one (bundle.l10n.json)
 /localization/l10n/bundle.l10n.*.json
 .eslintcache
+.nyc_output

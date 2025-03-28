@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FilterableColumn } from "./interfaces";
+import { ColumnSortState, FilterableColumn } from "./interfaces";
 import { IDisposableDataProvider } from "./dataProvider";
 
 export interface IFindPosition {
@@ -88,10 +88,14 @@ export class TableDataView<T extends Slick.SlickData>
     private _data: Array<T>;
     //Used when filtering is enabled, _allData holds the complete set of data.
     private _allData!: Array<T>;
+    //Used to reset the data when a sort is cleared.
+    private _resetSortData: Array<T>;
+    // private _resetDataUnfiltered: Array<T>;
     private _findArray?: Array<IFindPosition>;
     private _findIndex?: number;
     private _filterEnabled: boolean;
     private _currentColumnFilters: FilterableColumn<T>[] = [];
+    private _currentColumnSort: ColumnSortState<T> | undefined;
 
     // private _onFilterStateChange = new vscode.EventEmitter<void>();
     // get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
@@ -106,6 +110,8 @@ export class TableDataView<T extends Slick.SlickData>
         private _filterFn?: TableFilterFunc<T>,
         private _cellValueGetter: CellValueGetter = defaultCellValueGetter,
     ) {
+        this._resetSortData = [];
+        // this._resetDataUnfiltered = [];
         if (data) {
             this._data = data;
         } else {
@@ -161,27 +167,81 @@ export class TableDataView<T extends Slick.SlickData>
         }
         this._currentColumnFilters = columns!;
         this._data = this._filterFn!(this._allData, columns!);
+        if (this._resetSortData.length > 0) {
+            this._resetSortData = this._filterFn!(
+                this._resetSortData,
+                columns!,
+            );
+        }
         if (this._data.length === this._allData.length) {
-            this.clearFilter();
+            await this.clearFilter();
         } else {
             console.log("filterstatechange");
             // this._onFilterStateChange.fire();
         }
     }
 
-    public clearFilter() {
+    public async clearFilter() {
         if (this._filterEnabled) {
             this._data = this._allData;
+            if (this._resetSortData.length > 0) {
+                this._resetSortData = new Array(...this._allData);
+            }
             this._allData = [];
             this._filterEnabled = false;
+            if (this._currentColumnSort) {
+                this._data = this._sortFn!(
+                    {
+                        sortCol: this._currentColumnSort.column,
+                        sortAsc:
+                            this._currentColumnSort.sortDirection ===
+                            "sort-asc",
+                        grid: undefined,
+                        multiColumnSort: false,
+                    },
+                    this._data,
+                );
+            }
             // this._onFilterStateChange.fire();
         }
     }
 
     async sort(args: Slick.OnSortEventArgs<T>): Promise<void> {
+        if (this._resetSortData.length === 0) {
+            this._resetSortData.push(...this._data);
+        }
+
         this._data = this._sortFn!(args, this._data);
+        this._currentColumnSort = {
+            column: args.sortCol!,
+            sortDirection: args.sortAsc ? "sort-asc" : "sort-desc",
+        };
         console.log(args);
         // this._onSortComplete.fire(args);
+    }
+
+    // Need to consider multiple scenarios:
+    // 1. filter is enabled then sort & unsort,
+    // 2. filter is not enabled, sort, then enable filter & unsort
+    // 3. filter is enabled then sort, and then disabled
+    async resetSort(): Promise<void> {
+        // Check if the current data set is larger than the original data set.
+        // If it is, we need to use the full data set and re-apply the current filters.
+        if (this._data.length > this._resetSortData.length) {
+            this._data = this._allData;
+        } else {
+            this._data = this._resetSortData;
+        }
+        // if there are filters applied, we need to reapply them to the reset data
+        if (this._currentColumnFilters.length > 0) {
+            this._data = this._filterFn!(
+                this._data,
+                this._currentColumnFilters,
+            );
+        }
+        this._currentColumnSort = undefined;
+        this._resetSortData = [];
+        // this._resetDataUnfiltered = [];
     }
 
     getLength(): number {

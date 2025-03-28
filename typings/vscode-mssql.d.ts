@@ -233,7 +233,7 @@ declare module 'vscode-mssql' {
 	}
 
 	/**
-	 * Information about a database connection
+	 * Information about a database connection necessary for connecting to a database.
 	 */
 	export interface IConnectionInfo {
 		/**
@@ -444,12 +444,18 @@ declare module 'vscode-mssql' {
 		schemaObjectType = 5
 	}
 
+	/**
+	 * WARNING: The methods in this interface may be used by the SQL Projects extension.
+	 * 1. Be sure to check the current usage of these methods in the SQL Projects extension.
+	 * 2. Test against the current version of the SQL Projects extension by creating a vsix of
+	 * 	this extension and installing it alongside he SQL Projects extension.
+	 */
 	export interface ISchemaCompareService {
 		compare(operationId: string, sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions): Thenable<SchemaCompareResult>;
 		generateScript(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
 		publishDatabaseChanges(operationId: string, targetServerName: string, targetDatabaseName: string, taskExecutionMode: TaskExecutionMode): Thenable<ResultStatus>;
 		publishProjectChanges(operationId: string, targetProjectPath: string, targetFolderStructure: ExtractTarget, taskExecutionMode: TaskExecutionMode): Thenable<SchemaComparePublishProjectResult>;
-		getDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
+		schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
 		includeExcludeNode(operationId: string, diffEntry: DiffEntry, includeRequest: boolean, taskExecutionMode: TaskExecutionMode): Thenable<SchemaCompareIncludeExcludeResult>;
 		openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
 		saveScmp(sourceEndpointInfo: SchemaCompareEndpointInfo, targetEndpointInfo: SchemaCompareEndpointInfo, taskExecutionMode: TaskExecutionMode, deploymentOptions: DeploymentOptions, scmpFilePath: string, excludedSourceObjects: SchemaCompareObjectId[], excludedTargetObjects: SchemaCompareObjectId[]): Thenable<ResultStatus>;

@@ -16,7 +16,7 @@ import {
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 
-// Concrete implementation of the IConnectionCredentials interface
+// Concrete implementation of the IConnectionInfo interface
 export class ConnectionCredentials implements IConnectionInfo {
     public server: string;
     public database: string;
@@ -79,7 +79,11 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["user"] = credentials.user || credentials.email;
         details.options["password"] = credentials.password;
         details.options["authenticationType"] = credentials.authenticationType;
+        details.options["email"] = credentials.email;
+        details.options["accountId"] = credentials.accountId;
+        details.options["tenantId"] = credentials.tenantId;
         details.options["azureAccountToken"] = credentials.azureAccountToken;
+        details.options["expiresOn"] = credentials.expiresOn;
         details.options["encrypt"] = credentials.encrypt;
         details.options["trustServerCertificate"] =
             credentials.trustServerCertificate;
@@ -118,6 +122,61 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["typeSystemVersion"] = credentials.typeSystemVersion;
 
         return details;
+    }
+
+    /**
+     * Create an IConnectionInfo object from a ConnectionDetails contract.
+     */
+    public static createConnectionInfo(
+        connDetails: ConnectionDetails,
+    ): IConnectionInfo {
+        const options = connDetails.options || {};
+
+        const connInfo: IConnectionInfo = {
+            connectionString: options["connectionString"],
+            server: options["server"],
+            port: options["server"]?.includes(",")
+                ? parseInt(options["server"].split(",")[1])
+                : undefined,
+            database: options["database"],
+            user: options["user"],
+            password: options["password"],
+            authenticationType: options["authenticationType"],
+            azureAccountToken: options["azureAccountToken"],
+            encrypt: options["encrypt"],
+            trustServerCertificate: options["trustServerCertificate"],
+            hostNameInCertificate: options["hostNameInCertificate"],
+            persistSecurityInfo: options["persistSecurityInfo"],
+            secureEnclaves: options["secureEnclaves"],
+            columnEncryptionSetting: options["columnEncryptionSetting"],
+            attestationProtocol: options["attestationProtocol"],
+            enclaveAttestationUrl: options["enclaveAttestationUrl"],
+            connectTimeout: options["connectTimeout"],
+            commandTimeout: options["commandTimeout"],
+            connectRetryCount: options["connectRetryCount"],
+            connectRetryInterval: options["connectRetryInterval"],
+            applicationName: options["applicationName"],
+            workstationId: options["workstationId"],
+            applicationIntent: options["applicationIntent"],
+            currentLanguage: options["currentLanguage"],
+            pooling: options["pooling"],
+            maxPoolSize: options["maxPoolSize"],
+            minPoolSize: options["minPoolSize"],
+            loadBalanceTimeout: options["loadBalanceTimeout"],
+            replication: options["replication"],
+            attachDbFilename: options["attachDbFilename"],
+            failoverPartner: options["failoverPartner"],
+            multiSubnetFailover: options["multiSubnetFailover"],
+            multipleActiveResultSets: options["multipleActiveResultSets"],
+            packetSize: options["packetSize"],
+            typeSystemVersion: options["typeSystemVersion"],
+            email: options["email"],
+            accountId: options["accountId"],
+            tenantId: options["tenantId"],
+            expiresOn: options["expiresOn"],
+        };
+
+        return connInfo;
     }
 
     public static async ensureRequiredPropertiesSet(

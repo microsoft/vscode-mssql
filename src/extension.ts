@@ -40,8 +40,11 @@ export async function activate(
     await controller.activate();
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
-        promptForConnection: (ignoreFocusOut?: boolean) => {
+        promptForConnection: async (ignoreFocusOut?: boolean) => {
+            const connectionProfileList =
+                await controller.connectionManager.connectionStore.getPickListItems();
             return controller.connectionManager.connectionUI.promptForConnection(
+                connectionProfileList,
                 ignoreFocusOut,
             );
         },

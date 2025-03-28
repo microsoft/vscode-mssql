@@ -114,11 +114,13 @@ const useStyles = makeStyles({
 interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanView;
     setPropertiesClicked: any;
+    inputRef: any;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
+    inputRef,
 }) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
@@ -372,6 +374,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                             title={locConstants.common.close}
                             aria-label={locConstants.common.close}
                             icon={<Dismiss12Regular />}
+                            ref={inputRef}
                         />
                     </div>
                 </div>

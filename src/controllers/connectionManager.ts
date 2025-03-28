@@ -215,6 +215,10 @@ export default class ConnectionManager {
         }
     }
 
+    public get initialized(): Deferred<void> {
+        return this.connectionStore.initialized;
+    }
+
     /**
      * Exposed for testing purposes
      */
@@ -324,7 +328,7 @@ export default class ConnectionManager {
             (uri) => this._connections[uri].credentials,
         );
         for (let connectedCredential of connectedCredentials) {
-            if (Utils.isSameConnection(credential, connectedCredential)) {
+            if (Utils.isSameConnectionInfo(credential, connectedCredential)) {
                 return true;
             }
         }
@@ -334,7 +338,7 @@ export default class ConnectionManager {
     public getUriForConnection(connection: IConnectionInfo): string {
         for (let uri of Object.keys(this._connections)) {
             if (
-                Utils.isSameConnection(
+                Utils.isSameConnectionInfo(
                     this._connections[uri].credentials,
                     connection,
                 )
@@ -383,6 +387,15 @@ export default class ConnectionManager {
         return this.client.sendRequest(
             ConnectionContracts.GetConnectionStringRequest.type,
             listParams,
+        );
+    }
+
+    public async buildConnectionDetails(
+        connectionString: string,
+    ): Promise<ConnectionDetails> {
+        return await this.client.sendRequest(
+            ConnectionContracts.BuildConnectionDetailsRequest.type,
+            connectionString,
         );
     }
 
@@ -1037,7 +1050,7 @@ export default class ConnectionManager {
                 );
                 return true;
             }
-            const flavor = await this._connectionUI.promptLanguageFlavor();
+            const flavor = await this.connectionUI.promptLanguageFlavor();
             if (!flavor) {
                 return false;
             }
@@ -1106,7 +1119,11 @@ export default class ConnectionManager {
         fileUri: string,
     ): Promise<IConnectionInfo> {
         // show connection picklist
-        const connectionCreds = await this.connectionUI.promptForConnection();
+        const connectionProfileList =
+            await this._connectionStore.getPickListItems();
+        const connectionCreds = await this.connectionUI.promptForConnection(
+            connectionProfileList,
+        );
         if (connectionCreds) {
             // close active connection
             await this.disconnect(fileUri);
@@ -1203,7 +1220,81 @@ export default class ConnectionManager {
         return creds;
     }
 
-    // create a new connection with the connectionCreds provided
+    /**
+     * Checks the Entra token's validity, and refreshes if necessary.
+     * Does nothing if connection is not using Entra auth.
+     */
+    public async confirmEntraTokenValidity(connectionInfo: IConnectionInfo) {
+        if (connectionInfo.authenticationType !== Constants.azureMfa) {
+            // Connection not using Entra auth, nothing to validate
+            return;
+        }
+
+        if (
+            AzureController.isTokenValid(
+                connectionInfo.azureAccountToken,
+                connectionInfo.expiresOn,
+            )
+        ) {
+            // Token not expired, nothing to refresh
+            return;
+        }
+
+        let account: IAccount;
+        let profile: ConnectionProfile;
+
+        if (connectionInfo.accountId) {
+            account = this.accountStore.getAccount(connectionInfo.accountId);
+            profile = new ConnectionProfile(connectionInfo);
+        } else {
+            throw new Error(LocalizedConstants.cannotConnect);
+        }
+
+        if (!account) {
+            throw new Error(LocalizedConstants.msgAccountNotFound);
+        }
+
+        // Always set username
+        connectionInfo.user = account.displayInfo.displayName;
+        connectionInfo.email = account.displayInfo.email;
+        profile.user = account.displayInfo.displayName;
+        profile.email = account.displayInfo.email;
+
+        const azureAccountToken = await this.azureController.refreshAccessToken(
+            account,
+            this.accountStore,
+            profile.tenantId,
+            providerSettings.resources.databaseResource!,
+        );
+
+        if (!azureAccountToken) {
+            let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+            let refreshResult = await this.vscodeWrapper.showErrorMessage(
+                errorMessage,
+                LocalizedConstants.refreshTokenLabel,
+            );
+            if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+                await this.azureController.populateAccountProperties(
+                    profile,
+                    this.accountStore,
+                    providerSettings.resources.databaseResource!,
+                );
+            } else {
+                throw new Error(LocalizedConstants.cannotConnect);
+            }
+        } else {
+            connectionInfo.azureAccountToken = azureAccountToken.token;
+            connectionInfo.expiresOn = azureAccountToken.expiresOn;
+        }
+    }
+
+    /**
+     * create a new connection with the connectionCreds provided
+     * @param fileUri
+     * @param connectionCreds ConnectionInfo to connect with
+     * @param promise Deferred promise to resolve when connection is complete
+     * @returns true if connection is successful, false otherwise
+     */
     public async connect(
         fileUri: string,
         connectionCreds: IConnectionInfo,
@@ -1215,82 +1306,18 @@ export default class ConnectionManager {
                 title: LocalizedConstants.connectProgressNoticationTitle,
                 cancellable: false,
             },
-            async (_progress, _token) => {
+            async (_progress, _cancellationToken) => {
                 if (
                     !connectionCreds.server &&
                     !connectionCreds.connectionString
                 ) {
                     throw new Error(LocalizedConstants.serverNameMissing);
                 }
-                // Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
+
                 if (connectionCreds.authenticationType === Constants.azureMfa) {
-                    if (
-                        AzureController.isTokenInValid(
-                            connectionCreds.azureAccountToken,
-                            connectionCreds.expiresOn,
-                        )
-                    ) {
-                        let account: IAccount;
-                        let profile: ConnectionProfile;
-                        if (connectionCreds.accountId) {
-                            account = this.accountStore.getAccount(
-                                connectionCreds.accountId,
-                            );
-                            profile = new ConnectionProfile(connectionCreds);
-                        } else {
-                            throw new Error(LocalizedConstants.cannotConnect);
-                        }
-                        if (account) {
-                            // Always set username
-                            connectionCreds.user =
-                                account.displayInfo.displayName;
-                            connectionCreds.email = account.displayInfo.email;
-                            profile.user = account.displayInfo.displayName;
-                            profile.email = account.displayInfo.email;
-                            let azureAccountToken =
-                                await this.azureController.refreshAccessToken(
-                                    account!,
-                                    this.accountStore,
-                                    profile.tenantId,
-                                    providerSettings.resources
-                                        .databaseResource!,
-                                );
-                            if (!azureAccountToken) {
-                                let errorMessage =
-                                    LocalizedConstants.msgAccountRefreshFailed;
-                                let refreshResult =
-                                    await this.vscodeWrapper.showErrorMessage(
-                                        errorMessage,
-                                        LocalizedConstants.refreshTokenLabel,
-                                    );
-                                if (
-                                    refreshResult ===
-                                    LocalizedConstants.refreshTokenLabel
-                                ) {
-                                    await this.azureController.populateAccountProperties(
-                                        profile,
-                                        this.accountStore,
-                                        providerSettings.resources
-                                            .databaseResource!,
-                                    );
-                                } else {
-                                    throw new Error(
-                                        LocalizedConstants.cannotConnect,
-                                    );
-                                }
-                            } else {
-                                connectionCreds.azureAccountToken =
-                                    azureAccountToken.token;
-                                connectionCreds.expiresOn =
-                                    azureAccountToken.expiresOn;
-                            }
-                        } else {
-                            throw new Error(
-                                LocalizedConstants.msgAccountNotFound,
-                            );
-                        }
-                    }
+                    await this.confirmEntraTokenValidity(connectionCreds);
                 }
+
                 let connectionPromise = new Promise<boolean>(
                     async (resolve, reject) => {
                         if (
@@ -1396,67 +1423,12 @@ export default class ConnectionManager {
             throw new Error(LocalizedConstants.serverNameMissing);
         }
 
+        // Check if the azure account token is present before sending connect request
         if (connectionCreds.authenticationType === Constants.azureMfa) {
-            if (
-                AzureController.isTokenInValid(
-                    connectionCreds.azureAccountToken,
-                    connectionCreds.expiresOn,
-                )
-            ) {
-                let account: IAccount;
-                let profile: ConnectionProfile;
-                if (connectionCreds.accountId) {
-                    account = this.accountStore.getAccount(
-                        connectionCreds.accountId,
-                    );
-                    profile = new ConnectionProfile(connectionCreds);
-                } else {
-                    throw new Error(LocalizedConstants.cannotConnect);
-                }
-                if (account) {
-                    // Always set username
-                    connectionCreds.user = account.displayInfo.displayName;
-                    connectionCreds.email = account.displayInfo.email;
-                    profile.user = account.displayInfo.displayName;
-                    profile.email = account.displayInfo.email;
-                    let azureAccountToken =
-                        await this.azureController.refreshAccessToken(
-                            account!,
-                            this.accountStore,
-                            profile.tenantId,
-                            providerSettings.resources.databaseResource!,
-                        );
-                    if (!azureAccountToken) {
-                        let errorMessage =
-                            LocalizedConstants.msgAccountRefreshFailed;
-                        let refreshResult =
-                            await this.vscodeWrapper.showErrorMessage(
-                                errorMessage,
-                                LocalizedConstants.refreshTokenLabel,
-                            );
-                        if (
-                            refreshResult ===
-                            LocalizedConstants.refreshTokenLabel
-                        ) {
-                            await this.azureController.populateAccountProperties(
-                                profile,
-                                this.accountStore,
-                                providerSettings.resources.databaseResource!,
-                            );
-                        } else {
-                            throw new Error(LocalizedConstants.cannotConnect);
-                        }
-                    } else {
-                        connectionCreds.azureAccountToken =
-                            azureAccountToken.token;
-                        connectionCreds.expiresOn = azureAccountToken.expiresOn;
-                    }
-                } else {
-                    throw new Error(LocalizedConstants.msgAccountNotFound);
-                }
-            }
+            await this.confirmEntraTokenValidity(connectionCreds);
         }
 
+        // Fetch the connection string from the connection store if necessary
         if (
             connectionCreds.connectionString?.includes(
                 ConnectionStore.CRED_PREFIX,
@@ -1479,7 +1451,7 @@ export default class ConnectionManager {
         connectionInfo.credentials = connectionCreds;
         connectionInfo.connecting = true;
         // Setup the handler for the connection complete notification to call
-        connectionInfo.connectHandler = (connectResult, error) => {};
+        connectionInfo.connectHandler = (connectionResult, error) => {};
         this._connections[uri] = connectionInfo;
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur

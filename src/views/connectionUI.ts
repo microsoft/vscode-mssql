@@ -96,13 +96,12 @@ export class ConnectionUI {
      * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
      */
     public async promptForConnection(
+        connectionProfileList: IConnectionCredentialsQuickPickItem[],
         ignoreFocusOut: boolean = false,
     ): Promise<IConnectionInfo | undefined> {
         // Let this design use Promise and resolve/reject pattern instead of async/await
         // because resolve/reject is done in in callback events.
         return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
-            let connectionProfileList =
-                this._connectionStore.getPickListItems();
             // We have recent connections - show them in a prompt for connection profiles
             const connectionProfileQuickPick =
                 this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
@@ -113,6 +112,7 @@ export class ConnectionUI {
             connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
             connectionProfileQuickPick.canSelectMany = false;
             connectionProfileQuickPick.busy = false;
+
             connectionProfileQuickPick.show();
             connectionProfileQuickPick.onDidChangeSelection((selection) => {
                 if (selection[0]) {
@@ -601,43 +601,37 @@ export class ConnectionUI {
         if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
-        return await this.connectionManager
-            .connect(uri, profile)
-            .then(async (result) => {
-                if (result) {
-                    // Success! save it
-                    return await this.saveProfile(profile);
-                } else {
-                    // Check whether the error was for firewall rule or not
-                    if (
-                        this.connectionManager.failedUriToFirewallIpMap.has(uri)
-                    ) {
-                        let success = await this.addFirewallRule(uri, profile);
-                        if (success) {
-                            return await this.validateAndSaveProfile(profile);
-                        }
-                        return undefined;
-                    } else if (
-                        this.connectionManager.failedUriToSSLMap.has(uri)
-                    ) {
-                        // SSL error
-                        let updatedConn =
-                            await this.connectionManager.handleSSLError(
-                                uri,
-                                profile,
-                            );
-                        if (updatedConn) {
-                            return await this.validateAndSaveProfile(
-                                updatedConn as IConnectionProfile,
-                            );
-                        }
-                        return undefined;
-                    } else {
-                        // Normal connection error! Let the user try again, prefilling values that they already entered
-                        return await this.promptToRetryAndSaveProfile(profile);
-                    }
+
+        const success = await this.connectionManager.connect(uri, profile);
+
+        if (success) {
+            // Success! save it
+            return await this.saveProfile(profile);
+        } else {
+            // Check whether the error was for firewall rule or not
+            if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+                let success = await this.addFirewallRule(uri, profile);
+                if (success) {
+                    return await this.validateAndSaveProfile(profile);
                 }
-            });
+                return undefined;
+            } else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
+                // SSL error
+                let updatedConn = await this.connectionManager.handleSSLError(
+                    uri,
+                    profile,
+                );
+                if (updatedConn) {
+                    return await this.validateAndSaveProfile(
+                        updatedConn as IConnectionProfile,
+                    );
+                }
+                return undefined;
+            } else {
+                // Normal connection error! Let the user try again, prefilling values that they already entered
+                return await this.promptToRetryAndSaveProfile(profile);
+            }
+        }
     }
 
     /**
@@ -678,7 +672,7 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(
-        uri: string,
+        _uri: string,
         profile: IConnectionProfile,
         ipAddress: string,
     ): Promise<boolean> {
@@ -719,13 +713,15 @@ export class ConnectionUI {
     }
 
     private async promptForCreateProfile(): Promise<IConnectionProfile> {
-        return await ConnectionProfile.createProfile(
+        const profile = await ConnectionProfile.createProfile(
             this._prompter,
             this._connectionStore,
             this._context,
             this.connectionManager.azureController,
             this._accountStore,
         );
+
+        return profile;
     }
 
     private async promptToRetryAndSaveProfile(
@@ -756,7 +752,7 @@ export class ConnectionUI {
             LocalizedConstants.retryLabel,
         );
         if (result === LocalizedConstants.retryLabel) {
-            return await ConnectionProfile.createProfile(
+            const newProfile = await ConnectionProfile.createProfile(
                 this._prompter,
                 this._connectionStore,
                 this._context,
@@ -764,6 +760,8 @@ export class ConnectionUI {
                 this._accountStore,
                 profile,
             );
+
+            return newProfile;
         } else {
             // user cancelled the prompt - throw error so that we know user cancelled
             throw new CancelError();
@@ -998,7 +996,8 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = self._connectionStore.getProfilePickListItems(false);
+        let profiles =
+            await self._connectionStore.getProfilePickListItems(false);
         let profile = await self.selectProfileForRemoval(profiles);
         let profileRemoved = profile
             ? await self._connectionStore.removeProfile(profile)

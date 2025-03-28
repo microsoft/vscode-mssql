@@ -47,7 +47,11 @@ export class UserSurvey {
     }
 
     /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
-    public async promptUserForNPSFeedback(): Promise<void> {
+    public promptUserForNPSFeedback(): void {
+        void (async () => this.promptUserForNPSFeedbackAsync)();
+    }
+
+    private async promptUserForNPSFeedbackAsync(): Promise<void> {
         const globalState = this._context.globalState;
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
         const extensionVersion =
@@ -194,6 +198,9 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
+            modernFeaturesEnabled: vscode.workspace
+                .getConfiguration()
+                .get(constants.configEnableRichExperiences),
             ...stringAnswers,
         },
         numericalAnswers,
