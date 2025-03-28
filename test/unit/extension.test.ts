@@ -24,6 +24,7 @@ import { ConnectionUI } from "../../src/views/connectionUI";
 import { Deferred } from "../../src/protocol";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { RequestType } from "vscode-languageclient";
 
 suite("Extension API Tests", () => {
     let vscodeMssql: IExtension;
@@ -66,11 +67,14 @@ suite("Extension API Tests", () => {
             .setup((cm) => cm.connectionUI)
             .returns(() => connectionUi.object);
 
+        // the Extension class doesn't reinitialize the controller for each test,
+        // so we need to save the original properties we swap here and restore then after each test.
         originalConnectionManager = mainController.connectionManager;
         mainController.connectionManager = connectionManager.object;
     });
 
     teardown(() => {
+        // restore mocked properties
         mainController.connectionManager = originalConnectionManager;
     });
 
@@ -126,7 +130,9 @@ suite("Extension API Tests", () => {
             mockContext.object,
         );
 
-        let originalMainController = Extension.controller;
+        // the Extension class doesn't reinitialize the controller for each test,
+        // so we need to save the original controller here and restore it after the test.
+        const originalMainController = Extension.controller;
 
         try {
             let passedUri: string;
@@ -153,6 +159,7 @@ suite("Extension API Tests", () => {
                     },
                 );
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (Extension as any).controller = mockMainController.object;
 
             const returnedUri = await vscodeMssql.connect(
@@ -162,6 +169,8 @@ suite("Extension API Tests", () => {
 
             expect(returnedUri).to.equal(passedUri);
         } finally {
+            // restore the Extension's original MainController for other tests
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (Extension as any).controller = originalMainController;
         }
     });
@@ -186,10 +195,9 @@ suite("Extension API Tests", () => {
     test("getDatabaseNameFromTreeNode", () => {
         // Mock the ITreeNodeInfo object
         const mockTreeNode: ITreeNodeInfo = {
-            nodePath: "testNodePath",
             nodeType: "Database",
             label: "TestDatabase",
-        } as any as ITreeNodeInfo;
+        } as ITreeNodeInfo;
 
         const mockObjectExplorerUtils =
             TypeMoq.Mock.ofType<typeof ObjectExplorerUtils>();
@@ -267,9 +275,16 @@ suite("Extension API Tests", () => {
     });
 
     test("sendRequest", async () => {
-        const mockRequestType = { method: "testMethod" } as any;
-        const mockParams = { param1: "value1" };
-        const mockResponse = { success: true };
+        type TestParams = { testParam: string };
+        type TestResponse = { success: boolean };
+        const mockRequestType = {} as RequestType<
+            TestParams,
+            TestResponse,
+            void,
+            void
+        >;
+        const mockParams: TestParams = { testParam: "testValue" };
+        const mockResponse: TestResponse = { success: true };
 
         connectionManager
             .setup((c) => c.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -289,15 +304,15 @@ suite("Extension API Tests", () => {
     });
 
     test("getServerInfo", () => {
-        const testConnInfo: IConnectionInfo = {
+        const testConnInfo = {
             server: "testServer",
             database: "testDb",
         } as IConnectionInfo;
 
         const mockServerInfo = {
-            serverVersion: "15.0",
-            serverEdition: "Standard",
-        } as any as IServerInfo;
+            serverVersion: "170",
+            serverEdition: "Test Edition",
+        } as IServerInfo;
 
         connectionManager
             .setup((c) => c.getServerInfo(TypeMoq.It.isAny()))
@@ -310,7 +325,7 @@ suite("Extension API Tests", () => {
             TypeMoq.Times.once(),
         );
 
-        expect(result.serverVersion).to.equal("15.0");
-        expect(result.serverEdition).to.equal("Standard");
+        expect(result.serverVersion).to.equal(mockServerInfo.serverVersion);
+        expect(result.serverEdition).to.equal(mockServerInfo.serverEdition);
     });
 });
