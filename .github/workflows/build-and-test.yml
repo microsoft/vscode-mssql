@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - 'laurennat/**'
   pull_request:
     branches:
       - main
@@ -255,6 +256,7 @@ jobs:
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
+        if: github.event_name != 'push'
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -264,6 +266,7 @@ jobs:
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4
+        if: github.event_name != 'push'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
@@ -298,6 +301,7 @@ jobs:
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
+        if: github.event_name != 'push'
         id: loc-comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -306,7 +310,7 @@ jobs:
             # Updates to localized strings required
 
       - name: Create or update comment
-        if: ${{ env.loc_update_required == 'true' }}
+        if: ${{ env.loc_update_required == 'true' }} && github.event_name != 'push'
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
@@ -322,7 +326,7 @@ jobs:
           edit-mode: replace
 
       - name: Delete comment
-        if: ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != ''
+        if: ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != '' && github.event_name != 'push'
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
