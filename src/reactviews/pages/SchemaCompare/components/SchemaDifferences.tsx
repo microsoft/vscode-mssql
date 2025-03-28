@@ -5,19 +5,17 @@
 
 import { useContext } from "react";
 import {
-    DataGrid,
-    DataGridBody,
-    DataGridCell,
-    DataGridHeader,
-    DataGridHeaderCell,
-    DataGridRow,
-} from "@fluentui-contrib/react-data-grid-react-window";
-import {
     Checkbox,
     createTableColumn,
-    TableCellLayout,
+    Table,
+    TableBody,
+    TableCell,
     TableColumnDefinition,
+    TableHeader,
+    TableHeaderCell,
+    TableRow,
 } from "@fluentui/react-components";
+import { FixedSizeList as List } from "react-window";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -82,18 +80,14 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
             columnId: "type",
             renderHeaderCell: () => loc.schemaCompare.type,
             renderCell: (item) => {
-                return <TableCellLayout>{item.name}</TableCellLayout>;
+                return <TableCell>{item.name}</TableCell>;
             },
         }),
         createTableColumn<DiffItem>({
             columnId: "sourceName",
             renderHeaderCell: () => loc.schemaCompare.sourceName,
             renderCell: (item) => {
-                return (
-                    <TableCellLayout>
-                        {formatName(item.sourceValue)}
-                    </TableCellLayout>
-                );
+                return <TableCell>{formatName(item.sourceValue)}</TableCell>;
             },
         }),
         createTableColumn<DiffItem>({
@@ -101,14 +95,14 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
             renderHeaderCell: () => loc.schemaCompare.include,
             renderCell: (item) => {
                 return (
-                    <TableCellLayout>
+                    <TableCell>
                         <Checkbox
                             checked={item.included}
                             onClick={() =>
                                 handleIncludeExcludeNode(item, !item.included)
                             }
                         />
-                    </TableCellLayout>
+                    </TableCell>
                 );
             },
         }),
@@ -117,9 +111,9 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
             renderHeaderCell: () => loc.schemaCompare.action,
             renderCell: (item) => {
                 return (
-                    <TableCellLayout>
+                    <TableCell>
                         {getLabelForAction(item.updateAction as number)}
-                    </TableCellLayout>
+                    </TableCell>
                 );
             },
         }),
@@ -127,49 +121,58 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
             columnId: "targetName",
             renderHeaderCell: () => loc.schemaCompare.targetName,
             renderCell: (item) => {
-                return (
-                    <TableCellLayout>
-                        {formatName(item.targetValue)}
-                    </TableCellLayout>
-                );
+                return <TableCell>{formatName(item.targetValue)}</TableCell>;
             },
         }),
     ];
 
+    const RenderRow = ({ index, style }: any) => {
+        const item = items[index];
+
+        return (
+            <TableRow
+                aria-rowindex={index + 2}
+                style={style}
+                key={index}
+                // onKeyDown={onKeyDown}
+                onClick={() => onDiffSelected(index)}
+                // appearance={appearance}
+            >
+                {columns.map((column) => column.renderCell(item as DiffItem))}
+            </TableRow>
+        );
+    };
+
     return (
         <>
             {compareResult?.success && (
-                <DataGrid
-                    items={items}
-                    columns={columns}
-                    getRowId={(item: DiffItem) => item.id}
-                    focusMode="composite"
+                <Table
+                    noNativeElements
+                    aria-label="Table with schema differences"
+                    aria-rowCount={compareResult.differences.length}
                     style={{ minWidth: "550px" }}
                 >
-                    <DataGridHeader>
-                        <DataGridRow>
-                            {({ renderHeaderCell }) => (
-                                <DataGridHeaderCell>
-                                    {renderHeaderCell()}
-                                </DataGridHeaderCell>
-                            )}
-                        </DataGridRow>
-                    </DataGridHeader>
-                    <DataGridBody<DiffItem> itemSize={5} height={200}>
-                        {({ item, rowId }) => (
-                            <DataGridRow<DiffItem>
-                                key={rowId}
-                                onClick={() => onDiffSelected(item.id)}
-                            >
-                                {({ renderCell }) => (
-                                    <DataGridCell>
-                                        {renderCell(item)}
-                                    </DataGridCell>
-                                )}
-                            </DataGridRow>
-                        )}
-                    </DataGridBody>
-                </DataGrid>
+                    <TableHeader>
+                        <TableRow aria-rowindex={1}>
+                            {columns.map((column) => (
+                                <TableHeaderCell>
+                                    {column.renderHeaderCell()}
+                                </TableHeaderCell>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <List
+                            height={200}
+                            itemCount={items.length}
+                            itemSize={45}
+                            width={"100%"}
+                            itemData={items}
+                        >
+                            {RenderRow}
+                        </List>
+                    </TableBody>
+                </Table>
             )}
         </>
     );

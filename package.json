@@ -82,9 +82,9 @@
     "@azure/core-paging": "^1.6.2",
     "@eslint/compat": "^1.1.0",
     "@eslint/js": "^9.5.0",
+    "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
     "@fluentui/react-components": "^9.55.1",
     "@fluentui/react-list-preview": "^0.3.6",
-    "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
     "@monaco-editor/react": "^4.6.0",
@@ -103,6 +103,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-resizable": "^3.0.8",
+    "@types/react-window": "^1.8.8",
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/tunnel": "0.0.1",
@@ -938,9 +939,9 @@
         }
       },
       {
-          "command": "mssql.enableRichExperiences",
-          "title": "%mssql.enableRichExperiences%",
-          "category": "MS SQL"
+        "command": "mssql.enableRichExperiences",
+        "title": "%mssql.enableRichExperiences%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -1063,15 +1064,24 @@
                 "description": "%mssql.connectionGroup.id%"
               },
               "color": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.color%"
               },
               "description": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.description%"
               },
               "parentId": {
-                "type": ["string", null],
+                "type": [
+                  "string",
+                  null
+                ],
                 "description": "%mssql.connectionGroup.parentId%"
               }
             }
@@ -1302,20 +1312,20 @@
           "scope": "resource"
         },
         "mssql.resultsFontFamily": {
-            "type": "string",
-            "description": "%mssql.resultsFontFamily%",
-            "default": null,
-            "scope": "resource"
+          "type": "string",
+          "description": "%mssql.resultsFontFamily%",
+          "default": null,
+          "scope": "resource"
         },
         "mssql.resultsFontSize": {
-            "type": [
-                "number",
-                "null"
-            ],
-            "maximum": 24,
-            "description": "%mssql.resultsFontSize%",
-            "default": null,
-            "scope": "resource"
+          "type": [
+            "number",
+            "null"
+          ],
+          "maximum": 24,
+          "description": "%mssql.resultsFontSize%",
+          "default": null,
+          "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
@@ -1510,9 +1520,9 @@
           "description": "%mssql.logFilesRemovalLimit%"
         },
         "mssql.resultsGrid.autoSizeColumns": {
-            "type": "boolean",
-            "default": true,
-            "description": "%mssql.resultsGrid.autoSizeColumns%"
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.resultsGrid.autoSizeColumns%"
         },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",
