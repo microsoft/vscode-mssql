@@ -7,7 +7,6 @@ import {
     Button,
     Checkbox,
     createTableColumn,
-    Divider,
     Field,
     InfoLabel,
     Input,
