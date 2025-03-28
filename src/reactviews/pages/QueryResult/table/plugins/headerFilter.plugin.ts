@@ -397,8 +397,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
         });
 
         jQuery(document).on("contextmenu", () => {
-            this.activePopup!.fadeOut();
-            this.activePopup = null;
+            if (this.activePopup) {
+                this.activePopup!.fadeOut();
+                this.activePopup = null;
+            }
         });
 
         // Close the pop-up when the close-popup button is clicked

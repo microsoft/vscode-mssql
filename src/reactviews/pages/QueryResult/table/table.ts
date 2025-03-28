@@ -205,7 +205,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.setSelectionModel(this.selectionModel);
         this.mapMouseEvent(this._grid.onContextMenu);
         this.mapMouseEvent(this._grid.onClick);
-        this.mapMouseEvent(this._grid.onHeaderClick);
         this.mapMouseEvent(this._grid.onDblClick);
         this._grid.onColumnsResized.subscribe(() =>
             console.log("oncolumnresize"),
@@ -287,19 +286,22 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         slickEvent.subscribe((e: Slick.EventData) => {
             const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
             const cell = this._grid.getCellFromEvent(originalEvent!);
-            const anchor =
-                originalEvent instanceof MouseEvent
-                    ? { x: originalEvent.x, y: originalEvent.y }
-                    : (originalEvent!.srcElement as HTMLElement);
-            console.log("anchor: ", anchor);
-            console.log("cell: ", cell);
-            this.handleLinkClick(cell);
+            // const anchor =
+            //     originalEvent instanceof MouseEvent
+            //         ? { x: originalEvent.x, y: originalEvent.y }
+            //         : (originalEvent!.srcElement as HTMLElement);
+            if (cell) {
+                this.handleLinkClick(cell);
+            }
             // emitter.fire({ anchor, cell });
         });
     }
 
     private handleLinkClick(cell: Slick.Cell): void {
         const columnInfo = this.resultSetSummary.columnInfo[cell.cell - 1];
+        if (!columnInfo) {
+            return;
+        }
         if (columnInfo.isXml || columnInfo.isJson) {
             this.linkHandler(
                 this.getCellValue(cell.row, cell.cell),
