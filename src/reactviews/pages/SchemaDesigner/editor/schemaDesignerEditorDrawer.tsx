@@ -129,6 +129,12 @@ export const SchemaDesignerEditorDrawer = () => {
             position={"end"}
             open={isEditDrawerOpen}
             onOpenChange={(_, { open }) => setIsEditDrawerOpen(open)}
+            onKeyDown={(e) => {
+                // Consuming backspace key to prevent graph from deleting selected nodes
+                if (e.key === "Backspace") {
+                    e.stopPropagation();
+                }
+            }}
             style={{ width: `600px` }}>
             <SchemaDesignerEditorContext.Provider
                 value={{
