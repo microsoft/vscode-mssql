@@ -16,6 +16,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
+    private _resolveModelReadyProgress: (
+        value: void | PromiseLike<void>,
+    ) => void;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -70,9 +73,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     private registerServiceEvents() {
-        let resolveModelReadyProgress: (
-            value: void | PromiseLike<void>,
-        ) => void;
         vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -81,14 +81,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             },
             (_progress, _token) => {
                 const p = new Promise<void>((resolve) => {
-                    resolveModelReadyProgress = resolve;
+                    this._resolveModelReadyProgress = resolve;
                 });
                 return p;
             },
         );
         this.schemaDesignerService.onSchemaReady((model) => {
             if (model.sessionId === this._sessionId) {
-                resolveModelReadyProgress();
+                this._resolveModelReadyProgress();
                 this.postNotification("isModelReady", {
                     isModelReady: true,
                 });
@@ -189,6 +189,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
     override dispose(): void {
         super.dispose();
+        this._resolveModelReadyProgress();
         this.schemaDesignerService.disposeSession({
             sessionId: this._sessionId,
         });
