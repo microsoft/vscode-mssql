@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import SchemaDifferences from "./components/SchemaDifferences";
 import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
@@ -21,6 +21,10 @@ export const SchemaComparePage = () => {
     const [endpointType, setEndpointType] = useState<"source" | "target">(
         "source",
     );
+
+    useEffect(() => {
+        context.isSqlProjectExtensionInstalled();
+    }, []);
 
     const handleSelectSchemaClicked = (
         endpointType: "source" | "target",

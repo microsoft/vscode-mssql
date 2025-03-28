@@ -26,6 +26,7 @@ export const enum SchemaUpdateAction {
 }
 
 export interface SchemaCompareWebViewState {
+    isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
     activeServers: { [connectionUri: string]: string };
     databases: string[];
@@ -51,6 +52,8 @@ export interface SchemaCompareWebViewState {
 }
 
 export interface SchemaCompareReducers {
+    isSqlProjectExtensionInstalled: {};
+
     listActiveServers: {};
 
     listDatabasesForActiveServer: { connectionUri: string };
@@ -134,6 +137,8 @@ export interface SchemaCompareReducers {
 export interface SchemaCompareContextProps {
     state: SchemaCompareWebViewState;
     themeKind: ColorThemeKind;
+
+    isSqlProjectExtensionInstalled: () => void;
 
     listActiveServers: () => void;
 

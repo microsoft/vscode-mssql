@@ -202,6 +202,9 @@ const SchemaSelectorDrawer = (props: Props) => {
         props.showDrawer(false);
     };
 
+    let isSqlProjExtensionInstalled =
+        context.state.isSqlProjectExtensionInstalled;
+
     return (
         <Drawer
             separator
@@ -237,10 +240,12 @@ const SchemaSelectorDrawer = (props: Props) => {
                             value="dacpac"
                             label={loc.schemaCompare.dataTierApplicationFile}
                         />
-                        <Radio
-                            value="sqlproj"
-                            label={loc.schemaCompare.databaseProject}
-                        />
+                        {isSqlProjExtensionInstalled && (
+                            <Radio
+                                value="sqlproj"
+                                label={loc.schemaCompare.databaseProject}
+                            />
+                        )}
                     </RadioGroup>
                 </Field>
 

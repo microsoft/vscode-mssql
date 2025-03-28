@@ -65,6 +65,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             "schemaCompare",
             "schemaCompare",
             {
+                isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
                 activeServers: {},
                 databases: [],
@@ -306,6 +307,26 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.registerReducer(
+            "isSqlProjectExtensionInstalled",
+            async (state) => {
+                const extension = vscode.extensions.getExtension(
+                    "ms-mssql.sql-database-projects-vscode",
+                );
+
+                if (extension && !extension.isActive) {
+                    await extension.activate();
+                    state.isSqlProjectExtensionInstalled = extension.isActive;
+                } else {
+                    state.isSqlProjectExtensionInstalled = false;
+                }
+
+                this.updateState(state);
+
+                return state;
+            },
+        );
+
         this.registerReducer("listActiveServers", (state) => {
             const activeServers = this.getActiveServersList();
 

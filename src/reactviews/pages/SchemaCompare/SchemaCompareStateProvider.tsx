@@ -32,6 +32,12 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
 
+                isSqlProjectExtensionInstalled: function (): void {
+                    webViewState?.extensionRpc.action(
+                        "isSqlProjectExtensionInstalled",
+                        {},
+                    );
+                },
                 listActiveServers: function (): void {
                     webViewState?.extensionRpc.action("listActiveServers", {});
                 },
@@ -192,8 +198,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 cancel: function (): void {
                     webViewState?.extensionRpc.action("cancel", {});
                 },
-            }}
-        >
+            }}>
             {children}
         </schemaCompareContext.Provider>
     );
