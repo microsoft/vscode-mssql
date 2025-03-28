@@ -28,17 +28,12 @@ suite("Metadata Service Tests", () => {
             mockContext.object,
         );
         connectionManager.setup((c) => c.client).returns(() => client.object);
-        client = TypeMoq.Mock.ofType(
-            SqlToolsServiceClient,
-            TypeMoq.MockBehavior.Loose,
-        );
+        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
         const mockMetadata: MetadataQueryResult = {
             metadata: TypeMoq.It.isAny(),
         };
         client
-            .setup((c) =>
-                c.sendRequest(MetadataQueryRequest.type, TypeMoq.It.isAny()),
-            )
+            .setup((c) => c.sendRequest(MetadataQueryRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockMetadata));
         connectionManager.object.client = client.object;
         metdataService = new MetadataService(connectionManager.object);

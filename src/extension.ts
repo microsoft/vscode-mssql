@@ -18,9 +18,7 @@ import { RequestType } from "vscode-languageclient";
 
 let controller: MainController = undefined;
 
-export async function activate(
-    context: vscode.ExtensionContext,
-): Promise<IExtension> {
+export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
@@ -33,10 +31,7 @@ export async function activate(
     // }
 
     // Exposed for testing purposes
-    vscode.commands.registerCommand(
-        "mssql.getControllerForTests",
-        () => controller,
-    );
+    vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
     await controller.activate();
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
@@ -48,10 +43,7 @@ export async function activate(
                 ignoreFocusOut,
             );
         },
-        connect: async (
-            connectionInfo: IConnectionInfo,
-            saveConnection?: boolean,
-        ) => {
+        connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
             const uri = utils.generateQueryUri().toString();
             const connectionPromise = new Deferred<boolean>();
             // First wait for initial connection request to succeed
@@ -62,11 +54,7 @@ export async function activate(
                 saveConnection,
             );
             if (!requestSucceeded) {
-                if (
-                    controller.connectionManager.failedUriToFirewallIpMap.has(
-                        uri,
-                    )
-                ) {
+                if (controller.connectionManager.failedUriToFirewallIpMap.has(uri)) {
                     throw new FirewallRuleError(
                         uri,
                         `Connection request for ${JSON.stringify(connectionInfo)} failed because of invalid firewall rule settings`,
@@ -80,9 +68,7 @@ export async function activate(
             // Next wait for the actual connection to be made
             const connectionSucceeded = await connectionPromise;
             if (!connectionSucceeded) {
-                throw new Error(
-                    `Connection for ${JSON.stringify(connectionInfo)} failed`,
-                );
+                throw new Error(`Connection for ${JSON.stringify(connectionInfo)} failed`);
             }
             return uri;
         },
@@ -106,10 +92,7 @@ export async function activate(
                 includeApplicationName,
             );
         },
-        promptForFirewallRule: (
-            connectionUri: string,
-            connectionInfo: IConnectionInfo,
-        ) => {
+        promptForFirewallRule: (connectionUri: string, connectionInfo: IConnectionInfo) => {
             const connectionProfile = new ConnectionProfile(connectionInfo);
             return controller.connectionManager.connectionUI.addFirewallRule(
                 connectionUri,
@@ -119,18 +102,10 @@ export async function activate(
         azureAccountService: controller.azureAccountService,
         azureResourceService: controller.azureResourceService,
         createConnectionDetails: (connectionInfo: IConnectionInfo) => {
-            return controller.connectionManager.createConnectionDetails(
-                connectionInfo,
-            );
+            return controller.connectionManager.createConnectionDetails(connectionInfo);
         },
-        sendRequest: async <P, R, E, R0>(
-            requestType: RequestType<P, R, E, R0>,
-            params?: P,
-        ) => {
-            return await controller.connectionManager.sendRequest(
-                requestType,
-                params,
-            );
+        sendRequest: async <P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P) => {
+            return await controller.connectionManager.sendRequest(requestType, params);
         },
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
@@ -151,8 +126,9 @@ export async function deactivate(): Promise<void> {
  */
 export async function getController(): Promise<MainController> {
     if (!controller) {
-        let savedController: MainController =
-            await vscode.commands.executeCommand("mssql.getControllerForTests");
+        let savedController: MainController = await vscode.commands.executeCommand(
+            "mssql.getControllerForTests",
+        );
         return savedController;
     }
     return controller;

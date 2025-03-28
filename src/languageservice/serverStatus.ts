@@ -44,15 +44,12 @@ export class ServerStatusView implements IStatusView, vscode.Disposable {
     private _onDidCloseTextDocument: vscode.Disposable;
 
     constructor() {
-        this._statusBarItem = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
+        this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        this._onDidChangeActiveTextEditorEvent = vscode.window.onDidChangeActiveTextEditor(
+            (params) => this.onDidChangeActiveTextEditor(params),
         );
-        this._onDidChangeActiveTextEditorEvent =
-            vscode.window.onDidChangeActiveTextEditor((params) =>
-                this.onDidChangeActiveTextEditor(params),
-            );
-        this._onDidCloseTextDocument = vscode.workspace.onDidCloseTextDocument(
-            (params) => this.onDidCloseTextDocument(params),
+        this._onDidCloseTextDocument = vscode.workspace.onDidCloseTextDocument((params) =>
+            this.onDidCloseTextDocument(params),
         );
     }
 
@@ -65,8 +62,7 @@ export class ServerStatusView implements IStatusView, vscode.Disposable {
 
     public updateServiceDownloadingProgress(downloadPercentage: number): void {
         this._statusBarItem.text =
-            "$(cloud-download) " +
-            `${Constants.serviceDownloading} ... ${downloadPercentage}%`;
+            "$(cloud-download) " + `${Constants.serviceDownloading} ... ${downloadPercentage}%`;
         this._statusBarItem.show();
     }
 

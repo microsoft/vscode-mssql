@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event, Disposable } from "vscode";
-import {
-    ISlickRange,
-    IResultsConfig,
-    ResultSetSubset,
-    ISelectionData,
-} from "./models/interfaces";
+import { ISlickRange, IResultsConfig, ResultSetSubset, ISelectionData } from "./models/interfaces";
 import { TelemetryViews, TelemetryActions } from "./sharedInterfaces/telemetry";
 
 export interface IWebviewProxy extends Disposable {
@@ -23,12 +18,7 @@ export interface IServerProxy extends Disposable {
         rowStart: number,
         numberOfRows: number,
     ): Promise<ResultSetSubset>;
-    saveResults(
-        batchId: number,
-        resultId: number,
-        format: string,
-        selection: ISlickRange[],
-    ): void;
+    saveResults(batchId: number, resultId: number, format: string, selection: ISlickRange[]): void;
     openLink(content: string, columnName: string, linkType: string): void;
     copyResults(
         batchId: number,
@@ -122,9 +112,7 @@ class MessageProxy implements Disposable {
                 }
             });
         } else {
-            this.disposables.push(
-                this.protocol.onMessage((val) => this.onReceive(val)),
-            );
+            this.disposables.push(this.protocol.onMessage((val) => this.onReceive(val)));
             this.ready.resolve();
             this.protocol.sendMessage("ready");
         }
@@ -154,10 +142,7 @@ class MessageProxy implements Disposable {
             }
         } else {
             void Promise.resolve(
-                this.handler[message.method].apply(
-                    this.handler,
-                    message.passArguments,
-                ),
+                this.handler[message.method].apply(this.handler, message.passArguments),
             ).then((r) => {
                 const response: IResponse = {
                     originalMessageId: message.messageId,

@@ -10,13 +10,7 @@ import "./executionPlan.css";
 import * as azdataGraph from "azdataGraph";
 import * as utils from "./queryPlanSetup";
 
-import {
-    Button,
-    Input,
-    Popover,
-    makeStyles,
-    tokens,
-} from "@fluentui/react-components";
+import { Button, Input, Popover, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { useContext, useEffect, useRef, useState } from "react";
 
@@ -95,9 +89,7 @@ interface ExecutionPlanGraphProps {
     graphIndex: number;
 }
 
-export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
-    graphIndex,
-}) => {
+export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
     const executionPlanState = context?.state.executionPlanState;
@@ -105,8 +97,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
     const [cost, setCost] = useState(0);
-    const [executionPlanView, setExecutionPlanView] =
-        useState<ExecutionPlanView | null>(null);
+    const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
     const [zoomNumber, setZoomNumber] = useState(100);
     const [customZoomClicked, setCustomZoomClicked] = useState(false);
     const [findNodeClicked, setFindNodeClicked] = useState(false);
@@ -123,8 +114,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 
         setContainerHeight(
             executionPlanState!.executionPlanGraphs!.length > 1 &&
-                graphIndex !==
-                    executionPlanState!.executionPlanGraphs!.length - 1
+                graphIndex !== executionPlanState!.executionPlanGraphs!.length - 1
                 ? "500px"
                 : "100%",
         );
@@ -146,30 +136,20 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
             if (executionPlanState && executionPlanState.executionPlanGraphs) {
                 const executionPlanRootNode =
                     executionPlanState.executionPlanGraphs[graphIndex].root;
-                const executionPlanView = new ExecutionPlanView(
-                    executionPlanRootNode,
-                );
-                const executionPlanGraph = executionPlanView.populate(
-                    executionPlanRootNode,
-                );
+                const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
+                const executionPlanGraph = executionPlanView.populate(executionPlanRootNode);
 
-                const div = document.getElementById(
-                    `queryPlanParent${graphIndex + 1}`,
-                );
+                const div = document.getElementById(`queryPlanParent${graphIndex + 1}`);
                 // create a div to hold the graph
                 const queryPlanConfiguration = {
                     container: div,
                     queryPlanGraph: executionPlanGraph,
                     iconPaths: utils.getIconPaths(),
                     badgeIconPaths: utils.getBadgePaths(),
-                    expandCollapsePaths: utils.getCollapseExpandPaths(
-                        context.themeKind,
-                    ),
+                    expandCollapsePaths: utils.getCollapseExpandPaths(context.themeKind),
                     showTooltipOnClick: true,
                 };
-                const pen = new mxClient.azdataQueryPlan(
-                    queryPlanConfiguration,
-                );
+                const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
                 pen.setTextFontColor("var(--vscode-editor-foreground)"); // set text color
                 pen.setEdgeColor("var(--vscode-editor-foreground)"); // set edge color
 
@@ -177,12 +157,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
 
                 setExecutionPlanView(executionPlanView);
                 setIsExecutionPlanLoaded(true);
-                setFindNodeOptions(
-                    executionPlanView.getUniqueElementProperties(),
-                );
+                setFindNodeOptions(executionPlanView.getUniqueElementProperties());
 
-                let tempQuery =
-                    executionPlanState.executionPlanGraphs[graphIndex].query;
+                let tempQuery = executionPlanState.executionPlanGraphs[graphIndex].query;
                 if (graphIndex != 0) {
                     const firstAlphaIndex = tempQuery.search(/[a-zA-Z]/);
 
@@ -192,8 +169,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                 }
                 setQuery(tempQuery);
                 setXml(
-                    executionPlanState.executionPlanGraphs[graphIndex].graphFile
-                        .graphFileContent,
+                    executionPlanState.executionPlanGraphs[graphIndex].graphFile.graphFileContent,
                 );
                 setCost(executionPlanView.getTotalRelativeCost());
             } else {
@@ -207,12 +183,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
         if (inputRef && inputRef.current) {
             inputRef.current.focus();
         }
-    }, [
-        customZoomClicked,
-        findNodeClicked,
-        highlightOpsClicked,
-        propertiesClicked,
-    ]);
+    }, [customZoomClicked, findNodeClicked, highlightOpsClicked, propertiesClicked]);
 
     const handleCustomZoomInput = async () => {
         if (executionPlanView) {
@@ -262,13 +233,11 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
             style={{
                 height: containerHeight,
                 fontFamily: tokens.fontFamilyBase,
-            }}
-        >
+            }}>
             <div
                 id="planContainer"
                 className={classes.planContainer}
-                style={{ height: containerHeight }}
-            >
+                style={{ height: containerHeight }}>
                 <div
                     id="queryCostContainer"
                     className={classes.queryCostContainer}
@@ -276,8 +245,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         background: tokens.colorNeutralBackground2,
                     }}
                     aria-live="polite"
-                    aria-label={`${getQueryCostString()}, ${query}`}
-                >
+                    aria-label={`${getQueryCostString()}, ${query}`}>
                     {getQueryCostString()}
                     <br />
                     {query}
@@ -290,8 +258,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         width: propertiesClicked
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
-                    }}
-                ></div>
+                    }}></div>
                 <Popover open={customZoomClicked}>
                     <div
                         id="customZoomInputContainer"
@@ -299,8 +266,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                         style={{
                             background: tokens.colorNeutralBackground1,
                         }}
-                        tabIndex={0}
-                    >
+                        tabIndex={0}>
                         <Input
                             ref={inputRef}
                             id="customZoomInputBox"
@@ -317,9 +283,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                                     textOverflow: "ellipsis",
                                 },
                             }}
-                            onChange={(e) =>
-                                setZoomNumber(Number(e.target.value))
-                            }
+                            onChange={(e) => setZoomNumber(Number(e.target.value))}
                             style={{
                                 width: "100px",
                                 height: "25px",
@@ -373,12 +337,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({
                     <div
                         className={classes.resizable}
                         style={{ width: `${propertiesWidth}px` }}
-                        ref={resizableRef}
-                    >
-                        <div
-                            className={classes.resizer}
-                            onMouseDown={onMouseDown}
-                        ></div>
+                        ref={resizableRef}>
+                        <div className={classes.resizer} onMouseDown={onMouseDown}></div>
                         <Popover open={propertiesClicked}>
                             <div>
                                 <PropertiesPane

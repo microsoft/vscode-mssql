@@ -27,37 +27,24 @@ suite("Code Adapter Tests", () => {
     };
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
         outputChannel.setup((o) => o.appendLine(TypeMoq.It.isAnyString()));
         outputChannel.setup((o) => o.clear());
         outputChannel.setup((o) => o.show());
-        vscodeWrapper
-            .setup((v) => v.outputChannel)
-            .returns(() => outputChannel.object);
-        vscodeWrapper.setup((v) =>
-            v.showErrorMessage(TypeMoq.It.isAnyString()),
-        );
+        vscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
+        vscodeWrapper.setup((v) => v.showErrorMessage(TypeMoq.It.isAnyString()));
         adapter = new CodeAdapter(vscodeWrapper.object);
     });
 
     test("logError should append message to the channel", () => {
         adapter.logError(testMessage);
-        outputChannel.verify(
-            (o) => o.appendLine(TypeMoq.It.isAnyString()),
-            TypeMoq.Times.once(),
-        );
+        outputChannel.verify((o) => o.appendLine(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
     });
 
     test("log should format message and append to the channel", () => {
         adapter.log(testMessage);
-        outputChannel.verify(
-            (o) => o.appendLine(TypeMoq.It.isAnyString()),
-            TypeMoq.Times.once(),
-        );
+        outputChannel.verify((o) => o.appendLine(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
     });
 
     test("clearLog should clear from output channel", () => {

@@ -23,9 +23,7 @@ export interface QueryHistoryQuickPickItem extends vscode.QuickPickItem {
 export class QueryHistoryUI {
     constructor(private _prompter: IPrompter) {}
 
-    public convertToQuickPickItem(
-        node: vscode.TreeItem,
-    ): QueryHistoryQuickPickItem {
+    public convertToQuickPickItem(node: vscode.TreeItem): QueryHistoryQuickPickItem {
         let historyNode = node as QueryHistoryNode;
         let quickPickItem: QueryHistoryQuickPickItem = {
             label: Utils.limitStringSize(historyNode.queryString, true).trim(),
@@ -37,9 +35,7 @@ export class QueryHistoryUI {
         return quickPickItem;
     }
 
-    private showQueryHistoryActions(
-        node: QueryHistoryNode,
-    ): Promise<string | undefined> {
+    private showQueryHistoryActions(node: QueryHistoryNode): Promise<string | undefined> {
         let options = [
             { label: LocalizedConstants.msgOpenQueryHistory },
             { label: LocalizedConstants.msgRunQueryHistory },
@@ -50,14 +46,12 @@ export class QueryHistoryUI {
             message: LocalizedConstants.msgChooseQueryHistoryAction,
             choices: options,
         };
-        return this._prompter
-            .promptSingle(question)
-            .then((answer: vscode.QuickPickItem) => {
-                if (answer) {
-                    return answer.label;
-                }
-                return undefined;
-            });
+        return this._prompter.promptSingle(question).then((answer: vscode.QuickPickItem) => {
+            if (answer) {
+                return answer.label;
+            }
+            return undefined;
+        });
     }
 
     /**
@@ -72,30 +66,18 @@ export class QueryHistoryUI {
             message: LocalizedConstants.msgChooseQueryHistory,
             choices: options,
         };
-        return this._prompter
-            .promptSingle(question)
-            .then((answer: QueryHistoryQuickPickItem) => {
-                if (answer) {
-                    return this.showQueryHistoryActions(answer.node).then(
-                        (actionAnswer: string) => {
-                            if (
-                                actionAnswer ===
-                                LocalizedConstants.msgOpenQueryHistory
-                            ) {
-                                answer.action =
-                                    QueryHistoryAction.OpenQueryHistoryAction;
-                            } else if (
-                                actionAnswer ===
-                                LocalizedConstants.msgRunQueryHistory
-                            ) {
-                                answer.action =
-                                    QueryHistoryAction.RunQueryHistoryAction;
-                            }
-                            return answer;
-                        },
-                    );
-                }
-                return undefined;
-            });
+        return this._prompter.promptSingle(question).then((answer: QueryHistoryQuickPickItem) => {
+            if (answer) {
+                return this.showQueryHistoryActions(answer.node).then((actionAnswer: string) => {
+                    if (actionAnswer === LocalizedConstants.msgOpenQueryHistory) {
+                        answer.action = QueryHistoryAction.OpenQueryHistoryAction;
+                    } else if (actionAnswer === LocalizedConstants.msgRunQueryHistory) {
+                        answer.action = QueryHistoryAction.RunQueryHistoryAction;
+                    }
+                    return answer;
+                });
+            }
+            return undefined;
+        });
     }
 }

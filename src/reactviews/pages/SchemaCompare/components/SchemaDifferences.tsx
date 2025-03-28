@@ -58,10 +58,7 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
         return actionLabel;
     };
 
-    const handleIncludeExcludeNode = (
-        diffEntry: DiffItem,
-        include: boolean,
-    ) => {
+    const handleIncludeExcludeNode = (diffEntry: DiffItem, include: boolean) => {
         context.includeExcludeNode(diffEntry.id, diffEntry, include);
     };
 
@@ -98,9 +95,7 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
                     <TableCell>
                         <Checkbox
                             checked={item.included}
-                            onClick={() =>
-                                handleIncludeExcludeNode(item, !item.included)
-                            }
+                            onClick={() => handleIncludeExcludeNode(item, !item.included)}
                         />
                     </TableCell>
                 );
@@ -110,11 +105,7 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
             columnId: "action",
             renderHeaderCell: () => loc.schemaCompare.action,
             renderCell: (item) => {
-                return (
-                    <TableCell>
-                        {getLabelForAction(item.updateAction as number)}
-                    </TableCell>
-                );
+                return <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>;
             },
         }),
         createTableColumn<DiffItem>({
@@ -150,14 +141,11 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
                     noNativeElements
                     aria-label="Table with schema differences"
                     aria-rowCount={compareResult.differences.length}
-                    style={{ minWidth: "550px" }}
-                >
+                    style={{ minWidth: "550px" }}>
                     <TableHeader>
                         <TableRow aria-rowindex={1}>
                             {columns.map((column) => (
-                                <TableHeaderCell>
-                                    {column.renderHeaderCell()}
-                                </TableHeaderCell>
+                                <TableHeaderCell>{column.renderHeaderCell()}</TableHeaderCell>
                             ))}
                         </TableRow>
                     </TableHeader>
@@ -167,8 +155,7 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
                             itemCount={items.length}
                             itemSize={45}
                             width={"100%"}
-                            itemData={items}
-                        >
+                            itemData={items}>
                             {RenderRow}
                         </List>
                     </TableBody>

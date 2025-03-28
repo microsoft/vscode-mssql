@@ -18,17 +18,13 @@ export const SchemaComparePage = () => {
     const [selectedDiffId, setSelectedDiffId] = useState(-1);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
-    const [endpointType, setEndpointType] = useState<"source" | "target">(
-        "source",
-    );
+    const [endpointType, setEndpointType] = useState<"source" | "target">("source");
 
     useEffect(() => {
         context.isSqlProjectExtensionInstalled();
     }, []);
 
-    const handleSelectSchemaClicked = (
-        endpointType: "source" | "target",
-    ): void => {
+    const handleSelectSchemaClicked = (endpointType: "source" | "target"): void => {
         setShowDrawer(true);
         setEndpointType(endpointType);
     };
@@ -64,15 +60,11 @@ export const SchemaComparePage = () => {
     return (
         <div>
             <CompareActionBar onOptionsClicked={openOptionsDialog} />
-            <SelectSchemasPanel
-                onSelectSchemaClicked={handleSelectSchemaClicked}
-            />
+            <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
             {showMessage() && <Message />}
 
-            {!showMessage() && (
-                <SchemaDifferences onDiffSelected={handleDiffSelected} />
-            )}
+            {!showMessage() && <SchemaDifferences onDiffSelected={handleDiffSelected} />}
 
             {!showMessage() && selectedDiffId !== -1 && (
                 <CompareDiffEditor selectedDiffId={selectedDiffId} />

@@ -72,8 +72,7 @@ export abstract class MsalAzureAuth {
         protected readonly logger: Logger,
     ) {
         this.loginEndpointUrl =
-            this.providerSettings.loginEndpoint ??
-            "https://login.microsoftonline.com/";
+            this.providerSettings.loginEndpoint ?? "https://login.microsoftonline.com/";
         this.redirectUri = "http://localhost";
         this.clientId = this.providerSettings.clientId;
         this.scopes = [...this.providerSettings.scopes];
@@ -86,9 +85,7 @@ export abstract class MsalAzureAuth {
             this.logger.verbose("Starting login");
             if (!this.providerSettings.resources.windowsManagementResource) {
                 throw new Error(
-                    LocalizedConstants.azureNoMicrosoftResource(
-                        this.providerSettings.displayName,
-                    ),
+                    LocalizedConstants.azureNoMicrosoftResource(this.providerSettings.displayName),
                 );
             }
             const result = await this.login(Constants.organizationTenant);
@@ -182,10 +179,7 @@ export abstract class MsalAzureAuth {
         }
 
         let newScope: string[];
-        if (
-            settings.id ===
-            this.providerSettings.resources.windowsManagementResource.id
-        ) {
+        if (settings.id === this.providerSettings.resources.windowsManagementResource.id) {
             newScope = [`${endpoint}user_impersonation`];
         } else {
             newScope = [`${endpoint}.default`];
@@ -204,9 +198,7 @@ export abstract class MsalAzureAuth {
             forceRefresh: true,
         };
         try {
-            return await this.clientApplication.acquireTokenSilent(
-                tokenRequest,
-            );
+            return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (e) {
             this.logger.error("Failed to acquireTokenSilent", e);
             if (e instanceof AuthError && this.accountNeedsRefresh(e)) {
@@ -217,9 +209,7 @@ export abstract class MsalAzureAuth {
                 };
                 return this.handleInteractionRequired(tenant, settings);
             } else if (e.name === "ClientAuthError") {
-                this.logger.verbose(
-                    "[ClientAuthError] Failed to silently acquire token",
-                );
+                this.logger.verbose("[ClientAuthError] Failed to silently acquire token");
             }
 
             this.logger.error(
@@ -250,19 +240,13 @@ export abstract class MsalAzureAuth {
     ): Promise<IAccount | undefined> {
         if (account) {
             try {
-                const tokenResult = await this.getToken(
-                    account,
-                    tenantId,
-                    settings,
-                );
+                const tokenResult = await this.getToken(account, tenantId, settings);
                 if (!tokenResult) {
                     account.isStale = true;
                     return account;
                 }
 
-                const tokenClaims = this.getTokenClaims(
-                    tokenResult.accessToken,
-                );
+                const tokenClaims = this.getTokenClaims(tokenResult.accessToken);
                 if (!tokenClaims) {
                     account.isStale = true;
                     return account;
@@ -293,9 +277,7 @@ export abstract class MsalAzureAuth {
         void tokenCache.getAllAccounts();
     }
 
-    public async getAccountFromMsalCache(
-        accountId: string,
-    ): Promise<AccountInfo | null> {
+    public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | null> {
         const cache = this.clientApplication.getTokenCache();
         if (!cache) {
             this.logger.error("Error: Could not fetch token cache.");
@@ -323,11 +305,10 @@ export abstract class MsalAzureAuth {
         try {
             this.logger.verbose("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
-            const tenantResponse =
-                await this.makeGetRequest<GetTenantsResponseData>(
-                    tenantUri,
-                    token,
-                );
+            const tenantResponse = await this.makeGetRequest<GetTenantsResponseData>(
+                tenantUri,
+                token,
+            );
             const data = tenantResponse.data;
             if (this.isErrorResponseBodyWithError(data)) {
                 this.logger.error(
@@ -335,27 +316,22 @@ export abstract class MsalAzureAuth {
                 );
                 throw new Error(`${data.error.code} - ${data.error.message}`);
             }
-            const tenants: ITenant[] = data.value.map(
-                (tenantInfo: ITenantResponse) => {
-                    if (tenantInfo.displayName) {
-                        tenantList.push(tenantInfo.displayName);
-                    } else {
-                        tenantList.push(tenantInfo.tenantId);
-                        this.logger.info(
-                            "Tenant display name found empty: {0}",
-                            tenantInfo.tenantId,
-                        );
-                    }
-                    return {
-                        id: tenantInfo.tenantId,
-                        displayName: tenantInfo.displayName
-                            ? tenantInfo.displayName
-                            : tenantInfo.tenantId,
-                        userId: token,
-                        tenantCategory: tenantInfo.tenantCategory,
-                    } as ITenant;
-                },
-            );
+            const tenants: ITenant[] = data.value.map((tenantInfo: ITenantResponse) => {
+                if (tenantInfo.displayName) {
+                    tenantList.push(tenantInfo.displayName);
+                } else {
+                    tenantList.push(tenantInfo.tenantId);
+                    this.logger.info("Tenant display name found empty: {0}", tenantInfo.tenantId);
+                }
+                return {
+                    id: tenantInfo.tenantId,
+                    displayName: tenantInfo.displayName
+                        ? tenantInfo.displayName
+                        : tenantInfo.tenantId,
+                    userId: token,
+                    tenantCategory: tenantInfo.tenantCategory,
+                } as ITenant;
+            });
             this.logger.verbose(`Tenants: ${tenantList}`);
             const homeTenantIndex = tenants.findIndex(
                 (tenant) => tenant.tenantCategory === Constants.homeCategory,
@@ -373,16 +349,11 @@ export abstract class MsalAzureAuth {
         }
     }
 
-    private isErrorResponseBodyWithError(
-        body: any,
-    ): body is ErrorResponseBodyWithError {
+    private isErrorResponseBodyWithError(body: any): body is ErrorResponseBodyWithError {
         return "error" in body && body.error;
     }
 
-    private async makeGetRequest<T>(
-        requestUrl: string,
-        token: string,
-    ): Promise<AxiosResponse<T>> {
+    private async makeGetRequest<T>(requestUrl: string, token: string): Promise<AxiosResponse<T>> {
         const config: AxiosRequestConfig = {
             headers: {
                 "Content-Type": "application/json",
@@ -410,11 +381,7 @@ export abstract class MsalAzureAuth {
             // https://github.com/axios/axios/blob/bad6d8b97b52c0c15311c92dd596fc0bff122651/lib/adapters/http.js#L85
             config.proxy = false;
 
-            const agent = this.createProxyAgent(
-                requestUrl,
-                proxy,
-                httpConfig["proxyStrictSSL"],
-            );
+            const agent = this.createProxyAgent(requestUrl, proxy, httpConfig["proxyStrictSSL"]);
             if (agent.isHttps) {
                 config.httpsAgent = agent.agent;
             } else {
@@ -424,17 +391,12 @@ export abstract class MsalAzureAuth {
             const HTTPS_PORT = 443;
             const HTTP_PORT = 80;
             const parsedRequestUrl = url.parse(requestUrl);
-            const port = parsedRequestUrl.protocol?.startsWith("https")
-                ? HTTPS_PORT
-                : HTTP_PORT;
+            const port = parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT;
 
             // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
             // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
             const requestUrlWithPort = `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.path}`;
-            const response: AxiosResponse = await axios.get<T>(
-                requestUrlWithPort,
-                config,
-            );
+            const response: AxiosResponse = await axios.get<T>(requestUrlWithPort, config);
             this.logger.piiSanitized(
                 "GET request ",
                 [
@@ -480,25 +442,13 @@ export abstract class MsalAzureAuth {
         }
 
         if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger.verbose(
-                "Loading proxy value from HTTP_PROXY environment variable.",
-            );
+            this.logger.verbose("Loading proxy value from HTTP_PROXY environment variable.");
 
-            return (
-                process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]
-            );
-        } else if (
-            process.env[HTTPS_PROXY] ||
-            process.env[HTTPS_PROXY.toLowerCase()]
-        ) {
-            this.logger.verbose(
-                "Loading proxy value from HTTPS_PROXY environment variable.",
-            );
+            return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
+        } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
+            this.logger.verbose("Loading proxy value from HTTPS_PROXY environment variable.");
 
-            return (
-                process.env[HTTPS_PROXY] ||
-                process.env[HTTPS_PROXY.toLowerCase()]
-            );
+            return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
         }
 
         this.logger.verbose(
@@ -519,12 +469,8 @@ export abstract class MsalAzureAuth {
             proxyStrictSSL,
         );
         if (!agentOptions || !agentOptions.host || !agentOptions.port) {
-            this.logger.error(
-                "Unable to read proxy agent options to create proxy agent.",
-            );
-            throw new Error(
-                LocalizedConstants.unableToGetProxyAgentOptionsToGetTenants,
-            );
+            this.logger.error("Unable to read proxy agent options to create proxy agent.");
+            throw new Error(LocalizedConstants.unableToGetProxyAgentOptionsToGetTenants);
         }
 
         let tunnelOptions: tunnel.HttpsOverHttpsOptions = {};
@@ -549,11 +495,7 @@ export abstract class MsalAzureAuth {
         const isHttpsProxy = proxy.startsWith("https");
         const proxyAgent = {
             isHttps: isHttpsProxy,
-            agent: this.createTunnelingAgent(
-                isHttpsRequest,
-                isHttpsProxy,
-                tunnelOptions,
-            ),
+            agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
         } as ProxyAgent;
 
         return proxyAgent;
@@ -591,9 +533,7 @@ export abstract class MsalAzureAuth {
 
     private getSystemProxyURL(requestURL: Url): string | undefined {
         if (requestURL.protocol === "http:") {
-            return (
-                process.env.HTTP_PROXY || process.env.http_proxy || undefined
-            );
+            return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
         } else if (requestURL.protocol === "https:") {
             return (
                 process.env.HTTPS_PROXY ||
@@ -617,24 +557,16 @@ export abstract class MsalAzureAuth {
         tunnelOptions: tunnel.HttpsOverHttpsOptions,
     ): http.Agent | https.Agent {
         if (isHttpsRequest && isHttpsProxy) {
-            this.logger.verbose(
-                "Creating https request over https proxy tunneling agent",
-            );
+            this.logger.verbose("Creating https request over https proxy tunneling agent");
             return tunnel.httpsOverHttps(tunnelOptions);
         } else if (isHttpsRequest && !isHttpsProxy) {
-            this.logger.verbose(
-                "Creating https request over http proxy tunneling agent",
-            );
+            this.logger.verbose("Creating https request over http proxy tunneling agent");
             return tunnel.httpsOverHttp(tunnelOptions);
         } else if (!isHttpsRequest && isHttpsProxy) {
-            this.logger.verbose(
-                "Creating http request over https proxy tunneling agent",
-            );
+            this.logger.verbose("Creating http request over https proxy tunneling agent");
             return tunnel.httpOverHttps(tunnelOptions);
         } else {
-            this.logger.verbose(
-                "Creating http request over http proxy tunneling agent",
-            );
+            this.logger.verbose("Creating http request over http proxy tunneling agent");
             return tunnel.httpOverHttp(tunnelOptions);
         }
     }
@@ -667,10 +599,7 @@ export abstract class MsalAzureAuth {
      * @param tenant
      * @param resource
      */
-    private async askUserForInteraction(
-        tenant: ITenant,
-        settings: IAADResource,
-    ): Promise<boolean> {
+    private async askUserForInteraction(tenant: ITenant, settings: IAADResource): Promise<boolean> {
         if (!tenant.displayName && !tenant.id) {
             throw new Error("Tenant did not have display name or id");
         }
@@ -691,9 +620,7 @@ export abstract class MsalAzureAuth {
             booleanResult: false,
         };
 
-        const messageBody = LocalizedConstants.azureConsentDialogBodyAccount(
-            settings.id,
-        );
+        const messageBody = LocalizedConstants.azureConsentDialogBodyAccount(settings.id);
         const result = await vscode.window.showInformationMessage(
             messageBody,
             { modal: true },
@@ -711,28 +638,18 @@ export abstract class MsalAzureAuth {
 
     //#region data modeling
 
-    public createAccount(
-        tokenClaims: ITokenClaims,
-        key: string,
-        tenants: ITenant[],
-    ): IAccount {
-        this.logger.verbose(
-            `Token Claims acccount: ${tokenClaims.name}, TID: ${tokenClaims.tid}`,
-        );
+    public createAccount(tokenClaims: ITokenClaims, key: string, tenants: ITenant[]): IAccount {
+        this.logger.verbose(`Token Claims acccount: ${tokenClaims.name}, TID: ${tokenClaims.tid}`);
         tenants.forEach((tenant) => {
-            this.logger.verbose(
-                `Tenant ID: ${tenant.id}, Tenant Name: ${tenant.displayName}`,
-            );
+            this.logger.verbose(`Tenant ID: ${tenant.id}, Tenant Name: ${tenant.displayName}`);
         });
 
         // Determine if this is a microsoft account
         let accountIssuer = "unknown";
 
         if (
-            tokenClaims.iss ===
-                "https://sts.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/" ||
-            tokenClaims.iss ===
-                `${this.loginEndpointUrl}72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0`
+            tokenClaims.iss === "https://sts.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/" ||
+            tokenClaims.iss === `${this.loginEndpointUrl}72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0`
         ) {
             accountIssuer = Constants.AccountIssuer.Corp;
         }
@@ -746,9 +663,7 @@ export abstract class MsalAzureAuth {
             tokenClaims.email ??
             tokenClaims.unique_name;
         const email =
-            tokenClaims.preferred_username ??
-            tokenClaims.email ??
-            tokenClaims.unique_name;
+            tokenClaims.preferred_username ?? tokenClaims.email ?? tokenClaims.unique_name;
 
         let owningTenant: ITenant = Constants.commonTenant; // default to common tenant
 
@@ -772,12 +687,10 @@ export abstract class MsalAzureAuth {
         let contextualDisplayName: string;
         switch (accountIssuer) {
             case Constants.AccountIssuer.Corp:
-                contextualDisplayName =
-                    LocalizedConstants.azureMicrosoftCorpAccount;
+                contextualDisplayName = LocalizedConstants.azureMicrosoftCorpAccount;
                 break;
             case Constants.AccountIssuer.Msft:
-                contextualDisplayName =
-                    LocalizedConstants.azureMicrosoftAccount;
+                contextualDisplayName = LocalizedConstants.azureMicrosoftAccount;
                 break;
             default:
                 contextualDisplayName = displayName;
@@ -823,24 +736,20 @@ export abstract class MsalAzureAuth {
             const split = accessToken.split(".");
             return JSON.parse(Buffer.from(split[1], "base64").toString("utf8"));
         } catch (ex) {
-            throw new Error(
-                "Unable to read token claims: " + JSON.stringify(ex),
-            );
+            throw new Error("Unable to read token claims: " + JSON.stringify(ex));
         }
     }
 
     protected toBase64UrlEncoding(base64string: string): string {
-        return base64string
-            .replace(/=/g, "")
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_"); // Need to use base64url encoding
+        return base64string.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_"); // Need to use base64url encoding
     }
 
     public async clearCredentials(account: IAccount): Promise<void> {
         try {
             const tokenCache = this.clientApplication.getTokenCache();
-            let accountInfo: AccountInfo | null =
-                await this.getAccountFromMsalCache(account.key.id);
+            let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(
+                account.key.id,
+            );
             await tokenCache.removeAccount(accountInfo!);
         } catch (ex) {
             // We need not prompt user for error if token could not be removed from cache.
@@ -1077,11 +986,9 @@ export interface IAuthorizationCodePostData extends ITokenPostData {
     redirect_uri: string;
 }
 
-export interface IDeviceCodeStartPostData
-    extends Omit<ITokenPostData, "grant_type"> {}
+export interface IDeviceCodeStartPostData extends Omit<ITokenPostData, "grant_type"> {}
 
-export interface IDeviceCodeCheckPostData
-    extends Omit<ITokenPostData, "resource"> {
+export interface IDeviceCodeCheckPostData extends Omit<ITokenPostData, "resource"> {
     grant_type: "urn:ietf:params:oauth:grant-type:device_code";
     tenant: string;
     code: string;

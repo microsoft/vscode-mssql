@@ -82,8 +82,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    executionPlanGraphs:
-                        this.state.executionPlanState.executionPlanGraphs,
+                    executionPlanGraphs: this.state.executionPlanState.executionPlanGraphs,
                 },
             };
         });

@@ -40,13 +40,10 @@ export function generateOperationId(): string {
  * @param filePath - The file path to check.
  * @returns A promise that resolves to the starting file path.
  */
-export async function getStartingPathForOpenDialog(
-    filePath?: string,
-): Promise<string> {
+export async function getStartingPathForOpenDialog(filePath?: string): Promise<string> {
     const rootPath = getRootPath();
 
-    const startingFilePath =
-        filePath && (await fileExists(filePath)) ? filePath : rootPath;
+    const startingFilePath = filePath && (await fileExists(filePath)) ? filePath : rootPath;
 
     return startingFilePath;
 }
@@ -96,10 +93,7 @@ export async function showOpenDialogForScmp(): Promise<string | undefined> {
         "scmp Files": ["scmp"],
     };
 
-    const selectedFilePath = await showOpenDialog(
-        startingFilePath,
-        fileDialogFilters,
-    );
+    const selectedFilePath = await showOpenDialog(startingFilePath, fileDialogFilters);
 
     return selectedFilePath;
 }
@@ -112,9 +106,7 @@ export async function showSaveDialogForScmp(): Promise<string | undefined> {
     return selectedSavePath;
 }
 
-export async function showSaveDialog(
-    startingFilePath: string,
-): Promise<string | undefined> {
+export async function showSaveDialog(startingFilePath: string): Promise<string | undefined> {
     const filePath = await vscode.window.showSaveDialog({
         defaultUri: vscode.Uri.file(startingFilePath),
         saveLabel: loc.schemaCompare.save,

@@ -44,36 +44,16 @@ const SelectSchemaInput = (props: Props) => {
     const classes = useStyles();
 
     return (
-        <div
-            className={mergeClasses(
-                classes.layoutVertically,
-                classes.inputWidth,
-            )}
-        >
-            <Label
-                htmlFor={props.id}
-                size={props.size}
-                disabled={props.disabled}
-            >
+        <div className={mergeClasses(classes.layoutVertically, classes.inputWidth)}>
+            <Label htmlFor={props.id} size={props.size} disabled={props.disabled}>
                 {props.label}
             </Label>
-            <div
-                className={mergeClasses(
-                    classes.layoutHorizontally,
-                    props.className ?? "",
-                )}
-            >
-                <Input
-                    id={props.id}
-                    className={classes.inputWidth}
-                    value={props.value}
-                    readOnly
-                />
+            <div className={mergeClasses(classes.layoutHorizontally, props.className ?? "")}>
+                <Input id={props.id} className={classes.inputWidth} value={props.value} readOnly />
                 <Button
                     size="small"
                     className={classes.buttonLeftSmallMargin}
-                    onClick={props.selectFile}
-                >
+                    onClick={props.selectFile}>
                     ...
                 </Button>
             </div>

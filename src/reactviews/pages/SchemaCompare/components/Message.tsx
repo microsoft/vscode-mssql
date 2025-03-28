@@ -42,9 +42,7 @@ const Message = () => {
 
     return (
         <div className={classes.container}>
-            {state.isComparisonInProgress && (
-                <Spinner labelPosition="below" label={message} />
-            )}
+            {state.isComparisonInProgress && <Spinner labelPosition="below" label={message} />}
 
             {!state.isComparisonInProgress && (
                 <Text size={400} align="center">

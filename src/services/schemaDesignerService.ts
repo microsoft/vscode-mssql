@@ -13,14 +13,9 @@ import { GetSchemaModelRequest } from "../models/contracts/schemaDesigner";
 
 export class SchemaDesignerService implements ISchemaDesignerService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
-    async getSchemaModel(
-        request: GetSchemaModelRequestParams,
-    ): Promise<ISchema> {
+    async getSchemaModel(request: GetSchemaModelRequestParams): Promise<ISchema> {
         try {
-            return await this._sqlToolsClient.sendRequest(
-                GetSchemaModelRequest.type,
-                request,
-            );
+            return await this._sqlToolsClient.sendRequest(GetSchemaModelRequest.type, request);
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
             throw e;

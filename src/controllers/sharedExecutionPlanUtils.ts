@@ -15,10 +15,7 @@ import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
@@ -39,10 +36,7 @@ export async function saveExecutionPlan(
 
     if (saveUri) {
         // Write the content to the new file
-        void vscode.workspace.fs.writeFile(
-            saveUri,
-            Buffer.from(payload.sqlPlanContent),
-        );
+        void vscode.workspace.fs.writeFile(saveUri, Buffer.from(payload.sqlPlanContent));
     }
 
     return state;
@@ -80,8 +74,7 @@ export async function updateTotalCost(
         ...state,
         executionPlanState: {
             ...state.executionPlanState,
-            totalCost: (state.executionPlanState.totalCost +=
-                payload.addedCost),
+            totalCost: (state.executionPlanState.totalCost += payload.addedCost),
         },
     };
 }
@@ -162,11 +155,7 @@ export function formatXml(xmlContents: string): string {
                 currentLevel--;
             }
             formattedXml += "\t".repeat(currentLevel) + element + "\n";
-            if (
-                element.startsWith("<") &&
-                !element.startsWith("</") &&
-                !element.endsWith("/>")
-            ) {
+            if (element.startsWith("<") && !element.startsWith("</") && !element.endsWith("/>")) {
                 // Opening tag: increment the level
                 currentLevel++;
             }

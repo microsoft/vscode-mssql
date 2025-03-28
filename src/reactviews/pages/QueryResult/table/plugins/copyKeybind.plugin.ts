@@ -22,18 +22,12 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private handler = new Slick.EventHandler();
     private uri: string;
     private resultSetSummary: ResultSetSummary;
-    private webViewState: VscodeWebviewContext<
-        QueryResultWebviewState,
-        QueryResultReducers
-    >;
+    private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
 
     constructor(
         uri: string,
         resultSetSummary: ResultSetSummary,
-        webViewState: VscodeWebviewContext<
-            QueryResultWebviewState,
-            QueryResultReducers
-        >,
+        webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
         private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
@@ -85,10 +79,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
     }
     public async handleCopySelection(
         grid: Slick.Grid<T>,
-        webViewState: VscodeWebviewContext<
-            QueryResultWebviewState,
-            QueryResultReducers
-        >,
+        webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
         uri: string,
         resultSetSummary: ResultSetSummary,
     ) {
@@ -97,14 +88,9 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
         if (this.dataProvider.isDataInMemory) {
             let range = selectionToRange(selection[0]);
-            let data = await this.dataProvider.getRangeAsync(
-                range.start,
-                range.length,
-            );
+            let data = await this.dataProvider.getRangeAsync(range.start, range.length);
             const dataArray = data.map((map) => {
-                const maxKey = Math.max(
-                    ...Array.from(Object.keys(map)).map(Number),
-                ); // Get the maximum key
+                const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
                 return Array.from({ length: maxKey + 1 }, (_, index) => ({
                     rowId: index,
                     displayValue: map[index].displayValue || null,

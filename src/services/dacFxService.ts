@@ -22,10 +22,7 @@ export class DacFxService implements mssql.IDacFxService {
             ownerUri: ownerUri,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(
-            dacFxContracts.ExportRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.ExportRequest.type, params);
     }
 
     public importBacpac(
@@ -40,10 +37,7 @@ export class DacFxService implements mssql.IDacFxService {
             ownerUri: ownerUri,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(
-            dacFxContracts.ImportRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.ImportRequest.type, params);
     }
 
     public extractDacpac(
@@ -63,10 +57,7 @@ export class DacFxService implements mssql.IDacFxService {
             extractTarget: mssql.ExtractTarget.dacpac,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(
-            dacFxContracts.ExtractRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.ExtractRequest.type, params);
     }
 
     public createProjectFromDatabase(
@@ -89,10 +80,7 @@ export class DacFxService implements mssql.IDacFxService {
             taskExecutionMode: taskExecutionMode,
             includePermissions: includePermissions,
         };
-        return this._client.sendRequest(
-            dacFxContracts.ExtractRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.ExtractRequest.type, params);
     }
 
     public deployDacpac(
@@ -115,10 +103,7 @@ export class DacFxService implements mssql.IDacFxService {
             ownerUri: ownerUri,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(
-            dacFxContracts.DeployRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.DeployRequest.type, params);
     }
 
     public generateDeployScript(
@@ -139,10 +124,7 @@ export class DacFxService implements mssql.IDacFxService {
             ownerUri: ownerUri,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(
-            dacFxContracts.GenerateDeployScriptRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.GenerateDeployScriptRequest.type, params);
     }
 
     public generateDeployPlan(
@@ -157,22 +139,14 @@ export class DacFxService implements mssql.IDacFxService {
             ownerUri: ownerUri,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(
-            dacFxContracts.GenerateDeployPlanRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.GenerateDeployPlanRequest.type, params);
     }
 
-    public getOptionsFromProfile(
-        profilePath: string,
-    ): Thenable<mssql.DacFxOptionsResult> {
+    public getOptionsFromProfile(profilePath: string): Thenable<mssql.DacFxOptionsResult> {
         const params: mssql.GetOptionsFromProfileParams = {
             profilePath: profilePath,
         };
-        return this._client.sendRequest(
-            dacFxContracts.GetOptionsFromProfileRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.GetOptionsFromProfileRequest.type, params);
     }
 
     public validateStreamingJob(
@@ -183,10 +157,7 @@ export class DacFxService implements mssql.IDacFxService {
             packageFilePath: packageFilePath,
             createStreamingJobTsql: createStreamingJobTsql,
         };
-        return this._client.sendRequest(
-            dacFxContracts.ValidateStreamingJobRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.ValidateStreamingJobRequest.type, params);
     }
 
     public savePublishProfile(
@@ -205,9 +176,6 @@ export class DacFxService implements mssql.IDacFxService {
                 : undefined,
             deploymentOptions: deploymentOptions,
         };
-        return this._client.sendRequest(
-            dacFxContracts.SavePublishProfileRequest.type,
-            params,
-        );
+        return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
     }
 }

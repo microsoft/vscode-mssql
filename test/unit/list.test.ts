@@ -18,14 +18,9 @@ suite("List Prompt Tests", () => {
     };
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         vscodeWrapper
-            .setup((v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve("test1"));
     });
 
@@ -33,28 +28,21 @@ suite("List Prompt Tests", () => {
         listPrompt = new ListPrompt(question, vscodeWrapper.object);
         listPrompt.render();
         vscodeWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
     test.skip("Test list prompt render with error", () => {
-        let errorWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        let errorWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         errorWrapper
-            .setup((w) =>
-                w.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((w) => w.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
         let errorPrompt = new ListPrompt(question, errorWrapper.object);
         errorPrompt.render();
         errorWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });

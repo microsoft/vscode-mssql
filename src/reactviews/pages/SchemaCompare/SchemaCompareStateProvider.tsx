@@ -17,13 +17,8 @@ interface SchemaCompareStateProviderProps {
     children: React.ReactNode;
 }
 
-const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
-    children,
-}) => {
-    const webViewState = useVscodeWebview<
-        sc.SchemaCompareWebViewState,
-        sc.SchemaCompareReducers
-    >();
+const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({ children }) => {
+    const webViewState = useVscodeWebview<sc.SchemaCompareWebViewState, sc.SchemaCompareReducers>();
     const schemaCompareState = webViewState?.state;
 
     return (
@@ -33,27 +28,18 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 themeKind: webViewState?.themeKind,
 
                 isSqlProjectExtensionInstalled: function (): void {
-                    webViewState?.extensionRpc.action(
-                        "isSqlProjectExtensionInstalled",
-                        {},
-                    );
+                    webViewState?.extensionRpc.action("isSqlProjectExtensionInstalled", {});
                 },
                 listActiveServers: function (): void {
                     webViewState?.extensionRpc.action("listActiveServers", {});
                 },
-                listDatabasesForActiveServer: function (
-                    connectionUri: string,
-                ): void {
-                    webViewState?.extensionRpc.action(
-                        "listDatabasesForActiveServer",
-                        { connectionUri: connectionUri },
-                    );
+                listDatabasesForActiveServer: function (connectionUri: string): void {
+                    webViewState?.extensionRpc.action("listDatabasesForActiveServer", {
+                        connectionUri: connectionUri,
+                    });
                 },
                 openAddNewConnectionDialog: function (): void {
-                    webViewState?.extensionRpc.action(
-                        "openAddNewConnectionDialog",
-                        {},
-                    );
+                    webViewState?.extensionRpc.action("openAddNewConnectionDialog", {});
                 },
                 selectFile: function (
                     endpoint: mssql.SchemaCompareEndpointInfo,
@@ -80,30 +66,21 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     serverConnectionUri: string,
                     databaseName: string,
                 ): void {
-                    webViewState?.extensionRpc.action(
-                        "confirmSelectedDatabase",
-                        {
-                            endpointType: endpointType,
-                            serverConnectionUri: serverConnectionUri,
-                            databaseName: databaseName,
-                        },
-                    );
+                    webViewState?.extensionRpc.action("confirmSelectedDatabase", {
+                        endpointType: endpointType,
+                        serverConnectionUri: serverConnectionUri,
+                        databaseName: databaseName,
+                    });
                 },
                 setIntermediarySchemaOptions: function (): void {
-                    webViewState?.extensionRpc.action(
-                        "setIntermediarySchemaOptions",
-                        {},
-                    );
+                    webViewState?.extensionRpc.action("setIntermediarySchemaOptions", {});
                 },
                 intermediaryGeneralOptionsChanged(key: string): void {
-                    webViewState?.extensionRpc.action(
-                        "intermediaryGeneralOptionsChanged",
-                        { key: key },
-                    );
+                    webViewState?.extensionRpc.action("intermediaryGeneralOptionsChanged", {
+                        key: key,
+                    });
                 },
-                intermediaryIncludeObjectTypesOptionsChanged(
-                    key: string,
-                ): void {
+                intermediaryIncludeObjectTypesOptionsChanged(key: string): void {
                     webViewState?.extensionRpc.action(
                         "intermediaryIncludeObjectTypesOptionsChanged",
                         { key: key },
@@ -143,10 +120,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         targetDatabaseName: targetDatabaseName,
                     });
                 },
-                publishChanges: function (
-                    targetDatabaseName: string,
-                    targetServerName: string,
-                ) {
+                publishChanges: function (targetDatabaseName: string, targetServerName: string) {
                     webViewState?.extensionRpc.action("publishChanges", {
                         targetServerName: targetServerName,
                         targetDatabaseName: targetDatabaseName,
@@ -156,13 +130,10 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     targetServerName: string,
                     targetDatabaseName: string,
                 ): void {
-                    webViewState?.extensionRpc.action(
-                        "publishDatabaseChanges",
-                        {
-                            targetServerName: targetServerName,
-                            targetDatabaseName: targetDatabaseName,
-                        },
-                    );
+                    webViewState?.extensionRpc.action("publishDatabaseChanges", {
+                        targetServerName: targetServerName,
+                        targetDatabaseName: targetDatabaseName,
+                    });
                 },
                 publishProjectChanges: function (
                     targetProjectPath: string,

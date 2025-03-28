@@ -5,13 +5,7 @@
 
 import * as mssql from "vscode-mssql";
 import { useContext } from "react";
-import {
-    Button,
-    makeStyles,
-    mergeClasses,
-    shorthands,
-    useId,
-} from "@fluentui/react-components";
+import { Button, makeStyles, mergeClasses, shorthands, useId } from "@fluentui/react-components";
 import SelectSchemaInput from "./SelectSchemaInput";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -77,19 +71,14 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
         context.compare(
             context.state.sourceEndpointInfo,
             context.state.targetEndpointInfo,
-            context.state.defaultDeploymentOptionsResult
-                .defaultDeploymentOptions,
+            context.state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
         );
     };
 
-    const isEndpointEmpty = (
-        endpoint: mssql.SchemaCompareEndpointInfo,
-    ): boolean => {
+    const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
         if (
             endpoint &&
-            (endpoint.serverDisplayName ||
-                endpoint.packageFilePath ||
-                endpoint.projectFilePath)
+            (endpoint.serverDisplayName || endpoint.packageFilePath || endpoint.projectFilePath)
         ) {
             return false;
         }
@@ -98,12 +87,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
 
     return (
         <div
-            className={mergeClasses(
-                classes.layoutHorizontally,
-                classes.center,
-                classes.topMargin,
-            )}
-        >
+            className={mergeClasses(classes.layoutHorizontally, classes.center, classes.topMargin)}>
             <SelectSchemaInput
                 id={sourceId}
                 label={loc.schemaCompare.source}
@@ -120,18 +104,14 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
             />
 
             <Button
-                className={mergeClasses(
-                    classes.button,
-                    classes.buttonLeftMargin,
-                )}
+                className={mergeClasses(classes.button, classes.buttonLeftMargin)}
                 size="medium"
                 onClick={handleCompare}
                 disabled={
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo) ||
                     context.state.isComparisonInProgress
-                }
-            >
+                }>
                 {loc.schemaCompare.compare}
             </Button>
         </div>

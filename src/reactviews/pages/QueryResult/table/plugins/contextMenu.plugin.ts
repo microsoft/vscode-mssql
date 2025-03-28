@@ -25,10 +25,7 @@ export class ContextMenu<T extends Slick.SlickData> {
         private uri: string,
         private resultSetSummary: ResultSetSummary,
         private queryResultContext: QueryResultContextProps,
-        private webViewState: VscodeWebviewContext<
-            QueryResultWebviewState,
-            QueryResultReducers
-        >,
+        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
         private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
@@ -38,12 +35,8 @@ export class ContextMenu<T extends Slick.SlickData> {
 
     public init(grid: Slick.Grid<T>): void {
         this.grid = grid;
-        this.handler.subscribe(this.grid.onContextMenu, (e: Event) =>
-            this.handleContextMenu(e),
-        );
-        this.handler.subscribe(this.grid.onHeaderClick, (e: Event) =>
-            this.headerClickHandler(e),
-        );
+        this.handler.subscribe(this.grid.onContextMenu, (e: Event) => this.handleContextMenu(e));
+        this.handler.subscribe(this.grid.onHeaderClick, (e: Event) => this.headerClickHandler(e));
     }
 
     public destroy() {
@@ -105,12 +98,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 const data = this.grid.getData() as HybridDataProvider<T>;
                 let selectionModel = this.grid.getSelectionModel();
                 selectionModel.setSelectedRanges([
-                    new Slick.Range(
-                        0,
-                        0,
-                        data.length - 1,
-                        this.grid.getColumns().length - 1,
-                    ),
+                    new Slick.Range(0, 0, data.length - 1, this.grid.getColumns().length - 1),
                 ]);
                 break;
             case "copy":
@@ -120,34 +108,23 @@ export class ContextMenu<T extends Slick.SlickData> {
                         "Sorted/filtered grid detected, fetching data from data provider",
                     );
                     let range = selectionToRange(selection[0]);
-                    let data = await this.dataProvider.getRangeAsync(
-                        range.start,
-                        range.length,
-                    );
+                    let data = await this.dataProvider.getRangeAsync(range.start, range.length);
                     const dataArray = data.map((map) => {
-                        const maxKey = Math.max(
-                            ...Array.from(Object.keys(map)).map(Number),
-                        ); // Get the maximum key
-                        return Array.from(
-                            { length: maxKey + 1 },
-                            (_, index) => ({
-                                rowId: index,
-                                displayValue: map[index].displayValue || null,
-                            }),
-                        );
+                        const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
+                        return Array.from({ length: maxKey + 1 }, (_, index) => ({
+                            rowId: index,
+                            displayValue: map[index].displayValue || null,
+                        }));
                     });
 
-                    await this.webViewState.extensionRpc.call(
-                        "sendToClipboard",
-                        {
-                            uri: this.uri,
-                            data: dataArray,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                            headersFlag: false,
-                        },
-                    );
+                    await this.webViewState.extensionRpc.call("sendToClipboard", {
+                        uri: this.uri,
+                        data: dataArray,
+                        batchId: this.resultSetSummary.batchId,
+                        resultId: this.resultSetSummary.id,
+                        selection: selection,
+                        headersFlag: false,
+                    });
                 } else {
                     await this.webViewState.extensionRpc.call("copySelection", {
                         uri: this.uri,
@@ -159,9 +136,7 @@ export class ContextMenu<T extends Slick.SlickData> {
 
                 break;
             case "copy-with-headers":
-                this.queryResultContext.log(
-                    "Copy with headers action triggered",
-                );
+                this.queryResultContext.log("Copy with headers action triggered");
 
                 if (this.dataProvider.isDataInMemory) {
                     this.queryResultContext.log(
@@ -169,44 +144,30 @@ export class ContextMenu<T extends Slick.SlickData> {
                     );
 
                     let range = selectionToRange(selection[0]);
-                    let data = await this.dataProvider.getRangeAsync(
-                        range.start,
-                        range.length,
-                    );
+                    let data = await this.dataProvider.getRangeAsync(range.start, range.length);
                     const dataArray = data.map((map) => {
-                        const maxKey = Math.max(
-                            ...Array.from(Object.keys(map)).map(Number),
-                        ); // Get the maximum key
-                        return Array.from(
-                            { length: maxKey + 1 },
-                            (_, index) => ({
-                                rowId: index,
-                                displayValue: map[index].displayValue || null,
-                            }),
-                        );
+                        const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
+                        return Array.from({ length: maxKey + 1 }, (_, index) => ({
+                            rowId: index,
+                            displayValue: map[index].displayValue || null,
+                        }));
                     });
 
-                    await this.webViewState.extensionRpc.call(
-                        "sendToClipboard",
-                        {
-                            uri: this.uri,
-                            data: dataArray,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                            headersFlag: true,
-                        },
-                    );
+                    await this.webViewState.extensionRpc.call("sendToClipboard", {
+                        uri: this.uri,
+                        data: dataArray,
+                        batchId: this.resultSetSummary.batchId,
+                        resultId: this.resultSetSummary.id,
+                        selection: selection,
+                        headersFlag: true,
+                    });
                 } else {
-                    await this.webViewState.extensionRpc.call(
-                        "copyWithHeaders",
-                        {
-                            uri: this.uri,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                        },
-                    );
+                    await this.webViewState.extensionRpc.call("copyWithHeaders", {
+                        uri: this.uri,
+                        batchId: this.resultSetSummary.batchId,
+                        resultId: this.resultSetSummary.id,
+                        selection: selection,
+                    });
                 }
 
                 break;

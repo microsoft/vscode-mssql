@@ -24,11 +24,7 @@ import {
     SelectionEvents,
     OptionOnSelectData,
 } from "@fluentui/react-components";
-import {
-    Dismiss24Regular,
-    FolderFilled,
-    PlugDisconnectedRegular,
-} from "@fluentui/react-icons";
+import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
 
@@ -70,8 +66,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     const [disableOkButton, setDisableOkButton] = useState(true);
     const [serverConnectionUri, setServerConnectionUri] = useState("");
     const [databaseName, setDatabaseName] = useState("");
-    const [folderStructure, setFolderStructure] =
-        useState("Schema/Object Type");
+    const [folderStructure, setFolderStructure] = useState("Schema/Object Type");
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
@@ -93,11 +88,7 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     useEffect(() => {
         updateOkButtonState(schemaType);
-    }, [
-        context.state.auxiliaryEndpointInfo,
-        serverConnectionUri,
-        databaseName,
-    ]);
+    }, [context.state.auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
 
     const drawerTitle =
         props.endpointType === "source"
@@ -151,20 +142,14 @@ const SchemaSelectorDrawer = (props: Props) => {
         updateOkButtonState(type);
     };
 
-    const handleDatabaseServerSelected = (
-        _: SelectionEvents,
-        data: OptionOnSelectData,
-    ) => {
+    const handleDatabaseServerSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue) {
             setServerConnectionUri(data.optionValue);
             context.listDatabasesForActiveServer(data.optionValue);
         }
     };
 
-    const handleDatabaseSelected = (
-        _: SelectionEvents,
-        data: OptionOnSelectData,
-    ) => {
+    const handleDatabaseSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue) {
             setDatabaseName(data.optionValue);
         }
@@ -179,10 +164,7 @@ const SchemaSelectorDrawer = (props: Props) => {
         context.selectFile(endpoint, props.endpointType, fileType);
     };
 
-    const handleFolderStructureSelected = (
-        _: SelectionEvents,
-        data: OptionOnSelectData,
-    ) => {
+    const handleFolderStructureSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue) {
             setFolderStructure(data.optionValue);
         }
@@ -190,11 +172,7 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     const confirmSelectedEndpoint = () => {
         if (schemaType === "database") {
-            context.confirmSelectedDatabase(
-                props.endpointType,
-                serverConnectionUri,
-                databaseName,
-            );
+            context.confirmSelectedDatabase(props.endpointType, serverConnectionUri, databaseName);
         } else {
             context.confirmSelectedSchema(props.endpointType, folderStructure);
         }
@@ -202,8 +180,7 @@ const SchemaSelectorDrawer = (props: Props) => {
         props.showDrawer(false);
     };
 
-    let isSqlProjExtensionInstalled =
-        context.state.isSqlProjectExtensionInstalled;
+    let isSqlProjExtensionInstalled = context.state.isSqlProjectExtensionInstalled;
 
     return (
         <Drawer
@@ -211,8 +188,7 @@ const SchemaSelectorDrawer = (props: Props) => {
             open={props.show}
             onOpenChange={(_, { open: show }) => props.showDrawer(show)}
             position="end"
-            size="medium"
-        >
+            size="medium">
             <DrawerHeader>
                 <DrawerHeaderTitle
                     action={
@@ -222,8 +198,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                             icon={<Dismiss24Regular />}
                             onClick={() => props.showDrawer(false)}
                         />
-                    }
-                >
+                    }>
                     {drawerTitle}
                 </DrawerHeaderTitle>
             </DrawerHeader>
@@ -231,23 +206,11 @@ const SchemaSelectorDrawer = (props: Props) => {
                 <Field label={loc.schemaCompare.type}>
                     <RadioGroup
                         value={schemaType}
-                        onChange={(_, data) =>
-                            handleSchemaTypeChange(data.value)
-                        }
-                    >
-                        <Radio
-                            value="database"
-                            label={loc.schemaCompare.database}
-                        />
-                        <Radio
-                            value="dacpac"
-                            label={loc.schemaCompare.dataTierApplicationFile}
-                        />
+                        onChange={(_, data) => handleSchemaTypeChange(data.value)}>
+                        <Radio value="database" label={loc.schemaCompare.database} />
+                        <Radio value="dacpac" label={loc.schemaCompare.dataTierApplicationFile} />
                         {isSqlProjExtensionInstalled && (
-                            <Radio
-                                value="sqlproj"
-                                label={loc.schemaCompare.databaseProject}
-                            />
+                            <Radio value="sqlproj" label={loc.schemaCompare.databaseProject} />
                         )}
                     </RadioGroup>
                 </Field>
@@ -260,24 +223,14 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 className={classes.fileInputWidth}
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseServerSelected(event, data)
-                                }
-                            >
-                                {Object.keys(context.state.activeServers).map(
-                                    (connUri) => {
-                                        return (
-                                            <Option
-                                                key={connUri}
-                                                value={connUri}
-                                            >
-                                                {
-                                                    context.state.activeServers[
-                                                        connUri
-                                                    ]
-                                                }
-                                            </Option>
-                                        );
-                                    },
-                                )}
+                                }>
+                                {Object.keys(context.state.activeServers).map((connUri) => {
+                                    return (
+                                        <Option key={connUri} value={connUri}>
+                                            {context.state.activeServers[connUri]}
+                                        </Option>
+                                    );
+                                })}
                             </Dropdown>
                             <Button
                                 className={classes.buttonLeftMargin}
@@ -294,8 +247,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 className={classes.fileInputWidth}
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
-                                }
-                            >
+                                }>
                                 {context.state.databases.map((db) => {
                                     return (
                                         <Option key={db} value={db}>
@@ -329,35 +281,28 @@ const SchemaSelectorDrawer = (props: Props) => {
                             />
                         </div>
 
-                        {props.endpointType === "target" &&
-                            schemaType === "sqlproj" && (
-                                <>
-                                    <Label htmlFor={folderStructureId}>
-                                        {loc.schemaCompare.folderStructure}
-                                    </Label>
-                                    <div>
-                                        <Dropdown
-                                            id={folderStructureId}
-                                            className={classes.fileInputWidth}
-                                            defaultValue={options[4].display}
-                                            onOptionSelect={(event, data) =>
-                                                handleFolderStructureSelected(
-                                                    event,
-                                                    data,
-                                                )
-                                            }
-                                        >
-                                            {options.map((option) => {
-                                                return (
-                                                    <Option key={option.value}>
-                                                        {option.display}
-                                                    </Option>
-                                                );
-                                            })}
-                                        </Dropdown>
-                                    </div>
-                                </>
-                            )}
+                        {props.endpointType === "target" && schemaType === "sqlproj" && (
+                            <>
+                                <Label htmlFor={folderStructureId}>
+                                    {loc.schemaCompare.folderStructure}
+                                </Label>
+                                <div>
+                                    <Dropdown
+                                        id={folderStructureId}
+                                        className={classes.fileInputWidth}
+                                        defaultValue={options[4].display}
+                                        onOptionSelect={(event, data) =>
+                                            handleFolderStructureSelected(event, data)
+                                        }>
+                                        {options.map((option) => {
+                                            return (
+                                                <Option key={option.value}>{option.display}</Option>
+                                            );
+                                        })}
+                                    </Dropdown>
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
             </DrawerBody>
@@ -365,14 +310,10 @@ const SchemaSelectorDrawer = (props: Props) => {
                 <Button
                     disabled={disableOkButton}
                     appearance="primary"
-                    onClick={() => confirmSelectedEndpoint()}
-                >
+                    onClick={() => confirmSelectedEndpoint()}>
                     {loc.schemaCompare.ok}
                 </Button>
-                <Button
-                    appearance="secondary"
-                    onClick={() => props.showDrawer(false)}
-                >
+                <Button appearance="secondary" onClick={() => props.showDrawer(false)}>
                     {loc.schemaCompare.cancel}
                 </Button>
             </DrawerFooter>

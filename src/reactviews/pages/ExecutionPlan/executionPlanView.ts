@@ -20,10 +20,7 @@ export class ExecutionPlanView {
     }
 
     public getTotalRelativeCost(): number {
-        return (
-            this._executionPlanRootNode.cost +
-            this._executionPlanRootNode.subTreeCost
-        );
+        return this._executionPlanRootNode.cost + this._executionPlanRootNode.subTreeCost;
     }
 
     public getDiagram(): any {
@@ -34,9 +31,7 @@ export class ExecutionPlanView {
         this._diagram = model;
     }
 
-    public populate(
-        node: ep.ExecutionPlanNode = this._executionPlanRootNode,
-    ): ep.AzDataGraphCell {
+    public populate(node: ep.ExecutionPlanNode = this._executionPlanRootNode): ep.AzDataGraphCell {
         let diagramNode: ep.AzDataGraphCell = <ep.AzDataGraphCell>{};
         diagramNode.label = node.subtext.join("\n");
         diagramNode.tooltipTitle = node.name;
@@ -56,9 +51,7 @@ export class ExecutionPlanView {
         diagramNode.badges = [];
         for (let i = 0; node.badges && i < node.badges.length; i++) {
             diagramNode.badges.push(
-                this.getBadgeTypeString(
-                    node.badges[i].type,
-                ) as ep.AzDataGraphNodeBadge,
+                this.getBadgeTypeString(node.badges[i].type) as ep.AzDataGraphNodeBadge,
             );
         }
 
@@ -83,9 +76,7 @@ export class ExecutionPlanView {
         diagramNode.relativeCost = node.relativeCost;
         diagramNode.elapsedTimeInMs = node.elapsedTimeInMs;
         if (node.elapsedTimeInMs) {
-            this.expensiveMetricTypes.add(
-                ep.ExpensiveMetricType.ActualElapsedTime,
-            );
+            this.expensiveMetricTypes.add(ep.ExpensiveMetricType.ActualElapsedTime);
         }
 
         let costMetrics = [];
@@ -101,23 +92,13 @@ export class ExecutionPlanView {
 
     private loadMetricTypesFromCostMetrics(costMetricName: string): void {
         if (costMetricName === "ElapsedCpuTime") {
-            this.expensiveMetricTypes.add(
-                ep.ExpensiveMetricType.ActualElapsedCpuTime,
-            );
-        } else if (
-            costMetricName === "EstimateRowsAllExecs" ||
-            costMetricName === "ActualRows"
-        ) {
+            this.expensiveMetricTypes.add(ep.ExpensiveMetricType.ActualElapsedCpuTime);
+        } else if (costMetricName === "EstimateRowsAllExecs" || costMetricName === "ActualRows") {
             this.expensiveMetricTypes.add(
                 ep.ExpensiveMetricType.ActualNumberOfRowsForAllExecutions,
             );
-        } else if (
-            costMetricName === "EstimatedRowsRead" ||
-            costMetricName === "ActualRowsRead"
-        ) {
-            this.expensiveMetricTypes.add(
-                ep.ExpensiveMetricType.NumberOfRowsRead,
-            );
+        } else if (costMetricName === "EstimatedRowsRead" || costMetricName === "ActualRowsRead") {
+            this.expensiveMetricTypes.add(ep.ExpensiveMetricType.NumberOfRowsRead);
         }
     }
 
@@ -163,9 +144,7 @@ export class ExecutionPlanView {
         });
 
         return props
-            .filter(
-                (e) => typeof e.displayValue === "string" && e.showInTooltip,
-            )
+            .filter((e) => typeof e.displayValue === "string" && e.showInTooltip)
             .sort((a, b) => a.displayOrder - b.displayOrder)
             .map((e) => {
                 return {
@@ -188,10 +167,7 @@ export class ExecutionPlanView {
             return {
                 id: e.id,
                 metrics: this.populateProperties(e.properties),
-                weight: Math.max(
-                    0.5,
-                    Math.min(0.5 + 0.75 * Math.log10(e.rowCount), 6),
-                ),
+                weight: Math.max(0.5, Math.min(0.5 + 0.75 * Math.log10(e.rowCount), 6)),
                 label: "",
             };
         });
@@ -217,14 +193,8 @@ export class ExecutionPlanView {
         return this._diagram.graph.showTooltip;
     }
 
-    public drawSubtreePolygon(
-        subtreeRoot: string,
-        fillColor: string,
-        borderColor: string,
-    ): void {
-        const drawPolygon = this._diagram.graph.model.getCell(
-            `element-${subtreeRoot}`,
-        );
+    public drawSubtreePolygon(subtreeRoot: string, fillColor: string, borderColor: string): void {
+        const drawPolygon = this._diagram.graph.model.getCell(`element-${subtreeRoot}`);
         this._diagram.drawPolygon(drawPolygon, fillColor, borderColor);
     }
 
@@ -315,9 +285,7 @@ export class ExecutionPlanView {
                         matchFound = matchingProp.value === searchQuery.value;
                         break;
                     case ep.SearchType.Contains:
-                        matchFound = matchingProp.value.includes(
-                            searchQuery.value,
-                        );
+                        matchFound = matchingProp.value.includes(searchQuery.value);
                         break;
                     case ep.SearchType.GreaterThan:
                         matchFound = matchingProp.value > searchQuery.value;
@@ -394,10 +362,8 @@ export class ExecutionPlanView {
             y: cellMidPoint.y - diagramContainerRect.height / 2,
         };
 
-        leftTopScrollPoint.x =
-            leftTopScrollPoint.x < 0 ? 0 : leftTopScrollPoint.x;
-        leftTopScrollPoint.y =
-            leftTopScrollPoint.y < 0 ? 0 : leftTopScrollPoint.y;
+        leftTopScrollPoint.x = leftTopScrollPoint.x < 0 ? 0 : leftTopScrollPoint.x;
+        leftTopScrollPoint.y = leftTopScrollPoint.y < 0 ? 0 : leftTopScrollPoint.y;
 
         graphContainer.scrollTo({
             left: leftTopScrollPoint.x,
@@ -445,9 +411,7 @@ export class ExecutionPlanView {
      * Get the diagram element by its id
      * @param id id of the diagram element
      */
-    public getElementById(
-        id: string,
-    ): ep.InternalExecutionPlanElement | undefined {
+    public getElementById(id: string): ep.InternalExecutionPlanElement | undefined {
         const nodeStack: ep.ExecutionPlanNode[] = [];
         nodeStack.push(this._executionPlanRootNode);
 
@@ -459,10 +423,7 @@ export class ExecutionPlanView {
 
             if (currentNode.edges) {
                 for (let i = 0; i < currentNode.edges.length; i++) {
-                    if (
-                        (<ep.InternalExecutionPlanEdge>currentNode.edges[i])
-                            .id === id
-                    ) {
+                    if ((<ep.InternalExecutionPlanEdge>currentNode.edges[i]).id === id) {
                         return currentNode.edges[i];
                     }
                 }
@@ -475,9 +436,6 @@ export class ExecutionPlanView {
     }
 
     public calculateRelativeQueryCost(): number {
-        return (
-            this._executionPlanRootNode.subTreeCost +
-            this._executionPlanRootNode.cost
-        );
+        return this._executionPlanRootNode.subTreeCost + this._executionPlanRootNode.cost;
     }
 }

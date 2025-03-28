@@ -4,14 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext } from "react";
-import {
-    ISchema,
-    SchemaDesignerWebviewState,
-} from "../../../sharedInterfaces/schemaDesigner";
-import {
-    useVscodeWebview,
-    WebviewContextProps,
-} from "../../common/vscodeWebviewProvider";
+import { ISchema, SchemaDesignerWebviewState } from "../../../sharedInterfaces/schemaDesigner";
+import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 
 export interface SchemaDesignerContextProps
@@ -19,17 +13,13 @@ export interface SchemaDesignerContextProps
     schema: ISchema; // TODO: is this redundant with state.schema?
 }
 
-const SchemaDesignerContext = createContext<
-    SchemaDesignerContextProps | undefined
->(undefined);
+const SchemaDesignerContext = createContext<SchemaDesignerContextProps | undefined>(undefined);
 
 interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
 
-const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
-    children,
-}) => {
+const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     const webviewState = useVscodeWebview<SchemaDesignerWebviewState, any>();
     return (
         <SchemaDesignerContext.Provider
@@ -38,8 +28,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({
                 schema: webviewState.state.schema,
                 state: webviewState.state,
                 themeKind: webviewState.themeKind,
-            }}
-        >
+            }}>
             {children}
         </SchemaDesignerContext.Provider>
     );

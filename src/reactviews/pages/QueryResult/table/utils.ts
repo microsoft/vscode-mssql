@@ -15,9 +15,7 @@ export interface RowRange {
     length: number;
 }
 
-export function tryCombineSelectionsForResults(
-    selections: ISlickRange[],
-): ISlickRange[] {
+export function tryCombineSelectionsForResults(selections: ISlickRange[]): ISlickRange[] {
     // need to take row number column in to consideration.
     return tryCombineSelections(selections).map((range) => {
         return {
@@ -70,16 +68,8 @@ export function tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {
             );
         });
     });
-    for (
-        let row = unifiedSelection.fromRow;
-        row <= unifiedSelection.toRow;
-        row++
-    ) {
-        for (
-            let column = unifiedSelection.fromCell;
-            column <= unifiedSelection.toCell;
-            column++
-        ) {
+    for (let row = unifiedSelection.fromRow; row <= unifiedSelection.toRow; row++) {
+        for (let column = unifiedSelection.fromCell; column <= unifiedSelection.toCell; column++) {
             // If some cell in the combined selection isn't actually selected, return the original selections
             if (!verifiers.some((verifier) => verifier([row, column]))) {
                 return selections;

@@ -74,8 +74,7 @@ export interface GridSortState {
     field: string;
     sortAsc: boolean;
 }
-export interface FilterableColumn<T extends Slick.SlickData>
-    extends Slick.Column<T> {
+export interface FilterableColumn<T extends Slick.SlickData> extends Slick.Column<T> {
     filterable?: boolean;
     filterValues?: Array<string>;
     sorted?: SortProperties;
@@ -94,17 +93,12 @@ export interface ITableKeyboardEvent {
 export const defaultTableStyles: ITableStyles = {
     listFocusBackground: "var(--vscode-list-focusBackground)",
     listFocusForeground: "var(--vscode-list-focusForeground)",
-    listActiveSelectionBackground:
-        "var(--vscode-list-activeSelectionBackground)",
-    listActiveSelectionForeground:
-        "var(--vscode-list-activeSelectionForeground)",
-    listFocusAndSelectionBackground:
-        "var(--vscode-list-activeSelectionBackground)", // "var(--vscode-list-focusAndSelectionBackground)"  not defined
-    listFocusAndSelectionForeground:
-        "var(--vscode-list-activeSelectionForeground)", // "var(--vscode-list-focusAndSelectionBackground)"  not defined
+    listActiveSelectionBackground: "var(--vscode-list-activeSelectionBackground)",
+    listActiveSelectionForeground: "var(--vscode-list-activeSelectionForeground)",
+    listFocusAndSelectionBackground: "var(--vscode-list-activeSelectionBackground)", // "var(--vscode-list-focusAndSelectionBackground)"  not defined
+    listFocusAndSelectionForeground: "var(--vscode-list-activeSelectionForeground)", // "var(--vscode-list-focusAndSelectionBackground)"  not defined
     listInactiveFocusBackground: undefined,
-    listInactiveSelectionBackground:
-        "var(--vscode-list-inactiveSelectionBackground)",
+    listInactiveSelectionBackground: "var(--vscode-list-inactiveSelectionBackground)",
     listInactiveSelectionForeground: undefined,
     listHoverBackground: "var(--vscode-list-hoverBackground)",
     listHoverForeground: "var(--vscode-list-hoverForeground)",

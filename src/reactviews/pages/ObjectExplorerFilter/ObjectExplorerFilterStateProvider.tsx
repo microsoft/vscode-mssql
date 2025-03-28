@@ -13,21 +13,18 @@ import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 
-const ObjectExplorerFilterContext = createContext<
-    ObjectExplorerFilterContextProps | undefined
->(undefined);
+const ObjectExplorerFilterContext = createContext<ObjectExplorerFilterContextProps | undefined>(
+    undefined,
+);
 
 interface ObjectExplorerFilterStateProviderProps {
     children: React.ReactNode;
 }
 
-const ObjectExplorerFilterStateProvider: React.FC<
-    ObjectExplorerFilterStateProviderProps
-> = ({ children }) => {
-    const webviewState = useVscodeWebview<
-        ObjectExplorerFilterState,
-        ObjectExplorerReducers
-    >();
+const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProviderProps> = ({
+    children,
+}) => {
+    const webviewState = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
     const objectExplorerFilterState = webviewState?.state;
 
     return (
@@ -46,8 +43,7 @@ const ObjectExplorerFilterStateProvider: React.FC<
                 cancel: function (): void {
                     webviewState?.extensionRpc.action("cancel", {});
                 },
-            }}
-        >
+            }}>
             {children}
         </ObjectExplorerFilterContext.Provider>
     );

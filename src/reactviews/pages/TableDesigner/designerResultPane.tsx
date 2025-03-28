@@ -3,13 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Tab,
-    TabList,
-    makeStyles,
-    shorthands,
-} from "@fluentui/react-components";
+import { Button, Tab, TabList, makeStyles, shorthands } from "@fluentui/react-components";
 import {
     ChevronDownFilled,
     ChevronUpFilled,
@@ -88,8 +82,7 @@ const useStyles = makeStyles({
             marginRight: "10px",
         },
         ":hover": {
-            backgroundColor:
-                "var(--vscode-editor-selectionHighlightBackground)",
+            backgroundColor: "var(--vscode-editor-selectionHighlightBackground)",
         },
         width: "100%",
     },
@@ -127,9 +120,7 @@ export const DesignerResultPane = () => {
         let tableModel;
         if (issuePath.length > 1) {
             // error is found in a table row. Load properties for the row
-            tableComponent = containingTab.components.find(
-                (c) => c.propertyName === issuePath[0],
-            );
+            tableComponent = containingTab.components.find((c) => c.propertyName === issuePath[0]);
             if (!tableComponent) {
                 return;
             }
@@ -150,23 +141,17 @@ export const DesignerResultPane = () => {
             case 3: // This is a component in the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
             case 5: // This is a component in the table inside the properties pane. Since we have already loaded the properties pane, we can directly focus on the component
                 elementToFocus =
-                    context.elementRefs.current[
-                        context.getComponentId(issuePath as any)
-                    ];
+                    context.elementRefs.current[context.getComponentId(issuePath as any)];
                 break;
             case 2: // This is table row. Therefore focuing on the first property of the row
                 if (!tableComponent) {
                     return;
                 }
-                const firstProperty = (
-                    tableComponent.componentProperties as TableProperties
-                ).itemProperties[0].propertyName;
+                const firstProperty = (tableComponent.componentProperties as TableProperties)
+                    .itemProperties[0].propertyName;
                 elementToFocus =
                     context.elementRefs.current[
-                        context.getComponentId([
-                            ...issuePath,
-                            firstProperty,
-                        ] as any)
+                        context.getComponentId([...issuePath, firstProperty] as any)
                     ];
                 break;
             case 4: // This is table row in properties pane. Therefore focuing on the first property of the row
@@ -185,10 +170,7 @@ export const DesignerResultPane = () => {
                 ).itemProperties[0].propertyName;
                 elementToFocus =
                     context.elementRefs.current[
-                        context.getComponentId([
-                            ...issuePath,
-                            firstPropertyInSubTable,
-                        ] as any)
+                        context.getComponentId([...issuePath, firstPropertyInSubTable] as any)
                     ];
                 break;
             default:
@@ -212,50 +194,36 @@ export const DesignerResultPane = () => {
                     size="small"
                     selectedValue={state.tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {
-                        context.setResultTab(
-                            data.value as DesignerResultPaneTabs,
-                        );
+                        context.setResultTab(data.value as DesignerResultPaneTabs);
                     }}
-                    className={classes.designerResultPaneTabs}
-                >
-                    <Tab
-                        value={DesignerResultPaneTabs.Script}
-                        key={DesignerResultPaneTabs.Script}
-                    >
+                    className={classes.designerResultPaneTabs}>
+                    <Tab value={DesignerResultPaneTabs.Script} key={DesignerResultPaneTabs.Script}>
                         {locConstants.tableDesigner.scriptAsCreate}
                     </Tab>
                     {state.issues?.length !== 0 && (
                         <Tab
                             value={DesignerResultPaneTabs.Issues}
-                            key={DesignerResultPaneTabs.Issues}
-                        >
-                            {locConstants.tableDesigner.issuesTabHeader(
-                                state.issues?.length!,
-                            )}
+                            key={DesignerResultPaneTabs.Issues}>
+                            {locConstants.tableDesigner.issuesTabHeader(state.issues?.length!)}
                         </Tab>
                     )}
                 </TabList>
-                {state.tabStates!.resultPaneTab ===
-                    DesignerResultPaneTabs.Script && (
+                {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script && (
                     <>
                         <Button
                             size="small"
                             appearance="outline"
                             onClick={() => context.scriptAsCreate()}
                             title={locConstants.tableDesigner.openInEditor}
-                            icon={<OpenFilled />}
-                        >
+                            icon={<OpenFilled />}>
                             {locConstants.tableDesigner.openInEditor}
                         </Button>
                         <Button
                             size="small"
                             appearance="outline"
-                            onClick={() =>
-                                context.copyScriptAsCreateToClipboard()
-                            }
+                            onClick={() => context.copyScriptAsCreateToClipboard()}
                             title={locConstants.tableDesigner.copyScript}
-                            icon={<CopyFilled />}
-                        >
+                            icon={<CopyFilled />}>
                             {locConstants.tableDesigner.copyScript}
                         </Button>
                     </>
@@ -288,26 +256,20 @@ export const DesignerResultPane = () => {
                 />
             </div>
             <div className={classes.tabContent}>
-                {state.tabStates!.resultPaneTab ===
-                    DesignerResultPaneTabs.Script && (
+                {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script && (
                     <div className={classes.designerResultPaneScript}>
                         <Editor
                             height={"100%"}
                             width={"100%"}
                             language="sql"
                             theme={resolveVscodeThemeType(context?.themeKind)}
-                            value={
-                                (state?.model!["script"] as InputBoxProperties)
-                                    .value ?? ""
-                            }
+                            value={(state?.model!["script"] as InputBoxProperties).value ?? ""}
                             options={{
                                 readOnly: true,
-                            }}
-                        ></Editor>
+                            }}></Editor>
                     </div>
                 )}
-                {state.tabStates!.resultPaneTab ===
-                    DesignerResultPaneTabs.Issues &&
+                {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Issues &&
                     state.issues?.length !== 0 && (
                         <div className={classes.issuesContainer}>
                             <List navigationMode="items">
@@ -315,10 +277,7 @@ export const DesignerResultPane = () => {
                                     return (
                                         <ListItem
                                             key={`issue-${index}`}
-                                            onAction={async () =>
-                                                openAndFocusIssueComponet(item)
-                                            }
-                                        >
+                                            onAction={async () => openAndFocusIssueComponet(item)}>
                                             <div className={classes.issuesRows}>
                                                 {item.severity === "error" && (
                                                     <ErrorCircleRegular
@@ -326,19 +285,11 @@ export const DesignerResultPane = () => {
                                                         color="var(--vscode-errorForeground)"
                                                     />
                                                 )}
-                                                {item.severity ===
-                                                    "warning" && (
-                                                    <WarningRegular
-                                                        fontSize={20}
-                                                        color="yellow"
-                                                    />
+                                                {item.severity === "warning" && (
+                                                    <WarningRegular fontSize={20} color="yellow" />
                                                 )}
-                                                {item.severity ===
-                                                    "information" && (
-                                                    <InfoRegular
-                                                        fontSize={20}
-                                                        color="blue"
-                                                    />
+                                                {item.severity === "information" && (
+                                                    <InfoRegular fontSize={20} color="blue" />
                                                 )}
                                                 {item.description}
                                             </div>

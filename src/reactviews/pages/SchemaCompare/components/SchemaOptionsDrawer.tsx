@@ -56,20 +56,15 @@ const SchemaOptionsDrawer = (props: Props) => {
         context.setIntermediarySchemaOptions();
     }, []);
 
-    const deploymentOptions =
-        context.state.intermediaryOptionsResult?.defaultDeploymentOptions;
+    const deploymentOptions = context.state.intermediaryOptionsResult?.defaultDeploymentOptions;
 
-    const optionsToValueNameLookup =
-        deploymentOptions?.booleanOptionsDictionary;
-    let generalOptionEntries: Array<[string, DacDeployOptionPropertyBoolean]> =
-        [];
+    const optionsToValueNameLookup = deploymentOptions?.booleanOptionsDictionary;
+    let generalOptionEntries: Array<[string, DacDeployOptionPropertyBoolean]> = [];
     if (optionsToValueNameLookup) {
         generalOptionEntries = Object.entries(optionsToValueNameLookup);
 
         generalOptionEntries.sort(([_, value1], [__, value2]) =>
-            value1.displayName
-                .toLowerCase()
-                .localeCompare(value2.displayName.toLowerCase()),
+            value1.displayName.toLowerCase().localeCompare(value2.displayName.toLowerCase()),
         );
     }
 
@@ -84,8 +79,7 @@ const SchemaOptionsDrawer = (props: Props) => {
     }
 
     const [optionsChanged, setOptionsChanged] = useState(false);
-    const [selectedValue, setSelectedValue] =
-        useState<TabValue>("generalOptions");
+    const [selectedValue, setSelectedValue] = useState<TabValue>("generalOptions");
     const [description, setDescription] = useState<string>("");
 
     const onTabSelect = (_: SelectTabEvent, data: SelectTabData) => {
@@ -118,8 +112,7 @@ const SchemaOptionsDrawer = (props: Props) => {
             open={props.show}
             onOpenChange={(_, { open: show }) => props.showDrawer(show)}
             position="end"
-            size="medium"
-        >
+            size="medium">
             <DrawerHeader>
                 <DrawerHeaderTitle
                     action={
@@ -129,16 +122,12 @@ const SchemaOptionsDrawer = (props: Props) => {
                             icon={<Dismiss24Regular />}
                             onClick={() => props.showDrawer(false)}
                         />
-                    }
-                >
+                    }>
                     {loc.schemaCompare.schemaCompareOptions}
                 </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody>
-                <TabList
-                    selectedValue={selectedValue}
-                    onTabSelect={onTabSelect}
-                >
+                <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
                     <Tab id="GeneralOptions" value="generalOptions">
                         {loc.schemaCompare.generalOptions}
                     </Tab>
@@ -147,66 +136,38 @@ const SchemaOptionsDrawer = (props: Props) => {
                     </Tab>
                 </TabList>
                 {selectedValue === "generalOptions" && (
-                    <Accordion
-                        collapsible
-                        multiple
-                        defaultOpenItems={["0", "1"]}
-                    >
+                    <Accordion collapsible multiple defaultOpenItems={["0", "1"]}>
                         <AccordionItem value="0">
-                            <AccordionHeader>
-                                {loc.schemaCompare.settings}
-                            </AccordionHeader>
-                            <AccordionPanel
-                                className={classes.generalOptionsContainer}
-                            >
+                            <AccordionHeader>{loc.schemaCompare.settings}</AccordionHeader>
+                            <AccordionPanel className={classes.generalOptionsContainer}>
                                 <List>
                                     {optionsToValueNameLookup &&
-                                        generalOptionEntries.map(
-                                            ([key, value]) => {
-                                                return (
-                                                    <ListItem
-                                                        key={key}
-                                                        value={key}
-                                                        aria-label={
-                                                            value.displayName
-                                                        }
-                                                    >
-                                                        <Checkbox
-                                                            checked={
-                                                                value.value
-                                                            }
-                                                            onChange={() =>
-                                                                handleSettingChanged(
-                                                                    key,
-                                                                )
-                                                            }
-                                                        />
-                                                        <Label
-                                                            aria-label={
-                                                                value.displayName
-                                                            }
-                                                            onClick={() =>
-                                                                setDescription(
-                                                                    value.description,
-                                                                )
-                                                            }
-                                                        >
-                                                            {value.displayName}
-                                                        </Label>
-                                                    </ListItem>
-                                                );
-                                            },
-                                        )}
+                                        generalOptionEntries.map(([key, value]) => {
+                                            return (
+                                                <ListItem
+                                                    key={key}
+                                                    value={key}
+                                                    aria-label={value.displayName}>
+                                                    <Checkbox
+                                                        checked={value.value}
+                                                        onChange={() => handleSettingChanged(key)}
+                                                    />
+                                                    <Label
+                                                        aria-label={value.displayName}
+                                                        onClick={() =>
+                                                            setDescription(value.description)
+                                                        }>
+                                                        {value.displayName}
+                                                    </Label>
+                                                </ListItem>
+                                            );
+                                        })}
                                 </List>
                             </AccordionPanel>
                         </AccordionItem>
                         <AccordionItem value="1">
-                            <AccordionHeader>
-                                {loc.schemaCompare.description}
-                            </AccordionHeader>
-                            {!!description && (
-                                <AccordionPanel>{description}</AccordionPanel>
-                            )}
+                            <AccordionHeader>{loc.schemaCompare.description}</AccordionHeader>
+                            {!!description && <AccordionPanel>{description}</AccordionPanel>}
                         </AccordionItem>
                     </Accordion>
                 )}
@@ -215,24 +176,12 @@ const SchemaOptionsDrawer = (props: Props) => {
                         {includeObjectTypesLookup &&
                             includeObjectTypesEntries.map(([key, value]) => {
                                 return (
-                                    <ListItem
-                                        key={key}
-                                        value={key}
-                                        aria-label={value}
-                                    >
+                                    <ListItem key={key} value={key} aria-label={value}>
                                         <Checkbox
-                                            checked={handleSetObjectTypesCheckedState(
-                                                key,
-                                            )}
-                                            onChange={() =>
-                                                handleObjectTypesOptionChanged(
-                                                    key,
-                                                )
-                                            }
+                                            checked={handleSetObjectTypesCheckedState(key)}
+                                            onChange={() => handleObjectTypesOptionChanged(key)}
                                         />
-                                        <Label aria-label={value}>
-                                            {value}
-                                        </Label>
+                                        <Label aria-label={value}>{value}</Label>
                                     </ListItem>
                                 );
                             })}
@@ -240,10 +189,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                 )}
             </DrawerBody>
             <DrawerFooter>
-                <Button
-                    appearance="secondary"
-                    onClick={() => context.resetOptions()}
-                >
+                <Button appearance="secondary" onClick={() => context.resetOptions()}>
                     {loc.schemaCompare.reset}
                 </Button>
                 <Button
@@ -251,14 +197,10 @@ const SchemaOptionsDrawer = (props: Props) => {
                     onClick={() => {
                         context.confirmSchemaOptions(optionsChanged);
                         props.showDrawer(false);
-                    }}
-                >
+                    }}>
                     {loc.schemaCompare.ok}
                 </Button>
-                <Button
-                    appearance="secondary"
-                    onClick={() => props.showDrawer(false)}
-                >
+                <Button appearance="secondary" onClick={() => props.showDrawer(false)}>
                     {loc.schemaCompare.cancel}
                 </Button>
             </DrawerFooter>

@@ -31,10 +31,7 @@ export class ConnectionConfig implements IConnectionConfig {
             this._vscodeWrapper = new VscodeWrapper();
         }
 
-        this.logger = Logger.create(
-            this._vscodeWrapper.outputChannel,
-            "ConnectionConfig",
-        );
+        this.logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionConfig");
 
         void this.assignMissingIds();
     }
@@ -59,9 +56,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 id: Utils.generateGuid(),
             };
 
-            this.logger.logDebug(
-                `Adding missing ROOT group to connection groups`,
-            );
+            this.logger.logDebug(`Adding missing ROOT group to connection groups`);
             madeChanges = true;
             groups.push(rootGroup);
         }
@@ -76,18 +71,14 @@ export class ConnectionConfig implements IConnectionConfig {
             if (!group.id) {
                 group.id = Utils.generateGuid();
                 madeChanges = true;
-                this.logger.logDebug(
-                    `Adding missing ID to connection group '${group.name}'`,
-                );
+                this.logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
             }
 
             // ensure each group is in a group
             if (!group.groupId) {
                 group.groupId = rootGroup.id;
                 madeChanges = true;
-                this.logger.logDebug(
-                    `Adding missing parentId to connection '${group.name}'`,
-                );
+                this.logger.logDebug(`Adding missing parentId to connection '${group.name}'`);
             }
         }
 
@@ -144,9 +135,7 @@ export class ConnectionConfig implements IConnectionConfig {
         let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
-        profiles = profiles.filter(
-            (value) => !Utils.isSameProfile(value, profile),
-        );
+        profiles = profiles.filter((value) => !Utils.isSameProfile(value, profile));
         profiles.push(profile);
 
         return await this.writeProfilesToSettings(profiles);
@@ -157,9 +146,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * are sorted first by whether they were found in the user/workspace settings,
      * and next alphabetically by profile/server name.
      */
-    public async getConnections(
-        getWorkspaceConnections: boolean,
-    ): Promise<IConnectionProfile[]> {
+    public async getConnections(getWorkspaceConnections: boolean): Promise<IConnectionProfile[]> {
         await this.initialized;
 
         let profiles: IConnectionProfile[] = [];
@@ -182,8 +169,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 // filter any connection missing a connection string and server name or the sample that's shown by default
                 return (
                     conn.connectionString ||
-                    (!!conn.server &&
-                        conn.server !== LocalizedConstants.SampleServerName)
+                    (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
                 );
             });
         }
@@ -194,9 +180,7 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Remove an existing connection from the connection config.
      */
-    public async removeConnection(
-        profile: IConnectionProfile,
-    ): Promise<boolean> {
+    public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
         let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
@@ -221,9 +205,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param global When `true` profiles come from user settings, otherwise from workspace settings.  Default is `true`.
      * @returns the set of connection profiles found in the settings.
      */
-    public getProfilesFromSettings(
-        global: boolean = true,
-    ): IConnectionProfile[] {
+    public getProfilesFromSettings(global: boolean = true): IConnectionProfile[] {
         return this.getArrayFromSettings<IConnectionProfile>(
             Constants.connectionsArrayName,
             global,
@@ -237,10 +219,7 @@ export class ConnectionConfig implements IConnectionConfig {
         );
     }
 
-    private getArrayFromSettings<T>(
-        configSection: string,
-        global: boolean = true,
-    ): T[] {
+    private getArrayFromSettings<T>(configSection: string, global: boolean = true): T[] {
         let configuration = this._vscodeWrapper.getConfiguration(
             Constants.extensionName,
             this._vscodeWrapper.activeTextEditorUri,
@@ -262,9 +241,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * Replace existing profiles in the user settings with a new set of profiles.
      * @param profiles the set of profiles to insert into the settings file.
      */
-    private async writeProfilesToSettings(
-        profiles: IConnectionProfile[],
-    ): Promise<void> {
+    private async writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
         // Save the file
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
@@ -277,9 +254,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * Replace existing connection groups in the user settings with a new set of connection groups.
      * @param connGroups the set of connection groups to insert into the settings file.
      */
-    private async writeConnectionGroupsToSettings(
-        connGroups: IConnectionGroup[],
-    ): Promise<void> {
+    private async writeConnectionGroupsToSettings(connGroups: IConnectionGroup[]): Promise<void> {
         // Save the file
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
@@ -289,10 +264,7 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /** Compare function for sorting by profile name if available, otherwise fall back to server name or connection string */
-    private compareConnectionProfile(
-        connA: IConnectionProfile,
-        connB: IConnectionProfile,
-    ): number {
+    private compareConnectionProfile(connA: IConnectionProfile, connB: IConnectionProfile): number {
         const nameA = connA.profileName
             ? connA.profileName
             : connA.server

@@ -3,19 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    AuthenticationResult,
-    DeviceCodeRequest,
-    PublicClientApplication,
-} from "@azure/msal-node";
+import { AuthenticationResult, DeviceCodeRequest, PublicClientApplication } from "@azure/msal-node";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
-import {
-    AzureAuthType,
-    IProviderSettings,
-    ITenant,
-} from "../../models/contracts/azure";
+import { AzureAuthType, IProviderSettings, ITenant } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
 import { Logger } from "../../models/logger";
 import { MsalAzureAuth } from "./msalAzureAuth";
@@ -62,10 +54,7 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
             },
         };
 
-        const authResult =
-            await this.clientApplication.acquireTokenByDeviceCode(
-                deviceCodeRequest,
-            );
+        const authResult = await this.clientApplication.acquireTokenByDeviceCode(deviceCodeRequest);
         this.logger.pii(
             `Authentication completed for account: ${authResult?.account!.name}, tenant: ${authResult?.tenantId}`,
         );

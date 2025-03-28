@@ -37,8 +37,7 @@ export default class ServiceDownloadProvider {
      * Returns the download url for given platform
      */
     public getDownloadFileName(platform: Runtime): string {
-        let fileNamesJson =
-            this._config.getSqlToolsConfigValue("downloadFileNames");
+        let fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames");
         let fileName = fileNamesJson[platform.toString()];
 
         if (fileName === undefined) {
@@ -59,10 +58,7 @@ export default class ServiceDownloadProvider {
         let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
         basePath = basePath.replace("{#version#}", versionFromConfig);
-        basePath = basePath.replace(
-            "{#platform#}",
-            getRuntimeDisplayName(platform),
-        );
+        basePath = basePath.replace("{#platform#}", getRuntimeDisplayName(platform));
         try {
             await fs.mkdir(basePath, { recursive: true });
         } catch {
@@ -102,9 +98,7 @@ export default class ServiceDownloadProvider {
         const fileName = this.getDownloadFileName(platform);
         const installDirectory = await this.getOrMakeInstallDirectory(platform);
 
-        this._logger.appendLine(
-            `${Constants.serviceInstallingTo} ${installDirectory}.`,
-        );
+        this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
         const urlString = this.getGetDownloadUrl(fileName);
 
         const isZipFile: boolean = path.extname(fileName) === ".zip";
@@ -120,12 +114,7 @@ export default class ServiceDownloadProvider {
         pkg.tmpFile = tmpResult;
 
         try {
-            await this._httpClient.downloadFile(
-                pkg.url,
-                pkg,
-                this._logger,
-                this._statusView,
-            );
+            await this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView);
             this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
             this._logger.appendLine(" Done!");
             await this.install(pkg);
@@ -138,22 +127,17 @@ export default class ServiceDownloadProvider {
 
     private createTempFile(pkg: IPackage): Promise<tmp.SynchrounousResult> {
         return new Promise<tmp.SynchrounousResult>((resolve, reject) => {
-            tmp.file(
-                { prefix: "package-" },
-                (err, filePath, fd, cleanupCallback) => {
-                    if (err) {
-                        return reject(
-                            new PackageError("Error from tmp.file", pkg, err),
-                        );
-                    }
+            tmp.file({ prefix: "package-" }, (err, filePath, fd, cleanupCallback) => {
+                if (err) {
+                    return reject(new PackageError("Error from tmp.file", pkg, err));
+                }
 
-                    resolve(<tmp.SynchrounousResult>{
-                        name: filePath,
-                        fd: fd,
-                        removeCallback: cleanupCallback,
-                    });
-                },
-            );
+                resolve(<tmp.SynchrounousResult>{
+                    name: filePath,
+                    fd: fd,
+                    removeCallback: cleanupCallback,
+                });
+            });
         });
     }
 

@@ -16,77 +16,42 @@ suite("Credential Store Tests", () => {
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 
     setup(() => {
-        client = TypeMoq.Mock.ofType(
-            SqlToolsServiceClient,
-            TypeMoq.MockBehavior.Loose,
-        );
+        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         client
-            .setup((c) =>
-                c.sendRequest(
-                    Contracts.SaveCredentialRequest.type,
-                    TypeMoq.It.isAny(),
-                ),
-            )
+            .setup((c) => c.sendRequest(Contracts.SaveCredentialRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
         client
-            .setup((c) =>
-                c.sendRequest(
-                    Contracts.ReadCredentialRequest.type,
-                    TypeMoq.It.isAny(),
-                ),
-            )
+            .setup((c) => c.sendRequest(Contracts.ReadCredentialRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
         client
-            .setup((c) =>
-                c.sendRequest(
-                    Contracts.DeleteCredentialRequest.type,
-                    TypeMoq.It.isAny(),
-                ),
-            )
+            .setup((c) => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
-        credentialStore = new CredentialStore(
-            mockContext.object,
-            client.object,
-        );
+        credentialStore = new CredentialStore(mockContext.object, client.object);
     });
 
     test("Read credential should send a ReadCredentialRequest", () => {
         void credentialStore.readCredential("test_credential").then(() => {
             client.verify(
-                (c) =>
-                    c.sendRequest(
-                        Contracts.ReadCredentialRequest.type,
-                        TypeMoq.It.isAny(),
-                    ),
+                (c) => c.sendRequest(Contracts.ReadCredentialRequest.type, TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
         });
     });
 
     test("Save credential should send a SaveCredentialRequest", () => {
-        void credentialStore
-            .saveCredential("test_credential", "test_password")
-            .then(() => {
-                client.verify(
-                    (c) =>
-                        c.sendRequest(
-                            Contracts.SaveCredentialRequest.type,
-                            TypeMoq.It.isAny(),
-                        ),
-                    TypeMoq.Times.once(),
-                );
-            });
+        void credentialStore.saveCredential("test_credential", "test_password").then(() => {
+            client.verify(
+                (c) => c.sendRequest(Contracts.SaveCredentialRequest.type, TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+        });
     });
 
     test("Delete credential should send a DeleteCredentialRequest", () => {
         void credentialStore.deleteCredential("test_credential").then(() => {
             client.verify(
-                (c) =>
-                    c.sendRequest(
-                        Contracts.DeleteCredentialRequest.type,
-                        TypeMoq.It.isAny(),
-                    ),
+                (c) => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
         });

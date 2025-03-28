@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
-import {
-    Toolbar,
-    ToolbarButton,
-    ToolbarDivider,
-} from "@fluentui/react-components";
+import { Toolbar, ToolbarButton, ToolbarDivider } from "@fluentui/react-components";
 
 import {
     ArrowSwapFilled,
@@ -46,8 +42,7 @@ const CompareActionBar = (props: Props) => {
         context.compare(
             context.state.sourceEndpointInfo,
             context.state.targetEndpointInfo,
-            context.state.defaultDeploymentOptionsResult
-                .defaultDeploymentOptions,
+            context.state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
         );
     };
 
@@ -74,10 +69,7 @@ const CompareActionBar = (props: Props) => {
     };
 
     const handleSwitchEndpoints = () => {
-        context.switchEndpoints(
-            context.state.targetEndpointInfo,
-            context.state.sourceEndpointInfo,
-        );
+        context.switchEndpoints(context.state.targetEndpointInfo, context.state.sourceEndpointInfo);
     };
 
     const handleOpenScmp = () => {
@@ -88,14 +80,10 @@ const CompareActionBar = (props: Props) => {
         context.saveScmp();
     };
 
-    const isEndpointEmpty = (
-        endpoint: mssql.SchemaCompareEndpointInfo,
-    ): boolean => {
+    const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
         return !(
             endpoint &&
-            (endpoint.serverDisplayName ||
-                endpoint.packageFilePath ||
-                endpoint.projectFilePath)
+            (endpoint.serverDisplayName || endpoint.packageFilePath || endpoint.projectFilePath)
         );
     };
 
@@ -123,8 +111,7 @@ const CompareActionBar = (props: Props) => {
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo) ||
                     context.state.isComparisonInProgress
-                }
-            >
+                }>
                 {loc.schemaCompare.compare}
             </ToolbarButton>
             <ToolbarButton
@@ -132,8 +119,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.stop}
                 icon={<StopFilled />}
                 onClick={handleStop}
-                disabled={!context.state.isComparisonInProgress}
-            >
+                disabled={!context.state.isComparisonInProgress}>
                 {loc.schemaCompare.stop}
             </ToolbarButton>
             <ToolbarButton
@@ -146,8 +132,7 @@ const CompareActionBar = (props: Props) => {
                     Number(context.state.targetEndpointInfo.endpointType) === 0 // Database lewissanchez todo: Get rid of this magic number too by figuring out how to ref it from vscode-mssql
                         ? false
                         : true
-                }
-            >
+                }>
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
             <ToolbarButton
@@ -155,8 +140,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
                 onClick={handlePublishChanges}
-                disabled={disableApplyButton()}
-            >
+                disabled={disableApplyButton()}>
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
@@ -167,8 +151,7 @@ const CompareActionBar = (props: Props) => {
                 disabled={
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
-                }
-            >
+                }>
                 {loc.schemaCompare.options}
             </ToolbarButton>
             <ToolbarDivider />
@@ -180,35 +163,26 @@ const CompareActionBar = (props: Props) => {
                 disabled={
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
-                }
-            >
+                }>
                 {loc.schemaCompare.switchDirection}
             </ToolbarButton>
             <ToolbarDivider />
             <ToolbarButton
                 aria-label={loc.schemaCompare.openScmpFile}
-                title={
-                    loc.schemaCompare
-                        .loadSourceTargetAndOptionsSavedInAnScmpFile
-                }
+                title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
                 icon={<DocumentArrowUpRegular />}
-                onClick={handleOpenScmp}
-            >
+                onClick={handleOpenScmp}>
                 {loc.schemaCompare.openScmpFile}
             </ToolbarButton>
             <ToolbarButton
                 aria-label={loc.schemaCompare.saveScmpFile}
-                title={
-                    loc.schemaCompare
-                        .saveSourceAndTargetOptionsAndExcludedElements
-                }
+                title={loc.schemaCompare.saveSourceAndTargetOptionsAndExcludedElements}
                 icon={<SaveRegular />}
                 onClick={handleSaveScmp}
                 disabled={
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
-                }
-            >
+                }>
                 {loc.schemaCompare.saveScmpFile}
             </ToolbarButton>
         </Toolbar>

@@ -152,10 +152,7 @@ export interface SchemaCompareContextProps {
         fileType: "dacpac" | "sqlproj",
     ) => void;
 
-    confirmSelectedSchema: (
-        endpointType: "source" | "target",
-        folderStructure: string,
-    ) => void;
+    confirmSelectedSchema: (endpointType: "source" | "target", folderStructure: string) => void;
 
     confirmSelectedDatabase: (
         endpointType: "source" | "target",
@@ -182,20 +179,11 @@ export interface SchemaCompareContextProps {
         deploymentOptions: DeploymentOptions,
     ) => void;
 
-    generateScript: (
-        targetServerName: string,
-        targetDatabaseName: string,
-    ) => void;
+    generateScript: (targetServerName: string, targetDatabaseName: string) => void;
 
-    publishChanges: (
-        targetServerName: string,
-        targetDatabaseName: string,
-    ) => void;
+    publishChanges: (targetServerName: string, targetDatabaseName: string) => void;
 
-    publishDatabaseChanges: (
-        targetServerName: string,
-        targetDatabaseName: string,
-    ) => void;
+    publishDatabaseChanges: (targetServerName: string, targetDatabaseName: string) => void;
 
     publishProjectChanges: (
         targetProjectPath: string,
@@ -205,11 +193,7 @@ export interface SchemaCompareContextProps {
 
     resetOptions: () => void;
 
-    includeExcludeNode: (
-        id: number,
-        diffEntry: DiffEntry,
-        includeRequest: boolean,
-    ) => void;
+    includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
 
     openScmp: () => void;
 

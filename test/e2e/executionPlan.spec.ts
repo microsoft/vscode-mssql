@@ -3,19 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    ElectronApplication,
-    FrameLocator,
-    Locator,
-    Page,
-} from "@playwright/test";
+import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
-import {
-    getWebviewByTitle,
-    waitForCommandPaletteToBeVisible,
-} from "./utils/testHelpers";
+import { getWebviewByTitle, waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
 
@@ -36,13 +28,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await vsCodePage.keyboard.press("Control+P");
         await waitForCommandPaletteToBeVisible(vsCodePage);
         await vsCodePage.keyboard.type(
-            path.join(
-                process.cwd(),
-                "out",
-                "test",
-                "resources",
-                "plan.sqlplan",
-            ),
+            path.join(process.cwd(), "out", "test", "resources", "plan.sqlplan"),
         );
         await waitForCommandPaletteToBeVisible(vsCodePage);
         // Press Enter in the VS Code page
@@ -65,9 +51,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     test.beforeEach("Set up before each test", async () => {
         // Click zoom to fit button
         await iframe
-            .locator(
-                '[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]',
-            )
+            .locator('[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]')
             .click();
 
         currentZoom = await getZoom(iframe);
@@ -93,9 +77,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Open Query"][class*="fui-Button"]',
         );
         await openQueryButtonLocator.click();
-        const queryText = vsCodePage
-            .getByText("select * from sys.all_views")
-            .last();
+        const queryText = vsCodePage.getByText("select * from sys.all_views").last();
         await expect(queryText).toBeVisible();
         const ensureSqlFileOpened = vsCodePage.locator(
             '[aria-label="Execute Query (Ctrl+Shift+E)"]',
@@ -175,12 +157,9 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const findNodeComboBox = iframe.locator("#findNodeDropdown");
         await findNodeComboBox.fill("Node ID");
 
-        const findNodeComparisonDropdown = iframe.locator(
-            "#findNodeComparisonDropdown",
-        );
+        const findNodeComparisonDropdown = iframe.locator("#findNodeComparisonDropdown");
         await findNodeComparisonDropdown.click();
-        for (let i = 0; i < 3; i++)
-            await vsCodePage.keyboard.press("ArrowDown");
+        for (let i = 0; i < 3; i++) await vsCodePage.keyboard.press("ArrowDown");
         await vsCodePage.keyboard.press("Enter");
 
         const findNodeInputBox = iframe.locator("#findNodeInputBox");
@@ -224,12 +203,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await alphabeticalButton.click();
         let firstCellLocator = iframe.locator('[role="gridcell"]').first();
-        let firstCellOuterHTML = await firstCellLocator.evaluate(
-            (el) => el.outerHTML,
-        );
-        await expect(
-            firstCellOuterHTML.includes("Defined Values"),
-        ).toBeTruthy();
+        let firstCellOuterHTML = await firstCellLocator.evaluate((el) => el.outerHTML);
+        await expect(firstCellOuterHTML.includes("Defined Values")).toBeTruthy();
 
         // Sort Reverse Alphabetical
         const reverseAlphabeticalButton = iframe.locator(
@@ -237,12 +212,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await reverseAlphabeticalButton.click();
         firstCellLocator = iframe.locator('[role="gridcell"]').first();
-        firstCellOuterHTML = await firstCellLocator.evaluate(
-            (el) => el.outerHTML,
-        );
-        await expect(
-            firstCellOuterHTML.includes("TableCardinality"),
-        ).toBeTruthy();
+        firstCellOuterHTML = await firstCellLocator.evaluate((el) => el.outerHTML);
+        await expect(firstCellOuterHTML.includes("TableCardinality")).toBeTruthy();
 
         // Expand All
         const expandAllButton = iframe.locator(
@@ -265,24 +236,16 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await importanceButton.click();
         firstCellLocator = iframe.locator('[role="gridcell"]').first();
-        firstCellOuterHTML = await firstCellLocator.evaluate(
-            (el) => el.outerHTML,
-        );
-        await expect(
-            firstCellOuterHTML.includes("Physical Operation"),
-        ).toBeTruthy();
+        firstCellOuterHTML = await firstCellLocator.evaluate((el) => el.outerHTML);
+        await expect(firstCellOuterHTML.includes("Physical Operation")).toBeTruthy();
 
         const searchProperties = iframe.locator(
             '[placeholder="Filter for any field..."][class*="fui-Input__input"]',
         );
         await searchProperties.fill("S");
         firstCellLocator = iframe.locator('[role="gridcell"]').first();
-        firstCellOuterHTML = await firstCellLocator.evaluate(
-            (el) => el.outerHTML,
-        );
-        await expect(
-            firstCellOuterHTML.includes("Physical Operation"),
-        ).toBeTruthy();
+        firstCellOuterHTML = await firstCellLocator.evaluate((el) => el.outerHTML);
+        await expect(firstCellOuterHTML.includes("Physical Operation")).toBeTruthy();
 
         const propertiesCloseButtonLocator = iframe.locator(
             '[type="button"][aria-label="Close"][class*="fui-Button"]',
@@ -299,66 +262,46 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await highlightOpsButtonLocator.click();
 
-        const highlightOpsComponent = iframe.locator(
-            "#highlightExpensiveOpsContainer",
-        );
+        const highlightOpsComponent = iframe.locator("#highlightExpensiveOpsContainer");
 
-        const highlightOpsInputBox = iframe.locator(
-            "#highlightExpensiveOpsDropdown",
-        );
+        const highlightOpsInputBox = iframe.locator("#highlightExpensiveOpsDropdown");
         const highlightOpsApplyButton = iframe.locator(
             '[type="button"][aria-label="Apply"][class*="fui-Button"]',
         );
 
         await highlightOpsInputBox.fill("Actual Elapsed Time");
         await highlightOpsApplyButton.click();
-        let selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        let selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toBe("");
 
         await highlightOpsInputBox.fill("Actual Elapsed CPU Time");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toBe("");
 
         await highlightOpsInputBox.fill("Cost");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toContain("Clustered Index Seek");
 
         await highlightOpsInputBox.fill("Subtree Cost");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toContain("SELECT");
 
-        await highlightOpsInputBox.fill(
-            "Actual Number of Rows For All Executions",
-        );
+        await highlightOpsInputBox.fill("Actual Number of Rows For All Executions");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toContain("Nested Loops");
 
         await highlightOpsInputBox.fill("Number of Rows Read");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toContain("Clustered Index Scan");
 
         await highlightOpsInputBox.fill("Off");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(
-            highlightOpsComponent,
-        );
+        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toContain("Clustered Index Seek");
 
         const highlightOpsCloseButton = iframe.locator(
@@ -385,9 +328,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 });
 
 export async function refocusQueryPlanTab(page: Page) {
-    const queryPlanTab = page.locator(
-        'div[role="tab"][aria-label="plan.sqlplan (Preview)"]',
-    );
+    const queryPlanTab = page.locator('div[role="tab"][aria-label="plan.sqlplan (Preview)"]');
     await queryPlanTab.focus();
     await page.keyboard.press("Enter");
 }
@@ -397,9 +338,9 @@ export async function getZoom(iframe: FrameLocator) {
     if (zoomElement) {
         // Try to extract the scale value using a regular expression
         try {
-            const scaleMatch = (
-                await zoomElement.getAttribute("transform")
-            ).match(/scale\(([^)]+)\)/);
+            const scaleMatch = (await zoomElement.getAttribute("transform")).match(
+                /scale\(([^)]+)\)/,
+            );
 
             if (scaleMatch && scaleMatch[1]) {
                 // Multiply by 100 to get the zoom percentage
