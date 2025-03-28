@@ -21,7 +21,9 @@
     },
     "eslint.validate": ["javascript", "javascriptreact", "html", "typescriptreact", "typescript"],
     "svg.preview.background": "dark-transparent",
+    // also update Prettier settings in prettier.config.mjs so that both CLI and VS Code formatting use the same options!
     "prettier.printWidth": 100,
+    "prettier.bracketSameLine": true,
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },

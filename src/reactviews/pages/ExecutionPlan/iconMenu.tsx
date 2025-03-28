@@ -167,8 +167,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 background: `${tokens.colorNeutralBackground2}`,
                 minHeight: "300px",
             }}
-            vertical
-        >
+            vertical>
             <ToolbarButton
                 className={classes.button}
                 tabIndex={0}
@@ -209,8 +208,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 className={classes.seperator}
                 style={{
                     background: tokens.colorNeutralStroke1,
-                }}
-            ></hr>
+                }}></hr>
             <ToolbarButton
                 className={classes.button}
                 tabIndex={0}
@@ -261,8 +259,7 @@ export const IconStack: React.FC<IconStackProps> = ({
                 className={classes.seperator}
                 style={{
                     background: tokens.colorNeutralStroke1,
-                }}
-            ></hr>
+                }}></hr>
             <ToolbarButton
                 className={classes.button}
                 tabIndex={0}

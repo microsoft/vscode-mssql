@@ -171,8 +171,7 @@ export const TableDesigner = () => {
                                 minConstraints={[10, Infinity]}
                                 resizeHandles={["w"]}
                                 handle={<div className={classes.propertiesPaneHandle} />}
-                                className={classes.propertiesPaneContainer}
-                            >
+                                className={classes.propertiesPaneContainer}>
                                 <DesignerPropertiesPane />
                             </ResizableBox>
                         )}
@@ -206,8 +205,7 @@ export const TableDesigner = () => {
                                 context.resultPaneResizeInfo.setCurrentHeight(div.size.height);
                                 context.resultPaneResizeInfo.setOriginalHeight(div.size.height);
                             }
-                        }}
-                    >
+                        }}>
                         <DesignerResultPane />
                     </ResizableBox>
                 </div>

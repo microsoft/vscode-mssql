@@ -59,8 +59,7 @@ export const ConnectionFormPage = () => {
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}
-                    className={formStyles.formNavTrayButton}
-                >
+                    className={formStyles.formNavTrayButton}>
                     {locConstants.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>

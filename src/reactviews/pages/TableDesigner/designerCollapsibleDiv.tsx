@@ -76,8 +76,7 @@ export const DesignerCollapsibleDiv: React.FC<DesignerCollapsibleDivProps> = (pr
                 className={classes.header}
                 onClick={() => {
                     onCollapseHandler();
-                }}
-            >
+                }}>
                 <AppsListDetailRegular className={classes.headerIcon} />
                 {/* <div className={classes.headerIcon}>{props.header.icon ?? <AppsListDetailRegular className = {classes.headerIcon}/>}</div> */}
                 <div className={classes.headerTitle} title={props.header.title}>

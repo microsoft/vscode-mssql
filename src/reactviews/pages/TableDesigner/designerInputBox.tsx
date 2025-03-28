@@ -68,8 +68,7 @@ export const DesignerInputBox = ({
             }
             style={{ width: width }}
             size="small"
-            orientation={horizontal ? "horizontal" : "vertical"}
-        >
+            orientation={horizontal ? "horizontal" : "vertical"}>
             {!multiline ? (
                 <Input
                     aria-labelledby={dropdownId}

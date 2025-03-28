@@ -258,8 +258,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
                     }
                     return (elementRefs.current[key] = ref);
                 },
-            }}
-        >
+            }}>
             {children}
         </TableDesignerContext.Provider>
     );

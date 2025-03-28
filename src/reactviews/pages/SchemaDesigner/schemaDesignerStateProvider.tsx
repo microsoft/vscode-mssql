@@ -28,8 +28,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 schema: webviewState.state.schema,
                 state: webviewState.state,
                 themeKind: webviewState.themeKind,
-            }}
-        >
+            }}>
             {children}
         </SchemaDesignerContext.Provider>
     );

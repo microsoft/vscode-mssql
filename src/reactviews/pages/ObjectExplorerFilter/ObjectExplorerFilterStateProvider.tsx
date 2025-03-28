@@ -43,8 +43,7 @@ const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProvi
                 cancel: function (): void {
                     webviewState?.extensionRpc.action("cancel", {});
                 },
-            }}
-        >
+            }}>
             {children}
         </ObjectExplorerFilterContext.Provider>
     );

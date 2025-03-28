@@ -83,8 +83,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         connection: connection,
                     });
                 },
-            }}
-        >
+            }}>
             {children}
         </ConnectionDialogContext.Provider>
     );

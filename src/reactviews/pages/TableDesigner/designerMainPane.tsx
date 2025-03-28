@@ -238,8 +238,7 @@ export const DesignerMainPane = () => {
                 onTabSelect={(_event, data) => {
                     context.setTab(data.value as DesignerMainPaneTabs);
                     context.setPropertiesComponents(undefined);
-                }}
-            >
+                }}>
                 {state.view?.tabs.map((tab) => {
                     const ariaLabel = getTabAriaLabel(tab.id);
                     return (
@@ -268,8 +267,7 @@ export const DesignerMainPane = () => {
                                 width: "100%",
                                 height: "100%",
                             }}
-                            key={tab.id}
-                        >
+                            key={tab.id}>
                             <DesignerMainPaneTab tabId={tab.id} />
                         </div>
                     );

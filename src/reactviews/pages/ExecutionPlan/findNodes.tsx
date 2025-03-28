@@ -132,8 +132,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             className={classes.inputContainer}
             style={{
                 background: tokens.colorNeutralBackground1,
-            }}
-        >
+            }}>
             {locConstants.executionPlan.findNodes}
             <div style={{ paddingRight: "12px" }} />
             <Combobox
@@ -148,8 +147,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
-                ref={inputRef}
-            >
+                ref={inputRef}>
                 {findNodeOptions.map((option) => (
                     <Option key={option} className={classes.option}>
                         {option}
@@ -171,8 +169,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeComparisonSelection(data.optionText ?? findNodeComparisonOptions[0]);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
-                }}
-            >
+                }}>
                 {findNodeComparisonOptions.map((option) => (
                     <Option key={option} className={classes.option}>
                         {option}

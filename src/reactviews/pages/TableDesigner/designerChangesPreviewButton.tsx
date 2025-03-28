@@ -117,15 +117,13 @@ export const DesignerChangesPreviewButton = () => {
                     <MessageBarBody
                         style={{
                             textAlign: "justify",
-                        }}
-                    >
+                        }}>
                         {state?.publishingError ?? ""}
                     </MessageBarBody>
                     <MessageBarActions>
                         <Button
                             onClick={() => designerContext.copyPublishErrorToClipboard()}
-                            icon={<CopyRegular />}
-                        >
+                            icon={<CopyRegular />}>
                             {locConstants.tableDesigner.copy}
                         </Button>
                     </MessageBarActions>
@@ -136,8 +134,7 @@ export const DesignerChangesPreviewButton = () => {
                     appearance="primary"
                     onClick={() => {
                         designerContext.publishChanges();
-                    }}
-                >
+                    }}>
                     {locConstants.tableDesigner.retry}
                 </Button>
                 <Button
@@ -147,8 +144,7 @@ export const DesignerChangesPreviewButton = () => {
                     }}
                     style={{
                         width: "150px",
-                    }}
-                >
+                    }}>
                     {locConstants.tableDesigner.backToPreview}
                 </Button>
                 {getDialogCloseButton()}
@@ -172,8 +168,7 @@ export const DesignerChangesPreviewButton = () => {
                         onClick={() => {
                             setIsConfirmationChecked(false);
                             designerContext.continueEditing;
-                        }}
-                    >
+                        }}>
                         {locConstants.tableDesigner.continueEditing}
                     </Button>
                 </DialogTrigger>
@@ -211,8 +206,7 @@ export const DesignerChangesPreviewButton = () => {
                     className={classes.dialogFooterButtons}
                     onClick={() => {
                         designerContext.generatePreviewReport();
-                    }}
-                >
+                    }}>
                     {locConstants.tableDesigner.retry}
                 </Button>
             </DialogActions>
@@ -264,8 +258,7 @@ export const DesignerChangesPreviewButton = () => {
                             className={classes.openScript}
                             disabled={state.apiState?.previewState !== LoadState.Loaded}
                             appearance="secondary"
-                            onClick={designerContext.generateScript}
-                        >
+                            onClick={designerContext.generateScript}>
                             {locConstants.tableDesigner.generateScript}
                         </Button>
                     </DialogTrigger>
@@ -280,8 +273,7 @@ export const DesignerChangesPreviewButton = () => {
                         appearance="primary"
                         onClick={() => {
                             designerContext.publishChanges();
-                        }}
-                    >
+                        }}>
                         {locConstants.tableDesigner.updateDatabase}
                     </Button>
                 </DialogActions>
@@ -320,8 +312,7 @@ export const DesignerChangesPreviewButton = () => {
                     onClick={() => {
                         designerContext.generatePreviewReport();
                     }}
-                    disabled={(state?.issues?.length ?? 0) > 0}
-                >
+                    disabled={(state?.issues?.length ?? 0) > 0}>
                     {locConstants.tableDesigner.publish}
                 </ToolbarButton>
             </DialogTrigger>

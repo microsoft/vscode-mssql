@@ -233,13 +233,11 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             style={{
                 height: containerHeight,
                 fontFamily: tokens.fontFamilyBase,
-            }}
-        >
+            }}>
             <div
                 id="planContainer"
                 className={classes.planContainer}
-                style={{ height: containerHeight }}
-            >
+                style={{ height: containerHeight }}>
                 <div
                     id="queryCostContainer"
                     className={classes.queryCostContainer}
@@ -247,8 +245,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         background: tokens.colorNeutralBackground2,
                     }}
                     aria-live="polite"
-                    aria-label={`${getQueryCostString()}, ${query}`}
-                >
+                    aria-label={`${getQueryCostString()}, ${query}`}>
                     {getQueryCostString()}
                     <br />
                     {query}
@@ -261,8 +258,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         width: propertiesClicked
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
-                    }}
-                ></div>
+                    }}></div>
                 <Popover open={customZoomClicked}>
                     <div
                         id="customZoomInputContainer"
@@ -270,8 +266,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         style={{
                             background: tokens.colorNeutralBackground1,
                         }}
-                        tabIndex={0}
-                    >
+                        tabIndex={0}>
                         <Input
                             ref={inputRef}
                             id="customZoomInputBox"
@@ -342,8 +337,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     <div
                         className={classes.resizable}
                         style={{ width: `${propertiesWidth}px` }}
-                        ref={resizableRef}
-                    >
+                        ref={resizableRef}>
                         <div className={classes.resizer} onMouseDown={onMouseDown}></div>
                         <Popover open={propertiesClicked}>
                             <div>

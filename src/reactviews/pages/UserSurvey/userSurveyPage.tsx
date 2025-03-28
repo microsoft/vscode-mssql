@@ -98,8 +98,7 @@ export const UserSurveyPage = () => {
             <h2
                 style={{
                     marginBottom: "30px",
-                }}
-            >
+                }}>
                 {userSurveryProvider.state.title ??
                     locConstants.userFeedback.microsoftWouldLikeYourFeedback}
             </h2>
@@ -142,8 +141,7 @@ export const UserSurveyPage = () => {
                     <Button
                         appearance="primary"
                         disabled={isSubmitDisabled}
-                        onClick={() => userSurveryProvider.submit(userAnswers)}
-                    >
+                        onClick={() => userSurveryProvider.submit(userAnswers)}>
                         {userSurveryProvider.state.submitButtonText ??
                             locConstants.userFeedback.submit}
                     </Button>
@@ -166,8 +164,7 @@ export const UserSurveyPage = () => {
                 <Link
                     onClick={() => {
                         userSurveryProvider.openPrivacyStatement();
-                    }}
-                >
+                    }}>
                     {locConstants.userFeedback.privacyStatement}
                 </Link>
             </div>
@@ -193,12 +190,10 @@ export const NSATQuestion = ({ question, onChange }: QuestionProps<NsatQuestion>
                         locConstants.userFeedback.overallHowSatisfiedAreYouWithMSSQLExtension}
                 </Text>
             }
-            required={question.required ?? false}
-        >
+            required={question.required ?? false}>
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(parseInt(d.value))}
-            >
+                onChange={(_e, d) => onChange(parseInt(d.value))}>
                 <Radio value={"0"} label={locConstants.userFeedback.veryDissatisfied} />
                 <Radio value={"1"} label={locConstants.userFeedback.dissatisfied} />
                 <Radio value={"2"} label={locConstants.userFeedback.satisfied} />
@@ -219,12 +214,10 @@ export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) 
             required={question.required ?? false}
             style={{
                 marginBottom: "25px",
-            }}
-        >
+            }}>
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(parseInt(d.value))}
-            >
+                onChange={(_e, d) => onChange(parseInt(d.value))}>
                 <Radio
                     value={"0"}
                     label={
@@ -233,8 +226,7 @@ export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) 
                                 position: "relative",
                                 display: "flex",
                                 flexDirection: "column",
-                            }}
-                        >
+                            }}>
                             {"0"}
                             <br />
                             <Text
@@ -245,8 +237,7 @@ export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) 
                                     left: "0px",
                                     fontSize: "10px",
                                 }}
-                                size={200}
-                            >
+                                size={200}>
                                 {locConstants.userFeedback.notLikelyAtAll}
                             </Text>
                         </div>
@@ -269,8 +260,7 @@ export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) 
                                 position: "relative",
                                 display: "flex",
                                 flexDirection: "column",
-                            }}
-                        >
+                            }}>
                             {"10"}
                             <br />
                             <Text
@@ -281,8 +271,7 @@ export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) 
                                     right: "0px",
                                     fontSize: "10px",
                                 }}
-                                size={200}
-                            >
+                                size={200}>
                                 {locConstants.userFeedback.extremelyLikely}
                             </Text>
                         </div>
@@ -302,8 +291,7 @@ export const TextAreaQuestion = ({ question, onChange }: QuestionProps<TextareaQ
         <Field
             required={question.required ?? false}
             label={<Text weight="bold">{question.label}</Text>}
-            hint={question.placeholder}
-        >
+            hint={question.placeholder}>
             <Textarea onChange={(_e, data) => onChange(data.value)} resize="vertical" />
         </Field>
     );

@@ -319,22 +319,19 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             style={{
                 background: tokens.colorNeutralBackground2,
                 borderLeft: `0.5px solid ${tokens.colorNeutralStroke1}`,
-            }}
-        >
+            }}>
             <div
                 style={{
                     position: "sticky",
                     top: 0,
                     zIndex: 1,
                     background: tokens.colorNeutralBackground1,
-                }}
-            >
+                }}>
                 <div
                     className={classes.propertiesHeader}
                     style={{
                         background: tokens.colorNeutralBackground2,
-                    }}
-                >
+                    }}>
                     <div aria-label={PROPERTIES} tabIndex={0}>
                         {PROPERTIES}
                     </div>
@@ -452,14 +449,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
-                    size="small"
-                >
+                    size="small">
                     <DataGridHeader
                         className={classes.tableHeader}
                         style={{
                             background: tokens.colorNeutralBackground2,
-                        }}
-                    >
+                        }}>
                         <DataGridRow className={classes.tableRow}>
                             {({ renderHeaderCell }) => (
                                 <DataGridHeaderCell className={classes.tableHeader}>
@@ -474,8 +469,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                 {(!item.isChild || shownChildren.includes(item.id)) && (
                                     <DataGridRow<ep.ExecutionPlanPropertyTableItem>
                                         key={rowId}
-                                        className={classes.tableRow}
-                                    >
+                                        className={classes.tableRow}>
                                         {({ renderCell }) => (
                                             <DataGridCell className={classes.tableCell}>
                                                 {renderCell(item)}

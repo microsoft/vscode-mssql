@@ -65,8 +65,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
 
                 state: webViewState?.state as qr.QueryResultWebviewState,
                 themeKind: webViewState?.themeKind,
-            }}
-        >
+            }}>
             {children}
         </QueryResultContext.Provider>
     );

@@ -379,8 +379,7 @@ export const AzureBrowsePage = () => {
                     onClick={(_event) => {
                         setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
                     }}
-                    className={formStyles.formNavTrayButton}
-                >
+                    className={formStyles.formNavTrayButton}>
                     {Loc.connectionDialog.advancedSettings}
                 </Button>
                 <div className={formStyles.formNavTrayRight}>

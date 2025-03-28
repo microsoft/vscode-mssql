@@ -61,8 +61,7 @@ export const DesignerDropdown = ({
             validationMessage={showError ? context.getErrorMessage(componentPath) : ""}
             style={{ width: width }}
             size="small"
-            orientation={horizontal ? "horizontal" : "vertical"}
-        >
+            orientation={horizontal ? "horizontal" : "vertical"}>
             <SearchableDropdown
                 style={{
                     width: width,

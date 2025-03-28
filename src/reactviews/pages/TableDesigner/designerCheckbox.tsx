@@ -45,8 +45,7 @@ export const DesignerCheckbox = ({
                         size="small"
                         style={{
                             lineHeight: "22px", // Used to align the label with the checkbox
-                        }}
-                    >
+                        }}>
                         {component.componentProperties.title!}
                     </Label>
                 ) : undefined
@@ -57,8 +56,7 @@ export const DesignerCheckbox = ({
                     (component.componentProperties.width ?? UiArea === "PropertiesView")
                         ? "100%"
                         : "400px",
-            }}
-        >
+            }}>
             <Checkbox
                 ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                 checked={value}

@@ -113,8 +113,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 cancel: function (): void {
                     webViewState?.extensionRpc.action("cancel", {});
                 },
-            }}
-        >
+            }}>
             {children}
         </schemaCompareContext.Provider>
     );

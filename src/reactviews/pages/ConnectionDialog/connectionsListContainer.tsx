@@ -160,8 +160,7 @@ export const ConnectionCard = ({
             appearance="subtle"
             onClick={() => {
                 context.loadConnection(connection);
-            }}
-        >
+            }}>
             <CardHeader
                 image={<ServerRegular fontSize={20} />}
                 header={connection.displayName}

@@ -80,16 +80,14 @@ export const TrustServerCertificateDialog = ({
                                     });
                                 }
                                 context.connect();
-                            }}
-                        >
+                            }}>
                             {locConstants.connectionDialog.enableTrustServerCertificateButton}
                         </Button>
                         <Button
                             appearance="secondary"
                             onClick={() => {
                                 context.closeDialog();
-                            }}
-                        >
+                            }}>
                             {locConstants.common.cancel}
                         </Button>
                     </DialogActions>

@@ -91,8 +91,7 @@ const CommandBar = (props: CommandBarProps) => {
                             maxView
                                 ? locConstants.queryResult.restore
                                 : locConstants.queryResult.maximize
-                        }
-                    ></Button>
+                        }></Button>
                 </Tooltip>
             )}
 

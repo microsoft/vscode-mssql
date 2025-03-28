@@ -318,8 +318,7 @@ export const ObjectExplorerFilterPage = () => {
                                     }
                                 }
                                 setUiFilters([...uiFilters]);
-                            }}
-                        >
+                            }}>
                             {item.operatorOptions.map((option) => {
                                 return (
                                     <Option key={option} value={option}>
@@ -408,8 +407,7 @@ export const ObjectExplorerFilterPage = () => {
                                 onOptionSelect={(_e, d) => {
                                     uiFilters[item.index].value = d.optionText ?? "";
                                     setUiFilters([...uiFilters]);
-                                }}
-                            >
+                                }}>
                                 {item.choices!.map((choice) => {
                                     return (
                                         <Option key={choice.name} value={choice.name}>
@@ -529,8 +527,7 @@ export const ObjectExplorerFilterPage = () => {
                 as="table"
                 size="small"
                 {...columnSizing_unstable.getTableProps()}
-                ref={tableRef}
-            >
+                ref={tableRef}>
                 <TableHeader>
                     <TableRow>
                         {columns.map((column) => {
@@ -539,8 +536,7 @@ export const ObjectExplorerFilterPage = () => {
                                     key={column.columnId}
                                     {...columnSizing_unstable.getTableHeaderCellProps(
                                         column.columnId,
-                                    )}
-                                >
+                                    )}>
                                     {column.renderHeaderCell()}
                                 </TableHeaderCell>
                             );
@@ -557,8 +553,7 @@ export const ObjectExplorerFilterPage = () => {
                                             key={column.columnId}
                                             {...columnSizing_unstable.getTableHeaderCellProps(
                                                 column.columnId,
-                                            )}
-                                        >
+                                            )}>
                                             {renderCell(column.columnId, uiFilters[index])}
                                         </TableCell>
                                     );
@@ -575,8 +570,7 @@ export const ObjectExplorerFilterPage = () => {
                     justifyContent: "space-between",
                     marginTop: "10px",
                     maxWidth: "300px",
-                }}
-            >
+                }}>
                 <Button
                     appearance="secondary"
                     onClick={() => {
@@ -591,16 +585,14 @@ export const ObjectExplorerFilterPage = () => {
                             }
                         }
                         setUiFilters([...uiFilters]);
-                    }}
-                >
+                    }}>
                     {locConstants.objectExplorerFiltering.clearAll}
                 </Button>
                 <Button
                     appearance="secondary"
                     onClick={() => {
                         provider.cancel();
-                    }}
-                >
+                    }}>
                     {locConstants.common.close}
                 </Button>
                 <Button
@@ -696,8 +688,7 @@ export const ObjectExplorerFilterPage = () => {
                             return;
                         }
                         provider.submit(filters);
-                    }}
-                >
+                    }}>
                     {locConstants.objectExplorerFiltering.ok}
                 </Button>
             </div>

@@ -101,15 +101,13 @@ export const AddFirewallRuleDialog = ({
                                     <Dropdown
                                         value={tenantDisplayText}
                                         selectedOptions={[selectedTenantId]}
-                                        onOptionSelect={onTenantOptionSelect}
-                                    >
+                                        onOptionSelect={onTenantOptionSelect}>
                                         {dialogProps.tenants.map((tenant) => {
                                             return (
                                                 <Option
                                                     text={formatTenant(tenant)}
                                                     value={tenant.id}
-                                                    key={tenant.id}
-                                                >
+                                                    key={tenant.id}>
                                                     {formatTenant(tenant)}
                                                 </Option>
                                             );
@@ -131,8 +129,7 @@ export const AddFirewallRuleDialog = ({
                                     value={ipSelectionMode}
                                     onChange={(_, data) =>
                                         setIpSelectionMode(data.value as IpSelectionMode)
-                                    }
-                                >
+                                    }>
                                     <Radio
                                         label={`Add my client IP (${dialogProps.clientIp})`}
                                         value={IpSelectionMode.SpecificIp}
@@ -145,8 +142,7 @@ export const AddFirewallRuleDialog = ({
                             </Field>
                             <div
                                 className={formStyles.formComponentDiv}
-                                style={{ marginLeft: "40px" }}
-                            >
+                                style={{ marginLeft: "40px" }}>
                                 <Label>From</Label>
                                 <Input
                                     value={startIp}
@@ -185,16 +181,14 @@ export const AddFirewallRuleDialog = ({
                                 // if adding the firewall rule is successful, it will attempt to reconnect
                                 // otherwise, it will display an error at the top of the connection dialog
                             }}
-                            icon={isProcessing ? <Spinner size="tiny" /> : undefined}
-                        >
+                            icon={isProcessing ? <Spinner size="tiny" /> : undefined}>
                             {Loc.connectionDialog.addFirewallRule}
                         </Button>
                         <Button
                             appearance="secondary"
                             onClick={() => {
                                 context.closeDialog();
-                            }}
-                        >
+                            }}>
                             {Loc.common.cancel}
                         </Button>
                     </DialogActions>

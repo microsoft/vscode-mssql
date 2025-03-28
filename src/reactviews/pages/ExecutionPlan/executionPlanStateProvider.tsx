@@ -50,8 +50,7 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ chil
                 },
                 state: webviewState?.state as ep.ExecutionPlanWebviewState,
                 themeKind: webviewState?.themeKind,
-            }}
-        >
+            }}>
             {children}
         </ExecutionPlanContext.Provider>
     );

@@ -88,8 +88,7 @@ export const AzureFilterCombobox = ({
                 orientation="horizontal"
                 required={required}
                 validationMessage={validationMessage}
-                onBlur={onBlur}
-            >
+                onBlur={onBlur}>
                 <SearchableDropdown
                     size="small"
                     selectedOption={{
@@ -104,8 +103,7 @@ export const AzureFilterCombobox = ({
                             label: val,
                         };
                     })}
-                    clearable={clearable}
-                ></SearchableDropdown>
+                    clearable={clearable}></SearchableDropdown>
             </Field>
         </div>
     );

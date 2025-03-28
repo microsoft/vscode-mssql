@@ -81,8 +81,7 @@ export const FormInput = <
                             onClick={() => setShowPassword(!showPassword)}
                             icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
-                            size="small"
-                        ></Button>
+                            size="small"></Button>
                     }
                     {...props}
                 />
@@ -152,8 +151,7 @@ export const FormField = <
                         : component.label
                 }
                 {...props}
-                style={{ color: tokens.colorNeutralForeground1 }}
-            >
+                style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
                     context,
                     component,
@@ -176,8 +174,7 @@ export const FormField = <
                                         isAction: true,
                                         value: actionButton.id,
                                     })
-                                }
-                            >
+                                }>
                                 {actionButton.label}
                             </Button>
                         );
@@ -248,14 +245,12 @@ export function generateFormComponent<
                             value: data.optionValue as string,
                         });
                     }}
-                    {...props}
-                >
+                    {...props}>
                     {component.options?.map((option, idx) => {
                         return (
                             <Option
                                 key={(component.propertyName as string) + idx}
-                                value={option.value}
-                            >
+                                value={option.value}>
                                 {option.displayName}
                             </Option>
                         );

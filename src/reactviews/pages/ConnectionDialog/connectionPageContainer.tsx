@@ -101,8 +101,7 @@ export const ConnectionInfoFormContainer = () => {
                             onChange={(_, data) => {
                                 context.setConnectionInputType(data.value as ConnectionInputMode);
                             }}
-                            value={context.state.selectedInputMode}
-                        >
+                            value={context.state.selectedInputMode}>
                             <Radio
                                 value={ConnectionInputMode.Parameters}
                                 label={
@@ -110,8 +109,7 @@ export const ConnectionInfoFormContainer = () => {
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
-                                        }}
-                                    >
+                                        }}>
                                         <Form20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.parameters}
                                     </div>
@@ -124,8 +122,7 @@ export const ConnectionInfoFormContainer = () => {
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
-                                        }}
-                                    >
+                                        }}>
                                         <SlideText20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.connectionString}
                                     </div>
@@ -138,8 +135,7 @@ export const ConnectionInfoFormContainer = () => {
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
-                                        }}
-                                    >
+                                        }}>
                                         <Image
                                             src={azureIcon(context.themeKind)}
                                             alt="Azure"

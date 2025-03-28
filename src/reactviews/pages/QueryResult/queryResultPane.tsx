@@ -259,8 +259,7 @@ export const QueryResultPane = () => {
                         ? state.fontSettings.fontFamily
                         : "var(--vscode-editor-font-family)",
                     fontSize: `${state.fontSettings.fontSize ?? 12}px`,
-                }}
-            >
+                }}>
                 <ResultGrid
                     loadFunc={(offset: number, count: number): Thenable<any[]> => {
                         console.debug("getRows rpc call", {
@@ -414,8 +413,7 @@ export const QueryResultPane = () => {
                                             selectionData: item.selection,
                                         });
                                     }}
-                                    inline
-                                >
+                                    inline>
                                     {item?.link?.text}
                                 </Link>
                             </div>
@@ -430,8 +428,7 @@ export const QueryResultPane = () => {
                                     color: item.isError
                                         ? "var(--vscode-errorForeground)"
                                         : undefined,
-                                }}
-                            >
+                                }}>
                                 {item.message}
                             </div>
                         </DataGridCell>
@@ -473,8 +470,7 @@ export const QueryResultPane = () => {
                 columns={columns}
                 focusMode="cell"
                 resizableColumns={true}
-                columnSizingOptions={columnSizingOption}
-            >
+                columnSizingOptions={columnSizingOption}>
                 <DataGridBody<qr.IMessage> itemSize={18} height={messageGridHeight}>
                     {renderRow}
                 </DataGridBody>
@@ -525,8 +521,7 @@ export const QueryResultPane = () => {
                         await webViewState.extensionRpc.call("executeCommand", {
                             command: "workbench.action.closePanel",
                         });
-                    }}
-                >
+                    }}>
                     {locConstants.queryResult.clickHereToHideThisPanel}
                 </Link>
             </div>
@@ -540,27 +535,23 @@ export const QueryResultPane = () => {
                     onTabSelect={(_event, data) => {
                         context.setResultTab(data.value as qr.QueryResultPaneTabs);
                     }}
-                    className={classes.queryResultPaneTabs}
-                >
+                    className={classes.queryResultPaneTabs}>
                     {Object.keys(state.resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
-                            key={qr.QueryResultPaneTabs.Results}
-                        >
+                            key={qr.QueryResultPaneTabs.Results}>
                             {locConstants.queryResult.results}
                         </Tab>
                     )}
                     <Tab
                         value={qr.QueryResultPaneTabs.Messages}
-                        key={qr.QueryResultPaneTabs.Messages}
-                    >
+                        key={qr.QueryResultPaneTabs.Messages}>
                         {locConstants.queryResult.messages}
                     </Tab>
                     {Object.keys(state.resultSetSummaries).length > 0 && state.isExecutionPlan && (
                         <Tab
                             value={qr.QueryResultPaneTabs.ExecutionPlan}
-                            key={qr.QueryResultPaneTabs.ExecutionPlan}
-                        >
+                            key={qr.QueryResultPaneTabs.ExecutionPlan}>
                             {locConstants.queryResult.queryPlan}
                         </Tab>
                     )}
@@ -576,8 +567,7 @@ export const QueryResultPane = () => {
                             });
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
-                        style={{ marginTop: "4px", marginBottom: "4px" }}
-                    >
+                        style={{ marginTop: "4px", marginBottom: "4px" }}>
                         {locConstants.queryResult.openResultInNewTab}
                     </Button>
                 )}
@@ -592,8 +582,7 @@ export const QueryResultPane = () => {
                         data-vscode-context={JSON.stringify({
                             webviewSection: "queryResultMessagesPane",
                             uri: state?.uri,
-                        })}
-                    >
+                        })}>
                         {renderMessageGrid()}
                     </div>
                 )}
@@ -602,8 +591,7 @@ export const QueryResultPane = () => {
                         <div
                             id={"executionPlanResultsTab"}
                             className={classes.queryResultContainer}
-                            style={{ height: "100%", minHeight: "300px" }}
-                        >
+                            style={{ height: "100%", minHeight: "300px" }}>
                             <ExecutionPlanStateProvider>
                                 <ExecutionPlanPage />
                             </ExecutionPlanStateProvider>

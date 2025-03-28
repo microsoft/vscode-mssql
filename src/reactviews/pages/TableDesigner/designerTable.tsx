@@ -303,8 +303,7 @@ export const DesignerTable = ({
                                 value: undefined,
                             });
                         }}
-                        size="small"
-                    >
+                        size="small">
                         {tableProps.labelForAddNewButton}
                     </fluentui.Button>
                 )}
@@ -317,8 +316,7 @@ export const DesignerTable = ({
                         }}
                         disabled={focusedRowId === undefined || focusedRowId === 0}
                         size="small"
-                        appearance="transparent"
-                    >
+                        appearance="transparent">
                         {MOVE_UP}
                     </fluentui.Button>
                 )}
@@ -331,8 +329,7 @@ export const DesignerTable = ({
                         }}
                         disabled={focusedRowId === undefined || focusedRowId === rows.length - 1}
                         size="small"
-                        appearance="transparent"
-                    >
+                        appearance="transparent">
                         {MOVE_DOWN}
                     </fluentui.Button>
                 )}
@@ -345,8 +342,7 @@ export const DesignerTable = ({
                     paddingBottom: "5px",
                     paddingRight: "5px",
                     paddingLeft: "5px",
-                }}
-            >
+                }}>
                 <fluentui.Table
                     as="table"
                     size="extra-small"
@@ -358,14 +354,12 @@ export const DesignerTable = ({
                             Object.keys(columnSizingOptions).reduce((acc, curr) => {
                                 return acc + columnSizingOptions[curr].idealWidth! + 22;
                             }, 0) - 20,
-                    }}
-                >
+                    }}>
                     <fluentui.TableHeader
                         style={{
                             marginBottom: "5px",
                             backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
-                        }}
-                    >
+                        }}>
                         <fluentui.TableRow>
                             {columnsDef.map((column) => {
                                 return (
@@ -373,8 +367,7 @@ export const DesignerTable = ({
                                         {...columnSizing_unstable.getTableHeaderCellProps(
                                             column.columnId,
                                         )}
-                                        key={column.columnId}
-                                    >
+                                        key={column.columnId}>
                                         {column.renderHeaderCell()}
                                     </fluentui.TableHeaderCell>
                                 );
@@ -426,8 +419,7 @@ export const DesignerTable = ({
                                         setFocusedRowId(index);
                                         event.preventDefault();
                                     }}
-                                    key={componentPath.join(".") + index}
-                                >
+                                    key={componentPath.join(".") + index}>
                                     {columnsDef.map((column, columnIndex) => {
                                         return (
                                             <fluentui.TableCell
@@ -439,8 +431,7 @@ export const DesignerTable = ({
                                                 style={{
                                                     height: "30px",
                                                     paddingBottom: "5px",
-                                                }}
-                                            >
+                                                }}>
                                                 {getTableCell(row, column.columnId, index)}
                                             </fluentui.TableCell>
                                         );

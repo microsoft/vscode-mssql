@@ -113,8 +113,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
             style={{
                 background: tokens.colorNeutralBackground1,
             }}
-            aria-label={highlightedElement}
-        >
+            aria-label={highlightedElement}>
             <div>{locConstants.executionPlan.metric}</div>
             <div style={{ paddingRight: "12px" }} />
             <Combobox
@@ -123,8 +122,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
                 input={{ style: { textOverflow: "ellipsis" } }}
                 listbox={{ style: { minWidth: "fit-content" } }}
                 onOptionSelect={(_, data) => setHighlightMetricSelected(data.optionText ?? "")}
-                ref={inputRef}
-            >
+                ref={inputRef}>
                 {highlightMetricOptions.map((option) => (
                     <Option key={option}>{option}</Option>
                 ))}

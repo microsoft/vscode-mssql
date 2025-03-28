@@ -196,16 +196,14 @@ export const DesignerResultPane = () => {
                     onTabSelect={(_event, data) => {
                         context.setResultTab(data.value as DesignerResultPaneTabs);
                     }}
-                    className={classes.designerResultPaneTabs}
-                >
+                    className={classes.designerResultPaneTabs}>
                     <Tab value={DesignerResultPaneTabs.Script} key={DesignerResultPaneTabs.Script}>
                         {locConstants.tableDesigner.scriptAsCreate}
                     </Tab>
                     {state.issues?.length !== 0 && (
                         <Tab
                             value={DesignerResultPaneTabs.Issues}
-                            key={DesignerResultPaneTabs.Issues}
-                        >
+                            key={DesignerResultPaneTabs.Issues}>
                             {locConstants.tableDesigner.issuesTabHeader(state.issues?.length!)}
                         </Tab>
                     )}
@@ -217,8 +215,7 @@ export const DesignerResultPane = () => {
                             appearance="outline"
                             onClick={() => context.scriptAsCreate()}
                             title={locConstants.tableDesigner.openInEditor}
-                            icon={<OpenFilled />}
-                        >
+                            icon={<OpenFilled />}>
                             {locConstants.tableDesigner.openInEditor}
                         </Button>
                         <Button
@@ -226,8 +223,7 @@ export const DesignerResultPane = () => {
                             appearance="outline"
                             onClick={() => context.copyScriptAsCreateToClipboard()}
                             title={locConstants.tableDesigner.copyScript}
-                            icon={<CopyFilled />}
-                        >
+                            icon={<CopyFilled />}>
                             {locConstants.tableDesigner.copyScript}
                         </Button>
                     </>
@@ -270,8 +266,7 @@ export const DesignerResultPane = () => {
                             value={(state?.model!["script"] as InputBoxProperties).value ?? ""}
                             options={{
                                 readOnly: true,
-                            }}
-                        ></Editor>
+                            }}></Editor>
                     </div>
                 )}
                 {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Issues &&
@@ -282,8 +277,7 @@ export const DesignerResultPane = () => {
                                     return (
                                         <ListItem
                                             key={`issue-${index}`}
-                                            onAction={async () => openAndFocusIssueComponet(item)}
-                                        >
+                                            onAction={async () => openAndFocusIssueComponet(item)}>
                                             <div className={classes.issuesRows}>
                                                 {item.severity === "error" && (
                                                     <ErrorCircleRegular

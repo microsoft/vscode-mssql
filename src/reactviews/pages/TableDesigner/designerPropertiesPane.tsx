@@ -107,8 +107,7 @@ export const DesignerPropertiesPane = () => {
                     border: "0.5px solid var(--vscode-editorWidget-border)",
                     borderRadius: "2px",
                     margin: "10px",
-                }}
-            >
+                }}>
                 <AccordionHeader>{group}</AccordionHeader>
                 <AccordionPanel>
                     <div className={classes.group}>
@@ -284,8 +283,7 @@ export const DesignerPropertiesPane = () => {
                     style={{
                         flex: 1,
                         lineHeight: "28px",
-                    }}
-                >
+                    }}>
                     {locConstants.tableDesigner.propertiesPaneTitle(
                         parentTableProperties.objectTypeDisplayName ?? "",
                     )}

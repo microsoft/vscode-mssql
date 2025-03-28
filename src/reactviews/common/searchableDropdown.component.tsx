@@ -215,8 +215,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         }
                         setIsSearchFocused(false);
                     }
-                }}
-            >
+                }}>
                 {getOptionDisplayText(option)}
             </MenuItemRadio>
         ));
@@ -299,8 +298,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             checkedValues={{
                 "dropdown-options": [selectedOption.value],
             }}
-            aria-label={props.ariaLabel || "options"}
-        >
+            aria-label={props.ariaLabel || "options"}>
             <MenuTrigger disableButtonEnhancement>
                 <Button
                     id={id}
@@ -317,15 +315,13 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         ...props.style,
                         justifyContent: "space-between",
                         fontWeight: 400,
-                    }}
-                >
+                    }}>
                     <Text
                         style={{
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                         }}
-                        title={getOptionDisplayText(selectedOption, props.placeholder)}
-                    >
+                        title={getOptionDisplayText(selectedOption, props.placeholder)}>
                         {getOptionDisplayText(selectedOption, props.placeholder)}
                     </Text>
                 </Button>
@@ -371,8 +367,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                 searchBoxRef.current?.focus();
                                 searchBoxRef.current.value = e.key;
                             }
-                        }}
-                    >
+                        }}>
                         {renderOptions()}
                     </div>
                 </MenuList>

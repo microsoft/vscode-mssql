@@ -147,15 +147,13 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                 state: state,
                 themeKind: theme,
                 localization: localization,
-            }}
-        >
+            }}>
             <FluentProvider
                 style={{
                     height: "100%",
                     width: "100%",
                 }}
-                theme={webviewTheme}
-            >
+                theme={webviewTheme}>
                 {
                     // don't render webview unless necessary dependencies are initialized
                     isInitialized() && children
