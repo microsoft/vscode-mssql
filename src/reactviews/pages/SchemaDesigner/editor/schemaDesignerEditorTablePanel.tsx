@@ -453,7 +453,6 @@ const ColumnsTable = ({
                     ))}
                 </TableRow>
             </TableHeader>
-            <Divider className={classes.fullWidthDivider} />
             <TableBody>
                 {getRows().map((row, index) => (
                     <TableRow key={index}>

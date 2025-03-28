@@ -187,9 +187,6 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
 // TableColumn component for rendering a single column
 const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
     const styles = useStyles();
-
-    console.log("Rendering column:", column);
-
     return (
         <div className={"column"} key={column.name}>
             <Handle

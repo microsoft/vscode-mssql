@@ -126,7 +126,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.registerRequestHandler("initializeSchemaDesigner", async () => {
-            console.log("initializeSchemaDesigner");
             const sessionResponse =
                 await this.schemaDesignerService.createSession({
                     connectionUri: this.connectionUri,
