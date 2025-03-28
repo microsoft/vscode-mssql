@@ -268,7 +268,8 @@
         "id": "mssql.agent",
         "name": "mssql",
         "description": "Azure SQL Copilot agent",
-        "commands": []
+        "commands": [],
+        "isSticky":true
       }
     ],
     "customEditors": [
@@ -423,6 +424,11 @@
           "group": "MS_SQL@1"
         },
         {
+          "command": "mssql.objectExplorerChatWithDatabase",
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/",
+          "group": "MS_SQL@11"
+        },
+        {
           "command": "mssql.filterNode",
           "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
           "group": "inline@1"
@@ -538,6 +544,10 @@
         {
           "command": "mssql.objectExplorerNewQuery",
           "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+        },
+        {
+          "command": "mssql.objectExplorerChatWithDatabase",
+          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
         },
         {
           "command": "mssql.schemaCompare",
@@ -772,6 +782,11 @@
       {
         "command": "mssql.objectExplorerNewQuery",
         "title": "%mssql.objectExplorerNewQuery%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.objectExplorerChatWithDatabase",
+        "title": "%mssql.objectExplorerChatWithDatabase%",
         "category": "MS SQL"
       },
       {
