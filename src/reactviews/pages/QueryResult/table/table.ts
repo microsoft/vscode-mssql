@@ -266,14 +266,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         slickEvent.subscribe((e: Slick.EventData) => {
             const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
             const cell = this._grid.getCellFromEvent(originalEvent!);
-            // const anchor =
-            //     originalEvent instanceof MouseEvent
-            //         ? { x: originalEvent.x, y: originalEvent.y }
-            //         : (originalEvent!.srcElement as HTMLElement);
             if (cell) {
                 this.handleLinkClick(cell);
             }
-            // emitter.fire({ anchor, cell });
         });
     }
 
