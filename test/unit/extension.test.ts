@@ -5,7 +5,12 @@
 
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
-import { IConnectionInfo, IExtension, ITreeNodeInfo } from "vscode-mssql";
+import {
+    IConnectionInfo,
+    IExtension,
+    IServerInfo,
+    ITreeNodeInfo,
+} from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
 import * as Extension from "../../src/extension";
 import { activateExtension } from "./utils";
@@ -27,6 +32,7 @@ suite("Extension API Tests", () => {
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
     let connectionUi: TypeMoq.IMock<ConnectionUI>;
+    let originalConnectionManager: ConnectionManager;
 
     setup(async () => {
         vscodeMssql = await activateExtension();
@@ -60,7 +66,12 @@ suite("Extension API Tests", () => {
             .setup((cm) => cm.connectionUI)
             .returns(() => connectionUi.object);
 
+        originalConnectionManager = mainController.connectionManager;
         mainController.connectionManager = connectionManager.object;
+    });
+
+    teardown(() => {
+        mainController.connectionManager = originalConnectionManager;
     });
 
     test("Gets sqlToolsServicePath", async () => {
@@ -227,5 +238,79 @@ suite("Extension API Tests", () => {
         );
 
         expect(result).to.equal(mockConnectionString);
+    });
+
+    test("createConnectionDetails", async () => {
+        const testConnInfo: IConnectionInfo = {
+            server: "testServer",
+            database: "testDb",
+        } as IConnectionInfo;
+
+        connectionManager
+            .setup((c) => c.createConnectionDetails(TypeMoq.It.isAny()))
+            .returns(() => ({
+                options: {
+                    server: "testServer",
+                    database: "testDb",
+                },
+            }));
+
+        const result = vscodeMssql.createConnectionDetails(testConnInfo);
+
+        connectionManager.verify(
+            (c) => c.createConnectionDetails(testConnInfo),
+            TypeMoq.Times.once(),
+        );
+
+        expect(result.options.server).to.equal("testServer");
+        expect(result.options.database).to.equal("testDb");
+    });
+
+    test("sendRequest", async () => {
+        const mockRequestType = { method: "testMethod" } as any;
+        const mockParams = { param1: "value1" };
+        const mockResponse = { success: true };
+
+        connectionManager
+            .setup((c) => c.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(mockResponse));
+
+        const result = await vscodeMssql.sendRequest(
+            mockRequestType,
+            mockParams,
+        );
+
+        connectionManager.verify(
+            (c) => c.sendRequest(mockRequestType, mockParams),
+            TypeMoq.Times.once(),
+        );
+
+        expect(result).to.deep.equal(mockResponse);
+    });
+
+    test("getServerInfo", () => {
+        const testConnInfo: IConnectionInfo = {
+            server: "testServer",
+            database: "testDb",
+        } as IConnectionInfo;
+
+        const mockServerInfo = {
+            serverVersion: "15.0",
+            serverEdition: "Standard",
+        } as any as IServerInfo;
+
+        connectionManager
+            .setup((c) => c.getServerInfo(TypeMoq.It.isAny()))
+            .returns(() => mockServerInfo);
+
+        const result = vscodeMssql.getServerInfo(testConnInfo);
+
+        connectionManager.verify(
+            (c) => c.getServerInfo(testConnInfo),
+            TypeMoq.Times.once(),
+        );
+
+        expect(result.serverVersion).to.equal("15.0");
+        expect(result.serverEdition).to.equal("Standard");
     });
 });
