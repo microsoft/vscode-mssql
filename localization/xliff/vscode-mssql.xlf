@@ -1797,7 +1797,7 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
-    <trans-unit id="mssql.designSchema">
+    <trans-unit id="mssql.mssql.designSchema">
       <source xml:lang="en">Design Schema (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
